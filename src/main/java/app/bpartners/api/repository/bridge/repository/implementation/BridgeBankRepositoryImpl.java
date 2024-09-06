@@ -68,6 +68,6 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
 
   @Override
   public boolean deleteItem(Long itemId, String token) {
-    return bridgeApi.deleteItem(itemId, AuthProvider.getBearer());
+    return bridgeApi.deleteItem(itemId, AuthProvider.getAuthenticatedUser().getAccessToken());
   }
 }

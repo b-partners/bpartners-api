@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.event;
 
-import app.bpartners.api.service.aws.AWSServiceConf;
+import app.bpartners.api.service.aws.AWSProviderConf;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +10,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 
 @Configuration
-public class SnsConf extends AWSServiceConf {
+public class SnsConf extends AWSProviderConf {
   private final Region region;
   @Getter private final String snsPlatformArn;
 

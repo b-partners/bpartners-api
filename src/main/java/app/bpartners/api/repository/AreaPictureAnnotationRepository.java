@@ -6,7 +6,11 @@ import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 
 public interface AreaPictureAnnotationRepository {
-  List<AreaPictureAnnotation> findAllBy(String idUser, String idAreaPicture, Pageable pageable);
+  List<AreaPictureAnnotation> findAllBy(
+      String idUser, String idAreaPicture, Boolean isDraft, Pageable pageable);
+
+  List<AreaPictureAnnotation> findAllByIsDraftAndAccountId(
+      String idUser, Boolean isDraft, Pageable pageable);
 
   Optional<AreaPictureAnnotation> findBy(String idUser, String idAreaPicture, String id);
 

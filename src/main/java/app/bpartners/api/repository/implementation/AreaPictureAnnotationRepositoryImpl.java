@@ -20,8 +20,10 @@ public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotatio
 
   @Override
   public List<AreaPictureAnnotation> findAllBy(
-      String idUser, String idAreaPicture, Pageable pageable) {
-    return jpaRepository.findAllByIdUserAndIdAreaPicture(idUser, idAreaPicture, pageable).stream()
+      String idUser, String idAreaPicture, Boolean isDraft, Pageable pageable) {
+    return jpaRepository
+        .findAllByIdUserAndIdAreaPictureAndIsDraft(idUser, idAreaPicture, isDraft, pageable)
+        .stream()
         .map(mapper::toDomain)
         .collect(toUnmodifiableList());
   }
@@ -34,5 +36,13 @@ public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotatio
   @Override
   public AreaPictureAnnotation save(AreaPictureAnnotation areaPictureAnnotation) {
     return mapper.toDomain(jpaRepository.save(mapper.toEntity(areaPictureAnnotation)));
+  }
+
+  @Override
+  public List<AreaPictureAnnotation> findAllByIsDraftAndAccountId(
+      String idUser, Boolean isDraft, Pageable pageable) {
+    return jpaRepository.findAllByIdUserAndIsDraft(idUser, isDraft, pageable).stream()
+        .map(mapper::toDomain)
+        .toList();
   }
 }

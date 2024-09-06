@@ -37,6 +37,7 @@ public class PaymentInitiationService {
   }
 
   public PaymentRedirection initiateInvoicePayment(Invoice invoice) {
+    log.info("Initiate invoice payment processing");
     if (Objects.equals(invoice.getTotalPriceWithVat(), new Fraction())) {
       return new PaymentRedirection();
     }
@@ -50,6 +51,7 @@ public class PaymentInitiationService {
             invoice,
             paymentReg,
             paymentHistoryStatus);
+    log.info("Payment initiation: {}", paymentInitiation);
     return repository
         .saveAll(List.of(paymentInitiation), invoice.getId(), invoice.getUser())
         .get(0);

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Money;
@@ -44,6 +45,7 @@ class TransactionServiceSummariesTest {
   UserService userServiceMock;
   FileService fileServiceMock;
   TransactionSupportingDocsJpaRepository docsJpaRepositoryMock;
+  FileWriter fileWriterMock;
 
   private static Account joeDoeAccount() {
     return Account.builder().userId(JOE_DOE_ID).availableBalance(new Money()).build();
@@ -60,6 +62,7 @@ class TransactionServiceSummariesTest {
     userServiceMock = mock(UserService.class);
     fileServiceMock = mock(FileService.class);
     docsJpaRepositoryMock = mock(TransactionSupportingDocsJpaRepository.class);
+    fileWriterMock = mock();
     transactionService =
         new TransactionService(
             dbTransactionRepository,
@@ -70,7 +73,8 @@ class TransactionServiceSummariesTest {
             invoiceServiceMock,
             s3ServiceMock,
             userServiceMock,
-            fileServiceMock);
+            fileServiceMock,
+            fileWriterMock);
 
     when(dbTransactionRepository.findByAccountIdAndStatusBetweenInstants(
             any(), any(), any(), any()))

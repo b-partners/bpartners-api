@@ -77,6 +77,7 @@ public class PaymentInitiationRepositoryImpl implements PaymentInitiationReposit
             domain, authenticatedUser.getDefaultAccount(), authenticatedUser.getDefaultHolder());
     FPaymentRedirection paymentRedirection =
         repository.save(paymentInitiation, domain.getSuccessUrl());
+    log.info("Payment redirection: {}", paymentRedirection);
     HPaymentRequest entity = paymentRequestMapper.toEntity(paymentRedirection, domain, invoice);
     paymentRequestRepository.save(entity);
     return paymentRedirection;

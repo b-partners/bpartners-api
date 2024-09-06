@@ -5,6 +5,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpProvider;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,10 +14,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
@@ -36,8 +37,12 @@ import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.InvoiceRelaunchConfService;
 import app.bpartners.api.service.InvoiceRelaunchService;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
+import app.bpartners.api.service.invoice.InvoicePDFGenerator;
+import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -46,35 +51,28 @@ import org.springframework.data.domain.PageRequest;
 
 class InvoiceRelaunchServiceTest {
   private static final String RANDOM_CONF_ID = "random conf id";
-  private InvoiceRelaunchService invoiceRelaunchService;
-  private UserInvoiceRelaunchConfRepository accountInvoiceRelaunchRepository;
-  private InvoiceRelaunchRepository invoiceRelaunchRepository;
+  private InvoiceRelaunchService invoiceRelaunchService = mock();
+  private UserInvoiceRelaunchConfRepository accountInvoiceRelaunchRepository = mock();
+  private InvoiceRelaunchRepository invoiceRelaunchRepository = mock();
   private InvoiceRelaunchValidator invoiceRelaunchValidator = new InvoiceRelaunchValidator();
-  private InvoiceRepository invoiceRepository;
-  private InvoiceJpaRepository invoiceJpaRepository;
-  private InvoiceRelaunchConfService relaunchConfService;
-  private AccountHolderService holderService;
-  private EventProducer eventProducer;
-  private PrincipalProvider auth;
-  private FileService fileService;
-  private AttachmentService attachmentService;
-  private SesConf sesConf;
-  private SesService sesServiceMock;
+  private InvoiceRepository invoiceRepository = mock();
+  private InvoiceJpaRepository invoiceJpaRepository = mock();
+  private InvoiceRelaunchConfService relaunchConfService = mock();
+  private AccountHolderService holderService = mock();
+  private PrincipalProvider auth = mock();
+  private FileService fileService = mock();
+  private AttachmentService attachmentService = mock();
+  private SesConf sesConf = mock();
+  private SesService sesServiceMock = mock();
+  InvoicePDFGenerator invoicePDFGeneratorMock = mock();
+  InvoiceRelaunchSavedService invoiceRelaunchSavedServiceMock = mock();
+  FileWriter fileWriterMock = mock();
 
-  private @BeforeEach void setUp() {
-    accountInvoiceRelaunchRepository = mock(UserInvoiceRelaunchConfRepository.class);
-    invoiceRelaunchRepository = mock(InvoiceRelaunchRepository.class);
-    invoiceRepository = mock(InvoiceRepository.class);
-    invoiceJpaRepository = mock(InvoiceJpaRepository.class);
-    relaunchConfService = mock(InvoiceRelaunchConfService.class);
-    holderService = mock(AccountHolderService.class);
-    eventProducer = mock(EventProducer.class);
-    auth = mock(PrincipalProvider.class);
-    fileService = mock(FileService.class);
-    attachmentService = mock(AttachmentService.class);
-    sesConf = mock(SesConf.class);
-    sesServiceMock = mock(SesService.class);
+  @SneakyThrows
+  @BeforeEach
+  void setUp() {
     setUpProvider(auth);
+
     invoiceRelaunchService =
         new InvoiceRelaunchService(
             accountInvoiceRelaunchRepository,
@@ -88,7 +86,10 @@ class InvoiceRelaunchServiceTest {
             fileService,
             attachmentService,
             sesConf,
-            sesServiceMock);
+            invoicePDFGeneratorMock,
+            sesServiceMock,
+            invoiceRelaunchSavedServiceMock,
+            fileWriterMock);
     when(invoiceJpaRepository.findAllByToBeRelaunched(true))
         .thenReturn(
             List.of(
@@ -133,7 +134,8 @@ class InvoiceRelaunchServiceTest {
                 .build());
     when(holderService.getDefaultByAccountId(JOE_DOE_ACCOUNT_ID))
         .thenReturn(AccountHolder.builder().build());
-    when(fileService.downloadFile(any(), any(), any())).thenReturn(new byte[0]);
+    when(fileService.downloadFile(any(), any(), any()))
+        .thenReturn(File.createTempFile(randomUUID().toString(), randomUUID().toString()));
     when(attachmentService.saveAll(any(), any())).thenReturn(List.of());
   }
 

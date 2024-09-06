@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.InvoiceRelaunchSaved;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
@@ -24,6 +25,8 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
+import app.bpartners.api.service.invoice.InvoicePDFGenerator;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -32,21 +35,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class InvoiceRelaunchSavedServiceTest {
-  public static final byte[] logoAsBytes = new byte[0];
-  InvoiceRelaunchSavedService invoiceRelaunchSavedService;
-  SesService sesService;
-  FileService fileService;
-  SesConf sesConf;
+  InvoiceRelaunchSavedService subject;
+  SesService sesServiceMock;
+  FileService fileServiceMock;
+  SesConf sesConfMock;
+  InvoicePDFGenerator invoicePDFGeneratorMock;
+  FileWriter fileWriterMock;
 
   @BeforeEach
   void setUp() throws MessagingException, IOException {
-    sesService = mock(SesService.class);
-    fileService = mock(FileService.class);
-    sesConf = mock(SesConf.class);
-    invoiceRelaunchSavedService = new InvoiceRelaunchSavedService(sesService, fileService, sesConf);
+    sesServiceMock = mock(SesService.class);
+    fileServiceMock = mock(FileService.class);
+    sesConfMock = mock(SesConf.class);
+    fileWriterMock = mock();
+    invoicePDFGeneratorMock = mock();
 
-    doNothing().when(sesService).sendEmail(any(), any(), any(), any(), any());
-    when(fileService.downloadOptionalFile(any(), any(), any())).thenReturn(List.of(logoAsBytes));
+    subject =
+        new InvoiceRelaunchSavedService(
+            sesServiceMock, fileServiceMock, invoicePDFGeneratorMock, fileWriterMock, sesConfMock);
+
+    doNothing().when(sesServiceMock).sendEmail(any(), any(), any(), any(), any());
+    when(fileServiceMock.downloadFile(any(), any(), any()))
+        .thenReturn(File.createTempFile(randomUUID().toString(), randomUUID().toString()));
   }
 
   @Test
@@ -55,7 +65,7 @@ class InvoiceRelaunchSavedServiceTest {
     String subject = "Objet du mail";
     String htmlBody = "<html><body>Corps du mail</body></html>";
 
-    invoiceRelaunchSavedService.accept(
+    this.subject.accept(
         InvoiceRelaunchSaved.builder()
             .recipient(recipient)
             .subject(subject)
@@ -67,7 +77,7 @@ class InvoiceRelaunchSavedServiceTest {
             .attachments(List.of())
             .build());
 
-    verify(sesService, times(1))
+    verify(sesServiceMock, times(1))
         .sendEmail(eq(recipient), any(), eq(subject), eq(htmlBody), any(), any());
   }
 

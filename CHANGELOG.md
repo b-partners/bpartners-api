@@ -1,3 +1,22 @@
+# [0.52.0](https://github.com/b-partners/bpartners-api/compare/v0.50.1...v0.52.0) (2024-09-05)
+
+
+### Bug Fixes
+
+* handle concurrent invoice crupdate ([6f5fc9c](https://github.com/b-partners/bpartners-api/commit/6f5fc9c6dc775855fdaa133de90af3bc5c6539c1))
+* retrieve bbox with the exact values ([5d8989d](https://github.com/b-partners/bpartners-api/commit/5d8989dcd5117925f152ac34433b3b5b0749006a))
+* use access token instead of bearer when deleting bridge item ([46b0bb1](https://github.com/b-partners/bpartners-api/commit/46b0bb16fdefa3c9b04ab86c47028a2c956ebe87))
+
+
+### Features
+
+* add ign geoserver image source ([24beca7](https://github.com/b-partners/bpartners-api/commit/24beca77ba856949644f82b411324b2b8ef507c9))
+* add isDraft on AreaPictureAnnotation ([b4e8390](https://github.com/b-partners/bpartners-api/commit/b4e839085e9871b7abd72111812339cb36c53b38))
+* change get draft annotation response ([d8accec](https://github.com/b-partners/bpartners-api/commit/d8accec77fcdb1892c7f213957797ed8843429f4))
+* get draft annotations by accountId ([842b192](https://github.com/b-partners/bpartners-api/commit/842b192b5b426d93221dd720cea50bfc5c39f831))
+
+
+
 ## [0.50.1](https://github.com/b-partners/bpartners-api/compare/v0.50.0...v0.50.1) (2024-07-05)
 
 
@@ -90,28 +109,6 @@
 ### Features
 
 * add colors, obstacle and comment to annotation instance metadata ([cc205bf](https://github.com/b-partners/bpartners-api/commit/cc205bf797c139eca133c1598b232f3f54c37961))
-
-
-
-# [0.42.0](https://github.com/b-partners/bpartners-api/compare/v0.41.0...v0.42.0) (2024-04-24)
-
-
-### Bug Fixes
-
-* bad file naming in area_picture ([c83a4eb](https://github.com/b-partners/bpartners-api/commit/c83a4ebc6905576b0af5f4f7d4134430efd0400d))
-* missing mapped data from prospect to customer ([037897f](https://github.com/b-partners/bpartners-api/commit/037897f50496f431ccf0658cf8cf12b30b45d317))
-* NPE on customer.location when prospect.location is null ([615730f](https://github.com/b-partners/bpartners-api/commit/615730fc4b28efc9e60a2cf690912f778e277dbf))
-
-
-### Features
-
-* add labelType to AreaPictureAnnotationInstance ([d620268](https://github.com/b-partners/bpartners-api/commit/d620268717c6f9efd4bfa4565bab7b3b275e1855))
-* annotate area pictures and read made annotations ([eb7e8e7](https://github.com/b-partners/bpartners-api/commit/eb7e8e7ea3f1c1d9ee70161ac83ec740b71e266e))
-* crupdate prospect crupdates customer, however if customer exists, it updates the isConverted field only ([040faa9](https://github.com/b-partners/bpartners-api/commit/040faa9e7069c006eb33b50dd316fa51201fc0c6))
-* default osm layer TOUS_FR containing all regions, but quality might be poor ([9d0d70f](https://github.com/b-partners/bpartners-api/commit/9d0d70fbcf1bd80ed647a661dc2aa3d7df841be3))
-* filter customers by id prospect ([60dfa6c](https://github.com/b-partners/bpartners-api/commit/60dfa6c2b11b41ee2c5dd4e8579d01a9c326b7f8))
-* map invoice with area picture ([74786f8](https://github.com/b-partners/bpartners-api/commit/74786f8280d2c568234bfaf4a0e505c073591470))
-* set openstreetmap layer from given layer or from geoposition via src/main/resources/files/france-geojson/departements.geojson, only use tous_fr for now and log most used regions ([13bc3c9](https://github.com/b-partners/bpartners-api/commit/13bc3c9f65493fff2d48353f5ce02f31919bc256))
 
 
 

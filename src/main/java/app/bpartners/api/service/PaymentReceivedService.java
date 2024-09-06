@@ -13,15 +13,17 @@ import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Fraction;
+import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
+import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.implementation.InvoiceRepositoryImpl;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.utils.DateUtils;
 import app.bpartners.api.service.utils.TemplateResolverUtils;
 import java.security.Signature;
@@ -48,9 +50,10 @@ public class PaymentReceivedService {
   private final SesService sesService;
   private final SesConf sesConf;
   private final UserRepository userRepository;
+  private final InvoiceRepository invoiceRepository;
   private final InvoiceJpaRepository invoiceJpaRepository;
-  private final InvoiceRepositoryImpl invoiceRepositoryImpl;
   private final SnsService snsService;
+  private final InvoicePDFProcessor invoicePDFProcessor;
 
   @SneakyThrows
   public void updatePaymentStatuses(Map<String, String> paymentStatusMap) {
@@ -111,8 +114,8 @@ public class PaymentReceivedService {
                   }
                 }
                 HInvoice savedInvoice = invoiceJpaRepository.save(toRefresh);
-                invoiceRepositoryImpl.processAsPdf(
-                    invoiceRepositoryImpl.getById(savedInvoice.getId()));
+                Invoice retrievedInvoice = invoiceRepository.getById(savedInvoice.getId());
+                invoicePDFProcessor.apply(retrievedInvoice);
                 log.info("{} Invoice is refreshed with its PDF", invoice.describe());
               });
       log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");

@@ -36,6 +36,9 @@ public class HAreaPictureAnnotation {
         + ", idAreaPicture='"
         + idAreaPicture
         + '\''
+        + ", isDraft='"
+        + isDraft
+        + '\''
         + '}';
   }
 
@@ -43,7 +46,8 @@ public class HAreaPictureAnnotation {
   @CreationTimestamp private Instant creationDatetime;
   private String idUser;
   private String idAreaPicture;
+  private Boolean isDraft;
 
-  @OneToMany(mappedBy = "idAnnotation", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "idAnnotation", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<HAreaPictureAnnotationInstance> annotationInstances;
 }

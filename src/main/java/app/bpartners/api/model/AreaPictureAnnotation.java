@@ -18,6 +18,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class AreaPictureAnnotation {
   @Id private String id;
+  private Boolean isDraft;
   private Instant creationDatetime;
   private String idUser;
   private String idAreaPicture;

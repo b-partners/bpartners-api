@@ -3,7 +3,6 @@ package app.bpartners.api.integration.conf;
 import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.SentryConf;
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.S3Conf;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.repository.LegalFileRepository;
@@ -24,7 +23,6 @@ public class MockedThirdParties extends FacadeIT {
   @MockBean protected BuildingPermitConf buildingPermitConf;
   @MockBean protected SentryConf sentryConf;
   @MockBean protected SendinblueConf sendinblueConf;
-  @MockBean protected S3Conf s3Conf;
   @MockBean protected CognitoComponent cognitoComponentMock;
   @MockBean protected FintectureConf fintectureConf;
   @MockBean protected ProjectTokenManager projectTokenManager;

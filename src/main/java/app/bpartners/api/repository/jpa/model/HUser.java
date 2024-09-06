@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa.model;
 
 import static io.hypersistence.utils.hibernate.type.array.internal.AbstractArrayType.SQL_ARRAY_TYPE;
+import static jakarta.persistence.FetchType.EAGER;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
@@ -49,10 +50,10 @@ public class HUser implements Serializable {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
 
-  @OneToMany(mappedBy = "user")
+  @OneToMany(mappedBy = "user", fetch = EAGER)
   private List<HAccount> accounts;
 
-  @OneToMany
+  @OneToMany(fetch = EAGER)
   @JoinColumn(name = "id_user")
   private List<HAccountHolder> accountHolders;
 

@@ -28,7 +28,9 @@ import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.Attachment;
+import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -261,8 +263,14 @@ public class ProspectService {
   }
 
   public List<Prospect> getByCriteria(
-      String idAccountHolder, String name, String contactNatureValue) {
+      String idAccountHolder,
+      String name,
+      String contactNatureValue,
+      PageFromOne page,
+      BoundedPageSize pageSize) {
     ContactNature contactNature;
+    int pageValue = page != null ? page.getValue() - 1 : 0;
+    int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     try {
       contactNature = contactNatureValue == null ? null : ContactNature.valueOf(contactNatureValue);
     } catch (IllegalArgumentException e) {
@@ -270,7 +278,8 @@ public class ProspectService {
     }
     String nameValue = name == null ? "" : name;
     return dataProcesser.processProspects(
-        repository.findAllByIdAccountHolder(idAccountHolder, nameValue, contactNature));
+        repository.findAllByIdAccountHolder(
+            idAccountHolder, nameValue, contactNature, pageValue, pageSizeValue));
   }
 
   @Transactional

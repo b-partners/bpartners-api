@@ -75,11 +75,13 @@ public class InvoiceService {
                         .userUpdated(isUserUpdated)
                         .build())
                 .build());
-    paymentRegulations.stream()
-        .filter(payment -> payment.getPaymentRequest().getId().equals(paymentId))
-        .toList()
-        .forEach(payment -> payment.toBuilder().paymentRequest(savedPayment).build());
 
+    paymentRegulations.forEach(
+        payment -> {
+          if (payment.getPaymentRequest().getId().equals(savedPayment.getId())) {
+            payment.setPaymentRequest(savedPayment);
+          }
+        });
     if (paymentRegulations.stream()
         .allMatch(payment -> payment.getPaymentRequest().getStatus() == PaymentStatus.PAID)) {
       return crupdateInvoice(invoice.toBuilder().status(PAID).paymentMethod(MULTIPLE).build());

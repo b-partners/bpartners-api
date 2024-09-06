@@ -3,7 +3,6 @@ package app.bpartners.api.unit.service;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -84,22 +83,17 @@ class AccountHolderServiceTest {
 
   @Test
   void find_default_by_id_user_return_null() {
-    var accountHolders = mock(List.class);
-    when(repositoryMock.findAllByUserId(any())).thenReturn(accountHolders);
-    when(accountHolders.isEmpty()).thenReturn(true);
+    when(repositoryMock.findAllByUserId(any())).thenReturn(List.of());
 
     assertEquals(null, subject.findDefaultByIdUser(USER1_ID));
   }
 
   @Test
   void find_default_by_id_user_account_holders_ok() {
-    var accountHolders = mock(List.class);
     var defaultAccountHolder = mock(AccountHolder.class);
-    var accountHoldersSize = 2;
-    when(repositoryMock.findAllByUserId(any())).thenReturn(accountHolders);
-    when(accountHolders.isEmpty()).thenReturn(false);
-    when(accountHolders.get(anyInt())).thenReturn(defaultAccountHolder);
-    when(accountHolders.size()).thenReturn(accountHoldersSize);
+    var accountHolder = mock(AccountHolder.class);
+    when(repositoryMock.findAllByUserId(any()))
+        .thenReturn(List.of(defaultAccountHolder, accountHolder));
 
     assertEquals(defaultAccountHolder, subject.findDefaultByIdUser(USER1_ID));
   }

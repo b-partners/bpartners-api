@@ -53,6 +53,8 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,7 +112,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(
-      String idAccountHolder, String name, ContactNature contactNature) {
+      String idAccountHolder, String name, ContactNature contactNature, int page, int pageSize) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
     boolean isSogefiProspector = isSogefiProspector(businessActivity);
@@ -172,7 +174,8 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     //    }
     // TODO: why do prospects must be filtered by town code
     // while it is already attached to account holder ?
-    return jpaRepository.findAllByIdAccountHolder(idAccountHolder).stream()
+    Pageable pageable = PageRequest.of(page, pageSize);
+    return jpaRepository.findAllByIdAccountHolder(idAccountHolder, pageable).stream()
         .map(prospect -> toDomain(isSogefiProspector, prospect))
         .sorted(Comparator.reverseOrder())
         .collect(Collectors.toList());

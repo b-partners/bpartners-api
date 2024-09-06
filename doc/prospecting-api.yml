@@ -101,6 +101,14 @@ operations:
             Available default are OLD_CUSTOMER or PROSPECT
           schema:
             $ref: '#/components/schemas/ContactNature'
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
         #TODO: set pagination
       responses:
         200:
@@ -318,7 +326,40 @@ operations:
         $ref: './api.yml#/components/responses/429'
       500:
         $ref: './api.yml#/components/responses/500'
-  updateProspects:
+  updateAndGetProspect :
+    get:
+      tags:
+        - Prospecting
+      summary: Get prospect by its id
+      operationId: getProspectById
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Prospect with id {id}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
     put:
       tags:
         - Prospecting

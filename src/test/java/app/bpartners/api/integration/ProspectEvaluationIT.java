@@ -98,6 +98,8 @@ class ProspectEvaluationIT extends MockedThirdParties {
   @Autowired private BusinessActivityRepository businessRepository;
   @Autowired private CustomerService customerService;
   @Autowired private UserService userService;
+  public static int PAGE = 1;
+  public static int PAGESIZE = 10;
 
   private ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
@@ -294,7 +296,9 @@ class ProspectEvaluationIT extends MockedThirdParties {
   }
 
   private List<Prospect> getPersistedProspect() {
-    return prospectRepository.findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID, "", null).stream()
+    return prospectRepository
+        .findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID, "", null, PAGE, PAGESIZE)
+        .stream()
         .peek(prospect -> prospect.setId(null))
         .collect(Collectors.toList());
   }

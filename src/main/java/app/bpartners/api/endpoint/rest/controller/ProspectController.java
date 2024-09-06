@@ -25,6 +25,8 @@ import app.bpartners.api.endpoint.rest.model.SheetRange;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
@@ -121,7 +123,7 @@ public class ProspectController {
 
   @PostMapping("/accountHolders/{ahId}/prospects/import")
   public List<Prospect> importProspects(
-      @PathVariable String ahId, @RequestBody ImportProspect importProspect) {
+      @PathVariable(name = "ahId") String ahId, @RequestBody ImportProspect importProspect) {
     validator.accept(importProspect);
     SheetProperties sheetProperties = importProspect.getSpreadsheetImport();
     return service
@@ -149,8 +151,10 @@ public class ProspectController {
   public List<Prospect> getProspects(
       @PathVariable("ahId") String accountHolderId,
       @RequestParam(name = "name", required = false) String name,
-      @RequestParam(name = "contactNature", required = false) String contactNature) {
-    return service.getByCriteria(accountHolderId, name, contactNature).stream()
+      @RequestParam(name = "contactNature", required = false) String contactNature,
+      @RequestParam(name = "page", required = false) PageFromOne page,
+      @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize) {
+    return service.getByCriteria(accountHolderId, name, contactNature, page, pageSize).stream()
         .map(mapper::toRest)
         .toList();
   }
@@ -276,5 +280,11 @@ public class ProspectController {
         .stream()
         .map(mapper::toRestResult)
         .collect(Collectors.toList());
+  }
+
+  @GetMapping("/accountHolders/{ahId}/prospects/{id}")
+  public Prospect getProspectById(
+      @PathVariable("ahId") String accountHolderId, @PathVariable("id") String prospectId) {
+    return mapper.toRest(service.getById(prospectId));
   }
 }

@@ -8,14 +8,12 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
-import static app.bpartners.api.service.utils.PaymentUtils.computeTotalPriceFromPaymentReq;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
-import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.CreatePaymentRegulation;
@@ -23,24 +21,20 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentHistoryStatus;
-import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRequest;
-import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
+import app.bpartners.api.service.invoice.CustomerInvoiceValidator;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
+import app.bpartners.api.service.invoice.InvoiceValidator;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import app.bpartners.api.service.payment.PaymentService;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apfloat.Aprational;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,13 +47,13 @@ public class InvoiceService {
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
   private final InvoiceRepository repository;
-  private final CustomerService customerService;
   private final PaymentInitiationService pis;
-  private final PaymentRequestMapper requestMapper;
   private final PaymentRequestRepository paymentRepository;
   private final InvoicePDFProcessor invoicePDFProcessor;
   private final CreatePaymentRegulationComputing paymentRegulationComputing;
   private final PaymentService paymentService;
+  private final InvoiceValidator invoiceValidator;
+  private final CustomerInvoiceValidator customerInvoiceValidator;
 
   @Transactional
   public Invoice updatePaymentStatus(String invoiceId, String paymentId, PaymentMethod method) {
@@ -131,148 +125,118 @@ public class InvoiceService {
   }
 
   @Transactional
-  public Invoice crupdateInvoice(Invoice invoice) {
-    if (invoice.getCustomer() != null) {
-      customerService.checkCustomerExistence(invoice.getCustomer());
-    }
-    if (!hasAvailableReference(invoice)) {
-      throw new BadRequestException(
-          "La référence " + invoice.getRealReference() + " est déjà utilisée");
-    }
-    if (!invoice.getActualHolder().isSubjectToVat()) {
-      invoice.getProducts().forEach(product -> product.setVatPercent(new Fraction()));
-    }
-    Invoice actual = handleStatusChanges(invoice);
-    return repository.crupdate(actual);
+  public Invoice duplicateAsDraft(String idInvoice, String reference) {
+    var actual = getById(idInvoice);
+    var paymentRegulations =
+        actual.getPaymentRegulations().stream()
+            .map(
+                payment -> {
+                  PaymentRequest request = payment.getPaymentRequest();
+                  return payment.toBuilder()
+                      .paymentRequest(
+                          request.toBuilder()
+                              .id(randomUUID().toString())
+                              .externalId(null)
+                              .paymentUrl(null)
+                              .build())
+                      .build();
+                })
+            .toList();
+    var duplicatedInvoice =
+        actual.toBuilder()
+            .id(String.valueOf(randomUUID()))
+            .fileId(String.valueOf(randomUUID()))
+            .ref(reference)
+            .status(DRAFT)
+            .paymentUrl(null)
+            .paymentRegulations(paymentRegulations)
+            .products(
+                new ArrayList<>(actual.getProducts())
+                    .stream()
+                        .peek(product -> product.setId(String.valueOf(randomUUID())))
+                        .collect(Collectors.toList()))
+            .build();
+    return crupdateInvoice(duplicatedInvoice);
   }
 
   public List<Invoice> archiveInvoices(List<ArchiveInvoice> archiveInvoices) {
     return repository.saveAll(archiveInvoices);
   }
 
-  public boolean hasAvailableReference(Invoice invoice) {
-    String idUser = invoice.getUser().getId();
-    String idInvoice = invoice.getId();
-    String reference = invoice.getRealReference();
-    InvoiceStatus status = invoice.getStatus();
-    if (reference == null) {
-      return true;
-    }
-    List<Invoice> existingInvoice = repository.findByIdUserAndRef(idUser, reference);
+  @Transactional
+  public Invoice crupdateInvoice(Invoice newInvoice) {
+    invoiceValidator.checkReferenceAvailability(newInvoice);
+    customerInvoiceValidator.accept(newInvoice);
 
-    /*Case when crupdating CONFIRMED invoice*/
-    if (existingInvoice.size() == 1
-        && existingInvoice.get(0).getStatus() == CONFIRMED
-        && invoice.getStatus() == CONFIRMED) {
-      return invoice.getId().equals(existingInvoice.get(0).getId());
-    } else if ((invoice.getStatus() == CONFIRMED)
-        && !existingInvoice.isEmpty()
-        && existingInvoice.stream()
-            .anyMatch(
-                existing ->
-                    existing.getStatus() == CONFIRMED
-                        && existing.getId().equals(invoice.getId()))) {
-      return true;
+    if (!newInvoice.getActualHolder().isSubjectToVat()) {
+      newInvoice.getProducts().forEach(product -> product.setVatPercent(new Fraction()));
     }
 
-    boolean isTobeConfirmed =
-        existingInvoice.isEmpty()
-            || existingInvoice.stream().anyMatch(existing -> existing.getStatus() == PROPOSAL);
-    boolean isToBePaid =
-        existingInvoice.stream().anyMatch(existing -> existing.getStatus() == CONFIRMED);
-    return (status != CONFIRMED && status != PAID)
-        ? (existingInvoice.isEmpty()
-            || existingInvoice.stream().anyMatch(existing -> existing.getId().equals(idInvoice)))
-        : (status == CONFIRMED ? isTobeConfirmed : isToBePaid);
+    var invoiceBuilder = newInvoice.toBuilder();
+    invoiceBuilder.paymentRegulations(paymentRegulationComputing.computeWithoutPisURL(newInvoice));
+    repository
+        .pwFindOptionalById(newInvoice.getId())
+        .ifPresent(
+            oldInvoice -> {
+              invoiceBuilder.fileId(oldInvoice.getFileId());
+              handleStatusChange(newInvoice, oldInvoice, invoiceBuilder);
+            });
+    var actual = invoiceBuilder.build();
+
+    return repository.crupdate(actual);
   }
 
-  private Invoice handleStatusChanges(Invoice invoice) {
-    Invoice actual = invoice.toBuilder().build();
-    actual.setPaymentRegulations(getPaymentRegWithoutUrl(actual));
-
-    handleStatusesFromExistingInvoice(actual);
-
-    if (actual.getStatus() == CONFIRMED || actual.getStatus() == PROPOSAL_CONFIRMED) {
-      checkHolderMandatoryData(invoice);
-      // TODO: check everything is ok before marking invoice as CONFIRMED
-      // Example : check if account has IBAN and BIC ...
-      if (actual.getPaymentType() == CASH) {
-        handleCashType(actual);
-      } else {
-        handleMultipleRegType(invoice, actual);
+  private void handleStatusChange(
+      Invoice newInvoice, Invoice oldInvoice, Invoice.InvoiceBuilder invoiceBuilder) {
+    InvoiceStatus newStatus = newInvoice.getStatus();
+    InvoiceStatus oldStatus = oldInvoice.getStatus();
+    switch (newStatus) {
+      case PROPOSAL_CONFIRMED -> handlePaymentType(newInvoice, oldInvoice, invoiceBuilder);
+      case CONFIRMED -> {
+        handlePaymentType(newInvoice, oldInvoice, invoiceBuilder);
+        if (oldStatus == PROPOSAL) {
+          invoiceBuilder.status(PROPOSAL_CONFIRMED);
+        }
       }
-    }
-    return actual;
-  }
+      case PAID -> {
+        if (oldStatus == CONFIRMED) {
+          invoiceBuilder.validityDate(null);
+          invoiceBuilder.sendingDate(oldInvoice.getSendingDate());
 
-  private void checkHolderMandatoryData(Invoice invoice) {
-    AccountHolder accountHolder = invoice.getActualHolder();
-    StringBuilder builder = new StringBuilder();
-    if (accountHolder.getAddress() == null) {
-      builder.append("Account holder address is mandatory to confirm invoice");
-    }
-    if (accountHolder.getCountry() == null) {
-      builder.append("Account holder country is mandatory to confirm invoice");
-    }
-    if (accountHolder.getCity() == null) {
-      builder.append("Account holder city is mandatory to confirm invoice");
-    }
-    if (accountHolder.getPostalCode() == null) {
-      builder.append("Account holder postal code is mandatory to confirm invoice");
-    }
-    String message = builder.toString();
-    if (!message.isEmpty()) {
-      throw new BadRequestException(message);
-    }
-  }
-
-  private Invoice handleStatusesFromExistingInvoice(Invoice actual) {
-    Optional<Invoice> optionalInvoice = repository.pwFindOptionalById(actual.getId());
-    if (optionalInvoice.isPresent()) {
-      Invoice oldInvoice = optionalInvoice.get();
-      actual.setFileId(oldInvoice.getFileId());
-
-      if (actual.getStatus() == CONFIRMED && oldInvoice.getStatus() == PROPOSAL) {
-        // To be saved later as another HInvoice with diff status but same reference
-        actual.setStatus(PROPOSAL_CONFIRMED);
-      } else if (actual.getStatus() == PAID && oldInvoice.getStatus() == CONFIRMED) {
-        actual.setValidityDate(null);
-        actual.setSendingDate(oldInvoice.getSendingDate());
-        if (actual.getPaymentType() == CASH) {
-          actual.setPaymentUrl(oldInvoice.getPaymentUrl());
-          actual.setToPayAt(actual.getSendingDate().plusDays(actual.getDelayInPaymentAllowed()));
-        } else {
-          actual.setPaymentRegulations(oldInvoice.getPaymentRegulations());
+          if (newInvoice.getPaymentType() == CASH) {
+            invoiceBuilder.paymentUrl(oldInvoice.getPaymentUrl());
+            invoiceBuilder.toPayAt(
+                newInvoice.getSendingDate().plusDays(newInvoice.getDelayInPaymentAllowed()));
+          } else {
+            invoiceBuilder.paymentRegulations(oldInvoice.getPaymentRegulations());
+          }
         }
       }
     }
-    return actual;
   }
 
-  private void handleCashType(Invoice actual) {
-    Integer delayInPaymentAllowed = actual.getDelayInPaymentAllowed();
-    if (delayInPaymentAllowed == null) {
-      log.warn(
-          "Delay in payment allowed is mandatory to retrieve invoice payment date limit."
-              + " 30 days are given by default");
-      delayInPaymentAllowed = DEFAULT_TO_PAY_DELAY_DAYS;
-    }
-    actual.setToPayAt(actual.getSendingDate().plusDays(delayInPaymentAllowed));
-    actual.setPaymentUrl(
-        actual.getTotalPriceWithVat().getCentsAsDecimal() != 0
-            ? pis.initiateInvoicePayment(actual).getRedirectUrl()
-            : actual.getPaymentUrl());
-  }
-
-  private void handleMultipleRegType(Invoice invoice, Invoice actual) {
-    var actualAmount = getPaymentsAmount(actual);
-    var newAmount = getPaymentsAmount(invoice);
-    var actualPercentValue = getPaymentPercent(actual);
-    var newPercentValue = getPaymentPercent(invoice);
-    if (actualAmount != newAmount && actualPercentValue != newPercentValue) {
-      List<CreatePaymentRegulation> paymentRegWithUrl = getPaymentRegWithUrl(invoice);
-      actual.setPaymentRegulations(paymentRegWithUrl);
-      actual.setPaymentUrl(null);
+  private void handlePaymentType(
+      Invoice newInvoice, Invoice oldInvoice, Invoice.InvoiceBuilder invoiceBuilder) {
+    var paymentType = newInvoice.getPaymentType();
+    if (paymentType.equals(CASH)) {
+      var delayInPaymentAllowed =
+          newInvoice.getDelayInPaymentAllowed() == null
+              ? DEFAULT_TO_PAY_DELAY_DAYS
+              : newInvoice.getDelayInPaymentAllowed();
+      invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
+      invoiceBuilder.paymentUrl(
+          newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
+              ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
+              : newInvoice.getPaymentUrl());
+    } else {
+      var oldAmount = getPaymentsAmount(oldInvoice);
+      var newAmount = getPaymentsAmount(newInvoice);
+      var oldPercentValue = getPaymentPercent(oldInvoice);
+      var newPercentValue = getPaymentPercent(newInvoice);
+      if (newAmount != oldAmount && newPercentValue != oldPercentValue) {
+        invoiceBuilder.paymentRegulations(paymentRegulationComputing.computeWithPisURL(newInvoice));
+        invoiceBuilder.paymentUrl(null);
+      }
     }
   }
 
@@ -289,92 +253,5 @@ public class InvoiceService {
         .map(CreatePaymentRegulation::getPercent)
         .map(Fraction::getApproximatedValue)
         .reduce(0.0, Double::sum);
-  }
-
-  private List<CreatePaymentRegulation> getPaymentRegWithUrl(Invoice actual) {
-    List<PaymentInitiation> paymentInitiations = getPaymentInitiations(actual);
-    List<PaymentRequest> paymentRequests =
-        pis.retrievePaymentEntitiesWithUrl(paymentInitiations, actual.getId(), actual.getUser());
-    return convertPaymentRequests(paymentRequests);
-  }
-
-  private List<CreatePaymentRegulation> getPaymentRegWithoutUrl(Invoice actual) {
-    List<PaymentInitiation> paymentInitiations = getPaymentInitiations(actual);
-    List<PaymentRequest> paymentRequests =
-        pis.retrievePaymentEntities(paymentInitiations, actual.getId(), actual.getStatus());
-    return convertPaymentRequests(paymentRequests);
-  }
-
-  private List<CreatePaymentRegulation> convertPaymentRequests(
-      List<PaymentRequest> paymentRequests) {
-    Fraction totalPrice = computeTotalPriceFromPaymentReq(paymentRequests);
-    return paymentRequests.stream()
-        .map(
-            payment -> {
-              Fraction percent =
-                  totalPrice.getCentsRoundUp() == 0
-                      ? new Fraction()
-                      : payment.getAmount().operate(totalPrice, Aprational::divide);
-              return requestMapper.toPaymentRegulation(payment, percent);
-            })
-        .collect(Collectors.toList());
-  }
-
-  private List<PaymentInitiation> getPaymentInitiations(Invoice domain) {
-    List<CreatePaymentRegulation> paymentReg = domain.getPaymentRegulations();
-    List<PaymentInitiation> payments =
-        paymentReg.stream()
-            .map(
-                payment -> {
-                  String randomId = String.valueOf(randomUUID());
-                  PaymentRequest paymentRequest = payment.getPaymentRequest();
-                  paymentRequest.setExternalId(randomId);
-                  String label = paymentRequest.getLabel();
-                  String reference =
-                      paymentRequest.getReference() == null
-                          ? domain.getRealReference()
-                          : paymentRequest.getReference();
-                  return requestMapper.convertFromInvoice(
-                      randomId,
-                      label,
-                      reference,
-                      domain,
-                      payment,
-                      paymentRequest.getPaymentHistoryStatus());
-                })
-            .sorted(Comparator.comparing(PaymentInitiation::getPaymentDueDate))
-            .toList();
-    for (int i = 0; i < payments.size(); i++) {
-      PaymentInitiation paymentInitiation = payments.get(i);
-      if (paymentInitiation.getLabel() == null) {
-        if (i != payments.size() - 1) {
-          paymentInitiation.setLabel(domain.getTitle() + " - Acompte N°" + (i + 1));
-        } else {
-          paymentInitiation.setLabel(domain.getTitle() + " - Restant dû");
-        }
-      }
-    }
-    return payments;
-  }
-
-  @Transactional
-  public Invoice duplicateAsDraft(String idInvoice, String reference) {
-    Invoice actual = getById(idInvoice);
-    List<CreatePaymentRegulation> paymentRegulations = paymentRegulationComputing.apply(actual);
-    Invoice duplicatedInvoice =
-        actual.toBuilder()
-            .id(String.valueOf(randomUUID()))
-            .fileId(String.valueOf(randomUUID()))
-            .ref(reference)
-            .status(DRAFT)
-            .paymentUrl(null)
-            .paymentRegulations(paymentRegulations)
-            .products(
-                new ArrayList<>(actual.getProducts())
-                    .stream()
-                        .peek(product -> product.setId(String.valueOf(randomUUID())))
-                        .collect(Collectors.toList()))
-            .build();
-    return crupdateInvoice(duplicatedInvoice);
   }
 }

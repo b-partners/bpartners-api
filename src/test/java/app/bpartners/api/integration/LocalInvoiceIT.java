@@ -245,12 +245,15 @@ class LocalInvoiceIT extends S3MockedThirdParties {
         api.crupdateInvoice(
             JOE_DOE_ACCOUNT_ID,
             String.valueOf(randomUUID()),
-            initializeDraft().ref(null).products(List.of(createProduct4(), createProduct2())));
+            initializeDraft()
+                .ref(null)
+                .products(List.of(createProduct4(), createProduct2()))
+                .customer(customer1()));
     Invoice actualDraftUpdated =
         api.crupdateInvoice(
             JOE_DOE_ACCOUNT_ID,
             actualDraft.getId(),
-            initializeDraft().ref(null).products(List.of(createProduct5())));
+            initializeDraft().ref(null).products(List.of(createProduct5())).customer(customer1()));
     actualDraftUpdated.setProducts(ignoreIdsOf(actualDraftUpdated.getProducts()));
 
     assertEquals(2, actualDraft.getProducts().size());
@@ -267,7 +270,10 @@ class LocalInvoiceIT extends S3MockedThirdParties {
         api.crupdateInvoice(
             JOE_DOE_ACCOUNT_ID,
             String.valueOf(randomUUID()),
-            initializeDraft().ref(null).products(List.of(createProduct4(), createProduct2())));
+            initializeDraft()
+                .ref(null)
+                .products(List.of(createProduct4(), createProduct2()))
+                .customer(customer1()));
     Invoice beforeChange = api.getInvoiceById(JOE_DOE_ACCOUNT_ID, initialInvoice.getId());
 
     List<Invoice> actual =
@@ -287,7 +293,10 @@ class LocalInvoiceIT extends S3MockedThirdParties {
         api.crupdateInvoice(
             JOE_DOE_ACCOUNT_ID,
             String.valueOf(randomUUID()),
-            initializeDraft().ref(null).products(List.of(createProduct4(), createProduct2())));
+            initializeDraft()
+                .ref(null)
+                .products(List.of(createProduct4(), createProduct2()))
+                .customer(customer1()));
 
     var callerNb = 10;
     var executor = newFixedThreadPool(10);

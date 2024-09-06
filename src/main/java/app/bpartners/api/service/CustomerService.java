@@ -161,12 +161,6 @@ public class CustomerService {
         .collect(toList());
   }
 
-  public void checkCustomerExistence(Customer toCheck) {
-    if (repository.findOptionalById(toCheck.getId()).isEmpty()) {
-      throw new NotFoundException("Customer(id=" + toCheck.getId() + ") not found");
-    }
-  }
-
   private CustomerCrupdated toTypedEvent(User user, Customer customer, boolean isNew) {
     String subject =
         isNew

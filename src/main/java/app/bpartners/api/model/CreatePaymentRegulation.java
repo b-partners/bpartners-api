@@ -17,7 +17,7 @@ import org.apfloat.Aprational;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Data
 public class CreatePaymentRegulation implements Serializable {
   private PaymentRequest paymentRequest;

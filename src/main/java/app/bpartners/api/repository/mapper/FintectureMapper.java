@@ -7,6 +7,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.fintecture.model.Beneficiary;
 import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
+import app.bpartners.api.service.accountholder.AccountHolderInvoiceValidator;
 import app.bpartners.api.service.utils.PatternMatcher;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,11 +17,12 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 public class FintectureMapper {
+  private final AccountHolderInvoiceValidator accountHolderInvoiceValidator;
   public static final String CUSTOM_COMMUNICATION_PATTERN =
       "[^a-zA-Z0-9 éèêëçâùûôî.,;:/!?$%_=+()*°@#ÂÇÉÈÊËÎÔÙÛ]";
 
   private Beneficiary toBeneficiary(Account account, AccountHolder accountHolder) {
-    checkMandatoryHolderInfos(accountHolder);
+    accountHolderInvoiceValidator.accept(accountHolder);
     return Beneficiary.builder()
         .name(account.getName())
         .iban(account.getIban())
@@ -30,26 +32,6 @@ public class FintectureMapper {
         .country(accountHolder.getCountry().substring(0, 2))
         .zip(accountHolder.getPostalCode())
         .build();
-  }
-
-  private void checkMandatoryHolderInfos(AccountHolder accountHolder) {
-    StringBuilder builder = new StringBuilder();
-    if (accountHolder.getAddress() == null) {
-      builder.append("Account holder address is mandatory to initiate payment");
-    }
-    if (accountHolder.getCountry() == null) {
-      builder.append("Account holder country is mandatory to initiate payment");
-    }
-    if (accountHolder.getCity() == null) {
-      builder.append("Account holder city is mandatory to initiate payment");
-    }
-    if (accountHolder.getPostalCode() == null) {
-      builder.append("Account holder postal code is mandatory to initiate payment");
-    }
-    String message = builder.toString();
-    if (!message.isEmpty()) {
-      throw new BadRequestException(message);
-    }
   }
 
   // TODO: put these checks properly

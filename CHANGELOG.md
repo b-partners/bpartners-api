@@ -1,9 +1,14 @@
-## [0.52.1](https://github.com/b-partners/bpartners-api/compare/v0.52.0...v0.52.1) (2024-09-09)
+# [0.53.0](https://github.com/b-partners/bpartners-api/compare/v0.52.0...v0.53.0) (2024-09-09)
 
 
 ### Bug Fixes
 
 * update payment regulations after updating invoice payment request ([8b901a7](https://github.com/b-partners/bpartners-api/commit/8b901a783719311deed214f56c6e789fa0eaeeee))
+
+
+### Features
+
+* paginate getProspects and add get prospect by id ([70c7235](https://github.com/b-partners/bpartners-api/commit/70c7235d1708c5bfcc486c4ffa363ffa49809bc1))
 
 
 

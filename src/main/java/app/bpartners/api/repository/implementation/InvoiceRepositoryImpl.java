@@ -81,10 +81,11 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         && actual.getStatus() != CONFIRMED
         && actual.getStatus() != PAID) {
       var oldPayments = paymentReqJpaRepository.findAllByIdInvoice(actual.getId());
-      paymentReqJpaRepository.saveAll(
+      var disabledPayments =
           oldPayments.stream()
               .map(payment -> payment.toBuilder().enableStatus(DISABLED).build())
-              .toList());
+              .toList();
+      paymentRequests.addAll(disabledPayments);
     }
     if (!invoiceProducts.isEmpty()) {
       productJpaRepository.deleteAllByIdInvoice(actual.getId());

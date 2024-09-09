@@ -2,6 +2,7 @@ package app.bpartners.api.repository.jpa.model;
 
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.PaymentHistoryStatus;
@@ -64,6 +65,10 @@ public class HPaymentRequest implements Serializable {
   private Boolean userUpdated;
   private Instant paymentStatusUpdatedAt;
   @CreationTimestamp private Instant createdDatetime;
+
+  @JdbcTypeCode(NAMED_ENUM)
+  @Enumerated(EnumType.STRING)
+  private EnableStatus enableStatus;
 
   public HPaymentRequest(PaymentRequest domain) {
     PaymentHistoryStatus historyStatus = domain.getPaymentHistoryStatus();

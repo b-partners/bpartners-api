@@ -1,5 +1,6 @@
 package app.bpartners.api.service.payment;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.Invoice;
@@ -32,6 +33,7 @@ public class PaymentInitiationComputing implements Function<Invoice, List<Paymen
                           : paymentRequest.getReference();
 
                   paymentRequest.setExternalId(randomId); // TODO: seems bad
+                  paymentRequest.setEnableStatus(ENABLED); // TODO: seems bad
 
                   return requestMapper.convertFromInvoice(
                       randomId,

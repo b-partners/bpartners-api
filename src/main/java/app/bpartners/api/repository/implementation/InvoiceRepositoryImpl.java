@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
@@ -10,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
@@ -64,20 +67,29 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   public Invoice crupdate(Invoice actual) {
     List<HPaymentRequest> paymentRequests =
         actual.getPaymentRegulations().stream()
-            .map(paymentRegulation -> new HPaymentRequest(paymentRegulation.getPaymentRequest()))
+            .map(
+                paymentRegulation -> {
+                  PaymentRequest paymentRequest = paymentRegulation.getPaymentRequest();
+                  return new HPaymentRequest(paymentRequest)
+                      .toBuilder().enableStatus(ENABLED).build();
+                })
             .collect(Collectors.toList());
     List<HInvoiceProduct> invoiceProducts =
         actual.getProducts().stream().map(productMapper::toEntity).toList();
 
-    Invoice toBeSaved = actual;
     if (!paymentRequests.isEmpty()
         && actual.getStatus() != CONFIRMED
         && actual.getStatus() != PAID) {
-      paymentReqJpaRepository.deleteAllByIdInvoice(toBeSaved.getId());
+      var oldPayments = paymentReqJpaRepository.findAllByIdInvoice(actual.getId());
+      paymentReqJpaRepository.saveAll(
+          oldPayments.stream()
+              .map(payment -> payment.toBuilder().enableStatus(DISABLED).build())
+              .toList());
     }
     if (!invoiceProducts.isEmpty()) {
-      productJpaRepository.deleteAllByIdInvoice(toBeSaved.getId());
+      productJpaRepository.deleteAllByIdInvoice(actual.getId());
     }
+    Invoice toBeSaved = actual;
     if (actual.getStatus() == PROPOSAL_CONFIRMED) {
       HInvoice proposalConfirmedInvoice = mapper.toEntity(actual, paymentRequests, invoiceProducts);
       jpaRepository.save(proposalConfirmedInvoice);

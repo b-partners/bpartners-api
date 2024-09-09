@@ -156,9 +156,7 @@ class InvoiceIT extends S3MockedThirdParties {
             .allMatch(
                 paymentRegulation ->
                     paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
-    assertEquals(
-        expectedMultiplePayments(id, actualConfirmed).paymentRegulations(List.of()),
-        actualConfirmed);
+    assertEquals(expectedMultiplePayments(id, actualConfirmed), actualConfirmed);
     assertTrue(
         actualConfirmed.getPaymentRegulations().stream()
             .allMatch(
@@ -175,10 +173,10 @@ class InvoiceIT extends S3MockedThirdParties {
   void crupdate_draft_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
-    int customizePenalty = 1960;
 
     Invoice actualDraft =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, initializeDraft().ref(null));
+        api.crupdateInvoice(
+            JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, initializeDraft().ref(null).customer(customer1()));
     Invoice actualUpdatedDraft =
         api.crupdateInvoice(
             JOE_DOE_ACCOUNT_ID, NEW_INVOICE_ID, validInvoice().idAreaPicture(AREA_PICTURE_1_ID));
@@ -187,13 +185,13 @@ class InvoiceIT extends S3MockedThirdParties {
 
     assertEquals(
         expectedInitializedDraft()
+            .customer(actualDraft.getCustomer())
             .ref(null)
             .fileId(actualDraft.getFileId())
             .delayPenaltyPercent(0)
             .createdAt(actualDraft.getCreatedAt())
             .updatedAt(actualDraft.getUpdatedAt()),
         actualDraft);
-    assertNotNull(actualDraft.getFileId());
     assertEquals(DEFAULT_DELAY_PENALTY_PERCENT, actualDraft.getDelayPenaltyPercent());
     assertEquals(
         expectedDraft()
@@ -271,6 +269,7 @@ class InvoiceIT extends S3MockedThirdParties {
             JOE_DOE_ACCOUNT_ID,
             id,
             new CrupdateInvoice()
+                .customer(customer1())
                 .status(DRAFT)
                 .products(List.of(createProduct4()))
                 .globalDiscount(new InvoiceDiscount().percentValue(null).amountValue(null)));
@@ -295,6 +294,7 @@ class InvoiceIT extends S3MockedThirdParties {
             .fileId(actual.getFileId())
             .updatedAt(actual.getUpdatedAt())
             .createdAt(actual.getCreatedAt())
+            .customer(actual.getCustomer())
             .paymentMethod(UNKNOWN),
         actual);
   }

@@ -17,6 +17,11 @@ public class PaymentRepositoryImpl implements PaymentRequestRepository {
   private final PaymentRequestMapper mapper;
 
   @Override
+  public PaymentRequest save(PaymentRequest paymentRequest) {
+    return saveAll(List.of(paymentRequest)).getFirst();
+  }
+
+  @Override
   public List<PaymentRequest> saveAll(List<PaymentRequest> payments) {
     List<HPaymentRequest> paymentEntities =
         payments.stream()

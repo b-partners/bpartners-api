@@ -4,6 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FAILED;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
 import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
@@ -297,7 +298,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
 
   private List<Prospect> getPersistedProspect() {
     return prospectRepository
-        .findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID, "", null, PAGE, PAGESIZE)
+        .findAllByIdAccountHolder(JOE_DOE_ACCOUNT_HOLDER_ID, "", null, TO_CONTACT, PAGE, PAGESIZE)
         .stream()
         .peek(prospect -> prospect.setId(null))
         .collect(Collectors.toList());

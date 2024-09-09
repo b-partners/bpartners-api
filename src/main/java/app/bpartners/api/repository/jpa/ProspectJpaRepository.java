@@ -21,6 +21,59 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
   List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
       String idAccountHolder, String name, ContactNature contactNature);
 
+  @Query(
+    nativeQuery = true,
+    value =
+            "select id,       first_name,       old_name,       old_email,       old_phone,      "
+                    + " old_address,       id_account_holder,       town_code,       rating,      "
+                    + " last_evaluation_date,       id_prospect_eval,       pos_latitude,      "
+                    + " pos_longitude,       new_name,       new_email,       new_phone,      "
+                    + " new_address,       comment,       contract_amount,       id_invoice,      "
+                    + " prospect_feedback,       id_job,       default_comment,       manager_name,      "
+                    + " contact_nature,       latest_old_holder "
+                    + " from view_prospect_actual_status "
+                    + " where id_account_holder = ?1 "
+                    + " and LOWER(old_name) LIKE LOWER(CONCAT('%', ?2, '%')) "
+                    + " and cast(contact_nature as varchar) = ?3 "
+                    + " and cast(actual_status as varchar) = ?4 ")
+  List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
+          String idAccountHolder, String name, String contactNature, String prospectStatus);
+
+
+  @Query(
+      nativeQuery = true,
+      value =
+          "SELECT id,"
+              + "       first_name,"
+              + "       old_name,"
+              + "       old_email,"
+              + "       old_phone,"
+              + "       old_address,"
+              + "       id_account_holder,"
+              + "       town_code,"
+              + "       rating,"
+              + "       last_evaluation_date,"
+              + "       id_prospect_eval,"
+              + "       pos_latitude,"
+              + "       pos_longitude,"
+              + "       new_name,"
+              + "       new_email,"
+              + "       new_phone,"
+              + "       new_address,"
+              + "       comment,"
+              + "       contract_amount,"
+              + "       id_invoice,"
+              + "       prospect_feedback,"
+              + "       id_job,"
+              + "       default_comment,"
+              + "       manager_name,"
+              + "       contact_nature,"
+              + "       latest_old_holder"
+              + " FROM view_prospect_actual_status"
+              + " WHERE CAST(actual_status AS VARCHAR)=?1 and id_account_holder=?2 and LOWER(old_name) LIKE LOWER(CONCAT('%', ?3, '%'))")
+  List<HProspect> findAllByIdAccountHolderAndOldNameAndProspectStatus(
+      String prospectStatus, String idAccountHolder, String name);
+
   List<HProspect> findAllByIdJob(String idJob);
 
   @Query(

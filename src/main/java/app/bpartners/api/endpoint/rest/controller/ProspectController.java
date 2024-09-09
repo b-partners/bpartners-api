@@ -152,9 +152,12 @@ public class ProspectController {
       @PathVariable("ahId") String accountHolderId,
       @RequestParam(name = "name", required = false) String name,
       @RequestParam(name = "contactNature", required = false) String contactNature,
+      @RequestParam(name = "status", required = false) String status,
       @RequestParam(name = "page", required = false) PageFromOne page,
       @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize) {
-    return service.getByCriteria(accountHolderId, name, contactNature, page, pageSize).stream()
+    return service
+        .getByCriteria(accountHolderId, name, contactNature, status, page, pageSize)
+        .stream()
         .map(mapper::toRest)
         .toList();
   }

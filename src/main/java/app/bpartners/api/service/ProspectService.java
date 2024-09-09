@@ -266,20 +266,23 @@ public class ProspectService {
       String idAccountHolder,
       String name,
       String contactNatureValue,
+      String statusValue,
       PageFromOne page,
       BoundedPageSize pageSize) {
     ContactNature contactNature;
+    ProspectStatus prospectStatus;
     int pageValue = page != null ? page.getValue() - 1 : 0;
     int pageSizeValue = pageSize != null ? pageSize.getValue() : 30;
     try {
       contactNature = contactNatureValue == null ? null : ContactNature.valueOf(contactNatureValue);
+      prospectStatus = statusValue == null ? null : ProspectStatus.valueOf(statusValue);
     } catch (IllegalArgumentException e) {
       throw new BadRequestException("Unknown contactNature type = " + contactNatureValue);
     }
     String nameValue = name == null ? "" : name;
     return dataProcesser.processProspects(
         repository.findAllByIdAccountHolder(
-            idAccountHolder, nameValue, contactNature, pageValue, pageSizeValue));
+            idAccountHolder, nameValue, contactNature, prospectStatus, pageSizeValue, pageValue));
   }
 
   @Transactional

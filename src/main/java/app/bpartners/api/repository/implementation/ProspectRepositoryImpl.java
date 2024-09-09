@@ -112,18 +112,36 @@ public class ProspectRepositoryImpl implements ProspectRepository {
 
   @Override
   public List<Prospect> findAllByIdAccountHolder(
-      String idAccountHolder, String name, ContactNature contactNature, int page, int pageSize) {
+      String idAccountHolder,
+      String name,
+      ContactNature contactNature,
+      ProspectStatus prospectStatus,
+      int page,
+      int pageSize) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
     boolean isSogefiProspector = isSogefiProspector(businessActivity);
     if (!isSogefiProspector) {
-      List<HProspect> prospects =
-          contactNature == null
-              ? jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
-                  idAccountHolder, name)
-              : jpaRepository
-                  .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
-                      idAccountHolder, name, contactNature);
+      List<HProspect> prospects;
+      if (contactNature == null && prospectStatus == null) {
+        prospects =
+            jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
+                idAccountHolder, name);
+      } else if (prospectStatus != null && contactNature == null) {
+        prospects =
+            jpaRepository.findAllByIdAccountHolderAndOldNameAndProspectStatus(
+                prospectStatus.toString(), idAccountHolder, name);
+        log.info("Prospect is not null={}", prospects);
+      } else if (prospectStatus == null && contactNature != null) {
+        prospects =
+            jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
+                idAccountHolder, name, contactNature);
+        log.info("Contact nature is not null={}", prospects);
+      } else {
+        prospects =
+            jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
+                idAccountHolder, name, contactNature.toString(), prospectStatus.toString());
+      }
       return prospects.stream()
           .map(
               prospect ->

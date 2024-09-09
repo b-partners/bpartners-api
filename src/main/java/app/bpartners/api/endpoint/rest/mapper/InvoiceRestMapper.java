@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
@@ -213,6 +214,7 @@ public class InvoiceRestMapper {
     return app.bpartners.api.model.CreatePaymentRegulation.builder()
         .paymentRequest(
             app.bpartners.api.model.PaymentRequest.builder()
+                .enableStatus(ENABLED)
                 .amount(parseFraction(invoicePayment.getAmount()))
                 .build())
         .percent(parseFraction(invoicePayment.getPercent()))

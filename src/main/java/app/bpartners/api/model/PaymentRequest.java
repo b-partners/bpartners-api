@@ -3,6 +3,7 @@ package app.bpartners.api.model;
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -42,6 +43,7 @@ public class PaymentRequest {
   private String comment;
   private PaymentHistoryStatus paymentHistoryStatus;
   private Instant createdDatetime;
+  private EnableStatus enableStatus;
 
   public PaymentRequest(HPaymentRequest entity) {
     this.id = entity.getId();
@@ -58,6 +60,7 @@ public class PaymentRequest {
     this.status = entity.getStatus();
     this.comment = entity.getComment();
     this.createdDatetime = entity.getCreatedDatetime();
+    this.enableStatus = entity.getEnableStatus();
     this.paymentHistoryStatus =
         entity.getPaymentMethod() == null && entity.getStatus() == null
                 || entity.getStatus() == PaymentStatus.UNPAID

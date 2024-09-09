@@ -1,7 +1,9 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.CreatePaymentRegulation;
@@ -20,6 +22,8 @@ public class PaymentRequestMapper {
   public HPaymentRequest toEntity(PaymentRequest domain, HPaymentRequest existing) {
     PaymentHistoryStatus paymentHistoryStatus = domain.getPaymentHistoryStatus();
     Instant createdDatetime = existing == null ? Instant.now() : existing.getCreatedDatetime();
+    EnableStatus paymentEnableStatus =
+        existing == null || existing.getEnableStatus() == null ? ENABLED : domain.getEnableStatus();
     return HPaymentRequest.builder()
         .id(domain.getId())
         .idInvoice(domain.getInvoiceId())
@@ -35,6 +39,7 @@ public class PaymentRequestMapper {
         .amount(domain.getAmount().toString())
         .createdDatetime(createdDatetime)
         .status(domain.getStatus())
+        .enableStatus(paymentEnableStatus)
         .paymentMethod(
             paymentHistoryStatus == null ? null : paymentHistoryStatus.getPaymentMethod())
         .paymentStatusUpdatedAt(
@@ -66,6 +71,7 @@ public class PaymentRequestMapper {
         .status(domain.getStatus() == null ? PaymentStatus.UNPAID : domain.getStatus())
         .paymentStatusUpdatedAt(
             historyStatus == null ? createdDatetime : historyStatus.getUpdatedAt())
+        .enableStatus(ENABLED)
         .build();
   }
 
@@ -111,6 +117,7 @@ public class PaymentRequestMapper {
                 .createdDatetime(payment.getCreatedDatetime())
                 .status(payment.getStatus())
                 .comment(payment.getComment())
+                .enableStatus(payment.getEnableStatus())
                 .paymentHistoryStatus(
                     PaymentHistoryStatus.builder()
                         .paymentMethod(
@@ -152,6 +159,7 @@ public class PaymentRequestMapper {
         .amount(parseFraction(entity.getAmount()))
         .createdDatetime(Instant.now())
         .status(entity.getStatus())
+        .enableStatus(entity.getEnableStatus())
         .paymentHistoryStatus(
             entity.getPaymentMethod() == null
                     && entity.getStatus() == null

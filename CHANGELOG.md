@@ -1,12 +1,3 @@
-## [0.53.1](https://github.com/b-partners/bpartners-api/compare/v0.53.0...v0.53.1) (2024-09-09)
-
-
-### Bug Fixes
-
-* do not delete old invoice.paymentRequests after update ([9501098](https://github.com/b-partners/bpartners-api/commit/9501098ca070c6c154d17a43c9a87995c8d9105c))
-
-
-
 # [0.53.0](https://github.com/b-partners/bpartners-api/compare/v0.52.0...v0.53.0) (2024-09-09)
 
 
@@ -102,6 +93,22 @@
 ### Features
 
 * crupdateAreaPictureDetails returns AreaPictureDetails ([c69eb48](https://github.com/b-partners/bpartners-api/commit/c69eb48b1a302143a5e14c08ab6b1a0ec421eabf))
+
+
+
+# [0.44.0](https://github.com/b-partners/bpartners-api/compare/v0.43.0...v0.44.0) (2024-05-07)
+
+
+### Bug Fixes
+
+* annotation instance metadata are not mandatory ([b978c5e](https://github.com/b-partners/bpartners-api/commit/b978c5e5ecc68a00295f8b5915f249012aa02272))
+* put empty string as firstName and lastName to avoid null values ([4e72a81](https://github.com/b-partners/bpartners-api/commit/4e72a8113ef6739893acc88d6d6604b7acf15711))
+
+
+### Features
+
+* add first name to prospect ([fd9942b](https://github.com/b-partners/bpartners-api/commit/fd9942b3ef34af15dd64c076fbc947016422705a))
+* update customer firstName when prospect is created or updated ([029300b](https://github.com/b-partners/bpartners-api/commit/029300b0d482d5cdd24d109918820b5297368ece))
 
 
 

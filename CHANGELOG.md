@@ -1,3 +1,12 @@
+## [0.52.1](https://github.com/b-partners/bpartners-api/compare/v0.52.0...v0.52.1) (2024-09-09)
+
+
+### Bug Fixes
+
+* update payment regulations after updating invoice payment request ([8b901a7](https://github.com/b-partners/bpartners-api/commit/8b901a783719311deed214f56c6e789fa0eaeeee))
+
+
+
 # [0.52.0](https://github.com/b-partners/bpartners-api/compare/v0.50.1...v0.52.0) (2024-09-05)
 
 
@@ -95,20 +104,6 @@
 
 * add first name to prospect ([fd9942b](https://github.com/b-partners/bpartners-api/commit/fd9942b3ef34af15dd64c076fbc947016422705a))
 * update customer firstName when prospect is created or updated ([029300b](https://github.com/b-partners/bpartners-api/commit/029300b0d482d5cdd24d109918820b5297368ece))
-
-
-
-# [0.43.0](https://github.com/b-partners/bpartners-api/compare/v0.42.0...v0.43.0) (2024-04-30)
-
-
-### Bug Fixes
-
-* unable to assert point equality ([dd3878b](https://github.com/b-partners/bpartners-api/commit/dd3878bc938131dee640e73fa20ef78c93d32b9e))
-
-
-### Features
-
-* add colors, obstacle and comment to annotation instance metadata ([cc205bf](https://github.com/b-partners/bpartners-api/commit/cc205bf797c139eca133c1598b232f3f54c37961))
 
 
 

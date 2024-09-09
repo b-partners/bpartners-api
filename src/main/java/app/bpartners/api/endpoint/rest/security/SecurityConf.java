@@ -146,8 +146,6 @@ public class SecurityConf {
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
-                    .requestMatchers(POST, "/accounts/*/invoices/*/duplication")
-                    .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider))
                     .authenticated()
@@ -408,6 +406,10 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfAccountMatcher(
                             PUT, "/accounts/*/invoices/*/relaunchConf", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/invoices/*/duplication", authResourceProvider))
                     .authenticated()
                     .requestMatchers(GET, "/businessActivities")
                     .authenticated()

@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
 import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -19,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -69,7 +71,10 @@ public class Invoice {
   private boolean toBeRelaunched;
   private Instant createdAt;
   private Map<String, String> metadata;
+
+  @Getter(AccessLevel.NONE)
   private List<CreatePaymentRegulation> paymentRegulations;
+
   private InvoiceDiscount discount;
   private Fraction totalPriceWithoutDiscount;
   private Fraction totalPriceWithoutVat;
@@ -126,10 +131,21 @@ public class Invoice {
     return delayPenaltyPercent;
   }
 
-  public List<CreatePaymentRegulation> getSortedMultiplePayments() {
+  public List<CreatePaymentRegulation> getPaymentRegulations() {
     return paymentRegulations == null || paymentRegulations.isEmpty()
         ? List.of()
         : paymentRegulations.stream()
+            .filter(
+                payment ->
+                    payment != null
+                        && payment.getPaymentRequest().getEnableStatus().equals(ENABLED))
+            .toList();
+  }
+
+  public List<CreatePaymentRegulation> getSortedMultiplePayments() {
+    return paymentRegulations == null || paymentRegulations.isEmpty()
+        ? List.of()
+        : getPaymentRegulations().stream()
             .sorted(Comparator.comparing(CreatePaymentRegulation::getMaturityDate))
             .collect(Collectors.toList());
   }

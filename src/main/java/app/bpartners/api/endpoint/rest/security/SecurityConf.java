@@ -474,6 +474,10 @@ public class SecurityConf {
                         new SelfAccountHolderMatcher(
                             PUT, "/accountHolders/*/prospects/*", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            GET, "/accountHolders/*/prospects/*", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/prospectsRelaunch")
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole()) // TODO: add PROSPECT_RELAUNCHER
                     .requestMatchers(

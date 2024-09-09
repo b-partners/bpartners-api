@@ -2,7 +2,10 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.integration.ProspectEvaluationIT.PAGE;
+import static app.bpartners.api.integration.ProspectEvaluationIT.PAGESIZE;
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_HOLDER_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
@@ -14,6 +17,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static app.bpartners.api.repository.implementation.ProspectRepositoryImpl.ANTI_HARM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -38,6 +42,7 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.Buildi
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermit;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.GeoJson;
+import app.bpartners.api.service.UserService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -66,6 +71,7 @@ class ProspectIT extends MockedThirdParties {
   @MockBean private BuildingPermitApi buildingPermitApiMock;
   @Autowired private MunicipalityJpaRepository municipalityJpaRepository;
   @Autowired private BusinessActivityRepository businessRepository;
+  @Autowired private UserService userService;
 
   private ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
@@ -212,20 +218,20 @@ class ProspectIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID, null, null);
+    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID, null, null, PAGE, PAGESIZE);
     businessRepository.save(
         BusinessActivity.builder()
             .accountHolder(joeDoeAccountHolder())
             .primaryActivity(ANTI_HARM)
             .secondaryActivity(null)
             .build());
-    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID, null, null);
+    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID, null, null, PAGE, PAGESIZE);
     String prospectName = "Alyssa";
-    List<Prospect> actual3 = api.getProspects(ACCOUNTHOLDER_ID, prospectName, null);
+    List<Prospect> actual3 = api.getProspects(ACCOUNTHOLDER_ID, prospectName, null, PAGE, PAGESIZE);
 
     assertTrue(actual1.containsAll(List.of(prospect1(), prospect2())));
     assertTrue(actual2.containsAll(List.of(prospect1(), prospect2(), prospect3())));
-    assertEquals(1, actual3.size());
+    assertEquals(PAGE, actual3.size());
     assertTrue(
         actual3.stream()
             .allMatch(
@@ -318,7 +324,7 @@ class ProspectIT extends MockedThirdParties {
     assertThrowsForbiddenException(
         () -> api.updateProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, List.of()));
     assertThrowsForbiddenException(
-        () -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, null, null));
+        () -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, null, null, PAGE, PAGESIZE));
     assertThrowsForbiddenException(
         () -> api.convertProspect(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, prospect1().getId(), List.of()));
   }
@@ -343,6 +349,17 @@ class ProspectIT extends MockedThirdParties {
   //    assertTrue(within5km.contains(antony()));
   //    assertEquals(15, within5km.size());
   //  }
+
+  @Test
+  void get_prospect_by_id() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    ProspectingApi api = new ProspectingApi(joeDoeClient);
+
+    Prospect prospect = api.getProspectById(JOE_DOE_ACCOUNT_HOLDER_ID, prospect1().getId());
+
+    assertNotNull(prospect);
+    assertEquals(prospect1().getEmail(), prospect.getEmail());
+  }
 
   private List<Prospect> ignoreIdsAndHistoryUpdatedOf(List<Prospect> prospects) {
     return prospects.stream()

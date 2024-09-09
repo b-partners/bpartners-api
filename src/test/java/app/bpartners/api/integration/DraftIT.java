@@ -1,5 +1,6 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
@@ -159,6 +160,7 @@ class DraftIT extends MockedThirdParties {
         .paymentHistoryStatus(paymentHistoryStatus(paymentMethod))
         .amount(new Fraction(amount))
         .paymentUrl("https://connect-v2-sbx.fintecture.com")
+        .enableStatus(ENABLED)
         .build();
   }
 

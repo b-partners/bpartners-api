@@ -1,5 +1,6 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.model.ContactNature.PROSPECT;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.ProspectEvaluationIT.PAGE;
@@ -25,7 +26,6 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
@@ -116,7 +116,7 @@ class ProspectIT extends MockedThirdParties {
         .email("markusAdams@gmail.com")
         .phone("+261340465340")
         .address("30 Rue de la Montagne Sainte-Genevieve")
-        .contactNature(ContactNature.PROSPECT)
+        .contactNature(PROSPECT)
         .townCode(92001)
         .rating(
             new ProspectRating()
@@ -195,7 +195,7 @@ class ProspectIT extends MockedThirdParties {
         .email("paulAdams@gmail.com")
         .phone("+261340465341")
         .address("30 Rue de la Montagne Sainte-Genevieve")
-        .contactNature(ContactNature.PROSPECT)
+        .contactNature(PROSPECT)
         .firstName("paul")
         .rating(
             new ProspectRating()
@@ -218,16 +218,20 @@ class ProspectIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     ProspectingApi api = new ProspectingApi(joeDoeClient);
 
-    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID, null, null, PAGE, PAGESIZE);
+    List<Prospect> actual1 = api.getProspects(ACCOUNTHOLDER_ID, null, null, null, PAGE, PAGESIZE);
     businessRepository.save(
         BusinessActivity.builder()
             .accountHolder(joeDoeAccountHolder())
             .primaryActivity(ANTI_HARM)
             .secondaryActivity(null)
             .build());
-    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID, null, null, PAGE, PAGESIZE);
+    List<Prospect> actual2 = api.getProspects(ACCOUNTHOLDER_ID, null, null, null, PAGE, PAGESIZE);
     String prospectName = "Alyssa";
-    List<Prospect> actual3 = api.getProspects(ACCOUNTHOLDER_ID, prospectName, null, PAGE, PAGESIZE);
+    String prospectJohn = "John";
+    List<Prospect> actual3 =
+        api.getProspects(ACCOUNTHOLDER_ID, prospectName, null, null, PAGE, PAGESIZE);
+    List<Prospect> withStatus =
+        api.getProspects(ACCOUNTHOLDER_ID, prospectJohn, null, TO_CONTACT, PAGE, PAGESIZE);
 
     assertTrue(actual1.containsAll(List.of(prospect1(), prospect2())));
     assertTrue(actual2.containsAll(List.of(prospect1(), prospect2(), prospect3())));
@@ -237,6 +241,7 @@ class ProspectIT extends MockedThirdParties {
             .allMatch(
                 prospect ->
                     prospect.getName() != null && prospect.getName().contains(prospectName)));
+    assertNotNull(withStatus);
   }
 
   @Order(2)
@@ -277,8 +282,6 @@ class ProspectIT extends MockedThirdParties {
         api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), interestingProspect());
     Prospect actualNotInterstingProspect =
         api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), notInterestingProspect());
-    Prospect actualResetProspect =
-        api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), prospectToReset());
 
     Prospect expected =
         ignoreHistoryUpdatedOf(
@@ -324,7 +327,7 @@ class ProspectIT extends MockedThirdParties {
     assertThrowsForbiddenException(
         () -> api.updateProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, List.of()));
     assertThrowsForbiddenException(
-        () -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, null, null, PAGE, PAGESIZE));
+        () -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, null, null, null, PAGE, PAGESIZE));
     assertThrowsForbiddenException(
         () -> api.convertProspect(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, prospect1().getId(), List.of()));
   }

@@ -1,3 +1,13 @@
+## [0.54.1](https://github.com/b-partners/bpartners-api/compare/v0.54.0...v0.54.1) (2024-09-10)
+
+
+### Bug Fixes
+
+* avoid NPE on prospect getById ([2bd849c](https://github.com/b-partners/bpartners-api/commit/2bd849c0710e55691252fd345a48453236d57149))
+* paginate getProspects ([edf00da](https://github.com/b-partners/bpartners-api/commit/edf00da1858245dda8d58e0946b64612e4f66c5f))
+
+
+
 # [0.54.0](https://github.com/b-partners/bpartners-api/compare/v0.52.1...v0.54.0) (2024-09-10)
 
 
@@ -98,15 +108,6 @@
 ### Features
 
 * link AreaPicture with AreaPictureImageLayer and refactor area picture image get ([154f301](https://github.com/b-partners/bpartners-api/commit/154f3017ad9e0c2fd8c2d0e90a130754f69348e8))
-
-
-
-# [0.45.0](https://github.com/b-partners/bpartners-api/compare/v0.44.0...v0.45.0) (2024-05-16)
-
-
-### Features
-
-* crupdateAreaPictureDetails returns AreaPictureDetails ([c69eb48](https://github.com/b-partners/bpartners-api/commit/c69eb48b1a302143a5e14c08ab6b1a0ec421eabf))
 
 
 

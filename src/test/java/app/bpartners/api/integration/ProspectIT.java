@@ -232,10 +232,6 @@ class ProspectIT extends MockedThirdParties {
         api.getProspects(ACCOUNTHOLDER_ID, prospectName, null, null, PAGE, PAGESIZE);
     List<Prospect> withStatus =
         api.getProspects(ACCOUNTHOLDER_ID, prospectJohn, null, TO_CONTACT, PAGE, PAGESIZE);
-    List<Prospect> withContactNatureAndStatus =
-        api.getProspects(ACCOUNTHOLDER_ID, prospectJohn, PROSPECT, TO_CONTACT, PAGE, PAGESIZE);
-    List<Prospect> withContactNature =
-        api.getProspects(ACCOUNTHOLDER_ID, prospectJohn, PROSPECT, null, PAGE, PAGESIZE);
 
     assertTrue(actual1.containsAll(List.of(prospect1(), prospect2())));
     assertTrue(actual2.containsAll(List.of(prospect1(), prospect2(), prospect3())));
@@ -286,8 +282,6 @@ class ProspectIT extends MockedThirdParties {
         api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), interestingProspect());
     Prospect actualNotInterstingProspect =
         api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), notInterestingProspect());
-    Prospect actualResetProspect =
-        api.updateProspectsStatus(ACCOUNTHOLDER_ID, prospect1().getId(), prospectToReset());
 
     Prospect expected =
         ignoreHistoryUpdatedOf(

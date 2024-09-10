@@ -139,8 +139,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         log.info("Contact nature is not null={}", prospects);
       } else {
         prospects =
-            jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
-                idAccountHolder, name, contactNature.toString(), prospectStatus.toString());
+            jpaRepository
+                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
+                    idAccountHolder, name, contactNature.toString(), prospectStatus.toString());
       }
       return prospects.stream()
           .map(

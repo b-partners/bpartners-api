@@ -1,23 +1,28 @@
-## [0.53.1](https://github.com/b-partners/bpartners-api/compare/v0.53.0...v0.53.1) (2024-09-09)
+# [0.54.0](https://github.com/b-partners/bpartners-api/compare/v0.52.1...v0.54.0) (2024-09-10)
 
 
 ### Bug Fixes
 
-* do not delete old invoice.paymentRequests after update ([9501098](https://github.com/b-partners/bpartners-api/commit/9501098ca070c6c154d17a43c9a87995c8d9105c))
+* do not delete old invoice.paymentRequests after update ([acaedbb](https://github.com/b-partners/bpartners-api/commit/acaedbb249014a844c82e1708bcd00ce583082f4))
+
+
+### Features
+
+* paginate getProspects and add get prospect by id ([c0f8a9e](https://github.com/b-partners/bpartners-api/commit/c0f8a9eb43ea3d2b5ceabdbf9849b3b9d5a85e1e))
+
+
+### Reverts
+
+* Revert "chore(to-revert): allow invoice duplication for userRole=EVAL_PROSPECT" ([d2eec6d](https://github.com/b-partners/bpartners-api/commit/d2eec6d56b8030349c2e6a50eb7df741d94e367d))
 
 
 
-# [0.53.0](https://github.com/b-partners/bpartners-api/compare/v0.52.0...v0.53.0) (2024-09-09)
+## [0.52.1](https://github.com/b-partners/bpartners-api/compare/v0.52.0...v0.52.1) (2024-09-09)
 
 
 ### Bug Fixes
 
 * update payment regulations after updating invoice payment request ([8b901a7](https://github.com/b-partners/bpartners-api/commit/8b901a783719311deed214f56c6e789fa0eaeeee))
-
-
-### Features
-
-* paginate getProspects and add get prospect by id ([70c7235](https://github.com/b-partners/bpartners-api/commit/70c7235d1708c5bfcc486c4ffa363ffa49809bc1))
 
 
 

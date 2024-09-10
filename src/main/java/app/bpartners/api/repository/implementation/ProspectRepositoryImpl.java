@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -121,27 +122,29 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
     boolean isSogefiProspector = isSogefiProspector(businessActivity);
+    Pageable pageable = PageRequest.of(page, pageSize, Sort.by("lastEvaluationDate").descending());
     if (!isSogefiProspector) {
       List<HProspect> prospects;
       if (contactNature == null && prospectStatus == null) {
         prospects =
             jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
-                idAccountHolder, name);
+                idAccountHolder, name, pageable);
       } else if (prospectStatus != null && contactNature == null) {
         prospects =
             jpaRepository.findAllByIdAccountHolderAndOldNameAndProspectStatus(
-                prospectStatus.toString(), idAccountHolder, name);
+                prospectStatus.toString(), idAccountHolder, name, pageSize, page);
         log.info("Prospect is not null={}", prospects);
       } else if (prospectStatus == null && contactNature != null) {
         prospects =
             jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
-                idAccountHolder, name, contactNature);
+                idAccountHolder, name, contactNature, pageable);
         log.info("Contact nature is not null={}", prospects);
       } else {
         prospects =
             jpaRepository
                 .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
-                    idAccountHolder, name, contactNature.toString(), prospectStatus.toString());
+                    idAccountHolder, name, contactNature.toString(), prospectStatus.toString(), pageSize, page);
+        log.info("Here{}");
       }
       return prospects.stream()
           .map(
@@ -193,7 +196,6 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     //    }
     // TODO: why do prospects must be filtered by town code
     // while it is already attached to account holder ?
-    Pageable pageable = PageRequest.of(page, pageSize);
     return jpaRepository.findAllByIdAccountHolder(idAccountHolder, pageable).stream()
         .map(prospect -> toDomain(isSogefiProspector, prospect))
         .sorted(Comparator.reverseOrder())

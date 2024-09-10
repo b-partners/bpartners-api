@@ -282,7 +282,7 @@ public class ProspectService {
     String nameValue = name == null ? "" : name;
     return dataProcesser.processProspects(
         repository.findAllByIdAccountHolder(
-            idAccountHolder, nameValue, contactNature, prospectStatus, pageSizeValue, pageValue));
+            idAccountHolder, nameValue, contactNature, prospectStatus, pageValue, pageSizeValue));
   }
 
   @Transactional

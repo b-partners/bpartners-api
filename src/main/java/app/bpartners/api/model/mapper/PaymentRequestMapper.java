@@ -93,8 +93,8 @@ public class PaymentRequestMapper {
         .payerName(invoice.getCustomer() == null ? null : invoice.getCustomer().getFirstName())
         .payerEmail(invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail())
         .paymentDueDate(payment != null ? payment.getMaturityDate() : null)
-        .successUrl("https://dashboard-dev.bpartners.app") // TODO: to change
-        .failureUrl("https://dashboard-dev.bpartners.app") // TODO: to change
+        .successUrl("https://dashboard.bpartners.app") // TODO: to change
+        .failureUrl("https://dashboard.bpartners.app") // TODO: to change
         .paymentHistoryStatus(paymentHistoryStatus)
         .build();
   }
@@ -173,5 +173,10 @@ public class PaymentRequestMapper {
                     .updatedAt(entity.getPaymentStatusUpdatedAt())
                     .build())
         .build();
+  }
+
+  public HPaymentRequest toEntity(CreatePaymentRegulation paymentRegulation) {
+    PaymentRequest paymentRequest = paymentRegulation.getPaymentRequest();
+    return new HPaymentRequest(paymentRequest).toBuilder().enableStatus(ENABLED).build();
   }
 }

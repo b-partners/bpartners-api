@@ -1,7 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
@@ -12,19 +11,16 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.PaymentRequest;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
+import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
-import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
-import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -53,8 +49,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceProductMapper productMapper;
   private final InvoiceProductJpaRepository productJpaRepository;
   private final EntityManager entityManager;
-  protected final UserRepository userRepository;
+  private final UserRepository userRepository;
   private final InvoicePDFProcessor invoicePDFProcessor;
+  private final PaymentRequestMapper paymentRequestMapper;
 
   @Override
   public List<Invoice> findAllEnabledByIdUser(String idUser) {
@@ -65,17 +62,10 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice crupdate(Invoice actual) {
-    List<HPaymentRequest> paymentRequests =
-        actual.getPaymentRegulations().stream()
-            .map(
-                paymentRegulation -> {
-                  PaymentRequest paymentRequest = paymentRegulation.getPaymentRequest();
-                  return new HPaymentRequest(paymentRequest)
-                      .toBuilder().enableStatus(ENABLED).build();
-                })
-            .collect(Collectors.toList());
-    List<HInvoiceProduct> invoiceProducts =
-        actual.getProducts().stream().map(productMapper::toEntity).toList();
+    var paymentRequests =
+        new ArrayList<>(
+            actual.getPaymentRegulations().stream().map(paymentRequestMapper::toEntity).toList());
+    var invoiceProducts = actual.getProducts().stream().map(productMapper::toEntity).toList();
 
     if (!paymentRequests.isEmpty()
         && actual.getStatus() != CONFIRMED
@@ -233,8 +223,11 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   @Override
   public Invoice findById(String id) {
-    HInvoice invoice = jpaRepository.getById(id);
-    User user = userRepository.getById(invoice.getIdUser());
+    var invoice =
+        jpaRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("Invoice(id=" + id + ") not found"));
+    var user = userRepository.getById(invoice.getIdUser());
     return mapper.toDomain(invoice, user);
   }
 }

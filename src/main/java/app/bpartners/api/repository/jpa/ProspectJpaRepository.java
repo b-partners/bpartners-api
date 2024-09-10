@@ -3,7 +3,6 @@ package app.bpartners.api.repository.jpa;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,8 +39,12 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + " and cast(actual_status as varchar) = ?4 LIMIT ?5 OFFSET ?6 ")
   List<HProspect>
       findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
-          String idAccountHolder, String name, String contactNature, String prospectStatus, int pageSize, int page);
-
+          String idAccountHolder,
+          String name,
+          String contactNature,
+          String prospectStatus,
+          int pageSize,
+          int page);
 
   @Query(
       nativeQuery = true,

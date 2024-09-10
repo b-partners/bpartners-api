@@ -133,18 +133,20 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         prospects =
             jpaRepository.findAllByIdAccountHolderAndOldNameAndProspectStatus(
                 prospectStatus.toString(), idAccountHolder, name, pageSize, page);
-        log.info("Prospect is not null={}", prospects);
       } else if (prospectStatus == null && contactNature != null) {
         prospects =
             jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
                 idAccountHolder, name, contactNature, pageable);
-        log.info("Contact nature is not null={}", prospects);
       } else {
         prospects =
             jpaRepository
                 .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
-                    idAccountHolder, name, contactNature.toString(), prospectStatus.toString(), pageSize, page);
-        log.info("Here{}");
+                    idAccountHolder,
+                    name,
+                    contactNature.toString(),
+                    prospectStatus.toString(),
+                    pageSize,
+                    page);
       }
       return prospects.stream()
           .map(

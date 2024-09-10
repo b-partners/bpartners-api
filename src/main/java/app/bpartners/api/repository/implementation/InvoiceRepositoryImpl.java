@@ -18,7 +18,6 @@ import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
@@ -47,7 +46,6 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final PaymentRequestJpaRepository paymentReqJpaRepository;
   private final InvoiceMapper mapper;
   private final InvoiceProductMapper productMapper;
-  private final InvoiceProductJpaRepository productJpaRepository;
   private final EntityManager entityManager;
   private final UserRepository userRepository;
   private final InvoicePDFProcessor invoicePDFProcessor;
@@ -65,8 +63,6 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     var paymentRequests =
         new ArrayList<>(
             actual.getPaymentRegulations().stream().map(paymentRequestMapper::toEntity).toList());
-    var invoiceProducts = actual.getProducts().stream().map(productMapper::toEntity).toList();
-
     if (!paymentRequests.isEmpty()
         && actual.getStatus() != CONFIRMED
         && actual.getStatus() != PAID) {
@@ -77,9 +73,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
               .toList();
       paymentRequests.addAll(disabledPayments);
     }
-    if (!invoiceProducts.isEmpty()) {
-      productJpaRepository.deleteAllByIdInvoice(actual.getId());
-    }
+    var invoiceProducts = actual.getProducts().stream().map(productMapper::toEntity).toList();
     Invoice toBeSaved = actual;
     if (actual.getStatus() == PROPOSAL_CONFIRMED) {
       HInvoice proposalConfirmedInvoice = mapper.toEntity(actual, paymentRequests, invoiceProducts);

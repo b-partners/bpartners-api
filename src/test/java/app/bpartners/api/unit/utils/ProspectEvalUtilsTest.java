@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.utils;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsBadRequestException;
+import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
 import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.OTHER;
 import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.PROSPECT;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
@@ -21,7 +22,7 @@ import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Date;
+import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,10 @@ class ProspectEvalUtilsTest {
                 .mailSent("true")
                 .postalCode("75011")
                 .city("Paris")
-                .companyCreationDate(Date.from(Instant.parse("2020-12-31T21:00:00Z")))
+                .companyCreationDate(
+                    Instant.parse("2020-12-31T21:00:00Z")
+                        .atZone(ZoneId.of(PARIS_TIMEZONE))
+                        .toLocalDate())
                 .category("Restaurant")
                 .subcategory("Pizzeria")
                 .contactNature(PROSPECT)
@@ -96,7 +100,10 @@ class ProspectEvalUtilsTest {
                 .mailSent(null)
                 .postalCode("75020")
                 .city("Paris")
-                .companyCreationDate(Date.from(Instant.parse("2022-01-01T21:00:00Z")))
+                .companyCreationDate(
+                    Instant.parse("2022-01-01T21:00:00Z")
+                        .atZone(ZoneId.of(PARIS_TIMEZONE))
+                        .toLocalDate())
                 .category("Restaurant")
                 .subcategory("Restaurant chinois")
                 .contactNature(OTHER)
@@ -134,7 +141,10 @@ class ProspectEvalUtilsTest {
                 .mailSent("false")
                 .postalCode("75020")
                 .city("Paris")
-                .companyCreationDate(Date.from(Instant.parse("2021-01-02T21:00:00Z")))
+                .companyCreationDate(
+                    Instant.parse("2021-01-02T21:00:00Z")
+                        .atZone(ZoneId.of(PARIS_TIMEZONE))
+                        .toLocalDate())
                 .category("Restaurant")
                 .subcategory("Restaurant de spécialités d'Afrique de l'Ouest")
                 .contactNature(PROSPECT)
@@ -171,7 +181,10 @@ class ProspectEvalUtilsTest {
                 .mailSent(null)
                 .postalCode("75020")
                 .city("Paris")
-                .companyCreationDate(Date.from(Instant.parse("2021-01-03T21:00:00Z")))
+                .companyCreationDate(
+                    Instant.parse("2021-01-03T21:00:00Z")
+                        .atZone(ZoneId.of(PARIS_TIMEZONE))
+                        .toLocalDate())
                 .category("Restaurant")
                 .subcategory("Restaurant japonais authentique")
                 .contactNature(PROSPECT)

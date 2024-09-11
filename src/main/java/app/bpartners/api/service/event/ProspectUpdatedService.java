@@ -3,7 +3,6 @@ package app.bpartners.api.service.event;
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.CustomerType.PROFESSIONAL;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
-import static app.bpartners.api.service.utils.DateUtils.formatFrenchDatetime;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.SesConf;
@@ -23,6 +22,7 @@ import app.bpartners.api.repository.jpa.model.HHasCustomer;
 import app.bpartners.api.service.CustomerService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
@@ -48,6 +48,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   private final SesConf sesConf;
   private final HasCustomerJpaRepository hasCustomerJpaRepository;
   private final TemplateResolverEngine templateResolverEngine;
+  private final CustomDateFormatter customDateFormatter;
 
   @Override
   public void accept(ProspectUpdated prospectUpdated) {
@@ -64,7 +65,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     try {
       String recipient = sesConf.getAdminEmail();
       String concerned = null;
-      String frenchUpdatedDatetime = formatFrenchDatetime(updatedAt);
+      String frenchUpdatedDatetime = customDateFormatter.formatFrenchDatetime(updatedAt);
       String translatedStatus = getTranslatedStatus(prospect.getActualStatus());
       String translatedFeedback = getTranslatedFeedBack(prospect.getProspectFeedback());
       String subject =

@@ -54,7 +54,7 @@ import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
-import app.bpartners.api.service.utils.DateUtils;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.google.api.services.sheets.v4.model.Sheet;
@@ -101,6 +101,7 @@ public class ProspectService {
   private final UserService userService;
   private final CalendarApi calendarApi;
   private final TemplateResolverEngine templateResolverEngine;
+  private final CustomDateFormatter customDateFormatter;
 
   private static List<ProspectResult> ratedCustomers(
       List<ProspectResult> prospectResults, Double minRating) {
@@ -854,7 +855,7 @@ public class ProspectService {
     HAccountHolder accountHolder = optionalHolder.get();
     String recipient = accountHolder.getEmail();
     String cc = sesConf.getAdminEmail();
-    String today = DateUtils.formatFrenchDate(Instant.now());
+    String today = customDateFormatter.formatFrenchDate(Instant.now());
     String emailSubject =
         String.format(
             "[BPartners] Pensez à modifier le statut de vos prospects pour les conserver - %s",

@@ -55,7 +55,7 @@ import app.bpartners.api.service.CustomerService;
 import app.bpartners.api.service.ProspectService;
 import app.bpartners.api.service.TransactionService;
 import app.bpartners.api.service.UserService;
-import app.bpartners.api.service.utils.DateUtils;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.drive.model.File;
@@ -243,7 +243,7 @@ public class SheetIT extends MockedThirdParties {
         .mailSent(null)
         .postalCode("60200")
         .city("Compiègne")
-        .companyCreationDate(DateUtils.from_dd_MM_YYYY("01/01/2023"))
+        .companyCreationDate(new CustomDateFormatter().from_dd_MM_YYYY("01/01/2023"))
         .category("Restaurant")
         .subcategory("Magasin de gâteaux")
         .contactNature(ProspectEvalInfo.ContactNature.PROSPECT)

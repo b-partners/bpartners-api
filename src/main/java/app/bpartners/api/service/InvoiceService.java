@@ -17,7 +17,6 @@ import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
-import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PageFromOne;
@@ -291,11 +290,9 @@ public class InvoiceService {
       invoiceBuilder.paymentRegulations(new ArrayList<>());
     } else {
       invoiceBuilder.paymentUrl(null);
-      var oldAmount = getPaymentsAmount(oldInvoice);
-      var newAmount = getPaymentsAmount(newInvoice);
-      var oldPercentValue = getPaymentPercent(oldInvoice);
-      var newPercentValue = getPaymentPercent(newInvoice);
-      if (newAmount != oldAmount && newPercentValue != oldPercentValue) {
+      if (oldInvoice == null
+          || (hasChangedRegulationsAmount(newInvoice, oldInvoice)
+              || hasChangedRegulationsPercent(newInvoice, oldInvoice))) {
         invoiceBuilder.paymentRegulations(paymentRegulationComputing.computeWithPisURL(newInvoice));
       } else {
         invoiceBuilder.paymentRegulations(oldInvoice.getPaymentRegulations());
@@ -303,22 +300,31 @@ public class InvoiceService {
     }
   }
 
-  private double getPaymentsAmount(Invoice invoice) {
-    return invoice == null
-        ? 0.0
-        : invoice.getSortedMultiplePayments().stream()
-            .map(CreatePaymentRegulation::getPaymentRequest)
-            .map(PaymentRequest::getAmount)
-            .map(Fraction::getApproximatedValue)
-            .reduce(0.0, Double::sum);
+  private boolean hasChangedRegulationsAmount(Invoice newInvoice, Invoice oldInvoice) {
+    var newPaymentRegulationsAmount =
+        newInvoice.getPaymentRegulations().stream()
+            .map(
+                paymentRegulation ->
+                    paymentRegulation.getPaymentRequest().getAmount().getCentsAsDecimal())
+            .toList();
+    var oldPaymentRegulationsAmount =
+        oldInvoice.getPaymentRegulations().stream()
+            .map(
+                paymentRegulation ->
+                    paymentRegulation.getPaymentRequest().getAmount().getCentsAsDecimal())
+            .toList();
+    return !newPaymentRegulationsAmount.equals(oldPaymentRegulationsAmount);
   }
 
-  private double getPaymentPercent(Invoice invoice) {
-    return invoice == null
-        ? 0.0
-        : invoice.getSortedMultiplePayments().stream()
-            .map(CreatePaymentRegulation::getPercent)
-            .map(Fraction::getApproximatedValue)
-            .reduce(0.0, Double::sum);
+  private boolean hasChangedRegulationsPercent(Invoice newInvoice, Invoice oldInvoice) {
+    var newPaymentRegulationsPercent =
+        newInvoice.getPaymentRegulations().stream()
+            .map(paymentRegulation -> paymentRegulation.getPercent().getCentsAsDecimal())
+            .toList();
+    var oldPaymentRegulationsPercent =
+        oldInvoice.getPaymentRegulations().stream()
+            .map(paymentRegulation -> paymentRegulation.getPercent().getCentsAsDecimal())
+            .toList();
+    return !newPaymentRegulationsPercent.equals(oldPaymentRegulationsPercent);
   }
 }

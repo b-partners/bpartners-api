@@ -9,6 +9,7 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -16,14 +17,13 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 @Component
 @AllArgsConstructor
 public class InvoicePDFGenerator {
   private final FileWriter fileWriter;
+  private final TemplateResolverEngine templateResolverEngine;
 
   public File apply(Invoice invoice, AccountHolder accountHolder, File logoFile, String template) {
     ITextRenderer renderer = new ITextRenderer();
@@ -51,7 +51,7 @@ public class InvoicePDFGenerator {
 
   private String parseInvoiceTemplateToString(
       Invoice invoice, AccountHolder accountHolder, File logoFile, String template) {
-    TemplateEngine templateEngine = configureTemplate();
+    TemplateEngine templateEngine = templateResolverEngine.getTemplateEngine();
     Context context = configureContext(invoice, accountHolder, logoFile);
     return templateEngine.process(template, context);
   }
@@ -70,17 +70,5 @@ public class InvoicePDFGenerator {
       context.setVariable("qrcode", base64Image(qrCodeBytes));
     }
     return context;
-  }
-
-  private TemplateEngine configureTemplate() {
-    ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
-    templateResolver.setPrefix("/templates/");
-    templateResolver.setSuffix(".html");
-    templateResolver.setCharacterEncoding("UTF-8");
-    templateResolver.setTemplateMode(TemplateMode.HTML);
-
-    TemplateEngine templateEngine = new TemplateEngine();
-    templateEngine.setTemplateResolver(templateResolver);
-    return templateEngine;
   }
 }

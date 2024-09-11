@@ -1,14 +1,22 @@
 package app.bpartners.api.service.utils;
 
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-public class TemplateResolverUtils {
-  private TemplateResolverUtils() {}
+@Component
+public class TemplateResolverEngine {
 
-  private static TemplateEngine initializeTemplateEngine() {
+  public String parseTemplateResolver(String template, Context context) {
+    TemplateEngine templateEngine = getTemplateEngine();
+    return templateEngine.process(template, context);
+  }
+
+  @NotNull
+  public TemplateEngine getTemplateEngine() {
     ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
     templateResolver.setPrefix("/templates/");
     templateResolver.setSuffix(".html");
@@ -18,10 +26,5 @@ public class TemplateResolverUtils {
     TemplateEngine templateEngine = new TemplateEngine();
     templateEngine.setTemplateResolver(templateResolver);
     return templateEngine;
-  }
-
-  public static String parseTemplateResolver(String template, Context context) {
-    TemplateEngine templateEngine = initializeTemplateEngine();
-    return templateEngine.process(template, context);
   }
 }

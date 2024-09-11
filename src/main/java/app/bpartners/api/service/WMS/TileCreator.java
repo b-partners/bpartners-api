@@ -10,7 +10,7 @@ import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.GeoUtils;
-import app.bpartners.api.service.utils.TemplateResolverUtils;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import jakarta.mail.internet.AddressException;
 import java.io.IOException;
 import java.util.List;
@@ -25,6 +25,7 @@ import org.thymeleaf.context.Context;
 public class TileCreator implements Function<AreaPicture, Tile> {
   private final BanApi banApi;
   private final SesService sesService;
+  private final TemplateResolverEngine templateResolverEngine;
   private static final String AREA_PICTURE_NOT_FOUND_EMAIL_TEMPLATE =
       "area_picture_not_found_email";
 
@@ -67,7 +68,7 @@ public class TileCreator implements Function<AreaPicture, Tile> {
     if (highestFeatGeoPosition.isEmpty()) {
       Context context = setAreaPictureContext(areaPicture, user);
       String emailBody =
-          TemplateResolverUtils.parseTemplateResolver(
+          templateResolverEngine.parseTemplateResolver(
               AREA_PICTURE_NOT_FOUND_EMAIL_TEMPLATE, context);
       assert user != null;
       sesService.sendEmail(

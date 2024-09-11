@@ -102,6 +102,11 @@ operations:
           schema:
             $ref: '#/components/schemas/ContactNature'
         - in: query
+          name: status
+          description: Filter prospect by status
+          schema:
+            $ref: '#/components/schemas/ProspectStatus'
+        - in: query
           name: page
           schema:
             $ref: './api.yml#/components/schemas/Page'

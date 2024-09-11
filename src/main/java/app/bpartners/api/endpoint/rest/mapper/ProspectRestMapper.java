@@ -88,6 +88,9 @@ public class ProspectRestMapper {
   }
 
   public Prospect toRest(app.bpartners.api.model.prospect.Prospect domain) {
+    if (domain == null) {
+      return null;
+    }
     app.bpartners.api.model.prospect.Prospect.ProspectRating prospectRating = domain.getRating();
     return new Prospect()
         .id(domain.getId())

@@ -1,7 +1,5 @@
 package app.bpartners.api.service.event;
 
-import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
-
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -9,6 +7,7 @@ import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
@@ -24,6 +23,7 @@ import org.thymeleaf.context.Context;
 public class UserOnboardedService implements Consumer<UserOnboarded> {
   public static final String USER_ONBOARDED_MAIL = "user_onboarded_mail";
   private final SesService service;
+  private final TemplateResolverEngine templateResolverEngine;
 
   @Override
   public void accept(UserOnboarded userOnboarded) {
@@ -32,7 +32,7 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
     OnboardedUser onboardedUser = userOnboarded.getOnboardedUser();
     List<Attachment> attachments = List.of();
     String htmlBody =
-        parseTemplateResolver(
+        templateResolverEngine.parseTemplateResolver(
             USER_ONBOARDED_MAIL,
             configureUserContext(
                 onboardedUser.getOnboardedUser(),

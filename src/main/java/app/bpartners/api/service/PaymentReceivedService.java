@@ -115,7 +115,7 @@ public class PaymentReceivedService {
                 }
                 HInvoice savedInvoice = invoiceJpaRepository.save(toRefresh);
                 Invoice retrievedInvoice = invoiceRepository.getById(savedInvoice.getId());
-                invoicePDFProcessor.apply(retrievedInvoice);
+                invoicePDFProcessor.accept(retrievedInvoice);
                 log.info("{} Invoice is refreshed with its PDF", invoice.describe());
               });
       log.info("Payment requests " + paymentMessage(savedPaidPayments) + " updated successfully");

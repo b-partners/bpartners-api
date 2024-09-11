@@ -214,9 +214,10 @@ class InvoiceIT extends S3MockedThirdParties {
   void crupdate_confirmed_invoice_ok() throws ApiException {
     ApiClient joeDoeClient = anApiClient();
     PayingApi api = new PayingApi(joeDoeClient);
+    String invoiceId = INVOICE4_ID;
 
     Invoice actualConfirmed =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, INVOICE4_ID, confirmedInvoice());
+        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, invoiceId, confirmedInvoice());
     actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
     actualConfirmed.setPaymentRegulations(ignoreStatusDatetime(actualConfirmed));
     actualConfirmed.setCustomer(ignoreCustomerDatetime(actualConfirmed));
@@ -238,7 +239,7 @@ class InvoiceIT extends S3MockedThirdParties {
             .updatedAt(actualConfirmed.getUpdatedAt()),
         actualConfirmed.createdAt(null));
     assertNotNull(actualConfirmed.getFileId());
-    assertNotEquals(INVOICE4_ID, actualConfirmed.getId());
+    assertNotEquals(invoiceId, actualConfirmed.getId());
     assertNotNull(actualConfirmed.getUpdatedAt());
     assertEquals(
         expectedPaid()

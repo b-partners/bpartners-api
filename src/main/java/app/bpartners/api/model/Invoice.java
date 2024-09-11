@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.Date;
@@ -133,18 +134,24 @@ public class Invoice {
 
   public List<CreatePaymentRegulation> getPaymentRegulations() {
     return paymentRegulations == null || paymentRegulations.isEmpty()
-        ? List.of()
+        ? new ArrayList<>()
         : paymentRegulations.stream()
             .filter(
                 payment ->
                     payment != null
                         && payment.getPaymentRequest().getEnableStatus().equals(ENABLED))
-            .toList();
+            .collect(Collectors.toList());
+  }
+
+  public List<CreatePaymentRegulation> getAllPaymentRegulations() {
+    return paymentRegulations == null || paymentRegulations.isEmpty()
+        ? new ArrayList<>()
+        : paymentRegulations;
   }
 
   public List<CreatePaymentRegulation> getSortedMultiplePayments() {
     return paymentRegulations == null || paymentRegulations.isEmpty()
-        ? List.of()
+        ? new ArrayList<>()
         : getPaymentRegulations().stream()
             .sorted(Comparator.comparing(CreatePaymentRegulation::getMaturityDate))
             .collect(Collectors.toList());

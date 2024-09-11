@@ -1,10 +1,5 @@
 package app.bpartners.api.repository.implementation;
 
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
-import static java.util.UUID.randomUUID;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
@@ -18,17 +13,13 @@ import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
-import app.bpartners.api.repository.jpa.InvoiceProductJpaRepository;
-import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
-import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,13 +35,10 @@ import org.springframework.stereotype.Repository;
 @AllArgsConstructor
 public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final InvoiceJpaRepository jpaRepository;
-  private final PaymentRequestJpaRepository paymentReqJpaRepository;
   private final InvoiceMapper mapper;
   private final InvoiceProductMapper productMapper;
-  private final InvoiceProductJpaRepository productJpaRepository;
   private final EntityManager entityManager;
   private final UserRepository userRepository;
-  private final InvoicePDFProcessor invoicePDFProcessor;
   private final PaymentRequestMapper paymentRequestMapper;
 
   @Override
@@ -61,48 +49,14 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @Override
-  public Invoice crupdate(Invoice actual) {
+  public Invoice save(Invoice toSave) {
     var paymentRequests =
         new ArrayList<>(
-            actual.getPaymentRegulations().stream().map(paymentRequestMapper::toEntity).toList());
-    var invoiceProducts = actual.getProducts().stream().map(productMapper::toEntity).toList();
-
-    if (!paymentRequests.isEmpty()
-        && actual.getStatus() != CONFIRMED
-        && actual.getStatus() != PAID) {
-      var oldPayments = paymentReqJpaRepository.findAllByIdInvoice(actual.getId());
-      var disabledPayments =
-          oldPayments.stream()
-              .map(payment -> payment.toBuilder().enableStatus(DISABLED).build())
-              .toList();
-      paymentRequests.addAll(disabledPayments);
-    }
-    if (!invoiceProducts.isEmpty()) {
-      productJpaRepository.deleteAllByIdInvoice(actual.getId());
-    }
-    Invoice toBeSaved = actual;
-    if (actual.getStatus() == PROPOSAL_CONFIRMED) {
-      HInvoice proposalConfirmedInvoice = mapper.toEntity(actual, paymentRequests, invoiceProducts);
-      jpaRepository.save(proposalConfirmedInvoice);
-
-      toBeSaved =
-          actual.toBuilder()
-              .id(String.valueOf(randomUUID()))
-              .status(CONFIRMED)
-              .sendingDate(LocalDate.now())
-              .validityDate(null)
-              .fileId(null) // To be generated later from processPdfGeneration
-              .build();
-    }
-    HInvoice actualEntity = mapper.toEntity(toBeSaved, paymentRequests, invoiceProducts);
-    Invoice toGenerateAsPdf =
-        mapper.toDomain(
-            actualEntity.products(invoiceProducts).paymentRequests(paymentRequests),
-            actual.getUser());
-    HInvoice toSave = actualEntity.fileId(invoicePDFProcessor.apply(toGenerateAsPdf));
-    HInvoice savedInvoice = jpaRepository.save(toSave);
-
-    return mapper.toDomain(savedInvoice, toGenerateAsPdf.getUser());
+            toSave.getPaymentRegulations().stream().map(paymentRequestMapper::toEntity).toList());
+    var invoiceProducts = toSave.getProducts().stream().map(productMapper::toEntity).toList();
+    var savedInvoice =
+        jpaRepository.save(mapper.toEntity(toSave, paymentRequests, invoiceProducts));
+    return mapper.toDomain(savedInvoice, userRepository.getById(savedInvoice.getIdUser()));
   }
 
   @Override
@@ -192,7 +146,7 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @Override
-  public List<Invoice> saveAll(List<ArchiveInvoice> archiveInvoices) {
+  public List<Invoice> archiveAll(List<ArchiveInvoice> archiveInvoices) {
     List<HInvoice> entities =
         archiveInvoices.stream()
             .map(

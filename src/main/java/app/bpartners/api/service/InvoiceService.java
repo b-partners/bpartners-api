@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
@@ -30,6 +31,7 @@ import app.bpartners.api.service.invoice.InvoiceValidator;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import app.bpartners.api.service.payment.PaymentService;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -87,7 +89,7 @@ public class InvoiceService {
       return crupdateInvoice(invoice.toBuilder().status(PAID).paymentMethod(MULTIPLE).build());
     }
 
-    invoicePDFProcessor.apply(invoice);
+    invoicePDFProcessor.accept(invoice);
 
     return invoice;
   }
@@ -162,7 +164,7 @@ public class InvoiceService {
   }
 
   public List<Invoice> archiveInvoices(List<ArchiveInvoice> archiveInvoices) {
-    return repository.saveAll(archiveInvoices);
+    return repository.archiveAll(archiveInvoices);
   }
 
   @Transactional
@@ -178,14 +180,17 @@ public class InvoiceService {
     invoiceBuilder.paymentRegulations(paymentRegulationComputing.computeWithoutPisURL(newInvoice));
     repository
         .pwFindOptionalById(newInvoice.getId())
-        .ifPresent(
+        .ifPresentOrElse(
             oldInvoice -> {
               invoiceBuilder.fileId(oldInvoice.getFileId());
               handleStatusChange(newInvoice, oldInvoice, invoiceBuilder);
-            });
+            },
+            () -> invoiceBuilder.fileId(randomUUID().toString()));
     var actual = invoiceBuilder.build();
 
-    return repository.crupdate(actual);
+    var savedInvoice = repository.save(actual);
+    invoicePDFProcessor.accept(savedInvoice);
+    return savedInvoice;
   }
 
   private void handleStatusChange(
@@ -193,11 +198,15 @@ public class InvoiceService {
     InvoiceStatus newStatus = newInvoice.getStatus();
     InvoiceStatus oldStatus = oldInvoice.getStatus();
     switch (newStatus) {
-      case PROPOSAL_CONFIRMED -> handlePaymentType(newInvoice, oldInvoice, invoiceBuilder);
+      case DRAFT, PROPOSAL, ACCEPTED, PROPOSAL_CONFIRMED -> handlePaymentRequests(
+          newInvoice, oldInvoice);
       case CONFIRMED -> {
         handlePaymentType(newInvoice, oldInvoice, invoiceBuilder);
         if (oldStatus == PROPOSAL) {
           invoiceBuilder.status(PROPOSAL_CONFIRMED);
+          handlePaymentType(newInvoice, oldInvoice, invoiceBuilder);
+          handlePaymentRequests(newInvoice, oldInvoice);
+          handleProposalArchiving(invoiceBuilder);
         }
       }
       case PAID -> {
@@ -217,6 +226,50 @@ public class InvoiceService {
     }
   }
 
+  /*
+  Invoice status flow is : DRAFT - > PROPOSAL -> __PROPOSAL_CONFIRMED__
+                                               -> CONFIRMED -> PAID
+  That means when customer accept a PROPOSAL invoice, we archive the PROPOSAL to status PROPOSAL_CONFIRMED
+  And generate an invoice with another identifier but same reference, with CONFIRMED status.
+  Once CONFIRMED invoice generated, invoice handleStatusChange again to handle new invoice status.
+   */
+  private void handleProposalArchiving(Invoice.InvoiceBuilder invoiceBuilder) {
+    var savedProposalConfirmedInvoice = repository.save(invoiceBuilder.build());
+
+    var newFileId = randomUUID().toString();
+    Invoice generatedConfirmedInvoice =
+        invoiceBuilder
+            .id(String.valueOf(randomUUID()))
+            .status(CONFIRMED)
+            .sendingDate(LocalDate.now())
+            .validityDate(null)
+            .fileId(newFileId)
+            .build();
+    handleStatusChange(generatedConfirmedInvoice, savedProposalConfirmedInvoice, invoiceBuilder);
+  }
+
+  private void handlePaymentRequests(Invoice newInvoice, Invoice oldInvoice) {
+    var newPaymentRegulations = newInvoice.getPaymentRegulations();
+    var oldPayments = oldInvoice.getAllPaymentRegulations();
+    if (!newPaymentRegulations.isEmpty()) {
+      var disabledPayments =
+          new ArrayList<>(
+              oldPayments.stream()
+                  .map(
+                      paymentRegulation -> {
+                        var paymentRequest = paymentRegulation.getPaymentRequest();
+                        return paymentRegulation.toBuilder()
+                            .paymentRequest(
+                                paymentRequest.toBuilder().enableStatus(DISABLED).build())
+                            .build();
+                      })
+                  .toList());
+      newPaymentRegulations.addAll(disabledPayments);
+    } else {
+      newPaymentRegulations.addAll(oldPayments);
+    }
+  }
+
   private void handlePaymentType(
       Invoice newInvoice, Invoice oldInvoice, Invoice.InvoiceBuilder invoiceBuilder) {
     var paymentType = newInvoice.getPaymentType();
@@ -230,6 +283,7 @@ public class InvoiceService {
           newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
               ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
               : newInvoice.getPaymentUrl());
+      invoiceBuilder.paymentRegulations(new ArrayList<>());
     } else {
       var oldAmount = getPaymentsAmount(oldInvoice);
       var newAmount = getPaymentsAmount(newInvoice);

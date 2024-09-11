@@ -234,7 +234,6 @@ class InvoiceIT extends S3MockedThirdParties {
             .id(actualConfirmed.getId())
             .fileId(actualConfirmed.getFileId())
             .archiveStatus(ENABLED)
-            .paymentRegulations(List.of())
             .sendingDate(LocalDate.now())
             .updatedAt(actualConfirmed.getUpdatedAt()),
         actualConfirmed.createdAt(null));

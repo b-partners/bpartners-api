@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface InvoiceRepository {
   List<Invoice> findAllEnabledByIdUser(String idUser);
 
-  Invoice crupdate(Invoice toCrupdate);
+  Invoice save(Invoice toSave);
 
   Invoice getById(String id);
 
@@ -24,7 +24,7 @@ public interface InvoiceRepository {
       int page,
       int pageSize);
 
-  List<Invoice> saveAll(List<ArchiveInvoice> archiveInvoices);
+  List<Invoice> archiveAll(List<ArchiveInvoice> archiveInvoices);
 
   List<Invoice> findByIdUserAndRef(String idUser, String reference);
 

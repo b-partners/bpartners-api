@@ -15,6 +15,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.PaymentInitiationRepository;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -37,7 +38,6 @@ public class PaymentInitiationService {
   }
 
   public PaymentRedirection initiateInvoicePayment(Invoice invoice) {
-    log.info("Initiate invoice payment processing");
     if (Objects.equals(invoice.getTotalPriceWithVat(), new Fraction())) {
       return new PaymentRedirection();
     }
@@ -51,16 +51,15 @@ public class PaymentInitiationService {
             invoice,
             paymentReg,
             paymentHistoryStatus);
-    log.info("Payment initiation: {}", paymentInitiation);
     return repository
         .saveAll(List.of(paymentInitiation), invoice.getId(), invoice.getUser())
-        .get(0);
+        .getFirst();
   }
 
   public List<PaymentRequest> retrievePaymentEntities(
       List<PaymentInitiation> paymentInitiations, String invoiceId, InvoiceStatus status) {
     if (status == InvoiceStatus.CONFIRMED || status == InvoiceStatus.PAID) {
-      return List.of();
+      return new ArrayList<>();
     }
     return repository.retrievePaymentEntities(paymentInitiations, invoiceId).stream()
         .map(PaymentRequest::new)

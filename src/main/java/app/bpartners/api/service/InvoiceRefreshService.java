@@ -95,7 +95,7 @@ public class InvoiceRefreshService {
                   invoiceEntity.setStatus(InvoiceStatus.CONFIRMED);
                   invoiceJpaRepository.save(invoiceEntity);
 
-                  invoicePDFProcessor.apply(invoice);
+                  invoicePDFProcessor.accept(invoice);
                   successful.getAndIncrement();
                   log.info("{} refreshed successfully", invoice.describe());
                 } catch (Exception e) {

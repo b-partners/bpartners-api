@@ -22,7 +22,7 @@ public class InvoiceRelaunchConfService {
   public InvoiceRelaunchConf save(InvoiceRelaunchConf invoiceRelaunchConf) {
     Invoice toConfigure = invoiceRepository.getById(invoiceRelaunchConf.getIdInvoice());
     toConfigure.setToBeRelaunched(true);
-    invoiceRepository.crupdate(toConfigure);
+    invoiceRepository.save(toConfigure);
     return repository.save(invoiceRelaunchConf);
   }
 }

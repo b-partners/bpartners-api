@@ -185,7 +185,12 @@ public class InvoiceService {
               invoiceBuilder.fileId(oldInvoice.getFileId());
               handleStatusChange(newInvoice, oldInvoice, invoiceBuilder);
             },
-            () -> invoiceBuilder.fileId(randomUUID().toString()));
+            () -> {
+              invoiceBuilder.fileId(randomUUID().toString());
+              if (newInvoice.getStatus() == CONFIRMED) {
+                handlePaymentType(newInvoice, null, invoiceBuilder);
+              }
+            });
     var actual = invoiceBuilder.build();
 
     var savedInvoice = repository.save(actual);
@@ -285,29 +290,35 @@ public class InvoiceService {
               : newInvoice.getPaymentUrl());
       invoiceBuilder.paymentRegulations(new ArrayList<>());
     } else {
+      invoiceBuilder.paymentUrl(null);
       var oldAmount = getPaymentsAmount(oldInvoice);
       var newAmount = getPaymentsAmount(newInvoice);
       var oldPercentValue = getPaymentPercent(oldInvoice);
       var newPercentValue = getPaymentPercent(newInvoice);
       if (newAmount != oldAmount && newPercentValue != oldPercentValue) {
         invoiceBuilder.paymentRegulations(paymentRegulationComputing.computeWithPisURL(newInvoice));
-        invoiceBuilder.paymentUrl(null);
+      } else {
+        invoiceBuilder.paymentRegulations(oldInvoice.getPaymentRegulations());
       }
     }
   }
 
   private double getPaymentsAmount(Invoice invoice) {
-    return invoice.getSortedMultiplePayments().stream()
-        .map(CreatePaymentRegulation::getPaymentRequest)
-        .map(PaymentRequest::getAmount)
-        .map(Fraction::getApproximatedValue)
-        .reduce(0.0, Double::sum);
+    return invoice == null
+        ? 0.0
+        : invoice.getSortedMultiplePayments().stream()
+            .map(CreatePaymentRegulation::getPaymentRequest)
+            .map(PaymentRequest::getAmount)
+            .map(Fraction::getApproximatedValue)
+            .reduce(0.0, Double::sum);
   }
 
   private double getPaymentPercent(Invoice invoice) {
-    return invoice.getSortedMultiplePayments().stream()
-        .map(CreatePaymentRegulation::getPercent)
-        .map(Fraction::getApproximatedValue)
-        .reduce(0.0, Double::sum);
+    return invoice == null
+        ? 0.0
+        : invoice.getSortedMultiplePayments().stream()
+            .map(CreatePaymentRegulation::getPercent)
+            .map(Fraction::getApproximatedValue)
+            .reduce(0.0, Double::sum);
   }
 }

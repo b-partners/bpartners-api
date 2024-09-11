@@ -13,7 +13,6 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
 import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
-import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -57,6 +56,7 @@ import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import app.bpartners.api.service.utils.DateUtils;
 import app.bpartners.api.service.utils.GeoUtils;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import java.io.IOException;
@@ -100,6 +100,7 @@ public class ProspectService {
   private final SnsService snsService;
   private final UserService userService;
   private final CalendarApi calendarApi;
+  private final TemplateResolverEngine templateResolverEngine;
 
   private static List<ProspectResult> ratedCustomers(
       List<ProspectResult> prospectResults, Double minRating) {
@@ -235,12 +236,11 @@ public class ProspectService {
     return withoutDuplicat;
   }
 
-  private static String prospectRelaunchEmailBody(
-      List<Prospect> prospects, HAccountHolder accountHolder) {
+  private String prospectRelaunchEmailBody(List<Prospect> prospects, HAccountHolder accountHolder) {
     Context context = new Context();
     context.setVariable("accountHolder", accountHolder);
     context.setVariable("prospects", prospects);
-    return parseTemplateResolver(PROSPECT_RELAUNCH_TEMPLATE, context);
+    return templateResolverEngine.parseTemplateResolver(PROSPECT_RELAUNCH_TEMPLATE, context);
   }
 
   @Transactional
@@ -350,7 +350,7 @@ public class ProspectService {
                   && repository.isSogefiProspector(accountHolder.getId())) {
                 final String subject = "Avez-vous besoin de nouveaux clients ?";
                 final String htmlbody =
-                    parseTemplateResolver(
+                    templateResolverEngine.parseTemplateResolver(
                         PROSPECT_MAIL_TEMPLATE, configureProspectContext(accountHolder));
                 try {
                   log.info("The email should be sent to: " + accountHolder.getEmail());

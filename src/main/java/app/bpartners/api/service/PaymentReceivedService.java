@@ -25,7 +25,7 @@ import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.utils.DateUtils;
-import app.bpartners.api.service.utils.TemplateResolverUtils;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.security.Signature;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -54,6 +54,7 @@ public class PaymentReceivedService {
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final SnsService snsService;
   private final InvoicePDFProcessor invoicePDFProcessor;
+  private final TemplateResolverEngine templateResolverEngine;
 
   @SneakyThrows
   public void updatePaymentStatuses(Map<String, String> paymentStatusMap) {
@@ -171,7 +172,7 @@ public class PaymentReceivedService {
       context.setVariable(
           "paymentDatetime", DateUtils.formatFrenchDatetime(payment.getPaymentStatusUpdatedAt()));
       String emailBody =
-          TemplateResolverUtils.parseTemplateResolver(PAYMENT_STATUS_CHANGED_TEMPLATE, context);
+          templateResolverEngine.parseTemplateResolver(PAYMENT_STATUS_CHANGED_TEMPLATE, context);
 
       String recipient = accountHolder.getEmail();
       String cc = null;

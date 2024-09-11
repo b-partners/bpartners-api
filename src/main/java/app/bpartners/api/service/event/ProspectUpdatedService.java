@@ -24,7 +24,7 @@ import app.bpartners.api.service.CustomerService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.GeoUtils;
-import app.bpartners.api.service.utils.TemplateResolverUtils;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -47,6 +47,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   private final SesService sesService;
   private final SesConf sesConf;
   private final HasCustomerJpaRepository hasCustomerJpaRepository;
+  private final TemplateResolverEngine templateResolverEngine;
 
   @Override
   public void accept(ProspectUpdated prospectUpdated) {
@@ -134,7 +135,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     context.setVariable("accountHolder", accountHolder);
     context.setVariable("translatedStatus", translatedStatus);
     context.setVariable("frenchUpdatedDatetime", frenchUpdatedDatetime);
-    return TemplateResolverUtils.parseTemplateResolver(PROSPECT_UPDATED_TEMPLATE, context);
+    return templateResolverEngine.parseTemplateResolver(PROSPECT_UPDATED_TEMPLATE, context);
   }
 
   private void crupdateAndLinkCustomerToProspect(User owner, Prospect prospect) {

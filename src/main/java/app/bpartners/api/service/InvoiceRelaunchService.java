@@ -35,7 +35,7 @@ import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.invoice.InvoicePDFGenerator;
-import app.bpartners.api.service.utils.TemplateResolverUtils;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -72,6 +72,7 @@ public class InvoiceRelaunchService {
   private final SesService sesService;
   private final InvoiceRelaunchSavedService relaunchSavedService;
   private final FileWriter fileWriter;
+  private final TemplateResolverEngine templateResolverEngine;
 
   private static String getDefaultSubject(Invoice invoice) {
     return "Votre "
@@ -278,7 +279,7 @@ public class InvoiceRelaunchService {
     context.setVariable("accountHolder", accountHolder);
     context.setVariable("isFromScratch", fromScratch);
 
-    return TemplateResolverUtils.parseTemplateResolver(MAIL_TEMPLATE, context);
+    return templateResolverEngine.parseTemplateResolver(MAIL_TEMPLATE, context);
   }
 
   private InvoiceRelaunchSaved getTypedInvoiceRelaunched(

@@ -1,7 +1,5 @@
 package app.bpartners.api.service.event;
 
-import static app.bpartners.api.service.utils.TemplateResolverUtils.parseTemplateResolver;
-
 import app.bpartners.api.endpoint.event.model.CustomerCrupdated;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
@@ -11,6 +9,7 @@ import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
@@ -28,6 +27,7 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
   private final SesService service;
   private final CustomerRepository customerRepository;
   private final BanApi banApi;
+  private final TemplateResolverEngine templateResolverEngine;
 
   public void accept(List<CustomerCrupdated> customerCrupdatedList) {
     customerCrupdatedList.forEach(this);
@@ -65,7 +65,7 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
     }
 
     String htmlBody =
-        parseTemplateResolver(
+        templateResolverEngine.parseTemplateResolver(
             CUSTOMER_CRUPDATED_MAIL,
             configureCustomerContext(customerCrupdated.getUser(), updatedCustomer, type));
     try {

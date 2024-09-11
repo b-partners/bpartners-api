@@ -42,7 +42,7 @@ import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.GeoUtils;
-import app.bpartners.api.service.utils.TemplateResolverUtils;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -76,6 +76,7 @@ public class ProspectEvaluationJobInitiatedService
   private final ProspectRestMapper prospectRestMapper;
   private final UserService userService;
   private final SnsService snsService;
+  private final TemplateResolverEngine templateResolverEngine;
 
   @Override
   public void accept(ProspectEvaluationJobInitiated jobInitiated) {
@@ -189,7 +190,7 @@ public class ProspectEvaluationJobInitiatedService
     context.setVariable("runningJobStart", runningJobStart);
     context.setVariable("events", eventsWithAddress);
     context.setVariable("exception", e);
-    return TemplateResolverUtils.parseTemplateResolver(
+    return templateResolverEngine.parseTemplateResolver(
         JOB_PROCESSING_FAILED_EMAIL_TEMPLATE, context);
   }
 
@@ -320,7 +321,7 @@ public class ProspectEvaluationJobInitiatedService
     context.setVariable("newProspects", newProspects);
     context.setVariable("interventionDate", interventionDate);
     context.setVariable("interventionLocation", interventionLocation);
-    return TemplateResolverUtils.parseTemplateResolver(
+    return templateResolverEngine.parseTemplateResolver(
         EVENT_EVALUATION_RESULT_EMAIL_TEMPLATE, context);
   }
 
@@ -347,7 +348,7 @@ public class ProspectEvaluationJobInitiatedService
     context.setVariable("accountHolder", accountHolder);
     context.setVariable("oldCustomers", oldCustomers);
     context.setVariable("newProspects", newProspects);
-    return TemplateResolverUtils.parseTemplateResolver(
+    return templateResolverEngine.parseTemplateResolver(
         SHEET_EVALUATION_RESULT_EMAIL_TEMPLATE, context);
   }
 

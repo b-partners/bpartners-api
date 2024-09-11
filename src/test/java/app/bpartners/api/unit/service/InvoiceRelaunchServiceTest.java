@@ -89,7 +89,8 @@ class InvoiceRelaunchServiceTest {
             invoicePDFGeneratorMock,
             sesServiceMock,
             invoiceRelaunchSavedServiceMock,
-            fileWriterMock);
+            fileWriterMock,
+            mock());
     when(invoiceJpaRepository.findAllByToBeRelaunched(true))
         .thenReturn(
             List.of(

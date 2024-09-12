@@ -16,8 +16,8 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
-import app.bpartners.api.repository.expressif.ProspectEval;
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.expressif.fact.Robbery;
 import java.io.ByteArrayInputStream;
@@ -176,10 +176,10 @@ public class ProspectEvalUtils {
   }
 
   @SneakyThrows
-  public List<ProspectEval> convertFromExcel(InputStream file) {
+  public List<ProspectEvaluation> convertFromExcel(InputStream file) {
     Workbook workbook = WorkbookFactory.create(file);
     Sheet sheet = workbook.getSheetAt(FIRST_SHEET_INDEX);
-    List<ProspectEval> prospectEvalList = new ArrayList<>();
+    List<ProspectEvaluation> prospectEvalList = new ArrayList<>();
 
     StringBuilder exceptionMsgBuilder = new StringBuilder();
     Iterator<Row> rows = sheet.rowIterator();
@@ -190,8 +190,8 @@ public class ProspectEvalUtils {
         if (depaRuleValue == null) {
           addMissingException(exceptionMsgBuilder, currentRow);
         } else {
-          ProspectEval prospectEval = new ProspectEval<>();
-          ProspectEvalInfo prospectEvalInfo = getNewProspect(currentRow, exceptionMsgBuilder);
+          ProspectEvaluation prospectEval = new ProspectEvaluation<>();
+          ProspectEvaluationInfo prospectEvalInfo = getNewProspect(currentRow, exceptionMsgBuilder);
 
           /*
           /!\ Pay attention ! For now, we duplicate the prospect to evaluate for each evaluation
@@ -205,7 +205,7 @@ public class ProspectEvalUtils {
           prospectEval.setId(String.valueOf(randomUUID()));
           prospectEval.setProspectOwnerId(getStringValue(currentRow.getCell(30)));
           setProspectJobValue(exceptionMsgBuilder, currentRow, prospectEval);
-          prospectEval.setProspectEvalInfo(prospectEvalInfo);
+          prospectEval.setEvaluationInfo(prospectEvalInfo);
 
           prospectEval.setInsectControl(rowBooleanValue(currentRow, 15, exceptionMsgBuilder));
           prospectEval.setDisinfection(rowBooleanValue(currentRow, 16, exceptionMsgBuilder));
@@ -438,7 +438,7 @@ public class ProspectEvalUtils {
   private void setProspectJobValue(
       StringBuilder exceptionMsgBuilder,
       Row currentRow,
-      ProspectEval<NewIntervention> prospectEval) {
+      ProspectEvaluation<NewIntervention> prospectEval) {
     String jobValue = getStringValue(currentRow.getCell(JOB_CELL_INDEX));
     if (jobValue == null) {
       exceptionMsgBuilder
@@ -464,8 +464,8 @@ public class ProspectEvalUtils {
     }
   }
 
-  private ProspectEvalInfo getNewProspect(Row currentRow, StringBuilder exceptionMsgBuilder) {
-    ProspectEvalInfo prospectEvalInfo = new ProspectEvalInfo();
+  private ProspectEvaluationInfo getNewProspect(Row currentRow, StringBuilder exceptionMsgBuilder) {
+    ProspectEvaluationInfo prospectEvalInfo = new ProspectEvaluationInfo();
     for (int colIndex = 0; colIndex < 13; colIndex++) {
       Cell currentCell = currentRow.getCell(colIndex);
       switch (colIndex) {

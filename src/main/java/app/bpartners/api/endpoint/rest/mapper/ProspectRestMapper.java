@@ -20,8 +20,8 @@ import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
-import app.bpartners.api.repository.expressif.ProspectEval;
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.math.BigDecimal;
@@ -41,8 +41,8 @@ public class ProspectRestMapper {
     if (prospectResult == null) {
       return null;
     }
-    ProspectEval eval = prospectResult.getProspectEval();
-    ProspectEvalInfo info = eval.getProspectEvalInfo();
+    ProspectEvaluation eval = prospectResult.getProspectEval();
+    ProspectEvaluationInfo info = eval.getEvaluationInfo();
     ProspectResult.InterventionResult interventionResult = prospectResult.getInterventionResult();
     ProspectResult.CustomerInterventionResult customerResult =
         prospectResult.getCustomerInterventionResult();
@@ -200,11 +200,11 @@ public class ProspectRestMapper {
         .build();
   }
 
-  private ContactNature getProspect(ProspectEvalInfo info) {
-    ProspectEvalInfo.ContactNature domainNature = info.getContactNature();
-    if (domainNature == ProspectEvalInfo.ContactNature.PROSPECT) {
+  private ContactNature getProspect(ProspectEvaluationInfo info) {
+    ProspectEvaluationInfo.ContactNature domainNature = info.getContactNature();
+    if (domainNature == ProspectEvaluationInfo.ContactNature.PROSPECT) {
       return ContactNature.PROSPECT;
-    } else if (domainNature == ProspectEvalInfo.ContactNature.OLD_CUSTOMER) {
+    } else if (domainNature == ProspectEvaluationInfo.ContactNature.OLD_CUSTOMER) {
       return ContactNature.OLD_CUSTOMER;
     }
     return ContactNature.OTHER;

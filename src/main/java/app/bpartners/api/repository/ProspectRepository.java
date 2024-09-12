@@ -3,7 +3,7 @@ package app.bpartners.api.repository;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.model.prospect.Prospect;
-import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import java.time.LocalDate;
 import java.util.List;
@@ -31,5 +31,5 @@ public interface ProspectRepository {
 
   boolean isSogefiProspector(String idAccountHolder);
 
-  List<ProspectResult> evaluate(List<ProspectEval> prospectEvals);
+  List<ProspectResult> evaluate(List<ProspectEvaluation> prospectEvals);
 }

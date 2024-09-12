@@ -30,7 +30,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
-import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
 import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.service.ProspectService;
 import java.io.ByteArrayInputStream;
@@ -183,7 +183,7 @@ public class ProspectController {
     SheetProperties sheetProperties = prospectEvaluation.getSheetProperties();
     SheetRange range = sheetProperties.getRanges();
 
-    List<ProspectEval> prospectEvaluations =
+    List<ProspectEvaluation> prospectEvaluations =
         service.readEvaluationsFromSheets(
             AuthProvider.getAuthenticatedUserId(),
             prospectEvaluation.getArtisanOwner(),
@@ -224,7 +224,7 @@ public class ProspectController {
     Double minProspectRating = getMinProspectRating(headers);
     boolean isExcelFile = acceptHeaders.equals(XLS_FILE) || acceptHeaders.equals(XLSX_FILE);
 
-    List<ProspectEval> prospectEvals =
+    List<ProspectEvaluation> prospectEvals =
         prospectUtils.convertFromExcel(new ByteArrayInputStream(toEvaluate));
     List<EvaluatedProspect> evaluatedProspects =
         service

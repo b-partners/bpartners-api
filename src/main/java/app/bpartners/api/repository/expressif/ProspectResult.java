@@ -16,7 +16,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class ProspectResult<T> {
-  private ProspectEval<T> prospectEval;
+  private ProspectEvaluation<T> prospectEval;
   private InterventionResult interventionResult;
   private CustomerInterventionResult customerInterventionResult;
   private Instant evaluationDate;

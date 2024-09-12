@@ -44,8 +44,8 @@ import app.bpartners.api.repository.BusinessActivityRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.expressif.ExpressifApi;
-import app.bpartners.api.repository.expressif.ProspectEval;
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
@@ -231,8 +231,8 @@ public class SheetIT extends MockedThirdParties {
     assertEquals(List.of(), actual2);
   }
 
-  private static ProspectEvalInfo prospectEvalInfo1() {
-    return ProspectEvalInfo.builder()
+  private static ProspectEvaluationInfo prospectEvalInfo1() {
+    return ProspectEvaluationInfo.builder()
         .owner("3d0fbbc4-d0cf-4b86-8d80-8f86165e56dd")
         .name("Biscuits")
         .website("https://biscuit-madeleine-cooky.fr/")
@@ -246,7 +246,7 @@ public class SheetIT extends MockedThirdParties {
         .companyCreationDate(new CustomDateFormatter().from_dd_MM_YYYY("01/01/2023"))
         .category("Restaurant")
         .subcategory("Magasin de gâteaux")
-        .contactNature(ProspectEvalInfo.ContactNature.PROSPECT)
+        .contactNature(ProspectEvaluationInfo.ContactNature.PROSPECT)
         .reference(null)
         .coordinates(null)
         .build();
@@ -254,7 +254,7 @@ public class SheetIT extends MockedThirdParties {
 
   @Test
   void read_prospects_filtered_from_sheet_ok() {
-    List<ProspectEvalInfo> prospectEvalInfos =
+    List<ProspectEvaluationInfo> prospectEvalInfos =
         prospectService.readFromSheets(
             JOE_DOE_ID,
             GOLDEN_SOURCE_SPR_SHEET_NAME,
@@ -269,7 +269,7 @@ public class SheetIT extends MockedThirdParties {
   void read_prospects_eval_from_sheet_ok() {
     int minRange = 2;
     int maxRange = 4;
-    List<ProspectEval> actual =
+    List<ProspectEvaluation> actual =
         prospectService.readEvaluationsFromSheets(
             JOE_DOE_ID, GOLDEN_SOURCE_SPR_SHEET_NAME, GOLDEN_SOURCE_SHEET_NAME, minRange, maxRange);
 
@@ -279,7 +279,7 @@ public class SheetIT extends MockedThirdParties {
 
   @Test
   void read_prospects_info_from_sheet_ok() {
-    List<ProspectEvalInfo> actual =
+    List<ProspectEvaluationInfo> actual =
         prospectService.readFromSheets(
             JOE_DOE_ID, GOLDEN_SOURCE_SPR_SHEET_NAME, GOLDEN_SOURCE_SHEET_NAME);
 

@@ -24,8 +24,8 @@ import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
-import app.bpartners.api.repository.expressif.ProspectEval;
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
@@ -246,9 +246,9 @@ public class ProspectMapper {
         .collect(Collectors.toList());
   }
 
-  public List<ProspectEval> toProspectEval(String ownerId, Sheet sheet) {
+  public List<ProspectEvaluation> toProspectEval(String ownerId, Sheet sheet) {
     var gridData = sheet.getData();
-    List<ProspectEval> prospectList = new ArrayList<>();
+    List<ProspectEvaluation> prospectList = new ArrayList<>();
     gridData.forEach(
         grid -> {
           int firstIndex = grid.getStartColumn() == null ? 0 : grid.getStartColumn();
@@ -257,11 +257,11 @@ public class ProspectMapper {
               rowData -> {
                 if (!hasNullCellData(rowData)) {
                   var cells = rowData.getValues();
-                  ProspectEval.Builder<Object> builder = ProspectEval.builder();
-                  ProspectEvalInfo info =
+                  ProspectEvaluation.Builder<Object> builder = ProspectEvaluation.builder();
+                  ProspectEvaluationInfo info =
                       toProspectEvalInfo(firstIndex, rowData).toBuilder().owner(ownerId).build();
                   builder.id(String.valueOf(randomUUID()));
-                  builder.prospectEvalInfo(info);
+                  builder.evaluationInfo(info);
                   builder.prospectOwnerId(ownerId);
                   setBuilderJobValue(builder, cells.get(15));
                   builder.insectControl(rowBooleanValue(cells.get(16)));
@@ -315,9 +315,9 @@ public class ProspectMapper {
     return prospectList;
   }
 
-  public List<ProspectEval> toProspectEval(Sheet sheet) {
+  public List<ProspectEvaluation> toProspectEval(Sheet sheet) {
     var gridData = sheet.getData();
-    List<ProspectEval> prospectList = new ArrayList<>();
+    List<ProspectEvaluation> prospectList = new ArrayList<>();
     gridData.forEach(
         grid -> {
           int firstIndex = grid.getStartColumn() == null ? 0 : grid.getStartColumn();
@@ -326,10 +326,10 @@ public class ProspectMapper {
               rowData -> {
                 if (!hasNullCellData(rowData)) {
                   var cells = rowData.getValues();
-                  ProspectEval.Builder<Object> builder = ProspectEval.builder();
-                  ProspectEvalInfo info = toProspectEvalInfo(firstIndex, rowData);
+                  ProspectEvaluation.Builder<Object> builder = ProspectEvaluation.builder();
+                  ProspectEvaluationInfo info = toProspectEvalInfo(firstIndex, rowData);
                   builder.id(String.valueOf(randomUUID()));
-                  builder.prospectEvalInfo(info);
+                  builder.evaluationInfo(info);
                   builder.prospectOwnerId(info.getOwner());
                   setBuilderJobValue(builder, cells.get(15));
                   builder.insectControl(rowBooleanValue(cells.get(16)));
@@ -383,7 +383,7 @@ public class ProspectMapper {
     return prospectList;
   }
 
-  private void setBuilderJobValue(ProspectEval.Builder<Object> builder, CellData cellData) {
+  private void setBuilderJobValue(ProspectEvaluation.Builder<Object> builder, CellData cellData) {
     String jobValue = cellData.getFormattedValue();
     if (jobValue.equals(ANTI_HORM_VALUE)) {
       builder.antiHarm(true);
@@ -403,9 +403,9 @@ public class ProspectMapper {
     }
   }
 
-  public ProspectEvalInfo toProspectEvalInfo(int firstIndex, RowData rowData) {
+  public ProspectEvaluationInfo toProspectEvalInfo(int firstIndex, RowData rowData) {
     List<ProspectInfoPropertyAction> prospectPropertyActions = getInfoPropertyActions();
-    var infoBuilder = ProspectEvalInfo.builder();
+    var infoBuilder = ProspectEvaluationInfo.builder();
     var cells = rowData.getValues();
     for (int index = firstIndex;
         index < cells.size() && index < firstIndex + prospectPropertyActions.size();
@@ -420,7 +420,7 @@ public class ProspectMapper {
       ProspectInfoPropertyAction action = prospectPropertyActions.get(builderIndex);
       action.performAction(infoBuilder, currentCell);
     }
-    ProspectEvalInfo info = infoBuilder.build();
+    ProspectEvaluationInfo info = infoBuilder.build();
     if (info.getAddress() == null) {
       throw new BadRequestException("Address is missing for Prospect(name=" + info.getName() + ")");
     } else {
@@ -430,9 +430,9 @@ public class ProspectMapper {
     return info;
   }
 
-  public List<ProspectEvalInfo> toProspectEvalInfo(Sheet sheet) {
+  public List<ProspectEvaluationInfo> toProspectEvalInfo(Sheet sheet) {
     var gridData = sheet.getData();
-    List<ProspectEvalInfo> prospectList = new ArrayList<>();
+    List<ProspectEvaluationInfo> prospectList = new ArrayList<>();
     List<ProspectInfoPropertyAction> prospectPropertyActions = getInfoPropertyActions();
     gridData.forEach(
         grid -> {
@@ -441,7 +441,7 @@ public class ProspectMapper {
           row.forEach(
               rowData -> {
                 if (!hasNullCellData(rowData)) {
-                  var prospectBuilder = ProspectEvalInfo.builder();
+                  var prospectBuilder = ProspectEvaluationInfo.builder();
                   var cells = rowData.getValues();
                   for (int index = firstIndex;
                       index < cells.size() && index < firstIndex + prospectPropertyActions.size();
@@ -463,18 +463,18 @@ public class ProspectMapper {
     return prospectList;
   }
 
-  public static ProspectEvalInfo.ContactNature getContactNature(String value) {
+  public static ProspectEvaluationInfo.ContactNature getContactNature(String value) {
     String formattedValue = value.trim().toLowerCase();
     switch (formattedValue) {
       case PROSPECT_CONTACT_NATURE:
-        return ProspectEvalInfo.ContactNature.PROSPECT;
+        return ProspectEvaluationInfo.ContactNature.PROSPECT;
       case OLD_CUSTOMER_CONTACT_NATURE:
-        return ProspectEvalInfo.ContactNature.OLD_CUSTOMER;
+        return ProspectEvaluationInfo.ContactNature.OLD_CUSTOMER;
       case "null":
         return null;
       default:
         log.warn("Unknown contact nature value " + value);
-        return ProspectEvalInfo.ContactNature.OTHER;
+        return ProspectEvaluationInfo.ContactNature.OTHER;
     }
   }
 
@@ -572,6 +572,6 @@ public class ProspectMapper {
   }
 
   interface ProspectInfoPropertyAction {
-    void performAction(ProspectEvalInfo.Builder builder, CellData currentCell);
+    void performAction(ProspectEvaluationInfo.Builder builder, CellData currentCell);
   }
 }

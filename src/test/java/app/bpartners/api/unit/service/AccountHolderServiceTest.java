@@ -15,18 +15,20 @@ import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class AccountHolderServiceTest {
   AccountHolderRepository repositoryMock = mock(AccountHolderRepository.class);
-  BusinessActivityRepository buisnessActivityRepositoryMock = mock(BusinessActivityRepository.class);
-  BusinessActivityService buisnessActivityService = new BusinessActivityService(buisnessActivityRepositoryMock);
-  AnnualRevenueTargetRepository annualRevenueTargetRepositoryMock = mock(AnnualRevenueTargetRepository.class);
-  AnnualRevenueTargetService annualRevenueTargetService = new AnnualRevenueTargetService(annualRevenueTargetRepositoryMock);
+  BusinessActivityRepository buisnessActivityRepositoryMock =
+      mock(BusinessActivityRepository.class);
+  BusinessActivityService buisnessActivityService =
+      new BusinessActivityService(buisnessActivityRepositoryMock);
+  AnnualRevenueTargetRepository annualRevenueTargetRepositoryMock =
+      mock(AnnualRevenueTargetRepository.class);
+  AnnualRevenueTargetService annualRevenueTargetService =
+      new AnnualRevenueTargetService(annualRevenueTargetRepositoryMock);
   AccountHolderService subject =
-          new AccountHolderService(
-                  repositoryMock, buisnessActivityService, annualRevenueTargetService);
+      new AccountHolderService(repositoryMock, buisnessActivityService, annualRevenueTargetService);
 
   @Test
   void get_by_id_ok() {

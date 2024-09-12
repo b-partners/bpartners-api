@@ -27,7 +27,7 @@ class WhoisServiceTest {
   }
 
   @Test
-  void getSpecifiedUser() {
+  void get_specified_user() {
     var application = IntegratingApplication.builder().applicationName("").build();
     var user = User.builder().id(USER1_ID).firstName("joe").lastName("doe").build();
     when(userServiceMock.getUserById(any())).thenReturn(user);
@@ -36,7 +36,7 @@ class WhoisServiceTest {
   }
 
   @Test
-  void validateApiKeyShouldReturnIntegratingApplicationWhenApiKeyIsValid() {
+  void validate_api_key_should_return_integrating_application_when_apiKey_is_valid() {
     var application = subject.validateApiKey("valid-api-key");
 
     assertEquals("test-application", application.getApplicationName());
@@ -44,7 +44,7 @@ class WhoisServiceTest {
   }
 
   @Test
-  void validateApiKeyShouldThrowForbiddenExceptionWhenApiKeyIsInvalid() {
+  void validate_apiKey_should_throw_forbidden_exception_when_api_key_is_invalid() {
     assertThrows(ForbiddenException.class, () -> subject.validateApiKey("invalid-api-key"));
   }
 

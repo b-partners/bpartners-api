@@ -17,25 +17,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class WhoisServiceTest {
-  WhoisService subject;
-  UserService userServiceMock;
+  UserService userServiceMock = mock(UserService.class);
+  WhoisService subject = new WhoisService(userServiceMock);
 
   @BeforeEach
   void setUp() {
-    userServiceMock = mock(UserService.class);
-    subject = new WhoisService(userServiceMock);
     ReflectionTestUtils.setField(subject, "FEATURE_DETECTOR_API_KEY", "valid-api-key");
     ReflectionTestUtils.setField(subject, "FEATURE_DETECTOR_APPLICATION", "test-application");
   }
 
   @Test
   void getSpecifiedUser() {
-    var application = mock(IntegratingApplication.class);
-    var user = mock(User.class);
+    var application = IntegratingApplication.builder().applicationName("").build();
+    var user = User.builder().id(USER1_ID).firstName("joe").lastName("doe").build();
     when(userServiceMock.getUserById(any())).thenReturn(user);
-    when(application.getApplicationName()).thenReturn("application name");
-    when(user.getName()).thenReturn("Joe Doe");
-    when(user.getId()).thenReturn(USER1_ID);
 
     assertEquals(user, subject.getSpecifiedUser(application, USER1_ID));
   }

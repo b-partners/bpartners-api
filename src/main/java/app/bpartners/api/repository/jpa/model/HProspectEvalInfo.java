@@ -2,7 +2,7 @@ package app.bpartners.api.repository.jpa.model;
 
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -50,7 +50,7 @@ public class HProspectEvalInfo {
 
   @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
-  private ProspectEvalInfo.ContactNature contactNature;
+  private ProspectEvaluationInfo.ContactNature contactNature;
 
   private Double posLongitude;
   private Double posLatitude;

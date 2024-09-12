@@ -14,14 +14,14 @@ import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.mapper.ProspectEvalMapper;
+import app.bpartners.api.model.mapper.ProspectEvaluationMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
 import app.bpartners.api.repository.expressif.ExpressifApi;
-import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.expressif.fact.Robbery;
@@ -77,7 +77,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final AccountHolderRepository accountHolderRepository;
   private final MunicipalityJpaRepository municipalityJpaRepository;
   private final ExpressifApi expressifApi;
-  private final ProspectEvalMapper evalMapper;
+  private final ProspectEvaluationMapper evalMapper;
   private final ProspectEvalInfoJpaRepository evalRepository;
   private final EntityManager em;
   private final SogefiBuildingPermitRepository sogefiRepository;
@@ -239,9 +239,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   @Override
-  public List<ProspectResult> evaluate(List<ProspectEval> toEvaluate) {
+  public List<ProspectResult> evaluate(List<ProspectEvaluation> toEvaluate) {
     List<HProspectEvalInfo> prospectEvalEntities = new ArrayList<>();
-    for (ProspectEval prospectEval : toEvaluate) {
+    for (ProspectEvaluation prospectEval : toEvaluate) {
       Instant evaluationDate = Instant.now();
 
       List<InputValue> evalInputs = new ArrayList<>();
@@ -276,7 +276,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(Collectors.toList());
   }
 
-  private HProspectEvalInfo getInfoEntity(ProspectEval prospectEval, HProspectEval lastEval) {
+  private HProspectEvalInfo getInfoEntity(ProspectEvaluation prospectEval, HProspectEval lastEval) {
     HProspectEvalInfo entity =
         evalRepository
             .findById(prospectEval.getId())
@@ -288,7 +288,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   private void convertEvalRuleAttr(
-      ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
+      ProspectEvaluation prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
     String prospectDepaRule = prospectEval.getDepaRule().getClass().getTypeName();
     if (prospectDepaRule.equals(NewIntervention.class.getTypeName())) {
       convertEvalNewInterventionAttr(prospectEval, evaluationDate, evalInputs);
@@ -300,7 +300,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   private void convertEvalRobberyAttr(
-      ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
+      ProspectEvaluation prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
     Robbery depaRule = (Robbery) prospectEval.getDepaRule();
     if (depaRule.getDeclared() != null) {
       evalInputs.add(
@@ -329,7 +329,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   private void convertEvalNewInterventionAttr(
-      ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
+      ProspectEvaluation prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
     NewIntervention depaRule = (NewIntervention) prospectEval.getDepaRule();
     if (depaRule.getPlanned() != null) {
       evalInputs.add(
@@ -391,7 +391,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   private void convertEvalDefaultAttr(
-      ProspectEval prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
+      ProspectEvaluation prospectEval, Instant evaluationDate, List<InputValue> evalInputs) {
     if (prospectEval.getLockSmith() != null) {
       evalInputs.add(
           InputValue.builder()

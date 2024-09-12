@@ -15,7 +15,7 @@ import lombok.ToString;
 @Builder(builderClassName = "Builder", toBuilder = true)
 @EqualsAndHashCode
 @ToString
-public class ProspectEvalInfo {
+public class ProspectEvaluationInfo {
   private String owner;
   private Long reference;
   protected String name;

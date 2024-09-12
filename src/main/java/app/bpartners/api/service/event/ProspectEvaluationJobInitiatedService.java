@@ -30,8 +30,8 @@ import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.model.prospect.job.SheetEvaluationJobRunner;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
-import app.bpartners.api.repository.expressif.ProspectEval;
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.service.AccountHolderService;
@@ -116,11 +116,11 @@ public class ProspectEvaluationJobInitiatedService
 
       eventsWithAddress = getEventWithAddress(user, eventJobRunner, ranges);
       locations = retrieveLocations(eventsWithAddress);
-      HashMap<String, List<ProspectEval>> prospectsByEvents =
+      HashMap<String, List<ProspectEvaluation>> prospectsByEvents =
           getProspectsToEvaluate(user, eventJobRunner, locations);
 
       for (CalendarEvent calendarEvent : eventsWithAddress) {
-        List<ProspectEval> prospects = prospectsByEvents.get(calendarEvent.getLocation());
+        List<ProspectEvaluation> prospects = prospectsByEvents.get(calendarEvent.getLocation());
         List<ProspectResult> evaluatedProspects =
             prospectService.evaluateProspects(
                 runningHolder.getId(),
@@ -383,7 +383,7 @@ public class ProspectEvaluationJobInitiatedService
     return evaluatedProspects.stream()
         .map(
             result -> {
-              ProspectEvalInfo info = result.getProspectEval().getProspectEvalInfo();
+              ProspectEvaluationInfo info = result.getProspectEval().getEvaluationInfo();
               var interventionResult = result.getInterventionResult();
               var customerResult = result.getCustomerInterventionResult();
               var ratingBuilder =
@@ -457,15 +457,15 @@ public class ProspectEvaluationJobInitiatedService
     return null;
   }
 
-  private HashMap<String, List<ProspectEval>> getProspectsToEvaluate(
+  private HashMap<String, List<ProspectEvaluation>> getProspectsToEvaluate(
       User user, EventJobRunner eventJobRunner, List<String> locations) {
-    HashMap<String, List<ProspectEval>> prospectsByEvents = new HashMap<>();
+    HashMap<String, List<ProspectEvaluation>> prospectsByEvents = new HashMap<>();
     var newProspects = fromDefaultSheet(user);
     var evaluationRules = eventJobRunner.getEvaluationRules();
     var antiHarmRules = evaluationRules.getAntiHarmRules();
     locations.forEach(
         calendarEventLocation -> {
-          List<ProspectEval> subList = new ArrayList<>();
+          List<ProspectEvaluation> subList = new ArrayList<>();
           GeoPosition eventAddressPos = banApi.fSearch(calendarEventLocation);
           GeoUtils.Coordinate eventAddressCoordinates =
               eventAddressPos == null ? null : eventAddressPos.getCoordinates();
@@ -473,7 +473,7 @@ public class ProspectEvaluationJobInitiatedService
           newProspects.forEach(
               prospect -> {
                 NewIntervention clonedRule = (NewIntervention) prospect.getDepaRule();
-                ProspectEval prospectEval =
+                ProspectEvaluation prospectEval =
                     prospect.toBuilder()
                         .id(String.valueOf(randomUUID()))
                         .prospectOwnerId(eventJobRunner.getArtisanOwner())
@@ -488,7 +488,7 @@ public class ProspectEvaluationJobInitiatedService
                                     eventAddressCoordinates == null
                                         ? null
                                         : eventAddressCoordinates.getDistanceFrom(
-                                            prospect.getProspectEvalInfo().getCoordinates()))
+                                            prospect.getEvaluationInfo().getCoordinates()))
                                 .build())
                         .build();
                 subList.add(prospectEval);
@@ -502,13 +502,13 @@ public class ProspectEvaluationJobInitiatedService
     return calendarEvents.stream().map(CalendarEvent::getLocation).collect(Collectors.toList());
   }
 
-  private List<ProspectEval> fromDatabase(String idUser, EventJobRunner eventJobRunner) {
+  private List<ProspectEvaluation> fromDatabase(String idUser, EventJobRunner eventJobRunner) {
     // TODO: retrieve from database here
     return List.of();
   }
 
   // TODO: use this function to import inside database
-  private List<ProspectEval> fromDefaultSheet(User user) {
+  private List<ProspectEvaluation> fromDefaultSheet(User user) {
     AccountHolder accountHolder = user.getDefaultHolder();
     String sheetName = accountHolder.getName();
     int minDefaultRange = 2;
@@ -522,11 +522,11 @@ public class ProspectEvaluationJobInitiatedService
         maxDefaultRange);
   }
 
-  private List<ProspectEval> fromSpreadsheet(
+  private List<ProspectEvaluation> fromSpreadsheet(
       String idUser, SheetEvaluationJobRunner sheetProspectEvaluation) {
     var sheetProperties = sheetProspectEvaluation.getSheetProperties();
     var sheetRange = sheetProperties.getRanges();
-    List<ProspectEval> prospectEvals =
+    List<ProspectEvaluation> prospectEvals =
         prospectService.readEvaluationsFromSheetsWithoutFilter(
             idUser,
             sheetProspectEvaluation.getArtisanOwner(),

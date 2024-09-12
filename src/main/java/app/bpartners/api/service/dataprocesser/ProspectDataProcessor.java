@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProspectDataProcesser {
+public class ProspectDataProcessor {
   public List<Prospect> processProspects(List<Prospect> prospects) {
     return prospects;
   }

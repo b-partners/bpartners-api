@@ -10,7 +10,7 @@ import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AnnualRevenueTarget;
-import app.bpartners.api.model.mapper.ProspectEvalMapper;
+import app.bpartners.api.model.mapper.ProspectEvaluationMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
@@ -43,7 +43,7 @@ class ProspectRepositoryImplTest {
   AccountHolderRepository accountHolderRepositoryMock;
   MunicipalityJpaRepository municipalityJpaRepositoryMock;
   ExpressifApi expressifApiMock;
-  ProspectEvalMapper evalMapperMock;
+  ProspectEvaluationMapper evalMapperMock;
   ProspectEvalInfoJpaRepository evalInfoJpaRepositoryMock;
   BanApi banApiMock;
   EntityManager em;
@@ -61,7 +61,7 @@ class ProspectRepositoryImplTest {
     accountHolderRepositoryMock = mock(AccountHolderRepository.class);
     municipalityJpaRepositoryMock = mock(MunicipalityJpaRepository.class);
     expressifApiMock = mock(ExpressifApi.class);
-    evalMapperMock = mock(ProspectEvalMapper.class);
+    evalMapperMock = mock(ProspectEvaluationMapper.class);
     evalInfoJpaRepositoryMock = mock(ProspectEvalInfoJpaRepository.class);
     em = mock(EntityManager.class);
     subject =

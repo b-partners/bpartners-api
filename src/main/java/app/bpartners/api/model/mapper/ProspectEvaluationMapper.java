@@ -6,8 +6,8 @@ import static app.bpartners.api.repository.jpa.model.HProspectEval.ProspectEvalR
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.repository.expressif.ProspectEval;
-import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectEvaluation;
+import app.bpartners.api.repository.expressif.ProspectEvaluationInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.expressif.fact.Robbery;
@@ -19,14 +19,16 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProspectEvalMapper {
+public class ProspectEvaluationMapper {
   public HProspectEvalInfo toInfoEntity(
-      ProspectEval evalDomain, Long reference, List<HProspectEval> prospectEvals) {
-    ProspectEvalInfo prospect = evalDomain.getProspectEvalInfo();
+      ProspectEvaluation prospectEvaluation,
+      Long reference,
+      List<HProspectEval> prospectEvaluations) {
+    ProspectEvaluationInfo prospect = prospectEvaluation.getEvaluationInfo();
     GeoUtils.Coordinate coordinates = prospect.getCoordinates();
     return HProspectEvalInfo.builder()
-        .id(evalDomain.getId())
-        .idAccountHolder(evalDomain.getProspectOwnerId())
+        .id(prospectEvaluation.getId())
+        .idAccountHolder(prospectEvaluation.getProspectOwnerId())
         .reference(reference)
         .name(prospect.getName())
         .phoneNumber(prospect.getPhoneNumber())
@@ -42,13 +44,13 @@ public class ProspectEvalMapper {
         .posLatitude(coordinates == null ? null : coordinates.getLatitude())
         .posLongitude(coordinates == null ? null : coordinates.getLongitude())
         .companyCreationDate(prospect.getCompanyCreationDate())
-        .prospectEvals(prospectEvals)
+        .prospectEvals(prospectEvaluations)
         .defaultComment(prospect.getDefaultComment())
         .build();
   }
 
   public HProspectEval toInfoEntity(
-      ProspectEval evalDomain,
+      ProspectEvaluation evalDomain,
       Instant evaluationDate,
       Double prospectRating,
       Double customerRating) {
@@ -110,10 +112,10 @@ public class ProspectEvalMapper {
     HProspectEval eval = infoEntity.getProspectEvals().get(0);
     return ProspectResult.builder()
         .prospectEval(
-            ProspectEval.builder()
+            ProspectEvaluation.builder()
                 .id(infoEntity.getId())
                 .prospectOwnerId(infoEntity.getIdAccountHolder())
-                .prospectEvalInfo(toInfoDomain(infoEntity))
+                .evaluationInfo(toInfoDomain(infoEntity))
                 .particularCustomer(eval.getIndividualCustomer())
                 .professionalCustomer(eval.getProfessionalCustomer())
                 .build())
@@ -136,10 +138,10 @@ public class ProspectEvalMapper {
         .build();
   }
 
-  private ProspectEvalInfo toInfoDomain(HProspectEvalInfo infoEntity) {
+  private ProspectEvaluationInfo toInfoDomain(HProspectEvalInfo infoEntity) {
     Double posLongitude = infoEntity.getPosLongitude();
     Double posLatitude = infoEntity.getPosLatitude();
-    return ProspectEvalInfo.builder()
+    return ProspectEvaluationInfo.builder()
         .reference(infoEntity.getReference())
         .name(infoEntity.getName())
         .phoneNumber(infoEntity.getPhoneNumber())

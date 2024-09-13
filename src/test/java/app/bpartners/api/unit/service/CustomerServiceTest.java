@@ -47,7 +47,7 @@ class CustomerServiceTest {
   }
 
   @Test
-  void testUpdateCustomersLocationAddressTooShort() {
+  void test_update_customers_location_address_tooShort() {
     var customer = customerBuilder().address("12").build();
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 
@@ -57,7 +57,7 @@ class CustomerServiceTest {
   }
 
   @Test
-  void testUpdateCustomersLocationAddressTooLong() {
+  void test_update_customers_location_address_to_long() {
     var customer = customerBuilder().address("A".repeat(201)).build();
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 
@@ -67,7 +67,7 @@ class CustomerServiceTest {
   }
 
   @Test
-  void testUpdateCustomersLocationAddressNotFound() {
+  void test_update_customers_location_address_not_found() {
     var customer = customerBuilder().address("123 Street").build();
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
     when(banApiMock.search("123 Street")).thenReturn(null);
@@ -78,7 +78,7 @@ class CustomerServiceTest {
   }
 
   @Test
-  void testUpdateCustomersLocationExceptionHandling() {
+  void test_update_customers_location_exception_handling() {
     var customer = customerBuilder().address("123 Street").build();
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
     when(banApiMock.search(any())).thenThrow(new BadRequestException("Bad Request"));
@@ -89,7 +89,7 @@ class CustomerServiceTest {
   }
 
   @Test
-  void testUpdateCustomersLocationSuccessfulUpdate() {
+  void test_update_customers_location_successful_update() {
     var coordinates = GeoUtils.Coordinate.builder().latitude(40.7128).longitude(-74.0060).build();
     var geoPosition = GeoPosition.builder().coordinates(coordinates).build();
     var customer =
@@ -108,7 +108,7 @@ class CustomerServiceTest {
   }
 
   @Test
-  void testUpdateCustomersLocationInvalidAddress() {
+  void test_update_customers_location_invalid_address() {
     var customer = Customer.builder().address("").zipCode(10).city("").country("").build();
     when(repositoryMock.findWhereLatitudeOrLongitudeIsNull()).thenReturn(List.of(customer));
 

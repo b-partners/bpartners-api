@@ -143,9 +143,10 @@ public class OnboardingService {
 
   @SneakyThrows
   public VisitorEmail visitorSendEmail(VisitorEmail toSend) {
-    var toInternetAddress = new InternetAddress(toSend.getEmail());
+    var senderEmail = new InternetAddress(toSend.getEmail());
+    var toInternetAddress = new InternetAddress("contact@bpartners.app");
     var email = new Email
-        (toInternetAddress, List.of(), List.of(), toSend.getSubject(), toSend.getComments(), List.of());
+        (toInternetAddress, List.of(senderEmail), List.of(), toSend.getSubject(), toSend.getComments(), List.of());
     mailer.accept(email);
     return toSend;
   }

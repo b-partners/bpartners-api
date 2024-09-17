@@ -89,6 +89,36 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  visitorSendEmail:
+    post:
+      tags:
+        - Onboarding
+      security: [ ]
+      summary: Send email to BPartners Team
+      operationId: visitorSendEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VisitorEmail'
+      responses:
+        200:
+          description: The sent email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitorEmail'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 
 components:
   schemas:
@@ -145,3 +175,17 @@ components:
           $ref: './userAccounts-api.yml#/components/schemas/Account'
         accountHolder:
           $ref: './userAccounts-api.yml#/components/schemas/AccountHolder'
+    VisitorEmail:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        subject:
+          type: string
+        comments:
+          type: string

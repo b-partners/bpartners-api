@@ -1,10 +1,10 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.OnboardingRestMapper;
-import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.Redirection;
+import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.endpoint.rest.validator.OnboardingValidator;
 import app.bpartners.api.endpoint.rest.validator.VisitorEmailRestValidator;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -30,7 +30,7 @@ public class OnboardingController {
   }
 
   @PostMapping(value = "/sendEmail")
-  public VisitorEmail visitorSendEmail(@RequestBody VisitorEmail emailBody){
+  public VisitorEmail visitorSendEmail(@RequestBody VisitorEmail emailBody) {
     emailValidator.accept(emailBody);
     return onboardingService.visitorSendEmail(emailBody);
   }

@@ -2,9 +2,8 @@ package app.bpartners.api.endpoint.rest.validator;
 
 import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.model.exception.BadRequestException;
-import org.springframework.stereotype.Component;
-
 import java.util.function.Consumer;
+import org.springframework.stereotype.Component;
 
 @Component
 public class VisitorEmailRestValidator implements Consumer<VisitorEmail> {

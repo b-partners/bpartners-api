@@ -218,7 +218,7 @@ public class CustomerService {
                   repository.save(customer);
                 }
               }
-            } catch (BadRequestException | NotFoundException e) {
+            } catch (NotFoundException e) {
               sb.append("Customer(id=")
                   .append(customer.getId())
                   .append(") location was not updated because ")

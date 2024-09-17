@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.OnboardingRestMapper;
+import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.Redirection;
@@ -24,6 +25,11 @@ public class OnboardingController {
   @PostMapping(value = "/onboardingInitiation")
   public Redirection generateOnboarding() {
     throw new NotImplementedException("Not supported for now. Use POST /onboarding");
+  }
+
+  @PostMapping(value = "/sendEmail")
+  public VisitorEmail visitorSendEmail(@RequestBody VisitorEmail emailBody){
+    return onboardingService.visitorSendEmail(emailBody);
   }
 
   @PostMapping(value = "/onboarding")

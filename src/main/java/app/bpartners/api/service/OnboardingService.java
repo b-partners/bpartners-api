@@ -1,18 +1,16 @@
 package app.bpartners.api.service;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static java.util.UUID.randomUUID;
-import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
-
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.UserUpserted;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
+import app.bpartners.api.mail.Email;
+import app.bpartners.api.mail.Mailer;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Fraction;
@@ -23,13 +21,21 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.UserRepository;
-import java.util.List;
-import java.util.stream.Collectors;
+import jakarta.mail.internet.InternetAddress;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static java.util.UUID.randomUUID;
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 @Service
 @AllArgsConstructor
@@ -49,6 +55,7 @@ public class OnboardingService {
   private final EventProducer eventProducer;
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
   private final SesConf sesConf;
+  private final Mailer mailer;
 
   @Transactional(isolation = SERIALIZABLE)
   public OnboardedUser onboardUser(User toSave, String companyName) {
@@ -132,6 +139,15 @@ public class OnboardingService {
         .status(DEFAULT_STATUS)
         .active(true)
         .build();
+  }
+
+  @SneakyThrows
+  public VisitorEmail visitorSendEmail(VisitorEmail toSend) {
+    var toInternetAddress = new InternetAddress(toSend.getEmail());
+    var email = new Email
+        (toInternetAddress, List.of(), List.of(), toSend.getSubject(), toSend.getComments(), List.of());
+    mailer.accept(email);
+    return toSend;
   }
 
   private String encryptSequence(String sequence) {

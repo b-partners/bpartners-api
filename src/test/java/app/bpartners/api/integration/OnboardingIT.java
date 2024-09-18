@@ -4,7 +4,6 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApi
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -14,7 +13,10 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.mail.Mailer;
+import app.bpartners.api.service.aws.SesService;
+import java.io.IOException;
+import java.util.List;
+import javax.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +26,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @Slf4j
 class OnboardingIT extends MockedThirdParties {
-  @MockBean Mailer mailerMock;
+  @MockBean SesService mailerMock;
 
   private ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
@@ -46,12 +48,20 @@ class OnboardingIT extends MockedThirdParties {
   }
 
   @Test
-  void visitor_send_email_ok() throws ApiException {
+  void visitor_send_email_ok() throws ApiException, MessagingException, IOException {
     ApiClient client = anApiClient();
     OnboardingApi api = new OnboardingApi(client);
 
     var actual = api.visitorSendEmail(toSend());
-    verify(mailerMock, times(1)).accept(any());
+    verify(mailerMock, times(1))
+        .sendEmail(
+            "dummy",
+            toSend().getEmail(),
+            toSend().getSubject(),
+            String.format(
+                "<div><p>%s</p></div></br></br><h2>%s %s</h2>",
+                toSend().getComments(), toSend().getFirstName(), toSend().getLastName()),
+            List.of());
 
     assertEquals(toSend(), actual);
   }

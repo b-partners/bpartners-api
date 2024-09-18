@@ -150,7 +150,7 @@ public class OnboardingService {
             List.of(senderEmail),
             List.of(),
             toSend.getSubject(),
-            toSend.getComments(),
+            String.format("<div><p>%s</p></div>", toSend.getComments()),
             List.of());
     mailer.accept(email);
     return toSend;

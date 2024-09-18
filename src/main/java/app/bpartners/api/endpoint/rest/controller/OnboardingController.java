@@ -4,7 +4,9 @@ import app.bpartners.api.endpoint.rest.mapper.OnboardingRestMapper;
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.Redirection;
+import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.endpoint.rest.validator.OnboardingValidator;
+import app.bpartners.api.endpoint.rest.validator.VisitorEmailRestValidator;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.service.OnboardingService;
 import java.util.List;
@@ -20,10 +22,17 @@ public class OnboardingController {
   private final OnboardingService onboardingService;
   private final OnboardingValidator onboardingValidator;
   private final OnboardingRestMapper onboardingMapper;
+  private final VisitorEmailRestValidator emailValidator;
 
   @PostMapping(value = "/onboardingInitiation")
   public Redirection generateOnboarding() {
     throw new NotImplementedException("Not supported for now. Use POST /onboarding");
+  }
+
+  @PostMapping(value = "/sendEmail")
+  public VisitorEmail visitorSendEmail(@RequestBody VisitorEmail emailBody) {
+    emailValidator.accept(emailBody);
+    return onboardingService.visitorSendEmail(emailBody);
   }
 
   @PostMapping(value = "/onboarding")

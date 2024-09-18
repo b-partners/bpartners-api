@@ -31,6 +31,8 @@ paths:
     $ref: './onboarding-api.yml#/operations/createPreUsers'
   /onboarding:
     $ref: './onboarding-api.yml#/operations/onboardUser'
+  /sendEmail:
+    $ref: './onboarding-api.yml#/operations/visitorSendEmail'
 
   #############################################
   ############ User Accounts API ##############

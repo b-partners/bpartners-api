@@ -84,6 +84,7 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/authInitiation"),
                         new AntPathRequestMatcher("/token"),
                         new AntPathRequestMatcher("/onboarding"),
+                        new AntPathRequestMatcher("/sendEmail", POST.name()),
                         new AntPathRequestMatcher("/whoami", GET.name()),
                         new AntPathRequestMatcher("/users/*", GET.name()),
                         new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
@@ -112,6 +113,8 @@ public class SecurityConf {
                     .requestMatchers(GET, "/whoami")
                     .permitAll()
                     .requestMatchers("/onboarding")
+                    .permitAll()
+                    .requestMatchers("/sendEmail")
                     .permitAll()
                     .requestMatchers(GET, "/users/*")
                     .permitAll()

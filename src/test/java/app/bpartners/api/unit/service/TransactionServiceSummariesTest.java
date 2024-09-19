@@ -26,6 +26,7 @@ import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.TransactionService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.S3Service;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.YearMonth;
@@ -74,7 +75,8 @@ class TransactionServiceSummariesTest {
             s3ServiceMock,
             userServiceMock,
             fileServiceMock,
-            fileWriterMock);
+            fileWriterMock,
+            new CustomDateFormatter());
 
     when(dbTransactionRepository.findByAccountIdAndStatusBetweenInstants(
             any(), any(), any(), any()))

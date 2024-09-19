@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.UUID.randomUUID;
 import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
@@ -13,6 +14,7 @@ import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.model.VerificationStatus;
+import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Fraction;
@@ -20,11 +22,15 @@ import app.bpartners.api.model.Money;
 import app.bpartners.api.model.OnboardUser;
 import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.service.aws.SesService;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -49,6 +55,7 @@ public class OnboardingService {
   private final EventProducer eventProducer;
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
   private final SesConf sesConf;
+  private final SesService mailer;
 
   @Transactional(isolation = SERIALIZABLE)
   public OnboardedUser onboardUser(User toSave, String companyName) {
@@ -132,6 +139,23 @@ public class OnboardingService {
         .status(DEFAULT_STATUS)
         .active(true)
         .build();
+  }
+
+  public VisitorEmail visitorSendEmail(VisitorEmail toSend) {
+    var senderEmail = toSend.getEmail();
+    try {
+      mailer.sendEmail(
+          sesConf.getAdminEmail(),
+          senderEmail,
+          toSend.getSubject(),
+          String.format(
+              "<div><p>%s</p></div></br></br><h2>%s %s</h2>",
+              toSend.getComments(), toSend.getFirstName(), toSend.getLastName()),
+          List.of());
+    } catch (IOException | MessagingException e) {
+      throw new ApiException(SERVER_EXCEPTION, e.getMessage());
+    }
+    return toSend;
   }
 
   private String encryptSequence(String sequence) {

@@ -34,7 +34,7 @@ import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.TransactionSupportingDocsJpaRepository;
 import app.bpartners.api.repository.jpa.model.HTransactionSupportingDocs;
 import app.bpartners.api.service.aws.S3Service;
-import app.bpartners.api.service.utils.DateUtils;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +76,7 @@ public class TransactionService {
   private final UserService userService;
   private final FileService fileService;
   private final FileWriter fileWriter;
+  private final CustomDateFormatter customDateFormatter;
 
   public List<TransactionSupportingDocs> getSupportingDocuments(String transactionId) {
     Transaction transaction = dbTransactionRepository.findById(transactionId);
@@ -146,7 +147,8 @@ public class TransactionService {
     String transactionExcelFileName =
         String.format(
             "Transactions du %s au %s.xlsx",
-            DateUtils.formatFrenchDateUnderscore(from), DateUtils.formatFrenchDateUnderscore(to));
+            customDateFormatter.formatFrenchDateUnderscore(from),
+            customDateFormatter.formatFrenchDateUnderscore(to));
     byte[] compressed =
         compressedFiles(transactionExcelFileName, transactionExcelBytes, pdfInvoices);
     String compressedFileId = String.valueOf(randomUUID());
@@ -265,7 +267,7 @@ public class TransactionService {
             .setCellValue(
                 transaction.getPaymentDatetime() == null
                     ? ""
-                    : DateUtils.formatFrenchDate(transaction.getPaymentDatetime()));
+                    : customDateFormatter.formatFrenchDate(transaction.getPaymentDatetime()));
         row++;
       }
       outputStream = new ByteArrayOutputStream();

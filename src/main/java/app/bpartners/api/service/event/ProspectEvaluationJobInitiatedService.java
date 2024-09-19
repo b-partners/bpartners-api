@@ -7,7 +7,6 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.FINISHED;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
 import static app.bpartners.api.model.prospect.job.SheetEvaluationJobRunner.GOLDEN_SOURCE_SPR_SHEET_NAME;
-import static app.bpartners.api.service.utils.DateUtils.formatFrenchDatetime;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.SesConf;
@@ -41,6 +40,7 @@ import app.bpartners.api.service.ProspectService;
 import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
@@ -77,6 +77,7 @@ public class ProspectEvaluationJobInitiatedService
   private final UserService userService;
   private final SnsService snsService;
   private final TemplateResolverEngine templateResolverEngine;
+  private final CustomDateFormatter customDateFormatter;
 
   @Override
   public void accept(ProspectEvaluationJobInitiated jobInitiated) {
@@ -129,7 +130,8 @@ public class ProspectEvaluationJobInitiatedService
                 ratingProperties.getMinProspectRating(),
                 ratingProperties.getMinCustomerRating());
 
-        String interventionDate = formatFrenchDatetime(calendarEvent.getFrom().toInstant());
+        String interventionDate =
+            customDateFormatter.formatFrenchDatetime(calendarEvent.getFrom().toInstant());
         String interventionLocation = calendarEvent.getLocation();
         String emailSubject =
             String.format(
@@ -154,7 +156,8 @@ public class ProspectEvaluationJobInitiatedService
       String recipient = sesConf.getAdminEmail();
       try {
         String concerned = null;
-        String runningJobStart = formatFrenchDatetime(runningJob.getStartedAt());
+        String runningJobStart =
+            customDateFormatter.formatFrenchDatetime(runningJob.getStartedAt());
         String subject =
             "Erreur lors de l'évaluation de prospects de "
                 + runningHolder.getName()

@@ -12,8 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,7 +54,7 @@ public class HProspectEvalInfo {
 
   private Double posLongitude;
   private Double posLatitude;
-  private Date companyCreationDate;
+  private LocalDate companyCreationDate;
 
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "id_prospect_eval_info")

@@ -23,6 +23,7 @@ import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.service.AnnualRevenueTargetService;
 import app.bpartners.api.service.BusinessActivityService;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -51,7 +52,7 @@ class ProspectRepositoryImplTest {
   void setUp() {
     prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
     banApiMock = mock(BanApi.class);
-    prospectMapper = new ProspectMapper(banApiMock);
+    prospectMapper = new ProspectMapper(banApiMock, new CustomDateFormatter());
     buildingPermitApiMock = mock(BuildingPermitApi.class);
     sogefiBuildingPermitRepositoryMock = mock(SogefiBuildingPermitRepository.class);
     businessActivityServiceMock = mock(BusinessActivityService.class);

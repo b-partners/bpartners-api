@@ -1,3 +1,18 @@
+# [0.55.0](https://github.com/b-partners/bpartners-api/compare/v0.54.1...v0.55.0) (2024-09-19)
+
+
+### Bug Fixes
+
+* check payment regulations changed before invoice crupdate ([5cdb7ab](https://github.com/b-partners/bpartners-api/commit/5cdb7ab200db333ee26b6a2ed5958d60be9bb067))
+* compute payment regulations for CONFIRMED invoice edition directly ([063638f](https://github.com/b-partners/bpartners-api/commit/063638fb2e94e9ba7ab539286b0d09769fa93a62))
+
+
+### Features
+
+* allow users to send email during onboarding ([f89c650](https://github.com/b-partners/bpartners-api/commit/f89c650514d00037a5f01faebba7d94948940671))
+
+
+
 ## [0.54.1](https://github.com/b-partners/bpartners-api/compare/v0.54.0...v0.54.1) (2024-09-10)
 
 
@@ -99,15 +114,6 @@
 ### Features
 
 * use Zoom instead of ZoomLevel, Zoom groups its level and its value as a number ([df42f91](https://github.com/b-partners/bpartners-api/commit/df42f9147b2c0465871e2add8f12fb052bd9ed3a))
-
-
-
-# [0.46.0](https://github.com/b-partners/bpartners-api/compare/v0.45.0...v0.46.0) (2024-05-23)
-
-
-### Features
-
-* link AreaPicture with AreaPictureImageLayer and refactor area picture image get ([154f301](https://github.com/b-partners/bpartners-api/commit/154f3017ad9e0c2fd8c2d0e90a130754f69348e8))
 
 
 

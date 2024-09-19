@@ -29,7 +29,7 @@ import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
-import app.bpartners.api.service.utils.DateUtils;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import com.google.api.services.sheets.v4.model.CellData;
 import com.google.api.services.sheets.v4.model.RowData;
 import com.google.api.services.sheets.v4.model.Sheet;
@@ -47,11 +47,11 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 public class ProspectMapper {
-
   public static final String PROSPECT_CONTACT_NATURE = "prospect";
   public static final String OLD_CUSTOMER_CONTACT_NATURE = "ancien client";
   public static final int OWNER_ID_CELL_INDEX = 31;
   private final BanApi banApi;
+  private final CustomDateFormatter customDateFormatter;
 
   private static String checkIfOldOrNew(String toCheck, String expected) {
     if (toCheck != null && expected != null) {
@@ -533,7 +533,7 @@ public class ProspectMapper {
     return rowData.getValues().stream().allMatch(cellData -> cellData.getFormattedValue() == null);
   }
 
-  private static List<ProspectInfoPropertyAction> getInfoPropertyActions() {
+  private List<ProspectInfoPropertyAction> getInfoPropertyActions() {
     List<ProspectInfoPropertyAction> prospectPropertyActions = new ArrayList<>();
     prospectPropertyActions.add(
         (builder, currentCell) -> builder.name(currentCell.getFormattedValue()));
@@ -560,7 +560,7 @@ public class ProspectMapper {
     prospectPropertyActions.add(
         (builder, currentCell) ->
             builder.companyCreationDate(
-                DateUtils.from_dd_MM_YYYY(currentCell.getFormattedValue())));
+                customDateFormatter.from_dd_MM_YYYY(currentCell.getFormattedValue())));
     prospectPropertyActions.add(
         (builder, currentCell) ->
             builder.contactNature(getContactNature(currentCell.getFormattedValue())));

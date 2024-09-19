@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.expressif.utils;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
 import static java.util.UUID.randomUUID;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_BLANK;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_ERROR;
@@ -23,6 +24,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -511,7 +514,7 @@ public class ProspectEvalUtils {
           prospectEvalInfo.setCity(getStringValue(currentCell));
           break;
         case 11:
-          Date dateValue = getDateValue(currentCell);
+          LocalDate dateValue = getDateValue(currentCell);
           prospectEvalInfo.setCompanyCreationDate(dateValue);
           break;
         case 12:
@@ -545,12 +548,14 @@ public class ProspectEvalUtils {
         : cell.getStringCellValue();
   }
 
-  private Date getDateValue(Cell cell) {
+  private LocalDate getDateValue(Cell cell) {
     if (cell == null || cell.getCellType() == CELL_TYPE_ERROR) {
       return null;
     }
     try {
-      return cell.getCellType() == CELL_TYPE_BLANK ? null : cell.getDateCellValue();
+      return cell.getCellType() == CELL_TYPE_BLANK
+          ? null
+          : cell.getDateCellValue().toInstant().atZone(ZoneId.of(PARIS_TIMEZONE)).toLocalDate();
     } catch (IllegalStateException | NumberFormatException e) {
       throw new BadRequestException("Invalid date format when importing new prospect");
     }

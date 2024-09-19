@@ -1,7 +1,7 @@
 package app.bpartners.api.repository.expressif;
 
 import app.bpartners.api.service.utils.GeoUtils;
-import java.util.Date;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +27,7 @@ public class ProspectEvalInfo {
   private String mailSent;
   protected String postalCode;
   protected String city;
-  private Date companyCreationDate;
+  private LocalDate companyCreationDate;
   private String category; // TODO: check if must be enum
   private String subcategory; // TODO: check if must be enum
   private ContactNature contactNature;

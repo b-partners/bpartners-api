@@ -26,6 +26,7 @@ import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import app.bpartners.api.service.event.ProspectUpdatedService;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -68,7 +69,8 @@ class ProspectServiceTest {
           snsServiceMock,
           userServiceMock,
           calendarApiMock,
-          mock());
+          mock(),
+          new CustomDateFormatter());
 
   @BeforeEach
   void setup() {

@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.Tile;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,6 +43,13 @@ public class AreaPicture {
     return isExtended
         ? getExtendedAreaPictureFilenameFormat()
         : getNormalAreaPictureFilenameFormat();
+  }
+
+  public List<AreaPictureMapLayer> getLayers() {
+    if (layers == null) {
+      return new ArrayList<>();
+    }
+    return layers;
   }
 
   private String getNormalAreaPictureFilenameFormat() {

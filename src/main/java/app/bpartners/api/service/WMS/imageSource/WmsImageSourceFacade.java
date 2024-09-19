@@ -9,13 +9,10 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
-import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
-import jakarta.mail.internet.AddressException;
 import java.io.File;
 import java.net.URI;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Range;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -58,36 +55,41 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     if (areaPicture.isExtended()) {
       return tileExtenderImageSource.downloadImage(areaPicture);
     }
-    return cascadeRetryImageDownloadUntilValid(geoserverImageSource, areaPicture, 0);
+    return cascadeRetryImageDownloadUntilValid(geoserverImageSource, areaPicture);
   }
 
   private File cascadeRetryImageDownloadUntilValid(
-      WmsImageSource wmsImageSource,
-      AreaPicture areaPicture,
-      @Range(from = 0, to = 2) int iteration)
-      throws AddressException {
-    WmsImageSource alternativeSource;
-    AreaPictureMapLayer alternativeAreaPictureMapLayer;
-    if (iteration == 0) {
-      alternativeSource = wmsImageSource;
-      alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
-    } else if (iteration == 1) {
-      alternativeSource = ignGeoserverImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
-    } else {
-      throw new ApiException(
-          SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
-    }
+      WmsImageSource wmsImageSource, AreaPicture areaPicture) {
     try {
-      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
-      var image = alternativeSource.downloadImage(areaPicture);
-      imageValidator.accept(image);
-      return image;
-    } catch (ApiException | BlankImageException e) {
-      log.info(
-          "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
-      return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
+      return getImage(wmsImageSource, areaPicture);
+    } catch (RuntimeException e) {
+      log.error("Error={} when trying to get areaPicture={}", e, areaPicture.describe());
+      return tryOtherLayers(wmsImageSource, areaPicture);
     }
+  }
+
+  private File tryOtherLayers(WmsImageSource source, AreaPicture areaPicture) {
+    var IGNLayer = areaPictureMapLayerService.getDefaultIGNLayer();
+    var layers = areaPicture.getLayers();
+    layers.addLast(IGNLayer);
+    for (AreaPictureMapLayer layer : layers) {
+      areaPicture.setCurrentLayer(layer);
+      if (layer.equals(IGNLayer)) {
+        source = ignGeoserverImageSource;
+      }
+      var image = getImage(source, areaPicture);
+      if (image.exists()) {
+        return image;
+      }
+    }
+    throw new ApiException(
+        SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
+  }
+
+  private File getImage(WmsImageSource source, AreaPicture areaPicture) {
+    var image = source.downloadImage(areaPicture);
+    imageValidator.accept(image);
+    return image;
   }
 
   @Override

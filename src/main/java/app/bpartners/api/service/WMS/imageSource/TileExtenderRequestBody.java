@@ -47,7 +47,6 @@ public class TileExtenderRequestBody implements Serializable {
         .x(tile.getX())
         .y(tile.getY())
         .z(tile.getArcgisZoom().getZoomLevel())
-
         .layer(currentLayer.getName())
         .server(getSource(currentLayer))
         .build();

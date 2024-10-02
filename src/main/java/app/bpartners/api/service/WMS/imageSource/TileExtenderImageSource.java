@@ -1,6 +1,7 @@
 package app.bpartners.api.service.WMS.imageSource;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.WMS.Tile.from;
 
 import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
@@ -38,10 +39,23 @@ final class TileExtenderImageSource extends AbstractWmsImageSource {
           "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
     }
     boolean isBase64Encoded = true;
+    double currentGeoPositionLongitude =
+        areaPicture.getCurrentGeoPosition().getLongitude() != null
+            ? areaPicture.getCurrentGeoPosition().getLongitude()
+            : areaPicture.getCurrentTile().getLongitude();
+    double currentGeoPositionLatitude =
+        areaPicture.getCurrentGeoPosition().getLatitude() != null
+            ? areaPicture.getCurrentGeoPosition().getLatitude()
+            : areaPicture.getCurrentTile().getLatitude();
     return fileDownloaderImpl.postJson(
         areaPicture.getFilename(),
-        getURI(areaPicture.getCurrentTile(), areaPicture.getCurrentLayer()),
-        TileExtenderRequestBody.from(areaPicture),
+        getURI(
+            from(
+                currentGeoPositionLongitude,
+                currentGeoPositionLatitude,
+                areaPicture.getArcgisZoom()),
+            areaPicture.getCurrentLayer()),
+        TileExtenderRequestBody.fromAreaPicture(areaPicture),
         isBase64Encoded);
   }
 

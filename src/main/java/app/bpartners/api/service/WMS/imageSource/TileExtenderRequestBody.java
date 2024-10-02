@@ -1,5 +1,6 @@
 package app.bpartners.api.service.WMS.imageSource;
 
+import static app.bpartners.api.service.WMS.Tile.from;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 
 import app.bpartners.api.model.AreaPicture;
@@ -30,8 +31,17 @@ public class TileExtenderRequestBody implements Serializable {
     };
   }
 
-  public static TileExtenderRequestBody from(AreaPicture areaPicture) {
-    var tile = areaPicture.getCurrentTile();
+  public static TileExtenderRequestBody fromAreaPicture(AreaPicture areaPicture) {
+    double currentGeoPositionLongitude =
+        areaPicture.getCurrentGeoPosition().getLongitude() != null
+            ? areaPicture.getCurrentGeoPosition().getLongitude()
+            : areaPicture.getCurrentTile().getLongitude();
+    double currentGeoPositionLatitude =
+        areaPicture.getCurrentGeoPosition().getLatitude() != null
+            ? areaPicture.getCurrentGeoPosition().getLatitude()
+            : areaPicture.getCurrentTile().getLatitude();
+    var tile =
+        from(currentGeoPositionLongitude, currentGeoPositionLatitude, areaPicture.getArcgisZoom());
     var currentLayer = areaPicture.getCurrentLayer();
     return TileExtenderRequestBody.builder()
         .x(tile.getX())

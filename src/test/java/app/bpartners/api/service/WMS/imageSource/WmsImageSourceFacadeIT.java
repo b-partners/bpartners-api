@@ -56,6 +56,13 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
     return mockJpegFile;
   }
 
+  private @NotNull File getBlackJpegFile() {
+    FileSystemResource mockJpegResource =
+        new FileSystemResource(
+            this.getClass().getClassLoader().getResource("files/black.jpeg").getFile());
+    return mockJpegResource.getFile();
+  }
+
   private @NotNull File getBlankJpegFile() {
     FileSystemResource mockJpegResource =
         new FileSystemResource(
@@ -92,6 +99,17 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   @Test
   void downloadImage_cascade_on_blank_image_ok() {
     when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
+    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
+    File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
+
+    verify(geoserverImageSourceMock, times(1)).downloadImage(any());
+    verify(ignGeoserverImageSource, times(1)).downloadImage(any());
+    assertEquals(getMockJpegFile(), actual);
+  }
+
+  @Test
+  void downloadImage_cascade_on_black_image_ok() {
+    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlackJpegFile());
     when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 

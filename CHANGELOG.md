@@ -1,3 +1,12 @@
+# [0.56.0](https://github.com/b-partners/bpartners-api/compare/v0.55.0...v0.56.0) (2024-10-04)
+
+
+### Features
+
+* add tile extension with left-right switching support ([731e7e5](https://github.com/b-partners/bpartners-api/commit/731e7e532f5eaff269d2f42a9ad1974ecb72fc34))
+
+
+
 # [0.55.0](https://github.com/b-partners/bpartners-api/compare/v0.54.1...v0.55.0) (2024-09-19)
 
 
@@ -105,15 +114,6 @@
 ### Features
 
 * permit area picture extension ([45ee400](https://github.com/b-partners/bpartners-api/commit/45ee400d194031632cdff4635cd99682b7d07881))
-
-
-
-# [0.47.0](https://github.com/b-partners/bpartners-api/compare/v0.46.0...v0.47.0) (2024-05-23)
-
-
-### Features
-
-* use Zoom instead of ZoomLevel, Zoom groups its level and its value as a number ([df42f91](https://github.com/b-partners/bpartners-api/commit/df42f9147b2c0465871e2add8f12fb052bd9ed3a))
 
 
 

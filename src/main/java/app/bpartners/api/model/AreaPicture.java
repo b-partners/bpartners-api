@@ -36,6 +36,9 @@ public class AreaPicture {
   private Tile currentTile;
   private List<AreaPictureMapLayer> layers;
   private boolean isExtended;
+  private Boolean rightShift;
+  private Boolean leftShift;
+  private Integer shiftNb;
   private List<GeoPosition> geoPositions;
 
   public String getFilename() {

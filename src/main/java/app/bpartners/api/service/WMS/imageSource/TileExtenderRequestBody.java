@@ -22,6 +22,9 @@ public class TileExtenderRequestBody implements Serializable {
   private int z;
   private String server;
   private String layer;
+  private boolean rightShift;
+  private boolean leftShift;
+  private int shiftNb;
 
   private static String getSource(AreaPictureMapLayer areaPictureMapLayer) {
     return switch (areaPictureMapLayer.getSource()) {
@@ -49,6 +52,9 @@ public class TileExtenderRequestBody implements Serializable {
         .z(tile.getArcgisZoom().getZoomLevel())
         .layer(currentLayer.getName())
         .server(getSource(currentLayer))
+        .rightShift(areaPicture.getRightShift())
+        .leftShift(areaPicture.getLeftShift())
+        .shiftNb(areaPicture.getShiftNb())
         .build();
   }
 }

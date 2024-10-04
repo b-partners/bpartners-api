@@ -80,6 +80,9 @@ public class AreaPictureRestMapper {
         .createdAt(rest.getCreatedAt())
         .updatedAt(rest.getUpdatedAt())
         .isExtended(isExtended != null && isExtended)
+        .rightShift(rest.getRightShift() == null ? false : rest.getRightShift())
+        .leftShift(rest.getLeftShift() == null ? false : rest.getLeftShift())
+        .shiftNb(rest.getShiftNb() == null ? null : rest.getShiftNb())
         .build();
   }
 }

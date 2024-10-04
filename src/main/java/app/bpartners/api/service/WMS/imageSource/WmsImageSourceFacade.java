@@ -1,6 +1,5 @@
 package app.bpartners.api.service.WMS.imageSource;
 
-import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
@@ -57,7 +56,6 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   @SneakyThrows
   public File downloadImage(AreaPicture areaPicture) {
     if (areaPicture.isExtended()) {
-      areaPicture.setZoomLevel(BUILDING);
       return tileExtenderImageSource.downloadImage(areaPicture);
     }
     return cascadeRetryImageDownloadUntilValid(geoserverImageSource, areaPicture, 0);

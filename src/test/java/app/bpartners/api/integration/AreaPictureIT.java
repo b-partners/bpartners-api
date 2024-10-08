@@ -200,8 +200,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
   private static Tile getReferenceTile(Tile originalTile, boolean isExtended) {
     return isExtended
         ? new Tile()
-            .x(originalTile.getX() - 1)
-            .y(originalTile.getY() - 1)
+            .x(originalTile.getX() - 3)
+            .y(originalTile.getY() - 3)
             .zoom(originalTile.getZoom())
         : originalTile;
   }

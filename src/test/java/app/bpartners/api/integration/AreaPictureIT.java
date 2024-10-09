@@ -269,6 +269,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .prospectId(PROSPECT_1_ID)
         .zoomLevel(HOUSES_0)
         .createdAt(null)
+        .rightShift(false)
+        .leftShift(false)
+        .shiftNb(0)
         .updatedAt(null);
   }
 
@@ -298,6 +301,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .createdAt(null)
         .zoom(zoom)
         .isExtended(isExtended)
+        .shiftNb(0)
+        .rightShift(false)
+        .leftShift(false)
         .updatedAt(null);
   }
 

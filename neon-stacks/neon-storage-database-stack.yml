@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Storage stack for BPartners using Neon
+
+Parameters:
+  Env:
+    Type: String
+  NeonProjectId:
+    Type: String
+    Description: The ID of the Neon project
+  DatabaseName:
+    Type: String
+    Default: DatabaseName
+    Description: The name of the database to create
+  DatabaseUsername:
+    Type: String
+    Default: DatabaseUsername
+    Description: The username for the database
+  DatabasePassword:
+    Type: String
+    Default: DatabasePassword
+    Description: The password for the database user
+    NoEcho: true
+  NeonApiToken:
+    Type: String
+    Description: The API token for accessing Neon
+    NoEcho: true
+
+Resources:
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: NeonAPIAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: arn:aws:logs:*:*:*
+
+  NeonDatabaseFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: python3.11
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          import os
+          import requests
+          
+          def handler(event, context):
+              project_id = event['NeonProjectId']
+              db_name = event['DatabaseName']
+              username = event['DatabaseUsername']
+              password = event['DatabasePassword']
+              token = event['NeonApiToken']
+          
+              url = f"https://console.neon.tech/api/v2/projects/{project_id}/branches/{branch_id}/databases"
+          
+              headers = {
+                  "accept": "application/json",
+                  "content-type": "application/json",
+                  "Authorization": f"Bearer {token}"
+              }
+          
+              payload = {
+                  "database": {
+                      "name": db_name,
+                      "username": username,
+                      "password": password
+                  }
+              }
+          
+              response = requests.post(url, headers=headers, json=payload)
+          
+              if response.status_code == 201:
+                  return {
+                      "statusCode": 201,
+                      "body": json.dumps(response.json())
+                  }
+              else:
+                  return {
+                      "statusCode": response.status_code,
+                      "body": response.text
+                  }

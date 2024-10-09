@@ -4,7 +4,6 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +35,7 @@ public class ImageValidator implements Consumer<File> {
         if ((pixel & 0xFF000000) != 0 && !isWhite(pixel)) {
           isBlank = false;
         }
-        if (pixel != Color.BLACK.getRGB()) {
+        if ((pixel & 0xFF000000) != 0 && !isBlack(pixel)) {
           isBlack = false;
         }
         if (!isBlank && !isBlack) {
@@ -57,5 +56,9 @@ public class ImageValidator implements Consumer<File> {
 
   private boolean isWhite(int pixel) {
     return (pixel & 0xFFFFFF) == 0xFFFFFF;
+  }
+
+  private boolean isBlack(int pixel) {
+    return ((pixel & 0xFF000000) != 0) && ((pixel & 0x00FFFFFF) == 0x00000000);
   }
 }

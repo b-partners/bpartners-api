@@ -59,8 +59,6 @@ public class HAreaPicture {
   private List<GeoPosition> geoPositions;
 
   private Integer shiftNb;
-  private Boolean rightShift;
-  private Boolean leftShift;
 
   @Override
   public final boolean equals(Object o) {

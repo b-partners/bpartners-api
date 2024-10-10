@@ -431,10 +431,6 @@ components:
           $ref: "#/components/schemas/OpenStreetMapLayer"
         isExtended:
           type: boolean
-        rightShift:
-          type: boolean
-        leftShift:
-          type: boolean
         shiftNb:
           type: integer
 

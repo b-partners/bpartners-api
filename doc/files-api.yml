@@ -172,3 +172,4 @@ components:
         - IMAGE
         - AREA_PICTURE
         - TRANSACTION_SUPPORTING_DOCS
+        - INVOICE_ZIP

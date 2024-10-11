@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceReference;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.InvoicesSummary;
+import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
 import app.bpartners.api.endpoint.rest.model.UpdatePaymentRegMethod;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
@@ -20,6 +21,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.InvoiceSummaryService;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -44,6 +46,21 @@ public class InvoiceController {
   private final UpdatePaymentRegValidator paymentValidator;
   private final InvoicesSummaryRestMapper summaryRestMapper;
   private final InvoiceSummaryService summaryService;
+
+  @GetMapping("/accounts/{aId}/invoices/exportLink")
+  public PreSignedURL getInvoicesExportLink(
+      @PathVariable("aId") String accountId,
+      @RequestParam(name = "statusList", required = false) List<InvoiceStatus> statusList,
+      @RequestParam(name = "archiveStatus", required = false) ArchiveStatus archiveStatus,
+      @RequestParam(value = "from", required = false) LocalDate from,
+      @RequestParam(value = "to", required = false) LocalDate to) {
+    var preSignedLink =
+        service.generateInvoicesExportLink(accountId, statusList, archiveStatus, from, to);
+    return new PreSignedURL()
+        .value(preSignedLink.getValue())
+        .updatedAt(preSignedLink.getUpdatedAt())
+        .expirationDelay(preSignedLink.getExpirationDelay());
+  }
 
   @GetMapping("accounts/{aId}/invoicesSummary")
   public InvoicesSummary getInvoicesSummary(@PathVariable("aId") String accountId) {

@@ -3,6 +3,7 @@ package app.bpartners.api.file;
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
+import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 
 import app.bpartners.api.endpoint.rest.model.FileType;
@@ -29,6 +30,7 @@ public class BucketKeyRetriever {
       case INVOICE -> getBucketName(env, key, fileId, INVOICE.name().toLowerCase());
       case ATTACHMENT -> getBucketName(env, key, fileId, ATTACHMENT.name().toLowerCase());
       case AREA_PICTURE -> getBucketName(env, key, fileId, AREA_PICTURE.name().toLowerCase());
+      case INVOICE_ZIP -> getBucketName(env, key, fileId, INVOICE_ZIP.name().toLowerCase());
       default -> throw new RuntimeException("Unknown file type " + fileType);
     };
   }

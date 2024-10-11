@@ -15,7 +15,6 @@ import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.time.LocalDate.now;
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 import static java.util.UUID.randomUUID;
@@ -33,7 +32,6 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.PreSignedLink;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -45,7 +43,6 @@ import app.bpartners.api.service.invoice.InvoiceValidator;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import app.bpartners.api.service.payment.PaymentService;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -135,18 +132,7 @@ public class InvoiceService {
   @NotNull
   private List<File> downloadInvoicesFiles(String userId, List<Invoice> invoicesBetweenDates) {
     return invoicesBetweenDates.stream()
-        .map(
-            invoice -> {
-              var file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
-              try {
-                boolean invoiceFileHasReferenceName =
-                    file.renameTo(File.createTempFile(invoice.getRef(), PDF_FILE_EXTENSION));
-                if (invoiceFileHasReferenceName) return file;
-              } catch (IOException e) {
-                throw new ApiException(SERVER_EXCEPTION, e);
-              }
-              throw new ApiException(SERVER_EXCEPTION, "Unable to rename invoice file : " + file);
-            })
+        .map(invoice -> s3Service.downloadFile(INVOICE, invoice.getFileId(), userId))
         .toList();
   }
 

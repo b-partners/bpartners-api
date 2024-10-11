@@ -5,6 +5,7 @@ import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.ACCEPTED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
@@ -88,9 +89,12 @@ public class InvoiceService {
       ArchiveStatus providedArchiveStatus,
       LocalDate providedFrom,
       LocalDate providedTo) {
+    var allStatuses = Arrays.stream(InvoiceStatus.values()).toList();
+    var entityHandledStatuses =
+        allStatuses.stream().filter(status -> !status.equals(ACCEPTED)).toList();
     var statuses =
         providedStatuses == null || providedStatuses.isEmpty()
-            ? Arrays.stream(InvoiceStatus.values()).toList()
+            ? entityHandledStatuses
             : providedStatuses;
     var archiveStatus = providedArchiveStatus == null ? ENABLED : providedArchiveStatus;
     var from = providedFrom == null ? now().withDayOfMonth(1) : providedFrom;

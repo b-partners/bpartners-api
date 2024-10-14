@@ -1,9 +1,10 @@
 name: Manage Neon Database
 
-# This workflow triggers on every push to the "main" branch
+# This workflow triggers on every push to the "main or preprod" branch
 on:
   push:
     branches:
+      - preprod
       - main
 
 jobs:

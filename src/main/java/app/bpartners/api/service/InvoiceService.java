@@ -98,9 +98,11 @@ public class InvoiceService {
     var to = providedTo == null ? now().with(lastDayOfMonth()) : providedTo;
     var emptyFilters = new ArrayList<String>();
     var userId = userRepository.getByIdAccount(accountId).getId();
+    log.info("DEBUG retrieved userId : {}", userId);
     var invoices =
         repository.findAllByIdUserAndCriteria(
             userId, statuses, archiveStatus, emptyFilters, MIN_PAGE, MAX_SIZE);
+    log.info("DEBUG invoices with statuses {} retrieved count : {}", statuses, invoices.size());
     var invoicesBetweenDates =
         invoices.stream()
             .filter(
@@ -108,7 +110,14 @@ public class InvoiceService {
                     !invoice.getSendingDate().isBefore(from)
                         && !invoice.getSendingDate().isAfter(to))
             .toList();
+    log.info(
+        "DEBUG invoices with statuses {} between {} to {} retrieved count : {}",
+        statuses,
+        from,
+        to,
+        invoices.size());
     var invoicesFiles = downloadInvoicesFiles(userId, invoicesBetweenDates);
+    log.info("DEBUG invoices files count : {}", invoicesFiles.size());
     var invoicesZipFile = fileZipper.apply(invoicesFiles);
     var zipFileId = randomUUID().toString();
 

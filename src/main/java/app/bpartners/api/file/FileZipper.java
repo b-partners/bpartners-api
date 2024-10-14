@@ -24,7 +24,7 @@ public class FileZipper implements Function<List<File>, File> {
         ZipOutputStream zipOut = new ZipOutputStream(fos)) {
       for (File file : fileList) {
         try (FileInputStream fis = new FileInputStream(file)) {
-          ZipEntry zipEntry = new ZipEntry(file.getName());
+          ZipEntry zipEntry = new ZipEntry(randomUUID().toString());
           zipOut.putNextEntry(zipEntry);
           byte[] bytes = new byte[1024];
           int length;

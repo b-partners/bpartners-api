@@ -431,6 +431,9 @@ components:
           $ref: "#/components/schemas/OpenStreetMapLayer"
         isExtended:
           type: boolean
+        shiftNb:
+          type: integer
+
     CrupdateAreaPictureDetails:
       type: object
       allOf:

@@ -73,6 +73,6 @@ public class Tile {
   }
 
   public Tile getTopLeftTile() {
-    return new Tile(x - 1, y - 1, arcgisZoom);
+    return new Tile(x - 3, y - 3, arcgisZoom);
   }
 }

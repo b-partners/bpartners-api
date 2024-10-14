@@ -1,0 +1,27 @@
+name: Delete old lambda versions
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-west-3
+
+jobs:
+  delete-old-lambda-versions:
+    timeout-minutes: 300
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.6
+
+      - uses: hei-school/aws-credentials-setter@v1.0.3
+        with:
+          secrets: ${{ toJSON(secrets) }}
+          region: ${{ env.AWS_REGION }}
+
+      - name: Retrieve and delete old lambda versions
+        run: |
+          pip install boto3
+          python ./.scripts/retrieve_and_remove_lambda_versions.py

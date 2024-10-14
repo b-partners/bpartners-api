@@ -110,6 +110,8 @@ paths:
     $ref: './paying-api.yml#/operations/importProducts'
   /accounts/{aId}/invoices:
     $ref: './paying-api.yml#/operations/getInvoices'
+  /accounts/{aId}/invoices/exportLink:
+    $ref: './paying-api.yml#/operations/exportInvoices'
   /accounts/{aId}/invoicesSummary:
     $ref: './paying-api.yml#/operations/invoicesSummaryOperations'
   /accounts/{aId}/invoices/archive:
@@ -333,6 +335,17 @@ components:
       enum:
         - text/csv
         - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    PreSignedURL:
+      type: object
+      properties:
+        value:
+          type: string
+        expirationDelay:
+          type: integer
+          description: In seconds
+        updatedAt:
+          type: string
+          format: date-time
     Page:
       type: integer
       description: Start at `1`

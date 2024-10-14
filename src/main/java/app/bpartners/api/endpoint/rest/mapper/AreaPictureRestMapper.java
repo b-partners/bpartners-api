@@ -53,6 +53,7 @@ public class AreaPictureRestMapper {
         .geoPositions(domain.getGeoPositions())
         .currentTile(tile)
         .referenceTile(referenceTile)
+        .shiftNb(domain.getShiftNb())
         .isExtended(domain.isExtended());
   }
 
@@ -80,6 +81,7 @@ public class AreaPictureRestMapper {
         .createdAt(rest.getCreatedAt())
         .updatedAt(rest.getUpdatedAt())
         .isExtended(isExtended != null && isExtended)
+        .shiftNb(rest.getShiftNb() == null ? null : rest.getShiftNb())
         .build();
   }
 }

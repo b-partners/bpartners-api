@@ -103,7 +103,7 @@ class GeoserverImageSourceIT extends MockedThirdParties {
                 BigDecimal.valueOf(1)));
     URI actualUri = subject.getURI(tile, areaPictureMapLayer);
     String expectedUri =
-        "http://localhost:8080/wms?layers=layerName&format=image/jpeg&width=1024&height=1024&bbox=1,%201,%201,%201&SRS=EPSG:3857&transparent=true&service=WMS&request=GetMap";
+        "http://localhost:8080/wms?layers=layerName&format=image/jpeg&width=256&height=256&bbox=1,%201,%201,%201&SRS=EPSG:3857&transparent=true&service=WMS&request=GetMap";
 
     assertEquals(expectedUri, actualUri.toString());
   }

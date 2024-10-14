@@ -200,8 +200,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
   private static Tile getReferenceTile(Tile originalTile, boolean isExtended) {
     return isExtended
         ? new Tile()
-            .x(originalTile.getX() - 1)
-            .y(originalTile.getY() - 1)
+            .x(originalTile.getX() - 3)
+            .y(originalTile.getY() - 3)
             .zoom(originalTile.getZoom())
         : originalTile;
   }
@@ -269,6 +269,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .prospectId(PROSPECT_1_ID)
         .zoomLevel(HOUSES_0)
         .createdAt(null)
+        .shiftNb(0)
         .updatedAt(null);
   }
 
@@ -298,6 +299,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .createdAt(null)
         .zoom(zoom)
         .isExtended(isExtended)
+        .shiftNb(0)
         .updatedAt(null);
   }
 

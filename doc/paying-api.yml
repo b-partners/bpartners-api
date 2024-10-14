@@ -915,6 +915,59 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  exportInvoices:
+    get:
+      tags:
+        - Paying
+      operationId: getInvoicesExportLink
+      summary: Get URL to download PDF invoices for an account
+      description: |
+        Get URL to download PDF invoices for an account. Invoices can be filtered by dates intervals, by default actual month.
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: statusList
+          description: 'Filter invoices by some statuses. If null, returns all invoices'
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/InvoiceStatus'
+        - in: query
+          name: archiveStatus
+          description: 'Filter invoices by archive status. If null, returns ENABLED invoices'
+          schema:
+            $ref: '#/components/schemas/archiveStatus'
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+      responses:
+        200:
+          description: The preSigned URL pointing to invoices
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/PreSignedURL'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getInvoices:
     get:
       tags:

@@ -101,7 +101,7 @@ public class InvoiceService {
     log.info("DEBUG retrieved userId : {}", userId);
     var invoices =
         repository.findAllByIdUserAndCriteria(
-            userId, statuses, archiveStatus, emptyFilters, MIN_PAGE, MAX_SIZE);
+            userId, statuses, archiveStatus, emptyFilters, (MIN_PAGE - 1), MAX_SIZE);
     log.info("DEBUG invoices with statuses {} retrieved count : {}", statuses, invoices.size());
     var invoicesBetweenDates =
         invoices.stream()

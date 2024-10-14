@@ -268,9 +268,7 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfUserMatcher(POST, "/users/*/disconnectBank", authResourceProvider))
                     .authenticated()
-                    .requestMatchers(
-                        new SelfAccountMatcher(
-                            GET, "/accounts/*/invoices/exportLink", authResourceProvider))
+                    .requestMatchers(GET, "/accounts/*/invoices/exportLink")
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole(), EVAL_PROSPECT.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider))

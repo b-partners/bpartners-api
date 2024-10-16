@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  create-db:
+  manage-db-neon:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,14 +24,6 @@ jobs:
 
       - name: Install PostgreSQL Client
         run: sudo apt-get install -y postgresql-client
-
-      - name: Create Neon Database
-        env:
-          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-        run: |
-          # Create a new branch and database on Neon
-          neonctl create-branch --project-id ${{ secrets.NEON_PROJECT_ID }} --branch-name development
-          neonctl create-database --project-id ${{ secrets.NEON_PROJECT_ID }} --branch-name development --database-name ecommerce
 
       - name: Test Connection
         env:

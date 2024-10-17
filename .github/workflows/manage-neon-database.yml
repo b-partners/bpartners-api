@@ -1,0 +1,42 @@
+name: Manage Neon Database
+
+on:
+  push:
+    branches:
+      - preprod
+
+jobs:
+  manage-db-neon:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Install Neon CLI
+        run: npm install -g neonctl
+
+      - name: Install PostgreSQL Client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Test Connection
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}  # Add your DB username to secrets
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # Add your DB password to secrets
+          DB_HOST: ${{ secrets.DB_HOST }}  # Add your DB host to secrets
+        run: |
+          psql "postgresql://${{ env.DB_USERNAME }}:${{ env.DB_PASSWORD }}@${{ env.DB_HOST }}/neondb" -c "SELECT 'Connection successful!'"
+
+      # Optionally ( to test )
+      - name: Run SQL Commands
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+        run: |
+          echo "Running SQL commands from src/main/resources/db/migration/VO_1__Create_user_table.sql"
+          psql "postgresql://${{ env.DB_USERNAME }}:${{ env.DB_PASSWORD }}@${{ env.DB_HOST }}/neondb" -f src/main/resources/db/migration/VO_1__Create_user_table.sql

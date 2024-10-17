@@ -1,11 +1,9 @@
 name: Manage Neon Database
 
-# This workflow triggers on every push to the "main or preprod" branch
 on:
   push:
     branches:
       - preprod
-      - main
 
 jobs:
   manage-db-neon:
@@ -40,4 +38,5 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_HOST: ${{ secrets.DB_HOST }}
         run: |
-          psql "postgresql://${{ env.DB_USERNAME }}:${{ env.DB_PASSWORD }}@${{ env.DB_HOST }}/neondb" -c "CREATE TABLE products (id SERIAL PRIMARY KEY, name VARCHAR(100), price DECIMAL(10, 2));"
+          echo "Running SQL commands from src/main/resources/db/migration/VO_1__Create_user_table.sql"
+          psql "postgresql://${{ env.DB_USERNAME }}:${{ env.DB_PASSWORD }}@${{ env.DB_HOST }}/neondb" -f src/main/resources/db/migration/VO_1__Create_user_table.sql

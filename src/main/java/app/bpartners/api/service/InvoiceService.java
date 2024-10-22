@@ -19,6 +19,8 @@ import static java.time.LocalDate.now;
 import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
@@ -64,7 +66,6 @@ public class InvoiceService {
   public static final String DRAFT_TEMPLATE = "draft";
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
-  private static final String PDF_FILE_EXTENSION = ".pdf";
   private final InvoiceRepository repository;
   private final PaymentInitiationService pis;
   private final PaymentRequestRepository paymentRepository;
@@ -73,12 +74,9 @@ public class InvoiceService {
   private final PaymentService paymentService;
   private final InvoiceValidator invoiceValidator;
   private final CustomerInvoiceValidator customerInvoiceValidator;
-  private final S3Service s3Service;
-  private final FileZipper fileZipper;
-  private final SesService mailer; // TODO: change to Mailer once it works properly !
-  private final UserRepository userRepository;
+  private final EventProducer eventProducer;
 
-  // TODO: make it asynchronous and persist invoice zip file ID and do NOT mail
+
   @SneakyThrows
   public PreSignedLink generateInvoicesExportLink(
       String accountId,
@@ -86,63 +84,22 @@ public class InvoiceService {
       ArchiveStatus providedArchiveStatus,
       LocalDate providedFrom,
       LocalDate providedTo) {
-    var allStatuses = Arrays.stream(InvoiceStatus.values()).toList();
-    var entityHandledStatuses =
-        allStatuses.stream().filter(status -> !status.equals(ACCEPTED)).toList();
-    var statuses =
-        providedStatuses == null || providedStatuses.isEmpty()
-            ? entityHandledStatuses
-            : providedStatuses;
-    var archiveStatus = providedArchiveStatus == null ? ENABLED : providedArchiveStatus;
-    var from = providedFrom == null ? now().withDayOfMonth(1) : providedFrom;
-    var to = providedTo == null ? now().with(lastDayOfMonth()) : providedTo;
-    var emptyFilters = new ArrayList<String>();
-    var userId = userRepository.getByIdAccount(accountId).getId();
-    log.info("DEBUG retrieved userId : {}", userId);
-    var invoices =
-        repository.findAllByIdUserAndCriteria(
-            userId, statuses, archiveStatus, emptyFilters, (MIN_PAGE - 1), MAX_SIZE);
-    log.info("DEBUG invoices with statuses {} retrieved count : {}", statuses, invoices.size());
-    var invoicesBetweenDates =
-        invoices.stream()
-            .filter(
-                invoice ->
-                    !invoice.getSendingDate().isBefore(from)
-                        && !invoice.getSendingDate().isAfter(to))
-            .toList();
-    log.info(
-        "DEBUG invoices with statuses {} between {} to {} retrieved count : {}",
-        statuses,
-        from,
-        to,
-        invoices.size());
-    var invoicesFiles = downloadInvoicesFiles(userId, invoicesBetweenDates);
-    log.info("DEBUG invoices files count : {}", invoicesFiles.size());
-    var invoicesZipFile = fileZipper.apply(invoicesFiles);
-    var zipFileId = randomUUID().toString();
 
-    s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
-
-    var now = Instant.now();
-    long expirationInSeconds = 3600L;
-    var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, expirationInSeconds);
-
-    var mailSubject =
-        "Upload du zip contenant les factures de l'utilisateur (id=" + userId + ") terminé";
-    mailer.sendEmail("tech@bpartners.app", null, mailSubject, preSignedURL);
+   eventProducer.accept(List.of(
+       InvoiceExportLinkRequested.builder()
+           .accountId(accountId)
+           .providedStatuses(providedStatuses)
+           .providedArchiveStatus(providedArchiveStatus)
+           .providedFrom(providedFrom)
+           .providedTo(providedTo)
+           .build()
+   ));
 
     return PreSignedLink.builder()
-        .value(preSignedURL)
-        .expirationDelay((int) expirationInSeconds)
-        .updatedAt(now)
+        .value(null)
+        .expirationDelay(null)
+        .updatedAt(Instant.now())
         .build();
-  }
-
-  @NotNull
-  private List<File> downloadInvoicesFiles(String userId, List<Invoice> invoicesBetweenDates) {
-    return invoicesBetweenDates.stream()
-        .map(invoice -> s3Service.downloadFile(INVOICE, invoice.getFileId(), userId))
-        .toList();
   }
 
   @Transactional

@@ -21,8 +21,8 @@ public interface InvoiceRepository {
       List<InvoiceStatus> statusList,
       ArchiveStatus archiveStatus,
       List<String> filters,
-      int page,
-      int pageSize);
+      Integer page,
+      Integer pageSize);
 
   List<Invoice> archiveAll(List<ArchiveInvoice> archiveInvoices);
 

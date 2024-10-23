@@ -1,6 +1,5 @@
 package app.bpartners.api.file;
 
-import static app.bpartners.api.service.event.InvoiceExportLinkRequestedService.PDF_FILE_EXTENSION;
 import static java.util.UUID.randomUUID;
 
 import java.io.File;

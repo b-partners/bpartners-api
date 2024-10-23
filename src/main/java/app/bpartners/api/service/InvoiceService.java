@@ -2,8 +2,6 @@ package app.bpartners.api.service;
 
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
-import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
-import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.ACCEPTED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
@@ -14,9 +12,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFI
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
-import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static java.time.LocalDate.now;
-import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -25,7 +21,6 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
-import app.bpartners.api.file.FileZipper;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Fraction;
@@ -37,24 +32,19 @@ import app.bpartners.api.model.PreSignedLink;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.service.aws.S3Service;
-import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.invoice.CustomerInvoiceValidator;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.invoice.InvoiceValidator;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import app.bpartners.api.service.payment.PaymentService;
-import java.io.File;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +65,7 @@ public class InvoiceService {
   private final InvoiceValidator invoiceValidator;
   private final CustomerInvoiceValidator customerInvoiceValidator;
   private final EventProducer eventProducer;
-
+  private final UserRepository userRepository;
 
   @SneakyThrows
   public PreSignedLink generateInvoicesExportLink(
@@ -85,15 +75,26 @@ public class InvoiceService {
       LocalDate providedFrom,
       LocalDate providedTo) {
 
-   eventProducer.accept(List.of(
-       InvoiceExportLinkRequested.builder()
-           .accountId(accountId)
-           .providedStatuses(providedStatuses)
-           .providedArchiveStatus(providedArchiveStatus)
-           .providedFrom(providedFrom)
-           .providedTo(providedTo)
-           .build()
-   ));
+    var filters = new ArrayList<String>();
+    var user = userRepository.getByIdAccount(accountId);
+    var userId = user.getId();
+    var invoices =
+        repository.findAllByIdUserAndCriteria(
+            userId, providedStatuses, providedArchiveStatus, filters, null, null);
+    int totalInvoice = invoices.size();
+    int nbPages = totalInvoice / MAX_SIZE;
+    for (int page = 1; page <= nbPages; page++) {
+      eventProducer.accept(
+          List.of(
+              InvoiceExportLinkRequested.builder()
+                  .accountId(accountId)
+                  .providedStatuses(providedStatuses)
+                  .providedArchiveStatus(providedArchiveStatus)
+                  .providedFrom(providedFrom)
+                  .providedTo(providedTo)
+                  .page(page)
+                  .build()));
+    }
 
     return PreSignedLink.builder()
         .value(null)

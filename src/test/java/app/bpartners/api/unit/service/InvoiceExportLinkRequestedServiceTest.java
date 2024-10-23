@@ -6,7 +6,6 @@ import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
 import static app.bpartners.api.file.FileHashAlgorithm.SHA256;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -21,13 +20,12 @@ import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.file.FileHash;
 import app.bpartners.api.file.FileZipper;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.PreSignedLink;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.PaymentInitiationService;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
@@ -68,11 +66,7 @@ class InvoiceExportLinkRequestedServiceTest {
   UserRepository userRepositoryMock = mock();
   InvoiceExportLinkRequestedService subject =
       new InvoiceExportLinkRequestedService(
-          fileZipper,
-          mailerMock,
-          userRepositoryMock,
-          repositoryMock,
-          s3ServiceMock);
+          fileZipper, mailerMock, userRepositoryMock, repositoryMock, s3ServiceMock);
 
   @BeforeEach
   @SneakyThrows
@@ -88,8 +82,12 @@ class InvoiceExportLinkRequestedServiceTest {
     doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
   }
 
+  private AccountHolder defaultAccountHolder() {
+    return AccountHolder.builder().name("").build();
+  }
+
   private User actualUser() {
-    return User.builder().id(USER_ID).build();
+    return User.builder().id(USER_ID).accountHolders(List.of(defaultAccountHolder())).build();
   }
 
   @Test
@@ -100,12 +98,14 @@ class InvoiceExportLinkRequestedServiceTest {
     LocalDate today = LocalDate.now();
     List<InvoiceStatus> providedStatuses = List.of();
 
-    subject.accept(InvoiceExportLinkRequested.builder()
-        .accountId(ACCOUNT_ID)
-        .providedStatuses(providedStatuses)
-        .providedArchiveStatus(ENABLED)
-        .providedFrom(today)
-        .providedTo(today.plusDays(1L)).build());
+    subject.accept(
+        InvoiceExportLinkRequested.builder()
+            .accountId(ACCOUNT_ID)
+            .providedStatuses(providedStatuses)
+            .providedArchiveStatus(ENABLED)
+            .providedFrom(today)
+            .providedTo(today.plusDays(1L))
+            .build());
 
     var fileCaptor = ArgumentCaptor.forClass(File.class);
     verify(s3ServiceMock).uploadFile(any(), any(), any(), fileCaptor.capture());
@@ -126,32 +126,35 @@ class InvoiceExportLinkRequestedServiceTest {
         .thenReturn(
             List.of(
                 Invoice.builder()
-                    .id(randomUUID().toString())
-                    .fileId(randomUUID().toString())
-                    .ref("REF"+ randomUUID())
+                    .id("invoiceId1")
+                    .fileId("invoiceFileId1")
+                    .ref("REFinvoiceId1")
                     .sendingDate(today)
                     .user(actualUser())
                     .build(),
                 Invoice.builder()
-                    .id(randomUUID().toString())
-                    .fileId(randomUUID().toString())
-                    .ref("REF"+ randomUUID())
+                    .id("invoiceId2")
+                    .fileId("invoiceFileId2")
+                    .ref("REFinvoiceId2")
                     .sendingDate(today)
                     .user(actualUser())
                     .build()));
     List<InvoiceStatus> providedStatuses = List.of();
 
-    subject.accept(InvoiceExportLinkRequested.builder()
-        .accountId(ACCOUNT_ID)
-        .providedStatuses(providedStatuses)
-        .providedArchiveStatus(ENABLED)
-        .providedFrom(today)
-        .providedTo(today.plusDays(1L)).build());
+    subject.accept(
+        InvoiceExportLinkRequested.builder()
+            .accountId(ACCOUNT_ID)
+            .providedStatuses(providedStatuses)
+            .providedArchiveStatus(ENABLED)
+            .providedFrom(today)
+            .providedTo(today.plusDays(1L))
+            .build());
 
     var fileCaptor = ArgumentCaptor.forClass(File.class);
     var stringCaptor = ArgumentCaptor.forClass(String.class);
     verify(s3ServiceMock).uploadFile(any(), any(), any(), fileCaptor.capture());
-    verify(mailerMock, times(1)).sendEmail(any(), any(), stringCaptor.capture(), stringCaptor.capture());
+    verify(mailerMock, times(1))
+        .sendEmail(any(), any(), stringCaptor.capture(), stringCaptor.capture());
     Long invoicesCount;
     try (var invoiceZipFile = new ZipFile(fileCaptor.getValue())) {
       invoicesCount = invoiceZipFile.stream().count();

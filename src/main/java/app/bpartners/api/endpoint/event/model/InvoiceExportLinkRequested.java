@@ -24,6 +24,7 @@ public class InvoiceExportLinkRequested extends PojaEvent {
   private ArchiveStatus providedArchiveStatus;
   private LocalDate providedFrom;
   private LocalDate providedTo;
+  private int page;
 
   @Override
   public Duration maxConsumerDuration() {

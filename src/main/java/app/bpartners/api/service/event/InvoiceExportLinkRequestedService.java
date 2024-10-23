@@ -1,10 +1,20 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
+import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.ACCEPTED;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.time.LocalDate.now;
+import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.file.FileZipper;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -13,8 +23,6 @@ import app.bpartners.api.service.aws.SesService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,18 +31,6 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
-
-import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
-import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
-import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.ACCEPTED;
-import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
-import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.time.LocalDate.now;
-import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
-import static java.util.UUID.randomUUID;
 
 @Service
 @AllArgsConstructor
@@ -54,6 +50,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var providedArchiveStatus = event.getProvidedArchiveStatus();
     var providedFrom = event.getProvidedFrom();
     var providedTo = event.getProvidedTo();
+    var page = event.getPage();
 
     var statuses = getInvoiceStatuses(providedStatuses);
     var archiveStatus = providedArchiveStatus == null ? ENABLED : providedArchiveStatus;
@@ -63,10 +60,9 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var user = userRepository.getByIdAccount(accountId);
     var userId = user.getId();
 
-    //TODO: when invoices exceed 500, must paginate the process of zipping
     var invoices =
         invoiceRepository.findAllByIdUserAndCriteria(
-            userId, statuses, archiveStatus, emptyFilters, (MIN_PAGE - 1), MAX_SIZE);
+            userId, statuses, archiveStatus, emptyFilters, page, MAX_SIZE);
     var invoicesBetweenDates =
         invoices.stream()
             .filter(
@@ -84,11 +80,17 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, expirationInSeconds);
 
     var mailSubject =
-        "Zip contenant les factures de " + user.getDefaultHolder().getName() + " entre " + providedFrom + " et " + providedTo + " disponible";
-    //TODO must be the artisan email and admin as cc
-    //TODO var recipient = user.getDefaultHolder().getEmail();
+        "Zip contenant les factures de "
+            + user.getDefaultHolder().getName()
+            + " entre "
+            + providedFrom
+            + " et "
+            + providedTo
+            + " disponible";
+    // TODO must be the artisan email and admin as cc
+    // TODO var recipient = user.getDefaultHolder().getEmail();
     var adminRecipient = "tech@bpartners.app";
-    //TODO: body must be formatted not only preSignedURL
+    // TODO: body must be formatted not only preSignedURL
     mailer.sendEmail(adminRecipient, null, mailSubject, preSignedURL);
   }
 
@@ -105,15 +107,19 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   @NotNull
   private List<File> downloadInvoicesFiles(String userId, List<Invoice> invoicesBetweenDates) {
     return invoicesBetweenDates.stream()
-        .map(invoice -> {
-          File file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
-          try {
-            Files.move(file.toPath(), Files.createTempFile(invoice.getRef(), PDF_FILE_EXTENSION), REPLACE_EXISTING);
-            return file;
-          } catch (IOException e) {
-            throw new ApiException(SERVER_EXCEPTION, e);
-          }
-        })
+        .map(
+            invoice -> {
+              File file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
+              try {
+                Files.move(
+                    file.toPath(),
+                    Files.createTempFile(invoice.getRef(), PDF_FILE_EXTENSION),
+                    REPLACE_EXISTING);
+                return file;
+              } catch (IOException e) {
+                throw new ApiException(SERVER_EXCEPTION, e);
+              }
+            })
         .toList();
   }
 }

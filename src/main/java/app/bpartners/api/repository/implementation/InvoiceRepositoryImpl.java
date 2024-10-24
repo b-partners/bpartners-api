@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
+import static org.springframework.data.domain.Sort.Direction.DESC;
+
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.ArchiveInvoice;
@@ -13,7 +15,6 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
@@ -107,18 +108,23 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       predicates.add(builder.or(filtersPredicates.toArray(new Predicate[0])));
     }
 
-    query.where(builder.and(predicates.toArray(new Predicate[0])));
-    TypedQuery<HInvoice> typedQuery = entityManager.createQuery(query);
-
     if (page != null && pageSize != null) {
-      Pageable pageable =
-          PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdDatetime"));
-      query.orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+      Pageable pageable = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
+      query
+          .where(builder.and(predicates.toArray(new Predicate[0])))
+          .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
 
-      typedQuery.setFirstResult(pageable.getPageNumber() * pageable.getPageSize());
-      typedQuery.setMaxResults(pageable.getPageSize());
+      return entityManager
+          .createQuery(query)
+          .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
+          .setMaxResults(pageable.getPageSize())
+          .getResultList()
+          .stream()
+          .map(invoice -> mapper.toDomain(invoice, userRepository.getById(idUser)))
+          .toList();
     }
-    return typedQuery.getResultList().stream()
+    query.where(builder.and(predicates.toArray(new Predicate[0])));
+    return entityManager.createQuery(query).getResultList().stream()
         .map(invoice -> mapper.toDomain(invoice, userRepository.getById(idUser)))
         .toList();
   }

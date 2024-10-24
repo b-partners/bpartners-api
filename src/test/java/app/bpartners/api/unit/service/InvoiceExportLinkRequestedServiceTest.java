@@ -24,19 +24,13 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.InvoiceRepository;
-import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.service.PaymentInitiationService;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.InvoiceExportLinkRequestedService;
-import app.bpartners.api.service.invoice.CustomerInvoiceValidator;
-import app.bpartners.api.service.invoice.InvoicePDFProcessor;
-import app.bpartners.api.service.invoice.InvoiceValidator;
-import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
-import app.bpartners.api.service.payment.PaymentService;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.zip.ZipFile;
@@ -53,13 +47,6 @@ class InvoiceExportLinkRequestedServiceTest {
   private static final long DEFAULT_EXPIRATION_DELAY = 3600L;
 
   InvoiceRepository repositoryMock = mock();
-  PaymentInitiationService initiationServiceMock = mock();
-  PaymentRequestRepository paymentRequestRepositoryMock = mock();
-  InvoicePDFProcessor invoicePDFProcessorMock = mock();
-  CreatePaymentRegulationComputing regulationComputingMock = mock();
-  PaymentService paymentServiceMock = mock();
-  InvoiceValidator invoiceValidatorMock = mock();
-  CustomerInvoiceValidator customerInvoiceValidatorMock = mock();
   S3Service s3ServiceMock = mock();
   FileZipper fileZipper = new FileZipper();
   SesService mailerMock = mock();
@@ -118,9 +105,31 @@ class InvoiceExportLinkRequestedServiceTest {
     assertEquals(0L, invoicesCount);
   }
 
+  private File crupdateFile(File file) {
+    if (!file.exists()) {
+      try {
+        boolean fileCreated = file.createNewFile();
+        if (!fileCreated) {
+          return file;
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return file;
+  }
+
   @Test
   void generate_export_link_with_invoices_ok() throws MessagingException, IOException {
     LocalDate today = LocalDate.now();
+    var file1 =
+        crupdateFile(Paths.get("src", "test", "resources", "files", "REFinvoiceId1.pdf").toFile());
+    when(s3ServiceMock.downloadFile(eq(INVOICE), eq("invoiceFileId1"), eq(USER_ID)))
+        .thenReturn(file1);
+    var file2 =
+        crupdateFile(Paths.get("src", "test", "resources", "files", "REFinvoiceId2.pdf").toFile());
+    when(s3ServiceMock.downloadFile(eq(INVOICE), eq("invoiceFileId2"), eq(USER_ID)))
+        .thenReturn(file2);
     when(repositoryMock.findAllByIdUserAndCriteria(
             eq(USER_ID), anyList(), eq(ENABLED), anyList(), anyInt(), anyInt()))
         .thenReturn(
@@ -165,6 +174,8 @@ class InvoiceExportLinkRequestedServiceTest {
     var preSignedURLCaptured = stringCaptor.getAllValues().getLast();
     assertEquals(2L, invoicesCount);
     assertEquals(PRE_SIGNED_URL, preSignedURLCaptured);
-    assertEquals("", mailSubjectCaptured);
+    assertEquals(
+        "Zip contenant les factures de  entre 2024-10-24 et 2024-10-25 disponible",
+        mailSubjectCaptured);
   }
 }

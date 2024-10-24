@@ -23,6 +23,7 @@ import app.bpartners.api.service.aws.SesService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -87,11 +88,9 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
             + " et "
             + providedTo
             + " disponible";
-    // TODO must be the artisan email and admin as cc
-    // TODO var recipient = user.getDefaultHolder().getEmail();
+    var recipient = user.getDefaultHolder().getEmail();
     var adminRecipient = "tech@bpartners.app";
-    // TODO: body must be formatted not only preSignedURL
-    mailer.sendEmail(adminRecipient, null, mailSubject, preSignedURL);
+    mailer.sendEmail(recipient, adminRecipient, mailSubject, preSignedURL);
   }
 
   @NotNull
@@ -106,20 +105,25 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
 
   @NotNull
   private List<File> downloadInvoicesFiles(String userId, List<Invoice> invoicesBetweenDates) {
+    Path destinationDirectory = getTempDirectory();
     return invoicesBetweenDates.stream()
         .map(
             invoice -> {
               File file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
               try {
-                Files.move(
-                    file.toPath(),
-                    Files.createTempFile(invoice.getRef(), PDF_FILE_EXTENSION),
-                    REPLACE_EXISTING);
-                return file;
+                Path destinationPath = destinationDirectory.resolve(invoice.getRef());
+                Files.copy(file.toPath(), destinationPath, REPLACE_EXISTING);
+                Files.delete(file.toPath());
+                return destinationPath.toFile();
               } catch (IOException e) {
                 throw new ApiException(SERVER_EXCEPTION, e);
               }
             })
         .toList();
+  }
+
+  @SneakyThrows
+  private static Path getTempDirectory() {
+    return Files.createTempDirectory("tmp" + randomUUID());
   }
 }

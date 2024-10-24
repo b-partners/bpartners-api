@@ -83,7 +83,7 @@ public class InvoiceService {
             userId, providedStatuses, providedArchiveStatus, filters, null, null);
     int totalInvoice = invoices.size();
     int nbPages = totalInvoice / MAX_SIZE;
-    for (int page = 1; page <= nbPages; page++) {
+    for (int page = 0; page <= nbPages; page++) {
       eventProducer.accept(
           List.of(
               InvoiceExportLinkRequested.builder()

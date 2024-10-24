@@ -19,7 +19,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.util.Base64;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -121,10 +120,11 @@ public final class FileDownloaderImpl implements FileDownloader {
     log.info("body {}", body);
     RequestEntity<byte[]> request =
         new RequestEntity<>(om.writeValueAsBytes(body), headers, POST, uri);
+    log.info("TileExtenderUrl = {}", request.getUrl());
     byte[] bytes;
     if (isBase64Encoded) {
       var base64Response = restTemplate.postForObject(uri, request, String.class);
-      bytes = Base64.getDecoder().decode(base64Response);
+      bytes = base64Response.getBytes();
     } else {
       bytes = restTemplate.postForObject(uri, request, byte[].class);
     }

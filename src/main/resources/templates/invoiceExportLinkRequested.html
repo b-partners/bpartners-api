@@ -1,0 +1,32 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Customer crupdated</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, Georgia, and Courier, serif;
+            color: black;
+        }
+
+        h1, section, footer {
+            margin: 2vh 2vw;
+        }
+
+        h1 {
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+    </style>
+</head>
+<body>
+<p>
+    Bonjour,
+</p>
+<p>Voici les zip contenant les factures de <span th:text="${userName}"></span>
+    entre <span th:datetime="from"></span>
+    et <span th:datetime="to"></span> disponible: <strong th:text="exportedLink"></strong>
+</p>
+<p>BPartners, l'assistant intelligent Tout-en-Un, qui accélère la croissance des artisans & indépendants
+    français.</p>
+</body>
+</html>

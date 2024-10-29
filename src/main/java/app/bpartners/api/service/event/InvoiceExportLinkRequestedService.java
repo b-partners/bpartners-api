@@ -14,16 +14,21 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.file.FileZipper;
+import app.bpartners.api.mail.Email;
+import app.bpartners.api.mail.Mailer;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.aws.S3Service;
-import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
+import jakarta.mail.internet.InternetAddress;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,16 +37,19 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
 
 @Service
 @AllArgsConstructor
 public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExportLinkRequested> {
+  public static final String INVOICE_EXPORT_LINK_REQUESTED_BODY = "invoiceExportLinkRequestedBody";
   public static final String PDF_FILE_EXTENSION = ".pdf";
   private final FileZipper fileZipper;
-  private final SesService mailer; // TODO: change to Mailer once it works properly !
+  private final Mailer mailer; // TODO: change to Mailer once it works properly !
   private final UserRepository userRepository;
   private final InvoiceRepository invoiceRepository;
   private final S3Service s3Service;
+  private final TemplateResolverEngine templateResolverEngine;
 
   @SneakyThrows
   @Override
@@ -81,16 +89,33 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, expirationInSeconds);
 
     var mailSubject =
-        "Zip contenant les factures de "
-            + user.getDefaultHolder().getName()
-            + " entre "
-            + providedFrom
-            + " et "
-            + providedTo
-            + " disponible";
+        "Ensemble des factures de l'utilisateur: " + user.getDefaultHolder().getName() + ".";
     var recipient = user.getDefaultHolder().getEmail();
+    var recipientInternetAddress = new InternetAddress(recipient);
     var adminRecipient = "tech@bpartners.app";
-    mailer.sendEmail(recipient, adminRecipient, mailSubject, preSignedURL);
+    var adminRecipientInternetAddress = new InternetAddress(adminRecipient);
+    var htmlBody =
+        templateResolverEngine.parseTemplateResolver(
+            INVOICE_EXPORT_LINK_REQUESTED_BODY,
+            configureInvoiceLinkContext(user, providedFrom, providedTo, preSignedURL));
+    mailer.accept(
+        new Email(
+            recipientInternetAddress,
+            List.of(adminRecipientInternetAddress),
+            null,
+            mailSubject,
+            htmlBody,
+            List.of()));
+  }
+
+  private Context configureInvoiceLinkContext(
+      User user, LocalDate from, LocalDate to, String preSignedURL) {
+    Context context = new Context();
+    context.setVariable("userName", user.getDefaultHolder().getName());
+    context.setVariable("from", from);
+    context.setVariable("to", to);
+    context.setVariable("exportedLink", preSignedURL);
+    return context;
   }
 
   @NotNull

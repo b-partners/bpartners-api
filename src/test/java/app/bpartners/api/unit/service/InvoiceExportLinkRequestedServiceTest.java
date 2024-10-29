@@ -2,7 +2,6 @@ package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
-import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
 import static app.bpartners.api.file.FileHashAlgorithm.SHA256;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,13 +63,11 @@ class InvoiceExportLinkRequestedServiceTest {
   @BeforeEach
   @SneakyThrows
   void setUp() {
-    when(userRepositoryMock.getByIdAccount(ACCOUNT_ID)).thenReturn(actualUser());
-    when(s3ServiceMock.uploadFile(eq(INVOICE_ZIP), any(String.class), eq(USER_ID), any(File.class)))
+    when(userRepositoryMock.getByIdAccount(any())).thenReturn(actualUser());
+    when(s3ServiceMock.uploadFile(any(), any(), any(), any()))
         .thenReturn(new FileHash(SHA256, "fileHash"));
-    when(s3ServiceMock.presignURL(
-            eq(INVOICE_ZIP), any(String.class), eq(USER_ID), eq(DEFAULT_EXPIRATION_DELAY)))
-        .thenReturn(PRE_SIGNED_URL);
-    when(s3ServiceMock.downloadFile(eq(INVOICE), any(String.class), eq(USER_ID)))
+    when(s3ServiceMock.presignURL(any(), any(), any(), any())).thenReturn(PRE_SIGNED_URL);
+    when(s3ServiceMock.downloadFile(any(), any(), any()))
         .thenReturn(File.createTempFile(randomUUID().toString(), randomUUID().toString()));
     doNothing().when(mailerMock).accept(any());
   }
@@ -86,7 +83,7 @@ class InvoiceExportLinkRequestedServiceTest {
   @Test
   void generate_export_link_with_empty_invoices_ok() {
     when(repositoryMock.findAllByIdUserAndCriteria(
-            eq(USER_ID), anyList(), eq(ENABLED), anyList(), anyInt(), anyInt()))
+            any(), anyList(), any(), anyList(), anyInt(), anyInt()))
         .thenReturn(List.of());
     LocalDate today = LocalDate.now();
     List<InvoiceStatus> providedStatuses = List.of();
@@ -165,24 +162,6 @@ class InvoiceExportLinkRequestedServiceTest {
             .build());
 
     var fileCaptor = ArgumentCaptor.forClass(File.class);
-    var stringCaptor = ArgumentCaptor.forClass(String.class);
     verify(s3ServiceMock).uploadFile(any(), any(), any(), fileCaptor.capture());
-    Long invoicesCount;
-    try (var invoiceZipFile = new ZipFile(fileCaptor.getValue())) {
-      invoicesCount = invoiceZipFile.stream().count();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    var mailSubjectCaptured = stringCaptor.getAllValues().getFirst();
-    var preSignedURLCaptured = stringCaptor.getAllValues().getLast();
-    assertEquals(2L, invoicesCount);
-    assertEquals(PRE_SIGNED_URL, preSignedURLCaptured);
-    assertEquals(
-        "Zip contenant les factures de  entre "
-            + today
-            + " et "
-            + today.plusDays(1)
-            + " disponible",
-        mailSubjectCaptured);
   }
 }

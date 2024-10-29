@@ -42,10 +42,9 @@ import org.thymeleaf.context.Context;
 @Service
 @AllArgsConstructor
 public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExportLinkRequested> {
-  public static final String INVOICE_EXPORT_LINK_REQUESTED_BODY = "invoiceExportLinkRequestedBody";
-  public static final String PDF_FILE_EXTENSION = ".pdf";
+  public static final String INVOICE_EXPORT_LINK_REQUESTED_BODY = "invoice_export_link_requested";
   private final FileZipper fileZipper;
-  private final Mailer mailer; // TODO: change to Mailer once it works properly !
+  private final Mailer mailer;
   private final UserRepository userRepository;
   private final InvoiceRepository invoiceRepository;
   private final S3Service s3Service;

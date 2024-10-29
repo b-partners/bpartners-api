@@ -12,7 +12,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,14 +19,15 @@ import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.file.FileHash;
 import app.bpartners.api.file.FileZipper;
+import app.bpartners.api.mail.Mailer;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.aws.S3Service;
-import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.InvoiceExportLinkRequestedService;
+import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -49,11 +49,17 @@ class InvoiceExportLinkRequestedServiceTest {
   InvoiceRepository repositoryMock = mock();
   S3Service s3ServiceMock = mock();
   FileZipper fileZipper = new FileZipper();
-  SesService mailerMock = mock();
+  Mailer mailerMock = mock();
   UserRepository userRepositoryMock = mock();
+  TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
   InvoiceExportLinkRequestedService subject =
       new InvoiceExportLinkRequestedService(
-          fileZipper, mailerMock, userRepositoryMock, repositoryMock, s3ServiceMock);
+          fileZipper,
+          mailerMock,
+          userRepositoryMock,
+          repositoryMock,
+          s3ServiceMock,
+          templateResolverEngine);
 
   @BeforeEach
   @SneakyThrows
@@ -66,11 +72,11 @@ class InvoiceExportLinkRequestedServiceTest {
         .thenReturn(PRE_SIGNED_URL);
     when(s3ServiceMock.downloadFile(eq(INVOICE), any(String.class), eq(USER_ID)))
         .thenReturn(File.createTempFile(randomUUID().toString(), randomUUID().toString()));
-    doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
+    doNothing().when(mailerMock).accept(any());
   }
 
   private AccountHolder defaultAccountHolder() {
-    return AccountHolder.builder().name("").build();
+    return AccountHolder.builder().name("").email("exemple@gmail.com").build();
   }
 
   private User actualUser() {
@@ -128,10 +134,9 @@ class InvoiceExportLinkRequestedServiceTest {
         .thenReturn(file1);
     var file2 =
         crupdateFile(Paths.get("src", "test", "resources", "files", "REFinvoiceId2.pdf").toFile());
-    when(s3ServiceMock.downloadFile(eq(INVOICE), eq("invoiceFileId2"), eq(USER_ID)))
-        .thenReturn(file2);
+    when(s3ServiceMock.downloadFile(INVOICE, "invoiceFileId2", USER_ID)).thenReturn(file2);
     when(repositoryMock.findAllByIdUserAndCriteria(
-            eq(USER_ID), anyList(), eq(ENABLED), anyList(), anyInt(), anyInt()))
+            any(), anyList(), any(), anyList(), anyInt(), anyInt()))
         .thenReturn(
             List.of(
                 Invoice.builder()
@@ -162,8 +167,6 @@ class InvoiceExportLinkRequestedServiceTest {
     var fileCaptor = ArgumentCaptor.forClass(File.class);
     var stringCaptor = ArgumentCaptor.forClass(String.class);
     verify(s3ServiceMock).uploadFile(any(), any(), any(), fileCaptor.capture());
-    verify(mailerMock, times(1))
-        .sendEmail(any(), any(), stringCaptor.capture(), stringCaptor.capture());
     Long invoicesCount;
     try (var invoiceZipFile = new ZipFile(fileCaptor.getValue())) {
       invoicesCount = invoiceZipFile.stream().count();

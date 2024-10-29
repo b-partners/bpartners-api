@@ -24,8 +24,6 @@ import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import app.bpartners.api.service.payment.PaymentService;
 import java.time.LocalDate;
 import java.util.List;
-
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class InvoiceServiceTest {

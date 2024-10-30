@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminDeleteUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 
 @Slf4j
@@ -131,5 +132,12 @@ public class CognitoComponent {
         .accessToken(token.getIdToken())
         .expiresIn(token.getExpiresIn())
         .refreshToken(token.getRefreshToken());
+  }
+
+  public void deleteUserByUsername(String username){
+    cognitoClient.adminDeleteUser(AdminDeleteUserRequest.builder()
+                    .userPoolId(cognitoConf.getUserPoolId())
+                    .username(username)
+            .build());
   }
 }

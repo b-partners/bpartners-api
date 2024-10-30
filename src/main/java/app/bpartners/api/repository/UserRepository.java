@@ -21,4 +21,6 @@ public interface UserRepository {
   User save(User toSave);
 
   User create(User user);
+
+  void deleteById(String id);
 }

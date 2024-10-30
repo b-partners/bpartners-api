@@ -1,5 +1,6 @@
 package app.bpartners.api.service;
 
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -16,6 +17,7 @@ public class UserService {
   private final UserRepository userRepository;
   private final UserTokenRepository userTokenRepository;
   private final SnsService snsService;
+  private final CognitoComponent cognitoComponent;
 
   @Transactional
   public User getByIdAccount(String idAccount) {
@@ -86,5 +88,10 @@ public class UserService {
   @Transactional
   public UserToken getLatestTokenByAccount(String accountId) {
     return userTokenRepository.getLatestTokenByAccount(accountId);
+  }
+
+  public void deleteUserByUsernameAndId(String username, String id) {
+    userRepository.deleteById(id);
+    cognitoComponent.deleteUserByUsername(username);
   }
 }

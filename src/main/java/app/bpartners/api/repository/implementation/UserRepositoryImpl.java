@@ -105,4 +105,9 @@ public class UserRepositoryImpl implements UserRepository {
     HUser savedUser = jpaRepository.save(entityToSave);
     return userMapper.toDomain(savedUser);
   }
+
+  @Override
+  public void deleteById (String id) {
+    jpaRepository.deleteById(id);
+  }
 }

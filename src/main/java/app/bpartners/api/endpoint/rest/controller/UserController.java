@@ -14,6 +14,7 @@ import app.bpartners.api.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,5 +69,11 @@ public class UserController {
       }
       return user;
     }
+  }
+
+  @DeleteMapping("/users/{id}")
+  public void deleteUserById(HttpServletRequest request, @PathVariable String id) {
+    app.bpartners.api.model.User user = getAuthUser(request, id);
+    service.deleteUserByUsernameAndId(user.getEmail(), id);
   }
 }

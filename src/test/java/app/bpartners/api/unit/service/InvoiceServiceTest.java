@@ -126,4 +126,24 @@ class InvoiceServiceTest {
 
     assertEquals(invoice, actual);
   }
+
+  @Test
+  void duplicate_as_draft() {
+    var paymentRequest = PaymentRequest.builder().enableStatus(ENABLED).build();
+    var paymentRegulation =
+        CreatePaymentRegulation.builder().paymentRequest(paymentRequest).build();
+    var invoice =
+        Invoice.builder()
+            .fileId("")
+            .products(List.of())
+            .user(user())
+            .paymentRegulations(List.of(paymentRegulation))
+            .build();
+    when(repositoryMock.getById(any())).thenReturn(invoice);
+    when(repositoryMock.save(any())).thenReturn(invoice);
+
+    var actual = subject.duplicateAsDraft("invoiceId", "ref");
+
+    assertEquals(invoice, actual);
+  }
 }

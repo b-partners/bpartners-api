@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -33,7 +32,6 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.zip.ZipFile;
-import javax.mail.MessagingException;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -122,12 +120,11 @@ class InvoiceExportLinkRequestedServiceTest {
   }
 
   @Test
-  void generate_export_link_with_invoices_ok() throws MessagingException, IOException {
+  void generate_export_link_with_invoices_ok() {
     LocalDate today = LocalDate.now();
     var file1 =
         crupdateFile(Paths.get("src", "test", "resources", "files", "REFinvoiceId1.pdf").toFile());
-    when(s3ServiceMock.downloadFile(eq(INVOICE), eq("invoiceFileId1"), eq(USER_ID)))
-        .thenReturn(file1);
+    when(s3ServiceMock.downloadFile(INVOICE, "invoiceFileId1", USER_ID)).thenReturn(file1);
     var file2 =
         crupdateFile(Paths.get("src", "test", "resources", "files", "REFinvoiceId2.pdf").toFile());
     when(s3ServiceMock.downloadFile(INVOICE, "invoiceFileId2", USER_ID)).thenReturn(file2);
@@ -162,5 +159,12 @@ class InvoiceExportLinkRequestedServiceTest {
 
     var fileCaptor = ArgumentCaptor.forClass(File.class);
     verify(s3ServiceMock).uploadFile(any(), any(), any(), fileCaptor.capture());
+    Long invoicesCount;
+    try (var invoiceZipFile = new ZipFile(fileCaptor.getValue())) {
+      invoicesCount = invoiceZipFile.stream().count();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    assertEquals(2L, invoicesCount);
   }
 }

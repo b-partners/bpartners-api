@@ -38,7 +38,7 @@ paths:
   ############ User Accounts API ##############
   #############################################
   /users/{id}:
-    $ref: './userAccounts-api.yml#/operations/getUserById'
+    $ref: './userAccounts-api.yml#/operations/getAndDeleteUserById'
   /users/{id}/accounts:
     $ref: './userAccounts-api.yml#/operations/getAccountsByUserId'
   /users/{uId}/accounts/{aId}/active:

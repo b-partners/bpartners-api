@@ -34,7 +34,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  getUserById:
+  getAndDeleteUserById:
     get:
       tags:
         - User Accounts
@@ -63,6 +63,25 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+    delete:
+      tags:
+        - User Accounts
+      summary: Delete user
+      operationId: deleteUserById
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The user is succesfully deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "The user user.email has been deleted"
   setActiveAccount:
     post:
       tags:

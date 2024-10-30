@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +68,27 @@ public class BridgeApi {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  public void deleteUser(String uuid, String password) {
+    HashMap<String, String> body = new HashMap<>();
+    log.info("DELETE USER uuid = {} , password = {}", uuid, password);
+    body.put("password", password);
+    try {
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(new URI(conf.getUserUrl() + "/" + uuid + "/delete"))
+              .headers(defaultHeadersWithJsonContentType())
+              .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+              .build();
+      HttpResponse<String> httpResponse =
+          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      if (httpResponse.statusCode() != 204) {
+        log.warn("BridgeApi errors : {}", httpResponse.body());
+      }
+    } catch (URISyntaxException | IOException | InterruptedException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -530,7 +552,7 @@ public class BridgeApi {
     return new String[] {
       "Client-Id", conf.getClientId(),
       "Client-Secret", conf.getClientSecret(),
-      "Bridge-Version", conf.getBridgeVersion()
+      "Bridge-Version", conf.getBridgeVersion(),
     };
   }
 

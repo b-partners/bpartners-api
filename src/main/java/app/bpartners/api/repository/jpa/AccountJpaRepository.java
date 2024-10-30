@@ -21,4 +21,6 @@ public interface AccountJpaRepository extends JpaRepository<HAccount, String> {
 
   @Lock(PESSIMISTIC_WRITE)
   List<HAccount> findAllByNameContainingIgnoreCase(String name);
+
+  void deleteHAccountByUserId(String userId);
 }

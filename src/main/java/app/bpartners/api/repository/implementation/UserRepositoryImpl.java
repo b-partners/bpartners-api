@@ -101,8 +101,16 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public User create(User user) {
     BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(user));
+    if (bridgeUser == null) {
+      BridgeUser.builder().email("it.bpartners@mail.hei.school").build();
+    }
     HUser entityToSave = userMapper.toEntity(user, bridgeUser);
     HUser savedUser = jpaRepository.save(entityToSave);
     return userMapper.toDomain(savedUser);
+  }
+
+  @Override
+  public void deleteById(String id) {
+    jpaRepository.deleteById(id);
   }
 }

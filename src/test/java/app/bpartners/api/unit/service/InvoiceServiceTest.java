@@ -1,16 +1,20 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.PaymentMethod.CASH;
+import static app.bpartners.api.endpoint.rest.model.PaymentStatus.UNPAID;
 import static app.bpartners.api.integration.UserTokenServiceIT.ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.model.*;
+import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.PreSignedLink;
+import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
@@ -22,6 +26,7 @@ import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.invoice.InvoiceValidator;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import app.bpartners.api.service.payment.PaymentService;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -53,7 +58,7 @@ class InvoiceServiceTest {
           userRepositoryMock);
 
   User user() {
-    return User.builder().id("").build();
+    return User.builder().id("").accountHolders(List.of(AccountHolder.builder().build())).build();
   }
 
   @Test
@@ -78,5 +83,47 @@ class InvoiceServiceTest {
             .updatedAt(actual.getUpdatedAt())
             .build();
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void update_payment_status() {
+    var savedPaymentRequest =
+        PaymentRequest.builder()
+            .id("PAYMENT_REQUEST_ID")
+            .invoiceId("")
+            .status(UNPAID)
+            .paymentHistoryStatus(
+                PaymentHistoryStatus.builder()
+                    .status(UNPAID)
+                    .paymentMethod(CASH)
+                    .updatedAt(Instant.now())
+                    .userUpdated(true)
+                    .build())
+            .build();
+    var paymentRegulation =
+        CreatePaymentRegulation.builder()
+            .paymentRequest(
+                PaymentRequest.builder()
+                    .id("PAYMENT_REQUEST_ID")
+                    .enableStatus(ENABLED)
+                    .status(UNPAID)
+                    .build())
+            .build();
+    var invoice =
+        Invoice.builder()
+            .fileId("")
+            .products(List.of())
+            .user(user())
+            .paymentRegulations(List.of(paymentRegulation))
+            .build();
+    var paymentRequest = PaymentRequest.builder().enableStatus(ENABLED).build();
+    when(paymentService.filterByPaymentId(any(), any(), any())).thenReturn(paymentRequest);
+    when(paymentRepository.save(any())).thenReturn(savedPaymentRequest);
+    when(repositoryMock.getById(any())).thenReturn(invoice);
+    doNothing().when(invoicePDFProcessor).accept(any());
+
+    var actual = subject.updatePaymentStatus("invoiceId", "paymentId", CASH);
+
+    assertEquals(invoice, actual);
   }
 }

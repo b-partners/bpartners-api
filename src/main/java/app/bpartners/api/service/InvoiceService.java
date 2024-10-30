@@ -10,12 +10,10 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
-import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
@@ -31,7 +29,7 @@ import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.PreSignedLink;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
-import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.service.event.InvoiceExportLinkRequestedService;
 import app.bpartners.api.service.invoice.CustomerInvoiceValidator;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.invoice.InvoiceValidator;
@@ -64,8 +62,7 @@ public class InvoiceService {
   private final PaymentService paymentService;
   private final InvoiceValidator invoiceValidator;
   private final CustomerInvoiceValidator customerInvoiceValidator;
-  private final EventProducer eventProducer;
-  private final UserRepository userRepository;
+  private final InvoiceExportLinkRequestedService eventProducer;
 
   @SneakyThrows
   public PreSignedLink generateInvoicesExportLink(
@@ -75,26 +72,14 @@ public class InvoiceService {
       LocalDate providedFrom,
       LocalDate providedTo) {
 
-    var filters = new ArrayList<String>();
-    var user = userRepository.getByIdAccount(accountId);
-    var userId = user.getId();
-    var invoices =
-        repository.findAllByIdUserAndCriteria(
-            userId, providedStatuses, providedArchiveStatus, filters, null, null);
-    int totalInvoice = invoices.size();
-    int nbPages = totalInvoice / MAX_SIZE;
-    for (int page = 0; page < nbPages; page++) {
-      eventProducer.accept(
-          List.of(
-              InvoiceExportLinkRequested.builder()
-                  .accountId(accountId)
-                  .providedStatuses(providedStatuses)
-                  .providedArchiveStatus(providedArchiveStatus)
-                  .providedFrom(providedFrom)
-                  .providedTo(providedTo)
-                  .page(page)
-                  .build()));
-    }
+    eventProducer.accept(
+        InvoiceExportLinkRequested.builder()
+            .accountId(accountId)
+            .providedStatuses(providedStatuses)
+            .providedArchiveStatus(providedArchiveStatus)
+            .providedFrom(providedFrom)
+            .providedTo(providedTo)
+            .build());
 
     return PreSignedLink.builder()
         .value(null)

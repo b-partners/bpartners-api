@@ -1,6 +1,5 @@
 package app.bpartners.api.service.event;
 
-import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.ACCEPTED;
@@ -21,6 +20,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import jakarta.mail.internet.InternetAddress;
@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -49,54 +49,68 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   private final InvoiceRepository invoiceRepository;
   private final S3Service s3Service;
   private final TemplateResolverEngine templateResolverEngine;
+  private final InvoiceJpaRepository invoiceJpaRepository;
 
   @SneakyThrows
   @Override
   public void accept(InvoiceExportLinkRequested event) {
     var accountId = event.getAccountId();
-    var providedStatuses = event.getProvidedStatuses();
-    var providedArchiveStatus = event.getProvidedArchiveStatus();
     var providedFrom = event.getProvidedFrom();
     var providedTo = event.getProvidedTo();
-    var page = event.getPage();
 
-    var statuses = getInvoiceStatuses(providedStatuses);
-    var archiveStatus = providedArchiveStatus == null ? ENABLED : providedArchiveStatus;
-    var from = providedFrom == null ? now().withDayOfMonth(1) : providedFrom;
-    var to = providedTo == null ? now().with(lastDayOfMonth()) : providedTo;
-    var emptyFilters = new ArrayList<String>();
+    var fromLocalDatetime =
+        providedFrom == null ? now().withDayOfMonth(1).atStartOfDay() : providedFrom.atStartOfDay();
+    var toLocalDateTime =
+        providedTo == null
+            ? now().with(lastDayOfMonth()).atStartOfDay()
+            : providedTo.atStartOfDay();
     var user = userRepository.getByIdAccount(accountId);
     var userId = user.getId();
+    var from = fromLocalDatetime.atZone(ZoneId.systemDefault()).toInstant();
+    var to = toLocalDateTime.atZone(ZoneId.systemDefault()).toInstant();
 
-    var invoices =
-        invoiceRepository.findAllByIdUserAndCriteria(
-            userId, statuses, archiveStatus, emptyFilters, page, MAX_SIZE);
-    var invoicesBetweenDates =
-        invoices.stream()
-            .filter(
-                invoice ->
-                    !invoice.getSendingDate().isBefore(from)
-                        && !invoice.getSendingDate().isAfter(to))
-            .toList();
+    var totalInvoices =
+        invoiceJpaRepository.countByIdUserAndCreatedDatetimeBetween(userId, from, to);
+    var nbPage = Math.max(1, (int) Math.ceil((double) totalInvoices / MAX_SIZE));
+    String zipFileId;
+    String htmlBody;
 
-    var invoicesFiles = downloadInvoicesFiles(userId, invoicesBetweenDates);
-    var invoicesZipFile = fileZipper.apply(invoicesFiles);
+    if (totalInvoices > 0) {
+      Path invoicesFiles = getTempDirectory();
+      for (int page = 0; page < nbPage; page++) {
+        List<Invoice> invoicePaginate =
+            invoiceRepository.findAllByIdUserAndCreateDateBetweenAndPaginate(
+                userId, from, to, page, MAX_SIZE);
 
-    var zipFileId = randomUUID().toString();
-    s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
-    long expirationInSeconds = 3600L;
-    var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, expirationInSeconds);
+        var invoicePaginateFile = downloadInvoicesFiles(userId, invoicePaginate);
 
+        for (File invoice : invoicePaginateFile) {
+          Files.copy(invoice.toPath(), invoicesFiles, REPLACE_EXISTING);
+          Files.delete(invoice.toPath());
+        }
+      }
+      var invoicesZipFile = fileZipper.apply(List.of(invoicesFiles.toFile()));
+      zipFileId = randomUUID().toString();
+      s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
+      long expirationInSeconds = 3600L;
+      var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, expirationInSeconds);
+      htmlBody =
+          templateResolverEngine.parseTemplateResolver(
+              INVOICE_EXPORT_LINK_REQUESTED_BODY,
+              configureInvoiceLinkContext(user, providedFrom, providedTo, preSignedURL));
+    }
+
+    var emptyInvoice = "Aucune facture ne correspond aux critères recherchés.";
+    htmlBody =
+        templateResolverEngine.parseTemplateResolver(
+            INVOICE_EXPORT_LINK_REQUESTED_BODY,
+            configureInvoiceLinkContext(user, providedFrom, providedTo, emptyInvoice));
     var mailSubject =
         "Ensemble des factures de l'utilisateur: " + user.getDefaultHolder().getName() + ".";
     var recipient = user.getDefaultHolder().getEmail();
     var recipientInternetAddress = new InternetAddress(recipient);
     var adminRecipient = "tech@bpartners.app";
     var adminRecipientInternetAddress = new InternetAddress(adminRecipient);
-    var htmlBody =
-        templateResolverEngine.parseTemplateResolver(
-            INVOICE_EXPORT_LINK_REQUESTED_BODY,
-            configureInvoiceLinkContext(user, providedFrom, providedTo, preSignedURL));
     mailer.accept(
         new Email(
             recipientInternetAddress,

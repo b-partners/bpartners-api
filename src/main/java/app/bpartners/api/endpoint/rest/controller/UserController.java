@@ -72,8 +72,9 @@ public class UserController {
   }
 
   @DeleteMapping("/users/{id}")
-  public void deleteUserById(HttpServletRequest request, @PathVariable String id) {
-    app.bpartners.api.model.User user = getAuthUser(request, id);
+  public String deleteUserById(@PathVariable String id) {
+    app.bpartners.api.model.User user = service.getUserById(id);
     service.deleteUserByUsernameAndId(user.getEmail(), id);
+    return String.format("The user with email '%s' has been deleted", user.getEmail());
   }
 }

@@ -6,6 +6,7 @@ import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class UserService {
   private final UserTokenRepository userTokenRepository;
   private final SnsService snsService;
   private final CognitoComponent cognitoComponent;
+  private final UserJpaRepository userJpaRepository;
 
   @Transactional
   public User getByIdAccount(String idAccount) {
@@ -90,6 +92,7 @@ public class UserService {
     return userTokenRepository.getLatestTokenByAccount(accountId);
   }
 
+  @Transactional
   public void deleteUserByUsernameAndId(String username, String id) {
     userRepository.deleteById(id);
     cognitoComponent.deleteUserByUsername(username);

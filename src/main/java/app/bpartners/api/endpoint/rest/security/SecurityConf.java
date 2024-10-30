@@ -149,6 +149,8 @@ public class SecurityConf {
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(DELETE, "/users/*")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/customers", authResourceProvider))
                     .authenticated()

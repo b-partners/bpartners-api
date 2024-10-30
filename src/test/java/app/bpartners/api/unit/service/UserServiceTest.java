@@ -7,12 +7,14 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
+import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
 import java.util.List;
@@ -24,13 +26,21 @@ class UserServiceTest {
   UserRepository userRepositoryMock;
   UserTokenRepository userTokenRepositoryMock;
   SnsService snsServiceMock;
+  CognitoComponent cognitoComponentMock;
+  UserJpaRepository userJpaRepositoryMock;
 
   @BeforeEach
   void setUp() {
     userRepositoryMock = mock(UserRepository.class);
     userTokenRepositoryMock = mock(UserTokenRepository.class);
     snsServiceMock = mock(SnsService.class);
-    subject = new UserService(userRepositoryMock, userTokenRepositoryMock, snsServiceMock);
+    subject =
+        new UserService(
+            userRepositoryMock,
+            userTokenRepositoryMock,
+            snsServiceMock,
+            cognitoComponentMock,
+            userJpaRepositoryMock);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());

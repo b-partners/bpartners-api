@@ -5,6 +5,7 @@ import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -36,7 +37,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 public class HAccount implements Serializable {
   @Id private String id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   @JoinColumn(name = "id_user")
   @JsonIgnore
   private HUser user;

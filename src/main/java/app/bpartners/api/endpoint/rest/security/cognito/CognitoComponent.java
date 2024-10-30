@@ -134,10 +134,11 @@ public class CognitoComponent {
         .refreshToken(token.getRefreshToken());
   }
 
-  public void deleteUserByUsername(String username){
-    cognitoClient.adminDeleteUser(AdminDeleteUserRequest.builder()
-                    .userPoolId(cognitoConf.getUserPoolId())
-                    .username(username)
+  public void deleteUserByUsername(String email) {
+    cognitoClient.adminDeleteUser(
+        AdminDeleteUserRequest.builder()
+            .userPoolId(cognitoConf.getUserPoolId())
+            .username(email)
             .build());
   }
 }

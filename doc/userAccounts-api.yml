@@ -34,7 +34,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  getAndDeleteUserById:
+  getUserById:
     get:
       tags:
         - User Accounts
@@ -63,17 +63,12 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  deleteUser:
     delete:
       tags:
         - User Accounts
-      summary: Delete user
-      operationId: deleteUserById
-      parameters:
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
+      summary: Delete factice user
+      operationId: deleteUser
       responses:
         200:
           description: The user is succesfully deleted

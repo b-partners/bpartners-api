@@ -107,7 +107,7 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
-  public void deleteById (String id) {
+  public void deleteById(String id) {
     jpaRepository.deleteById(id);
   }
 }

@@ -43,7 +43,6 @@ class InvoiceExportLinkRequestedServiceTest {
   private static final String USER_ID = "userId";
   private static final String ACCOUNT_ID = "accountId";
   private static final String PRE_SIGNED_URL = "preSignedURL";
-  private static final long DEFAULT_EXPIRATION_DELAY = 3600L;
 
   InvoiceRepository repositoryMock = mock();
   S3Service s3ServiceMock = mock();

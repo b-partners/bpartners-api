@@ -20,6 +20,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -72,6 +73,35 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   public Optional<Invoice> pwFindOptionalById(String id) {
     Optional<HInvoice> optional = jpaRepository.findOptionalById(id);
     return optional.map(mapper::toDomain);
+  }
+
+  @Override
+  public List<Invoice> findAllByIdUserAndCreateDateBetweenAndPaginate(
+      String idUser, Instant from, Instant to, int page, int pageSize) {
+
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
+    Root<HInvoice> root = query.from(HInvoice.class);
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.equal(root.get("idUser"), idUser));
+
+    if (from != null && to != null) {
+      predicates.add(builder.between(root.get("createDate"), from, to));
+    }
+
+    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("createDate")));
+    query
+        .where(builder.and(predicates.toArray(new Predicate[0])))
+        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+
+    return entityManager
+        .createQuery(query)
+        .setFirstResult(pageable.getPageNumber() * pageable.getPageSize())
+        .setMaxResults(pageable.getPageSize())
+        .getResultList()
+        .stream()
+        .map(invoice -> mapper.toDomain(invoice, userRepository.getById(idUser)))
+        .collect(Collectors.toList());
   }
 
   @Override

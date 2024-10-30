@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.AccountHolder;
@@ -19,17 +18,24 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.PaymentInitiationService;
+import app.bpartners.api.service.aws.S3Service;
+import app.bpartners.api.service.event.InvoiceExportLinkRequestedService;
 import app.bpartners.api.service.invoice.CustomerInvoiceValidator;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.invoice.InvoiceValidator;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import app.bpartners.api.service.payment.PaymentService;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class InvoiceServiceTest {
   InvoiceRepository repositoryMock = mock(InvoiceRepository.class);
@@ -41,8 +47,12 @@ class InvoiceServiceTest {
   PaymentService paymentService = mock(PaymentService.class);
   InvoiceValidator invoiceValidator = mock(InvoiceValidator.class);
   CustomerInvoiceValidator customerInvoiceValidator = mock(CustomerInvoiceValidator.class);
-  EventProducer eventProducer = mock(EventProducer.class);
+  InvoiceJpaRepository invoiceJpaRepository = mock(InvoiceJpaRepository.class);
   UserRepository userRepositoryMock = mock(UserRepository.class);
+  S3Service s3Service = mock(S3Service.class);
+  InvoiceExportLinkRequestedService eventProducer = mock(InvoiceExportLinkRequestedService.class);
+
+  @TempDir Path tempDir;
 
   InvoiceService subject =
       new InvoiceService(
@@ -54,21 +64,36 @@ class InvoiceServiceTest {
           paymentService,
           invoiceValidator,
           customerInvoiceValidator,
-          eventProducer,
-          userRepositoryMock);
+          eventProducer);
 
   User user() {
     return User.builder().id("").accountHolders(List.of(AccountHolder.builder().build())).build();
   }
 
+  private File crupdateFile(File file) {
+    if (!file.exists()) {
+      try {
+        boolean fileCreated = file.createNewFile();
+        if (!fileCreated) {
+          return file;
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    return file;
+  }
+
   @Test
-  void generate_invoice_export_link() {
+  void generate_invoice_export_link() throws IOException {
     List<InvoiceStatus> providedStatues = List.of();
     var providedArchiveStatus = ArchiveStatus.ENABLED;
     var from = LocalDate.now();
     var to = LocalDate.now().plusDays(1);
     when(userRepositoryMock.getByIdAccount(ACCOUNT_ID)).thenReturn(user());
-    var invoices = List.of(Invoice.builder().build());
+    var invoice1 = Invoice.builder().build();
+    var invoice2 = Invoice.builder().build();
+    var invoices = List.of(invoice1, invoice2);
     when(repositoryMock.findAllByIdUserAndCriteria(any(), any(), any(), any(), any(), any()))
         .thenReturn(invoices);
 
@@ -83,6 +108,7 @@ class InvoiceServiceTest {
             .updatedAt(actual.getUpdatedAt())
             .build();
     assertEquals(expected, actual);
+    verify(eventProducer, times(1)).accept(any());
   }
 
   @Test

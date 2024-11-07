@@ -17,11 +17,13 @@ import java.util.List;
 import java.util.function.Function;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
 
 @AllArgsConstructor
 @Component
+@Slf4j
 public class TileCreator implements Function<AreaPicture, Tile> {
   private final BanApi banApi;
   private final SesService sesService;
@@ -75,6 +77,7 @@ public class TileCreator implements Function<AreaPicture, Tile> {
           "sofiane@bpartners.app", user.getEmail(), "Bpartners - Adresse introuvable", emailBody);
       throw notFoundException;
     }
+    log.info("Highest ban geoposition={}", toDomain(highestFeatGeoPosition.get()));
     areaPicture.setCurrentGeoPosition(toDomain(highestFeatGeoPosition.get()));
     areaPicture.setGeoPositions(geoPositions.stream().map(TileCreator::toDomain).toList());
 

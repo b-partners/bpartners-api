@@ -5,6 +5,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
+import app.bpartners.api.service.WMS.ArcgisZoom;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import java.io.Serializable;
 import lombok.Builder;
@@ -17,6 +18,7 @@ public class TileExtenderRequestBody implements Serializable {
   public static final String OPENSTREETMAP_SERVER_NAME = "openstreetmap";
   public static final String GEOSERVER_SERVER_NAME = "geoserver";
   public static final String GEOSERVER_IGN_NAME = "geoserver_ign";
+  public static final int DEFAULT_MAX_IGN_ZOOM = 19;
   private int x;
   private int y;
   private int z;
@@ -43,8 +45,12 @@ public class TileExtenderRequestBody implements Serializable {
         areaPicture.getCurrentGeoPosition().getLatitude() != null
             ? areaPicture.getCurrentGeoPosition().getLatitude()
             : areaPicture.getCurrentTile().getLatitude();
+    int zoom = areaPicture.getArcgisZoom().getZoomLevel();
+    if (areaPicture.getArcgisZoom().getZoomLevel() >= 20){
+      zoom = DEFAULT_MAX_IGN_ZOOM;
+    }
     var tile =
-        from(currentGeoPositionLongitude, currentGeoPositionLatitude, areaPicture.getArcgisZoom());
+        from(currentGeoPositionLongitude, currentGeoPositionLatitude, ArcgisZoom.from(zoom));
     var currentLayer = areaPicture.getCurrentLayer();
     return TileExtenderRequestBody.builder()
         .x(tile.getX())

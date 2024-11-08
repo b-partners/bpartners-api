@@ -10,10 +10,12 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import java.io.Serializable;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @JsonAutoDetect(fieldVisibility = ANY)
 @Data
 @Builder
+@Slf4j
 public class TileExtenderRequestBody implements Serializable {
   public static final String OPENSTREETMAP_SERVER_NAME = "openstreetmap";
   public static final String GEOSERVER_SERVER_NAME = "geoserver";
@@ -46,14 +48,25 @@ public class TileExtenderRequestBody implements Serializable {
             ? areaPicture.getCurrentGeoPosition().getLatitude()
             : areaPicture.getCurrentTile().getLatitude();
     int zoom = areaPicture.getArcgisZoom().getZoomLevel();
-    var tile = from(currentGeoPositionLongitude, currentGeoPositionLatitude, ArcgisZoom.from(zoom));
     var currentLayer = areaPicture.getCurrentLayer();
+    String layer = currentLayer.getName();
+    String server = getSource(currentLayer);
+    log.info("Extended current layer={}", areaPicture.getCurrentLayer());
+    if (GEOSERVER_IGN_NAME.equals(server) && areaPicture.getArcgisZoom().getZoomLevel() >= 20) {
+      zoom = DEFAULT_MAX_IGN_ZOOM;
+    }
+    if (zoom == DEFAULT_MAX_IGN_ZOOM) {
+      server = GEOSERVER_IGN_NAME;
+      layer = "ORTHOIMAGERY.ORTHOPHOTOS";
+    }
+    var tile = from(currentGeoPositionLongitude, currentGeoPositionLatitude, ArcgisZoom.from(zoom));
+
     return TileExtenderRequestBody.builder()
         .x(tile.getX())
         .y(tile.getY())
-        .z(tile.getArcgisZoom().getZoomLevel())
-        .layer(currentLayer.getName())
-        .server(getSource(currentLayer))
+        .z(zoom)
+        .layer(layer)
+        .server(server)
         .shiftNb(areaPicture.getShiftNb())
         .build();
   }

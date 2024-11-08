@@ -64,8 +64,8 @@ public class AreaPictureService {
     var downloadedFile = wmsImageSource.downloadImage(areaPicture);
     log.info("Filename={}", refreshed.getIdFileInfo());
     if (areaPicture.getFilename().contains("ORTHOIMAGERY")) {
-      log.info("areaPicture.getFilename().contains(\"ORTHOIMAGERY\") is true");
       areaPicture.setZoomLevel(ZoomLevel.BUILDING);
+      areaPicture.setCurrentLayer(mapLayerService.getDefaultIGNLayer());
     }
     fileService.upload(
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);

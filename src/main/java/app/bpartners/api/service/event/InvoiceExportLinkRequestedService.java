@@ -120,16 +120,6 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   }
 
   @NotNull
-  private List<InvoiceStatus> getInvoiceStatuses(List<InvoiceStatus> providedStatuses) {
-    var allStatuses = Arrays.stream(InvoiceStatus.values()).toList();
-    var entityHandledStatuses =
-        allStatuses.stream().filter(status -> !status.equals(ACCEPTED)).toList();
-    return providedStatuses == null || providedStatuses.isEmpty()
-        ? entityHandledStatuses
-        : providedStatuses;
-  }
-
-  @NotNull
   private List<File> downloadInvoicesFiles(String userId, List<Invoice> invoicesBetweenDates) {
     Path destinationDirectory = getTempDirectory();
     return invoicesBetweenDates.stream()

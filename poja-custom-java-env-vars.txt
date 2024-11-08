@@ -36,3 +36,4 @@ TILE_EXTENDER_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/tile-extender/base-
 SPRING_DATASOURCE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/db/url}}'
 SPRING_DATASOURCE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
 SPRING_DATASOURCE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
+GOOGLE_GEOCODE_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/google/geocode/api-key}}'

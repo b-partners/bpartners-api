@@ -46,11 +46,10 @@ public class TileExtenderRequestBody implements Serializable {
             ? areaPicture.getCurrentGeoPosition().getLatitude()
             : areaPicture.getCurrentTile().getLatitude();
     int zoom = areaPicture.getArcgisZoom().getZoomLevel();
-    if (areaPicture.getArcgisZoom().getZoomLevel() >= 20){
+    if (areaPicture.getArcgisZoom().getZoomLevel() >= 20) {
       zoom = DEFAULT_MAX_IGN_ZOOM;
     }
-    var tile =
-        from(currentGeoPositionLongitude, currentGeoPositionLatitude, ArcgisZoom.from(zoom));
+    var tile = from(currentGeoPositionLongitude, currentGeoPositionLatitude, ArcgisZoom.from(zoom));
     var currentLayer = areaPicture.getCurrentLayer();
     return TileExtenderRequestBody.builder()
         .x(tile.getX())

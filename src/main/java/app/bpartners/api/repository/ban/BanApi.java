@@ -8,6 +8,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.ban.response.GeoJsonProperty;
 import app.bpartners.api.repository.ban.response.GeoJsonResponse;
+import app.bpartners.api.repository.validator.AddressValidator;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,15 +31,15 @@ public class BanApi {
   private final HttpClient httpClient = HttpClient.newBuilder().build();
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
   private final BanConf banConf;
+  private final AddressValidator addressValidator;
 
-  public BanApi(BanConf banConf) {
+  public BanApi(BanConf banConf, AddressValidator addressValidator) {
     this.banConf = banConf;
+    this.addressValidator = addressValidator;
   }
 
   public GeoJsonResponse searchMultiplePos(String address) {
-    if (address.length() < 3 || address.length() > 200) {
-      throw new BadRequestException("Address to search must be between 3 and 200 chars");
-    }
+    addressValidator.accept(address);
     try {
       HttpRequest request =
           HttpRequest.newBuilder().uri(new URI(defaultSearchUrl(address))).GET().build();

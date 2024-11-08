@@ -86,10 +86,10 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     predicates.add(builder.equal(root.get("idUser"), idUser));
 
     if (from != null && to != null) {
-      predicates.add(builder.between(root.get("createDate"), from, to));
+      predicates.add(builder.between(root.get("createdDatetime"), from, to));
     }
 
-    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("createDate")));
+    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("createdDatetime")));
     query
         .where(builder.and(predicates.toArray(new Predicate[0])))
         .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
@@ -100,8 +100,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .setMaxResults(pageable.getPageSize())
         .getResultList()
         .stream()
-        .map(invoice -> mapper.toDomain(invoice, userRepository.getById(idUser)))
-        .collect(Collectors.toList());
+        .map(mapper::toDomain)
+        .toList();
   }
 
   @Override

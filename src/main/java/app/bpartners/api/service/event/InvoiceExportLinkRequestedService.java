@@ -2,7 +2,6 @@ package app.bpartners.api.service.event;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.ACCEPTED;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -10,7 +9,6 @@ import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.file.FileZipper;
 import app.bpartners.api.mail.Email;
 import app.bpartners.api.mail.Mailer;
@@ -28,7 +26,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

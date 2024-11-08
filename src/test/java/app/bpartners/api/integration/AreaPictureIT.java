@@ -36,11 +36,13 @@ import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.ban.response.GeoJsonProperty;
 import app.bpartners.api.repository.ban.response.GeoJsonResponse;
+import app.bpartners.api.repository.google.geocode.GeoCodeApi;
 import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
 import app.bpartners.api.service.utils.GeoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -89,6 +91,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @MockBean WmsImageSource wmsImageSourceMock;
   @Autowired AccountRepository accountRepository;
   @MockBean AccountHolderRepository accountHolderRepository;
+  @MockBean GeoCodeApi geoCodeApiMock;
 
   static AreaPictureMapLayer geoserverCharenteLayer() {
     return new AreaPictureMapLayer()
@@ -394,11 +397,18 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   @Test
-  void crupdate_area_picture_details() throws ApiException {
+  void crupdate_area_picture_details()
+      throws ApiException, IOException, InterruptedException, com.google.maps.errors.ApiException {
     ApiClient joeDoeClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(joeDoeClient);
     String payloadId = randomUUID().toString();
     CrupdateAreaPictureDetails payload = crupdatableAreaPictureDetails();
+    when(geoCodeApiMock.searchGeoPositionFromAddress(any()))
+        .thenReturn(
+            new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                .latitude(CHARENTE_KNOWN_GEO_POSITION.getCoordinates().getLatitude())
+                .longitude(CHARENTE_KNOWN_GEO_POSITION.getCoordinates().getLongitude())
+                .score(0.0));
     when(accountHolderRepository.findById(any()))
         .thenReturn(AccountHolder.builder().id("accountHolderId").build());
     var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);

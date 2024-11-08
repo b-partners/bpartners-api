@@ -77,9 +77,9 @@ class InvoiceExportLinkRequestedServiceTest {
 
   @Test
   void generate_export_link_with_empty_invoices_ok() {
-    when(invoiceJpaRepositoryMock.countByIdUserAndCreatedDatetimeBetween(any(), any(), any()))
+    when(invoiceJpaRepositoryMock.findAllByIdUserAndSendingDateBetween(any(), any(), any()))
         .thenReturn(0);
-    when(repositoryMock.findAllByIdUserAndCreateDateBetweenAndPaginate(
+    when(repositoryMock.findAllByIdUserAndSendingDateBetweenAndPaginate(
             any(), any(), any(), anyInt(), anyInt()))
         .thenReturn(List.of());
     LocalDate today = LocalDate.now();
@@ -121,9 +121,9 @@ class InvoiceExportLinkRequestedServiceTest {
     var file2 =
         crupdateFile(Paths.get("src", "test", "resources", "files", "REFinvoiceId2.pdf").toFile());
     when(s3ServiceMock.downloadFile(INVOICE, "invoiceFileId2", USER_ID)).thenReturn(file2);
-    when(invoiceJpaRepositoryMock.countByIdUserAndCreatedDatetimeBetween(any(), any(), any()))
+    when(invoiceJpaRepositoryMock.findAllByIdUserAndSendingDateBetween(any(), any(), any()))
         .thenReturn(2);
-    when(repositoryMock.findAllByIdUserAndCreateDateBetweenAndPaginate(
+    when(repositoryMock.findAllByIdUserAndSendingDateBetweenAndPaginate(
             any(), any(), any(), anyInt(), anyInt()))
         .thenReturn(
             List.of(

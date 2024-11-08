@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,8 +17,8 @@ public interface InvoiceRepository {
 
   Optional<Invoice> pwFindOptionalById(String id);
 
-  List<Invoice> findAllByIdUserAndCreateDateBetweenAndPaginate(
-      String idUser, Instant from, Instant to, int page, int pageSize);
+  List<Invoice> findAllByIdUserAndSendingDateBetweenAndPaginate(
+      String idUser, LocalDate from, LocalDate to, int page, int pageSize);
 
   List<Invoice> findAllByIdUserAndCriteria(
       String idUser,

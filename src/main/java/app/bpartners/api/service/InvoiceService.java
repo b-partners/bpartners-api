@@ -3,7 +3,6 @@ package app.bpartners.api.service;
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.ACCEPTED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
@@ -11,7 +10,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL_CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.MULTIPLE;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
-import static java.time.LocalDate.now;
+import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
@@ -35,7 +34,6 @@ import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.invoice.InvoiceValidator;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import app.bpartners.api.service.payment.PaymentService;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,11 +79,7 @@ public class InvoiceService {
             .providedTo(providedTo)
             .build());
 
-    return PreSignedLink.builder()
-        .value(null)
-        .expirationDelay(null)
-        .updatedAt(Instant.now())
-        .build();
+    return PreSignedLink.builder().value(null).expirationDelay(null).updatedAt(now()).build();
   }
 
   @Transactional
@@ -104,7 +98,7 @@ public class InvoiceService {
                     PaymentHistoryStatus.builder()
                         .status(PaymentStatus.PAID)
                         .paymentMethod(method)
-                        .updatedAt(Instant.now())
+                        .updatedAt(now())
                         .userUpdated(isUserUpdated)
                         .build())
                 .build());
@@ -277,7 +271,7 @@ public class InvoiceService {
         invoiceBuilder
             .id(String.valueOf(randomUUID()))
             .status(CONFIRMED)
-            .sendingDate(now())
+            .sendingDate(LocalDate.now())
             .validityDate(null)
             .fileId(newFileId)
             .build();

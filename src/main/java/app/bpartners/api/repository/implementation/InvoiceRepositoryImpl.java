@@ -20,7 +20,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -76,8 +76,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @Override
-  public List<Invoice> findAllByIdUserAndCreateDateBetweenAndPaginate(
-      String idUser, Instant from, Instant to, int page, int pageSize) {
+  public List<Invoice> findAllByIdUserAndSendingDateBetweenAndPaginate(
+      String idUser, LocalDate from, LocalDate to, int page, int pageSize) {
 
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
@@ -86,10 +86,10 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     predicates.add(builder.equal(root.get("idUser"), idUser));
 
     if (from != null && to != null) {
-      predicates.add(builder.between(root.get("createdDatetime"), from, to));
+      predicates.add(builder.between(root.get("sendingDate"), from, to));
     }
 
-    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("createdDatetime")));
+    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("sendingDate")));
     query
         .where(builder.and(predicates.toArray(new Predicate[0])))
         .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));

@@ -1,5 +1,8 @@
 package app.bpartners.api.endpoint.event.model;
 
+import static app.bpartners.api.endpoint.event.EventStack.EVENT_STACK_2;
+
+import app.bpartners.api.endpoint.event.EventStack;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import java.time.Duration;
@@ -33,5 +36,10 @@ public class InvoiceExportLinkRequested extends PojaEvent {
   @Override
   public Duration maxConsumerBackoffBetweenRetries() {
     return Duration.ofMinutes(3L);
+  }
+
+  @Override
+  public EventStack getEventStack() {
+    return EVENT_STACK_2;
   }
 }

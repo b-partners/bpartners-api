@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import jakarta.persistence.LockModeType;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +27,8 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
 
   List<HInvoice> findByIdUserAndRef(String idAccount, String ref);
 
-  int countByIdUserAndCreatedDatetimeBetween(String idUser, Instant from, Instant to);
+  int findAllByIdUserAndSendingDateBetween(
+      String idUser, LocalDate sendingDate, LocalDate sendingDate2);
 
   List<HInvoice> findAllByToBeRelaunched(boolean toBeRelaunched);
 

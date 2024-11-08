@@ -7,7 +7,6 @@ import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.time.LocalDate.now;
-import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
@@ -29,7 +28,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -43,6 +41,7 @@ import org.thymeleaf.context.Context;
 @AllArgsConstructor
 public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExportLinkRequested> {
   public static final String INVOICE_EXPORT_LINK_REQUESTED_BODY = "invoice_export_link_requested";
+  private static final long expirationInSeconds = 3600L;
   private final FileZipper fileZipper;
   private final Mailer mailer;
   private final UserRepository userRepository;
@@ -58,28 +57,22 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var providedFrom = event.getProvidedFrom();
     var providedTo = event.getProvidedTo();
 
-    var fromLocalDatetime =
-        providedFrom == null ? now().withDayOfMonth(1).atStartOfDay() : providedFrom.atStartOfDay();
-    var toLocalDateTime =
-        providedTo == null
-            ? now().with(lastDayOfMonth()).atStartOfDay()
-            : providedTo.atStartOfDay();
+    var from = providedFrom == null ? now() : providedFrom;
+    var to = providedTo == null ? now() : providedTo;
     var user = userRepository.getByIdAccount(accountId);
     var userId = user.getId();
-    var from = fromLocalDatetime.atZone(ZoneId.systemDefault()).toInstant();
-    var to = toLocalDateTime.atZone(ZoneId.systemDefault()).toInstant();
 
-    var totalInvoices =
-        invoiceJpaRepository.countByIdUserAndCreatedDatetimeBetween(userId, from, to);
+    var totalInvoices = invoiceJpaRepository.findAllByIdUserAndSendingDateBetween(userId, from, to);
     var nbPage = Math.max(1, (int) Math.ceil((double) totalInvoices / MAX_SIZE));
-    String zipFileId;
     String htmlBody;
+    var zipFileId = randomUUID().toString();
+    String preSignedURL;
 
     if (totalInvoices > 0) {
       Path invoicesFiles = getTempDirectory();
       for (int page = 0; page < nbPage; page++) {
         List<Invoice> invoicePaginate =
-            invoiceRepository.findAllByIdUserAndCreateDateBetweenAndPaginate(
+            invoiceRepository.findAllByIdUserAndSendingDateBetweenAndPaginate(
                 userId, from, to, page, MAX_SIZE);
 
         var invoicePaginateFile = downloadInvoicesFiles(userId, invoicePaginate);
@@ -90,21 +83,16 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
         }
       }
       var invoicesZipFile = fileZipper.apply(List.of(invoicesFiles.toFile()));
-      zipFileId = randomUUID().toString();
       s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
-      long expirationInSeconds = 3600L;
-      var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, expirationInSeconds);
-      htmlBody =
-          templateResolverEngine.parseTemplateResolver(
-              INVOICE_EXPORT_LINK_REQUESTED_BODY,
-              configureInvoiceLinkContext(user, providedFrom, providedTo, preSignedURL));
+      preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, expirationInSeconds);
+    } else {
+      preSignedURL = "Aucune facture ne correspond aux critères recherchés.";
     }
 
-    var emptyInvoice = "Aucune facture ne correspond aux critères recherchés.";
     htmlBody =
         templateResolverEngine.parseTemplateResolver(
             INVOICE_EXPORT_LINK_REQUESTED_BODY,
-            configureInvoiceLinkContext(user, providedFrom, providedTo, emptyInvoice));
+            configureInvoiceLinkContext(user, providedFrom, providedTo, preSignedURL));
     var mailSubject =
         "Ensemble des factures de l'utilisateur: " + user.getDefaultHolder().getName() + ".";
     var recipient = user.getDefaultHolder().getEmail();

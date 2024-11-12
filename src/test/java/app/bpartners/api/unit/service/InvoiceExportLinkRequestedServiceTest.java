@@ -68,7 +68,7 @@ class InvoiceExportLinkRequestedServiceTest {
   }
 
   private AccountHolder defaultAccountHolder() {
-    return AccountHolder.builder().name("").email("exemple@gmail.com").build();
+    return AccountHolder.builder().name(null).email("exemple@gmail.com").build();
   }
 
   private User actualUser() {
@@ -77,7 +77,7 @@ class InvoiceExportLinkRequestedServiceTest {
 
   @Test
   void generate_export_link_with_empty_invoices_ok() {
-    when(invoiceJpaRepositoryMock.findAllByIdUserAndSendingDateBetween(any(), any(), any()))
+    when(invoiceJpaRepositoryMock.countAllByIdUserAndSendingDateBetween(any(), any(), any()))
         .thenReturn(0);
     when(repositoryMock.findAllByIdUserAndSendingDateBetweenAndPaginate(
             any(), any(), any(), anyInt(), anyInt()))
@@ -121,7 +121,7 @@ class InvoiceExportLinkRequestedServiceTest {
     var file2 =
         crupdateFile(Paths.get("src", "test", "resources", "files", "REFinvoiceId2.pdf").toFile());
     when(s3ServiceMock.downloadFile(INVOICE, "invoiceFileId2", USER_ID)).thenReturn(file2);
-    when(invoiceJpaRepositoryMock.findAllByIdUserAndSendingDateBetween(any(), any(), any()))
+    when(invoiceJpaRepositoryMock.countAllByIdUserAndSendingDateBetween(any(), any(), any()))
         .thenReturn(2);
     when(repositoryMock.findAllByIdUserAndSendingDateBetweenAndPaginate(
             any(), any(), any(), anyInt(), anyInt()))

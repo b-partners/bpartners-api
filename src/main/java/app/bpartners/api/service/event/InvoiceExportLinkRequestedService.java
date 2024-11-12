@@ -38,7 +38,7 @@ import org.thymeleaf.context.Context;
 @AllArgsConstructor
 public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExportLinkRequested> {
   public static final String INVOICE_EXPORT_LINK_REQUESTED_BODY = "invoice_export_link_requested";
-  private static final long expirationInSeconds = 3600L;
+  private static final long EXPIRATION_IN_SECONDS = 3600L;
   private final FileZipper fileZipper;
   private final Mailer mailer;
   private final UserRepository userRepository;
@@ -59,7 +59,8 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var user = userRepository.getByIdAccount(accountId);
     var userId = user.getId();
 
-    var totalInvoices = invoiceJpaRepository.findAllByIdUserAndSendingDateBetween(userId, from, to);
+    var totalInvoices =
+        invoiceJpaRepository.countAllByIdUserAndSendingDateBetween(userId, from, to);
     var nbPage = Math.max(1, (int) Math.ceil((double) totalInvoices / MAX_SIZE));
     String htmlBody;
     var zipFileId = randomUUID().toString();
@@ -81,7 +82,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
       }
       var invoicesZipFile = fileZipper.apply(List.of(invoicesFiles.toFile()));
       s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
-      preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, expirationInSeconds);
+      preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, EXPIRATION_IN_SECONDS);
     } else {
       preSignedURL = "Aucune facture ne correspond aux critères recherchés.";
     }

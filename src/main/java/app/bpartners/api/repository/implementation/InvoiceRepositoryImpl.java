@@ -90,9 +90,8 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     }
 
     Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("sendingDate")));
-    query
-        .where(builder.and(predicates.toArray(new Predicate[0])))
-        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+    var queryPageable = QueryUtils.toOrders(pageable.getSort(), root, builder);
+    query.where(builder.and(predicates.toArray(new Predicate[0]))).orderBy(queryPageable);
 
     return entityManager
         .createQuery(query)

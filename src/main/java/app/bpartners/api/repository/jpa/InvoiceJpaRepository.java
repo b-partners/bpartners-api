@@ -27,8 +27,7 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
 
   List<HInvoice> findByIdUserAndRef(String idAccount, String ref);
 
-  int findAllByIdUserAndSendingDateBetween(
-      String idUser, LocalDate sendingDate, LocalDate sendingDate2);
+  int countAllByIdUserAndSendingDateBetween(String idUser, LocalDate from, LocalDate to);
 
   List<HInvoice> findAllByToBeRelaunched(boolean toBeRelaunched);
 

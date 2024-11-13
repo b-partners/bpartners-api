@@ -12,8 +12,8 @@ import static app.bpartners.api.service.OnboardingService.DEFAULT_USER_STATUS;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_VERIFICATION_STATUS;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_VERIFIED;
 import static java.util.UUID.randomUUID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -22,6 +22,7 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
@@ -29,6 +30,7 @@ import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.service.AccountHolderService;
 import app.bpartners.api.service.AccountService;
 import app.bpartners.api.service.OnboardingService;
+import app.bpartners.api.service.UserService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,7 @@ class UserServiceIT extends MockedThirdParties {
   @MockBean private BridgeUserRepository bridgeUserRepositoryMock;
   @Autowired private AccountService accountService;
   @Autowired private AccountHolderService accountHolderService;
+  @Autowired UserService userService;
 
   @BeforeEach
   public void setUp() {
@@ -125,5 +128,25 @@ class UserServiceIT extends MockedThirdParties {
     assertEquals(COMPANY_NAME, accountHolder.getName());
     assertEquals(DEFAULT_SUBJECT_TO_VAT, accountHolder.isSubjectToVat());
     assertEquals(DEFAULT_VERIFICATION_STATUS, accountHolder.getVerificationStatus());
+  }
+
+  @Test
+  void delete_user_by_email() {
+    var user = User.builder().id("user_to_delete_id").email("userToDelete@hei.school").build();
+    var userSaved = this.userService.save(user);
+
+    this.userService.deleteUserByEmail(userSaved.getEmail());
+
+    var userSavedEmail = userSaved.getEmail();
+    assertThrows(NotFoundException.class, () -> this.userService.getUserByEmail(userSavedEmail));
+  }
+
+  @Test
+  void delete_user_by_email_not_found_exception() {
+    var user = User.builder().id("user_to_delete_id").email("userToDelete@hei.school").build();
+    var userSaved = this.userService.save(user);
+
+    assertThrows(NotFoundException.class, () -> this.userService.deleteUserByEmail("wrong_email"));
+    this.userService.deleteUserByEmail(userSaved.getEmail());
   }
 }

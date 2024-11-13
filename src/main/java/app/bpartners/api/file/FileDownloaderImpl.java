@@ -124,6 +124,7 @@ public final class FileDownloaderImpl implements FileDownloader {
     byte[] bytes;
     if (isBase64Encoded) {
       var base64Response = restTemplate.postForObject(uri, request, String.class);
+      log.info("response={}", base64Response);
       bytes = Base64.getDecoder().decode(base64Response);
     } else {
       bytes = restTemplate.postForObject(uri, request, byte[].class);

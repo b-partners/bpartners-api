@@ -33,11 +33,6 @@ final class TileExtenderImageSource extends AbstractWmsImageSource {
 
   @Override
   public File downloadImage(AreaPicture areaPicture) {
-    if (!supports(areaPicture)) {
-      throw new ApiException(
-          SERVER_EXCEPTION,
-          "cannot download " + areaPicture + " from " + this.getClass().getTypeName());
-    }
     boolean isBase64Encoded = true;
     double currentGeoPositionLongitude =
         areaPicture.getCurrentGeoPosition().getLongitude() != null

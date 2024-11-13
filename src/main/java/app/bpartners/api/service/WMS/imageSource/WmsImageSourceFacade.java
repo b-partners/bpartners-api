@@ -83,6 +83,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       areaPicture.setCropped(true);
       var image = tileExtenderImageSource.downloadImage(areaPicture);
+      log.info("image path={}", image.getAbsoluteFile());
       imageValidator.accept(image);
       return image;
     } catch (ApiException | BlankImageException e) {

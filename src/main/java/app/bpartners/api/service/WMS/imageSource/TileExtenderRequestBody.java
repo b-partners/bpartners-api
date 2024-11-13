@@ -52,13 +52,13 @@ public class TileExtenderRequestBody implements Serializable {
     var currentLayer = areaPicture.getCurrentLayer();
     String layer = currentLayer.getName();
     String server = getSource(currentLayer);
+    boolean isCropped = true;
     log.info("Extended current layer={}", areaPicture.getCurrentLayer());
     if (GEOSERVER_IGN_NAME.equals(server) && areaPicture.getArcgisZoom().getZoomLevel() >= 20) {
       zoom = DEFAULT_MAX_IGN_ZOOM;
     }
-    if (zoom == DEFAULT_MAX_IGN_ZOOM) {
-      server = GEOSERVER_IGN_NAME;
-      layer = "ORTHOIMAGERY.ORTHOPHOTOS";
+    if(areaPicture.isExtended()){
+      areaPicture.setCropped(false);
     }
     var tile = from(currentGeoPositionLongitude, currentGeoPositionLatitude, ArcgisZoom.from(zoom));
 
@@ -70,7 +70,7 @@ public class TileExtenderRequestBody implements Serializable {
         .server(server)
         .latitude(areaPicture.getCurrentTile().getLatitude())
         .longitude(areaPicture.getCurrentTile().getLongitude())
-        .isCropped(areaPicture.isCropped())
+        .isCropped(isCropped)
         .shiftNb(areaPicture.getShiftNb())
         .build();
   }

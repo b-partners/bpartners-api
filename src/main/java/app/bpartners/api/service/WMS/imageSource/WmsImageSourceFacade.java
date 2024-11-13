@@ -56,6 +56,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   @SneakyThrows
   public File downloadImage(AreaPicture areaPicture) {
     if (areaPicture.isExtended()) {
+      areaPicture.setCropped(false);
       return tileExtenderImageSource.downloadImage(areaPicture);
     }
     return cascadeRetryImageDownloadUntilValid(geoserverImageSource, areaPicture, 0);
@@ -80,7 +81,8 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     }
     try {
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
-      var image = alternativeSource.downloadImage(areaPicture);
+      areaPicture.setCropped(true);
+      var image = tileExtenderImageSource.downloadImage(areaPicture);
       imageValidator.accept(image);
       return image;
     } catch (ApiException | BlankImageException e) {

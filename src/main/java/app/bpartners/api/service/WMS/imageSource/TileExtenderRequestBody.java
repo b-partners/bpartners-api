@@ -26,8 +26,9 @@ public class TileExtenderRequestBody implements Serializable {
   private int z;
   private String server;
   private String layer;
-  private boolean rightShift;
-  private boolean leftShift;
+  private Double latitude;
+  private Double longitude;
+  private boolean isCropped;
   private int shiftNb;
 
   private static String getSource(AreaPictureMapLayer areaPictureMapLayer) {
@@ -67,6 +68,9 @@ public class TileExtenderRequestBody implements Serializable {
         .z(zoom)
         .layer(layer)
         .server(server)
+        .latitude(areaPicture.getCurrentTile().getLatitude())
+        .longitude(areaPicture.getCurrentTile().getLongitude())
+        .isCropped(areaPicture.isCropped())
         .shiftNb(areaPicture.getShiftNb())
         .build();
   }

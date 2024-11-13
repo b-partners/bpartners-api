@@ -196,8 +196,8 @@ class LocalInvoiceIT extends S3MockedThirdParties {
     assertTrue(actual1.get(1).getCreatedAt().isAfter(actual1.get(2).getCreatedAt()));
     assertTrue(actual1.get(2).getCreatedAt().isAfter(actual1.get(3).getCreatedAt()));
     assertTrue(actual1.get(3).getCreatedAt().isAfter(actual1.get(4).getCreatedAt()));
-    assertTrue(actual1.get(4).getCreatedAt().isAfter(actual2.get(0).getCreatedAt()));
     assertTrue(actual2.get(0).getCreatedAt().isAfter(actual2.get(1).getCreatedAt()));
+    assertTrue(actual2.get(1).getCreatedAt().isAfter(actual2.get(2).getCreatedAt()));
   }
 
   @Disabled("TODO: fail")

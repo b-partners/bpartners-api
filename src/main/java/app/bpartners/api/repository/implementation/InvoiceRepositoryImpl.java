@@ -20,6 +20,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -75,13 +76,41 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @Override
+  public List<Invoice> findAllByIdUserAndSendingDateBetweenAndPaginate(
+      String idUser, LocalDate from, LocalDate to, int page, int pageSize) {
+
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
+    Root<HInvoice> root = query.from(HInvoice.class);
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.equal(root.get("idUser"), idUser));
+
+    if (from != null && to != null) {
+      predicates.add(builder.between(root.get("sendingDate"), from, to));
+    }
+
+    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Order.desc("sendingDate")));
+    var queryPageable = QueryUtils.toOrders(pageable.getSort(), root, builder);
+    query.where(builder.and(predicates.toArray(new Predicate[0]))).orderBy(queryPageable);
+
+    return entityManager
+        .createQuery(query)
+        .setFirstResult(pageable.getPageNumber() * pageable.getPageSize())
+        .setMaxResults(pageable.getPageSize())
+        .getResultList()
+        .stream()
+        .map(mapper::toDomain)
+        .toList();
+  }
+
+  @Override
   public List<Invoice> findAllByIdUserAndCriteria(
       String idUser,
       List<InvoiceStatus> statusList,
       ArchiveStatus archiveStatus,
       List<String> filters,
-      int page,
-      int pageSize) {
+      Integer page,
+      Integer pageSize) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
     List<Predicate> predicates = new ArrayList<>();
@@ -107,16 +136,24 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       }
       predicates.add(builder.or(filtersPredicates.toArray(new Predicate[0])));
     }
-    Pageable pageable = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
-    query
-        .where(builder.and(predicates.toArray(new Predicate[0])))
-        .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
-    return entityManager
-        .createQuery(query)
-        .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
-        .setMaxResults(pageable.getPageSize())
-        .getResultList()
-        .stream()
+
+    if (page != null && pageSize != null) {
+      Pageable pageable = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
+      query
+          .where(builder.and(predicates.toArray(new Predicate[0])))
+          .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+
+      return entityManager
+          .createQuery(query)
+          .setFirstResult((pageable.getPageNumber()) * pageable.getPageSize())
+          .setMaxResults(pageable.getPageSize())
+          .getResultList()
+          .stream()
+          .map(invoice -> mapper.toDomain(invoice, userRepository.getById(idUser)))
+          .toList();
+    }
+    query.where(builder.and(predicates.toArray(new Predicate[0])));
+    return entityManager.createQuery(query).getResultList().stream()
         .map(invoice -> mapper.toDomain(invoice, userRepository.getById(idUser)))
         .toList();
   }

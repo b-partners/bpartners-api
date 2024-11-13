@@ -1,0 +1,31 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Transmission des factures</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, Georgia, sans-serif;
+            color: black;
+        }
+
+        h1, section, footer {
+            margin: 2vh 2vw;
+        }
+
+        h1 {
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+    </style>
+</head>
+<body>
+<p>Madame, Monsieur,</p>
+<p>Nous vous transmettons ci-dessous le lien vers les fichiers compress&eacute;s contenant les factures pour <span th:text="${userName}"></span>,
+    couvrant la p&eacute;riode du <span th:datetime="from"></span> au <span th:datetime="to"></span> :</p>
+<p><strong th:text="exportedLink"></strong></p>
+<p>BPartners, l&eacute;assistant intelligent tout-en-un qui acc&eacute;l&egrave;re la croissance des artisans et ind&eacute;pendants fran&ccedil;ais.</p>
+<p>Nous restons &agrave; votre disposition pour toute information compl&eacute;mentaire.</p>
+<p>Bien cordialement,</p>
+<p>L'&eacute;quipe BPartners</p>
+</body>
+</html>

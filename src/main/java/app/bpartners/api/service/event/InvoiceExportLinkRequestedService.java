@@ -10,8 +10,6 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.file.FileZipper;
-import app.bpartners.api.mail.Email;
-import app.bpartners.api.mail.Mailer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -19,8 +17,8 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.aws.S3Service;
+import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
-import jakarta.mail.internet.InternetAddress;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,7 +38,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   public static final String INVOICE_EXPORT_LINK_REQUESTED_BODY = "invoice_export_link_requested";
   private static final long EXPIRATION_IN_SECONDS = 3600L;
   private final FileZipper fileZipper;
-  private final Mailer mailer;
+  private final SesService mailer;
   private final UserRepository userRepository;
   private final InvoiceRepository invoiceRepository;
   private final S3Service s3Service;
@@ -94,17 +92,8 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var mailSubject =
         "Ensemble des factures de l'utilisateur: " + user.getDefaultHolder().getName() + ".";
     var recipient = user.getDefaultHolder().getEmail();
-    var recipientInternetAddress = new InternetAddress(recipient);
     var adminRecipient = "tech@bpartners.app";
-    var adminRecipientInternetAddress = new InternetAddress(adminRecipient);
-    mailer.accept(
-        new Email(
-            recipientInternetAddress,
-            List.of(adminRecipientInternetAddress),
-            null,
-            mailSubject,
-            htmlBody,
-            List.of()));
+    mailer.sendEmail(recipient, adminRecipient, mailSubject, htmlBody);
   }
 
   private Context configureInvoiceLinkContext(

@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.AccountHolder;
@@ -20,7 +21,6 @@ import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.PaymentInitiationService;
-import app.bpartners.api.service.event.InvoiceExportLinkRequestedService;
 import app.bpartners.api.service.invoice.CustomerInvoiceValidator;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.invoice.InvoiceValidator;
@@ -42,7 +42,7 @@ class InvoiceServiceTest {
   InvoiceValidator invoiceValidator = mock(InvoiceValidator.class);
   CustomerInvoiceValidator customerInvoiceValidator = mock(CustomerInvoiceValidator.class);
   UserRepository userRepositoryMock = mock(UserRepository.class);
-  InvoiceExportLinkRequestedService eventProducer = mock(InvoiceExportLinkRequestedService.class);
+  EventProducer eventProducer = mock(EventProducer.class);
 
   InvoiceService subject =
       new InvoiceService(

@@ -12,7 +12,6 @@ import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.file.FileHash;
 import app.bpartners.api.file.FileZipper;
-import app.bpartners.api.mail.Mailer;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
@@ -20,6 +19,7 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.aws.S3Service;
+import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.InvoiceExportLinkRequestedService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.File;
@@ -41,7 +41,7 @@ class InvoiceExportLinkRequestedServiceTest {
   InvoiceRepository repositoryMock = mock();
   S3Service s3ServiceMock = mock();
   FileZipper fileZipper = new FileZipper();
-  Mailer mailerMock = mock();
+  SesService mailerMock = mock();
   UserRepository userRepositoryMock = mock();
   TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
   InvoiceJpaRepository invoiceJpaRepositoryMock = mock();
@@ -64,7 +64,7 @@ class InvoiceExportLinkRequestedServiceTest {
     when(s3ServiceMock.presignURL(any(), any(), any(), any())).thenReturn(PRE_SIGNED_URL);
     when(s3ServiceMock.downloadFile(any(), any(), any()))
         .thenReturn(File.createTempFile(randomUUID().toString(), randomUUID().toString()));
-    doNothing().when(mailerMock).accept(any());
+    doNothing().when(mailerMock).sendEmail(any(), any(), any(), any(), any());
   }
 
   private AccountHolder defaultAccountHolder() {

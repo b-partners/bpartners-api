@@ -57,7 +57,7 @@ public class TileExtenderRequestBody implements Serializable {
     if (GEOSERVER_IGN_NAME.equals(server) && areaPicture.getArcgisZoom().getZoomLevel() >= 20) {
       zoom = DEFAULT_MAX_IGN_ZOOM;
     }
-    if(areaPicture.isExtended()){
+    if (areaPicture.isExtended()) {
       areaPicture.setCropped(false);
     }
     var tile = from(currentGeoPositionLongitude, currentGeoPositionLatitude, ArcgisZoom.from(zoom));

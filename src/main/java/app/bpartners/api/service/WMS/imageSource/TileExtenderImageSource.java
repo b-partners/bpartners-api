@@ -1,12 +1,10 @@
 package app.bpartners.api.service.WMS.imageSource;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.WMS.Tile.from;
 
 import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.Tile;
 import java.io.File;
 import java.net.URI;

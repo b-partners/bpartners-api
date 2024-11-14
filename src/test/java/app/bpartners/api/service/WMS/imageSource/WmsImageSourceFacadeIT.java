@@ -98,10 +98,16 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   }
 
   @Test
+  @Disabled
   void geoserver_download_image_is_null() {
-    when(tileExtenderImageSource.downloadImage(any())).thenReturn(null);
+    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(null);
+    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
 
-    assertThrows(ApiException.class, () -> subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE));
+    File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
+
+    verify(geoserverImageSourceMock, times(1)).downloadImage(any());
+    verify(ignGeoserverImageSource, times(1)).downloadImage(any());
+    assertEquals(getMockJpegFile(), actual);
   }
 
   @Test

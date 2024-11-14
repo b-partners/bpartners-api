@@ -39,7 +39,6 @@ public class AreaPicture {
   private Boolean rightShift;
   private Boolean leftShift;
   private Integer shiftNb;
-  private boolean isCropped;
   private List<GeoPosition> geoPositions;
 
   public String getFilename() {

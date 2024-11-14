@@ -58,7 +58,7 @@ public class TileExtenderRequestBody implements Serializable {
       zoom = DEFAULT_MAX_IGN_ZOOM;
     }
     if (areaPicture.isExtended()) {
-      areaPicture.setCropped(false);
+      isCropped = false;
     }
     var tile = from(currentGeoPositionLongitude, currentGeoPositionLatitude, ArcgisZoom.from(zoom));
 
@@ -68,8 +68,8 @@ public class TileExtenderRequestBody implements Serializable {
         .z(zoom)
         .layer(layer)
         .server(server)
-        .latitude(areaPicture.getCurrentTile().getLatitude())
-        .longitude(areaPicture.getCurrentTile().getLongitude())
+        .latitude(areaPicture.getCurrentGeoPosition().getLatitude())
+        .longitude(areaPicture.getCurrentGeoPosition().getLongitude())
         .isCropped(isCropped)
         .shiftNb(areaPicture.getShiftNb())
         .build();

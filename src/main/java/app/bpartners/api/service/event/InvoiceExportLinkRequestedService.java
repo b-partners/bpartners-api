@@ -28,10 +28,12 @@ import java.util.List;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExportLinkRequested> {
@@ -48,6 +50,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   @SneakyThrows
   @Override
   public void accept(InvoiceExportLinkRequested event) {
+    log.info("Invoice export link requested: {}", event);
     var accountId = event.getAccountId();
     var providedFrom = event.getProvidedFrom();
     var providedTo = event.getProvidedTo();
@@ -81,8 +84,10 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
       var invoicesZipFile = fileZipper.apply(List.of(invoicesFiles.toFile()));
       s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
       preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, EXPIRATION_IN_SECONDS);
+      log.info("preSignedUrl = {} " , preSignedURL);
     } else {
       preSignedURL = "Aucune facture ne correspond aux critères recherchés.";
+      log.info("preSignedUrl = {}" , preSignedURL);
     }
 
     htmlBody =

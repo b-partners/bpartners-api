@@ -4,6 +4,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 import static javax.mail.Message.RecipientType.BCC;
 import static javax.mail.Message.RecipientType.CC;
 import static javax.mail.Message.RecipientType.TO;
+import static org.reflections.Reflections.log;
 
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.model.Attachment;
@@ -107,6 +108,7 @@ public class SesService {
               .build();
 
       client.sendRawEmail(rawEmailRequest);
+      log.info("email has been sent");
     } catch (IOException | MessagingException | AwsServiceException | SdkClientException e) {
       throw new RuntimeException(e);
     }

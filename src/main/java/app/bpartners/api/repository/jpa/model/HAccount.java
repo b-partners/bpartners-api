@@ -36,7 +36,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 public class HAccount implements Serializable {
   @Id private String id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "id_user")
   @JsonIgnore
   private HUser user;

@@ -45,6 +45,7 @@ public class UserMapper {
   public User toDomain(HUser entityUser) {
     return User.builder()
         .id(entityUser.getId())
+        .userSubscriptionId(entityUser.getUserSubscriptionE2Id())
         .firstName(entityUser.getFirstName())
         .lastName(entityUser.getLastName())
         .mobilePhoneNumber(entityUser.getPhoneNumber())
@@ -101,6 +102,7 @@ public class UserMapper {
   public HUser toEntity(User toSave) {
     return HUser.builder()
         .id(toSave.getId())
+        .userSubscriptionE2Id(toSave.getUserSubscriptionId())
         .firstName(toSave.getFirstName())
         .lastName(toSave.getLastName())
         .email(toSave.getEmail())

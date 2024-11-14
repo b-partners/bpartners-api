@@ -10,16 +10,17 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Builder(toBuilder = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
 public class UserSubscription {
   private User user;
-  private List<Subscription> subscription;
+  private List<Subscription> subscriptions;
 
   public boolean hasValidSubscription() {
-    return subscription != null
-        && !subscription.isEmpty()
-        && subscription.stream()
+    return subscriptions != null
+        && !subscriptions.isEmpty()
+        && subscriptions.stream()
             .sorted(comparing(Subscription::getCreationDatetime, naturalOrder()).reversed())
             .toList()
             .getFirst()

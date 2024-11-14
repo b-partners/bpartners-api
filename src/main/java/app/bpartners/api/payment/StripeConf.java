@@ -9,16 +9,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @Getter
 public class StripeConf {
-    private final String apiKey;
+  private final String apiKey;
 
-    public StripeConf(@Value("${stripe.private.api.key}") String apiKey) {
-        this.apiKey = apiKey;
-    }
+  public StripeConf(@Value("${stripe.private.api.key}") String apiKey) {
+    this.apiKey = apiKey;
+  }
 
-    @Bean
-    public StripeClient stripeClient() {
-        return StripeClient.builder()
-                .setApiKey(apiKey)
-                .build();
-    }
+  @Bean
+  public StripeClient stripeClient() {
+    return StripeClient.builder().setApiKey(apiKey).build();
+  }
 }

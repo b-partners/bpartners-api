@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class User implements Serializable {
   private String id;
+  private String userSubscriptionId;
   private String logoFileId;
   private String firstName;
   private String lastName;

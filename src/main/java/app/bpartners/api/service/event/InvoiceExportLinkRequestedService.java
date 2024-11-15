@@ -128,7 +128,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
               try {
                 Path destinationPath = destinationDirectory.resolve(invoice.getRef());
                 Files.copy(file.toPath(), destinationPath, REPLACE_EXISTING);
-                Files.delete(file.toPath());
+                file.deleteOnExit();
                 return destinationPath.toFile();
               } catch (IOException e) {
                 throw new ApiException(SERVER_EXCEPTION, e);

@@ -36,7 +36,7 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + " where id_account_holder = ?1 "
               + " and LOWER(old_name) LIKE LOWER(CONCAT('%', ?2, '%')) "
               + " and cast(contact_nature as varchar) = ?3 "
-              + " and cast(actual_status as varchar) = ?4 LIMIT ?5 OFFSET ?6 ")
+              + " and cast(actual_status as varchar) = ?4 ORDER BY actual_status LIMIT ?5 OFFSET ?6")
   List<HProspect>
       findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
           String idAccountHolder,

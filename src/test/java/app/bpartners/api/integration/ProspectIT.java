@@ -166,6 +166,7 @@ class ProspectIT extends MockedThirdParties {
                 .statusHistory(
                     Stream.of(
                             getStatusHistory(CONTACTED),
+                            getStatusHistory(CONTACTED),
                             prospect1().getStatusHistory(),
                             getStatusHistory(CONTACTED))
                         .flatMap(List::stream)
@@ -181,7 +182,10 @@ class ProspectIT extends MockedThirdParties {
 
   Prospect expectedProspect() {
     List<ProspectStatusHistory> statusHistory =
-        Stream.of(getStatusHistory(TO_CONTACT), getStatusHistory(CONTACTED))
+        Stream.of(
+                getStatusHistory(CONTACTED),
+                getStatusHistory(TO_CONTACT),
+                getStatusHistory(CONTACTED))
             .flatMap(List::stream)
             .toList();
     return new Prospect()
@@ -230,9 +234,21 @@ class ProspectIT extends MockedThirdParties {
     String prospectJohn = "John";
     List<Prospect> actual3 =
         api.getProspects(ACCOUNTHOLDER_ID, prospectName, null, null, PAGE, PAGESIZE);
-    List<Prospect> withStatus =
-        api.getProspects(ACCOUNTHOLDER_ID, prospectJohn, null, TO_CONTACT, PAGE, 3);
+    List<Prospect> withStatusToContact =
+        api.getProspects(ACCOUNTHOLDER_ID, prospectJohn, null, TO_CONTACT, null, null);
+    api.updateProspects(ACCOUNTHOLDER_ID, List.of(updateProspect()));
+    List<Prospect> withStatusToContactUpdated =
+        api.getProspects(ACCOUNTHOLDER_ID, prospectJohn, null, TO_CONTACT, null, null);
+    List<Prospect> withStatusContacted =
+        api.getProspects(ACCOUNTHOLDER_ID, prospectJohn, null, CONTACTED, null, null);
 
+    assertTrue(
+        withStatusToContact.stream().allMatch(prospect -> TO_CONTACT.equals(prospect.getStatus())));
+    assertTrue(
+        withStatusToContactUpdated.stream()
+            .allMatch(prospect -> TO_CONTACT.equals(prospect.getStatus())));
+    assertTrue(
+        withStatusContacted.stream().allMatch(prospect -> CONTACTED.equals(prospect.getStatus())));
     assertTrue(actual1.containsAll(List.of(prospect1(), prospect3())));
     assertTrue(actual2.contains(prospect2()));
     assertEquals(PAGE, actual3.size());
@@ -241,8 +257,8 @@ class ProspectIT extends MockedThirdParties {
             .allMatch(
                 prospect ->
                     prospect.getName() != null && prospect.getName().contains(prospectName)));
-    assertNotNull(withStatus);
-    assertEquals(3, withStatus.size());
+    assertNotNull(withStatusToContact);
+    assertEquals(4, withStatusToContact.size());
   }
 
   @Order(2)
@@ -289,6 +305,7 @@ class ProspectIT extends MockedThirdParties {
             prospect1()
                 .statusHistory(
                     Stream.of(
+                            getStatusHistory(CONTACTED),
                             getStatusHistory(CONTACTED),
                             getStatusHistory(CONTACTED),
                             prospect1().getStatusHistory(),

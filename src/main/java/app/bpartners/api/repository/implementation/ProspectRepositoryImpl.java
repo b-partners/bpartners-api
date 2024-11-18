@@ -134,6 +134,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         prospects =
             jpaRepository.findAllByIdAccountHolderAndOldNameAndProspectStatus(
                 prospectStatus.toString(), idAccountHolder, name, pageSize, page);
+        prospects.removeIf(prospect -> !prospect.getActualStatus().equals(prospectStatus));
       } else if (prospectStatus == null && contactNature != null) {
         prospects =
             jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
@@ -148,6 +149,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
                     prospectStatus.toString(),
                     pageSize,
                     page);
+        prospects.removeIf(prospect -> !prospect.getActualStatus().equals(prospectStatus));
       }
       return prospects.stream()
           .map(

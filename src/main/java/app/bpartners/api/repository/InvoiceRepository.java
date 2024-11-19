@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,13 +17,16 @@ public interface InvoiceRepository {
 
   Optional<Invoice> pwFindOptionalById(String id);
 
+  List<Invoice> findAllByIdUserAndSendingDateBetweenAndPaginate(
+      String idUser, LocalDate from, LocalDate to, int page, int pageSize);
+
   List<Invoice> findAllByIdUserAndCriteria(
       String idUser,
       List<InvoiceStatus> statusList,
       ArchiveStatus archiveStatus,
       List<String> filters,
-      int page,
-      int pageSize);
+      Integer page,
+      Integer pageSize);
 
   List<Invoice> archiveAll(List<ArchiveInvoice> archiveInvoices);
 

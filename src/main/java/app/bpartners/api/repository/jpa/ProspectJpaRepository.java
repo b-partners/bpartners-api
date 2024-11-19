@@ -31,12 +31,10 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + " pos_longitude,       new_name,       new_email,       new_phone,      "
               + " new_address,       comment,       contract_amount,       id_invoice,      "
               + " prospect_feedback,       id_job,       default_comment,       manager_name,      "
-              + " contact_nature,       latest_old_holder "
-              + " from view_prospect_actual_status "
-              + " where id_account_holder = ?1 "
-              + " and LOWER(old_name) LIKE LOWER(CONCAT('%', ?2, '%')) "
-              + " and cast(contact_nature as varchar) = ?3 "
-              + " and cast(actual_status as varchar) = ?4 LIMIT ?5 OFFSET ?6 ")
+              + " contact_nature,       latest_old_holder  from view_prospect_actual_status  where"
+              + " id_account_holder = ?1  and LOWER(old_name) LIKE LOWER(CONCAT('%', ?2, '%'))  and"
+              + " cast(contact_nature as varchar) = ?3  and cast(actual_status as varchar) = ?4"
+              + " ORDER BY status_updated_at DESC LIMIT ?5 OFFSET ?6")
   List<HProspect>
       findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
           String idAccountHolder,
@@ -57,7 +55,8 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + " prospect_feedback,       id_job,       default_comment,       manager_name,      "
               + " contact_nature,       latest_old_holder FROM view_prospect_actual_status WHERE"
               + " CAST(actual_status AS VARCHAR)=?1 and id_account_holder=?2 and LOWER(old_name)"
-              + " LIKE LOWER(CONCAT('%', ?3, '%')) LIMIT ?4 OFFSET ?5")
+              + " LIKE LOWER(CONCAT('%', ?3, '%')) ORDER BY status_updated_at DESC LIMIT ?4 OFFSET"
+              + " ?5")
   List<HProspect> findAllByIdAccountHolderAndOldNameAndProspectStatus(
       String prospectStatus, String idAccountHolder, String name, int pageSize, int page);
 

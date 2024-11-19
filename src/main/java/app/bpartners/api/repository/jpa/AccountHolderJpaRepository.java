@@ -9,4 +9,6 @@ public interface AccountHolderJpaRepository extends JpaRepository<HAccountHolder
   List<HAccountHolder> findAllByIdUser(String idUser);
 
   List<HAccountHolder> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
+
+  void deleteByIdUser(String idUser);
 }

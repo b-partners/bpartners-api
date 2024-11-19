@@ -2,6 +2,7 @@ package app.bpartners.api.service;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
 
+import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
@@ -14,11 +15,13 @@ import app.bpartners.api.service.WMS.TileCreator;
 import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AreaPictureService {
   private final AreaPictureJpaRepository jpaRepository;
   private final AreaPictureMapper mapper;
@@ -59,8 +62,14 @@ public class AreaPictureService {
       throws RuntimeException {
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
     var downloadedFile = wmsImageSource.downloadImage(areaPicture);
+    log.info("Filename={}", refreshed.getIdFileInfo());
+    if (areaPicture.getFilename().contains("ORTHOIMAGERY")) {
+      areaPicture.setZoomLevel(ZoomLevel.BUILDING);
+      areaPicture.setCurrentLayer(mapLayerService.getDefaultIGNLayer());
+    }
     fileService.upload(
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
+    save(areaPicture);
     return save(refreshed);
   }
 

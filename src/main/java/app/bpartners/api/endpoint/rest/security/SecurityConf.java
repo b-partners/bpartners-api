@@ -87,6 +87,7 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/sendEmail", POST.name()),
                         new AntPathRequestMatcher("/whoami", GET.name()),
                         new AntPathRequestMatcher("/users/*", GET.name()),
+                        new AntPathRequestMatcher("/dummy-user", DELETE.name()),
                         new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
                         new AntPathRequestMatcher("/users/*/legalFiles", GET.name()),
                         new AntPathRequestMatcher("/users/*/legalFiles/*", PUT.name()),
@@ -144,6 +145,8 @@ public class SecurityConf {
                     .requestMatchers(POST, "/health/event/uuids")
                     .permitAll()
                     .requestMatchers(GET, "/health/email")
+                    .permitAll()
+                    .requestMatchers(DELETE, "/dummy-user")
                     .permitAll()
                     .requestMatchers(GET, "/accountHolders")
                     .hasAnyRole(EVAL_PROSPECT.getRole())

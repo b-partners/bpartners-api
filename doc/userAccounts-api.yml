@@ -63,6 +63,20 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  deleteUser:
+    delete:
+      tags:
+        - User Accounts
+      summary: Delete dummy user
+      operationId: deleteUser
+      responses:
+        200:
+          description: The user is succesfully deleted
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "The user it.bpartners@mail.hei.school has been deleted"
   setActiveAccount:
     post:
       tags:

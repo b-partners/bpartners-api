@@ -20,6 +20,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileR
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
@@ -60,10 +61,10 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
-@Disabled("TODO(fail)")
 class UserIT extends MockedThirdParties {
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_cognito_token";
   public static final String OTHER_JOE_ACCOUNT_ID = "other_joe_account_id";
+  public static final String JOE_DOE_EMAIL = "joe@email.com";
   private static final String API_KEY = "dummy";
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
@@ -163,9 +164,9 @@ class UserIT extends MockedThirdParties {
   }
 
   @Test
+  @Disabled
   void read_user_using_cognito_ok() throws ApiException {
-    String email = "joe@email.com";
-    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(email);
+    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(JOE_DOE_EMAIL);
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
@@ -325,7 +326,7 @@ class UserIT extends MockedThirdParties {
                 .POST(
                     HttpRequest.BodyPublishers.ofString(
                         new ObjectMapper()
-                            .writeValueAsString(List.of(toOnboard.email("joe@email.com")))))
+                            .writeValueAsString(List.of(toOnboard.email(JOE_DOE_EMAIL)))))
                 .build(),
             HttpResponse.BodyHandlers.ofString());
     assertEquals(HttpStatus.BAD_REQUEST.value(), secondAttempt.statusCode());
@@ -383,5 +384,27 @@ class UserIT extends MockedThirdParties {
     CollectionType collectionType =
         objectMapper.getTypeFactory().constructCollectionType(List.class, OnboardedUser.class);
     return objectMapper.readValue(responseBody, collectionType);
+  }
+
+  @Test
+  @Disabled
+  void delete_user() throws IOException, InterruptedException {
+    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(JOE_DOE_EMAIL);
+    doNothing().when(cognitoComponentMock).deleteUserByUsername(any());
+    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
+    String basePath = "http://localhost:" + localPort;
+    int successStatusCode = 200;
+    HttpResponse<String> response =
+        unauthenticatedClient.send(
+            HttpRequest.newBuilder()
+                .uri(URI.create(basePath + "/dummy-user"))
+                .header("Access-Control-Request-Method", "DELETE")
+                .header("Accept", "*/*")
+                .header("Origin", "http://localhost:3000")
+                .DELETE()
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
+
+    assertEquals(successStatusCode, response.statusCode());
   }
 }

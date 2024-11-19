@@ -10,11 +10,9 @@ import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 public class FileZipper implements Function<List<File>, File> {
   private static final String ZIP_FILE_EXTENSION = ".zip";
 
@@ -26,9 +24,8 @@ public class FileZipper implements Function<List<File>, File> {
         ZipOutputStream zipOut = new ZipOutputStream(fos)) {
       for (File file : fileList) {
         try (FileInputStream fis = new FileInputStream(file)) {
-          ZipEntry zipEntry = new ZipEntry(randomUUID().toString());
+          ZipEntry zipEntry = new ZipEntry(file.getName());
           zipOut.putNextEntry(zipEntry);
-          log.info("DEBUG file {} added to zip", file.getName());
           byte[] bytes = new byte[1024];
           int length;
           while ((length = fis.read(bytes)) >= 0) {

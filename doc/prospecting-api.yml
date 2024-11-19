@@ -114,7 +114,6 @@ operations:
           name: pageSize
           schema:
             $ref: './api.yml#/components/schemas/PageSize'
-        #TODO: set pagination
       responses:
         200:
           description: List of prospects for an accountHolder.

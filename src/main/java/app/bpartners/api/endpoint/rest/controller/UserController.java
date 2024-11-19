@@ -14,6 +14,7 @@ import app.bpartners.api.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,5 +69,12 @@ public class UserController {
       }
       return user;
     }
+  }
+
+  @DeleteMapping("/dummy-user")
+  public String deleteUserById() {
+    String email = "bpartners@mail.hei.school";
+    service.deleteUserByEmail(email);
+    return String.format("The user with email %s has been deleted", email);
   }
 }

@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InvoiceSummaryJpaRepository extends JpaRepository<HInvoiceSummary, String> {
   HInvoiceSummary findTopByIdUserOrderByUpdatedAtDesc(String idUser);
+
+  void deleteByIdUser(String idUser);
 }

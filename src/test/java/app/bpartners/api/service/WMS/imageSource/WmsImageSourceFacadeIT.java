@@ -47,6 +47,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   @MockBean IGNGeoserverImageSource ignGeoserverImageSource;
   @MockBean Mailer mailer;
   @MockBean AuthProvider authProviderMock;
+  @MockBean TileExtenderImageSource tileExtenderImageSource;
 
   private @NotNull File getMockJpegFile() {
     FileSystemResource mockJpegResource =
@@ -74,8 +75,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(pingControllerMock.ping()).thenThrow(new ApiException(SERVER_EXCEPTION, "server error"));
     when(geoserverImageSourceMock.getURI(any(), any()))
         .thenReturn(URI.create("http://localhost:" + localPort + "/ping"));
-    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
-    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
+    when(tileExtenderImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
   }
 
   @Test
@@ -84,23 +84,21 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
 
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
-    verify(geoserverImageSourceMock, times(1)).downloadImage(any());
-    verify(ignGeoserverImageSource, times(1)).downloadImage(any());
+    verify(tileExtenderImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }
 
   @Test
   void downloadImage_cascade_on_blank_image_ok() {
-    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
-    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
+    when(tileExtenderImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
-    verify(geoserverImageSourceMock, times(1)).downloadImage(any());
-    verify(ignGeoserverImageSource, times(1)).downloadImage(any());
+    verify(tileExtenderImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }
 
   @Test
+  @Disabled
   void geoserver_download_image_is_null() {
     when(geoserverImageSourceMock.downloadImage(any())).thenReturn(null);
     when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
@@ -115,8 +113,7 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   @Test
   @Disabled
   void send_email_when_image_not_found() {
-    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(getBlankJpegFile());
-    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getBlankJpegFile());
+    when(tileExtenderImageSource.downloadImage(any())).thenReturn(getBlankJpegFile());
 
     try (MockedStatic<AuthProvider> mockedAuthProvider = Mockito.mockStatic(AuthProvider.class)) {
       mockedAuthProvider

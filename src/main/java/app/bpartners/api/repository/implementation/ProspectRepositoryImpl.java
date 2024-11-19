@@ -17,6 +17,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectEvalMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.model.prospect.Prospect;
+import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.SogefiBuildingPermitRepository;
@@ -133,6 +134,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         prospects =
             jpaRepository.findAllByIdAccountHolderAndOldNameAndProspectStatus(
                 prospectStatus.toString(), idAccountHolder, name, pageSize, page);
+        prospects.removeIf(prospect -> !prospect.getActualStatus().equals(prospectStatus));
       } else if (prospectStatus == null && contactNature != null) {
         prospects =
             jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
@@ -147,6 +149,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
                     prospectStatus.toString(),
                     pageSize,
                     page);
+        prospects.removeIf(prospect -> !prospect.getActualStatus().equals(prospectStatus));
       }
       return prospects.stream()
           .map(
@@ -158,7 +161,14 @@ public class ProspectRepositoryImpl implements ProspectRepository {
                           : new Geojson()
                               .latitude(prospect.getPosLatitude())
                               .longitude(prospect.getPosLongitude())))
-          .sorted(Comparator.reverseOrder())
+          .sorted(
+              Comparator.comparing(
+                  domainProspect ->
+                      domainProspect.getStatusHistories().stream()
+                          .map(ProspectStatusHistory::getUpdatedAt)
+                          .max(Comparator.naturalOrder())
+                          .orElse(null),
+                  Comparator.nullsLast(Comparator.reverseOrder())))
           .collect(Collectors.toList());
     }
     AccountHolder accountHolder = accountHolderRepository.findById(idAccountHolder);

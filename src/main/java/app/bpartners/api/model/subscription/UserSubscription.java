@@ -21,7 +21,7 @@ public class UserSubscription {
     return subscriptions != null
         && !subscriptions.isEmpty()
         && subscriptions.stream()
-            .sorted(comparing(Subscription::getCreationDatetime, naturalOrder()).reversed())
+            .sorted(comparing(Subscription::getStartDatetime, naturalOrder()).reversed())
             .toList()
             .getFirst()
             .isActive();

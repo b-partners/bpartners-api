@@ -15,7 +15,16 @@ public class Subscription {
   private String e2Id;
   private boolean active;
   private List<String> paymentMethods;
-  private SubscriptionType type;
-  private Instant validityDatetime;
-  private Instant creationDatetime;
+  private SubscriptionProduct subscriptionProduct;
+  private Long freeTrialDays;
+  private Instant freeTrialStart;
+  private Instant freeTrialEnd;
+  private Instant endDatetime;
+  private Instant startDatetime;
+
+  public boolean hasFreeTrialPeriod() {
+    return freeTrialDays != null && freeTrialDays > 0;
+  }
+
+
 }

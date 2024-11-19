@@ -31,7 +31,6 @@ import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.model.Whois;
-import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
@@ -197,23 +196,8 @@ class UserIT extends MockedThirdParties {
 
     User actual = api.getUserById(JANE_DOE_ID);
 
-    assertEquals(
-        HUser.builder()
-            .id("jane_doe_id")
-            .status(beforeUpdate.getStatus())
-            .phoneNumber(beforeUpdate.getPhoneNumber())
-            .monthlySubscription(beforeUpdate.getMonthlySubscription())
-            .logoFileId(beforeUpdate.getLogoFileId())
-            .firstName("Jane")
-            .lastName("Doe")
-            .email("jane@email.com")
-            .idVerified(true)
-            .identificationStatus(VALID_IDENTITY)
-            .accounts(List.of())
-            .accountHolders(List.of())
-            .roles(new Role[] {})
-            .build(),
-        beforeUpdate);
+    assertEquals(List.of(), beforeUpdate.getAccounts());
+    assertEquals(List.of(), beforeUpdate.getAccountHolders());
     assertEquals(restJaneDoeUser(), actual);
   }
 

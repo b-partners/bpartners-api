@@ -19,11 +19,13 @@ import lombok.ToString;
 @Data
 @ToString
 public class InvoiceExportLinkRequested extends PojaEvent {
-  private String accountId;
+  private String userId;
   private List<InvoiceStatus> providedStatuses;
   private ArchiveStatus providedArchiveStatus;
   private LocalDate providedFrom;
   private LocalDate providedTo;
+  private int page;
+  private int totalCount;
 
   @Override
   public Duration maxConsumerDuration() {

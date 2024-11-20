@@ -28,6 +28,8 @@ public interface InvoiceRepository {
       Integer page,
       Integer pageSize);
 
+  int countAllByIdUserAndSendingDateBetween(String userId, LocalDate from, LocalDate to);
+
   List<Invoice> archiveAll(List<ArchiveInvoice> archiveInvoices);
 
   List<Invoice> findByIdUserAndRef(String idUser, String reference);

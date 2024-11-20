@@ -60,6 +60,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var userId = user.getId();
     var totalInvoices =
         invoiceJpaRepository.countAllByIdUserAndSendingDateBetween(userId, from, to);
+    log.info("countTotalInvoices {}", totalInvoices);
     var nbPage = Math.max(1, (int) Math.ceil((double) totalInvoices / MAX_SIZE));
     String htmlBody;
     var zipFileId = randomUUID().toString();
@@ -71,8 +72,10 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
         List<Invoice> invoicePaginate =
             invoiceRepository.findAllByIdUserAndSendingDateBetweenAndPaginate(
                 userId, from, to, page, MAX_SIZE);
+        log.info("invoicePaginate={}", invoicePaginate);
 
         var invoicePaginateFile = downloadInvoicesFiles(userId, invoicePaginate);
+        log.info("invoicePaginateFile={}", invoicePaginateFile);
 
         for (File invoice : invoicePaginateFile) {
           try {
@@ -87,6 +90,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
       var invoicesZipFile = fileZipper.apply(List.of(invoicesFiles.toFile()));
       s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
       preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, EXPIRATION_IN_SECONDS);
+      log.info("preSignedURL {}", preSignedURL);
     } else {
       preSignedURL = "Aucune facture ne correspond aux critères recherchés.";
       log.info("preSignedUrl={}", preSignedURL);

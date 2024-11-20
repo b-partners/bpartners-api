@@ -1,6 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
 import static java.time.LocalDate.now;
@@ -42,9 +42,10 @@ class InvoiceExportLinkRequestedServiceIT extends MockedThirdParties {
 
     subject.accept(
         InvoiceExportLinkRequested.builder()
-            .accountId(JOE_DOE_ACCOUNT_ID)
+            .userId(JOE_DOE_ID)
             .providedFrom(now().minusYears(3L))
             .providedTo(now())
+            .page(0)
             .build());
 
     verify(s3ServiceMock, times(1)).uploadFile(any(), any(), any(), any());

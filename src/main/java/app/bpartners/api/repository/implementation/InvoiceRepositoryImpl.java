@@ -158,6 +158,11 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
         .toList();
   }
 
+  @Override
+  public int countAllByIdUserAndSendingDateBetween(String userId, LocalDate from, LocalDate to) {
+    return jpaRepository.countAllByIdUserAndSendingDateBetween(userId, from, to);
+  }
+
   private void setCustomerFilters(
       CriteriaBuilder builder,
       Root<HInvoice> rootPath,

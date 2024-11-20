@@ -25,6 +25,4 @@ public class Subscription {
   public boolean hasFreeTrialPeriod() {
     return freeTrialDays != null && freeTrialDays > 0;
   }
-
-
 }

@@ -2,7 +2,6 @@ package app.bpartners.api.model.subscription;
 
 import java.time.Instant;
 import java.util.List;
-
 import lombok.*;
 
 @AllArgsConstructor

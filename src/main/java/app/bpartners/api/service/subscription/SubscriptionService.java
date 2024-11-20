@@ -26,11 +26,10 @@ import com.stripe.model.Customer;
 import com.stripe.model.Product;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
+import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
@@ -48,12 +47,13 @@ public class SubscriptionService {
         ProductCreateParams.builder()
             .setName(subscriptionProduct.getName())
             .setDescription(subscriptionProduct.getDescription())
-            .addAllMarketingFeature(subscriptionProduct.getFeatures().stream()
-                    .map(feature -> ProductCreateParams.MarketingFeature.builder()
-                            .setName(feature)
-                            .build())
+            .addAllMarketingFeature(
+                subscriptionProduct.getFeatures().stream()
+                    .map(
+                        feature ->
+                            ProductCreateParams.MarketingFeature.builder().setName(feature).build())
                     .toList())
-                .addImage(subscriptionProduct.getImageUrl())
+            .addImage(subscriptionProduct.getImageUrl())
             .setActive(true)
             .setDefaultPriceData(
                 ProductCreateParams.DefaultPriceData.builder()
@@ -67,6 +67,11 @@ public class SubscriptionService {
                     .build())
             .build();
     var createdStripeProduct = stripeClient.products().create(productCreateParams);
+    return fromStripeProduct(createdStripeProduct);
+  }
+
+  @SneakyThrows
+  private SubscriptionProduct fromStripeProduct(Product createdStripeProduct) {
     var createdDefaultPriceId = createdStripeProduct.getDefaultPrice();
     var price = stripeClient.prices().retrieve(createdDefaultPriceId);
     return SubscriptionProduct.builder()
@@ -74,7 +79,10 @@ public class SubscriptionService {
         .e2Id(createdStripeProduct.getId())
         .name(createdStripeProduct.getName())
         .description(createdStripeProduct.getDescription())
-        .features(createdStripeProduct.getMarketingFeatures().stream().map(Product.MarketingFeature::getName).toList())
+        .features(
+            createdStripeProduct.getMarketingFeatures().stream()
+                .map(Product.MarketingFeature::getName)
+                .toList())
         .priceInCents(price.getUnitAmount())
         .imageUrl(createdStripeProduct.getImages().getFirst())
         .type(computeTypeFromRecurring(price.getRecurring().getInterval()))
@@ -97,21 +105,25 @@ public class SubscriptionService {
   }
 
   @SneakyThrows
-  public Redirection initiateSubscription(User user, Subscription subscription, RedirectionStatusUrls redirectionUrls) {
+  public Redirection initiateSubscription(
+      User user, Subscription subscription, RedirectionStatusUrls redirectionUrls) {
     var stripeCustomer = getStripeCustomerByE2Id(user.getUserSubscriptionId());
     var subscriptionProduct = subscription.getSubscriptionProduct();
-    var subscriptionBuilder = SessionCreateParams.builder()
+    var subscriptionBuilder =
+        SessionCreateParams.builder()
             .setMode(SUBSCRIPTION)
             .setCustomer(stripeCustomer.getId())
             .setCurrency(defaultCurrency())
-            .addLineItem(SessionCreateParams.LineItem.builder()
+            .addLineItem(
+                SessionCreateParams.LineItem.builder()
                     .setQuantity(1L)
-                    .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                    .setPriceData(
+                        SessionCreateParams.LineItem.PriceData.builder()
                             .setProduct(subscriptionProduct.getE2Id())
                             .setCurrency(defaultCurrency())
                             .setUnitAmount(subscriptionProduct.getPriceInCents())
                             .setRecurring(
-                                    computeRecurringFromSubscriptionProduct(subscriptionProduct))
+                                computeRecurringFromSubscriptionProduct(subscriptionProduct))
                             .build())
                     .build())
             .setSuccessUrl(redirectionUrls.getSuccessUrl())
@@ -119,24 +131,24 @@ public class SubscriptionService {
             .setUiMode(HOSTED);
     if (subscription.hasFreeTrialPeriod()) {
       subscriptionBuilder.setSubscriptionData(
-              SessionCreateParams.SubscriptionData.builder()
-                      .setTrialSettings(
-                              SessionCreateParams.SubscriptionData.TrialSettings.builder()
-                                      .setEndBehavior(
-                                              SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.builder()
-                                                      .setMissingPaymentMethod(CANCEL)
-                                                      .build()
-                                      )
-                                      .build())
-                      .setTrialPeriodDays(subscription.getFreeTrialDays())
-                      .build());
+          SessionCreateParams.SubscriptionData.builder()
+              .setTrialSettings(
+                  SessionCreateParams.SubscriptionData.TrialSettings.builder()
+                      .setEndBehavior(
+                          SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.builder()
+                              .setMissingPaymentMethod(CANCEL)
+                              .build())
+                      .build())
+              .setTrialPeriodDays(subscription.getFreeTrialDays())
+              .build());
     }
     Session session = Session.create(subscriptionBuilder.build());
     return new Redirection()
-            .redirectionUrl(session.getUrl())
-            .redirectionStatusUrls(new RedirectionStatusUrls()
-                    .successUrl(session.getSuccessUrl())
-                    .failureUrl(session.getCancelUrl()));
+        .redirectionUrl(session.getUrl())
+        .redirectionStatusUrls(
+            new RedirectionStatusUrls()
+                .successUrl(session.getSuccessUrl())
+                .failureUrl(session.getCancelUrl()));
   }
 
   @SneakyThrows
@@ -202,11 +214,11 @@ public class SubscriptionService {
             .getData();
     return stripeSubscriptions.stream()
         .map(
-            subscription ->
-            {
+            subscription -> {
               var trialEnd = Instant.ofEpochSecond(subscription.getTrialEnd());
               var trialStart = Instant.ofEpochSecond(subscription.getTrialStart());
-              var freeTrialDays = (trialEnd == null || trialStart == null) ? 0L : trialStart.until(trialEnd, DAYS);
+              var freeTrialDays =
+                  (trialEnd == null || trialStart == null) ? 0L : trialStart.until(trialEnd, DAYS);
               var startDatetime = Instant.ofEpochSecond(subscription.getCurrentPeriodStart());
               var endDatetime = Instant.ofEpochSecond(subscription.getCurrentPeriodEnd());
               return Subscription.builder()
@@ -214,7 +226,7 @@ public class SubscriptionService {
                   .e2Id(subscription.getId())
                   .startDatetime(startDatetime)
                   .endDatetime(endDatetime)
-                    .freeTrialDays(freeTrialDays)
+                  .freeTrialDays(freeTrialDays)
                   .freeTrialStart(trialStart)
                   .freeTrialEnd(trialEnd)
                   .active(subscription.getStatus().equals(SubscriptionStatus.ACTIVE.name()))
@@ -258,17 +270,17 @@ public class SubscriptionService {
     return UserSubscription.builder().user(savedUser).subscriptions(new ArrayList<>()).build();
   }
 
-  private SessionCreateParams. LineItem. PriceData. Recurring computeRecurringFromSubscriptionProduct(
+  private SessionCreateParams.LineItem.PriceData.Recurring computeRecurringFromSubscriptionProduct(
       SubscriptionProduct subscriptionProduct) {
     switch (subscriptionProduct.getType()) {
       case MONTHLY -> {
-        return SessionCreateParams. LineItem. PriceData. Recurring.builder()
-            .setInterval(SessionCreateParams. LineItem. PriceData. Recurring.Interval.MONTH)
+        return SessionCreateParams.LineItem.PriceData.Recurring.builder()
+            .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
             .build();
       }
       case YEARLY -> {
-        return SessionCreateParams. LineItem. PriceData. Recurring.builder()
-            .setInterval(SessionCreateParams. LineItem. PriceData. Recurring.Interval.YEAR)
+        return SessionCreateParams.LineItem.PriceData.Recurring.builder()
+            .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.YEAR)
             .build();
       }
       default -> throw new IllegalArgumentException(
@@ -292,26 +304,32 @@ public class SubscriptionService {
   @SneakyThrows
   public UserSubscription findUserSubscriptionByCriteria(String stripeCustomerId) {
     var stripeCustomer = stripeClient.customers().retrieve(stripeCustomerId);
-              var user =
-                  userRepository
-                      .findByEmail(stripeCustomer.getEmail())
-                      .orElseThrow(
-                          () ->
-                              new NotFoundException(
-                                  "Unable to found User with email "
-                                      + stripeCustomer.getEmail()
-                                      + ") "
-                                      + "associated to StripeCustomer.id="
-                                      + stripeCustomer.getId()));
-              try {
-                return UserSubscription.builder()
-                    .user(user)
-                    .subscriptions(getSubscriptionsFromStripeCustomer(stripeCustomer.getId()))
-                    .build();
-              } catch (StripeException e) {
-                throw new ApiException(SERVER_EXCEPTION, e);
-      }
+    var user =
+        userRepository
+            .findByEmail(stripeCustomer.getEmail())
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "Unable to found User with email "
+                            + stripeCustomer.getEmail()
+                            + ") "
+                            + "associated to StripeCustomer.id="
+                            + stripeCustomer.getId()));
+    try {
+      return UserSubscription.builder()
+          .user(user)
+          .subscriptions(getSubscriptionsFromStripeCustomer(stripeCustomer.getId()))
+          .build();
+    } catch (StripeException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  @SneakyThrows
+  public SubscriptionProduct getSubscriptionProductByE2Id(String e2Id) {
+    return fromStripeProduct(stripeClient.products().retrieve(e2Id));
+  }
+
   enum SubscriptionStatus {
     ACTIVE
   }

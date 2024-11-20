@@ -77,7 +77,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
         for (File invoice : invoicePaginateFile) {
           try {
             Files.copy(invoice.toPath(), invoicesFiles, REPLACE_EXISTING);
-            Files.delete(invoice.toPath());
+            invoice.deleteOnExit();
           } catch (IOException e) {
             log.info("Exception={}", e.getMessage());
             throw new RuntimeException(e);

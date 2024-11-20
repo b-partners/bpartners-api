@@ -3,7 +3,6 @@ package app.bpartners.api.service.event;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
@@ -12,7 +11,6 @@ import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.file.FileZipper;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
@@ -124,20 +122,8 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
 
   @NotNull
   private List<File> downloadInvoicesFiles(String userId, List<Invoice> invoicesBetweenDates) {
-    Path destinationDirectory = getTempDirectory();
     return invoicesBetweenDates.stream()
-        .map(
-            invoice -> {
-              File file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
-              try {
-                Path destinationPath = destinationDirectory.resolve(invoice.getRef());
-                Files.copy(file.toPath(), destinationPath, REPLACE_EXISTING);
-                file.deleteOnExit();
-                return destinationPath.toFile();
-              } catch (IOException e) {
-                throw new ApiException(SERVER_EXCEPTION, e);
-              }
-            })
+        .map(invoice -> s3Service.downloadFile(INVOICE, invoice.getFileId(), userId))
         .toList();
   }
 

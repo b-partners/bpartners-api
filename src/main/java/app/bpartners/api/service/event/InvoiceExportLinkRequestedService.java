@@ -53,12 +53,12 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var page = event.getPage();
     var totalCount = event.getTotalCount();
     String htmlBody;
-    var zipFileId = randomUUID().toString();
     List<Invoice> invoices =
         invoiceRepository.findAllByIdUserAndSendingDateBetweenAndPaginate(
             userId, from, to, page, MAX_PAGE);
     var invoicesFiles = downloadInvoicesFiles(userId, invoices);
     File invoicesZipFile = createZip(invoicesFiles);
+    var zipFileId = invoicesZipFile.getName();
     s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
     var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, EXPIRATION_IN_SECONDS);
     var user = userRepository.getById(userId);
@@ -68,7 +68,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
             configureInvoiceLinkContext(user, from, to, preSignedURL));
     var mailSubject =
         String.format(
-            "\"Ensemble des factures de l'utilisateur: %s - Partie %s / %s",
+            "Ensemble des factures de l'utilisateur: %s - Partie %s / %s",
             user.getDefaultHolder().getName(), page + 1, totalCount);
     var recipient = user.getDefaultHolder().getEmail();
     var adminRecipient = "tech@bpartners.app";
@@ -107,12 +107,14 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   @NotNull
   private List<File> downloadInvoicesFiles(String userId, List<Invoice> invoicesBetweenDates) {
     Path destinationDirectory = getTempDirectory();
+    var fileExtension = ".pdf";
     return invoicesBetweenDates.stream()
         .map(
             invoice -> {
               File file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
               try {
-                Path destinationPath = destinationDirectory.resolve(invoice.getRef());
+                Path destinationPath =
+                    destinationDirectory.resolve(invoice.getRef() + fileExtension);
                 Files.copy(file.toPath(), destinationPath, REPLACE_EXISTING);
                 file.deleteOnExit();
                 return destinationPath.toFile();

@@ -90,7 +90,7 @@ public class InvoiceService {
       eventProducer.accept(
           List.of(
               InvoiceExportLinkRequested.builder()
-                  .userId(accountId)
+                  .userId(user.getId())
                   .providedStatuses(providedStatuses)
                   .providedArchiveStatus(providedArchiveStatus)
                   .providedFrom(from)

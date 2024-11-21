@@ -57,7 +57,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
         invoiceRepository.findAllByIdUserAndSendingDateBetweenAndPaginate(
             userId, from, to, page, MAX_PAGE);
     var invoicesFiles = downloadInvoicesFiles(userId, invoices);
-    File invoicesZipFile = createZip(invoicesFiles);
+    File invoicesZipFile = fileZipper.apply(invoicesFiles);
     var zipFileId = invoicesZipFile.getName();
     s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
     var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, EXPIRATION_IN_SECONDS);
@@ -78,20 +78,6 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
       log.info("Exception={}", e.getMessage());
       throw new RuntimeException(e);
     }
-  }
-
-  private File createZip(List<File> toZip) {
-    var tempDir = getTempDirectory();
-    for (File invoice : toZip) {
-      try {
-        Files.copy(invoice.toPath(), tempDir, REPLACE_EXISTING);
-        Files.delete(invoice.toPath());
-      } catch (IOException e) {
-        log.info("Exception={}", e.getMessage());
-        throw new RuntimeException(e);
-      }
-    }
-    return fileZipper.apply(List.of(tempDir.toFile()));
   }
 
   private Context configureInvoiceLinkContext(

@@ -1,18 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER2_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_USER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.companyBusinessActivity;
-import static app.bpartners.api.integration.conf.utils.TestUtils.companyInfo;
-import static app.bpartners.api.integration.conf.utils.TestUtils.location;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.toUpdateAnnualRevenueTarget;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 
@@ -115,6 +103,7 @@ class DirtyAccountHolderIT extends MockedThirdParties {
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   @Test

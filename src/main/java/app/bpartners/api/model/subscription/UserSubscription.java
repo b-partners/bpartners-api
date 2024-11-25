@@ -18,7 +18,6 @@ public class UserSubscription {
   private List<Subscription> subscriptions;
 
   public boolean hasValidSubscription() {
-    if (subscriptions == null || subscriptions.isEmpty()) return false;
     var orderedSubscriptions =
         subscriptions.stream()
             .sorted(comparing(Subscription::getStartDatetime, naturalOrder()).reversed())

@@ -40,6 +40,8 @@ public class S3FacadeIT {
     EVENT_CONF.configureProperties(registry);
     LOCAL_STACK_CONF.configureProperties(registry);
 
+    registry.add("stripe.private.api.key", () -> "dummy");
+
     try {
       var envConfClazz = Class.forName("app.bpartners.api.conf.EnvConf");
       var envConfConfigureProperties =

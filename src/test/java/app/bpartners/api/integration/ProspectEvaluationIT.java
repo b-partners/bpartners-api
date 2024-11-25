@@ -6,16 +6,7 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XLSX_FILE;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.geoPosZero;
-import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeAccountHolder;
-import static app.bpartners.api.integration.conf.utils.TestUtils.prospect1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.prospect2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.customerType;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.infestationType;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
@@ -152,6 +143,7 @@ class ProspectEvaluationIT extends MockedThirdParties {
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
 
     when(banApiMock.search(any())).thenReturn(geoPosZero());
     when(banApiMock.fSearch(any())).thenReturn(geoPosZero());

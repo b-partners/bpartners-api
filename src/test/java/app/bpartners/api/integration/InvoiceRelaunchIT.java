@@ -1,20 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE3_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE7_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE8_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE_RELAUNCH1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE_RELAUNCH2_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -67,6 +53,7 @@ class InvoiceRelaunchIT extends S3MockedThirdParties {
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   InvoiceRelaunch invoiceRelaunch1() {

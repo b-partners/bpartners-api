@@ -1,22 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_PRODUCT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.disabledProduct;
-import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.isAfterOrEquals;
-import static app.bpartners.api.integration.conf.utils.TestUtils.product1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.product6;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInfoRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.repository.google.calendar.drive.DriveApi.EXCEL_MIME_TYPE;
 import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -103,6 +87,7 @@ class ProductIT extends MockedThirdParties {
     setUpPaymentInfoRepository(paymentInfoRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   CreateProduct createProduct1() {

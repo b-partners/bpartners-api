@@ -6,7 +6,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static org.junit.jupiter.api.Assertions.*;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
-import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.integration.conf.StripeMockedThirdParties;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.UserRepository;
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
-class SubscriptionServiceIT extends MockedThirdParties {
+class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
 
@@ -37,7 +37,7 @@ class SubscriptionServiceIT extends MockedThirdParties {
 
     assertNotNull(updatedUserSubscription);
     assertEquals(
-        subject.findUserSubscriptionByCriteria(
+        subject.getSubscriptionByUserSubscriptionId(
             updatedUserSubscription.getUser().getUserSubscriptionId()),
         updatedUserSubscription);
     assertNotNull(subject.cancelUserSubscription(updatedUser));
@@ -45,11 +45,43 @@ class SubscriptionServiceIT extends MockedThirdParties {
   }
 
   @Test
+  void cancel_user_subscription_ko() {
+    var user = userRepository.findByEmail("jane@email.com").orElseThrow();
+
+    var actual =
+        assertThrows(IllegalArgumentException.class, () -> subject.cancelUserSubscription(user));
+
+    assertEquals(
+        "User.userSubscriptionId is required to cancel subscription, "
+            + "otherwise User.id="
+            + user.getId()
+            + " does not have userSubscriptionId",
+        actual.getMessage());
+  }
+
+  @Test
+  void update_user_subscription_ko() {
+    var user = userRepository.findByEmail("jane@email.com").orElseThrow();
+
+    var actual =
+        assertThrows(IllegalArgumentException.class, () -> subject.updateUserSubscription(user));
+
+    assertEquals(
+        "User.userSubscriptionId is required to update subscription, "
+            + "otherwise User.id="
+            + user.getId()
+            + " does not have userSubscriptionId",
+        actual.getMessage());
+  }
+
+  @Test
   void user_has_free_trial_subscription_period() {
     var user = userRepository.findByEmail("bernard@email.com").orElseThrow();
 
     var actualSubscriptions =
-        subject.findUserSubscriptionByCriteria(user.getUserSubscriptionId()).getSubscriptions();
+        subject
+            .getSubscriptionByUserSubscriptionId(user.getUserSubscriptionId())
+            .getSubscriptions();
 
     assertFalse(actualSubscriptions.isEmpty());
     var subscription = actualSubscriptions.getFirst();
@@ -79,16 +111,7 @@ class SubscriptionServiceIT extends MockedThirdParties {
 
     var actualSubscriptionRedirection =
         subject.initiateSubscription(
-            user,
-            Subscription.builder()
-                .subscriptionProduct(
-                    subject.getSubscriptionProductByE2Id(defaultSubscriptionProductId()))
-                .endDatetime(now().plus(30L, DAYS))
-                .freeTrialDays(14L)
-                .build(),
-            new RedirectionStatusUrls()
-                .failureUrl("http://loclahost/cancelUrl")
-                .successUrl("http://loclahost/successUrl"));
+            user, getDefaultSubscription(), getDefaultRedirectionStatusUrls());
 
     assertNotNull(actualSubscriptionRedirection);
     assertNotNull(actualSubscriptionRedirection.getRedirectionUrl());
@@ -102,6 +125,34 @@ class SubscriptionServiceIT extends MockedThirdParties {
     log.info(
         "Redirection stripe checkout url = {}", actualSubscriptionRedirection.getRedirectionUrl());
     assertNotNull(subject.cancelUserSubscription(user));
+  }
+
+  private RedirectionStatusUrls getDefaultRedirectionStatusUrls() {
+    return new RedirectionStatusUrls()
+        .failureUrl("http://loclahost/cancelUrl")
+        .successUrl("http://loclahost/successUrl");
+  }
+
+  private Subscription getDefaultSubscription() {
+    return Subscription.builder()
+        .subscriptionProduct(subject.getSubscriptionProductByE2Id(defaultSubscriptionProductId()))
+        .endDatetime(now().plus(30L, DAYS))
+        .freeTrialDays(14L)
+        .build();
+  }
+
+  @Test
+  void initiate_subscription_ko() {
+    var user = userRepository.findByEmail("jane@email.com").orElseThrow();
+
+    var actual =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                subject.initiateSubscription(
+                    user, getDefaultSubscription(), getDefaultRedirectionStatusUrls()));
+
+    assertEquals("Stripe customer id is mandatory and can not be null", actual.getMessage());
   }
 
   @Test
@@ -155,6 +206,9 @@ class SubscriptionServiceIT extends MockedThirdParties {
     }
     if (actualUserSubscription.getSubscriptions().getFirst().getEndDatetime().isAfter(now())) {
       assertTrue(actualUserSubscription.hasValidSubscription());
+      assertTrue(
+          actualUserSubscription.getSubscriptions().stream()
+              .noneMatch(Subscription::hasFreeTrialPeriod));
     }
     assertTrue(true); // skip test once trial expired
   }

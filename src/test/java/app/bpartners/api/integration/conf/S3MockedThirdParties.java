@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.SentryConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
@@ -12,6 +13,7 @@ import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -29,5 +31,7 @@ public class S3MockedThirdParties extends S3FacadeIT {
   @MockBean protected AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean protected LegalFileRepository legalFileRepositoryMock;
   @MockBean protected BridgeApi bridgeApi;
+  @MockBean protected StripeConf stripeConf;
+  @MockBean protected SubscriptionService subscriptionService;
   @MockBean protected EventProducer eventProducer;
 }

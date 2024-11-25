@@ -4,11 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSE
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.PROSPECT_1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.lang.Boolean.TRUE;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -316,6 +312,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     setUpCognito(cognitoComponentMock);
     setUpBanApiMock(banApiMock);
     setUpWmsImageSourceMock(wmsImageSourceMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   private void setUpWmsImageSourceMock(WmsImageSource wmsImageSource) {

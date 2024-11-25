@@ -100,13 +100,10 @@ public class SubscriptionService {
 
   private ProductCreateParams.DefaultPriceData.Recurring.Interval intervalFromSubscriptionType(
       SubscriptionType subscriptionType) {
-    switch (subscriptionType) {
-      case MONTHLY -> {
-        return ProductCreateParams.DefaultPriceData.Recurring.Interval.MONTH;
-      }
-      default -> throw new IllegalArgumentException(
-          "Unknown subscription type " + subscriptionType);
+    if (Objects.requireNonNull(subscriptionType) == MONTHLY) {
+      return ProductCreateParams.DefaultPriceData.Recurring.Interval.MONTH;
     }
+    throw new IllegalArgumentException("Unknown subscription type " + subscriptionType);
   }
 
   @SneakyThrows
@@ -263,7 +260,7 @@ public class SubscriptionService {
   public UserSubscription cancelUserSubscription(User user) {
     if (user.getUserSubscriptionId() == null) {
       throw new IllegalArgumentException(
-          "User.userSubscriptionId is required to update subscription, "
+          "User.userSubscriptionId is required to cancel subscription, "
               + "otherwise User.id="
               + user.getId()
               + " does not have userSubscriptionId");

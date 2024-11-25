@@ -37,11 +37,25 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     assertNotNull(updatedUserSubscription);
     assertEquals(
-        subject.findUserSubscriptionByCriteria(
-            updatedUserSubscription.getUser().getUserSubscriptionId()),
+        subject.getSubscriptionByUserSubscriptionId(updatedUserSubscription.getUser().getUserSubscriptionId()),
         updatedUserSubscription);
     assertNotNull(subject.cancelUserSubscription(updatedUser));
     assertNull(userRepository.getById(user.getId()).getUserSubscriptionId());
+  }
+
+  @Test
+  void cancel_user_subscription_ko() {
+    var user = userRepository.findByEmail("jane@email.com").orElseThrow();
+
+    var actual =
+        assertThrows(IllegalArgumentException.class, () -> subject.cancelUserSubscription(user));
+
+    assertEquals(
+        "User.userSubscriptionId is required to update subscription, "
+            + "otherwise User.id="
+            + user.getId()
+            + " does not have userSubscriptionId",
+        actual.getMessage());
   }
 
   @Test
@@ -49,7 +63,9 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     var user = userRepository.findByEmail("bernard@email.com").orElseThrow();
 
     var actualSubscriptions =
-        subject.findUserSubscriptionByCriteria(user.getUserSubscriptionId()).getSubscriptions();
+        subject
+            .getSubscriptionByUserSubscriptionId(user.getUserSubscriptionId())
+            .getSubscriptions();
 
     assertFalse(actualSubscriptions.isEmpty());
     var subscription = actualSubscriptions.getFirst();
@@ -143,7 +159,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     var userBernard = userRepository.findByEmail("bernard@email.com").orElseThrow();
     var userJoe = userRepository.findByEmail("joe@email.com").orElseThrow();
 
-    var actualTrialingUserSubscription = subject.getSubscriptionByUserId(userBernard.getId());
+    var actualTrialingUserSubscription =
+        subject.getSubscriptionByUserId(userBernard.getId());
     var actualUserSubscription = subject.getSubscriptionByUserId(userJoe.getId());
 
     if (actualTrialingUserSubscription
@@ -155,7 +172,9 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     }
     if (actualUserSubscription.getSubscriptions().getFirst().getEndDatetime().isAfter(now())) {
       assertTrue(actualUserSubscription.hasValidSubscription());
-      assertTrue(actualUserSubscription.getSubscriptions().stream().noneMatch(Subscription::hasFreeTrialPeriod));
+      assertTrue(
+          actualUserSubscription.getSubscriptions().stream()
+              .noneMatch(Subscription::hasFreeTrialPeriod));
     }
     assertTrue(true); // skip test once trial expired
   }

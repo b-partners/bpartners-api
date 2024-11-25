@@ -2,7 +2,6 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
-import static app.bpartners.api.model.subscription.SubscriptionType.YEARLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
 import static com.stripe.param.checkout.SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.MissingPaymentMethod.CANCEL;
@@ -30,6 +29,7 @@ import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
@@ -103,9 +103,6 @@ public class SubscriptionService {
     switch (subscriptionType) {
       case MONTHLY -> {
         return ProductCreateParams.DefaultPriceData.Recurring.Interval.MONTH;
-      }
-      case YEARLY -> {
-        return ProductCreateParams.DefaultPriceData.Recurring.Interval.YEAR;
       }
       default -> throw new IllegalArgumentException(
           "Unknown subscription type " + subscriptionType);
@@ -290,37 +287,25 @@ public class SubscriptionService {
 
   private SessionCreateParams.LineItem.PriceData.Recurring computeRecurringFromSubscriptionProduct(
       SubscriptionProduct subscriptionProduct) {
-    switch (subscriptionProduct.getType()) {
-      case MONTHLY -> {
-        return SessionCreateParams.LineItem.PriceData.Recurring.builder()
-            .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
-            .build();
-      }
-      case YEARLY -> {
-        return SessionCreateParams.LineItem.PriceData.Recurring.builder()
-            .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.YEAR)
-            .build();
-      }
-      default -> throw new IllegalArgumentException(
-          "Unknown subscription type: " + subscriptionProduct.getType());
+    if (Objects.requireNonNull(subscriptionProduct.getType()) == MONTHLY) {
+      return SessionCreateParams.LineItem.PriceData.Recurring.builder()
+          .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
+          .build();
     }
+    throw new IllegalArgumentException(
+        "Unknown subscription type: " + subscriptionProduct.getType());
   }
 
   private SubscriptionType computeTypeFromRecurring(String intervalValue) {
-    switch (intervalValue) {
-      case "month" -> {
-        return MONTHLY;
-      }
-      case "year" -> {
-        return YEARLY;
-      }
-      default -> throw new IllegalArgumentException(
-          "Unknown or not supported subscription type: " + intervalValue);
+    if (intervalValue.equals("month")) {
+      return MONTHLY;
     }
+    throw new IllegalArgumentException(
+        "Unknown or not supported subscription type: " + intervalValue);
   }
 
   @SneakyThrows
-  public UserSubscription findUserSubscriptionByCriteria(String stripeCustomerId) {
+  public UserSubscription getSubscriptionByUserSubscriptionId(String stripeCustomerId) {
     var stripeCustomer = stripeClient.customers().retrieve(stripeCustomerId);
     var user =
         userRepository

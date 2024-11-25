@@ -78,6 +78,7 @@ public class InvoiceService {
 
     var totalInvoices = repository.countAllByIdUserAndSendingDateBetween(user.getId(), from, to);
     var nbPage = Math.max(1, (int) Math.ceil((double) totalInvoices / MAX_PAGE));
+    var firstPage = 0;
 
     if (totalInvoices <= 0) {
       return PreSignedLink.builder()
@@ -86,19 +87,17 @@ public class InvoiceService {
           .updatedAt(now())
           .build();
     }
-    for (int page = 0; page < nbPage; page++) {
-      eventProducer.accept(
-          List.of(
-              InvoiceExportLinkRequested.builder()
-                  .userId(user.getId())
-                  .providedStatuses(providedStatuses)
-                  .providedArchiveStatus(providedArchiveStatus)
-                  .providedFrom(from)
-                  .providedTo(to)
-                  .page(page)
-                  .totalCount(nbPage)
-                  .build()));
-    }
+    eventProducer.accept(
+        List.of(
+            InvoiceExportLinkRequested.builder()
+                .userId(user.getId())
+                .providedStatuses(providedStatuses)
+                .providedArchiveStatus(providedArchiveStatus)
+                .providedFrom(from)
+                .providedTo(to)
+                .page(firstPage)
+                .totalPage(nbPage)
+                .build()));
     return PreSignedLink.builder().value(null).expirationDelay(null).updatedAt(now()).build();
   }
 

@@ -1,8 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_BALANCE;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_CASH_FLOW;
 import static app.bpartners.api.service.OnboardingService.DEFAULT_STATUS;
@@ -52,6 +50,7 @@ class UserServiceIT extends MockedThirdParties {
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   public static BridgeUser bridgeUser() {

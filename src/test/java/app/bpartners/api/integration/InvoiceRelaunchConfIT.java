@@ -38,6 +38,7 @@ class InvoiceRelaunchConfIT extends S3MockedThirdParties {
     setUpPaymentInfoRepository(paymentInfoRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   @Test

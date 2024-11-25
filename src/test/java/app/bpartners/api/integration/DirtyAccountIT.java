@@ -1,24 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BERNARD_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_COGNITO_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_EMAIL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILURE_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.filterAccountsById;
-import static app.bpartners.api.integration.conf.utils.TestUtils.joeDoeBridgeAccount;
-import static app.bpartners.api.integration.conf.utils.TestUtils.joePersistedAccount;
-import static app.bpartners.api.integration.conf.utils.TestUtils.otherBridgeAccount;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_SCA;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -206,6 +188,7 @@ class DirtyAccountIT extends MockedThirdParties {
     setUpUserRepository(userRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   // TODO: add read accounts by user ID ok

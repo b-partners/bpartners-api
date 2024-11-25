@@ -16,6 +16,7 @@ import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BR
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -60,6 +61,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
@@ -75,6 +77,7 @@ import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -870,6 +873,12 @@ public class TestUtils {
         .thenReturn(List.of(domainApprovedLegalFile()));
     when(legalFileRepositoryMock.findAllToBeApprovedLegalFilesByUserId(BERNARD_DOE_ID))
         .thenReturn(List.of(domainApprovedLegalFile()));
+  }
+
+  public static void setUpUserSubscription(SubscriptionService subscriptionService) {
+    UserSubscription userSubscriptionMock = mock(UserSubscription.class);
+    when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
+    when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(userSubscriptionMock);
   }
 
   public static void setUpBanApiMock(BanApi banApiMock) {

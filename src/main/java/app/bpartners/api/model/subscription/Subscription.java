@@ -23,6 +23,6 @@ public class Subscription {
   private Instant startDatetime;
 
   public boolean hasFreeTrialPeriod() {
-    return freeTrialDays != null && freeTrialDays > 0;
+    return freeTrialDays > 0;
   }
 }

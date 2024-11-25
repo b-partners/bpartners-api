@@ -37,7 +37,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     assertNotNull(updatedUserSubscription);
     assertEquals(
-        subject.getSubscriptionByUserSubscriptionId(updatedUserSubscription.getUser().getUserSubscriptionId()),
+        subject.getSubscriptionByUserSubscriptionId(
+            updatedUserSubscription.getUser().getUserSubscriptionId()),
         updatedUserSubscription);
     assertNotNull(subject.cancelUserSubscription(updatedUser));
     assertNull(userRepository.getById(user.getId()).getUserSubscriptionId());
@@ -159,8 +160,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     var userBernard = userRepository.findByEmail("bernard@email.com").orElseThrow();
     var userJoe = userRepository.findByEmail("joe@email.com").orElseThrow();
 
-    var actualTrialingUserSubscription =
-        subject.getSubscriptionByUserId(userBernard.getId());
+    var actualTrialingUserSubscription = subject.getSubscriptionByUserId(userBernard.getId());
     var actualUserSubscription = subject.getSubscriptionByUserId(userJoe.getId());
 
     if (actualTrialingUserSubscription

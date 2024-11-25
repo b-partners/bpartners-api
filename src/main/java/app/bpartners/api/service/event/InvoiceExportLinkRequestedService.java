@@ -7,6 +7,7 @@ import static app.bpartners.api.service.InvoiceService.MAX_PAGE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.file.FileZipper;
 import app.bpartners.api.model.Invoice;
@@ -44,6 +45,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   private final InvoiceRepository invoiceRepository;
   private final S3Service s3Service;
   private final TemplateResolverEngine templateResolverEngine;
+  private final EventProducer<InvoiceExportLinkRequested> eventProducer;
 
   @Override
   public void accept(InvoiceExportLinkRequested event) {
@@ -51,7 +53,9 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var from = event.getProvidedFrom();
     var to = event.getProvidedTo();
     var page = event.getPage();
-    var totalCount = event.getTotalCount();
+    var totalPage = event.getTotalPage();
+    var providedStatus = event.getProvidedStatuses();
+    var archiveStatus = event.getProvidedArchiveStatus();
     String htmlBody;
     List<Invoice> invoices =
         invoiceRepository.findAllByIdUserAndSendingDateBetweenAndPaginate(
@@ -69,11 +73,24 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var mailSubject =
         String.format(
             "Ensemble des factures de l'utilisateur: %s - Partie %s / %s",
-            user.getDefaultHolder().getName(), page + 1, totalCount);
+            user.getDefaultHolder().getName(), page + 1, totalPage);
     var recipient = user.getDefaultHolder().getEmail();
     var adminRecipient = "tech@bpartners.app";
     try {
       mailer.sendEmail(recipient, adminRecipient, mailSubject, htmlBody);
+      if (page < totalPage) {
+        eventProducer.accept(
+            List.of(
+                InvoiceExportLinkRequested.builder()
+                    .userId(userId)
+                    .providedStatuses(providedStatus)
+                    .providedArchiveStatus(archiveStatus)
+                    .providedFrom(from)
+                    .providedTo(to)
+                    .page(page + 1)
+                    .totalPage(totalPage)
+                    .build()));
+      }
     } catch (IOException | MessagingException e) {
       log.info("Exception={}", e.getMessage());
       throw new RuntimeException(e);

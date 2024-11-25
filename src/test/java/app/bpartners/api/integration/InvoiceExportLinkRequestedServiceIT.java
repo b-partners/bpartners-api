@@ -46,10 +46,12 @@ class InvoiceExportLinkRequestedServiceIT extends MockedThirdParties {
             .providedFrom(now().minusYears(3L))
             .providedTo(now())
             .page(0)
+            .totalPage(4)
             .build());
 
     verify(s3ServiceMock, times(1)).uploadFile(any(), any(), any(), any());
     verify(mailerMock, times(1)).sendEmail(any(), any(), any(), any());
+    verify(eventProducer, times(1)).accept(any());
   }
 
   private File crupdateFile(File file) {

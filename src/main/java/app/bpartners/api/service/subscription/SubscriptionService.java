@@ -42,6 +42,14 @@ public class SubscriptionService {
   private final UserRepository userRepository;
 
   @SneakyThrows
+  public UserSubscription getSubscriptionByUserId(String userId) {
+    var user = userRepository.getById(userId);
+    var stripeCustomerId = user.getUserSubscriptionId();
+    var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
+    return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
+  }
+
+  @SneakyThrows
   public SubscriptionProduct createSubscriptionProduct(SubscriptionProduct subscriptionProduct) {
     var productCreateParams =
         ProductCreateParams.builder()
@@ -215,8 +223,12 @@ public class SubscriptionService {
     return stripeSubscriptions.stream()
         .map(
             subscription -> {
-              var trialEnd = Instant.ofEpochSecond(subscription.getTrialEnd());
-              var trialStart = Instant.ofEpochSecond(subscription.getTrialStart());
+              var trialEndLongValue = subscription.getTrialEnd();
+              var trialStartLongValue = subscription.getTrialStart();
+              var trialEnd =
+                  trialEndLongValue == null ? null : Instant.ofEpochSecond(trialEndLongValue);
+              var trialStart =
+                  trialStartLongValue == null ? null : Instant.ofEpochSecond(trialStartLongValue);
               var freeTrialDays =
                   (trialEnd == null || trialStart == null) ? 0L : trialStart.until(trialEnd, DAYS);
               var startDatetime = Instant.ofEpochSecond(subscription.getCurrentPeriodStart());
@@ -229,7 +241,13 @@ public class SubscriptionService {
                   .freeTrialDays(freeTrialDays)
                   .freeTrialStart(trialStart)
                   .freeTrialEnd(trialEnd)
-                  .active(subscription.getStatus().equals(SubscriptionStatus.ACTIVE.name()))
+                  .active(
+                      subscription
+                              .getStatus()
+                              .equals(SubscriptionStatus.ACTIVE.name().toLowerCase())
+                          || subscription
+                              .getStatus()
+                              .equals(SubscriptionStatus.TRIALING.name().toLowerCase()))
                   .paymentMethods(subscription.getPaymentSettings().getPaymentMethodTypes())
                   .build();
             })
@@ -331,6 +349,7 @@ public class SubscriptionService {
   }
 
   enum SubscriptionStatus {
-    ACTIVE
+    ACTIVE,
+    TRIALING
   }
 }

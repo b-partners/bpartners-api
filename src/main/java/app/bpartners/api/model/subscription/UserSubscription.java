@@ -18,12 +18,11 @@ public class UserSubscription {
   private List<Subscription> subscriptions;
 
   public boolean hasValidSubscription() {
-    return subscriptions != null
-        && !subscriptions.isEmpty()
-        && subscriptions.stream()
+    if (subscriptions == null || subscriptions.isEmpty()) return false;
+    var orderedSubscriptions =
+        subscriptions.stream()
             .sorted(comparing(Subscription::getStartDatetime, naturalOrder()).reversed())
-            .toList()
-            .getFirst()
-            .isActive();
+            .toList();
+    return orderedSubscriptions.getFirst().isActive();
   }
 }

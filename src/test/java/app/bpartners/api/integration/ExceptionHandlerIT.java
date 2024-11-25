@@ -1,10 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.TEST_FILE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bpartners.api.integration.conf.MockedThirdParties;
@@ -29,6 +25,7 @@ class ExceptionHandlerIT extends MockedThirdParties {
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   // TODO: should throw a bad request exception instead of a forbidden

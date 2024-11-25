@@ -1,22 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.annualRevenueTarget2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.companyBusinessActivity;
-import static app.bpartners.api.integration.conf.utils.TestUtils.companyInfo;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createAnnualRevenueTarget;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customer2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.location;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -169,6 +153,7 @@ class AccountHolderIT extends MockedThirdParties {
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)

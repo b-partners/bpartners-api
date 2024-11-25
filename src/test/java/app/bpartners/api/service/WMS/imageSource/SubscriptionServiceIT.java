@@ -6,7 +6,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static org.junit.jupiter.api.Assertions.*;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
-import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.integration.conf.StripeMockedThirdParties;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.UserRepository;
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
-class SubscriptionServiceIT extends MockedThirdParties {
+class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
 

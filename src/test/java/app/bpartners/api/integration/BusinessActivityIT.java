@@ -1,9 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.businessActivity1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.businessActivity2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
@@ -25,6 +22,7 @@ class BusinessActivityIT extends MockedThirdParties {
   public void setUp() {
     setUpCognito(cognitoComponentMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   private ApiClient anApiClient() {

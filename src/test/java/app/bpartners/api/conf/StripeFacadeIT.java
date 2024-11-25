@@ -3,7 +3,6 @@ package app.bpartners.api.conf;
 import static java.lang.Runtime.getRuntime;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-import app.bpartners.api.PojaGenerated;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,11 +10,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
-@PojaGenerated
-@SuppressWarnings("all")
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Slf4j
-public class FacadeIT {
+public class StripeFacadeIT {
 
   private static final PostgresConf POSTGRES_CONF = new PostgresConf();
 
@@ -40,7 +37,6 @@ public class FacadeIT {
 
     registry.add("sentry.dsn", () -> "https://public@sentry.example.com/1");
     registry.add("sentry.environment", () -> "dummy");
-    registry.add("stripe.private.api.key", () -> "dummy");
 
     try {
       var envConfClazz = Class.forName("app.bpartners.api.conf.EnvConf");

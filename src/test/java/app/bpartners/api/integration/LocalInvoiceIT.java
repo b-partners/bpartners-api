@@ -23,24 +23,7 @@ import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.payment_reg_percent_less_than_100_percent_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.unique_ref_violation_exec;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.validInvoice;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.NOT_JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.accountHolderEntity1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct2;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct5;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.invoice1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.product5;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -110,6 +93,7 @@ class LocalInvoiceIT extends S3MockedThirdParties {
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
 
     when(holderJpaRepository.findAllByIdUser(JOE_DOE_ID))
         .thenReturn(List.of(accountHolderEntity1()));

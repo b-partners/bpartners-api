@@ -16,10 +16,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class EventConsumer implements Consumer<List<ConsumableEvent>> {
-  private final Workers<Void> workers;
+  private final Workers workers;
   private final EventServiceInvoker eventServiceInvoker;
 
-  public EventConsumer(Workers<Void> workers, EventServiceInvoker eventServiceInvoker) {
+  public EventConsumer(Workers workers, EventServiceInvoker eventServiceInvoker) {
     this.workers = workers;
     this.eventServiceInvoker = eventServiceInvoker;
   }

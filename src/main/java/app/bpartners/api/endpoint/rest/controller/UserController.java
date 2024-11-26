@@ -9,7 +9,6 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
-import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.service.AccountRefreshService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -34,11 +33,13 @@ public class UserController {
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
 
   @PostMapping("/users/{uId}/subscriptionInitiation")
-  public Redirection initiateUserSubscription(@PathVariable String uId,
-                                              @RequestBody(required = false) CreateSubscriptionInitiation subscriptionInitiation) {
+  public Redirection initiateUserSubscription(
+      @PathVariable String uId,
+      @RequestBody(required = false) CreateSubscriptionInitiation subscriptionInitiation) {
     subscriptionInitiationRestValidator.accept(subscriptionInitiation);
     var redirectionStatusUrls = subscriptionInitiation.getRedirectionStatusUrls();
-    var subscriptionType = subscriptionService.getBySubscriptionType(subscriptionInitiation.getSubscriptionType());
+    var subscriptionType =
+        subscriptionService.getBySubscriptionType(subscriptionInitiation.getSubscriptionType());
     var user = service.getUserById(uId);
 
     return subscriptionService.initiateSubscription(user, subscriptionType, redirectionStatusUrls);

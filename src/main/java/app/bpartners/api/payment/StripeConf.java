@@ -14,11 +14,12 @@ public class StripeConf {
   private final String apiKey;
   private final String essentialSubscriptionProductId;
 
-  public StripeConf(@Value("${stripe.private.api.key}") String apiKey,
-                    @Value("${stripe.subscription.product.essential.id}") String essentialSubscriptionProductId) {
+  public StripeConf(
+      @Value("${stripe.private.api.key}") String apiKey,
+      @Value("${stripe.subscription.product.essential.id}") String essentialSubscriptionProductId) {
     this.apiKey = apiKey;
-      this.essentialSubscriptionProductId = essentialSubscriptionProductId;
-      Stripe.apiKey = apiKey;
+    this.essentialSubscriptionProductId = essentialSubscriptionProductId;
+    Stripe.apiKey = apiKey;
   }
 
   @Bean

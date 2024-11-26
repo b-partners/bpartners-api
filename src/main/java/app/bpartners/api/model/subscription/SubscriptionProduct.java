@@ -1,14 +1,13 @@
 package app.bpartners.api.model.subscription;
 
-import java.time.Instant;
-import java.util.List;
+import static org.hibernate.type.SqlTypes.JSON;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import java.time.Instant;
+import java.util.List;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
-
-import static org.hibernate.type.SqlTypes.JSON;
 
 @Entity(name = "user_subscription_product")
 @AllArgsConstructor
@@ -22,8 +21,10 @@ public class SubscriptionProduct {
   private String e2Id;
   private String name;
   private String description;
+
   @JdbcTypeCode(JSON)
   private List<String> features;
+
   private String imageUrl;
   private SubscriptionType type;
   private Long priceInCents;

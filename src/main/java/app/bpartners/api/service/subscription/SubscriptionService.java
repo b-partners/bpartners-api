@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
-  private static final long DEFAULT_FREE_TRIAL_DAYS = 0L; //TODO: set to 14L once test finished
+  private static final long DEFAULT_FREE_TRIAL_DAYS = 0L; // TODO: set to 14L once test finished
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
@@ -54,14 +54,18 @@ public class SubscriptionService {
   public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
     if (userSubscriptionType.equals(ESSENTIAL)) {
       var defaultSubscriptionProductId = stripeConf.getEssentialSubscriptionProductId();
-      var subscriptionProduct = subscriptionProductRepository.findById(defaultSubscriptionProductId).orElseThrow(
-              () -> new NotFoundException("Subscription(id=" + defaultSubscriptionProductId + ") not found")
-      );
+      var subscriptionProduct =
+          subscriptionProductRepository
+              .findById(defaultSubscriptionProductId)
+              .orElseThrow(
+                  () ->
+                      new NotFoundException(
+                          "Subscription(id=" + defaultSubscriptionProductId + ") not found"));
       return Subscription.builder()
-              .subscriptionProduct(getSubscriptionProductByE2Id(subscriptionProduct.getE2Id()))
-              .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
-              .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
-              .build();
+          .subscriptionProduct(getSubscriptionProductByE2Id(subscriptionProduct.getE2Id()))
+          .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
+          .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
+          .build();
     }
     throw new NotImplementedException("Only ESSENTIAL subscription type is supported");
   }

@@ -231,6 +231,9 @@ public class SecurityConf {
                         new SelfUserMatcher(GET, "/users/*/accounts", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
+                        new SelfUserMatcher(POST, "/users/*/subscriptionInitiation", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
                         new SelfUserMatcher(
                             POST, "/users/*/deviceRegistration", authResourceProvider))
                     .authenticated()

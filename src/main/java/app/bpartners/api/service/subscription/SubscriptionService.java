@@ -1,24 +1,30 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
 import static com.stripe.param.checkout.SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.MissingPaymentMethod.CANCEL;
 import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
+import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.SubscriptionType;
 import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -38,8 +44,27 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
+  private static final long DEFAULT_FREE_TRIAL_DAYS = 0L; //TODO: set to 14L once test finished
+  private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
+  private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
+  private final SubscriptionProductRepository subscriptionProductRepository;
+
+  public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
+    if (userSubscriptionType.equals(ESSENTIAL)) {
+      var defaultSubscriptionProductId = stripeConf.getEssentialSubscriptionProductId();
+      var subscriptionProduct = subscriptionProductRepository.findById(defaultSubscriptionProductId).orElseThrow(
+              () -> new NotFoundException("Subscription(id=" + defaultSubscriptionProductId + ") not found")
+      );
+      return Subscription.builder()
+              .subscriptionProduct(getSubscriptionProductByE2Id(subscriptionProduct.getE2Id()))
+              .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
+              .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
+              .build();
+    }
+    throw new NotImplementedException("Only ESSENTIAL subscription type is supported");
+  }
 
   @SneakyThrows
   public UserSubscription getSubscriptionByUserId(String userId) {

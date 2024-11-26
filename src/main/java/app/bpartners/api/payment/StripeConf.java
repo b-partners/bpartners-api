@@ -12,9 +12,13 @@ import org.springframework.context.annotation.Configuration;
 public class StripeConf {
   private static final String EURO_ISO_CURRENCY_CODE = "EUR";
   private final String apiKey;
+  private final String essentialSubscriptionProductId;
 
-  public StripeConf(@Value("${stripe.private.api.key}") String apiKey) {
+  public StripeConf(
+      @Value("${stripe.private.api.key}") String apiKey,
+      @Value("${stripe.subscription.product.essential.id}") String essentialSubscriptionProductId) {
     this.apiKey = apiKey;
+    this.essentialSubscriptionProductId = essentialSubscriptionProductId;
     Stripe.apiKey = apiKey;
   }
 

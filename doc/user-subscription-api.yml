@@ -1,0 +1,50 @@
+operations:
+  initiateUserSubscription:
+    post:
+      tags:
+        - User Subscription
+      summary: Initiate user subscription
+      operationId: initiateUserSubscription
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubscriptionInitiation'
+      responses:
+        200:
+          description: The redirection urls to make subscription
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml/#/components/schemas/Redirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    CreateSubscriptionInitiation:
+      type: object
+      properties:
+        redirectionStatusUrls:
+          $ref: './api.yml/#/components/schemas/RedirectionStatusUrls'
+        subscriptionType:
+          $ref: '#/components/schemas/UserSubscriptionType'
+    UserSubscriptionType:
+      type: string
+      description: for now, only ESSENTIAL subscription is supported
+      enum:
+        - ESSENTIAL

@@ -78,6 +78,11 @@ paths:
   /users/{uId}/legalFiles/{lId}:
     $ref: './userAccounts-api.yml#/operations/approveLegalFile'
 
+  #############################################
+  ############## User Subscription API #############
+  #############################################
+  /users/{uId}/subscriptionInitiation:
+    $ref: './user-subscription-api.yml#/operations/initiateUserSubscription'
 
   #############################################
   ################ Paying API #################

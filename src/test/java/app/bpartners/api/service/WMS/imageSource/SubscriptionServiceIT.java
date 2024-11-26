@@ -111,16 +111,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     var actualSubscriptionRedirection =
         subject.initiateSubscription(
-            user,
-            Subscription.builder()
-                .subscriptionProduct(
-                    subject.getSubscriptionProductByE2Id(defaultSubscriptionProductId()))
-                .endDatetime(now().plus(30L, DAYS))
-                .freeTrialDays(14L)
-                .build(),
-            new RedirectionStatusUrls()
-                .failureUrl("http://loclahost/cancelUrl")
-                .successUrl("http://loclahost/successUrl"));
+            user, getDefaultSubscription(), getDefaultRedirectionStatusUrls());
 
     assertNotNull(actualSubscriptionRedirection);
     assertNotNull(actualSubscriptionRedirection.getRedirectionUrl());
@@ -134,6 +125,34 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     log.info(
         "Redirection stripe checkout url = {}", actualSubscriptionRedirection.getRedirectionUrl());
     assertNotNull(subject.cancelUserSubscription(user));
+  }
+
+  private RedirectionStatusUrls getDefaultRedirectionStatusUrls() {
+    return new RedirectionStatusUrls()
+        .failureUrl("http://loclahost/cancelUrl")
+        .successUrl("http://loclahost/successUrl");
+  }
+
+  private Subscription getDefaultSubscription() {
+    return Subscription.builder()
+        .subscriptionProduct(subject.getSubscriptionProductByE2Id(defaultSubscriptionProductId()))
+        .endDatetime(now().plus(30L, DAYS))
+        .freeTrialDays(14L)
+        .build();
+  }
+
+  @Test
+  void initiate_subscription_ko() {
+    var user = userRepository.findByEmail("jane@email.com").orElseThrow();
+
+    var actual =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                subject.initiateSubscription(
+                    user, getDefaultSubscription(), getDefaultRedirectionStatusUrls()));
+
+    assertEquals("Stripe customer id is mandatory and can not be null", actual.getMessage());
   }
 
   @Test

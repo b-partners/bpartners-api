@@ -62,7 +62,7 @@ public class InvoiceService {
   private final PaymentService paymentService;
   private final InvoiceValidator invoiceValidator;
   private final CustomerInvoiceValidator customerInvoiceValidator;
-  private final EventProducer eventProducer;
+  private final EventProducer<InvoiceExportLinkRequested> eventProducer;
   private final UserRepository userRepository;
 
   @SneakyThrows

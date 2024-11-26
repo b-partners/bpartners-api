@@ -56,7 +56,6 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     var totalPage = event.getTotalPage();
     var providedStatus = event.getProvidedStatuses();
     var archiveStatus = event.getProvidedArchiveStatus();
-    String htmlBody;
     List<Invoice> invoices =
         invoiceRepository.findAllByIdUserAndSendingDateBetweenAndPaginate(
             userId, from, to, page, MAX_PAGE);
@@ -66,7 +65,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
     var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, EXPIRATION_IN_SECONDS);
     var user = userRepository.getById(userId);
-    htmlBody =
+    String htmlBody =
         templateResolverEngine.parseTemplateResolver(
             INVOICE_EXPORT_LINK_REQUESTED_BODY,
             configureInvoiceLinkContext(user, from, to, preSignedURL));

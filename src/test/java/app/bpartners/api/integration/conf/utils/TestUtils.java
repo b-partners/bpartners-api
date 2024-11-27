@@ -9,6 +9,7 @@ import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.Money.fromMinor;
@@ -189,7 +190,8 @@ public class TestUtils {
         .logoFileId("logo.jpeg")
         .status(ENABLED)
         .activeAccount(restJoeAccount())
-        .roles(List.of());
+        .roles(List.of())
+        .subscriptionStatus(EMPTY);
   }
 
   public static app.bpartners.api.endpoint.rest.model.Account restJaneAccount() {

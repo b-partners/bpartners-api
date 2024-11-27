@@ -38,14 +38,16 @@ public class Workers {
                           return c.call();
                         })
             .toList();
-      List<Future<Void>> futures = executorService.invokeAll(callables);
-      return futures.stream()
-              .map(future -> {
-                  try{
-                      return future.get();
-                  } catch (InterruptedException | ExecutionException e) {
-                      throw new RuntimeException(e);
-                  }
-              }).toList();
+    List<Future<Void>> futures = executorService.invokeAll(callables);
+    return futures.stream()
+        .map(
+            future -> {
+              try {
+                return future.get();
+              } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+              }
+            })
+        .toList();
   }
 }

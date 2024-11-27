@@ -114,7 +114,6 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
         .map(
             invoice -> {
               File file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
-              log.info("download file: {}", file);
               try {
                 Path destinationPath =
                     destinationDirectory.resolve(invoice.getRef() + fileExtension);

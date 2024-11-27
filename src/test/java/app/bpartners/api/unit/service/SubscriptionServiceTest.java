@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-public class SubscriptionServiceTest {
+class SubscriptionServiceTest {
 
   private static final long DEFAULT_FREE_TRIAL_DAYS = 0L;
   StripeConf stripeConfMock = mock(StripeConf.class);

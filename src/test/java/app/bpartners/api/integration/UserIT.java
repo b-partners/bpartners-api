@@ -100,7 +100,8 @@ class UserIT extends MockedThirdParties {
   private static UserSubscription userSubscriptionMaker(boolean isActive) {
     return UserSubscription.builder()
         .user(new app.bpartners.api.model.User())
-        .subscriptions(List.of(Subscription.builder().active(true).startDatetime(now()).build()))
+        .subscriptions(
+            List.of(Subscription.builder().active(isActive).startDatetime(now()).build()))
         .build();
   }
 
@@ -166,7 +167,6 @@ class UserIT extends MockedThirdParties {
   }
 
   @Test
-  @Disabled
   void read_user_using_cognito_ok() throws ApiException {
     reset(subscriptionService);
     when(subscriptionService.getSubscriptionByUser(any())).thenReturn(userSubscriptionMaker(false));

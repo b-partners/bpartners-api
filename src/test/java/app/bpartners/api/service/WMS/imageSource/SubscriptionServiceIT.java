@@ -155,19 +155,21 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Test
   void initiate_subscription_ko() {
     var user = userRepository.findByEmail("jane@email.com").orElseThrow();
+    var defaultSubscription = getDefaultSubscription();
+    var defaultRedirectionStatusUrls = getDefaultRedirectionStatusUrls();
 
     var actual =
         assertThrows(
             IllegalArgumentException.class,
             () ->
                 subject.initiateSubscription(
-                    user, getDefaultSubscription(), getDefaultRedirectionStatusUrls()));
+                    user, defaultSubscription, defaultRedirectionStatusUrls));
 
     assertEquals("Stripe customer id is mandatory and can not be null", actual.getMessage());
   }
 
   @Test
-  @Disabled
+  @Disabled("TODO: remove new product in stripe dashboard after running")
   void add_product_and_initiate_subscriptions() {
     var actualSubscriptionProduct =
         subject.createSubscriptionProduct(

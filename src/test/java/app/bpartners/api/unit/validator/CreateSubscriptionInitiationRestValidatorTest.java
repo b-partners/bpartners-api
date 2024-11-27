@@ -20,19 +20,16 @@ class CreateSubscriptionInitiationRestValidatorTest {
   @Test
   void accept_with_exceptionMsg() {
     var createSubscriptionInitiation = new CreateSubscriptionInitiation();
-    var redirectionStatusUrls = new RedirectionStatusUrls();
-
+    var createSubscriptionInitiation2 =
+        new CreateSubscriptionInitiation()
+            .subscriptionType(ESSENTIAL)
+            .redirectionStatusUrls(new RedirectionStatusUrls());
     var actual =
         assertThrows(
             IllegalArgumentException.class, () -> subject.accept(createSubscriptionInitiation));
     var actual2 =
         assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                subject.accept(
-                    createSubscriptionInitiation
-                        .subscriptionType(ESSENTIAL)
-                        .redirectionStatusUrls(redirectionStatusUrls)));
+            IllegalArgumentException.class, () -> subject.accept(createSubscriptionInitiation2));
 
     assertEquals(
         "subscriptionType can not be null. redirectionStatusUrls can not be null. ",

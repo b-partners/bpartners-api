@@ -3,6 +3,7 @@ package app.bpartners.api.service.WMS.imageSource;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
@@ -135,7 +136,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
   private Subscription getDefaultSubscription() {
     return Subscription.builder()
-        .subscriptionProduct(subject.getSubscriptionProductByE2Id(defaultSubscriptionProductId()))
+        .subscriptionProduct(subject.getSubscriptionProductByE2Id(randomUUID().toString(), defaultSubscriptionProductId()))
         .endDatetime(now().plus(30L, DAYS))
         .freeTrialDays(14L)
         .build();

@@ -9,7 +9,7 @@ import java.util.List;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 
-@Entity(name = "user_subscription_product")
+@Entity(name = "subscription_product")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

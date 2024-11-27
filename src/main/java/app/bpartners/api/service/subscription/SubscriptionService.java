@@ -62,7 +62,7 @@ public class SubscriptionService {
                       new NotFoundException(
                           "Subscription(id=" + defaultSubscriptionProductId + ") not found"));
       return Subscription.builder()
-          .subscriptionProduct(getSubscriptionProductByE2Id(subscriptionProduct.getE2Id()))
+          .subscriptionProduct(getSubscriptionProductByE2Id(subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
           .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
           .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
           .build();
@@ -104,15 +104,16 @@ public class SubscriptionService {
                     .build())
             .build();
     var createdStripeProduct = stripeClient.products().create(productCreateParams);
-    return fromStripeProduct(createdStripeProduct);
+    //TODO persist subscriptionProduct here and return persisted domain subscription product id
+    return fromStripeProduct(randomUUID().toString(), createdStripeProduct);
   }
 
   @SneakyThrows
-  private SubscriptionProduct fromStripeProduct(Product createdStripeProduct) {
+  private SubscriptionProduct fromStripeProduct(String domainProductId, Product createdStripeProduct) {
     var createdDefaultPriceId = createdStripeProduct.getDefaultPrice();
     var price = stripeClient.prices().retrieve(createdDefaultPriceId);
     return SubscriptionProduct.builder()
-        .id(randomUUID().toString())
+        .id(domainProductId)
         .e2Id(createdStripeProduct.getId())
         .name(createdStripeProduct.getName())
         .description(createdStripeProduct.getDescription())
@@ -355,8 +356,8 @@ public class SubscriptionService {
   }
 
   @SneakyThrows
-  public SubscriptionProduct getSubscriptionProductByE2Id(String e2Id) {
-    return fromStripeProduct(stripeClient.products().retrieve(e2Id));
+  public SubscriptionProduct getSubscriptionProductByE2Id(String domainProductId, String e2Id) {
+    return fromStripeProduct(domainProductId, stripeClient.products().retrieve(e2Id));
   }
 
   enum SubscriptionStatus {

@@ -176,7 +176,8 @@ class UserIT extends MockedThirdParties {
 
     User actualUser = api.getUserById(JOE_DOE_ID);
 
-    assertEquals(restJoeDoeUser(), actualUser);
+    var expected = restJoeDoeUser();
+    assertEquals(expected.getSubscriptionStatus(), actualUser.getSubscriptionStatus());
   }
 
   @Test

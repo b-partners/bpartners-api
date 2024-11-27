@@ -8,7 +8,7 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
 import org.junit.jupiter.api.Test;
 
-public class CreateSubscriptionInitiationRestValidatortTest {
+class CreateSubscriptionInitiationRestValidatorTest {
   CreateSubscriptionInitiationRestValidator subject =
       new CreateSubscriptionInitiationRestValidator();
 
@@ -19,18 +19,20 @@ public class CreateSubscriptionInitiationRestValidatortTest {
 
   @Test
   void accept_with_exceptionMsg() {
+    var createSubscriptionInitiation = new CreateSubscriptionInitiation();
+    var redirectionStatusUrls = new RedirectionStatusUrls();
+
     var actual =
         assertThrows(
-            IllegalArgumentException.class,
-            () -> subject.accept(new CreateSubscriptionInitiation()));
+            IllegalArgumentException.class, () -> subject.accept(createSubscriptionInitiation));
     var actual2 =
         assertThrows(
             IllegalArgumentException.class,
             () ->
                 subject.accept(
-                    new CreateSubscriptionInitiation()
+                    createSubscriptionInitiation
                         .subscriptionType(ESSENTIAL)
-                        .redirectionStatusUrls(new RedirectionStatusUrls())));
+                        .redirectionStatusUrls(redirectionStatusUrls)));
 
     assertEquals(
         "subscriptionType can not be null. redirectionStatusUrls can not be null. ",
@@ -43,12 +45,11 @@ public class CreateSubscriptionInitiationRestValidatortTest {
 
   @Test
   void accept_ok() {
-    var createSubscriptionInitiation = new CreateSubscriptionInitiation();
-    createSubscriptionInitiation.setSubscriptionType(ESSENTIAL);
-    var redirectionStatusUrls = new RedirectionStatusUrls();
-    redirectionStatusUrls.setFailureUrl("failure URL");
-    redirectionStatusUrls.setSuccessUrl("success URL");
-    createSubscriptionInitiation.setRedirectionStatusUrls(redirectionStatusUrls);
+    var createSubscriptionInitiation =
+        new CreateSubscriptionInitiation()
+            .subscriptionType(ESSENTIAL)
+            .redirectionStatusUrls(
+                new RedirectionStatusUrls().failureUrl("failure URL").successUrl("success URL"));
 
     assertDoesNotThrow(() -> subject.accept(createSubscriptionInitiation));
   }

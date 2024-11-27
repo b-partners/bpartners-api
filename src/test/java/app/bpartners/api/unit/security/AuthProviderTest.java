@@ -38,10 +38,10 @@ class AuthProviderTest {
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(subscriptionServiceMock.getSubscriptionByUserId(any())).thenReturn(userSubscriptionMock);
     var mockCredentials = "Bearer " + TOKEN_VALUE;
+    var usernamePasswordAuthenticationToken =
+        new UsernamePasswordAuthenticationToken(mockPrincipal(), mockCredentials);
 
-    assertNotNull(
-        subject.authenticate(
-            new UsernamePasswordAuthenticationToken(mockPrincipal(), mockCredentials)));
+    assertNotNull(subject.authenticate(usernamePasswordAuthenticationToken));
   }
 
   @Test
@@ -53,13 +53,13 @@ class AuthProviderTest {
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(false);
     when(subscriptionServiceMock.getSubscriptionByUserId(any())).thenReturn(userSubscriptionMock);
     var mockCredentials = "Bearer " + TOKEN_VALUE;
+    var usernamePasswordAuthenticationToken =
+        new UsernamePasswordAuthenticationToken(mockPrincipal(), mockCredentials);
 
     var actual =
         assertThrows(
             UserSubscriptionExpiredException.class,
-            () ->
-                subject.authenticate(
-                    new UsernamePasswordAuthenticationToken(mockPrincipal(), mockCredentials)));
+            () -> subject.authenticate(usernamePasswordAuthenticationToken));
 
     assertEquals(
         "User.id=null does not have a valid subscription or free trial expired",

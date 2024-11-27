@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
 
@@ -7,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.model.UserRole;
 import app.bpartners.api.endpoint.rest.security.model.Role;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -16,8 +19,12 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserRestMapper {
   private final AccountRestMapper accountRestMapper;
+  private final SubscriptionService subscriptionService;
 
   public User toRest(app.bpartners.api.model.User domain) {
+    // TODO: associate user subscription to User directly
+    var userIsEligibleAndHasActiveSubscription =
+        subscriptionService.getSubscriptionByUser(domain).hasValidSubscription();
     return new User()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -30,7 +37,8 @@ public class UserRestMapper {
         .logoFileId(domain.getLogoFileId())
         .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()))
         .roles(toRest(domain.getRoles()))
-        .snsArn(domain.getEncodedSnsArn());
+        .snsArn(domain.getEncodedSnsArn())
+        .subscriptionStatus(userIsEligibleAndHasActiveSubscription ? ACTIVE : EMPTY);
   }
 
   private UserRole toRest(Role role) {

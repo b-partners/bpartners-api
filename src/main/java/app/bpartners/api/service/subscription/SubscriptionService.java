@@ -62,7 +62,9 @@ public class SubscriptionService {
                       new NotFoundException(
                           "Subscription(id=" + defaultSubscriptionProductId + ") not found"));
       return Subscription.builder()
-          .subscriptionProduct(getSubscriptionProductByE2Id(subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
+          .subscriptionProduct(
+              getSubscriptionProductByE2Id(
+                  subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
           .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
           .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
           .build();
@@ -104,12 +106,13 @@ public class SubscriptionService {
                     .build())
             .build();
     var createdStripeProduct = stripeClient.products().create(productCreateParams);
-    //TODO persist subscriptionProduct here and return persisted domain subscription product id
+    // TODO persist subscriptionProduct here and return persisted domain subscription product id
     return fromStripeProduct(randomUUID().toString(), createdStripeProduct);
   }
 
   @SneakyThrows
-  private SubscriptionProduct fromStripeProduct(String domainProductId, Product createdStripeProduct) {
+  private SubscriptionProduct fromStripeProduct(
+      String domainProductId, Product createdStripeProduct) {
     var createdDefaultPriceId = createdStripeProduct.getDefaultPrice();
     var price = stripeClient.prices().retrieve(createdDefaultPriceId);
     return SubscriptionProduct.builder()

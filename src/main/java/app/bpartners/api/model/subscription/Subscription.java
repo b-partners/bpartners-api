@@ -1,15 +1,8 @@
 package app.bpartners.api.model.subscription;
 
-import static jakarta.persistence.CascadeType.ALL;
-import static org.hibernate.type.SqlTypes.JSON;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import java.time.Instant;
 import java.util.List;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
 
 @AllArgsConstructor
 @NoArgsConstructor

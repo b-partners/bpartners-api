@@ -136,7 +136,9 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
   private Subscription getDefaultSubscription() {
     return Subscription.builder()
-        .subscriptionProduct(subject.getSubscriptionProductByE2Id(randomUUID().toString(), defaultSubscriptionProductId()))
+        .subscriptionProduct(
+            subject.getSubscriptionProductByE2Id(
+                randomUUID().toString(), defaultSubscriptionProductId()))
         .endDatetime(now().plus(30L, DAYS))
         .freeTrialDays(14L)
         .build();

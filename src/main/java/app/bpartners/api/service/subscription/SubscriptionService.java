@@ -77,7 +77,13 @@ public class SubscriptionService {
   @SneakyThrows
   public UserSubscription getSubscriptionByUserId(String userId) {
     var user = userRepository.getById(userId);
-    var isSubscriptionEligible = subscriptionEligibleJpaRepository.findByUserId(userId).isPresent();
+    return getSubscriptionByUser(user);
+  }
+
+  @SneakyThrows
+  public UserSubscription getSubscriptionByUser(User user) {
+    var isSubscriptionEligible =
+        subscriptionEligibleJpaRepository.findByUserId(user.getId()).isPresent();
     if (isSubscriptionEligible) {
       var stripeCustomerId = user.getUserSubscriptionId();
       var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);

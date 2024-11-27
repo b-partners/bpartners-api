@@ -25,6 +25,7 @@ import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -50,6 +51,7 @@ public class SubscriptionService {
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
+  private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
 
   public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
     if (userSubscriptionType.equals(ESSENTIAL)) {
@@ -75,9 +77,17 @@ public class SubscriptionService {
   @SneakyThrows
   public UserSubscription getSubscriptionByUserId(String userId) {
     var user = userRepository.getById(userId);
-    var stripeCustomerId = user.getUserSubscriptionId();
-    var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
-    return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
+    var isSubscriptionEligible = subscriptionEligibleJpaRepository.findByUserId(userId).isPresent();
+    if (isSubscriptionEligible) {
+      var stripeCustomerId = user.getUserSubscriptionId();
+      var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
+      return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
+    }
+    return UserSubscription.builder().user(user).subscriptions(defaultActiveSubscription()).build();
+  }
+
+  private static @NotNull List<Subscription> defaultActiveSubscription() {
+    return List.of(Subscription.builder().active(true).startDatetime(now()).build());
   }
 
   @SneakyThrows

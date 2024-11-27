@@ -5,27 +5,35 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.integration.conf.StripeMockedThirdParties;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 @Slf4j
 class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
+  @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
 
   @Test
   void create_list_delete_customers() {
@@ -194,6 +202,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   // TODO: update trial period so it always be in trial mode
   @Test
   void user_has_active_subscription() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(new UserSubscriptionEligible()));
     var userBernard = userRepository.findByEmail("bernard@email.com").orElseThrow();
     var userJoe = userRepository.findByEmail("joe@email.com").orElseThrow();
 
@@ -214,6 +224,26 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
               .noneMatch(Subscription::hasFreeTrialPeriod));
     }
     assertTrue(true); // skip test once trial expired
+  }
+
+  @Test
+  void user_is_not_eligible_to_subscription_but_active() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any())).thenReturn(Optional.empty());
+    var userJane = userRepository.findByEmail("jane@email.com").orElseThrow();
+
+    var actual = subject.getSubscriptionByUserId(userJane.getId());
+
+    var expected =
+        UserSubscription.builder()
+            .user(userJane)
+            .subscriptions(
+                List.of(
+                    Subscription.builder()
+                        .active(true)
+                        .startDatetime(actual.getSubscriptions().getFirst().getStartDatetime())
+                        .build()))
+            .build();
+    assertEquals(expected, actual);
   }
 
   private static List<String> subscriptionProductFeatures() {

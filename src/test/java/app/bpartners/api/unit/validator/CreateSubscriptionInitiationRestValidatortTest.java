@@ -23,10 +23,22 @@ public class CreateSubscriptionInitiationRestValidatortTest {
         assertThrows(
             IllegalArgumentException.class,
             () -> subject.accept(new CreateSubscriptionInitiation()));
+    var actual2 =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                subject.accept(
+                    new CreateSubscriptionInitiation()
+                        .subscriptionType(ESSENTIAL)
+                        .redirectionStatusUrls(new RedirectionStatusUrls())));
 
     assertEquals(
         "subscriptionType can not be null. redirectionStatusUrls can not be null. ",
         actual.getMessage());
+    assertEquals(
+        "redirectionStatusUrls.successUrl can not be null. redirectionStatusUrls.failureUrl can not"
+            + " be null. ",
+        actual2.getMessage());
   }
 
   @Test

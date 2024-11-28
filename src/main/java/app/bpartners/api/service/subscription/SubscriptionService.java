@@ -340,11 +340,22 @@ public class SubscriptionService {
             throw new ApiException(SERVER_EXCEPTION, e);
           }
         });
+
+    return UserSubscription.builder().user(user).subscriptions(new ArrayList<>()).build();
+  }
+
+  @SneakyThrows
+  public User deleteUserFromStripe(User user) {
+    if (user.getUserSubscriptionId() == null) {
+      throw new IllegalArgumentException(
+          "User.userSubscriptionId is required to remove stripe customer, "
+              + "otherwise User.id="
+              + user.getId()
+              + " does not have userSubscriptionId");
+    }
     stripeClient.customers().delete(user.getUserSubscriptionId());
 
-    var savedUser = userRepository.save(user.toBuilder().userSubscriptionId(null).build());
-
-    return UserSubscription.builder().user(savedUser).subscriptions(new ArrayList<>()).build();
+    return userRepository.save(user.toBuilder().userSubscriptionId(null).build());
   }
 
   private SessionCreateParams.LineItem.PriceData.Recurring computeRecurringFromSubscriptionProduct(

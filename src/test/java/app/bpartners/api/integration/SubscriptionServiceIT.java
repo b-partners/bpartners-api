@@ -1,4 +1,4 @@
-package app.bpartners.api.service.WMS.imageSource;
+package app.bpartners.api.integration;
 
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
@@ -50,7 +50,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         subject.getSubscriptionByUserSubscriptionId(
             updatedUserSubscription.getUser().getUserSubscriptionId()),
         updatedUserSubscription);
-    assertNotNull(subject.cancelUserSubscription(updatedUser));
+    assertNotNull(subject.deleteUserFromStripe(updatedUser));
     assertNull(userRepository.getById(user.getId()).getUserSubscriptionId());
   }
 
@@ -137,6 +137,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     log.info(
         "Redirection stripe checkout url = {}", actualSubscriptionRedirection.getRedirectionUrl());
     assertNotNull(subject.cancelUserSubscription(user));
+    assertNotNull(subject.deleteUserFromStripe(user));
   }
 
   private RedirectionStatusUrls getDefaultRedirectionStatusUrls() {

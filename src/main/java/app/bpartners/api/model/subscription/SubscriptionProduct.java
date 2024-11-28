@@ -1,10 +1,9 @@
 package app.bpartners.api.model.subscription;
 
 import static org.hibernate.type.SqlTypes.JSON;
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.List;
 import lombok.*;
@@ -30,7 +29,11 @@ public class SubscriptionProduct {
   private List<String> features;
 
   private String imageUrl;
+
+  @JdbcTypeCode(NAMED_ENUM)
+  @Enumerated(EnumType.STRING)
   private SubscriptionType type;
+
   private Long priceInCents;
   private Instant creationDatetime;
 }

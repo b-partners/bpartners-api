@@ -34,13 +34,15 @@ public class UserController {
 
   @PostMapping("/users/{uId}/subscriptionInitiation")
   public Redirection initiateUserSubscription(
+      HttpServletRequest request,
       @PathVariable String uId,
       @RequestBody(required = false) CreateSubscriptionInitiation subscriptionInitiation) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
     subscriptionInitiationRestValidator.accept(subscriptionInitiation);
     var redirectionStatusUrls = subscriptionInitiation.getRedirectionStatusUrls();
     var subscriptionType =
         subscriptionService.getBySubscriptionType(subscriptionInitiation.getSubscriptionType());
-    var user = service.getUserById(uId);
+    var user = service.getUserById(authenticatedSelfUser.getId());
 
     return subscriptionService.initiateSubscription(user, subscriptionType, redirectionStatusUrls);
   }

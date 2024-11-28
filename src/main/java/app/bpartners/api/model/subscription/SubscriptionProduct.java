@@ -19,8 +19,10 @@ import org.hibernate.annotations.JdbcTypeCode;
 @ToString
 public class SubscriptionProduct {
   @Id private String id;
+
   @Column(name = "e2_id")
   private String e2Id;
+
   private String name;
   private String description;
 

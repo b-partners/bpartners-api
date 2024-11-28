@@ -34,6 +34,38 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  cancelUserSubscription:
+    post:
+      tags:
+        - User Subscription
+      summary: Cancel user subscription
+      operationId: cancelUserSubscription
+      description: |
+        This operation cancel actual active subscription renewal. User still have access until the actual subscription end.
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      responses:
+        200:
+          description: User with cancelled subscription status
+          content:
+            application/json:
+              schema:
+                $ref: './userAccounts-api.yml/#/components/schemas/User'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 components:
   schemas:
     CreateSubscriptionInitiation:

@@ -821,6 +821,7 @@ components:
       type: string
       enum:
         - EMPTY
+        - CANCELLED
         - ACTIVE
     UserSubscription:
       type: object

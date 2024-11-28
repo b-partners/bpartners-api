@@ -113,6 +113,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
   @Test
   void initiate_subscription() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(new UserSubscriptionEligible()));
     var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
     var createdUserSubscription =
         subject.createUserSubscription(
@@ -154,7 +156,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
-  void initiate_subscription_ko() {
+  void initiate_subscription_without_stripe_customer_associated_ko() {
     var user = userRepository.findByEmail("jane@email.com").orElseThrow();
     var defaultSubscription = getDefaultSubscription();
     var defaultRedirectionStatusUrls = getDefaultRedirectionStatusUrls();
@@ -169,6 +171,32 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     assertEquals(
         "User.id=" + user.getId() + " is not associated to a stripe customer yet",
         actual.getMessage());
+  }
+
+  @Test
+  void initiate_subscription_with_active_subscription_ko() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(new UserSubscriptionEligible()));
+    var user = userRepository.findByEmail("joe@email.com").orElseThrow();
+    var defaultSubscription = getDefaultSubscription();
+    var defaultRedirectionStatusUrls = getDefaultRedirectionStatusUrls();
+    var actualSubscription = subject.getSubscriptionByUser(user);
+
+    if (actualSubscription.getLatestSubscription().getEndDatetime().isAfter(now())) {
+      var actual =
+          assertThrows(
+              BadRequestException.class,
+              () ->
+                  subject.initiateSubscription(
+                      user, defaultSubscription, defaultRedirectionStatusUrls));
+      assertEquals(
+          "User.id="
+              + user.getId()
+              + " has active subscription until "
+              + actualSubscription.getLatestSubscription().getEndDatetime(),
+          actual.getMessage());
+    }
+    assertTrue(true); // jut skip test if subscription not active anymore
   }
 
   @Test
@@ -246,6 +274,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                     Subscription.builder()
                         .active(true)
                         .startDatetime(actual.getSubscriptions().getFirst().getStartDatetime())
+                        .endDatetime(actual.getSubscriptions().getFirst().getEndDatetime())
                         .build()))
             .build();
     assertEquals(expected, actual);

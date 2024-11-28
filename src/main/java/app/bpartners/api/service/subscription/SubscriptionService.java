@@ -94,7 +94,8 @@ public class SubscriptionService {
   }
 
   private static @NotNull List<Subscription> defaultActiveSubscription() {
-    return List.of(Subscription.builder().active(true).startDatetime(now()).build());
+    return List.of(
+        Subscription.builder().active(true).startDatetime(now()).endDatetime(now()).build());
   }
 
   @SneakyThrows
@@ -165,6 +166,14 @@ public class SubscriptionService {
     } catch (IllegalArgumentException e) {
       throw new BadRequestException(
           "User.id=" + user.getId() + " is not associated to a stripe customer yet");
+    }
+    var actualUserSubscription = getSubscriptionByUser(user);
+    if (actualUserSubscription.hasValidSubscription()) {
+      throw new BadRequestException(
+          "User.id="
+              + user.getId()
+              + " has active subscription until "
+              + actualUserSubscription.getLatestSubscription().getEndDatetime());
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
     var subscriptionBuilder =

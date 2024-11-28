@@ -2,6 +2,7 @@ package app.bpartners.api.model.subscription;
 
 import static org.hibernate.type.SqlTypes.JSON;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import java.time.Instant;
@@ -18,6 +19,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 @ToString
 public class SubscriptionProduct {
   @Id private String id;
+  @Column(name = "e2_id")
   private String e2Id;
   private String name;
   private String description;

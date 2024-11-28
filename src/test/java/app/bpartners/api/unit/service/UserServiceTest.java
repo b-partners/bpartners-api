@@ -26,14 +26,12 @@ import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.subscription.SubscriptionService;
-
 import java.io.IOException;
 import java.util.List;
+import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
-import javax.mail.MessagingException;
 
 class UserServiceTest {
   UserService subject;
@@ -68,9 +66,9 @@ class UserServiceTest {
             accountHolderJpaRepositoryMock,
             invoiceSummaryJpaRepositoryMock,
             bridgeApiMock,
-                eventProducerMock,
-                subscriptionServiceMock,
-                mailerMock);
+            eventProducerMock,
+            subscriptionServiceMock,
+            mailerMock);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
@@ -78,14 +76,14 @@ class UserServiceTest {
   }
 
   @Test
-  void register_on_stripe_active_users_with_null_subscription() throws MessagingException, IOException {
+  void register_on_stripe_active_users_with_null_subscription()
+      throws MessagingException, IOException {
     var account = AccountHolder.builder().build();
-    var user = User.builder()
-            .id("id_user")
-            .accountHolders(List.of(account))
-            .status(ENABLED).build();
+    var user =
+        User.builder().id("id_user").accountHolders(List.of(account)).status(ENABLED).build();
     when(userRepositoryMock.getActiveUsersWithNullSubscription()).thenReturn(List.of(user));
-    when(subscriptionServiceMock.createUserSubscription(any())).thenReturn(UserSubscription.builder().build());
+    when(subscriptionServiceMock.createUserSubscription(any()))
+        .thenReturn(UserSubscription.builder().build());
 
     subject.registerOnStripeActiveUsersWithNullSubscription();
 

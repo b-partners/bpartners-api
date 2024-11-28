@@ -5,7 +5,6 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
@@ -127,6 +126,7 @@ public class UserService implements Consumer<User> {
     cognitoComponent.deleteUserByUsername(email);
   }
 
+  @Transactional
   public void registerOnStripeActiveUsersWithNullSubscription() {
     List<User> users = userRepository.getActiveUsersWithNullSubscription();
     int totalUser = users.size();
@@ -148,6 +148,6 @@ public class UserService implements Consumer<User> {
 
   @Override
   public void accept(User event) {
-    UserSubscription userSubscription = subscriptionService.createUserSubscription(event);
+    subscriptionService.createUserSubscription(event);
   }
 }

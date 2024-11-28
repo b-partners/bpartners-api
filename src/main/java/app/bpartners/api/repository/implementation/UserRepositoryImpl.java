@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @AllArgsConstructor
@@ -47,6 +48,7 @@ public class UserRepositoryImpl implements UserRepository {
     return userMapper.toDomain(account.getUser());
   }
 
+  @Transactional
   @Override
   public List<User> getActiveUsersWithNullSubscription() {
     return jpaRepository.getEnabledUsersWithoutSubscription().stream()

@@ -33,6 +33,7 @@ public class UserController {
   private final AccountRefreshService accountRefreshService;
   private final SubscriptionService subscriptionService;
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
+  private final UserService userService;
   private final EventProducer eventProducer;
 
   @PostMapping("/users/monthlySubscriptionInvoiceTrigger")
@@ -54,6 +55,11 @@ public class UserController {
     var user = service.getUserById(authenticatedSelfUser.getId());
 
     return subscriptionService.initiateSubscription(user, subscriptionType, redirectionStatusUrls);
+  }
+
+  @PostMapping("/users/stripe/subscription")
+  public void registerOnStripeActiveUsersWithNullSubscription() {
+    userService.registerOnStripeActiveUsersWithNullSubscription();
   }
 
   @PostMapping("/users/{uId}/subscriptionCancel")

@@ -34,6 +34,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +75,12 @@ class UserIT extends MockedThirdParties {
         .status(ENABLED)
         .activeAccount(restJaneAccount())
         .roles(List.of())
-        .subscriptionStatus(ACTIVE);
+        .subscriptionStatus(ACTIVE)
+        .subscription(
+            new app.bpartners.api.endpoint.rest.model.UserSubscription()
+                .status(ACTIVE)
+                .start(null)
+                .end(null));
   }
 
   private ApiClient anApiClient() {
@@ -98,10 +104,16 @@ class UserIT extends MockedThirdParties {
   }
 
   private static UserSubscription userSubscriptionMaker(boolean isActive) {
+    Instant now = now();
     return UserSubscription.builder()
         .user(new app.bpartners.api.model.User())
         .subscriptions(
-            List.of(Subscription.builder().active(isActive).startDatetime(now()).build()))
+            List.of(
+                Subscription.builder()
+                    .active(isActive)
+                    .startDatetime(now)
+                    .endDatetime(now)
+                    .build()))
         .build();
   }
 

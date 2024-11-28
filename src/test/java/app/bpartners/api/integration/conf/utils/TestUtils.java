@@ -191,7 +191,12 @@ public class TestUtils {
         .status(ENABLED)
         .activeAccount(restJoeAccount())
         .roles(List.of())
-        .subscriptionStatus(EMPTY);
+        .subscriptionStatus(EMPTY)
+        .subscription(
+            new app.bpartners.api.endpoint.rest.model.UserSubscription()
+                .status(EMPTY)
+                .end(null)
+                .start(null));
   }
 
   public static app.bpartners.api.endpoint.rest.model.Account restJaneAccount() {

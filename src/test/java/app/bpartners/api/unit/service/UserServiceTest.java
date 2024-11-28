@@ -1,17 +1,20 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.Account;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
@@ -21,9 +24,16 @@ import app.bpartners.api.repository.jpa.InvoiceSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.subscription.SubscriptionService;
+
+import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+import javax.mail.MessagingException;
 
 class UserServiceTest {
   UserService subject;
@@ -36,12 +46,17 @@ class UserServiceTest {
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
   InvoiceSummaryJpaRepository invoiceSummaryJpaRepositoryMock;
   BridgeApi bridgeApiMock;
+  @MockBean EventProducer<User> eventProducerMock;
+  SesService mailerMock;
+  SubscriptionService subscriptionServiceMock;
 
   @BeforeEach
   void setUp() {
     userRepositoryMock = mock(UserRepository.class);
     userTokenRepositoryMock = mock(UserTokenRepository.class);
     snsServiceMock = mock(SnsService.class);
+    subscriptionServiceMock = mock(SubscriptionService.class);
+    mailerMock = mock(SesService.class);
     subject =
         new UserService(
             userRepositoryMock,
@@ -52,11 +67,29 @@ class UserServiceTest {
             accountJpaRepositoryMock,
             accountHolderJpaRepositoryMock,
             invoiceSummaryJpaRepositoryMock,
-            bridgeApiMock);
+            bridgeApiMock,
+                eventProducerMock,
+                subscriptionServiceMock,
+                mailerMock);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
     when(userTokenRepositoryMock.getLatestTokenByUser(any())).thenReturn(new UserToken());
+  }
+
+  @Test
+  void register_on_stripe_active_users_with_null_subscription() throws MessagingException, IOException {
+    var account = AccountHolder.builder().build();
+    var user = User.builder()
+            .id("id_user")
+            .accountHolders(List.of(account))
+            .status(ENABLED).build();
+    when(userRepositoryMock.getActiveUsersWithNullSubscription()).thenReturn(List.of(user));
+    when(subscriptionServiceMock.createUserSubscription(any())).thenReturn(UserSubscription.builder().build());
+
+    subject.registerOnStripeActiveUsersWithNullSubscription();
+
+    verify(mailerMock, times(1)).sendEmail(any(), any(), any(), any());
   }
 
   @Test

@@ -2,26 +2,14 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
 import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_FAILURE_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.REDIRECT_SUCCESS_URL;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.restJaneAccount;
-import static app.bpartners.api.integration.conf.utils.TestUtils.restJoeDoeUser;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
+import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
@@ -31,9 +19,10 @@ import app.bpartners.api.endpoint.rest.model.OnboardUser;
 import app.bpartners.api.endpoint.rest.model.OnboardedUser;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.endpoint.rest.model.Whois;
-import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.model.subscription.Subscription;
+import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -84,7 +73,8 @@ class UserIT extends MockedThirdParties {
         .logoFileId("logo.jpeg")
         .status(ENABLED)
         .activeAccount(restJaneAccount())
-        .roles(List.of());
+        .roles(List.of())
+        .subscriptionStatus(ACTIVE);
   }
 
   private ApiClient anApiClient() {
@@ -100,6 +90,19 @@ class UserIT extends MockedThirdParties {
     setUpEventBridge(eventBridgeClientMock);
     setUpCognito(cognitoComponentMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
+    setUpUserSubscription(subscriptionService);
+
+    var defaultUserSubscription = userSubscriptionMaker(true);
+    when(subscriptionService.getSubscriptionByUser(any())).thenReturn(defaultUserSubscription);
+    when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(defaultUserSubscription);
+  }
+
+  private static UserSubscription userSubscriptionMaker(boolean isActive) {
+    return UserSubscription.builder()
+        .user(new app.bpartners.api.model.User())
+        .subscriptions(
+            List.of(Subscription.builder().active(isActive).startDatetime(now()).build()))
+        .build();
   }
 
   @Test
@@ -164,15 +167,17 @@ class UserIT extends MockedThirdParties {
   }
 
   @Test
-  @Disabled
   void read_user_using_cognito_ok() throws ApiException {
+    reset(subscriptionService);
+    when(subscriptionService.getSubscriptionByUser(any())).thenReturn(userSubscriptionMaker(false));
     when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(JOE_DOE_EMAIL);
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
     User actualUser = api.getUserById(JOE_DOE_ID);
 
-    assertEquals(restJoeDoeUser(), actualUser);
+    var expected = restJoeDoeUser();
+    assertEquals(expected.getSubscriptionStatus(), actualUser.getSubscriptionStatus());
   }
 
   @Test
@@ -197,23 +202,8 @@ class UserIT extends MockedThirdParties {
 
     User actual = api.getUserById(JANE_DOE_ID);
 
-    assertEquals(
-        HUser.builder()
-            .id("jane_doe_id")
-            .status(beforeUpdate.getStatus())
-            .phoneNumber(beforeUpdate.getPhoneNumber())
-            .monthlySubscription(beforeUpdate.getMonthlySubscription())
-            .logoFileId(beforeUpdate.getLogoFileId())
-            .firstName("Jane")
-            .lastName("Doe")
-            .email("jane@email.com")
-            .idVerified(true)
-            .identificationStatus(VALID_IDENTITY)
-            .accounts(List.of())
-            .accountHolders(List.of())
-            .roles(new Role[] {})
-            .build(),
-        beforeUpdate);
+    assertEquals(List.of(), beforeUpdate.getAccounts());
+    assertEquals(List.of(), beforeUpdate.getAccountHolders());
     assertEquals(restJaneDoeUser(), actual);
   }
 

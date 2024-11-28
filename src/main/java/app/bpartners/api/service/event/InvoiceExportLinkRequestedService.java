@@ -2,12 +2,12 @@ package app.bpartners.api.service.event;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
-import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.service.InvoiceService.MAX_PAGE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.file.FileZipper;
 import app.bpartners.api.model.Invoice;
@@ -15,7 +15,6 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -46,62 +45,51 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   private final InvoiceRepository invoiceRepository;
   private final S3Service s3Service;
   private final TemplateResolverEngine templateResolverEngine;
-  private final InvoiceJpaRepository invoiceJpaRepository;
+  private final EventProducer<InvoiceExportLinkRequested> eventProducer;
 
   @Override
   public void accept(InvoiceExportLinkRequested event) {
-    var accountId = event.getAccountId();
-    var providedFrom = event.getProvidedFrom();
-    var providedTo = event.getProvidedTo();
-
-    var from = providedFrom == null ? now() : providedFrom;
-    var to = providedTo == null ? now() : providedTo;
-    var user = userRepository.getByIdAccount(accountId);
-    var userId = user.getId();
-    var totalInvoices =
-        invoiceJpaRepository.countAllByIdUserAndSendingDateBetween(userId, from, to);
-    var nbPage = Math.max(1, (int) Math.ceil((double) totalInvoices / MAX_SIZE));
-    String htmlBody;
-    var zipFileId = randomUUID().toString();
-    String preSignedURL;
-
-    if (totalInvoices > 0) {
-      Path invoicesFiles = getTempDirectory();
-      for (int page = 0; page < nbPage; page++) {
-        List<Invoice> invoicePaginate =
-            invoiceRepository.findAllByIdUserAndSendingDateBetweenAndPaginate(
-                userId, from, to, page, MAX_SIZE);
-
-        var invoicePaginateFile = downloadInvoicesFiles(userId, invoicePaginate);
-
-        for (File invoice : invoicePaginateFile) {
-          try {
-            Files.copy(invoice.toPath(), invoicesFiles, REPLACE_EXISTING);
-            Files.delete(invoice.toPath());
-          } catch (IOException e) {
-            log.info("Exception={}", e.getMessage());
-            throw new RuntimeException(e);
-          }
-        }
-      }
-      var invoicesZipFile = fileZipper.apply(List.of(invoicesFiles.toFile()));
-      s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
-      preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, EXPIRATION_IN_SECONDS);
-    } else {
-      preSignedURL = "Aucune facture ne correspond aux critères recherchés.";
-      log.info("preSignedUrl={}", preSignedURL);
-    }
-
-    htmlBody =
+    var userId = event.getUserId();
+    var from = event.getProvidedFrom();
+    var to = event.getProvidedTo();
+    var page = event.getPage();
+    var totalPage = event.getTotalPage();
+    var providedStatus = event.getProvidedStatuses();
+    var archiveStatus = event.getProvidedArchiveStatus();
+    List<Invoice> invoices =
+        invoiceRepository.findAllByIdUserAndSendingDateBetweenAndPaginate(
+            userId, from, to, page, MAX_PAGE);
+    var invoicesFiles = downloadInvoicesFiles(userId, invoices);
+    File invoicesZipFile = fileZipper.apply(invoicesFiles);
+    var zipFileId = invoicesZipFile.getName();
+    s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
+    var preSignedURL = s3Service.presignURL(INVOICE_ZIP, zipFileId, userId, EXPIRATION_IN_SECONDS);
+    var user = userRepository.getById(userId);
+    String htmlBody =
         templateResolverEngine.parseTemplateResolver(
             INVOICE_EXPORT_LINK_REQUESTED_BODY,
-            configureInvoiceLinkContext(user, providedFrom, providedTo, preSignedURL));
+            configureInvoiceLinkContext(user, from, to, preSignedURL));
     var mailSubject =
-        "Ensemble des factures de l'utilisateur: " + user.getDefaultHolder().getName() + ".";
+        String.format(
+            "Ensemble des factures de l'utilisateur: %s - Partie %s / %s",
+            user.getDefaultHolder().getName(), page + 1, totalPage);
     var recipient = user.getDefaultHolder().getEmail();
     var adminRecipient = "tech@bpartners.app";
     try {
       mailer.sendEmail(recipient, adminRecipient, mailSubject, htmlBody);
+      if (page < totalPage) {
+        eventProducer.accept(
+            List.of(
+                InvoiceExportLinkRequested.builder()
+                    .userId(userId)
+                    .providedStatuses(providedStatus)
+                    .providedArchiveStatus(archiveStatus)
+                    .providedFrom(from)
+                    .providedTo(to)
+                    .page(page + 1)
+                    .totalPage(totalPage)
+                    .build()));
+      }
     } catch (IOException | MessagingException e) {
       log.info("Exception={}", e.getMessage());
       throw new RuntimeException(e);
@@ -121,14 +109,16 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   @NotNull
   private List<File> downloadInvoicesFiles(String userId, List<Invoice> invoicesBetweenDates) {
     Path destinationDirectory = getTempDirectory();
+    var fileExtension = ".pdf";
     return invoicesBetweenDates.stream()
         .map(
             invoice -> {
               File file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
               try {
-                Path destinationPath = destinationDirectory.resolve(invoice.getRef());
+                Path destinationPath =
+                    destinationDirectory.resolve(invoice.getRef() + fileExtension);
                 Files.copy(file.toPath(), destinationPath, REPLACE_EXISTING);
-                Files.delete(file.toPath());
+                file.deleteOnExit();
                 return destinationPath.toFile();
               } catch (IOException e) {
                 throw new ApiException(SERVER_EXCEPTION, e);

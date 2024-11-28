@@ -4,13 +4,14 @@ import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATIO
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
-import app.bpartners.api.endpoint.rest.model.DeviceToken;
-import app.bpartners.api.endpoint.rest.model.User;
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.AccountRefreshService;
 import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,23 @@ public class UserController {
   private final CognitoComponent cognitoComponent;
   private final UserService service;
   private final AccountRefreshService accountRefreshService;
+  private final SubscriptionService subscriptionService;
+  private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
+
+  @PostMapping("/users/{uId}/subscriptionInitiation")
+  public Redirection initiateUserSubscription(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestBody(required = false) CreateSubscriptionInitiation subscriptionInitiation) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    subscriptionInitiationRestValidator.accept(subscriptionInitiation);
+    var redirectionStatusUrls = subscriptionInitiation.getRedirectionStatusUrls();
+    var subscriptionType =
+        subscriptionService.getBySubscriptionType(subscriptionInitiation.getSubscriptionType());
+    var user = service.getUserById(authenticatedSelfUser.getId());
+
+    return subscriptionService.initiateSubscription(user, subscriptionType, redirectionStatusUrls);
+  }
 
   @PostMapping("/users/accounts/refresh")
   public List<User> refreshUserAccounts() {

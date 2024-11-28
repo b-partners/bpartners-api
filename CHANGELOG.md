@@ -1,3 +1,30 @@
+# [0.57.0](https://github.com/b-partners/bpartners-api/compare/v0.56.0...v0.57.0) (2024-11-28)
+
+
+### Bug Fixes
+
+* do not rename invoice file before zipping during export ([d89e053](https://github.com/b-partners/bpartners-api/commit/d89e053708895bbc4b52aec46e26c3eb0a847066))
+* export invoice  ([677ab0e](https://github.com/b-partners/bpartners-api/commit/677ab0e4e67cf620a314c871215fdfc24397dc96))
+* ignore InvoiceStatus.ACCEPTED in invoices export link filter ([a35312b](https://github.com/b-partners/bpartners-api/commit/a35312b10330f08ad26f12343cee0d4a706170c6))
+* only check susbcription for eligible user ([ff5e109](https://github.com/b-partners/bpartners-api/commit/ff5e109b17b997a58dfa74b476167ac1cee89a13))
+* prospect status filter ([6b5326e](https://github.com/b-partners/bpartners-api/commit/6b5326e5816949acdaac7f16bada8a4347e4b569))
+* recenter image and extension ([7bc432c](https://github.com/b-partners/bpartners-api/commit/7bc432cbb631c6b1e38c06147a421b1b1f5ffd95))
+* remove SelfAccountMatcher to invoices exportLink security conf ([3db59ab](https://github.com/b-partners/bpartners-api/commit/3db59ab2679fb2e16860b7113f40348a9986767a))
+* rename SubscriptionProduct.e2Id column name ([f4b8462](https://github.com/b-partners/bpartners-api/commit/f4b84629e8675d6fd7b637326ef2112a52fb823b))
+* retrieve invoices to export from MIN_PAGE-1 ([a9b95fd](https://github.com/b-partners/bpartners-api/commit/a9b95fd2420d10a774fcd80f071462f3c2d6e834))
+* set zipEntry path to randomUUID in FileZipper ([358f869](https://github.com/b-partners/bpartners-api/commit/358f86985550916c5cd357eecf6d3eaa8538fb2c))
+* validate user subscription in auth provider ([2dba14b](https://github.com/b-partners/bpartners-api/commit/2dba14bcce80265f368c1727f0c534caecda68c0))
+
+
+### Features
+
+* add subscription status attribute to rest user ([d0c3a6a](https://github.com/b-partners/bpartners-api/commit/d0c3a6a0707d28d24addd0286d8838954f03a06f))
+* generate invoices export link ([043661e](https://github.com/b-partners/bpartners-api/commit/043661e43ae4120832f50e2ab247488abfaf218e))
+* implement delete user ([e4d0c66](https://github.com/b-partners/bpartners-api/commit/e4d0c66e54c82525a78b2df00c6c9221d3ca49c5))
+* initiate user subscription ([92d2e3d](https://github.com/b-partners/bpartners-api/commit/92d2e3d842988a2847898081d8680078dbbd109d))
+
+
+
 # [0.56.0](https://github.com/b-partners/bpartners-api/compare/v0.55.0...v0.56.0) (2024-10-04)
 
 
@@ -105,15 +132,6 @@
 ### Features
 
 * add geopositions, currentTile and topLeftTile details to AreaPicture ([3e900a2](https://github.com/b-partners/bpartners-api/commit/3e900a27479b7e00eca4b455bba5ed6b687d2bc6))
-
-
-
-# [0.48.0](https://github.com/b-partners/bpartners-api/compare/v0.47.0...v0.48.0) (2024-05-30)
-
-
-### Features
-
-* permit area picture extension ([45ee400](https://github.com/b-partners/bpartners-api/commit/45ee400d194031632cdff4635cd99682b7d07881))
 
 
 

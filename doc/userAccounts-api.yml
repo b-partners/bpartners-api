@@ -813,6 +813,13 @@ components:
           description: |
             Base64 encoded sns ARN used to target user for mobile notifications.
             Must be decoded before use.
+        subscriptionStatus:
+          $ref: '#/components/schemas/UserSubscriptionStatus'
+    UserSubscriptionStatus:
+      type: string
+      enum:
+        - EMPTY
+        - ACTIVE
     IdentificationStatus:
       type: string
       enum:

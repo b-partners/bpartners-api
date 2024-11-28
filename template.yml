@@ -72,6 +72,8 @@ Globals:
         SPRING_DATASOURCE_USERNAME: !Sub '{{resolve:ssm:/bpartners/${Env}/db/username}}'
         SPRING_DATASOURCE_PASSWORD: !Sub '{{resolve:ssm:/bpartners/${Env}/db/password}}'
         GOOGLE_GEOCODE_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/google/geocode/api-key}}'
+        STRIPE_PRIVATE_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/stripe/private/api-key}}'
+        STRIPE_SUBSCRIPTION_PRODUCT_ESSENTIAL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/stripe/product/essential/id}}'
         
 
 Parameters:

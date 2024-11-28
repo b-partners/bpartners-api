@@ -1,11 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.defaultLegalFile;
-import static app.bpartners.api.integration.conf.utils.TestUtils.legalFile1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,12 +15,14 @@ import app.bpartners.api.endpoint.rest.model.LegalFile;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.PaymentScheduleService;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,12 +45,15 @@ class LegalFileIT extends FacadeIT {
   @MockBean AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean BridgeApi bridgeApi;
   @MockBean EventProducer eventProducer;
+  @MockBean StripeConf stripeConf;
+  @MockBean SubscriptionService subscriptionService;
 
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";
 
   @BeforeEach
   public void setUp() {
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   private ApiClient anApiClient() {

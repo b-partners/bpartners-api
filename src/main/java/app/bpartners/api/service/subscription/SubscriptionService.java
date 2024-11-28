@@ -1,0 +1,402 @@
+package app.bpartners.api.service.subscription;
+
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
+import static app.bpartners.api.payment.StripeConf.defaultCurrency;
+import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
+import static com.stripe.param.checkout.SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.MissingPaymentMethod.CANCEL;
+import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
+import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.UUID.randomUUID;
+
+import app.bpartners.api.endpoint.rest.model.Redirection;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
+import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.subscription.Subscription;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.SubscriptionType;
+import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.payment.StripeConf;
+import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import com.stripe.StripeClient;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
+import com.stripe.model.Product;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.*;
+import com.stripe.param.checkout.SessionCreateParams;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class SubscriptionService {
+  private static final long DEFAULT_FREE_TRIAL_DAYS = 0L; // TODO: set to 14L once test finished
+  private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
+  private final StripeConf stripeConf;
+  private final StripeClient stripeClient;
+  private final UserRepository userRepository;
+  private final SubscriptionProductRepository subscriptionProductRepository;
+  private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
+
+  public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
+    if (userSubscriptionType.equals(ESSENTIAL)) {
+      var defaultSubscriptionProductId = stripeConf.getEssentialSubscriptionProductId();
+      var subscriptionProduct =
+          subscriptionProductRepository
+              .findById(defaultSubscriptionProductId)
+              .orElseThrow(
+                  () ->
+                      new NotFoundException(
+                          "Subscription(id=" + defaultSubscriptionProductId + ") not found"));
+      return Subscription.builder()
+          .subscriptionProduct(
+              getSubscriptionProductByE2Id(
+                  subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
+          .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
+          .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
+          .build();
+    }
+    throw new NotImplementedException("Only ESSENTIAL subscription type is supported");
+  }
+
+  @SneakyThrows
+  public UserSubscription getSubscriptionByUserId(String userId) {
+    var user = userRepository.getById(userId);
+    return getSubscriptionByUser(user);
+  }
+
+  @SneakyThrows
+  public UserSubscription getSubscriptionByUser(User user) {
+    var isSubscriptionEligible =
+        subscriptionEligibleJpaRepository.findByUserId(user.getId()).isPresent();
+    if (isSubscriptionEligible) {
+      var stripeCustomerId = user.getUserSubscriptionId();
+      var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
+      return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
+    }
+    return UserSubscription.builder().user(user).subscriptions(defaultActiveSubscription()).build();
+  }
+
+  private static @NotNull List<Subscription> defaultActiveSubscription() {
+    return List.of(
+        Subscription.builder().active(true).startDatetime(now()).endDatetime(now()).build());
+  }
+
+  @SneakyThrows
+  public SubscriptionProduct createSubscriptionProduct(SubscriptionProduct subscriptionProduct) {
+    var productCreateParams =
+        ProductCreateParams.builder()
+            .setName(subscriptionProduct.getName())
+            .setDescription(subscriptionProduct.getDescription())
+            .addAllMarketingFeature(
+                subscriptionProduct.getFeatures().stream()
+                    .map(
+                        feature ->
+                            ProductCreateParams.MarketingFeature.builder().setName(feature).build())
+                    .toList())
+            .addImage(subscriptionProduct.getImageUrl())
+            .setActive(true)
+            .setDefaultPriceData(
+                ProductCreateParams.DefaultPriceData.builder()
+                    .setCurrency(defaultCurrency())
+                    .setUnitAmount(subscriptionProduct.getPriceInCents())
+                    .setRecurring(
+                        ProductCreateParams.DefaultPriceData.Recurring.builder()
+                            .setInterval(
+                                intervalFromSubscriptionType(subscriptionProduct.getType()))
+                            .build())
+                    .build())
+            .build();
+    var createdStripeProduct = stripeClient.products().create(productCreateParams);
+    // TODO persist subscriptionProduct here and return persisted domain subscription product id
+    return fromStripeProduct(randomUUID().toString(), createdStripeProduct);
+  }
+
+  @SneakyThrows
+  private SubscriptionProduct fromStripeProduct(
+      String domainProductId, Product createdStripeProduct) {
+    var createdDefaultPriceId = createdStripeProduct.getDefaultPrice();
+    var price = stripeClient.prices().retrieve(createdDefaultPriceId);
+    return SubscriptionProduct.builder()
+        .id(domainProductId)
+        .e2Id(createdStripeProduct.getId())
+        .name(createdStripeProduct.getName())
+        .description(createdStripeProduct.getDescription())
+        .features(
+            createdStripeProduct.getMarketingFeatures().stream()
+                .map(Product.MarketingFeature::getName)
+                .toList())
+        .priceInCents(price.getUnitAmount())
+        .imageUrl(createdStripeProduct.getImages().getFirst())
+        .type(computeTypeFromRecurring(price.getRecurring().getInterval()))
+        .creationDatetime(Instant.ofEpochSecond(createdStripeProduct.getCreated()))
+        .build();
+  }
+
+  private ProductCreateParams.DefaultPriceData.Recurring.Interval intervalFromSubscriptionType(
+      SubscriptionType subscriptionType) {
+    if (Objects.requireNonNull(subscriptionType) == MONTHLY) {
+      return ProductCreateParams.DefaultPriceData.Recurring.Interval.MONTH;
+    }
+    throw new IllegalArgumentException("Unknown subscription type " + subscriptionType);
+  }
+
+  @SneakyThrows
+  public Redirection initiateSubscription(
+      User user, Subscription subscription, RedirectionStatusUrls redirectionUrls) {
+    @NotNull Customer stripeCustomer;
+    try {
+      stripeCustomer = getStripeCustomerByE2Id(user.getUserSubscriptionId());
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestException(
+          "User.id=" + user.getId() + " is not associated to a stripe customer yet");
+    }
+    var actualUserSubscription = getSubscriptionByUser(user);
+    if (actualUserSubscription.hasValidSubscription()) {
+      throw new BadRequestException(
+          "User.id="
+              + user.getId()
+              + " has active subscription until "
+              + actualUserSubscription.getLatestSubscription().getEndDatetime());
+    }
+    var subscriptionProduct = subscription.getSubscriptionProduct();
+    var subscriptionBuilder =
+        SessionCreateParams.builder()
+            .setMode(SUBSCRIPTION)
+            .setCustomer(stripeCustomer.getId())
+            .setCurrency(defaultCurrency())
+            .addLineItem(
+                SessionCreateParams.LineItem.builder()
+                    .setQuantity(1L)
+                    .setPriceData(
+                        SessionCreateParams.LineItem.PriceData.builder()
+                            .setProduct(subscriptionProduct.getE2Id())
+                            .setCurrency(defaultCurrency())
+                            .setUnitAmount(subscriptionProduct.getPriceInCents())
+                            .setRecurring(
+                                computeRecurringFromSubscriptionProduct(subscriptionProduct))
+                            .build())
+                    .build())
+            .setSuccessUrl(redirectionUrls.getSuccessUrl())
+            .setCancelUrl(redirectionUrls.getFailureUrl())
+            .setUiMode(HOSTED);
+    if (subscription.hasFreeTrialPeriod()) {
+      subscriptionBuilder.setSubscriptionData(
+          SessionCreateParams.SubscriptionData.builder()
+              .setTrialSettings(
+                  SessionCreateParams.SubscriptionData.TrialSettings.builder()
+                      .setEndBehavior(
+                          SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.builder()
+                              .setMissingPaymentMethod(CANCEL)
+                              .build())
+                      .build())
+              .setTrialPeriodDays(subscription.getFreeTrialDays())
+              .build());
+    }
+    Session session = Session.create(subscriptionBuilder.build());
+    return new Redirection()
+        .redirectionUrl(session.getUrl())
+        .redirectionStatusUrls(
+            new RedirectionStatusUrls()
+                .successUrl(session.getSuccessUrl())
+                .failureUrl(session.getCancelUrl()));
+  }
+
+  @SneakyThrows
+  public UserSubscription createUserSubscription(User user) {
+    var defaultHolder = user.getDefaultHolder();
+    var customerCreateParams =
+        CustomerCreateParams.builder()
+            .setName(user.getName())
+            .setEmail(user.getEmail())
+            .setPhone(user.getMobilePhoneNumber())
+            .setAddress(
+                CustomerCreateParams.Address.builder()
+                    .setCountry(defaultHolder.getCountry())
+                    .setCity(defaultHolder.getCity())
+                    .setLine1(defaultHolder.getAddress())
+                    .setPostalCode(defaultHolder.getPostalCode())
+                    .build())
+            .build();
+    var createdStripeCustomer = stripeClient.customers().create(customerCreateParams);
+    var savedUser =
+        userRepository.save(
+            user.toBuilder().userSubscriptionId(createdStripeCustomer.getId()).build());
+    var subscriptions = getSubscriptionsFromStripeCustomer(createdStripeCustomer.getId());
+
+    return UserSubscription.builder().user(savedUser).subscriptions(subscriptions).build();
+  }
+
+  @SneakyThrows
+  public UserSubscription updateUserSubscription(User user) {
+    if (user.getUserSubscriptionId() == null) {
+      throw new IllegalArgumentException(
+          "User.userSubscriptionId is required to update subscription, "
+              + "otherwise User.id="
+              + user.getId()
+              + " does not have userSubscriptionId");
+    }
+    var defaultHolder = user.getDefaultHolder();
+    var customerUpdateParams =
+        CustomerUpdateParams.builder()
+            .setName(user.getName())
+            .setEmail(user.getEmail())
+            .setPhone(user.getMobilePhoneNumber())
+            .setAddress(
+                CustomerUpdateParams.Address.builder()
+                    .setCountry(defaultHolder.getCountry())
+                    .setCity(defaultHolder.getCity())
+                    .setLine1(defaultHolder.getAddress())
+                    .setPostalCode(defaultHolder.getPostalCode())
+                    .build())
+            .build();
+    var updatedStripeCustomer =
+        stripeClient.customers().update(user.getUserSubscriptionId(), customerUpdateParams);
+    var subscriptions = getSubscriptionsFromStripeCustomer(updatedStripeCustomer.getId());
+    return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
+  }
+
+  private @NotNull List<Subscription> getSubscriptionsFromStripeCustomer(String stripeCustomerId)
+      throws StripeException {
+    var stripeSubscriptions =
+        stripeClient
+            .subscriptions()
+            .list(SubscriptionListParams.builder().setCustomer(stripeCustomerId).build())
+            .getData();
+    return stripeSubscriptions.stream()
+        .map(
+            subscription -> {
+              var trialEndLongValue = subscription.getTrialEnd();
+              var trialStartLongValue = subscription.getTrialStart();
+              var trialEnd =
+                  trialEndLongValue == null ? null : Instant.ofEpochSecond(trialEndLongValue);
+              var trialStart =
+                  trialStartLongValue == null ? null : Instant.ofEpochSecond(trialStartLongValue);
+              var freeTrialDays =
+                  (trialEnd == null || trialStart == null) ? 0L : trialStart.until(trialEnd, DAYS);
+              var startDatetime = Instant.ofEpochSecond(subscription.getCurrentPeriodStart());
+              var endDatetime = Instant.ofEpochSecond(subscription.getCurrentPeriodEnd());
+              return Subscription.builder()
+                  .id(randomUUID().toString()) // TODO: update when subscription history persisted
+                  .e2Id(subscription.getId())
+                  .startDatetime(startDatetime)
+                  .endDatetime(endDatetime)
+                  .freeTrialDays(freeTrialDays)
+                  .freeTrialStart(trialStart)
+                  .freeTrialEnd(trialEnd)
+                  .active(
+                      subscription
+                              .getStatus()
+                              .equals(SubscriptionStatus.ACTIVE.name().toLowerCase())
+                          || subscription
+                              .getStatus()
+                              .equals(SubscriptionStatus.TRIALING.name().toLowerCase()))
+                  .paymentMethods(subscription.getPaymentSettings().getPaymentMethodTypes())
+                  .build();
+            })
+        .toList();
+  }
+
+  @SneakyThrows
+  private @NotNull Customer getStripeCustomerByE2Id(String stripeCustomerId) {
+    if (stripeCustomerId == null) {
+      throw new IllegalArgumentException("Stripe customer id is mandatory and can not be null");
+    }
+    return stripeClient.customers().retrieve(stripeCustomerId);
+  }
+
+  @SneakyThrows
+  public UserSubscription cancelUserSubscription(User user) {
+    if (user.getUserSubscriptionId() == null) {
+      throw new IllegalArgumentException(
+          "User.userSubscriptionId is required to cancel subscription, "
+              + "otherwise User.id="
+              + user.getId()
+              + " does not have userSubscriptionId");
+    }
+    var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
+
+    subscriptions.forEach(
+        subscription -> {
+          try {
+            stripeClient.subscriptions().cancel(subscription.getId());
+          } catch (StripeException e) {
+            throw new ApiException(SERVER_EXCEPTION, e);
+          }
+        });
+    stripeClient.customers().delete(user.getUserSubscriptionId());
+
+    var savedUser = userRepository.save(user.toBuilder().userSubscriptionId(null).build());
+
+    return UserSubscription.builder().user(savedUser).subscriptions(new ArrayList<>()).build();
+  }
+
+  private SessionCreateParams.LineItem.PriceData.Recurring computeRecurringFromSubscriptionProduct(
+      SubscriptionProduct subscriptionProduct) {
+    if (Objects.requireNonNull(subscriptionProduct.getType()) == MONTHLY) {
+      return SessionCreateParams.LineItem.PriceData.Recurring.builder()
+          .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
+          .build();
+    }
+    throw new IllegalArgumentException(
+        "Unknown subscription type: " + subscriptionProduct.getType());
+  }
+
+  private SubscriptionType computeTypeFromRecurring(String intervalValue) {
+    if (intervalValue.equals("month")) {
+      return MONTHLY;
+    }
+    throw new IllegalArgumentException(
+        "Unknown or not supported subscription type: " + intervalValue);
+  }
+
+  @SneakyThrows
+  public UserSubscription getSubscriptionByUserSubscriptionId(String stripeCustomerId) {
+    var stripeCustomer = stripeClient.customers().retrieve(stripeCustomerId);
+    var user =
+        userRepository
+            .findByEmail(stripeCustomer.getEmail())
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "Unable to found User with email "
+                            + stripeCustomer.getEmail()
+                            + ") "
+                            + "associated to StripeCustomer.id="
+                            + stripeCustomer.getId()));
+    try {
+      return UserSubscription.builder()
+          .user(user)
+          .subscriptions(getSubscriptionsFromStripeCustomer(stripeCustomer.getId()))
+          .build();
+    } catch (StripeException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
+
+  @SneakyThrows
+  public SubscriptionProduct getSubscriptionProductByE2Id(String domainProductId, String e2Id) {
+    return fromStripeProduct(domainProductId, stripeClient.products().retrieve(e2Id));
+  }
+
+  enum SubscriptionStatus {
+    ACTIVE,
+    TRIALING
+  }
+}

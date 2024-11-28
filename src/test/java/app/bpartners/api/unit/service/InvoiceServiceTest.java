@@ -54,7 +54,8 @@ class InvoiceServiceTest {
           paymentService,
           invoiceValidator,
           customerInvoiceValidator,
-          eventProducer);
+          eventProducer,
+          userRepositoryMock);
 
   User user() {
     return User.builder().id(null).accountHolders(List.of(AccountHolder.builder().build())).build();
@@ -79,12 +80,12 @@ class InvoiceServiceTest {
 
     var expected =
         PreSignedLink.builder()
-            .value(null)
+            .value("Aucune facture liée au compte id=other_joe_account_id")
             .expirationDelay(null)
             .updatedAt(actual.getUpdatedAt())
             .build();
     assertEquals(expected, actual);
-    verify(eventProducer, times(1)).accept(any());
+    verify(eventProducer, never()).accept(any());
   }
 
   @Test

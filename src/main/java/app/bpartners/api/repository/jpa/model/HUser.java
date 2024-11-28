@@ -64,6 +64,10 @@ public class HUser implements Serializable {
   private Instant tokenExpirationDatetime;
   private Instant tokenCreationDatetime;
   private int monthlySubscription;
+
+  @Column(name = "user_subscription_e2_id")
+  private String userSubscriptionE2Id;
+
   private Long bridgeItemId;
   @CreationTimestamp private Instant bridgeItemUpdatedAt;
 

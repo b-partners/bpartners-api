@@ -10,18 +10,7 @@ import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.integration.AreaPictureIT.AREA_PICTURE_1_ID;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.*;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreStatusDatetime;
-import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE4_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.accountHolderEntity1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.createProduct4;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.product4;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpEventBridge;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpPaymentInitiationRep;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static java.util.UUID.randomUUID;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
@@ -69,6 +58,7 @@ class InvoiceIT extends S3MockedThirdParties {
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
+    setUpUserSubscription(subscriptionService);
 
     when(holderJpaRepository.findAllByIdUser(JOE_DOE_ID))
         .thenReturn(List.of(accountHolderEntity1()));

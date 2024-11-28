@@ -4,24 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.CustomerStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static app.bpartners.api.integration.DirtyCustomerIT.ignoreLatitudeAndLongitude;
 import static app.bpartners.api.integration.DirtyCustomerIT.ignoreUpdatedAndCreatedAt;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BAD_USER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.BEARER_PREFIX;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JANE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_HOLDER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
-import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_ACCOUNT_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_CUSTOMER_ID;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.assertThrowsForbiddenException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customer1;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customerDisabled;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customerUpdated;
-import static app.bpartners.api.integration.conf.utils.TestUtils.customerWithSomeNullAttributes;
-import static app.bpartners.api.integration.conf.utils.TestUtils.getApiException;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpBanApiMock;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpCognito;
-import static app.bpartners.api.integration.conf.utils.TestUtils.setUpLegalFileRepository;
+import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.service.CustomerService.EXCEL_MIME_TYPE;
 import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -82,6 +65,7 @@ class CustomerIT extends MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpBanApiMock(banApiMock);
+    setUpUserSubscription(subscriptionService);
   }
 
   CreateCustomer createCustomer1() {

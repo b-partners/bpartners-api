@@ -29,6 +29,7 @@ import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.PreSignedLink;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.invoice.CustomerInvoiceValidator;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.invoice.InvoiceValidator;
@@ -48,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 @Slf4j
 public class InvoiceService {
+  public static final int MAX_PAGE = 100;
   public static final String INVOICE_TEMPLATE = "invoice";
   public static final String DRAFT_TEMPLATE = "draft";
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
@@ -60,7 +62,8 @@ public class InvoiceService {
   private final PaymentService paymentService;
   private final InvoiceValidator invoiceValidator;
   private final CustomerInvoiceValidator customerInvoiceValidator;
-  private final EventProducer eventProducer;
+  private final EventProducer<InvoiceExportLinkRequested> eventProducer;
+  private final UserRepository userRepository;
 
   @SneakyThrows
   public PreSignedLink generateInvoicesExportLink(
@@ -69,17 +72,32 @@ public class InvoiceService {
       ArchiveStatus providedArchiveStatus,
       LocalDate providedFrom,
       LocalDate providedTo) {
+    var user = userRepository.getByIdAccount(accountId);
+    var from = providedFrom == null ? LocalDate.now() : providedFrom;
+    var to = providedTo == null ? LocalDate.now() : providedTo;
 
+    var totalInvoices = repository.countAllByIdUserAndSendingDateBetween(user.getId(), from, to);
+    var nbPage = Math.max(1, (int) Math.ceil((double) totalInvoices / MAX_PAGE));
+    var firstPage = 0;
+
+    if (totalInvoices <= 0) {
+      return PreSignedLink.builder()
+          .value("Aucune facture liée au compte id=" + accountId)
+          .expirationDelay(null)
+          .updatedAt(now())
+          .build();
+    }
     eventProducer.accept(
         List.of(
             InvoiceExportLinkRequested.builder()
-                .accountId(accountId)
+                .userId(user.getId())
                 .providedStatuses(providedStatuses)
                 .providedArchiveStatus(providedArchiveStatus)
-                .providedFrom(providedFrom)
-                .providedTo(providedTo)
+                .providedFrom(from)
+                .providedTo(to)
+                .page(firstPage)
+                .totalPage(nbPage)
                 .build()));
-
     return PreSignedLink.builder().value(null).expirationDelay(null).updatedAt(now()).build();
   }
 

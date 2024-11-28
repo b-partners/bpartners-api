@@ -4,12 +4,14 @@ import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
+import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpiredException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +29,7 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   private final CognitoComponent cognitoComponent;
   private final UserService userService;
   private final LegalFileService legalFileService;
+  private final SubscriptionService subscriptionService;
 
   public static Principal getPrincipal() {
     SecurityContext context = SecurityContextHolder.getContext();
@@ -83,6 +86,12 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
     checkLegalFiles(legalFilesList, user);
+    var userSubscription = subscriptionService.getSubscriptionByUserId(user.getId());
+    if (!userSubscription.hasValidSubscription()) {
+      throw new UserSubscriptionExpiredException(
+          "User.id=" + user.getId() + " does not have a valid subscription or free trial expired");
+    }
+
     return new Principal(user, bearer);
   }
 

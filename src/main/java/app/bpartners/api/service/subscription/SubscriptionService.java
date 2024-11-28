@@ -94,8 +94,8 @@ public class SubscriptionService {
   }
 
   private static @NotNull List<Subscription> defaultActiveSubscription() {
-    return List.of(
-        Subscription.builder().active(true).startDatetime(now()).endDatetime(now()).build());
+    Instant now = now();
+    return List.of(Subscription.builder().active(true).startDatetime(now).endDatetime(now).build());
   }
 
   @SneakyThrows

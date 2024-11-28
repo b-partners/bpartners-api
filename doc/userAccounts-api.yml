@@ -815,11 +815,24 @@ components:
             Must be decoded before use.
         subscriptionStatus:
           $ref: '#/components/schemas/UserSubscriptionStatus'
+        subscription:
+          $ref: '#/components/schemas/UserSubscription'
     UserSubscriptionStatus:
       type: string
       enum:
         - EMPTY
         - ACTIVE
+    UserSubscription:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/UserSubscriptionStatus'
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
     IdentificationStatus:
       type: string
       enum:

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.integration.conf.StripeMockedThirdParties;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscription;
@@ -160,12 +161,14 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     var actual =
         assertThrows(
-            IllegalArgumentException.class,
+            BadRequestException.class,
             () ->
                 subject.initiateSubscription(
                     user, defaultSubscription, defaultRedirectionStatusUrls));
 
-    assertEquals("Stripe customer id is mandatory and can not be null", actual.getMessage());
+    assertEquals(
+        "User.id=" + user.getId() + " is not associated to a stripe customer yet",
+        actual.getMessage());
   }
 
   @Test

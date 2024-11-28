@@ -16,6 +16,7 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.Subscription;
@@ -158,7 +159,13 @@ public class SubscriptionService {
   @SneakyThrows
   public Redirection initiateSubscription(
       User user, Subscription subscription, RedirectionStatusUrls redirectionUrls) {
-    var stripeCustomer = getStripeCustomerByE2Id(user.getUserSubscriptionId());
+    @NotNull Customer stripeCustomer;
+    try {
+      stripeCustomer = getStripeCustomerByE2Id(user.getUserSubscriptionId());
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestException(
+          "User.id=" + user.getId() + " is not associated to a stripe customer yet");
+    }
     var subscriptionProduct = subscription.getSubscriptionProduct();
     var subscriptionBuilder =
         SessionCreateParams.builder()

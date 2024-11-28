@@ -48,6 +48,13 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
+  public List<User> getActiveUsersWithNullSubscription() {
+    return jpaRepository.getEnabledUsersWithoutSubscription().stream()
+        .map(userMapper::toDomain)
+        .toList();
+  }
+
+  @Override
   public List<User> findAll() {
     return jpaRepository.findAll().stream().map(userMapper::toDomain).collect(Collectors.toList());
   }

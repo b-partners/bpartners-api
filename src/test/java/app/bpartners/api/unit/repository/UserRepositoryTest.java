@@ -22,6 +22,7 @@ import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,15 @@ class UserRepositoryTest {
     when(userJpaRepositoryMock.findByEmail(JOE_EMAIL)).thenReturn(Optional.ofNullable(user()));
     when(userMapperMock.toDomain(any(HUser.class))).thenReturn(expectedUser());
     when(cognitoComponentMock.getEmailByToken(JOE_DOE_TOKEN)).thenReturn(JOE_EMAIL);
+  }
+
+  @Test
+  void get_enabled_users_without_subscription() {
+    when(userJpaRepositoryMock.getEnabledUsersWithoutSubscription()).thenReturn(List.of(user()));
+
+    var actual = subject.getActiveUsersWithNullSubscription();
+
+    assertEquals(1, actual.size());
   }
 
   @Test

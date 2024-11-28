@@ -10,6 +10,8 @@ public interface UserRepository {
 
   User getByIdAccount(String idAccount);
 
+  List<User> getActiveUsersWithNullSubscription();
+
   List<User> findAll();
 
   Long countUsersByStatus(EnableStatus status);

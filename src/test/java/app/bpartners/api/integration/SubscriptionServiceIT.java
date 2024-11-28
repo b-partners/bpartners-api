@@ -1,5 +1,7 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELLED;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -18,12 +20,14 @@ import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -59,7 +63,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     var user = userRepository.findByEmail("jane@email.com").orElseThrow();
 
     var actual =
-        assertThrows(IllegalArgumentException.class, () -> subject.cancelUserSubscription(user));
+        assertThrows(
+            IllegalArgumentException.class, () -> subject.cancelLatestUserSubscription(user));
 
     assertEquals(
         "User.userSubscriptionId is required to cancel subscription, "
@@ -136,8 +141,49 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls().getFailureUrl());
     log.info(
         "Redirection stripe checkout url = {}", actualSubscriptionRedirection.getRedirectionUrl());
-    assertNotNull(subject.cancelUserSubscription(user));
     assertNotNull(subject.deleteUserFromStripe(user));
+  }
+
+  @Disabled("TODO: local use only")
+  @SneakyThrows
+  @Test
+  void initiate_subscription_then_cancel() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(new UserSubscriptionEligible()));
+    var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
+    var createdUserSubscription =
+        subject.createUserSubscription(
+            existingUser.toBuilder().email("joe" + new Random().nextInt() + "@email.com").build());
+    var user = createdUserSubscription.getUser();
+    var defaultSubscription = getDefaultSubscription();
+
+    var actualSubscriptionRedirection =
+        subject.initiateSubscription(user, defaultSubscription, getDefaultRedirectionStatusUrls());
+
+    assertNotNull(actualSubscriptionRedirection);
+    assertNotNull(actualSubscriptionRedirection.getRedirectionUrl());
+    assertTrue(
+        actualSubscriptionRedirection
+            .getRedirectionUrl()
+            .contains("https://checkout.stripe.com/c/pay"));
+    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls());
+    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls().getSuccessUrl());
+    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls().getFailureUrl());
+    log.info(
+        "Redirection stripe checkout url = {}", actualSubscriptionRedirection.getRedirectionUrl());
+
+    Thread.sleep(Duration.ofSeconds(30L));
+
+    var userSubscriptionBeforeCancellation = subject.getSubscriptionByUser(user);
+
+    var actualUserSubscription = subject.cancelLatestUserSubscription(user);
+
+    var oldSubscription = userSubscriptionBeforeCancellation.getLatestSubscription();
+    var latestSubscription = actualUserSubscription.getLatestSubscription();
+    assertEquals(ACTIVE, oldSubscription.getStatus());
+    assertEquals(CANCELLED, latestSubscription.getStatus());
+    assertEquals(oldSubscription.getEndDatetime(), latestSubscription.getEndDatetime());
+    assertEquals(oldSubscription.getStartDatetime(), latestSubscription.getStartDatetime());
   }
 
   private RedirectionStatusUrls getDefaultRedirectionStatusUrls() {
@@ -152,7 +198,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
             subject.getSubscriptionProductByE2Id(
                 randomUUID().toString(), defaultSubscriptionProductId()))
         .endDatetime(now().plus(30L, DAYS))
-        .freeTrialDays(14L)
+        .freeTrialDays(0L)
         .build();
   }
 
@@ -274,6 +320,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                 List.of(
                     Subscription.builder()
                         .active(true)
+                        .status(ACTIVE)
                         .startDatetime(actual.getSubscriptions().getFirst().getStartDatetime())
                         .endDatetime(actual.getSubscriptions().getFirst().getEndDatetime())
                         .build()))

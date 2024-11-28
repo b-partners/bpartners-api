@@ -1,7 +1,6 @@
 package app.bpartners.api.unit.mapper;
 
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.*;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +34,7 @@ class UserRestMapperTest {
                 .subscriptions(
                     List.of(
                         Subscription.builder()
+                            .status(Subscription.SubscriptionStatus.ACTIVE)
                             .active(true)
                             .startDatetime(now)
                             .endDatetime(expectedEndDatetime)
@@ -59,6 +59,7 @@ class UserRestMapperTest {
                 .subscriptions(
                     List.of(
                         Subscription.builder()
+                            .status(Subscription.SubscriptionStatus.CANCELLED)
                             .active(true)
                             .freeTrialStart(now)
                             .freeTrialEnd(expectedEndDatetime)
@@ -68,7 +69,7 @@ class UserRestMapperTest {
     var actual = subject.toRest(User.builder().roles(List.of()).build());
 
     var actualSubscription = actual.getSubscription();
-    assertEquals(ACTIVE, actualSubscription.getStatus());
+    assertEquals(CANCELLED, actualSubscription.getStatus());
     assertEquals(now, actualSubscription.getStart());
     assertEquals(expectedEndDatetime, actualSubscription.getEnd());
   }
@@ -81,6 +82,7 @@ class UserRestMapperTest {
                 .subscriptions(
                     List.of(
                         Subscription.builder()
+                            .status(Subscription.SubscriptionStatus.UNKNOWN)
                             .active(false)
                             .freeTrialStart(null)
                             .freeTrialEnd(null)
@@ -106,6 +108,7 @@ class UserRestMapperTest {
                 .subscriptions(
                     List.of(
                         Subscription.builder()
+                            .status(Subscription.SubscriptionStatus.ACTIVE)
                             .active(true)
                             .freeTrialStart(null)
                             .freeTrialEnd(null)

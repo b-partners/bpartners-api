@@ -1,4 +1,4 @@
-create table subscription_product
+create table if not exists subscription_product
 (
     id                varchar primary key,
     e2_id             varchar,

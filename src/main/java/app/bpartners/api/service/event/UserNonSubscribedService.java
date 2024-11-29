@@ -6,6 +6,7 @@ import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
@@ -31,7 +32,7 @@ public class UserNonSubscribedService implements Consumer<UserNonSubscribed> {
       mailer.sendEmail(recipient, null, mailSubject, null);
     } catch (MessagingException | IOException e) {
       log.info("Exception={}", e.getMessage());
-      throw new RuntimeException(e);
+      throw new NoSuchElementException(e);
     }
   }
 }

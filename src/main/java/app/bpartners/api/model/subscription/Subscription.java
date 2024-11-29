@@ -15,6 +15,7 @@ public class Subscription {
   private String e2Id;
   private boolean active;
   private List<String> paymentMethods;
+  private SubscriptionStatus status;
   private SubscriptionProduct subscriptionProduct;
   private Long freeTrialDays;
   private Instant freeTrialStart;
@@ -24,5 +25,12 @@ public class Subscription {
 
   public boolean hasFreeTrialPeriod() {
     return freeTrialDays > 0;
+  }
+
+  public enum SubscriptionStatus {
+    ACTIVE,
+    TRIALING,
+    CANCELLED,
+    UNKNOWN
   }
 }

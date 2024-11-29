@@ -2,6 +2,7 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
@@ -9,6 +10,8 @@ import static com.stripe.param.checkout.SessionCreateParams.SubscriptionData.Tri
 import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.Redirection;
@@ -40,11 +43,13 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SubscriptionService {
   private static final long DEFAULT_FREE_TRIAL_DAYS = 0L; // TODO: set to 14L once test finished
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
@@ -95,7 +100,13 @@ public class SubscriptionService {
 
   private static @NotNull List<Subscription> defaultActiveSubscription() {
     Instant now = now();
-    return List.of(Subscription.builder().active(true).startDatetime(now).endDatetime(now).build());
+    return List.of(
+        Subscription.builder()
+            .active(true)
+            .status(ACTIVE)
+            .startDatetime(now)
+            .endDatetime(now)
+            .build());
   }
 
   @SneakyThrows
@@ -290,8 +301,18 @@ public class SubscriptionService {
                   trialStartLongValue == null ? null : Instant.ofEpochSecond(trialStartLongValue);
               var freeTrialDays =
                   (trialEnd == null || trialStart == null) ? 0L : trialStart.until(trialEnd, DAYS);
-              var startDatetime = Instant.ofEpochSecond(subscription.getCurrentPeriodStart());
-              var endDatetime = Instant.ofEpochSecond(subscription.getCurrentPeriodEnd());
+              var currentPeriodStartLongValue = subscription.getCurrentPeriodStart();
+              var startDatetime =
+                  currentPeriodStartLongValue == null
+                      ? null
+                      : Instant.ofEpochSecond(currentPeriodStartLongValue);
+              var currentPeriodEndLongValue = subscription.getCurrentPeriodEnd();
+              var endDatetime =
+                  currentPeriodEndLongValue == null
+                      ? null
+                      : Instant.ofEpochSecond(currentPeriodEndLongValue);
+              var status = computeUserSubscriptionStatus(subscription);
+              var paymentSettings = subscription.getPaymentSettings();
               return Subscription.builder()
                   .id(randomUUID().toString()) // TODO: update when subscription history persisted
                   .e2Id(subscription.getId())
@@ -300,17 +321,33 @@ public class SubscriptionService {
                   .freeTrialDays(freeTrialDays)
                   .freeTrialStart(trialStart)
                   .freeTrialEnd(trialEnd)
-                  .active(
-                      subscription
-                              .getStatus()
-                              .equals(SubscriptionStatus.ACTIVE.name().toLowerCase())
-                          || subscription
-                              .getStatus()
-                              .equals(SubscriptionStatus.TRIALING.name().toLowerCase()))
-                  .paymentMethods(subscription.getPaymentSettings().getPaymentMethodTypes())
+                  .status(status)
+                  .active(!status.equals(UNKNOWN))
+                  .paymentMethods(
+                      paymentSettings == null
+                          ? new ArrayList<>()
+                          : paymentSettings.getPaymentMethodTypes())
                   .build();
             })
         .toList();
+  }
+
+  private static Subscription.SubscriptionStatus computeUserSubscriptionStatus(
+      com.stripe.model.Subscription subscription) {
+    if (subscription.getCancelAtPeriodEnd() != null
+        && subscription.getCancelAtPeriodEnd().equals(true)) {
+      return CANCELLED;
+    }
+    var subscriptionStatus = subscription.getStatus();
+    return switch (subscriptionStatus) {
+      case "active" -> ACTIVE;
+      case "trialing" -> TRIALING;
+      case "cancelled" -> CANCELLED;
+      default -> {
+        log.error("Unknown subscription status: {}", subscriptionStatus);
+        yield UNKNOWN;
+      }
+    };
   }
 
   @SneakyThrows
@@ -322,7 +359,7 @@ public class SubscriptionService {
   }
 
   @SneakyThrows
-  public UserSubscription cancelUserSubscription(User user) {
+  public UserSubscription cancelLatestUserSubscription(User user) {
     if (user.getUserSubscriptionId() == null) {
       throw new IllegalArgumentException(
           "User.userSubscriptionId is required to cancel subscription, "
@@ -331,17 +368,28 @@ public class SubscriptionService {
               + " does not have userSubscriptionId");
     }
     var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
+    if (subscriptions.isEmpty()) {
+      throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");
+    }
+    var latestSubscription =
+        subscriptions.stream()
+            .sorted(comparing(Subscription::getStartDatetime, naturalOrder()).reversed())
+            .toList()
+            .getFirst();
+    if (!latestSubscription.isActive()) {
+      throw new IllegalStateException(
+          "Only active subscription can be cancelled but actual status is "
+              + latestSubscription.getStatus());
+    }
 
-    subscriptions.forEach(
-        subscription -> {
-          try {
-            stripeClient.subscriptions().cancel(subscription.getId());
-          } catch (StripeException e) {
-            throw new ApiException(SERVER_EXCEPTION, e);
-          }
-        });
+    stripeClient
+        .subscriptions()
+        .update(
+            latestSubscription.getE2Id(),
+            SubscriptionUpdateParams.builder().setCancelAtPeriodEnd(true).build());
 
-    return UserSubscription.builder().user(user).subscriptions(new ArrayList<>()).build();
+    var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
+    return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
   }
 
   @SneakyThrows
@@ -404,10 +452,5 @@ public class SubscriptionService {
   @SneakyThrows
   public SubscriptionProduct getSubscriptionProductByE2Id(String domainProductId, String e2Id) {
     return fromStripeProduct(domainProductId, stripeClient.products().retrieve(e2Id));
-  }
-
-  enum SubscriptionStatus {
-    ACTIVE,
-    TRIALING
   }
 }

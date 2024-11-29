@@ -47,6 +47,15 @@ public class UserController {
     return subscriptionService.initiateSubscription(user, subscriptionType, redirectionStatusUrls);
   }
 
+  @PostMapping("/users/{uId}/subscriptionCancel")
+  public User cancelUserSubscription(@PathVariable String uId) {
+    var user = service.getUserById(uId);
+
+    var userSubscription = subscriptionService.cancelLatestUserSubscription(user);
+
+    return mapper.toRest(userSubscription.getUser());
+  }
+
   @PostMapping("/users/accounts/refresh")
   public List<User> refreshUserAccounts() {
     return accountRefreshService.refreshDisconnectedUsers().stream().map(mapper::toRest).toList();

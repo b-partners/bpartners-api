@@ -38,6 +38,7 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -300,9 +301,18 @@ public class SubscriptionService {
                   trialStartLongValue == null ? null : Instant.ofEpochSecond(trialStartLongValue);
               var freeTrialDays =
                   (trialEnd == null || trialStart == null) ? 0L : trialStart.until(trialEnd, DAYS);
-              var startDatetime = Instant.ofEpochSecond(subscription.getCurrentPeriodStart());
-              var endDatetime = Instant.ofEpochSecond(subscription.getCurrentPeriodEnd());
+              var currentPeriodStartLongValue = subscription.getCurrentPeriodStart();
+              var startDatetime =
+                  currentPeriodStartLongValue == null
+                      ? null
+                      : Instant.ofEpochSecond(currentPeriodStartLongValue);
+              var currentPeriodEndLongValue = subscription.getCurrentPeriodEnd();
+              var endDatetime =
+                  currentPeriodEndLongValue == null
+                      ? null
+                      : Instant.ofEpochSecond(currentPeriodEndLongValue);
               var status = computeUserSubscriptionStatus(subscription);
+              var paymentSettings = subscription.getPaymentSettings();
               return Subscription.builder()
                   .id(randomUUID().toString()) // TODO: update when subscription history persisted
                   .e2Id(subscription.getId())
@@ -313,7 +323,10 @@ public class SubscriptionService {
                   .freeTrialEnd(trialEnd)
                   .status(status)
                   .active(!status.equals(UNKNOWN))
-                  .paymentMethods(subscription.getPaymentSettings().getPaymentMethodTypes())
+                  .paymentMethods(
+                      paymentSettings == null
+                          ? new ArrayList<>()
+                          : paymentSettings.getPaymentMethodTypes())
                   .build();
             })
         .toList();
@@ -364,7 +377,9 @@ public class SubscriptionService {
             .toList()
             .getFirst();
     if (!latestSubscription.isActive()) {
-      throw new IllegalStateException("Only active subscription can be cancelled");
+      throw new IllegalStateException(
+          "Only active subscription can be cancelled but actual status is "
+              + latestSubscription.getStatus());
     }
 
     stripeClient

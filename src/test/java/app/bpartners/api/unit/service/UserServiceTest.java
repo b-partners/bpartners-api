@@ -27,9 +27,7 @@ import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.subscription.SubscriptionService;
-import java.io.IOException;
 import java.util.List;
-import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -75,8 +73,7 @@ class UserServiceTest {
   }
 
   @Test
-  void register_on_stripe_active_users_with_null_subscription()
-      throws MessagingException, IOException {
+  void register_on_stripe_active_users_with_null_subscription() {
     var account = AccountHolder.builder().build();
     var user =
         User.builder().id("id_user").accountHolders(List.of(account)).status(ENABLED).build();

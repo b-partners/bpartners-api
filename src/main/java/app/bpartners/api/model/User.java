@@ -2,13 +2,11 @@ package app.bpartners.api.model;
 
 import static app.bpartners.api.service.utils.AccountUtils.filterActive;
 
-import app.bpartners.api.endpoint.event.model.PojaEvent;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import com.nimbusds.jose.util.Base64;
 import java.io.Serializable;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -28,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 @Slf4j
-public class User extends PojaEvent implements Serializable {
+public class User implements Serializable {
   private String id;
   private String userSubscriptionId;
   private String logoFileId;
@@ -86,15 +84,5 @@ public class User extends PojaEvent implements Serializable {
       log.warn("Only unique account holder supported. Chosen by default " + first.describe());
     }
     return first;
-  }
-
-  @Override
-  public Duration maxConsumerDuration() {
-    return Duration.ofMinutes(5L);
-  }
-
-  @Override
-  public Duration maxConsumerBackoffBetweenRetries() {
-    return Duration.ofMinutes(3L);
   }
 }

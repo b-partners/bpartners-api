@@ -1,6 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.UserNonSubscribed;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
@@ -13,12 +14,7 @@ import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
-import app.bpartners.api.service.aws.SesService;
-import app.bpartners.api.service.subscription.SubscriptionService;
-import java.io.IOException;
 import java.util.List;
-import java.util.function.Consumer;
-import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class UserService implements Consumer<User> {
+public class UserService {
   private final UserRepository userRepository;
   private final UserTokenRepository userTokenRepository;
   private final SnsService snsService;
@@ -37,9 +33,7 @@ public class UserService implements Consumer<User> {
   private final AccountHolderJpaRepository accountHolderJpaRepository;
   private final InvoiceSummaryJpaRepository invoiceSummaryJpaRepository;
   private final BridgeApi bridgeApi;
-  private final EventProducer<User> eventProducer;
-  private final SubscriptionService subscriptionService;
-  private final SesService mailer;
+  private final EventProducer<UserNonSubscribed> eventProducer;
 
   @Transactional
   public User getByIdAccount(String idAccount) {
@@ -129,25 +123,17 @@ public class UserService implements Consumer<User> {
   @Transactional
   public void registerOnStripeActiveUsersWithNullSubscription() {
     List<User> users = userRepository.getActiveUsersWithNullSubscription();
-    int totalUser = users.size();
-    int userNb = 0;
+    var totalUser = users.size();
+    var userNb = 0;
     for (User user : users) {
-      var recipient = "tech@bpartners.app";
-      var mailSubject =
-          String.format("Utilisateur %s / %s enregistrer dans Stripe", userNb, totalUser);
-      try {
-        accept(user);
-        mailer.sendEmail(recipient, null, mailSubject, null);
-      } catch (MessagingException | IOException e) {
-        log.info("Exception={}", e.getMessage());
-        throw new RuntimeException(e);
-      }
+      UserNonSubscribed event =
+          UserNonSubscribed.builder()
+              .userId(user.getId())
+              .totalNbUser(totalUser)
+              .userNb(userNb)
+              .build();
+      eventProducer.accept(List.of(event));
       userNb++;
     }
-  }
-
-  @Override
-  public void accept(User event) {
-    subscriptionService.createUserSubscription(event);
   }
 }

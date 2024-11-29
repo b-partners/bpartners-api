@@ -58,8 +58,9 @@ public class UserController {
   }
 
   @PostMapping("/users/stripe/subscription")
-  public void registerOnStripeActiveUsersWithNullSubscription() {
+  public String registerOnStripeActiveUsersWithNullSubscription() {
     userService.registerOnStripeActiveUsersWithNullSubscription();
+    return null;
   }
 
   @PostMapping("/users/{uId}/subscriptionCancel")

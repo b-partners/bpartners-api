@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.UserNonSubscribed;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -31,7 +32,6 @@ import java.util.List;
 import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 class UserServiceTest {
   UserService subject;
@@ -44,7 +44,7 @@ class UserServiceTest {
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
   InvoiceSummaryJpaRepository invoiceSummaryJpaRepositoryMock;
   BridgeApi bridgeApiMock;
-  @MockBean EventProducer<User> eventProducerMock;
+  EventProducer<UserNonSubscribed> eventProducerMock;
   SesService mailerMock;
   SubscriptionService subscriptionServiceMock;
 
@@ -55,6 +55,7 @@ class UserServiceTest {
     snsServiceMock = mock(SnsService.class);
     subscriptionServiceMock = mock(SubscriptionService.class);
     mailerMock = mock(SesService.class);
+    eventProducerMock = mock(EventProducer.class);
     subject =
         new UserService(
             userRepositoryMock,
@@ -66,9 +67,7 @@ class UserServiceTest {
             accountHolderJpaRepositoryMock,
             invoiceSummaryJpaRepositoryMock,
             bridgeApiMock,
-            eventProducerMock,
-            subscriptionServiceMock,
-            mailerMock);
+            eventProducerMock);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
@@ -87,7 +86,7 @@ class UserServiceTest {
 
     subject.registerOnStripeActiveUsersWithNullSubscription();
 
-    verify(mailerMock, times(1)).sendEmail(any(), any(), any(), any());
+    verify(eventProducerMock, times(1)).accept(any());
   }
 
   @Test

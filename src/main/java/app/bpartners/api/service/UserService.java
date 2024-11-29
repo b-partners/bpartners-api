@@ -124,16 +124,17 @@ public class UserService {
   public void registerOnStripeActiveUsersWithNullSubscription() {
     List<User> users = userRepository.getActiveUsersWithNullSubscription();
     var totalUser = users.size();
-    var userNb = 0;
-    for (User user : users) {
-      UserNonSubscribed event =
-          UserNonSubscribed.builder()
-              .userId(user.getId())
-              .totalNbUser(totalUser)
-              .userNb(userNb)
-              .build();
-      eventProducer.accept(List.of(event));
-      userNb++;
-    }
+    int[] userNb = {0};
+    users.forEach(
+        user -> {
+          UserNonSubscribed event =
+              UserNonSubscribed.builder()
+                  .userId(user.getId())
+                  .totalNbUser(totalUser)
+                  .userNb(userNb[0])
+                  .build();
+          eventProducer.accept(List.of(event));
+          userNb[0]++;
+        });
   }
 }

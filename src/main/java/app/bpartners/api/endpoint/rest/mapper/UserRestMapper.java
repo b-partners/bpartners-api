@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.*;
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
 
@@ -12,6 +11,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -24,8 +24,7 @@ public class UserRestMapper {
   public User toRest(app.bpartners.api.model.User domain) {
     // TODO: associate user subscription to User directly
     var subscription = subscriptionService.getSubscriptionByUser(domain);
-    var userIsEligibleAndHasActiveSubscription = subscription.hasValidSubscription();
-    var subscriptionStatus = userIsEligibleAndHasActiveSubscription ? ACTIVE : EMPTY;
+    var subscriptionStatus = getSubscriptionStatus(subscription);
     return new User()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -45,6 +44,17 @@ public class UserRestMapper {
                 .status(subscriptionStatus)
                 .start(getSubscriptionStart(subscription))
                 .end(getSubscriptionEnd(subscription)));
+  }
+
+  private static @NotNull UserSubscriptionStatus getSubscriptionStatus(
+      app.bpartners.api.model.subscription.UserSubscription subscription) {
+    if (subscription.hasSubscriptionCancelled()) {
+      return CANCELLED;
+    }
+    if (subscription.hasValidSubscription()) {
+      return ACTIVE;
+    }
+    return EMPTY;
   }
 
   private static @Nullable Instant getSubscriptionEnd(

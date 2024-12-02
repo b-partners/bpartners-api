@@ -1,3 +1,19 @@
+# [0.58.0](https://github.com/b-partners/bpartners-api/compare/v0.57.0...v0.58.0) (2024-11-28)
+
+
+### Bug Fixes
+
+* do not authorize subscription if stripe customer not associated ([2ecab7b](https://github.com/b-partners/bpartners-api/commit/2ecab7bb31a4908d84d8b39c18f347d32f8d7b3e))
+* empty subscription is considered as invalid ([521a5a2](https://github.com/b-partners/bpartners-api/commit/521a5a2e21207a7f9e24fe9c24008a6db3dba1f8))
+* subscriptionInitiation endpoint accessible without AuthProvider filter ([508edc8](https://github.com/b-partners/bpartners-api/commit/508edc8cb24c36e523e4d6f4699959c70d42229c))
+
+
+### Features
+
+* include subscription period in user attributes ([d0820f5](https://github.com/b-partners/bpartners-api/commit/d0820f56bda603b2f2126daf28ae5bc4fd148abd))
+
+
+
 # [0.57.0](https://github.com/b-partners/bpartners-api/compare/v0.56.0...v0.57.0) (2024-11-28)
 
 
@@ -123,15 +139,6 @@
 ### Features
 
 * add additional properties to area picture annotation metadata ([e3971b8](https://github.com/b-partners/bpartners-api/commit/e3971b87eeb927662bc4817b0c6e66f641673c45))
-
-
-
-# [0.49.0](https://github.com/b-partners/bpartners-api/compare/v0.48.0...v0.49.0) (2024-06-04)
-
-
-### Features
-
-* add geopositions, currentTile and topLeftTile details to AreaPicture ([3e900a2](https://github.com/b-partners/bpartners-api/commit/3e900a27479b7e00eca4b455bba5ed6b687d2bc6))
 
 
 

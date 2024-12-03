@@ -247,8 +247,8 @@ public class InvoiceService {
     InvoiceStatus newStatus = newInvoice.getStatus();
     InvoiceStatus oldStatus = oldInvoice.getStatus();
     switch (newStatus) {
-      case DRAFT, PROPOSAL, ACCEPTED, PROPOSAL_CONFIRMED -> handlePaymentRequests(
-          newInvoice, oldInvoice);
+      case DRAFT, PROPOSAL, ACCEPTED, PROPOSAL_CONFIRMED ->
+          handlePaymentRequests(newInvoice, oldInvoice);
       case CONFIRMED -> {
         handlePaymentType(newInvoice, oldInvoice, invoiceBuilder);
         if (oldStatus == PROPOSAL) {

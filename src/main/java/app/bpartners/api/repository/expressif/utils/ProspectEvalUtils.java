@@ -481,7 +481,7 @@ public class ProspectEvalUtils {
         case 3:
           prospectEvalInfo.setSubcategory(getStringValue(currentCell));
           break;
-          // TODO: remove detected Brain Method
+        // TODO: remove detected Brain Method
         case PROSPECT_ADDRESS_COL_INDEX:
           if (getStringValue(currentCell) == null) {
             throw new BadRequestException(

@@ -9,7 +9,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserNonSubscribed extends PojaEvent {
+public class UserRegistrationRequested extends PojaEvent {
   @JsonProperty("userId")
   private String userId;
 

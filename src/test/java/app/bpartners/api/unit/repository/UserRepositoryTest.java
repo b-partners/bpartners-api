@@ -5,8 +5,7 @@ import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_I
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_EMAIL;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -72,6 +71,7 @@ class UserRepositoryTest {
     var actual = subject.getActiveUsersWithNullSubscription();
 
     assertEquals(1, actual.size());
+    assertTrue(actual.contains(expectedUser()));
   }
 
   @Test

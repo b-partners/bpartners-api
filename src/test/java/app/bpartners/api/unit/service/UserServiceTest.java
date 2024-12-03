@@ -8,7 +8,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.UserNonSubscribed;
+import app.bpartners.api.endpoint.event.model.UserRegistrationRequested;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -42,7 +42,7 @@ class UserServiceTest {
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
   InvoiceSummaryJpaRepository invoiceSummaryJpaRepositoryMock;
   BridgeApi bridgeApiMock;
-  EventProducer<UserNonSubscribed> eventProducerMock;
+  EventProducer<UserRegistrationRequested> eventProducerMock;
   SesService mailerMock;
   SubscriptionService subscriptionServiceMock;
 
@@ -81,8 +81,7 @@ class UserServiceTest {
     when(subscriptionServiceMock.createUserSubscription(any()))
         .thenReturn(UserSubscription.builder().build());
 
-    subject.registerOnStripeActiveUsersWithNullSubscription();
-
+    assertDoesNotThrow(() -> subject.registerOnStripeActiveUsersWithNullSubscription());
     verify(eventProducerMock, times(1)).accept(any());
   }
 

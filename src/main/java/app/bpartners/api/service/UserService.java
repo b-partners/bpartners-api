@@ -1,7 +1,7 @@
 package app.bpartners.api.service;
 
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.UserNonSubscribed;
+import app.bpartners.api.endpoint.event.model.UserRegistrationRequested;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
@@ -33,7 +33,7 @@ public class UserService {
   private final AccountHolderJpaRepository accountHolderJpaRepository;
   private final InvoiceSummaryJpaRepository invoiceSummaryJpaRepository;
   private final BridgeApi bridgeApi;
-  private final EventProducer<UserNonSubscribed> eventProducer;
+  private final EventProducer<UserRegistrationRequested> eventProducer;
 
   @Transactional
   public User getByIdAccount(String idAccount) {
@@ -127,13 +127,13 @@ public class UserService {
     int[] userNb = {0};
     users.forEach(
         user -> {
-          UserNonSubscribed event =
-              UserNonSubscribed.builder()
+          UserRegistrationRequested userRegistrationRequested =
+              UserRegistrationRequested.builder()
                   .userId(user.getId())
                   .totalNbUser(totalUser)
                   .userNb(userNb[0])
                   .build();
-          eventProducer.accept(List.of(event));
+          eventProducer.accept(List.of(userRegistrationRequested));
           userNb[0]++;
         });
   }

@@ -416,7 +416,7 @@ public class SecurityConf {
                         new SelfAccountMatcher(
                             POST, "/accounts/*/invoices/relaunches", authResourceProvider))
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole())
-                    .requestMatchers(POST, "/users/stripe/subscription")
+                    .requestMatchers(POST, "users/subscriptionRegistration")
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(

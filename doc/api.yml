@@ -81,8 +81,8 @@ paths:
   #############################################
   ############## User Subscription API #############
   #############################################
-  /users/stripe/subscription:
-    $ref: './user-subscription-api.yml#/operations/registerUserOnStripe'
+  /users/subscriptionRegistration:
+    $ref: './user-subscription-api.yml#/operations/registerUserSubscription'
   /users/{uId}/subscriptionInitiation:
     $ref: './user-subscription-api.yml#/operations/initiateUserSubscription'
   /users/{uId}/subscriptionCancel:

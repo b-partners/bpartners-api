@@ -1,5 +1,5 @@
 operations:
-  registerUserOnStripe:
+  registerUserSubscription:
     post:
       tags:
         - User Subscription

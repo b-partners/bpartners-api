@@ -25,14 +25,14 @@ public class EventConsumer implements Consumer<List<ConsumableEvent>> {
   }
 
   @Override
-  public void accept(List<ConsumableEvent> ackEvents) {
-    workers.invokeAll(ackEvents.stream().map(this::toCallable).collect(toList()));
+  public void accept(List<ConsumableEvent> consumableEvents) {
+    workers.invokeAll(consumableEvents.stream().map(this::toCallable).collect(toList()));
   }
 
-  private Callable<Void> toCallable(ConsumableEvent ackEvent) {
+  private Callable<Void> toCallable(ConsumableEvent consumableEvent) {
     return () -> {
-      eventServiceInvoker.accept(ackEvent.getEvent());
-      ackEvent.ack();
+      eventServiceInvoker.accept(consumableEvent.getEvent());
+      consumableEvent.ack();
       return null;
     };
   }

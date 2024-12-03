@@ -1,19 +1,25 @@
 package app.bpartners.api.endpoint.event.model;
 
 import static app.bpartners.api.endpoint.event.EventStack.EVENT_STACK_1;
+import static java.lang.Math.random;
 
 import app.bpartners.api.PojaGenerated;
 import app.bpartners.api.endpoint.event.EventStack;
 import java.io.Serializable;
 import java.time.Duration;
+import lombok.Getter;
+import lombok.Setter;
 
 @PojaGenerated
 @SuppressWarnings("all")
 public abstract class PojaEvent implements Serializable {
+
+  @Getter @Setter protected int attemptNb;
+
   public abstract Duration maxConsumerDuration();
 
   private Duration randomConsumerBackoffBetweenRetries() {
-    return Duration.ofSeconds(maxConsumerBackoffBetweenRetries().toSeconds());
+    return Duration.ofSeconds((int) (random() * maxConsumerBackoffBetweenRetries().toSeconds()));
   }
 
   public abstract Duration maxConsumerBackoffBetweenRetries();

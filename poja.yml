@@ -1,13 +1,13 @@
 compute:
   frontal_function_timeout: 30
-  frontal_memory: 1024  
+  frontal_memory: 1024
   worker_batch: 1
   worker_function_1_timeout: 600
   worker_function_2_timeout: 600
   worker_memory: 1024
 concurrency:
   frontal_reserved_concurrent_executions_nb: 20
-  worker_reserved_concurrent_executions_nb: 30  
+  worker_reserved_concurrent_executions_nb: 30
 database:
   aurora_auto_pause: 'false'
   aurora_max_capacity: null
@@ -21,7 +21,7 @@ database:
 emailing:
   ses_source: contact@bpartners.app
 gen_api_client:
-  aws_account_id: '688605879718'  
+  aws_account_id: '688605879718'
   codeartifact_domain_name: npm-bpartners-app
   codeartifact_repository_name: bpartners-store
   ts_client_api_url_env_var_name: REACT_APP_BPARTNERS_API_URL
@@ -55,14 +55,3 @@ networking:
 testing:
   jacoco_min_coverage: '0.4'
   java_facade_it: app.bpartners.api.integration.conf.MockedThirdParties
-  
-
-  
-
-
-
-
-
-
-
-

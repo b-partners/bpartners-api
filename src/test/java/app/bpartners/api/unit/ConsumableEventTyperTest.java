@@ -8,6 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import app.bpartners.api.PojaGenerated;
+import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.event.consumer.model.ConsumableEvent;
 import app.bpartners.api.endpoint.event.consumer.model.ConsumableEventTyper;
 import app.bpartners.api.endpoint.event.consumer.model.TypedEvent;
@@ -16,6 +17,7 @@ import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,8 +26,7 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 
 @PojaGenerated
 @SuppressWarnings("all")
-public class ConsumableEventTyperTest
-    extends app.bpartners.api.integration.conf.MockedThirdParties {
+public class ConsumableEventTyperTest extends FacadeIT {
   public static final String UNKNOWN_TYPENAME = "unknown_typename";
   @Autowired ConsumableEventTyper subject;
   @Autowired ObjectMapper om;
@@ -39,6 +40,7 @@ public class ConsumableEventTyperTest
             + "\", \"detail\":"
             + om.writeValueAsString(typedEvent.payload())
             + "}");
+    message.setAttributes(Map.of("ApproximateReceiveCount", "1"));
     return message;
   }
 

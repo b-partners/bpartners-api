@@ -3,11 +3,12 @@ package app.bpartners.api.file.bucket;
 import static java.io.File.createTempFile;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.file.hash.FileHash;
-import app.bpartners.api.file.hash.FileHashAlgorithm;
 import java.io.File;
 import java.net.URL;
 import java.time.Duration;
+
+import app.bpartners.api.file.hash.FileHash;
+import app.bpartners.api.file.hash.FileHashAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
@@ -34,11 +35,11 @@ public class BucketComponent {
 
   private FileHash uploadDirectory(File file, String bucketKey) {
     var request =
-        UploadDirectoryRequest.builder()
-            .source(file.toPath())
-            .bucket(bucketConf.getBucketName())
-            .s3Prefix(bucketKey)
-            .build();
+            UploadDirectoryRequest.builder()
+                    .source(file.toPath())
+                    .bucket(bucketConf.getBucketName())
+                    .s3Prefix(bucketKey)
+                    .build();
     var upload = bucketConf.getS3TransferManager().uploadDirectory(request);
     var uploaded = upload.completionFuture().join();
     if (!uploaded.failedTransfers().isEmpty()) {
@@ -49,11 +50,11 @@ public class BucketComponent {
 
   private FileHash uploadFile(File file, String bucketKey) {
     var request =
-        UploadFileRequest.builder()
-            .source(file)
-            .putObjectRequest(req -> req.bucket(bucketConf.getBucketName()).key(bucketKey))
-            .addTransferListener(LoggingTransferListener.create())
-            .build();
+            UploadFileRequest.builder()
+                    .source(file)
+                    .putObjectRequest(req -> req.bucket(bucketConf.getBucketName()).key(bucketKey))
+                    .addTransferListener(LoggingTransferListener.create())
+                    .build();
     var upload = bucketConf.getS3TransferManager().uploadFile(request);
     var uploaded = upload.completionFuture().join();
     return new FileHash(FileHashAlgorithm.SHA256, uploaded.response().checksumSHA256());
@@ -62,19 +63,19 @@ public class BucketComponent {
   @SneakyThrows
   public File download(String bucketKey) {
     var destination =
-        createTempFile(prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey));
+            createTempFile(prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey));
     FileDownload download =
-        bucketConf
-            .getS3TransferManager()
-            .downloadFile(
-                DownloadFileRequest.builder()
-                    .getObjectRequest(
-                        GetObjectRequest.builder()
-                            .bucket(bucketConf.getBucketName())
-                            .key(bucketKey)
-                            .build())
-                    .destination(destination)
-                    .build());
+            bucketConf
+                    .getS3TransferManager()
+                    .downloadFile(
+                            DownloadFileRequest.builder()
+                                    .getObjectRequest(
+                                            GetObjectRequest.builder()
+                                                    .bucket(bucketConf.getBucketName())
+                                                    .key(bucketKey)
+                                                    .build())
+                                    .destination(destination)
+                                    .build());
     download.completionFuture().join();
     return destination;
   }
@@ -96,15 +97,15 @@ public class BucketComponent {
 
   public URL presign(String bucketKey, Duration expiration) {
     GetObjectRequest getObjectRequest =
-        GetObjectRequest.builder().bucket(bucketConf.getBucketName()).key(bucketKey).build();
+            GetObjectRequest.builder().bucket(bucketConf.getBucketName()).key(bucketKey).build();
     PresignedGetObjectRequest presignedRequest =
-        bucketConf
-            .getS3Presigner()
-            .presignGetObject(
-                GetObjectPresignRequest.builder()
-                    .signatureDuration(expiration)
-                    .getObjectRequest(getObjectRequest)
-                    .build());
+            bucketConf
+                    .getS3Presigner()
+                    .presignGetObject(
+                            GetObjectPresignRequest.builder()
+                                    .signatureDuration(expiration)
+                                    .getObjectRequest(getObjectRequest)
+                                    .build());
     return presignedRequest.url();
   }
 

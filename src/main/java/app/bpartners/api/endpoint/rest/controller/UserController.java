@@ -57,8 +57,8 @@ public class UserController {
     return subscriptionService.initiateSubscription(user, subscriptionType, redirectionStatusUrls);
   }
 
-  @PostMapping("/users/stripe/subscription")
-  public String registerOnStripeActiveUsersWithNullSubscription() {
+  @PostMapping("/users/subscriptionRegistration")
+  public String registerActiveUsersWithNullSubscription() {
     service.registerOnStripeActiveUsersWithNullSubscription();
     return null;
   }

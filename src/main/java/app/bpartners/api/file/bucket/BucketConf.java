@@ -1,4 +1,4 @@
-package app.bpartners.api.file;
+package app.bpartners.api.file.bucket;
 
 import app.bpartners.api.PojaGenerated;
 import app.bpartners.api.service.aws.AWSProviderConf;

@@ -1,4 +1,4 @@
-package app.bpartners.api.file;
+package app.bpartners.api.file.hash;
 
 import app.bpartners.api.PojaGenerated;
 

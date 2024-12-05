@@ -1,13 +1,13 @@
 package app.bpartners.api.endpoint.rest.controller.health;
 
-import static app.bpartners.api.file.FileHashAlgorithm.NONE;
+import static app.bpartners.api.file.hash.FileHashAlgorithm.NONE;
 import static java.io.File.createTempFile;
 import static java.nio.file.Files.createTempDirectory;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.file.BucketComponent;
-import app.bpartners.api.file.FileHash;
+import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.hash.FileHash;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;

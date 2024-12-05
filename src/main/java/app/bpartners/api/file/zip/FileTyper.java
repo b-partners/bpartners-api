@@ -1,4 +1,4 @@
-package app.bpartners.api.file;
+package app.bpartners.api.file.zip;
 
 import static org.springframework.http.MediaType.parseMediaType;
 

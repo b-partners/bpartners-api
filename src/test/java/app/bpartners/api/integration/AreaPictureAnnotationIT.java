@@ -78,6 +78,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .fillColor("#909090")
                 .obstacle("panneau")
                 .moldRate(10.0)
+                .humidityLevel(10.0)
                 .wearness(PARTIAL)
                 .wearLevel(100.0));
   }
@@ -102,6 +103,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .fillColor("#909090")
                 .obstacle("panneau")
                 .moldRate(10.0)
+                .humidityLevel(10.0)
                 .wearness(PARTIAL)
                 .wearLevel(100.0));
   }
@@ -125,6 +127,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .fillColor("#909090")
                 .obstacle("panneau")
                 .wearLevel(100.0)
+                .humidityLevel(10.0)
                 .moldRate(10.0)
                 .wearness(PARTIAL));
   }

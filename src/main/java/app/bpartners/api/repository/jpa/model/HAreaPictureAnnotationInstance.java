@@ -49,4 +49,5 @@ public class HAreaPictureAnnotationInstance {
   private String idAnnotation;
   private String idUser;
   private String idAreaPicture;
+  private Double humidityLevel;
 }

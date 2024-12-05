@@ -24,7 +24,7 @@ class EmailRestValidatorTest {
             + "Attribute `emailObject` is mandatory. "
             + "Attribute `emailBody` is mandatory. "
             + "Attribute `status` is mandatory. "
-            + "Attribute `recipients` is mandatory. ",
+            + "At least one recipient. ",
         actual.getMessage());
   }
 

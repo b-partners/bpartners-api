@@ -8,6 +8,7 @@ import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+import app.bpartners.api.file.bucket.BucketConf;
 import app.bpartners.api.model.exception.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;

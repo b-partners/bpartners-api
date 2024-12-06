@@ -38,6 +38,7 @@ public class Workers {
                           return c.call();
                         })
             .toList();
+    // TODO: refactor properly
     List<Future<Void>> futures = executorService.invokeAll(callables);
     return futures.stream()
         .map(

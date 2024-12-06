@@ -116,8 +116,8 @@ public class CalendarService {
     }
     return switch (provider) {
       case LOCAL -> localEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
-      case GOOGLE_CALENDAR -> googleEventRepository.findByIdUserAndIdCalendar(
-          idUser, idCalendar, from, to);
+      case GOOGLE_CALENDAR ->
+          googleEventRepository.findByIdUserAndIdCalendar(idUser, idCalendar, from, to);
     };
   }
 

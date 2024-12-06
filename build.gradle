@@ -168,8 +168,6 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-    implementation "com.stripe:stripe-java:28.0.1"
-
     implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot3:2.0.0-M2'
     implementation 'software.amazon.awssdk:aws-query-protocol:2.20.26'
 
@@ -241,5 +239,6 @@ implementation 'javax.activation:activation:1.1.1'
 implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.3'
 implementation 'org.geotools:gt-geojson:31.0'
 implementation 'com.google.maps:google-maps-services:2.2.0'
+implementation "com.stripe:stripe-java:28.0.1"
 
 }

@@ -41,6 +41,7 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
     }
     if (invoice.getPaymentType() == IN_INSTALMENT && invoice.getPaymentRegulations() != null) {
       if (invoice.getPaymentRegulations().size() < 2) {
+        log.info("payment = {}", invoice.getPaymentRegulations().size());
         exceptionBuilder.append("Multiple payments request more than one payment");
       } else {
         paymentValidator.accept(

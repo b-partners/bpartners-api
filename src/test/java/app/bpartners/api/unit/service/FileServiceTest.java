@@ -1,7 +1,7 @@
 package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
-import static app.bpartners.api.file.FileHashAlgorithm.SHA256;
+import static app.bpartners.api.file.hash.FileHashAlgorithm.SHA256;
 import static app.bpartners.api.integration.conf.utils.TestUtils.FILE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.FileType;
-import app.bpartners.api.file.FileHash;
+import app.bpartners.api.file.hash.FileHash;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.repository.FileRepository;

@@ -8,10 +8,12 @@ import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
 import com.google.maps.model.LatLng;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class GeoCodeApi {
   private final GeoApiContext geoApiContext;
   private final AddressValidator addressValidator;
@@ -27,6 +29,7 @@ public class GeoCodeApi {
       throws IOException, InterruptedException, ApiException {
     addressValidator.accept(address);
     GeocodingResult[] geocodingResults = GeocodingApi.geocode(this.geoApiContext, address).await();
+    log.info("Geocoding result={}", geocodingResults);
     GeocodingResult response = geocodingResults[0];
     LatLng location = response.geometry.location;
     GeoPosition position =
@@ -34,6 +37,7 @@ public class GeoCodeApi {
             .score(DEFAULT_GEOCODE_SCORE)
             .latitude(location.lat)
             .longitude(location.lng);
+    log.info("GeoPosition={}", position);
     return position;
   }
 }

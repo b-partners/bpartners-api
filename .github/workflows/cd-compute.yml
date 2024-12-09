@@ -28,6 +28,7 @@ jobs:
     env:
       AWS_REGION: eu-west-3
       STRIPE_PRIVATE_API_KEY: ${{ secrets.STRIPE_PRIVATE_API_KEY }}
+      GOOGLE_GEOCODE_API_KEY: ${{ secrets.GOOGLE_GEOCODE_API_KEY }}
 
     steps:
       - uses: actions/checkout@v4.1.6

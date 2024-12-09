@@ -26,6 +26,7 @@ public class AreaPictureAnnotationInstanceMapper {
             .obstacle(entity.getObstacle())
             .wearness(entity.getWearness())
             .moldRate(entity.getMoldRate())
+            .humidityLevel(entity.getHumidityLevel())
             .build();
     return AreaPictureAnnotationInstance.builder()
         .id(entity.getId())
@@ -61,6 +62,7 @@ public class AreaPictureAnnotationInstanceMapper {
         .idAreaPicture(domain.getIdAreaPicture())
         .wearness(metadata.wearness())
         .moldRate(metadata.moldRate())
+        .humidityLevel(metadata.humidityLevel())
         .build();
   }
 }

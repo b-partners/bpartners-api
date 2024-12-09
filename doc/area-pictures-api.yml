@@ -556,6 +556,9 @@ components:
         moldRate:
           type: number
           format: double
+        humidityLevel:
+          type: number
+          format: double
     Wearness:
       type: string
       enum:

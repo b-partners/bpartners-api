@@ -46,7 +46,8 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .obstacle(domain.obstacle())
         .wearness(domain.wearness())
         .moldRate(domain.moldRate())
-        .slope(domain.slope());
+        .slope(domain.slope())
+        .humidityLevel(domain.humidityLevel());
   }
 
   private Polygon toRest(app.bpartners.api.model.AreaPictureAnnotationInstance.Polygon domain) {
@@ -88,6 +89,7 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .obstacle(rest.getObstacle())
         .wearness(rest.getWearness())
         .moldRate(rest.getMoldRate())
+        .humidityLevel(rest.getHumidityLevel())
         .build();
   }
 

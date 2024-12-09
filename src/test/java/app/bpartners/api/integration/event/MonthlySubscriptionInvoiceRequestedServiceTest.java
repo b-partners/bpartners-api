@@ -1,0 +1,167 @@
+package app.bpartners.api.integration.event;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceCreated;
+import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
+import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.model.*;
+import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.User;
+import app.bpartners.api.model.subscription.Subscription;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.payment.UserSubscriptionConf;
+import app.bpartners.api.repository.CustomerRepository;
+import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.service.InvoiceService;
+import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
+import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.utils.CustomDateFormatter;
+import app.bpartners.api.service.utils.MonthUtils;
+import java.math.BigInteger;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+
+class MonthlySubscriptionInvoiceRequestedServiceTest {
+  InvoiceService invoiceServiceMock = mock();
+  UserRepository userRepositoryMock = mock();
+  CustomerRepository customerRepositoryMock = mock();
+  SubscriptionService subscriptionServiceMock = mock();
+  EventProducer eventProducerMock = mock();
+  UserSubscriptionConf userSubscriptionConfMock = mock();
+  CustomDateFormatter customDateFormatter = new CustomDateFormatter();
+  MonthUtils monthUtils = new MonthUtils();
+  MonthlySubscriptionInvoiceRequestedService subject =
+      new MonthlySubscriptionInvoiceRequestedService(
+          invoiceServiceMock,
+          userRepositoryMock,
+          customerRepositoryMock,
+          subscriptionServiceMock,
+          eventProducerMock,
+          userSubscriptionConfMock,
+          customDateFormatter,
+          monthUtils);
+
+  @Test
+  void generate_invoice_for_paginated_users() {
+    var userPage = 1L;
+    var userToCreditId = "userToCreditId";
+    var userToCreditMock = mock(User.class);
+    var userToDebitMock = mock(User.class);
+    var customerMock = mock(Customer.class);
+    var customerEmail = "dummyEmail";
+    var userSubscriptionMock = mock(UserSubscription.class);
+    var subscriptionMock = mock(Subscription.class);
+    var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var subscriptionProductName = "subscriptionProductName";
+
+    when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
+    when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
+    when(userRepositoryMock.findAllByCriteria(any())).thenReturn(List.of(userToDebitMock));
+    when(invoiceServiceMock.crupdateInvoice(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(userToCreditMock.getId()).thenReturn(userToCreditId);
+    when(userToDebitMock.getEmail()).thenReturn(customerEmail);
+    when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
+    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
+    when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
+    when(customerRepositoryMock.findByIdUserAndCriteria(
+            eq(userToCreditId),
+            any(),
+            any(),
+            eq(customerEmail),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            eq(CustomerStatus.ENABLED),
+            eq(1),
+            eq(500)))
+        .thenReturn(List.of(customerMock));
+    when(subscriptionServiceMock.getSubscriptionByUser(userToDebitMock))
+        .thenReturn(userSubscriptionMock);
+
+    assertDoesNotThrow(
+        () ->
+            subject.accept(
+                MonthlySubscriptionInvoiceRequested.builder().userPage(userPage).build()));
+
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
+    var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
+    verify(eventProducerMock).accept(eventCaptor.capture());
+    verify(invoiceServiceMock).crupdateInvoice(invoiceCaptor.capture());
+    var monthlySubscriptionInvoiceCreated =
+        (MonthlySubscriptionInvoiceCreated) eventCaptor.getValue().getFirst();
+    var createdInvoice = invoiceCaptor.getValue();
+    var actualInvoiceProduct = createdInvoice.getProducts().getFirst();
+    var expectedInvoice = computeExpectedInvoice(createdInvoice, userToCreditMock, customerMock);
+    var expectedInvoiceProduct =
+        computeExpectedInvoiceProduct(
+            actualInvoiceProduct, expectedInvoice, subscriptionProductName);
+
+    assertEquals(expectedInvoice, createdInvoice);
+    assertEquals(monthlySubscriptionInvoiceCreated.getInvoiceId(), createdInvoice.getId());
+    assertEquals(1, createdInvoice.getProducts().size());
+    assertEquals(expectedInvoiceProduct, actualInvoiceProduct);
+    assertEquals(Duration.ofSeconds(300L), monthlySubscriptionInvoiceCreated.maxConsumerDuration());
+    assertEquals(
+        Duration.ofSeconds(60L),
+        monthlySubscriptionInvoiceCreated.maxConsumerBackoffBetweenRetries());
+  }
+
+  private InvoiceProduct computeExpectedInvoiceProduct(
+      InvoiceProduct actualInvoiceProduct,
+      Invoice expectedInvoice,
+      String subscriptionProductName) {
+    return InvoiceProduct.builder()
+        .id(actualInvoiceProduct.getId())
+        .createdAt(actualInvoiceProduct.getCreatedAt())
+        .idInvoice(expectedInvoice.getId())
+        .description(subscriptionProductName)
+        .quantity(1)
+        .unitPrice(new Fraction(BigInteger.valueOf(49L)))
+        .vatPercent(new Fraction(BigInteger.TEN))
+        .status(ProductStatus.ENABLED)
+        .build();
+  }
+
+  private Invoice computeExpectedInvoice(
+      Invoice createdInvoice, User userToCreditMock, Customer customerMock) {
+    var startOfCurrentMonthFormatted =
+        customDateFormatter.formatFrenchDate(monthUtils.startOfActualMonth());
+    var endOfCurrentMonthFormatted =
+        customDateFormatter.formatFrenchDate(monthUtils.endOfActualMonth());
+    return Invoice.builder()
+        .id(createdInvoice.getId())
+        .paymentMethod(PaymentMethod.CREDIT_CARD)
+        .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
+        .title(
+            "Abonnement Essentiel pour la période de "
+                + startOfCurrentMonthFormatted
+                + " au "
+                + endOfCurrentMonthFormatted)
+        .ref("TODO: custom reference ?")
+        .validityDate(LocalDate.now().plusDays(30L))
+        .toPayAt(createdInvoice.getToPayAt())
+        .sendingDate(LocalDate.now())
+        .createdAt(createdInvoice.getCreatedAt())
+        .user(userToCreditMock)
+        .customer(customerMock)
+        .status(InvoiceStatus.CONFIRMED)
+        .paymentRegulations(new ArrayList<>())
+        .archiveStatus(ArchiveStatus.ENABLED)
+        .delayInPaymentAllowed(0)
+        .products(createdInvoice.getProducts())
+        .build();
+  }
+}

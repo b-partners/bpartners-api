@@ -16,6 +16,7 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.payment.StripeConf;
+import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.fintecture.FintectureConf;
@@ -46,6 +47,7 @@ class LegalFileIT extends FacadeIT {
   @MockBean BridgeApi bridgeApi;
   @MockBean EventProducer eventProducer;
   @MockBean StripeConf stripeConf;
+  @MockBean UserSubscriptionConf userSubscriptionConf;
   @MockBean SubscriptionService subscriptionService;
 
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";

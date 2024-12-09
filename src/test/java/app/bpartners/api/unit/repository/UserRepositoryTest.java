@@ -21,6 +21,7 @@ import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
+import jakarta.persistence.EntityManager;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ class UserRepositoryTest {
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
   AccountJpaRepository accountJpaRepositoryMock;
   BankRepository bankRepositoryMock;
+  EntityManager entityManagerMock;
 
   @BeforeEach
   void setUp() {
@@ -44,6 +46,7 @@ class UserRepositoryTest {
     accountHolderJpaRepositoryMock = mock(AccountHolderJpaRepository.class);
     accountJpaRepositoryMock = mock(AccountJpaRepository.class);
     bankRepositoryMock = mock(BankRepository.class);
+    entityManagerMock = mock(EntityManager.class);
     subject =
         new UserRepositoryImpl(
             userJpaRepositoryMock,
@@ -52,7 +55,8 @@ class UserRepositoryTest {
             bridgeUserRepositoryMock,
             accountHolderJpaRepositoryMock,
             accountJpaRepositoryMock,
-            bankRepositoryMock);
+            bankRepositoryMock,
+            entityManagerMock);
 
     when(userJpaRepositoryMock.save(any())).thenReturn(user());
     when(userJpaRepositoryMock.findByEmail(JOE_EMAIL)).thenReturn(Optional.ofNullable(user()));

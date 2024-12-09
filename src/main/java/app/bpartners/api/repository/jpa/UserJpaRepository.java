@@ -2,6 +2,7 @@ package app.bpartners.api.repository.jpa;
 
 import static jakarta.persistence.LockModeType.PESSIMISTIC_WRITE;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.repository.jpa.model.HUser;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserJpaRepository extends JpaRepository<HUser, String> {
+
+  Long countByStatus(EnableStatus status);
+
   @Lock(PESSIMISTIC_WRITE)
   Optional<HUser> findByAccessToken(String token);
 

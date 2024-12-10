@@ -65,7 +65,8 @@ class UserServiceTest {
             accountHolderJpaRepositoryMock,
             invoiceSummaryJpaRepositoryMock,
             bridgeApiMock,
-            eventProducerMock);
+            eventProducerMock,
+            subscriptionServiceMock);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());

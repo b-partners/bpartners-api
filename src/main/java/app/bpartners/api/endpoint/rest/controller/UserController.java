@@ -60,7 +60,7 @@ public class UserController {
   @PostMapping("/users/subscriptionRegistration")
   public String registerActiveUsersWithNullSubscription() {
     service.registerOnStripeActiveUsersWithNullSubscription();
-    return null;
+    return "Request has been sent";
   }
 
   @PostMapping("/users/{uId}/subscriptionCancel")

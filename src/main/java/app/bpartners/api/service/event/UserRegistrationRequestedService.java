@@ -21,10 +21,10 @@ public class UserRegistrationRequestedService implements Consumer<UserRegistrati
 
   @Override
   public void accept(UserRegistrationRequested event) {
-    var recipient = "tech@bpartners.app";
+    var recipient = System.getenv("ADMIN.EMAIL");
     var mailSubject =
         String.format(
-            "Utilisateur %s / %s enregistrer dans Stripe",
+            "Utilisateurs %s / %s enregistrés sur Stripe",
             event.getUserNb(), event.getTotalNbUser());
     try {
       User user = userService.getUserById(event.getUserId());

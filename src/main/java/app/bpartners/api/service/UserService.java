@@ -124,7 +124,7 @@ public class UserService {
   }
 
   @Transactional
-  public void registerOnStripeActiveUsersWithNullSubscription() {
+  public List<User> registerOnStripeActiveUsersWithNullSubscription() {
     List<User> users = userRepository.getActiveUsersWithNullSubscription();
     var totalUser = users.size();
     int[] userNb = {0};
@@ -136,16 +136,18 @@ public class UserService {
                 user.toBuilder()
                     .userSubscriptionId(userSubscription.getSubscriptions().getFirst().getId())
                     .build());
-            return;
+
+          } else {
+            UserRegistrationRequested userRegistrationRequested =
+                UserRegistrationRequested.builder()
+                    .userId(user.getId())
+                    .totalNbUser(totalUser)
+                    .userNb(userNb[0])
+                    .build();
+            eventProducer.accept(List.of(userRegistrationRequested));
           }
-          UserRegistrationRequested userRegistrationRequested =
-              UserRegistrationRequested.builder()
-                  .userId(user.getId())
-                  .totalNbUser(totalUser)
-                  .userNb(userNb[0])
-                  .build();
-          eventProducer.accept(List.of(userRegistrationRequested));
           userNb[0]++;
         });
+    return userRepository.getUsersWithSubscription();
   }
 }

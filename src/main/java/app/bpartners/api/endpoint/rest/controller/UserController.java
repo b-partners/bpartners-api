@@ -58,9 +58,10 @@ public class UserController {
   }
 
   @PostMapping("/users/subscriptionRegistration")
-  public String registerActiveUsersWithNullSubscription() {
-    service.registerOnStripeActiveUsersWithNullSubscription();
-    return "Request has been sent";
+  public List<User> registerActiveUsersWithNullSubscription() {
+    List<app.bpartners.api.model.User> users =
+        service.registerOnStripeActiveUsersWithNullSubscription();
+    return users.stream().map(mapper::toRest).toList();
   }
 
   @PostMapping("/users/{uId}/subscriptionCancel")

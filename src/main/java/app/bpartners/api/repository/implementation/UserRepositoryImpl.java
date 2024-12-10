@@ -56,6 +56,12 @@ public class UserRepositoryImpl implements UserRepository {
         .toList();
   }
 
+  @Transactional
+  @Override
+  public List<User> getUsersWithSubscription() {
+    return jpaRepository.getUsersWithSubscription().stream().map(userMapper::toDomain).toList();
+  }
+
   @Override
   public List<User> findAll() {
     return jpaRepository.findAll().stream().map(userMapper::toDomain).collect(Collectors.toList());

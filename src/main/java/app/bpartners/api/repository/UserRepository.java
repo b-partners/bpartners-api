@@ -31,4 +31,6 @@ public interface UserRepository {
   User create(User user);
 
   void deleteById(String id);
+
+  List<User> getUsersWithSubscription();
 }

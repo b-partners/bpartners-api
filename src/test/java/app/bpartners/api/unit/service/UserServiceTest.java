@@ -15,6 +15,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
@@ -71,6 +72,22 @@ class UserServiceTest {
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
     when(userTokenRepositoryMock.getLatestTokenByUser(any())).thenReturn(new UserToken());
+  }
+
+  @Test
+  void register_on_stripe_active_users_when_user_has_subscription() {
+    var account = AccountHolder.builder().build();
+    var user =
+        User.builder().id("id_user").accountHolders(List.of(account)).status(ENABLED).build();
+    when(userRepositoryMock.getActiveUsersWithNullSubscription()).thenReturn(List.of(user));
+    when(subscriptionServiceMock.createUserSubscription(any()))
+        .thenReturn(UserSubscription.builder().build());
+    var subscription = Subscription.builder().id("user_subscription_id").build();
+    var userSubscription = UserSubscription.builder().subscriptions(List.of(subscription)).build();
+    when(subscriptionServiceMock.getSubscriptionByUser(any())).thenReturn(userSubscription);
+
+    assertDoesNotThrow(() -> subject.registerOnStripeActiveUsersWithNullSubscription());
+    verify(userRepositoryMock, times(1)).save(any());
   }
 
   @Test

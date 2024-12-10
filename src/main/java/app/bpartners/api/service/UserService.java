@@ -136,6 +136,7 @@ public class UserService {
                 user.toBuilder()
                     .userSubscriptionId(userSubscription.getSubscriptions().getFirst().getId())
                     .build());
+            return;
           }
           UserRegistrationRequested userRegistrationRequested =
               UserRegistrationRequested.builder()

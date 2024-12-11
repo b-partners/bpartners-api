@@ -160,6 +160,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(POST, "/users/monthlySubscriptionInvoiceTrigger")
+                    .hasAnyRole(EVAL_PROSPECT.getRole()) // TODO: set ADMIN ROLE when implemented
                     .requestMatchers(POST, "/users/accounts/refresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(

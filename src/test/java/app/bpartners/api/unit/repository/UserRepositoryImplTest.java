@@ -67,7 +67,7 @@ class UserRepositoryImplTest {
     when(criteriaBuilderMock.equal(any(Expression.class), any())).thenReturn(predicateMock);
     when(queryMock.where(predicateMock)).thenReturn(queryMock);
     when(entityManagerMock.getCriteriaBuilder()).thenReturn(criteriaBuilderMock);
-    when(typedQueryMock.setFirstResult(eq(expectedPage))).thenReturn(typedQueryMock);
+    when(typedQueryMock.setFirstResult(eq(expectedPage - 1))).thenReturn(typedQueryMock);
     when(typedQueryMock.setMaxResults(eq(expectedPageSize))).thenReturn(typedQueryMock);
     when(typedQueryMock.getResultList()).thenReturn(List.of(userEntityMock));
     when(entityManagerMock.createQuery(queryMock)).thenReturn(typedQueryMock);
@@ -81,7 +81,7 @@ class UserRepositoryImplTest {
     var capturedPageSizeValue = integerCaptor.getAllValues().getLast();
 
     assertEquals(expectedUsers, actual);
-    assertEquals(expectedPage, capturedPageValue);
+    assertEquals(0, capturedPageValue);
     assertEquals(expectedPageSize, capturedPageSizeValue);
   }
 
@@ -108,7 +108,7 @@ class UserRepositoryImplTest {
     when(criteriaBuilderMock.equal(any(Expression.class), any())).thenReturn(predicateMock);
     when(queryMock.where(predicateMock)).thenReturn(queryMock);
     when(entityManagerMock.getCriteriaBuilder()).thenReturn(criteriaBuilderMock);
-    when(typedQueryMock.setFirstResult(eq(expectedPage))).thenReturn(typedQueryMock);
+    when(typedQueryMock.setFirstResult(eq(expectedPage - 1))).thenReturn(typedQueryMock);
     when(typedQueryMock.setMaxResults(eq(expectedPageSize))).thenReturn(typedQueryMock);
     when(typedQueryMock.getResultList()).thenReturn(List.of(userEntityMock));
     when(entityManagerMock.createQuery(queryMock)).thenReturn(typedQueryMock);
@@ -122,7 +122,7 @@ class UserRepositoryImplTest {
     var capturedPageSizeValue = integerCaptor.getAllValues().getLast();
 
     assertEquals(expectedUsers, actual);
-    assertEquals(expectedPage, capturedPageValue);
+    assertEquals(1, capturedPageValue);
     assertEquals(expectedPageSize, capturedPageSizeValue);
   }
 

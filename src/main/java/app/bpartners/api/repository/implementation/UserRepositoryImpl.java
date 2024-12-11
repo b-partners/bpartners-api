@@ -82,7 +82,7 @@ public class UserRepositoryImpl implements UserRepository {
     query.where(predicates.toArray(new Predicate[0]));
     return entityManager
         .createQuery(query)
-        .setFirstResult((page))
+        .setFirstResult(page - 1)
         .setMaxResults(pageSize)
         .getResultList()
         .stream()

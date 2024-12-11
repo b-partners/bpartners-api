@@ -3,6 +3,8 @@ package app.bpartners.api.endpoint.rest.controller;
 import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
@@ -31,6 +33,13 @@ public class UserController {
   private final AccountRefreshService accountRefreshService;
   private final SubscriptionService subscriptionService;
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
+  private final EventProducer eventProducer;
+
+  @PostMapping("/users/monthlySubscriptionInvoiceTrigger")
+  public String triggerMonthlySubscriptionInvoice() {
+    eventProducer.accept(List.of(new MonthlySubscriptionInvoiceTriggered()));
+    return "Monthly subscription invoice triggered successfully";
+  }
 
   @PostMapping("/users/{uId}/subscriptionInitiation")
   public Redirection initiateUserSubscription(

@@ -11,15 +11,11 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceCreated;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
-import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
-import app.bpartners.api.endpoint.rest.model.CustomerStatus;
-import app.bpartners.api.endpoint.rest.model.PaymentMethod;
-import app.bpartners.api.endpoint.rest.model.ProductStatus;
-import app.bpartners.api.model.Fraction;
+import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.model.*;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -75,31 +71,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private Invoice computeMonthlySusbcriptionInvoice(User userToCredit, User userToDebit) {
-    var customerToDebit =
-        customerRepository
-            .findByIdUserAndCriteria(
-                userToCredit.getId(),
-                null,
-                null,
-                userToDebit.getEmail(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                CustomerStatus.ENABLED,
-                MIN_PAGE,
-                MAX_SIZE)
-            .stream()
-            .findAny()
-            .orElseThrow(
-                () ->
-                    new NotFoundException(
-                        "Customer.email="
-                            + userToDebit.getEmail()
-                            + " for userId="
-                            + userToCredit.getId()
-                            + " not found"));
+    var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
     var invoiceId = randomUUID().toString();
     return Invoice.builder()
         .id(invoiceId)
@@ -123,6 +95,56 @@ public class MonthlySubscriptionInvoiceRequestedService
         .delayInPaymentAllowed(0)
         .createdAt(Instant.now())
         .build();
+  }
+
+  private Customer computeCustomerToDebit(User userToCredit, User userToDebit) {
+    var optionalCustomerToDebit =
+        customerRepository
+            .findByIdUserAndCriteria(
+                userToCredit.getId(),
+                null,
+                null,
+                userToDebit.getEmail(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                CustomerStatus.ENABLED,
+                MIN_PAGE,
+                MAX_SIZE)
+            .stream()
+            .findAny();
+    return optionalCustomerToDebit.orElseGet(() -> computeCustomerFromUserToDebit(userToDebit));
+  }
+
+  private Customer computeCustomerFromUserToDebit(User userToDebit) {
+    var accountHolderToDebit = userToDebit.getDefaultHolder();
+    return customerRepository.save(
+        Customer.builder()
+            .id(randomUUID().toString())
+            .idUser(userToDebit.getId())
+            .name(accountHolderToDebit.getName())
+            .firstName(null) // because customers are company
+            .lastName(null) // because customers are company
+            .email(userToDebit.getEmail())
+            .phone(accountHolderToDebit.getMobilePhoneNumber())
+            .website(accountHolderToDebit.getWebsite())
+            .address(accountHolderToDebit.getAddress())
+            .zipCode(
+                accountHolderToDebit.getPostalCode() == null
+                    ? null
+                    : Integer.valueOf(accountHolderToDebit.getPostalCode()))
+            .city(accountHolderToDebit.getCity())
+            .country(accountHolderToDebit.getCountry())
+            .comment(null)
+            .location(null) // TODO: compute location ?
+            .status(CustomerStatus.ENABLED)
+            .customerType(CustomerType.PROFESSIONAL)
+            .recentlyAdded(false)
+            .updatedAt(Instant.now())
+            .createdAt(Instant.now())
+            .build());
   }
 
   private @NotNull ArrayList<InvoiceProduct> computeSubscriptionProducts(

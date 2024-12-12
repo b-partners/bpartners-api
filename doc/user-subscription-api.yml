@@ -1,4 +1,28 @@
 operations:
+  registerUserSubscription:
+    post:
+      tags:
+        - User Subscription
+      summary: Subscribe user in stripe
+      operationId: registerOnStripeActiveUsersWithNullSubscription
+      response:
+        200:
+          description: List of all User subscribe
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './userAccounts-api.yml/#/components/schemas/User'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   initiateUserSubscription:
     post:
       tags:

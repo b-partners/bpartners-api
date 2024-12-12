@@ -4,6 +4,7 @@ import static jakarta.persistence.LockModeType.PESSIMISTIC_WRITE;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.repository.jpa.model.HUser;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -31,4 +32,10 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
 
   @Lock(PESSIMISTIC_WRITE)
   HUser getHUserById(String id);
+
+  @Query("select u from HUser u where u.monthlySubscription is null and u.status = 'ENABLED'")
+  List<HUser> getEnabledUsersWithoutSubscription();
+
+  @Query("select u from HUser u where u.userSubscriptionE2Id is not null")
+  List<HUser> getUsersWithSubscription();
 }

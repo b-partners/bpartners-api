@@ -10,6 +10,8 @@ public interface UserRepository {
 
   User getByIdAccount(String idAccount);
 
+  List<User> getActiveUsersWithNullSubscription();
+
   List<User> findAll();
 
   Long countUsersByStatus(EnableStatus status);
@@ -29,4 +31,6 @@ public interface UserRepository {
   User create(User user);
 
   void deleteById(String id);
+
+  List<User> getUsersWithSubscription();
 }

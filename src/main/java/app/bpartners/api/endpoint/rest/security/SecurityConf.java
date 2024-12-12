@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.rest.security;
 
-import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
-import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
+import static app.bpartners.api.endpoint.rest.security.model.Role.*;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
@@ -416,6 +415,8 @@ public class SecurityConf {
                         new SelfAccountMatcher(
                             POST, "/accounts/*/invoices/relaunches", authResourceProvider))
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole())
+                    .requestMatchers(POST, "users/subscriptionRegistration")
+                    .hasRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/invoices/*/relaunchConf", authResourceProvider))

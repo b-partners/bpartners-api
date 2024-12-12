@@ -107,20 +107,18 @@ public class UserRepositoryImpl implements UserRepository {
 
   private static Integer computeDefaultPage(HashMap<String, Object> criteria) {
     if (criteria.containsKey("page")) {
-      return (Integer) criteria.get("page");
+      return ((Long) criteria.get("page")).intValue();
     } else {
       return 1;
     }
   }
 
   private static Integer computeDefaultPageSize(HashMap<String, Object> criteria) {
-    int pageSize;
     if (criteria.containsKey("pageSize")) {
-      pageSize = (Integer) criteria.get("pageSize");
+      return ((Long) criteria.get("pageSize")).intValue();
     } else {
-      pageSize = 500;
+      return  500;
     }
-    return pageSize;
   }
 
   @Override

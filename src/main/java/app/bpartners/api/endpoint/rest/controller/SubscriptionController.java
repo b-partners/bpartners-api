@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class SubscriptionController {
-    private final EventProducer eventProducer;
+  private final EventProducer eventProducer;
 
-    @PostMapping("/monthlySubscriptionInvoiceTrigger")
-    public String triggerMonthlySubscriptionInvoice() {
-        eventProducer.accept(List.of(new MonthlySubscriptionInvoiceTriggered()));
-        return "Monthly subscription invoice triggered successfully";
-    }
+  @PostMapping("/monthlySubscriptionInvoiceTrigger")
+  public String triggerMonthlySubscriptionInvoice() {
+    eventProducer.accept(List.of(new MonthlySubscriptionInvoiceTriggered()));
+    return "Monthly subscription invoice triggered successfully";
+  }
 }

@@ -7,6 +7,7 @@ import lombok.*;
 @Builder
 @Getter
 @ToString
+@NoArgsConstructor
 @AllArgsConstructor
 public class MonthlySubscriptionInvoiceRequested extends PojaEvent {
   private Long userPage;

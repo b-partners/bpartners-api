@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceCreated;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
@@ -51,9 +52,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           monthUtils);
 
   @Test
-  void generate_invoice_for_paginated_users() {
+  void generate_invoice_for_paginated_users_with_existing_customers() {
     var userPage = 1L;
     var userToCreditId = "userToCreditId";
+    var userToDebitId = "userToDebitId";
     var userToCreditMock = mock(User.class);
     var userToDebitMock = mock(User.class);
     var customerMock = mock(Customer.class);
@@ -69,24 +71,25 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(invoiceServiceMock.crupdateInvoice(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
+    when(userToDebitMock.getId()).thenReturn(userToDebitId);
     when(userToDebitMock.getEmail()).thenReturn(customerEmail);
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(customerRepositoryMock.findByIdUserAndCriteria(
-            eq(userToCreditId),
-            any(),
-            any(),
-            eq(customerEmail),
             any(),
             any(),
             any(),
             any(),
             any(),
-            eq(CustomerStatus.ENABLED),
-            eq(1),
-            eq(500)))
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(Integer.class),
+            any(Integer.class)))
         .thenReturn(List.of(customerMock));
     when(subscriptionServiceMock.getSubscriptionByUser(userToDebitMock))
         .thenReturn(userSubscriptionMock);
@@ -100,6 +103,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
     verify(eventProducerMock).accept(eventCaptor.capture());
     verify(invoiceServiceMock).crupdateInvoice(invoiceCaptor.capture());
+    verify(customerRepositoryMock, never()).save(any());
     var monthlySubscriptionInvoiceCreated =
         (MonthlySubscriptionInvoiceCreated) eventCaptor.getValue().getFirst();
     var createdInvoice = invoiceCaptor.getValue();
@@ -117,6 +121,103 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     assertEquals(
         Duration.ofSeconds(60L),
         monthlySubscriptionInvoiceCreated.maxConsumerBackoffBetweenRetries());
+  }
+
+  @Test
+  void generate_invoice_for_paginated_users_without_existing_customers() {
+    var userPage = 1L;
+    var userToCreditId = "userToCreditId";
+    var userToCreditMock = mock(User.class);
+    var userToDebitMock = mock(User.class);
+    var holderMock = accountHolderWithValuesMock(mock(AccountHolder.class));
+    var customerEmail = "dummyEmail";
+    var userSubscriptionMock = mock(UserSubscription.class);
+    var subscriptionMock = mock(Subscription.class);
+    var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var subscriptionProductName = "subscriptionProductName";
+
+    when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
+    when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
+    when(userRepositoryMock.findAllByCriteria(any())).thenReturn(List.of(userToDebitMock));
+    when(invoiceServiceMock.crupdateInvoice(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(userToCreditMock.getId()).thenReturn(userToCreditId);
+    when(userToDebitMock.getDefaultHolder()).thenReturn(holderMock);
+    when(userToDebitMock.getEmail()).thenReturn(customerEmail);
+    when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
+    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
+    when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
+    when(customerRepositoryMock.findByIdUserAndCriteria(
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(Integer.class),
+            any(Integer.class)))
+        .thenReturn(List.of());
+    when(customerRepositoryMock.save(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(subscriptionServiceMock.getSubscriptionByUser(userToDebitMock))
+        .thenReturn(userSubscriptionMock);
+
+    assertDoesNotThrow(
+        () ->
+            subject.accept(
+                MonthlySubscriptionInvoiceRequested.builder().userPage(userPage).build()));
+
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
+    var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
+    var customerCaptor = ArgumentCaptor.forClass(Customer.class);
+    verify(eventProducerMock).accept(eventCaptor.capture());
+    verify(invoiceServiceMock).crupdateInvoice(invoiceCaptor.capture());
+    verify(customerRepositoryMock).save(customerCaptor.capture());
+    var monthlySubscriptionInvoiceCreated =
+        (MonthlySubscriptionInvoiceCreated) eventCaptor.getValue().getFirst();
+    var createdInvoice = invoiceCaptor.getValue();
+    var actualInvoiceProduct = createdInvoice.getProducts().getFirst();
+    var actualCustomer = customerCaptor.getValue();
+    var expectedCreatedCustomer = computeExpectedCreatedCustomer(userToDebitMock, actualCustomer);
+    var expectedInvoice =
+        computeExpectedInvoice(createdInvoice, userToCreditMock, expectedCreatedCustomer);
+    var expectedInvoiceProduct =
+        computeExpectedInvoiceProduct(
+            actualInvoiceProduct, expectedInvoice, subscriptionProductName);
+
+    assertEquals(expectedCreatedCustomer, actualCustomer);
+    assertEquals(expectedInvoice, createdInvoice);
+    assertEquals(monthlySubscriptionInvoiceCreated.getInvoiceId(), createdInvoice.getId());
+    assertEquals(1, createdInvoice.getProducts().size());
+    assertEquals(expectedInvoiceProduct, actualInvoiceProduct);
+    assertEquals(Duration.ofSeconds(300L), monthlySubscriptionInvoiceCreated.maxConsumerDuration());
+    assertEquals(
+        Duration.ofSeconds(60L),
+        monthlySubscriptionInvoiceCreated.maxConsumerBackoffBetweenRetries());
+  }
+
+  private Customer computeExpectedCreatedCustomer(User userToDebit, Customer actual) {
+    return Customer.builder()
+        .id(actual.getId())
+        .createdAt(actual.getCreatedAt())
+        .updatedAt(actual.getUpdatedAt())
+        .idUser(userToDebit.getId())
+        .name("accountHolderToDebitName")
+        .email("dummyEmail")
+        .phone("0612345678")
+        .website("accountHolderToDebitWebsite")
+        .address("accountHolderToDebitAddress")
+        .zipCode(75001)
+        .city("accountHolderToDebitCity")
+        .country("accountHolderToDebitCountry")
+        .status(CustomerStatus.ENABLED)
+        .customerType(CustomerType.PROFESSIONAL)
+        .build();
   }
 
   private InvoiceProduct computeExpectedInvoiceProduct(
@@ -163,5 +264,17 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .delayInPaymentAllowed(0)
         .products(createdInvoice.getProducts())
         .build();
+  }
+
+  private AccountHolder accountHolderWithValuesMock(AccountHolder accountHolderMock) {
+    when(accountHolderMock.getName()).thenReturn("accountHolderToDebitName");
+    when(accountHolderMock.getMobilePhoneNumber()).thenReturn("0612345678");
+    when(accountHolderMock.getWebsite()).thenReturn("accountHolderToDebitWebsite");
+    when(accountHolderMock.getAddress()).thenReturn("accountHolderToDebitAddress");
+    when(accountHolderMock.getPostalCode()).thenReturn("75001");
+    when(accountHolderMock.getCity()).thenReturn("accountHolderToDebitCity");
+    when(accountHolderMock.getCountry()).thenReturn("accountHolderToDebitCountry");
+
+    return accountHolderMock;
   }
 }

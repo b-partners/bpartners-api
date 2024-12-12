@@ -53,7 +53,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
 
   @Test
   void generate_invoice_for_paginated_users_with_existing_customers() {
-    var userPage = 1L;
+    var userPage = 1;
     var userToCreditId = "userToCreditId";
     var userToDebitId = "userToDebitId";
     var userToCreditMock = mock(User.class);
@@ -125,7 +125,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
 
   @Test
   void generate_invoice_for_paginated_users_without_existing_customers() {
-    var userPage = 1L;
+    var userPage = 1;
     var userToCreditId = "userToCreditId";
     var userToCreditMock = mock(User.class);
     var userToDebitMock = mock(User.class);

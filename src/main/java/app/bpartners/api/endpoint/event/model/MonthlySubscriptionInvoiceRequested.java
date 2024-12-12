@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MonthlySubscriptionInvoiceRequested extends PojaEvent {
-  private Long userPage;
+  private int userPage;
 
   @Override
   public Duration maxConsumerDuration() {

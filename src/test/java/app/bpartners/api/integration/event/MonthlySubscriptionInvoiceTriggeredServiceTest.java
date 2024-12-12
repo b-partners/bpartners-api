@@ -26,7 +26,7 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
     var expectedUserCount = 100L;
     when(userRepositoryMock.countUsersByStatus(EnableStatus.ENABLED)).thenReturn(expectedUserCount);
     var expectedMonthlySubscriptionInvoiceRequested =
-        MonthlySubscriptionInvoiceRequested.builder().userPage(1L).build();
+        MonthlySubscriptionInvoiceRequested.builder().userPage(1).build();
 
     assertDoesNotThrow(() -> subject.accept(MonthlySubscriptionInvoiceTriggered.builder().build()));
 
@@ -43,9 +43,9 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
     var expectedUserCount = 1000L;
     when(userRepositoryMock.countUsersByStatus(EnableStatus.ENABLED)).thenReturn(expectedUserCount);
     var expectedMonthlySubscriptionInvoiceRequestedPage1 =
-        MonthlySubscriptionInvoiceRequested.builder().userPage(1L).build();
+        MonthlySubscriptionInvoiceRequested.builder().userPage(1).build();
     var expectedMonthlySubscriptionInvoiceRequestedPage2 =
-        MonthlySubscriptionInvoiceRequested.builder().userPage(2L).build();
+        MonthlySubscriptionInvoiceRequested.builder().userPage(2).build();
 
     assertDoesNotThrow(() -> subject.accept(MonthlySubscriptionInvoiceTriggered.builder().build()));
 

@@ -21,9 +21,9 @@ public class MonthlySubscriptionInvoiceTriggeredService
 
   @Override
   public void accept(MonthlySubscriptionInvoiceTriggered event) {
-    var totalUserCount = userRepository.countUsersByStatus(ENABLED);
-    long userPageCount = (totalUserCount + MAX_SIZE - 1) / MAX_SIZE;
-    for (long i = 1; i <= userPageCount; i++) {
+    var totalUserCount = userRepository.countUsersByStatus(ENABLED).intValue();
+    var userPageCount = (totalUserCount + MAX_SIZE - 1) / MAX_SIZE;
+    for (int i = 1; i <= userPageCount; i++) {
       eventProducer.accept(
           List.of(MonthlySubscriptionInvoiceRequested.builder().userPage(i).build()));
     }

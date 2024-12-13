@@ -39,8 +39,8 @@ class MonthlySubscriptionInvoiceCreatedServiceTest {
     var userId = "userId";
     var customerEmail = "customerEmail";
     var fileId = "fileId";
-    var invoiceTitle = "invoiceTitle";
-    var ccExpected = "contact@bpartners.app";
+    var invoiceTitle = "[BPartners] Votre facture du mois de Décembre 2024 est disponible";
+    var ccExpected = "tech@bpartners.app";
     var htmlBodyExpected = "";
     when(userMock.getId()).thenReturn(userId);
     when(customerMock.getEmail()).thenReturn(customerEmail);

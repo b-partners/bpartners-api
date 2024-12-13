@@ -43,7 +43,8 @@ public class MonthlySubscriptionInvoiceCreatedService
     var cc = "tech@bpartners.app"; // TODO: get contact address from env variable
     var recipient = invoice.getCustomer().getEmail();
     var emailSubject =
-        "[BPartners] Votre facture du mois de " + actualMonthValue() + " est disponible";
+        "[BPartners] Votre facture du mois de " + actualMonthValue() + " "
+                + actualYear() + " est disponible";
     var emailBody = ""; // TODO: custom email body
 
     mailer.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
@@ -67,5 +68,9 @@ public class MonthlySubscriptionInvoiceCreatedService
       case 12 -> "Décembre";
       default -> throw new IllegalArgumentException("Invalid month value " + today.getMonthValue());
     };
+  }
+
+  private int actualYear() {
+      return LocalDate.now().getYear();
   }
 }

@@ -33,7 +33,9 @@ public class MonthlySubscriptionInvoiceCreatedService
     var invoiceFile =
         s3Service.downloadFile(INVOICE, invoice.getFileId(), invoice.getUser().getId());
     var attachments =
-        List.of(Attachment.builder().content(fileWriter.writeAsByte(invoiceFile)).build());
+        List.of(Attachment.builder()
+                .name(invoice.getRef())
+                .content(fileWriter.writeAsByte(invoiceFile)).build());
 
     var cc = "contact@bpartners.app"; // TODO: get contact address from env variable
     var recipient = invoice.getCustomer().getEmail();

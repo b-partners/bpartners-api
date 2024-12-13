@@ -16,6 +16,7 @@ import app.bpartners.api.model.*;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -73,14 +74,14 @@ public class MonthlySubscriptionInvoiceRequestedService
   private Invoice computeMonthlySusbcriptionInvoice(User userToCredit, User userToDebit) {
     var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
     var invoiceId = randomUUID().toString();
+    var invoiceTitle = "Abonnement Essentiel pour la période de "
+            + customDateFormatter.formatFrenchDate(monthUtils.startOfActualMonth())
+            + " au "
+            + customDateFormatter.formatFrenchDate(monthUtils.endOfActualMonth());
     return Invoice.builder()
         .id(invoiceId)
         .ref("TODO: custom reference ?")
-        .title(
-            "Abonnement Essentiel pour la période de "
-                + customDateFormatter.formatFrenchDate(monthUtils.startOfActualMonth())
-                + " au "
-                + customDateFormatter.formatFrenchDate(monthUtils.endOfActualMonth()))
+        .title(invoiceTitle)
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
@@ -91,7 +92,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .user(userToCredit)
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
         .paymentRegulations(new ArrayList<>())
-        .products(computeSubscriptionProducts(invoiceId, userToDebit))
+        .products(computeSubscriptionProducts(invoiceId, invoiceTitle, userToDebit))
         .delayInPaymentAllowed(0)
         .createdAt(Instant.now())
         .build();
@@ -148,22 +149,23 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private @NotNull ArrayList<InvoiceProduct> computeSubscriptionProducts(
-      String invoiceId, User userToDebit) {
+      String invoiceId, String invoiceTitle, User userToDebit) {
     var invoiceProducts = new ArrayList<InvoiceProduct>();
     var userSubscription = subscriptionService.getSubscriptionByUser(userToDebit);
     var latestSubscription = userSubscription.getLatestSubscription();
 
+    var subscriptionProduct = latestSubscription.getSubscriptionProduct();
     invoiceProducts.add(
         InvoiceProduct.builder()
             .id(randomUUID().toString())
             .idInvoice(invoiceId)
             .createdAt(Instant.now())
-            .description(latestSubscription.getSubscriptionProduct().getName())
+            .description(subscriptionProduct == null ? invoiceTitle: subscriptionProduct.getName())
             .quantity(1)
             .unitPrice(
                 parseFraction(
-                    latestSubscription.getSubscriptionProduct().getPriceInCents().doubleValue()
-                        / 100))
+                    subscriptionProduct == null ? 49
+                            : subscriptionProduct.getPriceInCents().doubleValue() / 100))
             .vatPercent(new Fraction(BigInteger.TEN))
             .status(ProductStatus.ENABLED)
             .build());

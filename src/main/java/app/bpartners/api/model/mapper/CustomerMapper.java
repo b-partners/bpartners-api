@@ -71,9 +71,7 @@ public class CustomerMapper {
         .latitude(
             location == null || location.getLatitude() == null ? null : location.getLatitude())
         .longitude(
-            location == null || location.getLongitude() == null
-                ? null
-                : location.getLongitude())
+            location == null || location.getLongitude() == null ? null : location.getLongitude())
         .status(domain.getStatus() == null ? ENABLED : domain.getStatus())
         .customerType(domain.getCustomerType())
         .recentlyAdded(domain.isRecentlyAdded())

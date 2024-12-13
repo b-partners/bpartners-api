@@ -230,8 +230,11 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .idInvoice(expectedInvoice.getId())
         .description(subscriptionProductName)
         .quantity(1)
-        .unitPrice(new Fraction(BigInteger.valueOf(49L)))
-        .vatPercent(new Fraction(BigInteger.TEN))
+        .unitPrice(new Fraction(BigInteger.valueOf(4900L)))
+        .vatPercent(new Fraction(BigInteger.valueOf(2000)))
+        .vatWithDiscount(new Fraction(BigInteger.valueOf(980)))
+        .totalWithDiscount(new Fraction(BigInteger.valueOf(5880)))
+        .priceNoVatWithDiscount(new Fraction(BigInteger.valueOf(4900)))
         .status(ProductStatus.ENABLED)
         .build();
   }
@@ -245,13 +248,14 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     return Invoice.builder()
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)
+        .subscriptionInvoice(true)
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
         .title(
             "Abonnement Essentiel pour la période de "
                 + startOfCurrentMonthFormatted
                 + " au "
                 + endOfCurrentMonthFormatted)
-        .ref("TODO: custom reference ?")
+        .ref(createdInvoice.getRef())
         .validityDate(LocalDate.now().plusDays(30L))
         .toPayAt(createdInvoice.getToPayAt())
         .sendingDate(LocalDate.now())
@@ -263,6 +267,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .archiveStatus(ArchiveStatus.ENABLED)
         .delayInPaymentAllowed(0)
         .products(createdInvoice.getProducts())
+        .totalPriceWithoutDiscount(new Fraction(BigInteger.valueOf(4900)))
+        .totalVat(new Fraction(BigInteger.valueOf(980)))
+        .totalPriceWithVat(new Fraction(BigInteger.valueOf(5880)))
+        .totalPriceWithoutVat(new Fraction(BigInteger.valueOf(4900)))
         .build();
   }
 

@@ -83,6 +83,7 @@ public class Invoice {
   private Fraction totalPriceWithVat;
   private PaymentMethod paymentMethod;
   private String idAreaPicture;
+  private boolean subscriptionInvoice = false;
 
   public String getUpdatedAtFrenchDate() {
     return new CustomDateFormatter().formatFrenchDate(updatedAt);

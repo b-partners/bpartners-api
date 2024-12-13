@@ -328,11 +328,13 @@ public class InvoiceService {
               ? DEFAULT_TO_PAY_DELAY_DAYS
               : newInvoice.getDelayInPaymentAllowed();
       invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
-      invoiceBuilder.paymentUrl(
-          newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
-              ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
-              : newInvoice.getPaymentUrl());
-      invoiceBuilder.paymentRegulations(new ArrayList<>());
+      if (!newInvoice.isSubscriptionInvoice()) {
+        invoiceBuilder.paymentUrl(
+            newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
+                ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
+                : newInvoice.getPaymentUrl());
+        invoiceBuilder.paymentRegulations(new ArrayList<>());
+      }
     } else {
       invoiceBuilder.paymentUrl(null);
       if (oldInvoice == null

@@ -4,6 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
+import static app.bpartners.api.model.mapper.InvoiceMapper.*;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
@@ -16,7 +17,6 @@ import app.bpartners.api.model.*;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -74,14 +74,18 @@ public class MonthlySubscriptionInvoiceRequestedService
   private Invoice computeMonthlySusbcriptionInvoice(User userToCredit, User userToDebit) {
     var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
     var invoiceId = randomUUID().toString();
-    var invoiceTitle = "Abonnement Essentiel pour la période de "
+    var invoiceTitle =
+        "Abonnement Essentiel pour la période de "
             + customDateFormatter.formatFrenchDate(monthUtils.startOfActualMonth())
             + " au "
             + customDateFormatter.formatFrenchDate(monthUtils.endOfActualMonth());
+    var invoiceProducts = computeSubscriptionProducts(invoiceId, invoiceTitle, userToDebit);
+    var discountZero = new Fraction(BigInteger.ZERO);
     return Invoice.builder()
         .id(invoiceId)
-        .ref("TODO: custom reference ?")
+        .ref("TODO: custom reference ? " + randomUUID())
         .title(invoiceTitle)
+        .subscriptionInvoice(true)
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
@@ -92,7 +96,11 @@ public class MonthlySubscriptionInvoiceRequestedService
         .user(userToCredit)
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
         .paymentRegulations(new ArrayList<>())
-        .products(computeSubscriptionProducts(invoiceId, invoiceTitle, userToDebit))
+        .products(invoiceProducts)
+        .totalPriceWithoutDiscount(computePriceWithoutDiscount(invoiceProducts))
+        .totalPriceWithoutVat(computePriceNoVatWithDiscount(discountZero, invoiceProducts))
+        .totalVat(computeTotalVatWithDiscount(discountZero, invoiceProducts))
+        .totalPriceWithVat(computeTotalPriceWithVatAndDiscount(discountZero, invoiceProducts))
         .delayInPaymentAllowed(0)
         .createdAt(Instant.now())
         .build();
@@ -160,13 +168,14 @@ public class MonthlySubscriptionInvoiceRequestedService
             .id(randomUUID().toString())
             .idInvoice(invoiceId)
             .createdAt(Instant.now())
-            .description(subscriptionProduct == null ? invoiceTitle: subscriptionProduct.getName())
+            .description(subscriptionProduct == null ? invoiceTitle : subscriptionProduct.getName())
             .quantity(1)
             .unitPrice(
                 parseFraction(
-                    subscriptionProduct == null ? 49
-                            : subscriptionProduct.getPriceInCents().doubleValue() / 100))
-            .vatPercent(new Fraction(BigInteger.TEN))
+                    subscriptionProduct == null
+                        ? 4900
+                        : subscriptionProduct.getPriceInCents().doubleValue()))
+            .vatPercent(new Fraction(BigInteger.valueOf(2000)))
             .status(ProductStatus.ENABLED)
             .build());
 

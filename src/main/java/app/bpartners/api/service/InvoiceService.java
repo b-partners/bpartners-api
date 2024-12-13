@@ -329,12 +329,12 @@ public class InvoiceService {
           newInvoice.getDelayInPaymentAllowed() == null
               ? DEFAULT_TO_PAY_DELAY_DAYS
               : newInvoice.getDelayInPaymentAllowed();
-      invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
       if (!newInvoice.isSubscriptionInvoice()) {
+        invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
         invoiceBuilder.paymentUrl(
-            newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
-                ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
-                : newInvoice.getPaymentUrl());
+                newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
+                        ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
+                        : newInvoice.getPaymentUrl());
         invoiceBuilder.paymentRegulations(new ArrayList<>());
       }
     } else {

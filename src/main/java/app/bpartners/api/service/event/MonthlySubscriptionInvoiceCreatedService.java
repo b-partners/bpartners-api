@@ -43,8 +43,11 @@ public class MonthlySubscriptionInvoiceCreatedService
     var cc = "tech@bpartners.app"; // TODO: get contact address from env variable
     var recipient = invoice.getCustomer().getEmail();
     var emailSubject =
-        "[BPartners] Votre facture du mois de " + actualMonthValue() + " "
-                + actualYear() + " est disponible";
+        "[BPartners] Votre facture du mois de "
+            + actualMonthValue()
+            + " "
+            + actualYear()
+            + " est disponible";
     var emailBody = ""; // TODO: custom email body
 
     mailer.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
@@ -71,6 +74,6 @@ public class MonthlySubscriptionInvoiceCreatedService
   }
 
   private int actualYear() {
-      return LocalDate.now().getYear();
+    return LocalDate.now().getYear();
   }
 }

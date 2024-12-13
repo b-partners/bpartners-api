@@ -75,12 +75,15 @@ public class MonthlySubscriptionInvoiceRequestedService
   private Invoice computeMonthlySusbcriptionInvoice(User userToCredit, User userToDebit) {
     var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
     var invoiceId = randomUUID().toString();
-    var invoiceTitle =
-        "Abonnement Essentiel pour la période de "
+    var monthPeriod =
+        "pour la période de "
             + customDateFormatter.formatFrenchDate(monthUtils.startOfActualMonth())
             + " au "
             + customDateFormatter.formatFrenchDate(monthUtils.endOfActualMonth());
-    var invoiceProducts = computeSubscriptionProducts(invoiceId, invoiceTitle, userToDebit);
+    var invoiceTitle = "Facture " + monthPeriod;
+    var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
+    var invoiceProducts =
+        computeSubscriptionProducts(invoiceId, defaultProductDescription, userToDebit);
     var discountZero = new Fraction(BigInteger.ZERO);
     return Invoice.builder()
         .id(invoiceId)

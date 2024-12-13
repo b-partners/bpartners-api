@@ -332,9 +332,9 @@ public class InvoiceService {
       if (!newInvoice.isSubscriptionInvoice()) {
         invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
         invoiceBuilder.paymentUrl(
-                newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
-                        ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
-                        : newInvoice.getPaymentUrl());
+            newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
+                ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
+                : newInvoice.getPaymentUrl());
         invoiceBuilder.paymentRegulations(new ArrayList<>());
       }
     } else {

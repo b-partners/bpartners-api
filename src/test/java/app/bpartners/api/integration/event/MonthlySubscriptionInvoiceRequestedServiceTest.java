@@ -254,7 +254,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .delayPenaltyPercent(new Fraction(BigInteger.ZERO))
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
         .title(
-            "Abonnement Essentiel pour la période de "
+            "Facture pour la période de "
                 + startOfCurrentMonthFormatted
                 + " au "
                 + endOfCurrentMonthFormatted)

@@ -52,6 +52,7 @@ public class CustomerMapper {
   }
 
   public HCustomer toEntity(Customer domain) {
+    var location = domain.getLocation();
     return HCustomer.builder()
         .id(domain.getId())
         .name(domain.getName())
@@ -68,11 +69,11 @@ public class CustomerMapper {
         .comment(domain.getComment())
         // TODO: use coordinate instead
         .latitude(
-            domain.getLocation().getLatitude() == null ? null : domain.getLocation().getLatitude())
+            location == null || location.getLatitude() == null ? null : location.getLatitude())
         .longitude(
-            domain.getLocation().getLongitude() == null
+            location == null || location.getLongitude() == null
                 ? null
-                : domain.getLocation().getLongitude())
+                : location.getLongitude())
         .status(domain.getStatus() == null ? ENABLED : domain.getStatus())
         .customerType(domain.getCustomerType())
         .recentlyAdded(domain.isRecentlyAdded())

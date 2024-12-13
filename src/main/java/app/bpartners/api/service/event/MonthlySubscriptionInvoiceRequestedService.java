@@ -16,6 +16,7 @@ import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
@@ -102,7 +103,9 @@ public class MonthlySubscriptionInvoiceRequestedService
         .totalVat(computeTotalVatWithDiscount(discountZero, invoiceProducts))
         .totalPriceWithVat(computeTotalPriceWithVatAndDiscount(discountZero, invoiceProducts))
         .delayInPaymentAllowed(0)
+        .discount(InvoiceDiscount.builder().percentValue(new Fraction(BigInteger.ZERO)).build())
         .createdAt(Instant.now())
+        .delayPenaltyPercent(new Fraction(BigInteger.ZERO))
         .build();
   }
 

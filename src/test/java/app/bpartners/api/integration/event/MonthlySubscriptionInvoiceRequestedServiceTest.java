@@ -11,6 +11,7 @@ import app.bpartners.api.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
@@ -249,6 +250,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)
         .subscriptionInvoice(true)
+        .discount(InvoiceDiscount.builder().percentValue(new Fraction(BigInteger.ZERO)).build())
+        .delayPenaltyPercent(new Fraction(BigInteger.ZERO))
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
         .title(
             "Abonnement Essentiel pour la période de "

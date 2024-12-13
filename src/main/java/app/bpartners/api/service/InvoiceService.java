@@ -267,7 +267,7 @@ public class InvoiceService {
             invoiceBuilder.paymentUrl(oldInvoice.getPaymentUrl());
             if (!newInvoice.isSubscriptionInvoice()) {
               invoiceBuilder.toPayAt(
-                      newInvoice.getSendingDate().plusDays(newInvoice.getDelayInPaymentAllowed()));
+                  newInvoice.getSendingDate().plusDays(newInvoice.getDelayInPaymentAllowed()));
             }
           } else {
             invoiceBuilder.paymentRegulations(oldInvoice.getPaymentRegulations());

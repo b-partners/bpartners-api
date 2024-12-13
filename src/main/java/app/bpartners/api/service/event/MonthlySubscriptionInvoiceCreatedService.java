@@ -9,7 +9,6 @@ import app.bpartners.api.model.Attachment;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Consumer;
@@ -35,13 +34,16 @@ public class MonthlySubscriptionInvoiceCreatedService
     var invoiceFile =
         s3Service.downloadFile(INVOICE, invoice.getFileId(), invoice.getUser().getId());
     var attachments =
-        List.of(Attachment.builder()
+        List.of(
+            Attachment.builder()
                 .name(invoice.getRef())
-                .content(fileWriter.writeAsByte(invoiceFile)).build());
+                .content(fileWriter.writeAsByte(invoiceFile))
+                .build());
 
     var cc = "tech@bpartners.app"; // TODO: get contact address from env variable
     var recipient = invoice.getCustomer().getEmail();
-    var emailSubject = "[BPartners] Votre facture du mois de " + actualMonthValue() + " est disponible";
+    var emailSubject =
+        "[BPartners] Votre facture du mois de " + actualMonthValue() + " est disponible";
     var emailBody = ""; // TODO: custom email body
 
     mailer.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
@@ -51,19 +53,19 @@ public class MonthlySubscriptionInvoiceCreatedService
   private String actualMonthValue() {
     LocalDate today = LocalDate.now();
     return switch (today.getMonthValue()) {
-        case 1 -> "Janvier";
-        case 2 -> "Février";
-        case 3 -> "Mars";
-        case 4 -> "Avril";
-        case 5 -> "Mai";
-        case 6 -> "Juin";
-        case 7 -> "Juillet";
-        case 8 -> "Août";
-        case 9 -> "Septembre";
-        case 10 -> "Octobre";
-        case 11 -> "Novembre";
-        case 12 -> "Décembre";
-        default -> throw new IllegalArgumentException("Invalid month value " + today.getMonthValue());
+      case 1 -> "Janvier";
+      case 2 -> "Février";
+      case 3 -> "Mars";
+      case 4 -> "Avril";
+      case 5 -> "Mai";
+      case 6 -> "Juin";
+      case 7 -> "Juillet";
+      case 8 -> "Août";
+      case 9 -> "Septembre";
+      case 10 -> "Octobre";
+      case 11 -> "Novembre";
+      case 12 -> "Décembre";
+      default -> throw new IllegalArgumentException("Invalid month value " + today.getMonthValue());
     };
   }
 }

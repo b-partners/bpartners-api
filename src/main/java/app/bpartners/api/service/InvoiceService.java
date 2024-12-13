@@ -265,8 +265,10 @@ public class InvoiceService {
 
           if (newInvoice.getPaymentType() == CASH) {
             invoiceBuilder.paymentUrl(oldInvoice.getPaymentUrl());
-            invoiceBuilder.toPayAt(
-                newInvoice.getSendingDate().plusDays(newInvoice.getDelayInPaymentAllowed()));
+            if (!newInvoice.isSubscriptionInvoice()) {
+              invoiceBuilder.toPayAt(
+                      newInvoice.getSendingDate().plusDays(newInvoice.getDelayInPaymentAllowed()));
+            }
           } else {
             invoiceBuilder.paymentRegulations(oldInvoice.getPaymentRegulations());
           }

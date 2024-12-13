@@ -177,8 +177,9 @@
                     <div class="image-text">
                         <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}"
                              alt="qr-code"/>
-                        <span class="caption"><a
-                                th:href="${invoice.paymentUrl}">Payez ici</a></span>
+                        <span class="caption" th:if="${invoice.paymentUrl != null}">
+                            <a th:href="${invoice.paymentUrl}">Payez ici</a>
+                        </span>
                     </div>
                     <p>Date limite de paiement : <span
                             th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>

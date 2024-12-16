@@ -140,8 +140,8 @@ public class MonthlySubscriptionInvoiceRequestedService
             .id(randomUUID().toString())
             .idUser(userToDebit.getId())
             .name(accountHolderToDebit.getName())
-            .firstName(null) // because customers are company
-            .lastName(null) // because customers are company
+            .firstName(userToDebit.getFirstName()) // TODO: Bad ! because customers are company
+            .lastName(userToDebit.getLastName()) // TODO: Bad ! because customers are company
             .email(userToDebit.getEmail())
             .phone(accountHolderToDebit.getMobilePhoneNumber())
             .website(accountHolderToDebit.getWebsite())

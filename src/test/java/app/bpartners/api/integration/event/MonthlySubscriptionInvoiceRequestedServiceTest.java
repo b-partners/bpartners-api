@@ -136,6 +136,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var subscriptionMock = mock(Subscription.class);
     var subscriptionProductMock = mock(SubscriptionProduct.class);
     var subscriptionProductName = "subscriptionProductName";
+    var customerFirstName = "customerFirstName";
+    var customerLastName = "customerLastName";
 
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
     when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
@@ -145,6 +147,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
     when(userToDebitMock.getDefaultHolder()).thenReturn(holderMock);
     when(userToDebitMock.getEmail()).thenReturn(customerEmail);
+    when(userToDebitMock.getFirstName()).thenReturn(customerFirstName);
+    when(userToDebitMock.getLastName()).thenReturn(customerLastName);
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
@@ -209,6 +213,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .updatedAt(actual.getUpdatedAt())
         .idUser(userToDebit.getId())
         .name("accountHolderToDebitName")
+        .firstName(userToDebit.getFirstName())
+        .lastName(userToDebit.getLastName())
         .email("dummyEmail")
         .phone("0612345678")
         .website("accountHolderToDebitWebsite")

@@ -1846,6 +1846,7 @@ components:
         - BANK_TRANSFER
         - CHEQUE
         - CREDIT_CARD
+        - DIRECT_DEBIT
     InvoiceReference:
       type: object
       properties:

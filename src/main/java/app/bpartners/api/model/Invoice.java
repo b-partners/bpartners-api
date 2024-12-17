@@ -195,6 +195,9 @@ public class Invoice {
       case CREDIT_CARD:
         path = "static/stamp/credit-card.png";
         break;
+      case DIRECT_DEBIT:
+        path = "static/stamp/direct-debit.png";
+        break;
       case MULTIPLE:
         return null; // No stamp when multiple payments
       default:

@@ -3,7 +3,7 @@ package app.bpartners.api.integration;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
@@ -110,7 +110,7 @@ class DraftIT extends MockedThirdParties {
         .id(INVOICE1_ID)
         .ref("invoice_ref")
         .title("invoice_title")
-        .status(CONFIRMED)
+        .status(PAID)
         .paymentMethod(paymentMethod)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
@@ -130,6 +130,7 @@ class DraftIT extends MockedThirdParties {
         .products(creatableProds(1))
         .customer(customer())
         .paymentUrl("text")
+        .updatedAt(Instant.now())
         .build();
   }
 

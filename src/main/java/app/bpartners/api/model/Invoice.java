@@ -195,6 +195,9 @@ public class Invoice {
       case CREDIT_CARD:
         path = "static/stamp/credit-card.png";
         break;
+      case DIRECT_DEBIT:
+        path = "static/stamp/direct-debit.png";
+        break;
       case MULTIPLE:
         return null; // No stamp when multiple payments
       default:
@@ -204,36 +207,6 @@ public class Invoice {
     InputStream is = new ClassPathResource(path).getInputStream();
     byte[] bytes = is.readAllBytes();
     return Base64.getEncoder().encodeToString(bytes);
-  }
-
-  public String getPaymentMethodValue() {
-    if (paymentMethod == null) {
-      return null;
-    }
-    switch (paymentMethod) {
-      case CASH -> {
-        return "ESPÈCES";
-      }
-      case BANK_TRANSFER -> {
-        return "VIREMENT BANCAIRE";
-      }
-      case CHEQUE -> {
-        return "CHÈQUE";
-      }
-      case CREDIT_CARD -> {
-        return "CARTE DE CRÉDIT";
-      }
-      case UNKNOWN -> {
-        return "INCONNU";
-      }
-      case MULTIPLE -> {
-        return "PLUSIEURS MÉTHODES";
-      }
-      case DIRECT_DEBIT -> {
-        return "PRÉLÈVEMENT AUTOMATIQUE";
-      }
-      default -> throw new IllegalStateException("Unexpected paymentMethodValue: " + paymentMethod);
-    }
   }
 
   public String describe() {

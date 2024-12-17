@@ -270,11 +270,6 @@
                             (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
                         EN PLUSIEURS FOIS
                     </strong>
-                    <br/>
-                    <span th:if="${invoice.getPaymentMethodValue() != null}">
-                        Mode de paiement :
-                    <strong th:text="${invoice.getPaymentMethodValue()}"></strong>
-                    </span>
                 </p>
             </td>
             <td class="text-center">

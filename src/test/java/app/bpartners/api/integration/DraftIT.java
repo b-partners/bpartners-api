@@ -1,6 +1,7 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
@@ -55,10 +56,13 @@ class DraftIT extends MockedThirdParties {
 
   private File generatePdf(
       String templateName,
+      app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum paymentType,
       PaymentMethod paymentMethod,
-      List<CreatePaymentRegulation> paymentRegulations)
+      List<CreatePaymentRegulation> paymentRegulations,
+      boolean isSubscriptionInvoice)
       throws IOException {
-    app.bpartners.api.model.Invoice invoice = anInvoice(paymentRegulations, paymentMethod);
+    app.bpartners.api.model.Invoice invoice =
+        anInvoice(paymentRegulations, paymentMethod, paymentType, isSubscriptionInvoice);
 
     File data = invoicePDFGenerator.apply(invoice, accountHolder(), logoAsByte(), templateName);
     File generatedFile = new File(randomUUID() + ".pdf");
@@ -98,7 +102,10 @@ class DraftIT extends MockedThirdParties {
   }
 
   private Invoice anInvoice(
-      List<CreatePaymentRegulation> paymentRegulations, PaymentMethod paymentMethod) {
+      List<CreatePaymentRegulation> paymentRegulations,
+      PaymentMethod paymentMethod,
+      app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum paymentType,
+      boolean isSubscriptionInvoice) {
     return Invoice.builder()
         .id(INVOICE1_ID)
         .ref("invoice_ref")
@@ -107,6 +114,7 @@ class DraftIT extends MockedThirdParties {
         .paymentMethod(paymentMethod)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
+        .subscriptionInvoice(isSubscriptionInvoice)
         .delayInPaymentAllowed(2)
         .delayPenaltyPercent(new Fraction(BigInteger.TEN, BigInteger.ONE))
         .totalPriceWithoutVat(new Fraction())
@@ -117,7 +125,7 @@ class DraftIT extends MockedThirdParties {
             new InvoiceDiscount()
                 .toBuilder().percentValue(new Fraction()).amountValue(new Fraction()).build())
         .user(joneDoeUser())
-        .paymentType(IN_INSTALMENT)
+        .paymentType(paymentType)
         .paymentRegulations(paymentRegulations)
         .products(creatableProds(1))
         .customer(customer())
@@ -233,9 +241,9 @@ class DraftIT extends MockedThirdParties {
   @Test
   void generate_invoice_pdf_ok() {
     File multiplePaymentInvoice =
-        generatePdf("invoice", PaymentMethod.MULTIPLE, paymentRegulations());
+        generatePdf("invoice", IN_INSTALMENT, PaymentMethod.MULTIPLE, paymentRegulations(), false);
     File uniquePaymentInvoice =
-        generatePdf("invoice", PaymentMethod.CREDIT_CARD, paymentRegulations());
+        generatePdf("invoice", CASH, PaymentMethod.DIRECT_DEBIT, new ArrayList<>(), true);
 
     assertNotNull(multiplePaymentInvoice);
     assertNotNull(uniquePaymentInvoice);

@@ -229,6 +229,9 @@ public class Invoice {
       case MULTIPLE -> {
         return "PLUSIEURS MÉTHODES";
       }
+      case DIRECT_DEBIT -> {
+        return "PRÉLÈVEMENT AUTOMATIQUE";
+      }
       default -> throw new IllegalStateException("Unexpected paymentMethodValue: " + paymentMethod);
     }
   }

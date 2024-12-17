@@ -18,6 +18,7 @@ class InvoiceTest {
     var actualCheque = Invoice.builder().paymentMethod(CHEQUE).build();
     var actualCreditCard = Invoice.builder().paymentMethod(CREDIT_CARD).build();
     var actualUnknown = Invoice.builder().paymentMethod(UNKNOWN).build();
+    var actualDirectDebit = Invoice.builder().paymentMethod(DIRECT_DEBIT).build();
 
     assertNull(actualNull.getPaymentMethodValue());
     assertEquals("ESPÈCES", actualCash.getPaymentMethodValue());
@@ -26,5 +27,6 @@ class InvoiceTest {
     assertEquals("CARTE DE CRÉDIT", actualCreditCard.getPaymentMethodValue());
     assertEquals("INCONNU", actualUnknown.getPaymentMethodValue());
     assertEquals("PLUSIEURS MÉTHODES", actualMultiple.getPaymentMethodValue());
+    assertEquals("PRÉLÈVEMENT AUTOMATIQUE", actualDirectDebit.getPaymentMethodValue());
   }
 }

@@ -53,8 +53,12 @@ class DraftIT extends MockedThirdParties {
   @Autowired SesService sesService;
   @Autowired InvoicePDFGenerator invoicePDFGenerator;
 
-  private File generatePdf(String templateName) throws IOException {
-    app.bpartners.api.model.Invoice invoice = anInvoice(paymentRegulations());
+  private File generatePdf(
+      String templateName,
+      PaymentMethod paymentMethod,
+      List<CreatePaymentRegulation> paymentRegulations)
+      throws IOException {
+    app.bpartners.api.model.Invoice invoice = anInvoice(paymentRegulations, paymentMethod);
 
     File data = invoicePDFGenerator.apply(invoice, accountHolder(), logoAsByte(), templateName);
     File generatedFile = new File(randomUUID() + ".pdf");
@@ -93,13 +97,14 @@ class DraftIT extends MockedThirdParties {
             PaymentMethod.CASH));
   }
 
-  private Invoice anInvoice(List<CreatePaymentRegulation> paymentRegulations) {
+  private Invoice anInvoice(
+      List<CreatePaymentRegulation> paymentRegulations, PaymentMethod paymentMethod) {
     return Invoice.builder()
         .id(INVOICE1_ID)
         .ref("invoice_ref")
         .title("invoice_title")
         .status(CONFIRMED)
-        .paymentMethod(PaymentMethod.CREDIT_CARD)
+        .paymentMethod(paymentMethod)
         .sendingDate(LocalDate.now())
         .toPayAt(LocalDate.now())
         .delayInPaymentAllowed(2)
@@ -227,9 +232,14 @@ class DraftIT extends MockedThirdParties {
   @SneakyThrows
   @Test
   void generate_invoice_pdf_ok() {
-    File invoice = generatePdf("invoice");
+    File multiplePaymentInvoice =
+        generatePdf("invoice", PaymentMethod.MULTIPLE, paymentRegulations());
+    File uniquePaymentInvoice =
+        generatePdf("invoice", PaymentMethod.CREDIT_CARD, paymentRegulations());
 
-    assertNotNull(invoice);
-    invoice.delete();
+    assertNotNull(multiplePaymentInvoice);
+    assertNotNull(uniquePaymentInvoice);
+    multiplePaymentInvoice.delete();
+    uniquePaymentInvoice.delete();
   }
 }

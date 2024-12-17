@@ -206,6 +206,33 @@ public class Invoice {
     return Base64.getEncoder().encodeToString(bytes);
   }
 
+  public String getPaymentMethodValue() {
+    if (paymentMethod == null) {
+      return null;
+    }
+    switch (paymentMethod) {
+      case CASH -> {
+        return "ESPÈCES";
+      }
+      case BANK_TRANSFER -> {
+        return "VIREMENT BANCAIRE";
+      }
+      case CHEQUE -> {
+        return "CHÈQUE";
+      }
+      case CREDIT_CARD -> {
+        return "CARTE DE CRÉDIT";
+      }
+      case UNKNOWN -> {
+        return "INCONNU";
+      }
+      case MULTIPLE -> {
+        return "PLUSIEURS MÉTHODES";
+      }
+      default -> throw new IllegalStateException("Unexpected paymentMethodValue: " + paymentMethod);
+    }
+  }
+
   public String describe() {
     return "Invoice(id=" + id + ",reference=" + ref + ",user=" + user.getId() + ")";
   }

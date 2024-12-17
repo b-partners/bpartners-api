@@ -260,7 +260,7 @@
     <table class="table-head">
         <tr>
             <td>
-                <p style="margin-top: 90px">Mode de paiement :
+                <p style="margin-top: 90px">Mode de règlement :
                     <strong
                             th:if="${invoice.paymentType == null  ||
                             (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
@@ -270,6 +270,11 @@
                             (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
                         EN PLUSIEURS FOIS
                     </strong>
+                    <br/>
+                    <span th:if="${invoice.getPaymentMethodValue() != null}">
+                        Mode de paiement :
+                    <strong th:text="${invoice.getPaymentMethodValue()}"></strong>
+                    </span>
                 </p>
             </td>
             <td class="text-center">

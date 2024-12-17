@@ -310,7 +310,7 @@
             <tr>
                 <td>
                     <p th:style="${(invoice.paymentMethod != null && invoice.status != null
-                     && invoice.status.toString() == 'PAID') ? '' : 'margin-bottom: 90px'}">Mode de paiement :
+                     && invoice.status.toString() == 'PAID') ? '' : 'margin-bottom: 90px'}">Mode de règlement :
                         <strong
                                 th:if="${invoice.paymentType == null  ||
                             (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
@@ -330,6 +330,11 @@
                                     th:text="${invoice.getUpdatedAtFrenchDate()}"></span>
                             </span>
                         </th:block>
+                        <br/>
+                        <span th:if="${invoice.getPaymentMethodValue() != null}">
+                        Mode de paiement :
+                    <strong th:text="${invoice.getPaymentMethodValue()}"></strong>
+                    </span>
                     </p>
                 </td>
                 <td style="text-align: center;vertical-align: top; ">

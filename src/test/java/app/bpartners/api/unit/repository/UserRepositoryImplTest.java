@@ -95,8 +95,8 @@ class UserRepositoryImplTest {
     var userEntityMock = mock(HUser.class);
     var userMock = mock(User.class);
     var expectedUsers = List.of(userMock);
-    var expectedPage = 2;
-    int expectedPageSize = 99;
+    var expectedPage = 2L;
+    var expectedPageSize = 99L;
     var criteria = new HashMap<String, Object>();
     criteria.put("status", EnableStatus.ENABLED);
     criteria.put("page", expectedPage);
@@ -108,8 +108,8 @@ class UserRepositoryImplTest {
     when(criteriaBuilderMock.equal(any(Expression.class), any())).thenReturn(predicateMock);
     when(queryMock.where(predicateMock)).thenReturn(queryMock);
     when(entityManagerMock.getCriteriaBuilder()).thenReturn(criteriaBuilderMock);
-    when(typedQueryMock.setFirstResult(eq(expectedPage - 1))).thenReturn(typedQueryMock);
-    when(typedQueryMock.setMaxResults(eq(expectedPageSize))).thenReturn(typedQueryMock);
+    when(typedQueryMock.setFirstResult(eq((1)))).thenReturn(typedQueryMock);
+    when(typedQueryMock.setMaxResults(eq(99))).thenReturn(typedQueryMock);
     when(typedQueryMock.getResultList()).thenReturn(List.of(userEntityMock));
     when(entityManagerMock.createQuery(queryMock)).thenReturn(typedQueryMock);
 
@@ -123,7 +123,7 @@ class UserRepositoryImplTest {
 
     assertEquals(expectedUsers, actual);
     assertEquals(1, capturedPageValue);
-    assertEquals(expectedPageSize, capturedPageSizeValue);
+    assertEquals(expectedPageSize, capturedPageSizeValue.intValue());
   }
 
   @Test

@@ -117,7 +117,7 @@ public class UserRepositoryImpl implements UserRepository {
     if (criteria.containsKey("pageSize")) {
       return ((Long) criteria.get("pageSize")).intValue();
     } else {
-      return  500;
+      return 500;
     }
   }
 

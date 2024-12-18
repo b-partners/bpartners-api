@@ -86,7 +86,6 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/sendEmail", POST.name()),
                         new AntPathRequestMatcher("/whoami", GET.name()),
                         new AntPathRequestMatcher("/users/*", GET.name()),
-                        new AntPathRequestMatcher("/users/*/subscriptionInitiation", POST.name()),
                         new AntPathRequestMatcher("/dummy-user", DELETE.name()),
                         new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
                         new AntPathRequestMatcher("/users/*/legalFiles", GET.name()),
@@ -119,8 +118,6 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(GET, "/users/*")
                     .permitAll()
-                    .requestMatchers(POST, "/users/*/subscriptionInitiation")
-                    .permitAll()
                     .requestMatchers("/onboardingInitiation")
                     .permitAll()
                     .requestMatchers(POST, "/preUsers")
@@ -152,6 +149,8 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(GET, "/accountHolders")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(POST, "/users/subscriptionRegistration")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(
@@ -415,8 +414,6 @@ public class SecurityConf {
                         new SelfAccountMatcher(
                             POST, "/accounts/*/invoices/relaunches", authResourceProvider))
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole())
-                    .requestMatchers(POST, "/users/subscriptionRegistration")
-                    .hasRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/invoices/*/relaunchConf", authResourceProvider))

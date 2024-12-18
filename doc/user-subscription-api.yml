@@ -4,10 +4,10 @@ operations:
       tags:
         - User Subscription
       summary: Subscribe user in stripe
-      operationId: registerOnStripeActiveUsersWithNullSubscription
+      operationId: registerActiveUsersSubscription
       response:
         200:
-          description: List of all User subscribe
+          description: List of users registered
           application/json:
             schema:
               type: array

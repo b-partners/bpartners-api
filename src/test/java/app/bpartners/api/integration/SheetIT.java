@@ -73,6 +73,7 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.UpdateCellsRequest;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -161,7 +162,10 @@ public class SheetIT extends MockedThirdParties {
     when(banApiMock.search(any())).thenReturn(geoPosZero());
     when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
     User user = userService.getUserById(JOE_DOE_ID);
-    userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+    var roleEvaluationProspect = Role.EVAL_PROSPECT;
+    var roles = new ArrayList<>(user.getRoles());
+    roles.add(roleEvaluationProspect);
+    userService.save(user.toBuilder().roles(roles).build());
   }
 
   private static ApiClient anApiClient() {
@@ -172,7 +176,10 @@ public class SheetIT extends MockedThirdParties {
   @Test
   void import_prospects_through_sheet_ok() throws ApiException {
     User user = userService.getUserById(JOE_DOE_ID);
-    User savedUser = userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+    var roleEvaluationProspect = Role.EVAL_PROSPECT;
+    var roles = new ArrayList<>(user.getRoles());
+    roles.add(roleEvaluationProspect);
+    userService.save(user.toBuilder().roles(roles).build());
     businessRepository.save(
         BusinessActivity.builder()
             .accountHolder(joeDoeAccountHolder())
@@ -202,7 +209,10 @@ public class SheetIT extends MockedThirdParties {
   @Test
   void convert_events_to_prospect_ok() throws ApiException {
     User user = userService.getUserById(JOE_DOE_ID);
-    User savedUser = userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+    var roleEvaluationProspect = Role.EVAL_PROSPECT;
+    var roles = new ArrayList<>(user.getRoles());
+    roles.add(roleEvaluationProspect);
+    userService.save(user.toBuilder().roles(roles).build());
     businessRepository.save(
         BusinessActivity.builder()
             .accountHolder(joeDoeAccountHolder())

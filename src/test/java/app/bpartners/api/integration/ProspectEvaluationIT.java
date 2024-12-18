@@ -56,6 +56,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -148,7 +149,10 @@ class ProspectEvaluationIT extends MockedThirdParties {
     when(banApiMock.search(any())).thenReturn(geoPosZero());
     when(banApiMock.fSearch(any())).thenReturn(geoPosZero());
     User user = userService.getUserById(JOE_DOE_ID);
-    userService.save(user.toBuilder().roles(List.of(Role.EVAL_PROSPECT)).build());
+    var roleEvaluationProspect = Role.EVAL_PROSPECT;
+    var roles = new ArrayList<>(user.getRoles());
+    roles.add(roleEvaluationProspect);
+    userService.save(user.toBuilder().roles(roles).build());
   }
 
   /*

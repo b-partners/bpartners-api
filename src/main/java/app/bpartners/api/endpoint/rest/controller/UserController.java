@@ -47,6 +47,13 @@ public class UserController {
     return subscriptionService.initiateSubscription(user, subscriptionType, redirectionStatusUrls);
   }
 
+  @PostMapping("/users/subscriptionRegistration")
+  public List<User> registerActiveUsersWithNullSubscription() {
+    List<app.bpartners.api.model.User> users =
+        service.registerOnStripeActiveUsersWithNullSubscription();
+    return users.stream().map(mapper::toRest).toList();
+  }
+
   @PostMapping("/users/{uId}/subscriptionCancel")
   public User cancelUserSubscription(@PathVariable String uId) {
     var user = service.getUserById(uId);

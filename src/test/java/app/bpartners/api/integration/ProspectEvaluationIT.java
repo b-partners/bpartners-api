@@ -152,7 +152,8 @@ class ProspectEvaluationIT extends MockedThirdParties {
     var roleEvaluationProspect = Role.EVAL_PROSPECT;
     var roles = new ArrayList<>(user.getRoles());
     roles.add(roleEvaluationProspect);
-    userService.save(user.toBuilder().roles(roles).build());  }
+    userService.save(user.toBuilder().roles(roles).build());
+  }
 
   /*
   TODO: to complete with uploadFile with custom Accept value, application/pdf for example

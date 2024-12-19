@@ -93,8 +93,8 @@ public class PaymentRequestMapper {
         .payerName(invoice.getCustomer() == null ? null : invoice.getCustomer().getFirstName())
         .payerEmail(invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail())
         .paymentDueDate(payment != null ? payment.getMaturityDate() : null)
-        .successUrl("https://dashboard.bpartners.app") // TODO: to change
-        .failureUrl("https://dashboard.bpartners.app") // TODO: to change
+        .successUrl(System.getenv("DASHBOARD_URL"))
+        .failureUrl(System.getenv("DASHBOARD_URL"))
         .paymentHistoryStatus(paymentHistoryStatus)
         .build();
   }

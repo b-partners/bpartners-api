@@ -22,15 +22,18 @@ import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.InvoiceService;
+import app.bpartners.api.service.invoice.ReferenceGenerator;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.MonthUtils;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -85,9 +88,12 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceProducts =
         computeSubscriptionProducts(invoiceId, defaultProductDescription, userToDebit);
     var discountZero = new Fraction(BigInteger.ZERO);
+    LocalDateTime fixedDateTime = LocalDateTime.now();
+    Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
+    var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
     return Invoice.builder()
         .id(invoiceId)
-        .ref("TODO: custom reference ? " + randomUUID())
+        .ref(referenceGenerator.get())
         .title(invoiceTitle)
         .subscriptionInvoice(true)
         .status(CONFIRMED)

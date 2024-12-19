@@ -4,15 +4,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Supplier;
 
-public class ReferenceGenerator {
+public class ReferenceGenerator implements Supplier<String> {
   private final Supplier<LocalDateTime> dateTimeSupplier;
 
-  // Constructor to allow dependency injection of the dateTimeSupplier
   public ReferenceGenerator(Supplier<LocalDateTime> dateTimeSupplier) {
     this.dateTimeSupplier = dateTimeSupplier;
   }
 
-  public String generateReference() {
+  @Override
+  public String get() {
     LocalDateTime now = dateTimeSupplier.get();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("ddMMyyyyHHmmss");
     String formattedDateTime = now.format(formatter);

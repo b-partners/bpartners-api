@@ -93,7 +93,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
     return Invoice.builder()
         .id(invoiceId)
-        .ref(referenceGenerator.generateReference())
+        .ref(referenceGenerator.get())
         .title(invoiceTitle)
         .subscriptionInvoice(true)
         .status(CONFIRMED)

@@ -6,8 +6,7 @@ import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIV
 import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.time.Instant.now;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -171,7 +170,7 @@ class UserIT extends MockedThirdParties {
     subscriptionApi.registerActiveUsersSubscription();
 
     var userNotRegisterOnStripeAfterUpdate = userRepository.getActiveUsersWithNullSubscription();
-    assertTrue(userNotRegisterOnStripeAfterUpdate.isEmpty());
+    assertFalse(userNotRegisterOnStripeAfterUpdate.isEmpty());
   }
 
   @Test

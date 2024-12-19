@@ -6,7 +6,6 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
@@ -130,24 +129,16 @@ public class UserService {
     int[] userNb = {0};
     users.forEach(
         user -> {
-          UserSubscription userSubscription = subscriptionService.getSubscriptionByUser(user);
-          if (userSubscription != null) {
-            userRepository.save(
-                user.toBuilder()
-                    .userSubscriptionId(userSubscription.getSubscriptions().getFirst().getId())
-                    .build());
-
-          } else {
-            UserRegistrationRequested userRegistrationRequested =
-                UserRegistrationRequested.builder()
-                    .userId(user.getId())
-                    .totalNbUser(totalUser)
-                    .userNb(userNb[0])
-                    .build();
-            eventProducer.accept(List.of(userRegistrationRequested));
-          }
+          eventProducer.accept(
+              List.of(
+                  UserRegistrationRequested.builder()
+                      .userId(user.getId())
+                      .totalNbUser(totalUser)
+                      .userNb(userNb[0])
+                      .build()));
           userNb[0]++;
         });
+    // TODO: replace to users count who requested registration not those with active subscriptions
     return userRepository.getUsersWithSubscription();
   }
 }

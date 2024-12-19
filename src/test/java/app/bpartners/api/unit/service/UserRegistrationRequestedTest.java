@@ -11,6 +11,7 @@ import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.UserRegistrationRequestedService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
 class UserRegistrationRequestedTest {
@@ -20,18 +21,20 @@ class UserRegistrationRequestedTest {
   UserRegistrationRequestedService subject =
       new UserRegistrationRequestedService(subscriptionServiceMock, mailerMock, userServiceMock);
 
+  @SneakyThrows
   @Test
   void accept_ok() {
-    var user = User.builder().build();
-    var event =
-        UserRegistrationRequested.builder().userNb(1).totalNbUser(1).userId("userId").build();
-    when(userServiceMock.getUserById(any())).thenReturn(user);
+    var userMock = mock(User.class);
+    var userId = "userId";
+    var userName = "userName";
+    var event = UserRegistrationRequested.builder().userNb(1).totalNbUser(1).userId(userId).build();
+    when(userMock.getId()).thenReturn(userId);
+    when(userMock.getName()).thenReturn(userName);
+    when(userServiceMock.getUserById(any())).thenReturn(userMock);
     when(subscriptionServiceMock.createUserSubscription(any()))
-        .thenReturn(UserSubscription.builder().build());
+        .thenReturn(UserSubscription.builder().user(userMock).build());
 
-    assertDoesNotThrow(
-        () -> {
-          subject.accept(event);
-        });
+    assertDoesNotThrow(() -> subject.accept(event));
+    verify(mailerMock).sendEmail(any(), any(), any(), any());
   }
 }

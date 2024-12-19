@@ -5,6 +5,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static app.bpartners.api.model.mapper.InvoiceMapper.*;
+import static app.bpartners.api.service.invoice.ReferenceGenerator.generateReference;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
@@ -87,7 +88,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     var discountZero = new Fraction(BigInteger.ZERO);
     return Invoice.builder()
         .id(invoiceId)
-        .ref("TODO: custom reference ? " + randomUUID())
+        .ref(generateReference())
         .title(invoiceTitle)
         .subscriptionInvoice(true)
         .status(CONFIRMED)

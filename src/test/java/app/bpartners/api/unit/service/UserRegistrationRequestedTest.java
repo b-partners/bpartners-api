@@ -31,7 +31,7 @@ class UserRegistrationRequestedTest {
     when(userMock.getId()).thenReturn(userId);
     when(userMock.getName()).thenReturn(userName);
     when(userServiceMock.getUserById(any())).thenReturn(userMock);
-    when(subscriptionServiceMock.createUserSubscription(any()))
+    when(subscriptionServiceMock.createOrLinkUserSubscription(any()))
         .thenReturn(UserSubscription.builder().user(userMock).build());
 
     assertDoesNotThrow(() -> subject.accept(event));

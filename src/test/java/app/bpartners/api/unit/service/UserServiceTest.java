@@ -82,7 +82,7 @@ class UserServiceTest {
     var subscription = Subscription.builder().id("user_subscription_id").build();
     var userSubscription = UserSubscription.builder().subscriptions(List.of(subscription)).build();
     when(userRepositoryMock.getActiveUsersWithNullSubscription()).thenReturn(List.of(user));
-    when(subscriptionServiceMock.createUserSubscription(any()))
+    when(subscriptionServiceMock.createOrLinkUserSubscription(any()))
         .thenReturn(UserSubscription.builder().build());
     when(subscriptionServiceMock.getSubscriptionByUser(any())).thenReturn(userSubscription);
 
@@ -95,7 +95,7 @@ class UserServiceTest {
     var user =
         User.builder().id("id_user").accountHolders(List.of(account)).status(ENABLED).build();
     when(userRepositoryMock.getActiveUsersWithNullSubscription()).thenReturn(List.of(user));
-    when(subscriptionServiceMock.createUserSubscription(any()))
+    when(subscriptionServiceMock.createOrLinkUserSubscription(any()))
         .thenReturn(UserSubscription.builder().build());
 
     assertDoesNotThrow(() -> subject.registerOnStripeActiveUsersWithNullSubscription());

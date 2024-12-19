@@ -9,9 +9,11 @@ import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @AllArgsConstructor
+@Service
 public class UserRegistrationRequestedService implements Consumer<UserRegistrationRequested> {
   private static final String ADMIN_RECIPIENT = System.getenv("ADMIN.EMAIL");
   private final SubscriptionService subscriptionService;

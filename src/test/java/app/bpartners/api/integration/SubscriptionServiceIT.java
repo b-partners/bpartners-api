@@ -44,9 +44,11 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   void create_list_delete_customers() {
     var user = userRepository.findByEmail("jane@email.com").orElseThrow();
 
-    var createdUserSubscription =
-        subject.createUserSubscription(user.toBuilder().mobilePhoneNumber("0622334455").build());
-    var updatedUser = createdUserSubscription.getUser();
+    subject.createOrLinkUserSubscription(user.toBuilder().mobilePhoneNumber("0622334455").build());
+    var linkedUserSubscription =
+        subject.createOrLinkUserSubscription(
+            user.toBuilder().mobilePhoneNumber("0622334455").build());
+    var updatedUser = linkedUserSubscription.getUser();
     var updatedUserSubscription = subject.updateUserSubscription(updatedUser);
 
     assertNotNull(updatedUserSubscription);
@@ -122,7 +124,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         .thenReturn(Optional.of(new UserSubscriptionEligible()));
     var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
     var createdUserSubscription =
-        subject.createUserSubscription(
+        subject.createOrLinkUserSubscription(
             existingUser.toBuilder().email("joe" + new Random().nextInt() + "@email.com").build());
     var user = createdUserSubscription.getUser();
 
@@ -152,7 +154,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         .thenReturn(Optional.of(new UserSubscriptionEligible()));
     var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
     var createdUserSubscription =
-        subject.createUserSubscription(
+        subject.createOrLinkUserSubscription(
             existingUser.toBuilder().email("joe" + new Random().nextInt() + "@email.com").build());
     var user = createdUserSubscription.getUser();
     var defaultSubscription = getDefaultSubscription();

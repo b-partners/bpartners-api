@@ -25,7 +25,7 @@ public class UserRegistrationRequestedService implements Consumer<UserRegistrati
   public void accept(UserRegistrationRequested event) {
     var user = userService.getUserById(event.getUserId());
     var userNb = event.getUserNb();
-    var savedUser = subscriptionService.createUserSubscription(user).getUser();
+    var savedUser = subscriptionService.createOrLinkUserSubscription(user).getUser();
 
     var mailSubject =
         String.format(

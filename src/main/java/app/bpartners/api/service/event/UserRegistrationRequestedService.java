@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @Service
 public class UserRegistrationRequestedService implements Consumer<UserRegistrationRequested> {
-  private static final String ADMIN_RECIPIENT = System.getenv("ADMIN.EMAIL");
+  private final String ADMIN_RECIPIENT = System.getenv("ADMIN.EMAIL");
   private final SubscriptionService subscriptionService;
   private final SesService mailer;
   private final UserService userService;

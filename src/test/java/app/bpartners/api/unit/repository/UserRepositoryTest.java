@@ -5,8 +5,7 @@ import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_I
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_EMAIL;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -21,6 +20,8 @@ import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
+import jakarta.persistence.EntityManager;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ class UserRepositoryTest {
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
   AccountJpaRepository accountJpaRepositoryMock;
   BankRepository bankRepositoryMock;
+  EntityManager entityManagerMock;
 
   @BeforeEach
   void setUp() {
@@ -44,6 +46,7 @@ class UserRepositoryTest {
     accountHolderJpaRepositoryMock = mock(AccountHolderJpaRepository.class);
     accountJpaRepositoryMock = mock(AccountJpaRepository.class);
     bankRepositoryMock = mock(BankRepository.class);
+    entityManagerMock = mock(EntityManager.class);
     subject =
         new UserRepositoryImpl(
             userJpaRepositoryMock,
@@ -52,12 +55,23 @@ class UserRepositoryTest {
             bridgeUserRepositoryMock,
             accountHolderJpaRepositoryMock,
             accountJpaRepositoryMock,
-            bankRepositoryMock);
+            bankRepositoryMock,
+            entityManagerMock);
 
     when(userJpaRepositoryMock.save(any())).thenReturn(user());
     when(userJpaRepositoryMock.findByEmail(JOE_EMAIL)).thenReturn(Optional.ofNullable(user()));
     when(userMapperMock.toDomain(any(HUser.class))).thenReturn(expectedUser());
     when(cognitoComponentMock.getEmailByToken(JOE_DOE_TOKEN)).thenReturn(JOE_EMAIL);
+  }
+
+  @Test
+  void get_enabled_users_without_subscription() {
+    when(userJpaRepositoryMock.getEnabledUsersWithoutSubscription()).thenReturn(List.of(user()));
+
+    var actual = subject.getActiveUsersWithNullSubscription();
+
+    assertEquals(1, actual.size());
+    assertTrue(actual.contains(expectedUser()));
   }
 
   @Test

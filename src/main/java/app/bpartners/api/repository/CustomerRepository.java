@@ -22,7 +22,7 @@ public interface CustomerRepository {
   Optional<Customer> findOptionalById(String id);
 
   List<Customer> findByIdUserAndCriteria(
-      String accountId,
+      String idUser,
       String firstName,
       String lastName,
       String email,

@@ -1,9 +1,9 @@
 package app.bpartners.api.service.aws;
 
 import app.bpartners.api.endpoint.rest.model.FileType;
-import app.bpartners.api.file.BucketComponent;
 import app.bpartners.api.file.BucketKeyRetriever;
-import app.bpartners.api.file.FileHash;
+import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.hash.FileHash;
 import java.io.File;
 import java.time.Duration;
 import lombok.AllArgsConstructor;

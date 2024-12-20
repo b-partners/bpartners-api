@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.SentryConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.manager.ProjectTokenManager;
+import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
@@ -29,5 +30,6 @@ public class StripeMockedThirdParties extends StripeFacadeIT {
   @MockBean protected AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean protected LegalFileRepository legalFileRepositoryMock;
   @MockBean protected BridgeApi bridgeApi;
+  @MockBean protected UserSubscriptionConf userSubscriptionConf;
   @MockBean protected EventProducer eventProducer;
 }

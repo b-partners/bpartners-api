@@ -111,6 +111,9 @@ public class PaymentRequest {
       case CREDIT_CARD:
         path = "static/stamp/credit-card.png";
         break;
+      case DIRECT_DEBIT:
+        path = "static/stamp/direct-debit-no-bg.png";
+        break;
       case MULTIPLE:
         throw new NotImplementedException("MULTIPLE method not supported");
       default:

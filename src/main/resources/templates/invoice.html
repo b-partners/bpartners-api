@@ -177,8 +177,9 @@
                     <div class="image-text">
                         <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}"
                              alt="qr-code"/>
-                        <span class="caption"><a
-                                th:href="${invoice.paymentUrl}">Payez ici</a></span>
+                        <span class="caption" th:if="${invoice.paymentUrl != null}">
+                            <a th:href="${invoice.paymentUrl}">Payez ici</a>
+                        </span>
                     </div>
                     <p>Date limite de paiement : <span
                             th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
@@ -309,7 +310,7 @@
             <tr>
                 <td>
                     <p th:style="${(invoice.paymentMethod != null && invoice.status != null
-                     && invoice.status.toString() == 'PAID') ? '' : 'margin-bottom: 90px'}">Mode de paiement :
+                     && invoice.status.toString() == 'PAID') ? '' : 'margin-bottom: 90px'}">Mode de règlement :
                         <strong
                                 th:if="${invoice.paymentType == null  ||
                             (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
@@ -444,7 +445,7 @@
         </div>
         <div style="width: 100%;" class="no-break-inside">
             <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
-            <p class="muted">
+            <p class="muted" th:if="${!invoice.isSubscriptionInvoice()}">
                 La facture est payable à réception en scannant le QR code ou en cliquant sur le
                 lien.
                 Sinon, vous avez la possibilité de faire un virement classique avec nos
@@ -461,6 +462,13 @@
                 retard de paiement conformément aux articles L 441-3 et L 441-6 du code de commerce.
                 Pas d'escompte en cas de paiement anticipé.
                 </span>
+            </p>
+            <p class="muted" th:unless="${!invoice.isSubscriptionInvoice()}">
+                Nous vous informons que le montant de cette facture sera prélevé automatiquement sur le compte bancaire
+                fourni,
+                conformément aux modalités convenues. En cas de problème, vous avez la possibilité de faire un virement
+                classique avec nos
+                coordonnées ci-dessous.
             </p>
         </div>
         <div style="width: 100%;" class="no-break-inside">

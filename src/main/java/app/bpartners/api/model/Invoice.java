@@ -83,6 +83,7 @@ public class Invoice {
   private Fraction totalPriceWithVat;
   private PaymentMethod paymentMethod;
   private String idAreaPicture;
+  private boolean subscriptionInvoice = false;
 
   public String getUpdatedAtFrenchDate() {
     return new CustomDateFormatter().formatFrenchDate(updatedAt);
@@ -193,6 +194,9 @@ public class Invoice {
         break;
       case CREDIT_CARD:
         path = "static/stamp/credit-card.png";
+        break;
+      case DIRECT_DEBIT:
+        path = "static/stamp/direct-debit.png";
         break;
       case MULTIPLE:
         return null; // No stamp when multiple payments

@@ -247,8 +247,8 @@ public class InvoiceService {
     InvoiceStatus newStatus = newInvoice.getStatus();
     InvoiceStatus oldStatus = oldInvoice.getStatus();
     switch (newStatus) {
-      case DRAFT, PROPOSAL, ACCEPTED, PROPOSAL_CONFIRMED -> handlePaymentRequests(
-          newInvoice, oldInvoice);
+      case DRAFT, PROPOSAL, ACCEPTED, PROPOSAL_CONFIRMED ->
+          handlePaymentRequests(newInvoice, oldInvoice);
       case CONFIRMED -> {
         handlePaymentType(newInvoice, oldInvoice, invoiceBuilder);
         if (oldStatus == PROPOSAL) {
@@ -265,8 +265,10 @@ public class InvoiceService {
 
           if (newInvoice.getPaymentType() == CASH) {
             invoiceBuilder.paymentUrl(oldInvoice.getPaymentUrl());
-            invoiceBuilder.toPayAt(
-                newInvoice.getSendingDate().plusDays(newInvoice.getDelayInPaymentAllowed()));
+            if (!newInvoice.isSubscriptionInvoice()) {
+              invoiceBuilder.toPayAt(
+                  newInvoice.getSendingDate().plusDays(newInvoice.getDelayInPaymentAllowed()));
+            }
           } else {
             invoiceBuilder.paymentRegulations(oldInvoice.getPaymentRegulations());
           }
@@ -327,12 +329,14 @@ public class InvoiceService {
           newInvoice.getDelayInPaymentAllowed() == null
               ? DEFAULT_TO_PAY_DELAY_DAYS
               : newInvoice.getDelayInPaymentAllowed();
-      invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
-      invoiceBuilder.paymentUrl(
-          newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
-              ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
-              : newInvoice.getPaymentUrl());
-      invoiceBuilder.paymentRegulations(new ArrayList<>());
+      if (!newInvoice.isSubscriptionInvoice()) {
+        invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
+        invoiceBuilder.paymentUrl(
+            newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
+                ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
+                : newInvoice.getPaymentUrl());
+        invoiceBuilder.paymentRegulations(new ArrayList<>());
+      }
     } else {
       invoiceBuilder.paymentUrl(null);
       if (oldInvoice == null

@@ -5,7 +5,7 @@ import static jakarta.mail.Message.RecipientType.CC;
 import static jakarta.mail.Message.RecipientType.TO;
 
 import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.file.FileTyper;
+import app.bpartners.api.file.zip.FileTyper;
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
 import jakarta.mail.MessagingException;

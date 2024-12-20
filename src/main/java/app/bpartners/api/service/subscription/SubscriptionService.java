@@ -41,6 +41,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -230,7 +231,15 @@ public class SubscriptionService {
   }
 
   @SneakyThrows
-  public UserSubscription createUserSubscription(User user) {
+  public UserSubscription createOrLinkUserSubscription(User user) {
+    var optionalStripeCustomer = getStripeCustomerByEmail(user.getEmail());
+    if (optionalStripeCustomer.isPresent()) {
+      var customer = optionalStripeCustomer.get();
+      List<Subscription> subscriptions = getSubscriptionsFromStripeCustomer(customer.getId());
+      var savedUser =
+          userRepository.save(user.toBuilder().userSubscriptionId(customer.getId()).build());
+      return UserSubscription.builder().user(savedUser).subscriptions(subscriptions).build();
+    }
     var defaultHolder = user.getDefaultHolder();
     var customerCreateParams =
         CustomerCreateParams.builder()
@@ -356,6 +365,19 @@ public class SubscriptionService {
       throw new IllegalArgumentException("Stripe customer id is mandatory and can not be null");
     }
     return stripeClient.customers().retrieve(stripeCustomerId);
+  }
+
+  @SneakyThrows
+  private Optional<Customer> getStripeCustomerByEmail(String stripeCustomerEmail) {
+    if (stripeCustomerEmail == null) {
+      throw new IllegalArgumentException("Stripe customer id is mandatory and can not be null");
+    }
+    var customers =
+        stripeClient
+            .customers()
+            .list(CustomerListParams.builder().setEmail(stripeCustomerEmail).build())
+            .getData();
+    return customers.stream().findFirst();
   }
 
   @SneakyThrows

@@ -30,6 +30,11 @@ public class CustomDateFormatter {
     return localDateTime.format(formatter);
   }
 
+  public String formatFrenchDate(LocalDate localDate) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    return localDate.format(formatter);
+  }
+
   public String formatFrenchDate(Instant instant) {
     ZoneId zoneId = ZoneId.of(PARIS_TIMEZONE);
     LocalDateTime localDateTime = instant.atZone(zoneId).toLocalDateTime();

@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.rest.security;
 
-import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
-import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
+import static app.bpartners.api.endpoint.rest.security.model.Role.*;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.OPTIONS;
@@ -87,7 +86,6 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/sendEmail", POST.name()),
                         new AntPathRequestMatcher("/whoami", GET.name()),
                         new AntPathRequestMatcher("/users/*", GET.name()),
-                        new AntPathRequestMatcher("/users/*/subscriptionInitiation", POST.name()),
                         new AntPathRequestMatcher("/dummy-user", DELETE.name()),
                         new AntPathRequestMatcher("/onboardingInitiation", POST.name()),
                         new AntPathRequestMatcher("/users/*/legalFiles", GET.name()),
@@ -120,8 +118,6 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(GET, "/users/*")
                     .permitAll()
-                    .requestMatchers(POST, "/users/*/subscriptionInitiation")
-                    .permitAll()
                     .requestMatchers("/onboardingInitiation")
                     .permitAll()
                     .requestMatchers(POST, "/preUsers")
@@ -153,6 +149,8 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(GET, "/accountHolders")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(POST, "/users/subscriptionRegistration")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(
@@ -160,6 +158,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(POST, "/monthlySubscriptionInvoiceTrigger")
+                    .hasAnyRole(EVAL_PROSPECT.getRole()) // TODO: set ADMIN ROLE when implemented
                     .requestMatchers(POST, "/users/accounts/refresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(

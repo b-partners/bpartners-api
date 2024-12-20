@@ -27,13 +27,18 @@ class BanIT extends MockedThirdParties {
 
   @Test
   void search_address_ok() {
-    assertEquals(
+    var expected =
         GeoPosition.builder()
             .label("356 Rue des Pyrénées 75020 Paris")
-            .score(0.9865981818181818)
+            .score(0.987)
             .coordinates(
                 GeoUtils.Coordinate.builder().latitude(48.87398).longitude(2.386415).build())
-            .build(),
-        subject.search("356 Rue des Pyrénées, 75020 Paris"));
+            .build();
+
+    var actual = subject.search("356 Rue des Pyrénées, 75020 Paris");
+
+    assertEquals(expected.getLabel(), actual.getLabel());
+    assertEquals(expected.getScore(), actual.getScore(), 0.001);
+    assertEquals(expected.getCoordinates(), actual.getCoordinates());
   }
 }

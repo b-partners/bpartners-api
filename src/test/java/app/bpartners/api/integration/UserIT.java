@@ -6,13 +6,13 @@ import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIV
 import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.time.Instant.now;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
+import app.bpartners.api.endpoint.rest.api.UserSubscriptionApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.OnboardUser;
@@ -23,6 +23,7 @@ import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -61,6 +62,7 @@ class UserIT extends MockedThirdParties {
   @MockBean private EventBridgeClient eventBridgeClientMock;
   @MockBean private BridgeUserRepository bridgeUserRepositoryMock;
   @Autowired private UserJpaRepository userJpaRepository;
+  @Autowired private UserRepository userRepository;
 
   public static User restJaneDoeUser() {
     return new User()
@@ -158,6 +160,17 @@ class UserIT extends MockedThirdParties {
 
     assertEquals(JOE_DOE_ACCOUNT_ID, before.getActiveAccount().getId());
     assertEquals("other_joe_account_id", actual.getActiveAccount().getId());
+  }
+
+  @Test
+  void register_on_stripe_active_users_with_null_subscription() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserSubscriptionApi subscriptionApi = new UserSubscriptionApi(joeDoeClient);
+
+    subscriptionApi.registerActiveUsersSubscription();
+
+    var userNotRegisterOnStripeAfterUpdate = userRepository.getActiveUsersWithNullSubscription();
+    assertFalse(userNotRegisterOnStripeAfterUpdate.isEmpty());
   }
 
   @Test

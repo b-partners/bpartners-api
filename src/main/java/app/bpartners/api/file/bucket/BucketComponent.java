@@ -1,8 +1,10 @@
-package app.bpartners.api.file;
+package app.bpartners.api.file.bucket;
 
 import static java.io.File.createTempFile;
 
 import app.bpartners.api.PojaGenerated;
+import app.bpartners.api.file.hash.FileHash;
+import app.bpartners.api.file.hash.FileHashAlgorithm;
 import java.io.File;
 import java.net.URL;
 import java.time.Duration;

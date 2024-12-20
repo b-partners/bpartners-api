@@ -12,8 +12,9 @@ on:
   workflow_call:
 
 env:
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   STRIPE_PRIVATE_API_KEY: ${{ secrets.STRIPE_PRIVATE_API_KEY }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  GOOGLE_GEOCODE_API_KEY: ${{ secrets.GOOGLE_GEOCODE_API_KEY }}
 
 jobs:
   test:
@@ -25,16 +26,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4.1.6
-      - uses: hei-school/aws-credentials-setter@v1.0.3
-        with:
-          secrets: ${{ toJSON(secrets) }}
-          region: ${{ env.AWS_REGION }}
 
       - uses: actions/setup-java@v4.2.1
         with:
           java-version: '21'
           distribution: 'corretto'
       - run: chmod +x gradlew
+      - run: chmod +x .shell/publish_gen_to_maven_local.sh
       - run: ./gradlew test
 
       - name: Cache SonarCloud packages

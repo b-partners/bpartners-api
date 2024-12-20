@@ -1,5 +1,6 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,6 +16,7 @@ import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
 import app.bpartners.api.service.UserService;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -42,6 +44,7 @@ public class UserTokenServiceIT extends MockedThirdParties {
         .lastName("Doe")
         .email("joe@email.com")
         .bridgePassword("12345678")
+        .roles(List.of(ADMIN_ROLE))
         .build();
   }
 

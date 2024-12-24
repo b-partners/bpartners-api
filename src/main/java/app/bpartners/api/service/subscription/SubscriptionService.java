@@ -22,10 +22,7 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.model.subscription.Subscription;
-import app.bpartners.api.model.subscription.SubscriptionProduct;
-import app.bpartners.api.model.subscription.SubscriptionType;
-import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
@@ -47,6 +44,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -231,6 +229,7 @@ public class SubscriptionService {
   }
 
   @SneakyThrows
+  @Transactional
   public UserSubscription createOrLinkUserSubscription(User user) {
     var optionalStripeCustomer = getStripeCustomerByEmail(user.getEmail());
     if (optionalStripeCustomer.isPresent()) {
@@ -238,7 +237,8 @@ public class SubscriptionService {
       List<Subscription> subscriptions = getSubscriptionsFromStripeCustomer(customer.getId());
       var savedUser =
           userRepository.save(user.toBuilder().userSubscriptionId(customer.getId()).build());
-      return UserSubscription.builder().user(savedUser).subscriptions(subscriptions).build();
+      var eligibleUser = makeUserEligibleIfNot(savedUser);
+      return UserSubscription.builder().user(eligibleUser).subscriptions(subscriptions).build();
     }
     var defaultHolder = user.getDefaultHolder();
     var customerCreateParams =
@@ -260,7 +260,22 @@ public class SubscriptionService {
             user.toBuilder().userSubscriptionId(createdStripeCustomer.getId()).build());
     var subscriptions = getSubscriptionsFromStripeCustomer(createdStripeCustomer.getId());
 
-    return UserSubscription.builder().user(savedUser).subscriptions(subscriptions).build();
+    var eligibleUser = makeUserEligibleIfNot(savedUser);
+    return UserSubscription.builder().user(eligibleUser).subscriptions(subscriptions).build();
+  }
+
+  private User makeUserEligibleIfNot(User user) {
+    var optionalUserSubscriptionEligible =
+        subscriptionEligibleJpaRepository.findByUserId(user.getId());
+    if (optionalUserSubscriptionEligible.isPresent()) {
+      return user;
+    }
+    subscriptionEligibleJpaRepository.save(
+        UserSubscriptionEligible.builder()
+            .id(randomUUID().toString())
+            .userId(user.getId())
+            .build());
+    return user;
   }
 
   @SneakyThrows

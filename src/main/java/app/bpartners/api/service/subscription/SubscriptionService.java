@@ -265,13 +265,15 @@ public class SubscriptionService {
   }
 
   private User makeUserEligibleIfNot(User user) {
-    var optionalUserSubscriptionEligible = subscriptionEligibleJpaRepository.findByUserId(user.getId());
+    var optionalUserSubscriptionEligible =
+        subscriptionEligibleJpaRepository.findByUserId(user.getId());
     if (optionalUserSubscriptionEligible.isPresent()) {
       return user;
     }
-    subscriptionEligibleJpaRepository.save(UserSubscriptionEligible.builder()
-                    .id(randomUUID().toString())
-                    .userId(user.getId())
+    subscriptionEligibleJpaRepository.save(
+        UserSubscriptionEligible.builder()
+            .id(randomUUID().toString())
+            .userId(user.getId())
             .build());
     return user;
   }

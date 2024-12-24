@@ -4,14 +4,15 @@ import app.bpartners.api.model.OnboardedUser;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Duration;
 import javax.annotation.processing.Generated;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 
 @Generated("EventBridge")
 @Data
 @EqualsAndHashCode
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserOnboarded extends PojaEvent {
   private static final long serialVersionUID = 1L;
 

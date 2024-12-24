@@ -7,6 +7,7 @@ import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
 import java.util.List;
@@ -24,9 +25,15 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
   public static final String USER_ONBOARDED_MAIL = "user_onboarded_mail";
   private final SesService service;
   private final TemplateResolverEngine templateResolverEngine;
+  private final SubscriptionService subscriptionService;
 
   @Override
-  public void accept(UserOnboarded userOnboarded) {
+  public void accept(UserOnboarded event) {
+    subscriptionService.createOrLinkUserSubscription(event.getOnboardedUser().getOnboardedUser());
+    notifyByEmail(event);
+  }
+
+  private void notifyByEmail(UserOnboarded userOnboarded) {
     String subject = userOnboarded.getSubject();
     String recipient = userOnboarded.getRecipientEmail();
     OnboardedUser onboardedUser = userOnboarded.getOnboardedUser();

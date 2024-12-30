@@ -74,6 +74,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
     when(userToDebitMock.getId()).thenReturn(userToDebitId);
     when(userToDebitMock.getEmail()).thenReturn(customerEmail);
+    when(userToDebitMock.getUserSubscriptionId()).thenReturn("notNullSubscription");
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
@@ -149,6 +150,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(userToDebitMock.getEmail()).thenReturn(customerEmail);
     when(userToDebitMock.getFirstName()).thenReturn(customerFirstName);
     when(userToDebitMock.getLastName()).thenReturn(customerLastName);
+    when(userToDebitMock.getUserSubscriptionId()).thenReturn("notNullSubscription");
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);

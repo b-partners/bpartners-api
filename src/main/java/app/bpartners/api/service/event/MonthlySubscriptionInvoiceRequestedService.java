@@ -18,6 +18,7 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -36,9 +37,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MonthlySubscriptionInvoiceRequestedService
@@ -67,21 +70,29 @@ public class MonthlySubscriptionInvoiceRequestedService
     var userIndex = new AtomicInteger(1);
     subscribedUsers.forEach(
         userToDebit -> {
-          int referenceNb = userIndex.getAndIncrement();
-          var monthlySubscriptionInvoice =
-              computeMonthlySusbcriptionInvoice(userToCredit, userToDebit, referenceNb);
-          var createdInvoice = invoiceService.crupdateInvoice(monthlySubscriptionInvoice);
+          var userSubscription = subscriptionService.getSubscriptionByUser(userToDebit);
+          if (userSubscription.getLatestSubscription() != null) {
+            int referenceNb = userIndex.getAndIncrement();
+            var monthlySubscriptionInvoice =
+                computeMonthlySusbcriptionInvoice(
+                    userToCredit, userToDebit, referenceNb, userSubscription);
+            var createdInvoice = invoiceService.crupdateInvoice(monthlySubscriptionInvoice);
 
-          eventProducer.accept(
-              List.of(
-                  MonthlySubscriptionInvoiceCreated.builder()
-                      .invoiceId(createdInvoice.getId())
-                      .build()));
+            eventProducer.accept(
+                List.of(
+                    MonthlySubscriptionInvoiceCreated.builder()
+                        .invoiceId(createdInvoice.getId())
+                        .build()));
+          } else {
+            log.info(
+                "User.id={} does not have subscription, skip computing invoice",
+                userToDebit.getId());
+          }
         });
   }
 
   private Invoice computeMonthlySusbcriptionInvoice(
-      User userToCredit, User userToDebit, int referenceNb) {
+      User userToCredit, User userToDebit, int referenceNb, UserSubscription userSubscription) {
     var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
     var invoiceId = randomUUID().toString();
     var monthPeriod =
@@ -92,7 +103,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
-        computeSubscriptionProducts(invoiceId, defaultProductDescription, userToDebit);
+        computeSubscriptionProducts(invoiceId, defaultProductDescription, userSubscription);
     var discountZero = new Fraction(BigInteger.ZERO);
     LocalDateTime fixedDateTime = LocalDateTime.now();
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
@@ -175,9 +186,8 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private @NotNull ArrayList<InvoiceProduct> computeSubscriptionProducts(
-      String invoiceId, String invoiceTitle, User userToDebit) {
+      String invoiceId, String invoiceTitle, UserSubscription userSubscription) {
     var invoiceProducts = new ArrayList<InvoiceProduct>();
-    var userSubscription = subscriptionService.getSubscriptionByUser(userToDebit);
     var latestSubscription = userSubscription.getLatestSubscription();
 
     var subscriptionProduct = latestSubscription.getSubscriptionProduct();

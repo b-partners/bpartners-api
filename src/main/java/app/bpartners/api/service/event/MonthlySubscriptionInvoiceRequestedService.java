@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
@@ -61,10 +62,14 @@ public class MonthlySubscriptionInvoiceRequestedService
 
     var userToCredit = userRepository.getById(userSubscriptionConf.getUserToCreditId());
     var users = userRepository.findAllByCriteria(criteria);
-    users.forEach(
+    var subscribedUsers =
+        users.stream().filter(user -> user.getUserSubscriptionId() != null).toList();
+    var userIndex = new AtomicInteger(1);
+    subscribedUsers.forEach(
         userToDebit -> {
+          int referenceNb = userIndex.getAndIncrement();
           var monthlySubscriptionInvoice =
-              computeMonthlySusbcriptionInvoice(userToCredit, userToDebit);
+              computeMonthlySusbcriptionInvoice(userToCredit, userToDebit, referenceNb);
           var createdInvoice = invoiceService.crupdateInvoice(monthlySubscriptionInvoice);
 
           eventProducer.accept(
@@ -75,7 +80,8 @@ public class MonthlySubscriptionInvoiceRequestedService
         });
   }
 
-  private Invoice computeMonthlySusbcriptionInvoice(User userToCredit, User userToDebit) {
+  private Invoice computeMonthlySusbcriptionInvoice(
+      User userToCredit, User userToDebit, int referenceNb) {
     var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
     var invoiceId = randomUUID().toString();
     var monthPeriod =
@@ -93,7 +99,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
     return Invoice.builder()
         .id(invoiceId)
-        .ref(referenceGenerator.get())
+        .ref(referenceGenerator.get() + "-" + referenceNb)
         .title(invoiceTitle)
         .subscriptionInvoice(true)
         .status(CONFIRMED)

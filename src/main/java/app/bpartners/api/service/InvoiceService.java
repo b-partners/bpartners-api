@@ -212,7 +212,21 @@ public class InvoiceService {
   }
 
   @Transactional
+  public Invoice crupdateSubscriptionInvoice(Invoice newInvoice) {
+    var savedInvoice = computeInvoice(newInvoice);
+    var subscriptionInvoice = savedInvoice.toBuilder().subscriptionInvoice(true).build();
+    invoicePDFProcessor.accept(subscriptionInvoice);
+    return savedInvoice;
+  }
+
+  @Transactional
   public Invoice crupdateInvoice(Invoice newInvoice) {
+    var savedInvoice = computeInvoice(newInvoice);
+    invoicePDFProcessor.accept(savedInvoice);
+    return savedInvoice;
+  }
+
+  private Invoice computeInvoice(Invoice newInvoice) {
     invoiceValidator.checkReferenceAvailability(newInvoice);
     customerInvoiceValidator.accept(newInvoice);
 
@@ -237,9 +251,7 @@ public class InvoiceService {
             });
     var actual = invoiceBuilder.build();
 
-    var savedInvoice = repository.save(actual);
-    invoicePDFProcessor.accept(savedInvoice);
-    return savedInvoice;
+    return repository.save(actual);
   }
 
   private void handleStatusChange(

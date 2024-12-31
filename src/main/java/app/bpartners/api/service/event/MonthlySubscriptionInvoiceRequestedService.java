@@ -76,7 +76,8 @@ public class MonthlySubscriptionInvoiceRequestedService
             var monthlySubscriptionInvoice =
                 computeMonthlySusbcriptionInvoice(
                     userToCredit, userToDebit, referenceNb, userSubscription);
-            var createdInvoice = invoiceService.crupdateInvoice(monthlySubscriptionInvoice);
+            var createdInvoice =
+                invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
 
             eventProducer.accept(
                 List.of(

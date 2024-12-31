@@ -69,7 +69,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
     when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
     when(userRepositoryMock.findAllByCriteria(any())).thenReturn(List.of(userToDebitMock));
-    when(invoiceServiceMock.crupdateInvoice(any()))
+    when(invoiceServiceMock.crupdateSubscriptionInvoice(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
     when(userToDebitMock.getId()).thenReturn(userToDebitId);
@@ -104,7 +104,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var eventCaptor = ArgumentCaptor.forClass(List.class);
     var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
     verify(eventProducerMock).accept(eventCaptor.capture());
-    verify(invoiceServiceMock).crupdateInvoice(invoiceCaptor.capture());
+    verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
     verify(customerRepositoryMock, never()).save(any());
     var monthlySubscriptionInvoiceCreated =
         (MonthlySubscriptionInvoiceCreated) eventCaptor.getValue().getFirst();
@@ -143,7 +143,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
     when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
     when(userRepositoryMock.findAllByCriteria(any())).thenReturn(List.of(userToDebitMock));
-    when(invoiceServiceMock.crupdateInvoice(any()))
+    when(invoiceServiceMock.crupdateSubscriptionInvoice(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
     when(userToDebitMock.getDefaultHolder()).thenReturn(holderMock);
@@ -183,7 +183,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
     var customerCaptor = ArgumentCaptor.forClass(Customer.class);
     verify(eventProducerMock).accept(eventCaptor.capture());
-    verify(invoiceServiceMock).crupdateInvoice(invoiceCaptor.capture());
+    verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
     verify(customerRepositoryMock).save(customerCaptor.capture());
     var monthlySubscriptionInvoiceCreated =
         (MonthlySubscriptionInvoiceCreated) eventCaptor.getValue().getFirst();

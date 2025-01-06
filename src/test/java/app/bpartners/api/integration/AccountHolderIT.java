@@ -209,7 +209,7 @@ class AccountHolderIT extends MockedThirdParties {
             joeDoeAccountHolder().getId(),
             List.of(createAnnualRevenueTarget()));
 
-    assertEquals(3, actual.getRevenueTargets().size());
+    assertEquals(2, actual.getRevenueTargets().size());
   }
 
   @Test

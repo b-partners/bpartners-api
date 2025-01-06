@@ -1,6 +1,7 @@
 package app.bpartners.api.service.event;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
+import static app.bpartners.api.service.utils.MonthUtils.actualMonthValue;
 import static java.time.Instant.now;
 
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceCreated;
@@ -52,25 +53,6 @@ public class MonthlySubscriptionInvoiceCreatedService
 
     mailer.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
     log.info("Monthly subscription invoice mail sent to {} at {}", recipient, now());
-  }
-
-  private String actualMonthValue() {
-    LocalDate today = LocalDate.now();
-    return switch (today.getMonthValue()) {
-      case 1 -> "Janvier";
-      case 2 -> "Février";
-      case 3 -> "Mars";
-      case 4 -> "Avril";
-      case 5 -> "Mai";
-      case 6 -> "Juin";
-      case 7 -> "Juillet";
-      case 8 -> "Août";
-      case 9 -> "Septembre";
-      case 10 -> "Octobre";
-      case 11 -> "Novembre";
-      case 12 -> "Décembre";
-      default -> throw new IllegalArgumentException("Invalid month value " + today.getMonthValue());
-    };
   }
 
   private int actualYear() {

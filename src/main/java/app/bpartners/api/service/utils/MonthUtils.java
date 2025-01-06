@@ -25,4 +25,23 @@ public class MonthUtils {
     var currentMonth = YearMonth.from(today);
     return currentMonth.atEndOfMonth();
   }
+
+  public static String actualMonthValue() {
+    LocalDate today = LocalDate.now();
+    return switch (today.getMonthValue()) {
+      case 1 -> "Janvier";
+      case 2 -> "Février";
+      case 3 -> "Mars";
+      case 4 -> "Avril";
+      case 5 -> "Mai";
+      case 6 -> "Juin";
+      case 7 -> "Juillet";
+      case 8 -> "Août";
+      case 9 -> "Septembre";
+      case 10 -> "Octobre";
+      case 11 -> "Novembre";
+      case 12 -> "Décembre";
+      default -> throw new IllegalArgumentException("Invalid month value " + today.getMonthValue());
+    };
+  }
 }

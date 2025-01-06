@@ -3,6 +3,7 @@ package app.bpartners.api.unit.repository;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.time.Month.MARCH;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -26,6 +27,7 @@ import app.bpartners.api.service.BusinessActivityService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,7 +82,7 @@ class ProspectRepositoryImplTest {
             evalInfoJpaRepositoryMock,
             em,
             sogefiBuildingPermitRepositoryMock);
-    when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, 2024))
+    when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, Year.now().getValue()))
         .thenReturn(
             Optional.ofNullable(
                 AnnualRevenueTarget.builder()
@@ -88,7 +90,7 @@ class ProspectRepositoryImplTest {
                     .amountAttempted(parseFraction(32000))
                     .idAccountHolder(EMPTY)
                     .build()));
-    when(revenueTargetServiceMock.getByYear(OTHER_ACCOUNT_ID, 2024))
+    when(revenueTargetServiceMock.getByYear(OTHER_ACCOUNT_ID, Year.now().getValue()))
         .thenReturn(
             Optional.ofNullable(
                 AnnualRevenueTarget.builder()
@@ -101,14 +103,17 @@ class ProspectRepositoryImplTest {
   @Test
   void needsProspects_false() {
     boolean needProspect =
-        subject.needsProspects(JOE_DOE_ACCOUNT_ID, LocalDate.parse("2024-03-15"));
+        subject.needsProspects(
+            JOE_DOE_ACCOUNT_ID, LocalDate.of(Year.now().getValue(), MARCH.getValue(), 15));
 
     assertFalse(needProspect);
   }
 
   @Test
   void needsProspects_true() {
-    boolean needProspect = subject.needsProspects(OTHER_ACCOUNT_ID, LocalDate.parse("2024-03-15"));
+    boolean needProspect =
+        subject.needsProspects(
+            OTHER_ACCOUNT_ID, LocalDate.of(Year.now().getValue(), MARCH.getValue(), 15));
 
     assertTrue(needProspect);
   }

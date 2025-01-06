@@ -1,5 +1,6 @@
 package app.bpartners.api.integration.event;
 
+import static app.bpartners.api.service.utils.MonthUtils.actualMonthValue;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,6 +16,7 @@ import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceCreatedService;
 import java.io.File;
+import java.time.Year;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +41,12 @@ class MonthlySubscriptionInvoiceCreatedServiceTest {
     var userId = "userId";
     var customerEmail = "customerEmail";
     var fileId = "fileId";
-    var invoiceTitle = "[BPartners] Votre facture du mois de Décembre 2024 est disponible";
+    var invoiceTitle =
+        "[BPartners] Votre facture du mois de "
+            + actualMonthValue()
+            + " "
+            + Year.now().getValue()
+            + " est disponible";
     var ccExpected = "tech@bpartners.app";
     var htmlBodyExpected = "";
     when(userMock.getId()).thenReturn(userId);

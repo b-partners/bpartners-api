@@ -15,10 +15,14 @@ import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class PaymentRequestMapper {
+  private final DashboardConf dashboardConf;
+
   public HPaymentRequest toEntity(PaymentRequest domain, HPaymentRequest existing) {
     PaymentHistoryStatus paymentHistoryStatus = domain.getPaymentHistoryStatus();
     Instant createdDatetime = existing == null ? Instant.now() : existing.getCreatedDatetime();
@@ -93,8 +97,8 @@ public class PaymentRequestMapper {
         .payerName(invoice.getCustomer() == null ? null : invoice.getCustomer().getFirstName())
         .payerEmail(invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail())
         .paymentDueDate(payment != null ? payment.getMaturityDate() : null)
-        .successUrl("https://dashboard.bpartners.app") // TODO: to change
-        .failureUrl("https://dashboard.bpartners.app") // TODO: to change
+        .successUrl(dashboardConf.getDashboardUrl())
+        .failureUrl(dashboardConf.getDashboardUrl())
         .paymentHistoryStatus(paymentHistoryStatus)
         .build();
   }

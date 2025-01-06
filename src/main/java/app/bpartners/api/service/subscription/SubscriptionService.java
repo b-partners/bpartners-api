@@ -35,6 +35,7 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
   private static final long DEFAULT_FREE_TRIAL_DAYS = 0L; // TODO: set to 14L once test finished
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
+  public static final int DEFAULT_TRIAL_PERIOD_DAYS = 14;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -87,12 +89,16 @@ public class SubscriptionService {
 
   @SneakyThrows
   public UserSubscription getSubscriptionByUser(User user) {
-    var isSubscriptionEligible =
-        subscriptionEligibleJpaRepository.findByUserId(user.getId()).isPresent();
-    if (isSubscriptionEligible) {
-      var stripeCustomerId = user.getUserSubscriptionId();
-      var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
-      return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
+    var optionalUserSubscriptionEligible =
+        subscriptionEligibleJpaRepository.findByUserId(user.getId());
+    if (optionalUserSubscriptionEligible.isPresent()) {
+      var subscriptionEligible = optionalUserSubscriptionEligible.get();
+      var today = LocalDate.now();
+      if (!subscriptionEligible.getLatestTrialPeriodDate().isAfter(today)) {
+        var stripeCustomerId = user.getUserSubscriptionId();
+        var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
+        return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
+      }
     }
     return UserSubscription.builder().user(user).subscriptions(defaultActiveSubscription()).build();
   }
@@ -274,6 +280,9 @@ public class SubscriptionService {
         UserSubscriptionEligible.builder()
             .id(randomUUID().toString())
             .userId(user.getId())
+            .trialPeriodDays(DEFAULT_TRIAL_PERIOD_DAYS)
+            .eligibleFrom(LocalDate.now())
+            .creationDatetime(now())
             .build());
     return user;
   }

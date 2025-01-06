@@ -255,7 +255,7 @@ public class TestUtils {
 
   public static AnnualRevenueTarget annualRevenueTarget2() {
     return new AnnualRevenueTarget()
-        .year(2024)
+        .year(LocalDate.now().getYear())
         .updatedAt(Instant.parse("2022-01-08T01:00:00.00Z"))
         .amountAttempted(1356000)
         .amountTarget(1000000)

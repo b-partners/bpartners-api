@@ -32,7 +32,6 @@ import org.junit.jupiter.api.Test;
 
 class SubscriptionServiceTest {
 
-  private static final long DEFAULT_FREE_TRIAL_DAYS = 0L;
   StripeConf stripeConfMock = mock(StripeConf.class);
   StripeClient stripeClientMock = mock(StripeClient.class);
   UserRepository userRepositoryMock = mock(UserRepository.class);
@@ -92,7 +91,6 @@ class SubscriptionServiceTest {
         Subscription.builder()
             .subscriptionProduct(subscriptionProduct)
             .endDatetime(actual.getEndDatetime())
-            .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
             .build();
     assertEquals(expected, actual);
   }

@@ -102,14 +102,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     assertFalse(actualSubscriptions.isEmpty());
     var subscription = actualSubscriptions.getFirst();
-    assertTrue(subscription.hasFreeTrialPeriod());
-    assertEquals(14L, subscription.getFreeTrialDays());
-    assertEquals(
-        LocalDate.of(2024, 11, 19),
-        subscription.getFreeTrialStart().atZone(ZoneId.of("Europe/Paris")).toLocalDate());
-    assertEquals(
-        LocalDate.of(2024, 12, 3),
-        subscription.getFreeTrialEnd().atZone(ZoneId.of("Europe/Paris")).toLocalDate());
     assertEquals(
         LocalDate.of(2025, 1, 3),
         subscription.getStartDatetime().atZone(ZoneId.of("Europe/Paris")).toLocalDate());
@@ -205,7 +197,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
             subject.getSubscriptionProductByE2Id(
                 randomUUID().toString(), defaultSubscriptionProductId()))
         .endDatetime(now().plus(30L, DAYS))
-        .freeTrialDays(0L)
         .build();
   }
 

@@ -6,7 +6,6 @@ import static app.bpartners.api.model.subscription.Subscription.SubscriptionStat
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
-import static com.stripe.param.checkout.SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.MissingPaymentMethod.CANCEL;
 import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -51,9 +50,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class SubscriptionService {
-  private static final long DEFAULT_FREE_TRIAL_DAYS = 0L; // TODO: set to 14L once test finished
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
-  public static final int DEFAULT_TRIAL_PERIOD_DAYS = 14;
+  private static final int DEFAULT_TRIAL_PERIOD_DAYS = 14;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -75,7 +73,6 @@ public class SubscriptionService {
               getSubscriptionProductByE2Id(
                   subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
           .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
-          .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
           .build();
     }
     throw new NotImplementedException("Only ESSENTIAL subscription type is supported");
@@ -192,40 +189,28 @@ public class SubscriptionService {
               + actualUserSubscription.getLatestSubscription().getEndDatetime());
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
-    var subscriptionBuilder =
-        SessionCreateParams.builder()
-            .setMode(SUBSCRIPTION)
-            .setCustomer(stripeCustomer.getId())
-            .setCurrency(defaultCurrency())
-            .addLineItem(
-                SessionCreateParams.LineItem.builder()
-                    .setQuantity(1L)
-                    .setPriceData(
-                        SessionCreateParams.LineItem.PriceData.builder()
-                            .setProduct(subscriptionProduct.getE2Id())
-                            .setCurrency(defaultCurrency())
-                            .setUnitAmount(subscriptionProduct.getPriceInCents())
-                            .setRecurring(
-                                computeRecurringFromSubscriptionProduct(subscriptionProduct))
-                            .build())
-                    .build())
-            .setSuccessUrl(redirectionUrls.getSuccessUrl())
-            .setCancelUrl(redirectionUrls.getFailureUrl())
-            .setUiMode(HOSTED);
-    if (subscription.hasFreeTrialPeriod()) {
-      subscriptionBuilder.setSubscriptionData(
-          SessionCreateParams.SubscriptionData.builder()
-              .setTrialSettings(
-                  SessionCreateParams.SubscriptionData.TrialSettings.builder()
-                      .setEndBehavior(
-                          SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.builder()
-                              .setMissingPaymentMethod(CANCEL)
-                              .build())
-                      .build())
-              .setTrialPeriodDays(subscription.getFreeTrialDays())
-              .build());
-    }
-    Session session = Session.create(subscriptionBuilder.build());
+    var session =
+        Session.create(
+            SessionCreateParams.builder()
+                .setMode(SUBSCRIPTION)
+                .setCustomer(stripeCustomer.getId())
+                .setCurrency(defaultCurrency())
+                .addLineItem(
+                    SessionCreateParams.LineItem.builder()
+                        .setQuantity(1L)
+                        .setPriceData(
+                            SessionCreateParams.LineItem.PriceData.builder()
+                                .setProduct(subscriptionProduct.getE2Id())
+                                .setCurrency(defaultCurrency())
+                                .setUnitAmount(subscriptionProduct.getPriceInCents())
+                                .setRecurring(
+                                    computeRecurringFromSubscriptionProduct(subscriptionProduct))
+                                .build())
+                        .build())
+                .setSuccessUrl(redirectionUrls.getSuccessUrl())
+                .setCancelUrl(redirectionUrls.getFailureUrl())
+                .setUiMode(HOSTED)
+                .build());
     return new Redirection()
         .redirectionUrl(session.getUrl())
         .redirectionStatusUrls(

@@ -17,15 +17,8 @@ public class Subscription {
   private List<String> paymentMethods;
   private SubscriptionStatus status;
   private SubscriptionProduct subscriptionProduct;
-  private Long freeTrialDays;
-  private Instant freeTrialStart;
-  private Instant freeTrialEnd;
   private Instant endDatetime;
   private Instant startDatetime;
-
-  public boolean hasFreeTrialPeriod() {
-    return freeTrialDays > 0;
-  }
 
   public enum SubscriptionStatus {
     ACTIVE,

@@ -297,18 +297,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     var actualTrialingUserSubscription = subject.getSubscriptionByUserId(userBernard.getId());
     var actualUserSubscription = subject.getSubscriptionByUserId(userJoe.getId());
 
-    if (actualTrialingUserSubscription
-        .getSubscriptions()
-        .getFirst()
-        .getFreeTrialEnd()
-        .isAfter(now())) {
-      assertTrue(actualTrialingUserSubscription.hasValidSubscription());
-    }
     if (actualUserSubscription.getSubscriptions().getFirst().getEndDatetime().isAfter(now())) {
       assertTrue(actualUserSubscription.hasValidSubscription());
-      assertTrue(
-          actualUserSubscription.getSubscriptions().stream()
-              .noneMatch(Subscription::hasFreeTrialPeriod));
     }
     assertTrue(true); // skip test once trial expired
   }

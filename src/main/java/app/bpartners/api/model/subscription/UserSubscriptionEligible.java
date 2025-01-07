@@ -30,4 +30,9 @@ public class UserSubscriptionEligible {
   public LocalDate getLatestTrialPeriodDate() {
     return eligibleFrom.plusDays(getTrialPeriodDays());
   }
+
+  public boolean hasFreeTrialPeriodActive() {
+    var today = LocalDate.now();
+    return getLatestTrialPeriodDate().isEqual(today) || getLatestTrialPeriodDate().isAfter(today);
+  }
 }

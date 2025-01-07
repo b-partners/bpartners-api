@@ -90,8 +90,7 @@ public class SubscriptionService {
         subscriptionEligibleJpaRepository.findByUserId(user.getId());
     if (optionalUserSubscriptionEligible.isPresent()) {
       var subscriptionEligible = optionalUserSubscriptionEligible.get();
-      var today = LocalDate.now();
-      if (!subscriptionEligible.getLatestTrialPeriodDate().isAfter(today)) {
+      if (!subscriptionEligible.hasFreeTrialPeriodActive()) {
         var stripeCustomerId = user.getUserSubscriptionId();
         var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
         return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
@@ -311,14 +310,6 @@ public class SubscriptionService {
     return stripeSubscriptions.stream()
         .map(
             subscription -> {
-              var trialEndLongValue = subscription.getTrialEnd();
-              var trialStartLongValue = subscription.getTrialStart();
-              var trialEnd =
-                  trialEndLongValue == null ? null : Instant.ofEpochSecond(trialEndLongValue);
-              var trialStart =
-                  trialStartLongValue == null ? null : Instant.ofEpochSecond(trialStartLongValue);
-              var freeTrialDays =
-                  (trialEnd == null || trialStart == null) ? 0L : trialStart.until(trialEnd, DAYS);
               var currentPeriodStartLongValue = subscription.getCurrentPeriodStart();
               var startDatetime =
                   currentPeriodStartLongValue == null
@@ -336,9 +327,6 @@ public class SubscriptionService {
                   .e2Id(subscription.getId())
                   .startDatetime(startDatetime)
                   .endDatetime(endDatetime)
-                  .freeTrialDays(freeTrialDays)
-                  .freeTrialStart(trialStart)
-                  .freeTrialEnd(trialEnd)
                   .status(status)
                   .active(!status.equals(UNKNOWN))
                   .paymentMethods(

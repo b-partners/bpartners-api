@@ -14,15 +14,26 @@ import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class UserRestMapperTest {
   AccountRestMapper accountRestMapperMock = mock();
   SubscriptionService subscriptionServiceMock = mock();
-  UserRestMapper subject = new UserRestMapper(accountRestMapperMock, subscriptionServiceMock);
+  UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock = mock();
+  UserRestMapper subject =
+      new UserRestMapper(
+          accountRestMapperMock, subscriptionServiceMock, subscriptionEligibleJpaRepositoryMock);
+
+  @BeforeEach
+  void setUp() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any())).thenReturn(Optional.empty());
+  }
 
   @Test
   void user_subscription_mapped_with_subscription_values() {
@@ -50,31 +61,6 @@ class UserRestMapperTest {
   }
 
   @Test
-  void user_subscription_mapped_with_trial() {
-    var now = now();
-    var expectedEndDatetime = now.plus(30L, DAYS);
-    when(subscriptionServiceMock.getSubscriptionByUser(any()))
-        .thenReturn(
-            UserSubscription.builder()
-                .subscriptions(
-                    List.of(
-                        Subscription.builder()
-                            .status(Subscription.SubscriptionStatus.CANCELLED)
-                            .active(true)
-                            .freeTrialStart(now)
-                            .freeTrialEnd(expectedEndDatetime)
-                            .build()))
-                .build());
-
-    var actual = subject.toRest(User.builder().roles(List.of()).build());
-
-    var actualSubscription = actual.getSubscription();
-    assertEquals(CANCELLED, actualSubscription.getStatus());
-    assertEquals(now, actualSubscription.getStart());
-    assertEquals(expectedEndDatetime, actualSubscription.getEnd());
-  }
-
-  @Test
   void user_subscription_mapped_with_null_values() {
     when(subscriptionServiceMock.getSubscriptionByUser(any()))
         .thenReturn(
@@ -84,8 +70,6 @@ class UserRestMapperTest {
                         Subscription.builder()
                             .status(Subscription.SubscriptionStatus.UNKNOWN)
                             .active(false)
-                            .freeTrialStart(null)
-                            .freeTrialEnd(null)
                             .startDatetime(null)
                             .endDatetime(null)
                             .build()))
@@ -110,8 +94,6 @@ class UserRestMapperTest {
                         Subscription.builder()
                             .status(Subscription.SubscriptionStatus.ACTIVE)
                             .active(true)
-                            .freeTrialStart(null)
-                            .freeTrialEnd(null)
                             .startDatetime(now)
                             .endDatetime(now)
                             .build()))

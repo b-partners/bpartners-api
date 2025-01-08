@@ -1,3 +1,34 @@
+# [0.60.0](https://github.com/b-partners/bpartners-api/compare/v0.59.0...v0.60.0) (2025-01-08)
+
+
+### Bug Fixes
+
+* add controller registerActiveUsersWithNullSubscription ([9301efe](https://github.com/b-partners/bpartners-api/commit/9301efec1bde5a1cb1f5aceaa22ec2f7edf57b59))
+* add incremental nb to invoice reference for subscription ([e82c46e](https://github.com/b-partners/bpartners-api/commit/e82c46e9fc678cd5949070168fcba378c5b45401))
+* allow not subscribed user to initiate subscription ([c89dc10](https://github.com/b-partners/bpartners-api/commit/c89dc101dc8e762a468e527813d7a52a333f672b))
+* begin offset from 0 when filtering users by criteria ([f377e4a](https://github.com/b-partners/bpartners-api/commit/f377e4a10c2362da406c1a17d74b3abd94f372cc))
+* comput vat and total price before generating subscription invoice ([b97f195](https://github.com/b-partners/bpartners-api/commit/b97f195614e537a360fb25dac6ac0e2288fca9bc))
+* create customer for userToCredit when not found ([158381d](https://github.com/b-partners/bpartners-api/commit/158381d1d2feb91dfd9d44b327a6db82e3ce6e38))
+* create or link user subscription when not existing ([928e62a](https://github.com/b-partners/bpartners-api/commit/928e62a3dfd9f8c0a98dd212578030e182dc8c72))
+* do not compute invoice for user without subscription active ([7c8e963](https://github.com/b-partners/bpartners-api/commit/7c8e9634b5668db1bed27aa7f7c7b1bb0ea7c24e))
+* do not override invoice.toPayAt in case of susbcription invoice ([b568756](https://github.com/b-partners/bpartners-api/commit/b568756323719a476fccc5784128c3e1a68bd69e))
+* filter db user with missing susbscription by e2Id ([c3ff526](https://github.com/b-partners/bpartners-api/commit/c3ff5267fd219ad63c5d318a81e7057c96e0d399))
+* generate reference for susbcription invoice triggered ([08d68dd](https://github.com/b-partners/bpartners-api/commit/08d68ddef7e44c6d917c7a14c062892f0f06ff2f))
+* hide paymentUrl caption in PDF invoice when null ([017ae5a](https://github.com/b-partners/bpartners-api/commit/017ae5a757772421441014d87669249e8a529342))
+* make onboarded user eligible to subscription check ([63fb469](https://github.com/b-partners/bpartners-api/commit/63fb4694c7be86748c731d257818e4984be3c1ec))
+* set customer names as user to debit in invoice monthly susbcription ([5288425](https://github.com/b-partners/bpartners-api/commit/5288425603a3b32309f26938d96c231a2e02cb32))
+* set user page as int attribute in MonthlySubscriptionInvoiceRequested ([901e1d6](https://github.com/b-partners/bpartners-api/commit/901e1d6773b737270f899f5ca5dc512261407edc))
+* trigger user registration requested for all null subscription ([6c435c9](https://github.com/b-partners/bpartners-api/commit/6c435c90142b04fb097e6cb0f97fd1b88f98793e))
+* update email infos for subscription invoice ([ed9f354](https://github.com/b-partners/bpartners-api/commit/ed9f3547e6bd91f4c5d53831e15b2d75c2a4c794))
+
+
+### Features
+
+* add direct-debit payment method for invoice ([7f4f9ad](https://github.com/b-partners/bpartners-api/commit/7f4f9adb2a3bd3f3c7eebeb3c3162443f05364e1))
+* trigger monthly subscription invoice ([6d2178e](https://github.com/b-partners/bpartners-api/commit/6d2178eec902e81fc3d4b0ae835e4e13943ad6da))
+
+
+
 # [0.59.0](https://github.com/b-partners/bpartners-api/compare/v0.58.0...v0.59.0) (2024-12-09)
 
 
@@ -129,17 +160,6 @@
 * add isDraft on AreaPictureAnnotation ([b4e8390](https://github.com/b-partners/bpartners-api/commit/b4e839085e9871b7abd72111812339cb36c53b38))
 * change get draft annotation response ([d8accec](https://github.com/b-partners/bpartners-api/commit/d8accec77fcdb1892c7f213957797ed8843429f4))
 * get draft annotations by accountId ([842b192](https://github.com/b-partners/bpartners-api/commit/842b192b5b426d93221dd720cea50bfc5c39f831))
-
-
-
-## [0.50.1](https://github.com/b-partners/bpartners-api/compare/v0.50.0...v0.50.1) (2024-07-05)
-
-
-### Bug Fixes
-
-* add CREDIT CARD payment method ([572e3e1](https://github.com/b-partners/bpartners-api/commit/572e3e1d98db0b66892a72198cdb64f6c2aa11dc))
-* add firstName to prospectJpaRepository.findAllByStatus native query ([6db59df](https://github.com/b-partners/bpartners-api/commit/6db59dfada41f9cccc8bd0b609533b428894f699))
-* permitAll on poja endpoints ([86bd23c](https://github.com/b-partners/bpartners-api/commit/86bd23c29e99130cf8f97da7c2738d7bf8d8d63c))
 
 
 

@@ -26,6 +26,7 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.service.utils.MonthUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -35,10 +36,8 @@ import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.ZoneId;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +56,7 @@ public class SubscriptionService {
   private final UserRepository userRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
+  private final MonthUtils monthUtils;
 
   public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
     if (userSubscriptionType.equals(ESSENTIAL)) {
@@ -188,6 +188,7 @@ public class SubscriptionService {
               + actualUserSubscription.getLatestSubscription().getEndDatetime());
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
+    var billingCycleAnchor = computeBillingCycleAnchor(user);
     var session =
         Session.create(
             SessionCreateParams.builder()
@@ -209,6 +210,12 @@ public class SubscriptionService {
                 .setSuccessUrl(redirectionUrls.getSuccessUrl())
                 .setCancelUrl(redirectionUrls.getFailureUrl())
                 .setUiMode(HOSTED)
+                .setSubscriptionData(
+                    SessionCreateParams.SubscriptionData.builder()
+                        .setProrationBehavior(
+                            SessionCreateParams.SubscriptionData.ProrationBehavior.NONE)
+                        .setBillingCycleAnchor(billingCycleAnchor)
+                        .build())
                 .build());
     return new Redirection()
         .redirectionUrl(session.getUrl())
@@ -216,6 +223,18 @@ public class SubscriptionService {
             new RedirectionStatusUrls()
                 .successUrl(session.getSuccessUrl())
                 .failureUrl(session.getCancelUrl()));
+  }
+
+  private Long computeBillingCycleAnchor(User user) {
+    var userEligibility =
+        subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
+    var latestTrialPeriodDate = userEligibility.getLatestTrialPeriodDate();
+    var nextBillingDate = monthUtils.fifthOfNextMonth();
+    if (latestTrialPeriodDate.isAfter(monthUtils.endOfActualMonth())) {
+      nextBillingDate = monthUtils.fifthOfMonthAfter(2);
+    }
+    return Date.from(nextBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
+        / 1000L;
   }
 
   @SneakyThrows

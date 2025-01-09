@@ -259,7 +259,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                     "Sans engagement - Idéal pour les artisans couvreurs. "
                         + String.join(" ", subscriptionProductFeatures()))
                 .features(subscriptionProductFeatures())
-                .priceInCents(4900L)
+                .priceInCents(5880L)
                 .type(MONTHLY)
                 .build());
 
@@ -273,7 +273,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                     + String.join(" ", subscriptionProductFeatures()))
             .features(subscriptionProductFeatures())
             .type(MONTHLY)
-            .priceInCents(4900L)
+            .priceInCents(5880L)
             .creationDatetime(actualSubscriptionProduct.getCreationDatetime())
             .build();
     assertEquals(expectedSubscriptionProduct, actualSubscriptionProduct);

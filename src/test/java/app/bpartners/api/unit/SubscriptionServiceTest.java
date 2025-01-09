@@ -11,6 +11,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.utils.MonthUtils;
 import com.stripe.StripeClient;
 import com.stripe.model.Customer;
 import com.stripe.model.StripeCollection;
@@ -35,7 +36,8 @@ class SubscriptionServiceTest {
           stripeClientMock,
           userRepositoryMock,
           productRepositoryMock,
-          subscriptionEligibleJpaRepositoryMock);
+          subscriptionEligibleJpaRepositoryMock,
+          new MonthUtils());
 
   @SneakyThrows
   @Test

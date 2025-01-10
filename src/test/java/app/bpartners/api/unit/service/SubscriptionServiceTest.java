@@ -14,6 +14,7 @@ import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -40,6 +41,8 @@ class SubscriptionServiceTest {
       mock(SubscriptionProductRepository.class);
   UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock =
       mock(UserSubscriptionEligibleJpaRepository.class);
+  SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository =
+      mock(SubscriptionConsumptionLogJpaRepository.class);
   MonthUtils monthUtils = new MonthUtils();
   SubscriptionService subject =
       new SubscriptionService(
@@ -48,7 +51,8 @@ class SubscriptionServiceTest {
           userRepositoryMock,
           subscriptionProductRepositoryMock,
           subscriptionEligibleJpaRepositoryMock,
-          monthUtils);
+          monthUtils,
+          consumptionLogJpaRepository);
 
   @Test
   void get_by_subscription_type_ok() throws StripeException {

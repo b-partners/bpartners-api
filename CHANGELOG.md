@@ -1,3 +1,18 @@
+# [0.61.0](https://github.com/b-partners/bpartners-api/compare/v0.60.0...v0.61.0) (2025-01-10)
+
+
+### Bug Fixes
+
+* do not debit users before fifth of next months ([2c97d69](https://github.com/b-partners/bpartners-api/commit/2c97d69de68e135d94d272cdbb9b3fc2a9ac6461))
+* do not require subscription for 14 trial period days ([89d1710](https://github.com/b-partners/bpartners-api/commit/89d17101da3dfb4159d24874a4ab46416f87af2a))
+
+
+### Features
+
+* **api:** handle FREE_TRIAL subscription status for user ([c94954d](https://github.com/b-partners/bpartners-api/commit/c94954d7dfb0e20f2451a95d9401d66074985f12))
+
+
+
 # [0.60.0](https://github.com/b-partners/bpartners-api/compare/v0.59.0...v0.60.0) (2025-01-08)
 
 
@@ -141,25 +156,6 @@
 ### Bug Fixes
 
 * update payment regulations after updating invoice payment request ([8b901a7](https://github.com/b-partners/bpartners-api/commit/8b901a783719311deed214f56c6e789fa0eaeeee))
-
-
-
-# [0.52.0](https://github.com/b-partners/bpartners-api/compare/v0.50.1...v0.52.0) (2024-09-05)
-
-
-### Bug Fixes
-
-* handle concurrent invoice crupdate ([6f5fc9c](https://github.com/b-partners/bpartners-api/commit/6f5fc9c6dc775855fdaa133de90af3bc5c6539c1))
-* retrieve bbox with the exact values ([5d8989d](https://github.com/b-partners/bpartners-api/commit/5d8989dcd5117925f152ac34433b3b5b0749006a))
-* use access token instead of bearer when deleting bridge item ([46b0bb1](https://github.com/b-partners/bpartners-api/commit/46b0bb16fdefa3c9b04ab86c47028a2c956ebe87))
-
-
-### Features
-
-* add ign geoserver image source ([24beca7](https://github.com/b-partners/bpartners-api/commit/24beca77ba856949644f82b411324b2b8ef507c9))
-* add isDraft on AreaPictureAnnotation ([b4e8390](https://github.com/b-partners/bpartners-api/commit/b4e839085e9871b7abd72111812339cb36c53b38))
-* change get draft annotation response ([d8accec](https://github.com/b-partners/bpartners-api/commit/d8accec77fcdb1892c7f213957797ed8843429f4))
-* get draft annotations by accountId ([842b192](https://github.com/b-partners/bpartners-api/commit/842b192b5b426d93221dd720cea50bfc5c39f831))
 
 
 

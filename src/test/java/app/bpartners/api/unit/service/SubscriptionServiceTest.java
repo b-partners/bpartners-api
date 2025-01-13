@@ -13,6 +13,7 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
@@ -373,6 +374,80 @@ class SubscriptionServiceTest {
         times(0));
 
     usageRecordMockedStatic.close();
+  }
+
+  @SneakyThrows
+  @Test
+  void compute_monthly_subscription_variable_consumption_ko_without_stripe_subscription() {
+    var userId = randomUUID().toString();
+    var expectedUsage = 22L;
+
+    var userMock = mock(User.class);
+    var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var stripeSubscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    var stripeSubscriptionCollectionMock = mock(StripeCollection.class);
+
+    when(userMock.getId()).thenReturn(userId);
+    when(stripeSubscriptionCollectionMock.getData())
+        .thenReturn(List.of()); // Subscription from stripe empty
+    when(stripeSubscriptionServiceMock.list(any(SubscriptionListParams.class)))
+        .thenReturn(stripeSubscriptionCollectionMock);
+    when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
+
+    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
+            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+        .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
+    when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
+        .thenReturn(subscriptionProductMock);
+
+    var actual =
+        assertThrows(
+            NotFoundException.class,
+            () -> subject.computeMonthlySubscriptionVariableConsumption(userMock));
+
+    assertEquals("Any subscription found for User.id=" + userId, actual.getMessage());
+  }
+
+  @SneakyThrows
+  @Test
+  void compute_monthly_subscription_variable_consumption_ko_without_stripe_subscription_item() {
+    var userId = randomUUID().toString();
+    var expectedUsage = 22L;
+
+    var userMock = mock(User.class);
+    var stripeSubscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    var stripeSubscriptionCollectionMock = mock(StripeCollection.class);
+    var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var stripeSubscriptionMock = mock(com.stripe.model.Subscription.class);
+    var stripeSubscriptionItemsCollectionMock = mock(StripeCollection.class);
+    var subscriptionItemServiceMock = mock(SubscriptionItemService.class);
+    when(userMock.getId()).thenReturn(userId);
+
+    when(stripeSubscriptionMock.getCurrentPeriodStart()).thenReturn(Instant.now().getEpochSecond());
+    when(stripeSubscriptionCollectionMock.getData()).thenReturn(List.of(stripeSubscriptionMock));
+    when(stripeSubscriptionItemsCollectionMock.getData())
+        .thenReturn(List.of()); // Subscription item from stripe empty
+    when(stripeSubscriptionServiceMock.list(any(SubscriptionListParams.class)))
+        .thenReturn(stripeSubscriptionCollectionMock);
+    when(subscriptionItemServiceMock.list(any(SubscriptionItemListParams.class)))
+        .thenReturn(stripeSubscriptionItemsCollectionMock);
+    when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
+    when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
+
+    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
+            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+        .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
+    when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
+        .thenReturn(subscriptionProductMock);
+
+    var actual =
+        assertThrows(
+            NotFoundException.class,
+            () -> subject.computeMonthlySubscriptionVariableConsumption(userMock));
+
+    assertEquals(
+        "Any SubscriptionItem matches to SubscriptionProduct for User.id=" + userId,
+        actual.getMessage());
   }
 
   private @NotNull List<SubscriptionConsumptionLog> someSubscriptionConsumptionLogs(

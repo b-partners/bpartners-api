@@ -23,7 +23,7 @@ import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
-import app.bpartners.api.service.utils.MonthUtils;
+import app.bpartners.api.service.utils.TemporalUtils;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -40,7 +40,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   EventProducer eventProducerMock = mock();
   UserSubscriptionConf userSubscriptionConfMock = mock();
   CustomDateFormatter customDateFormatter = new CustomDateFormatter();
-  MonthUtils monthUtils = new MonthUtils();
+  TemporalUtils temporalUtils = new TemporalUtils();
   MonthlySubscriptionInvoiceRequestedService subject =
       new MonthlySubscriptionInvoiceRequestedService(
           invoiceServiceMock,
@@ -50,7 +50,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           eventProducerMock,
           userSubscriptionConfMock,
           customDateFormatter,
-          monthUtils);
+          temporalUtils);
 
   @Test
   void generate_invoice_for_paginated_users_with_existing_customers() {
@@ -251,9 +251,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   private Invoice computeExpectedInvoice(
       Invoice createdInvoice, User userToCreditMock, Customer customerMock) {
     var startOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(monthUtils.startOfActualMonth());
+        customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth());
     var endOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(monthUtils.endOfActualMonth());
+        customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
     return Invoice.builder()
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)

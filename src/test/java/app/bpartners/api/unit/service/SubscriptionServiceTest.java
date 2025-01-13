@@ -18,7 +18,7 @@ import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
-import app.bpartners.api.service.utils.MonthUtils;
+import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Price;
@@ -43,7 +43,7 @@ class SubscriptionServiceTest {
       mock(UserSubscriptionEligibleJpaRepository.class);
   SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository =
       mock(SubscriptionConsumptionLogJpaRepository.class);
-  MonthUtils monthUtils = new MonthUtils();
+  TemporalUtils temporalUtils = new TemporalUtils();
   SubscriptionService subject =
       new SubscriptionService(
           stripeConfMock,
@@ -51,7 +51,7 @@ class SubscriptionServiceTest {
           userRepositoryMock,
           subscriptionProductRepositoryMock,
           subscriptionEligibleJpaRepositoryMock,
-          monthUtils,
+          temporalUtils,
           consumptionLogJpaRepository);
 
   @Test

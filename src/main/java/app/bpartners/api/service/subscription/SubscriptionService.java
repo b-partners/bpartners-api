@@ -56,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
   private static final int DEFAULT_TRIAL_PERIOD_DAYS = 14;
+  public static final long FREE_ROOF_ANALYSIS = 20L;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -90,24 +91,28 @@ public class SubscriptionService {
     var usageByTypes = calculateUsageByType(consumptionLogs);
     usageByTypes.forEach(
         consumptionUsageSummary -> {
-          SubscriptionItem subscriptionItemForProduct;
-          try {
-            subscriptionItemForProduct =
-                getSubscriptionItem(user, consumptionUsageSummary.consumptionType());
-          } catch (StripeException e) {
-            throw new ApiException(SERVER_EXCEPTION, e);
-          }
-          var subscriptionItem = subscriptionItemForProduct.getId();
-          var usageRecordCreateOnSubscriptionItemParams =
-              UsageRecordCreateOnSubscriptionItemParams.builder()
-                  .setQuantity(consumptionUsageSummary.usage())
-                  .setTimestamp(now().getEpochSecond())
-                  .build();
-          try {
-            UsageRecord.createOnSubscriptionItem(
-                subscriptionItem, usageRecordCreateOnSubscriptionItemParams);
-          } catch (StripeException e) {
-            throw new ApiException(SERVER_EXCEPTION, e);
+          var actualUsage = consumptionUsageSummary.usage();
+          var payableUsage = actualUsage - FREE_ROOF_ANALYSIS;
+          if (payableUsage > 0) {
+            SubscriptionItem subscriptionItemForProduct;
+            try {
+              subscriptionItemForProduct =
+                  getSubscriptionItem(user, consumptionUsageSummary.consumptionType());
+            } catch (StripeException e) {
+              throw new ApiException(SERVER_EXCEPTION, e);
+            }
+            var subscriptionItemId = subscriptionItemForProduct.getId();
+            var usageRecordCreateOnSubscriptionItemParams =
+                UsageRecordCreateOnSubscriptionItemParams.builder()
+                    .setQuantity(payableUsage)
+                    .setTimestamp(now().getEpochSecond())
+                    .build();
+            try {
+              UsageRecord.createOnSubscriptionItem(
+                  subscriptionItemId, usageRecordCreateOnSubscriptionItemParams);
+            } catch (StripeException e) {
+              throw new ApiException(SERVER_EXCEPTION, e);
+            }
           }
         });
     return usageByTypes;

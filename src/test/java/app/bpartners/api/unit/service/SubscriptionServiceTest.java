@@ -1,6 +1,10 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
+import static java.time.Instant.now;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,9 +13,8 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.Subscription;
-import app.bpartners.api.model.subscription.SubscriptionProduct;
-import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
@@ -21,23 +24,25 @@ import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.Price;
-import com.stripe.model.Product;
-import com.stripe.model.StripeCollection;
+import com.stripe.model.*;
 import com.stripe.param.CustomerListParams;
+import com.stripe.param.SubscriptionItemListParams;
 import com.stripe.param.SubscriptionListParams;
+import com.stripe.param.UsageRecordCreateOnSubscriptionItemParams;
 import com.stripe.service.CustomerService;
 import com.stripe.service.PriceService;
 import com.stripe.service.ProductService;
+import com.stripe.service.SubscriptionItemService;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class SubscriptionServiceTest {
-
   StripeConf stripeConfMock = mock(StripeConf.class);
   StripeClient stripeClientMock = mock(StripeClient.class);
   UserRepository userRepositoryMock = mock(UserRepository.class);
@@ -198,5 +203,192 @@ class SubscriptionServiceTest {
     var userSubscriptionEligible = userSubscriptionEligibleCaptor.getValue();
     assertNotNull(userSubscriptionEligible.getId());
     assertEquals(userMock.getId(), userSubscriptionEligible.getUserId());
+  }
+
+  @Test
+  void add_consumption() {
+    when(consumptionLogJpaRepository.save(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    var userId = "userId";
+    var usageMetric = 2L;
+    var instantNow = now();
+    var subscriptionConsumption =
+        SubscriptionConsumptionLog.builder()
+            .id(randomUUID().toString())
+            .userId(userId)
+            .consumptionType(ROOF_ANALYSIS)
+            .usageMetric(usageMetric)
+            .consumptionUnit(UNIT)
+            .creationDatetime(instantNow)
+            .build();
+
+    var actual = subject.addConsumption(subscriptionConsumption);
+
+    assertEquals(subscriptionConsumption, actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void compute_monthly_subscription_variable_consumption_with_payable_usage() {
+    var userId = randomUUID().toString();
+    var subscriptionProductE2Id = "subscriptionProductE2Id";
+    var stripeSubscriptionItemMockId = "stripeSubscriptionItemMockId";
+    var expectedUsage = 22L;
+    var expectedPayableUsage = 2L; // 20L are free roof analysis
+    var expected = List.of(new ConsumptionUsageSummary(ROOF_ANALYSIS, expectedUsage));
+
+    var userMock = mock(User.class);
+    var stripeSubscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    var stripeSubscriptionCollectionMock = mock(StripeCollection.class);
+    var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var stripeSubscriptionMock = mock(com.stripe.model.Subscription.class);
+    var stripeSubscriptionItemsCollectionMock = mock(StripeCollection.class);
+    var stripeSubscriptionItemMock = mock(SubscriptionItem.class);
+    var subscriptionItemServiceMock = mock(SubscriptionItemService.class);
+    var stripePriceMock = mock(Price.class);
+    var stripeProductMock = mock(Product.class);
+    var usageRecordMockedStatic = mockStatic(UsageRecord.class);
+
+    when(userMock.getId()).thenReturn(userId);
+    when(stripeSubscriptionItemMock.getId()).thenReturn(stripeSubscriptionItemMockId);
+    when(subscriptionProductMock.getE2Id()).thenReturn(subscriptionProductE2Id);
+    when(stripeProductMock.getId()).thenReturn(subscriptionProductE2Id);
+    when(stripePriceMock.getProductObject()).thenReturn(stripeProductMock);
+    when(stripeSubscriptionItemMock.getPrice()).thenReturn(stripePriceMock);
+    when(stripeSubscriptionMock.getCurrentPeriodStart()).thenReturn(Instant.now().getEpochSecond());
+    when(stripeSubscriptionCollectionMock.getData()).thenReturn(List.of(stripeSubscriptionMock));
+    when(stripeSubscriptionItemsCollectionMock.getData())
+        .thenReturn(List.of(stripeSubscriptionItemMock));
+    when(stripeSubscriptionServiceMock.list(any(SubscriptionListParams.class)))
+        .thenReturn(stripeSubscriptionCollectionMock);
+    when(subscriptionItemServiceMock.list(any(SubscriptionItemListParams.class)))
+        .thenReturn(stripeSubscriptionItemsCollectionMock);
+    when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
+    when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
+    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
+            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+        .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
+    when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
+        .thenReturn(subscriptionProductMock);
+    var stripeUsageRecordCreateCaptor =
+        ArgumentCaptor.forClass(UsageRecordCreateOnSubscriptionItemParams.class);
+    usageRecordMockedStatic
+        .when(
+            () ->
+                UsageRecord.createOnSubscriptionItem(
+                    eq(stripeSubscriptionItemMockId), stripeUsageRecordCreateCaptor.capture()))
+        .thenReturn(null);
+
+    var actual = subject.computeMonthlySubscriptionVariableConsumption(userMock);
+
+    var stripeUsageRecordCreated = stripeUsageRecordCreateCaptor.getValue();
+    assertEquals(expected, actual);
+    assertEquals(expectedPayableUsage, stripeUsageRecordCreated.getQuantity());
+    assertNotNull(stripeUsageRecordCreated.getTimestamp());
+
+    usageRecordMockedStatic.close();
+  }
+
+  @SneakyThrows
+  @Test
+  void compute_monthly_subscription_variable_consumption_without_payable_usage() {
+    var userId = randomUUID().toString();
+    var subscriptionProductE2Id = "subscriptionProductE2Id";
+    var stripeSubscriptionItemMockId = "stripeSubscriptionItemMockId";
+    var expectedUsage = 2L;
+    while (expectedUsage <= 20L) {
+      var expected = List.of(new ConsumptionUsageSummary(ROOF_ANALYSIS, expectedUsage));
+
+      var userMock = mock(User.class);
+      var stripeSubscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+      var stripeSubscriptionCollectionMock = mock(StripeCollection.class);
+      var subscriptionProductMock = mock(SubscriptionProduct.class);
+      var stripeSubscriptionMock = mock(com.stripe.model.Subscription.class);
+      var stripeSubscriptionItemsCollectionMock = mock(StripeCollection.class);
+      var stripeSubscriptionItemMock = mock(SubscriptionItem.class);
+      var subscriptionItemServiceMock = mock(SubscriptionItemService.class);
+      var stripePriceMock = mock(Price.class);
+      var stripeProductMock = mock(Product.class);
+      var usageRecordMockedStatic = mockStatic(UsageRecord.class);
+
+      when(userMock.getId()).thenReturn(userId);
+      when(stripeSubscriptionItemMock.getId()).thenReturn(stripeSubscriptionItemMockId);
+      when(subscriptionProductMock.getE2Id()).thenReturn(subscriptionProductE2Id);
+      when(stripeProductMock.getId()).thenReturn(subscriptionProductE2Id);
+      when(stripePriceMock.getProductObject()).thenReturn(stripeProductMock);
+      when(stripeSubscriptionItemMock.getPrice()).thenReturn(stripePriceMock);
+      when(stripeSubscriptionMock.getCurrentPeriodStart())
+          .thenReturn(Instant.now().getEpochSecond());
+      when(stripeSubscriptionCollectionMock.getData()).thenReturn(List.of(stripeSubscriptionMock));
+      when(stripeSubscriptionItemsCollectionMock.getData())
+          .thenReturn(List.of(stripeSubscriptionItemMock));
+      when(stripeSubscriptionServiceMock.list(any(SubscriptionListParams.class)))
+          .thenReturn(stripeSubscriptionCollectionMock);
+      when(subscriptionItemServiceMock.list(any(SubscriptionItemListParams.class)))
+          .thenReturn(stripeSubscriptionItemsCollectionMock);
+      when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
+      when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
+      when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
+              userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+          .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
+      when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
+          .thenReturn(subscriptionProductMock);
+
+      var actual = subject.computeMonthlySubscriptionVariableConsumption(userMock);
+
+      assertEquals(expected, actual);
+      usageRecordMockedStatic.verify(
+          () ->
+              UsageRecord.createOnSubscriptionItem(
+                  any(String.class), any(UsageRecordCreateOnSubscriptionItemParams.class)),
+          times(0));
+
+      usageRecordMockedStatic.close();
+      expectedUsage = expectedUsage + 2L;
+    }
+  }
+
+  @SneakyThrows
+  @Test
+  void do_not_compute_monthly_subscription_variable_consumption_when_empty_logs() {
+    var userId = randomUUID().toString();
+    var expectedUsage = 0L;
+    var expected = List.of();
+
+    var userMock = mock(User.class);
+    var usageRecordMockedStatic = mockStatic(UsageRecord.class);
+
+    when(userMock.getId()).thenReturn(userId);
+    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
+            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+        .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
+
+    var actual = subject.computeMonthlySubscriptionVariableConsumption(userMock);
+
+    assertEquals(expected, actual);
+    usageRecordMockedStatic.verify(
+        () ->
+            UsageRecord.createOnSubscriptionItem(
+                any(String.class), any(UsageRecordCreateOnSubscriptionItemParams.class)),
+        times(0));
+
+    usageRecordMockedStatic.close();
+  }
+
+  private @NotNull List<SubscriptionConsumptionLog> someSubscriptionConsumptionLogs(
+      String userId, int totalUsageExpected) {
+    var logs = new ArrayList<SubscriptionConsumptionLog>();
+    for (int i = 0; i < totalUsageExpected; i++) {
+      logs.add(
+          SubscriptionConsumptionLog.builder()
+              .id(randomUUID().toString())
+              .userId(userId)
+              .consumptionType(ROOF_ANALYSIS)
+              .usageMetric(1L)
+              .consumptionUnit(UNIT)
+              .creationDatetime(now())
+              .build());
+    }
+    return logs;
   }
 }

@@ -27,7 +27,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
-import app.bpartners.api.service.utils.MonthUtils;
+import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -61,7 +61,7 @@ public class SubscriptionService {
   private final UserRepository userRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
-  private final MonthUtils monthUtils;
+  private final TemporalUtils temporalUtils;
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
 
   public SubscriptionConsumptionLog addConsumption(
@@ -71,26 +71,16 @@ public class SubscriptionService {
 
   public List<SubscriptionConsumptionLog> findConsumptionLogsByUserId(
       String userId, @Nullable Instant from, @Nullable Instant to) {
-    var startOfMonth = startOfMonth();
-    var endOfMonth = endOfMonth();
+    var startOfMonth = temporalUtils.startOfMonth();
+    var endOfMonth = temporalUtils.endOfMonth();
     return consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
         userId, from == null ? startOfMonth : from, to == null ? endOfMonth : to);
   }
 
-  private static Instant endOfMonth() {
-    return LocalDate.now()
-        .withDayOfMonth(LocalDate.now().lengthOfMonth())
-        .atTime(23, 59, 59, 999_999_999)
-        .atZone(ZoneId.of("Europe/Paris")) // Zone donnée
-        .toInstant();
-  }
-
-  private static Instant startOfMonth() {
-    return LocalDate.now().withDayOfMonth(1).atStartOfDay(ZoneId.of("Europe/Paris")).toInstant();
-  }
-
   public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {
-    var consumptionLogs = findConsumptionLogsByUserId(user.getId(), startOfMonth(), endOfMonth());
+    var consumptionLogs =
+        findConsumptionLogsByUserId(
+            user.getId(), temporalUtils.startOfMonth(), temporalUtils.endOfMonth());
     return computeSubscriptionVariableConsumption(user, consumptionLogs);
   }
 
@@ -352,9 +342,9 @@ public class SubscriptionService {
     var userEligibility =
         subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
     var latestTrialPeriodDate = userEligibility.getLatestTrialPeriodDate();
-    var nextBillingDate = monthUtils.fifthOfNextMonth();
-    if (latestTrialPeriodDate.isAfter(monthUtils.endOfActualMonth())) {
-      nextBillingDate = monthUtils.fifthOfMonthAfter(2);
+    var nextBillingDate = temporalUtils.fifthOfNextMonth();
+    if (latestTrialPeriodDate.isAfter(temporalUtils.endOfActualMonth())) {
+      nextBillingDate = temporalUtils.fifthOfMonthAfter(2);
     }
     return Date.from(nextBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
         / 1000L;

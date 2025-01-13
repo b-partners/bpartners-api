@@ -1,6 +1,6 @@
 package app.bpartners.api.integration.event;
 
-import static app.bpartners.api.service.utils.MonthUtils.actualMonthValue;
+import static app.bpartners.api.service.utils.TemporalUtils.actualMonthValue;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;

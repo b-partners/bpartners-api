@@ -26,7 +26,7 @@ import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.invoice.ReferenceGenerator;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
-import app.bpartners.api.service.utils.MonthUtils;
+import app.bpartners.api.service.utils.TemporalUtils;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -53,7 +53,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   private final EventProducer eventProducer;
   private final UserSubscriptionConf userSubscriptionConf;
   private final CustomDateFormatter customDateFormatter;
-  private final MonthUtils monthUtils;
+  private final TemporalUtils temporalUtils;
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
@@ -98,9 +98,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(monthUtils.startOfActualMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(monthUtils.endOfActualMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
@@ -117,7 +117,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(monthUtils.fifthOfNextMonth())
+        .toPayAt(temporalUtils.fifthOfNextMonth())
         .sendingDate(now())
         .validityDate(now().plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)

@@ -823,6 +823,7 @@ components:
         - EMPTY
         - CANCELLED
         - ACTIVE
+        - FREE_TRIAL
     UserSubscription:
       type: object
       properties:

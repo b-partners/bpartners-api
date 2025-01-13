@@ -6,7 +6,6 @@ import static app.bpartners.api.model.subscription.Subscription.SubscriptionStat
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
-import static com.stripe.param.checkout.SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.MissingPaymentMethod.CANCEL;
 import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -27,6 +26,7 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.service.utils.MonthUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -35,10 +35,9 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -50,13 +49,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class SubscriptionService {
-  private static final long DEFAULT_FREE_TRIAL_DAYS = 0L; // TODO: set to 14L once test finished
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
+  private static final int DEFAULT_TRIAL_PERIOD_DAYS = 14;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
+  private final MonthUtils monthUtils;
 
   public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
     if (userSubscriptionType.equals(ESSENTIAL)) {
@@ -73,7 +73,6 @@ public class SubscriptionService {
               getSubscriptionProductByE2Id(
                   subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
           .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
-          .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
           .build();
     }
     throw new NotImplementedException("Only ESSENTIAL subscription type is supported");
@@ -87,12 +86,15 @@ public class SubscriptionService {
 
   @SneakyThrows
   public UserSubscription getSubscriptionByUser(User user) {
-    var isSubscriptionEligible =
-        subscriptionEligibleJpaRepository.findByUserId(user.getId()).isPresent();
-    if (isSubscriptionEligible) {
-      var stripeCustomerId = user.getUserSubscriptionId();
-      var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
-      return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
+    var optionalUserSubscriptionEligible =
+        subscriptionEligibleJpaRepository.findByUserId(user.getId());
+    if (optionalUserSubscriptionEligible.isPresent()) {
+      var subscriptionEligible = optionalUserSubscriptionEligible.get();
+      if (!subscriptionEligible.hasFreeTrialPeriodActive()) {
+        var stripeCustomerId = user.getUserSubscriptionId();
+        var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
+        return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
+      }
     }
     return UserSubscription.builder().user(user).subscriptions(defaultActiveSubscription()).build();
   }
@@ -186,46 +188,53 @@ public class SubscriptionService {
               + actualUserSubscription.getLatestSubscription().getEndDatetime());
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
-    var subscriptionBuilder =
-        SessionCreateParams.builder()
-            .setMode(SUBSCRIPTION)
-            .setCustomer(stripeCustomer.getId())
-            .setCurrency(defaultCurrency())
-            .addLineItem(
-                SessionCreateParams.LineItem.builder()
-                    .setQuantity(1L)
-                    .setPriceData(
-                        SessionCreateParams.LineItem.PriceData.builder()
-                            .setProduct(subscriptionProduct.getE2Id())
-                            .setCurrency(defaultCurrency())
-                            .setUnitAmount(subscriptionProduct.getPriceInCents())
-                            .setRecurring(
-                                computeRecurringFromSubscriptionProduct(subscriptionProduct))
-                            .build())
-                    .build())
-            .setSuccessUrl(redirectionUrls.getSuccessUrl())
-            .setCancelUrl(redirectionUrls.getFailureUrl())
-            .setUiMode(HOSTED);
-    if (subscription.hasFreeTrialPeriod()) {
-      subscriptionBuilder.setSubscriptionData(
-          SessionCreateParams.SubscriptionData.builder()
-              .setTrialSettings(
-                  SessionCreateParams.SubscriptionData.TrialSettings.builder()
-                      .setEndBehavior(
-                          SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.builder()
-                              .setMissingPaymentMethod(CANCEL)
-                              .build())
-                      .build())
-              .setTrialPeriodDays(subscription.getFreeTrialDays())
-              .build());
-    }
-    Session session = Session.create(subscriptionBuilder.build());
+    var billingCycleAnchor = computeBillingCycleAnchor(user);
+    var session =
+        Session.create(
+            SessionCreateParams.builder()
+                .setMode(SUBSCRIPTION)
+                .setCustomer(stripeCustomer.getId())
+                .setCurrency(defaultCurrency())
+                .addLineItem(
+                    SessionCreateParams.LineItem.builder()
+                        .setQuantity(1L)
+                        .setPriceData(
+                            SessionCreateParams.LineItem.PriceData.builder()
+                                .setProduct(subscriptionProduct.getE2Id())
+                                .setCurrency(defaultCurrency())
+                                .setUnitAmount(subscriptionProduct.getPriceInCents())
+                                .setRecurring(
+                                    computeRecurringFromSubscriptionProduct(subscriptionProduct))
+                                .build())
+                        .build())
+                .setSuccessUrl(redirectionUrls.getSuccessUrl())
+                .setCancelUrl(redirectionUrls.getFailureUrl())
+                .setUiMode(HOSTED)
+                .setSubscriptionData(
+                    SessionCreateParams.SubscriptionData.builder()
+                        .setProrationBehavior(
+                            SessionCreateParams.SubscriptionData.ProrationBehavior.NONE)
+                        .setBillingCycleAnchor(billingCycleAnchor)
+                        .build())
+                .build());
     return new Redirection()
         .redirectionUrl(session.getUrl())
         .redirectionStatusUrls(
             new RedirectionStatusUrls()
                 .successUrl(session.getSuccessUrl())
                 .failureUrl(session.getCancelUrl()));
+  }
+
+  private Long computeBillingCycleAnchor(User user) {
+    var userEligibility =
+        subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
+    var latestTrialPeriodDate = userEligibility.getLatestTrialPeriodDate();
+    var nextBillingDate = monthUtils.fifthOfNextMonth();
+    if (latestTrialPeriodDate.isAfter(monthUtils.endOfActualMonth())) {
+      nextBillingDate = monthUtils.fifthOfMonthAfter(2);
+    }
+    return Date.from(nextBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
+        / 1000L;
   }
 
   @SneakyThrows
@@ -274,6 +283,9 @@ public class SubscriptionService {
         UserSubscriptionEligible.builder()
             .id(randomUUID().toString())
             .userId(user.getId())
+            .trialPeriodDays(DEFAULT_TRIAL_PERIOD_DAYS)
+            .eligibleFrom(LocalDate.now())
+            .creationDatetime(now())
             .build());
     return user;
   }
@@ -317,14 +329,6 @@ public class SubscriptionService {
     return stripeSubscriptions.stream()
         .map(
             subscription -> {
-              var trialEndLongValue = subscription.getTrialEnd();
-              var trialStartLongValue = subscription.getTrialStart();
-              var trialEnd =
-                  trialEndLongValue == null ? null : Instant.ofEpochSecond(trialEndLongValue);
-              var trialStart =
-                  trialStartLongValue == null ? null : Instant.ofEpochSecond(trialStartLongValue);
-              var freeTrialDays =
-                  (trialEnd == null || trialStart == null) ? 0L : trialStart.until(trialEnd, DAYS);
               var currentPeriodStartLongValue = subscription.getCurrentPeriodStart();
               var startDatetime =
                   currentPeriodStartLongValue == null
@@ -342,9 +346,6 @@ public class SubscriptionService {
                   .e2Id(subscription.getId())
                   .startDatetime(startDatetime)
                   .endDatetime(endDatetime)
-                  .freeTrialDays(freeTrialDays)
-                  .freeTrialStart(trialStart)
-                  .freeTrialEnd(trialEnd)
                   .status(status)
                   .active(!status.equals(UNKNOWN))
                   .paymentMethods(

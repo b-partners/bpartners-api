@@ -102,14 +102,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     assertFalse(actualSubscriptions.isEmpty());
     var subscription = actualSubscriptions.getFirst();
-    assertTrue(subscription.hasFreeTrialPeriod());
-    assertEquals(14L, subscription.getFreeTrialDays());
-    assertEquals(
-        LocalDate.of(2024, 11, 19),
-        subscription.getFreeTrialStart().atZone(ZoneId.of("Europe/Paris")).toLocalDate());
-    assertEquals(
-        LocalDate.of(2024, 12, 3),
-        subscription.getFreeTrialEnd().atZone(ZoneId.of("Europe/Paris")).toLocalDate());
     assertEquals(
         LocalDate.of(2025, 1, 3),
         subscription.getStartDatetime().atZone(ZoneId.of("Europe/Paris")).toLocalDate());
@@ -121,7 +113,12 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Test
   void initiate_subscription() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
-        .thenReturn(Optional.of(new UserSubscriptionEligible()));
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(1))
+                    .build()));
     var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
     var createdUserSubscription =
         subject.createOrLinkUserSubscription(
@@ -200,7 +197,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
             subject.getSubscriptionProductByE2Id(
                 randomUUID().toString(), defaultSubscriptionProductId()))
         .endDatetime(now().plus(30L, DAYS))
-        .freeTrialDays(0L)
         .build();
   }
 
@@ -225,7 +221,11 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Test
   void initiate_subscription_with_active_subscription_ko() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
-        .thenReturn(Optional.of(new UserSubscriptionEligible()));
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .eligibleFrom(LocalDate.now().minusDays(1L))
+                    .build()));
     var user = userRepository.findByEmail("joe@email.com").orElseThrow();
     var defaultSubscription = getDefaultSubscription();
     var defaultRedirectionStatusUrls = getDefaultRedirectionStatusUrls();
@@ -259,7 +259,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                     "Sans engagement - Idéal pour les artisans couvreurs. "
                         + String.join(" ", subscriptionProductFeatures()))
                 .features(subscriptionProductFeatures())
-                .priceInCents(4900L)
+                .priceInCents(5880L)
                 .type(MONTHLY)
                 .build());
 
@@ -273,7 +273,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                     + String.join(" ", subscriptionProductFeatures()))
             .features(subscriptionProductFeatures())
             .type(MONTHLY)
-            .priceInCents(4900L)
+            .priceInCents(5880L)
             .creationDatetime(actualSubscriptionProduct.getCreationDatetime())
             .build();
     assertEquals(expectedSubscriptionProduct, actualSubscriptionProduct);
@@ -285,25 +285,20 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Test
   void user_has_active_subscription() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
-        .thenReturn(Optional.of(new UserSubscriptionEligible()));
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .eligibleFrom(LocalDate.now().minusDays(1L))
+                    .trialPeriodDays(0)
+                    .build()));
     var userBernard = userRepository.findByEmail("bernard@email.com").orElseThrow();
     var userJoe = userRepository.findByEmail("joe@email.com").orElseThrow();
 
     var actualTrialingUserSubscription = subject.getSubscriptionByUserId(userBernard.getId());
     var actualUserSubscription = subject.getSubscriptionByUserId(userJoe.getId());
 
-    if (actualTrialingUserSubscription
-        .getSubscriptions()
-        .getFirst()
-        .getFreeTrialEnd()
-        .isAfter(now())) {
-      assertTrue(actualTrialingUserSubscription.hasValidSubscription());
-    }
     if (actualUserSubscription.getSubscriptions().getFirst().getEndDatetime().isAfter(now())) {
       assertTrue(actualUserSubscription.hasValidSubscription());
-      assertTrue(
-          actualUserSubscription.getSubscriptions().stream()
-              .noneMatch(Subscription::hasFreeTrialPeriod));
     }
     assertTrue(true); // skip test once trial expired
   }

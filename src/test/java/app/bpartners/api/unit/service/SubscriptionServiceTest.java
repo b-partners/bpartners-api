@@ -17,6 +17,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.utils.MonthUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Price;
@@ -32,7 +33,6 @@ import org.junit.jupiter.api.Test;
 
 class SubscriptionServiceTest {
 
-  private static final long DEFAULT_FREE_TRIAL_DAYS = 0L;
   StripeConf stripeConfMock = mock(StripeConf.class);
   StripeClient stripeClientMock = mock(StripeClient.class);
   UserRepository userRepositoryMock = mock(UserRepository.class);
@@ -40,13 +40,15 @@ class SubscriptionServiceTest {
       mock(SubscriptionProductRepository.class);
   UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock =
       mock(UserSubscriptionEligibleJpaRepository.class);
+  MonthUtils monthUtils = new MonthUtils();
   SubscriptionService subject =
       new SubscriptionService(
           stripeConfMock,
           stripeClientMock,
           userRepositoryMock,
           subscriptionProductRepositoryMock,
-          subscriptionEligibleJpaRepositoryMock);
+          subscriptionEligibleJpaRepositoryMock,
+          monthUtils);
 
   @Test
   void get_by_subscription_type_ok() throws StripeException {
@@ -92,7 +94,6 @@ class SubscriptionServiceTest {
         Subscription.builder()
             .subscriptionProduct(subscriptionProduct)
             .endDatetime(actual.getEndDatetime())
-            .freeTrialDays(DEFAULT_FREE_TRIAL_DAYS)
             .build();
     assertEquals(expected, actual);
   }

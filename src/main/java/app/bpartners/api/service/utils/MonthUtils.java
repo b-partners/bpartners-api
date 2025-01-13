@@ -9,8 +9,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class MonthUtils {
   public LocalDate fifthOfNextMonth() {
+    return fifthOfMonthAfter(1);
+  }
+
+  public LocalDate fifthOfMonthAfter(int monthsOffset) {
     var today = now();
-    var nextMonth = today.plusMonths(1);
+    var nextMonth = today.plusMonths(monthsOffset);
     return nextMonth.withDayOfMonth(5);
   }
 

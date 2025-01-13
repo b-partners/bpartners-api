@@ -1,17 +1,17 @@
 package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
@@ -21,16 +21,20 @@ import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
 import com.stripe.model.Price;
 import com.stripe.model.Product;
 import com.stripe.model.StripeCollection;
+import com.stripe.param.CustomerListParams;
 import com.stripe.param.SubscriptionListParams;
+import com.stripe.service.CustomerService;
 import com.stripe.service.PriceService;
 import com.stripe.service.ProductService;
 import java.util.List;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class SubscriptionServiceTest {
 
@@ -159,5 +163,40 @@ class SubscriptionServiceTest {
     assertEquals(
         "Only active subscription can be cancelled but actual status is UNKNOWN",
         actualInactiveSubscriptionException.getMessage());
+  }
+
+  @SneakyThrows
+  @Test
+  void create_or_link_user_and_make_user_eligible_to_subscription_check() {
+    var userId = "userId";
+    var userEmail = "userEmail";
+    var userMock = User.builder().id(userId).email(userEmail).build();
+    var stripeSubscriptionService = mock(com.stripe.service.SubscriptionService.class);
+    var stripeCollectionMock = mock(StripeCollection.class);
+    var stripeCustomerServiceMock = mock(CustomerService.class);
+    var customerStripeCollectionMock = mock(StripeCollection.class);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userMock.getId()))
+        .thenReturn(Optional.empty());
+    when(subscriptionEligibleJpaRepositoryMock.save(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(userRepositoryMock.save(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(stripeCollectionMock.getData()).thenReturn(List.of());
+    when(stripeSubscriptionService.list(any(SubscriptionListParams.class)))
+        .thenReturn(stripeCollectionMock);
+    when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionService);
+    when(customerStripeCollectionMock.getData()).thenReturn(List.of(new Customer()));
+    when(stripeCustomerServiceMock.list(any(CustomerListParams.class)))
+        .thenReturn(customerStripeCollectionMock);
+    when(stripeClientMock.customers()).thenReturn(stripeCustomerServiceMock);
+
+    var actual = subject.createOrLinkUserSubscription(userMock);
+
+    assertNotNull(actual);
+    var userSubscriptionEligibleCaptor = ArgumentCaptor.forClass(UserSubscriptionEligible.class);
+    verify(subscriptionEligibleJpaRepositoryMock).save(userSubscriptionEligibleCaptor.capture());
+    var userSubscriptionEligible = userSubscriptionEligibleCaptor.getValue();
+    assertNotNull(userSubscriptionEligible.getId());
+    assertEquals(userMock.getId(), userSubscriptionEligible.getUserId());
   }
 }

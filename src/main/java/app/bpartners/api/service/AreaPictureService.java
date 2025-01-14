@@ -11,8 +11,6 @@ import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
-import app.bpartners.api.repository.AccountHolderRepository;
-import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;

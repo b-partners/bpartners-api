@@ -47,9 +47,8 @@ public class AreaPictureController {
       @PathVariable(name = "id") String areaPictureId,
       @RequestBody CrupdateAreaPictureDetails toCrupdate) {
     String userId = AuthProvider.getAuthenticatedUserId();
-    var result =
-        service.downloadFromExternalSourceAndSave(
-            mapper.toDomain(toCrupdate, areaPictureId, userId));
+    var areaPicture = mapper.toDomain(toCrupdate, areaPictureId, userId);
+    var result = service.saveArePictureAndLogConsumption(areaPicture);
     return mapper.toRest(result);
   }
 }

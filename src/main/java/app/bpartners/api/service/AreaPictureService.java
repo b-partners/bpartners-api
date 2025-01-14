@@ -1,11 +1,16 @@
 package app.bpartners.api.service;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
+import static java.time.Instant.now;
+import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
+import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
@@ -13,6 +18,7 @@ import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.TileCreator;
 import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +35,7 @@ public class AreaPictureService {
   private final WmsImageSource wmsImageSource;
   private final TileCreator tileCreator;
   private final AreaPictureMapLayerService mapLayerService;
-  private final AccountRepository accountRepository;
-  private final AccountHolderRepository accountHolderRepository;
+  private final SubscriptionService subscriptionService;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -57,8 +62,7 @@ public class AreaPictureService {
     return domain;
   }
 
-  @Transactional
-  public AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
+  private AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
       throws RuntimeException {
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
     var downloadedFile = wmsImageSource.downloadImage(areaPicture);
@@ -71,6 +75,22 @@ public class AreaPictureService {
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
     save(areaPicture);
     return save(refreshed);
+  }
+
+  @Transactional
+  public AreaPicture saveArePictureAndLogConsumption(AreaPicture picture) {
+    var areaPicture = downloadFromExternalSourceAndSave(picture);
+    var usageMetric = 1L;
+    subscriptionService.addConsumption(
+        SubscriptionConsumptionLog.builder()
+            .id(randomUUID().toString())
+            .userId(areaPicture.getIdUser())
+            .consumptionType(ROOF_ANALYSIS)
+            .usageMetric(usageMetric)
+            .consumptionUnit(UNIT)
+            .creationDatetime(now())
+            .build());
+    return areaPicture;
   }
 
   private AreaPicture refreshAreaPictureTileAndLayers(AreaPicture areaPicture) {

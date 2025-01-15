@@ -13,6 +13,8 @@ import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
+import app.bpartners.api.repository.jpa.ProspectJpaRepository;
+import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.service.AreaPictureService;
 import app.bpartners.api.service.FileService;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
@@ -22,6 +24,7 @@ import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -33,6 +36,7 @@ class ArePictureServiceTest {
   FileService fileServiceMock = mock();
   AreaPictureMapper mapper = mock();
   AreaPictureJpaRepository jpaRepositoryMock = mock();
+  ProspectJpaRepository prospectJpaRepositoryMock = mock();
 
   AreaPictureService subject =
       new AreaPictureService(
@@ -42,7 +46,8 @@ class ArePictureServiceTest {
           wmsImageSourceMock,
           tileCreatorMock,
           mapLayerServiceMock,
-          subscriptionServiceMock);
+          subscriptionServiceMock,
+          prospectJpaRepositoryMock);
 
   @Test
   void save_area_picture_and_add_log() {
@@ -50,10 +55,18 @@ class ArePictureServiceTest {
     var tileMock = mock(Tile.class);
     var areaPictureMapLayerMock = mock(AreaPictureMapLayer.class);
     var fileMock = mock(File.class);
+    var prospectMock = mock(HProspect.class);
     var userId = "userId";
+    var prospectAddress = "prospectAddress";
+    var prospectId = "prospectId";
+    var prospectName = "prospectOldName";
     when(areaPictureMock.getCurrentLayer()).thenReturn(areaPictureMapLayerMock);
     when(areaPictureMock.getFilename()).thenReturn("dummyFilename");
     when(areaPictureMock.getIdUser()).thenReturn(userId);
+    when(areaPictureMock.getAddress()).thenReturn(prospectAddress);
+    when(areaPictureMock.getIdProspect()).thenReturn(prospectId);
+    when(prospectMock.getOldName()).thenReturn(prospectName);
+    when(prospectJpaRepositoryMock.findById(prospectId)).thenReturn(Optional.of(prospectMock));
     when(tileCreatorMock.apply(areaPictureMock)).thenReturn(tileMock);
     when(mapLayerServiceMock.getAvailableLayersFrom(tileMock))
         .thenReturn(List.of(areaPictureMapLayerMock));
@@ -80,6 +93,7 @@ class ArePictureServiceTest {
             .consumptionType(ROOF_ANALYSIS)
             .consumptionUnit(UNIT)
             .usageMetric(1L)
+            .comment("Adresse : " + prospectAddress + " - Prospect : " + prospectName)
             .creationDatetime(subscriptionConsumptionLog.getCreationDatetime())
             .build(),
         subscriptionConsumptionLog);

@@ -30,5 +30,7 @@ public class SubscriptionConsumptionLog {
   @Enumerated(EnumType.STRING)
   private SubscriptionConsumptionUnit consumptionUnit;
 
+  private String comment;
+
   private Instant creationDatetime;
 }

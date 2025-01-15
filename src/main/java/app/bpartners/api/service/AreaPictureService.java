@@ -12,6 +12,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
+import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.TileCreator;
@@ -34,6 +35,7 @@ public class AreaPictureService {
   private final TileCreator tileCreator;
   private final AreaPictureMapLayerService mapLayerService;
   private final SubscriptionService subscriptionService;
+  private final ProspectJpaRepository prospectRepository;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -79,6 +81,14 @@ public class AreaPictureService {
   public AreaPicture saveArePictureAndLogConsumption(AreaPicture picture) {
     var areaPicture = downloadFromExternalSourceAndSave(picture);
     var usageMetric = 1L;
+    var optionalProspect = prospectRepository.findById(picture.getIdProspect());
+    var comment = "Adresse : " + areaPicture.getAddress();
+    if (optionalProspect.isPresent()) {
+      var prospect = optionalProspect.get();
+      var prospectName =
+          prospect.getOldName() == null ? prospect.getNewName() : prospect.getOldName();
+      comment += " - Prospect : " + prospectName;
+    }
     subscriptionService.addConsumption(
         SubscriptionConsumptionLog.builder()
             .id(randomUUID().toString())
@@ -86,6 +96,7 @@ public class AreaPictureService {
             .consumptionType(ROOF_ANALYSIS)
             .usageMetric(usageMetric)
             .consumptionUnit(UNIT)
+            .comment(comment)
             .creationDatetime(now())
             .build());
     return areaPicture;

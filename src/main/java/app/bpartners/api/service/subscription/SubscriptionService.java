@@ -24,13 +24,16 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
-import app.bpartners.api.service.utils.MonthUtils;
+import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Product;
+import com.stripe.model.SubscriptionItem;
+import com.stripe.model.UsageRecord;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -38,10 +41,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,12 +56,123 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
   private static final int DEFAULT_TRIAL_PERIOD_DAYS = 14;
+  public static final long FREE_ROOF_ANALYSIS = 20L;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
-  private final MonthUtils monthUtils;
+  private final TemporalUtils temporalUtils;
+  private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
+
+  public SubscriptionConsumptionLog addConsumption(
+      SubscriptionConsumptionLog subscriptionConsumptionLog) {
+    return consumptionLogJpaRepository.save(subscriptionConsumptionLog);
+  }
+
+  public List<SubscriptionConsumptionLog> findConsumptionLogsByUserId(
+      String userId, @Nullable Instant from, @Nullable Instant to) {
+    var startOfMonth = temporalUtils.startOfMonth();
+    var endOfMonth = temporalUtils.endOfMonth();
+    return consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
+        userId, from == null ? startOfMonth : from, to == null ? endOfMonth : to);
+  }
+
+  public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {
+    var consumptionLogs =
+        findConsumptionLogsByUserId(
+            user.getId(), temporalUtils.startOfMonth(), temporalUtils.endOfMonth());
+    return computeSubscriptionVariableConsumption(user, consumptionLogs);
+  }
+
+  @SneakyThrows
+  private List<ConsumptionUsageSummary> computeSubscriptionVariableConsumption(
+      User user, List<SubscriptionConsumptionLog> consumptionLogs) {
+    var usageByTypes = calculateUsageByType(consumptionLogs);
+    usageByTypes.forEach(
+        consumptionUsageSummary -> {
+          var actualUsage = consumptionUsageSummary.usage();
+          var payableUsage = actualUsage - FREE_ROOF_ANALYSIS;
+          if (payableUsage > 0) {
+            SubscriptionItem subscriptionItemForProduct;
+            try {
+              subscriptionItemForProduct =
+                  getSubscriptionItem(user, consumptionUsageSummary.consumptionType());
+            } catch (StripeException e) {
+              throw new ApiException(SERVER_EXCEPTION, e);
+            }
+            var subscriptionItemId = subscriptionItemForProduct.getId();
+            var usageRecordCreateOnSubscriptionItemParams =
+                UsageRecordCreateOnSubscriptionItemParams.builder()
+                    .setQuantity(payableUsage)
+                    .setTimestamp(now().getEpochSecond())
+                    .build();
+            try {
+              UsageRecord.createOnSubscriptionItem(
+                  subscriptionItemId, usageRecordCreateOnSubscriptionItemParams);
+            } catch (StripeException e) {
+              throw new ApiException(SERVER_EXCEPTION, e);
+            }
+          }
+        });
+    return usageByTypes;
+  }
+
+  private SubscriptionItem getSubscriptionItem(
+      User user, SubscriptionConsumptionType consumptionType) throws StripeException {
+    var subscriptionProduct =
+        subscriptionProductRepository.findByConsumptionTypeAttached(consumptionType);
+    var stripeSubscriptions =
+        stripeClient
+            .subscriptions()
+            .list(
+                SubscriptionListParams.builder().setCustomer(user.getUserSubscriptionId()).build())
+            .getData();
+    var latestSubscription =
+        stripeSubscriptions.stream()
+            .max(comparing(com.stripe.model.Subscription::getCurrentPeriodStart))
+            .orElseThrow(
+                () -> new NotFoundException("Any subscription found for User.id=" + user.getId()));
+    var latestSubscriptionId = latestSubscription.getId();
+    var subscriptionItems =
+        stripeClient
+            .subscriptionItems()
+            .list(
+                SubscriptionItemListParams.builder().setSubscription(latestSubscriptionId).build())
+            .getData();
+    return subscriptionItems.stream()
+        .filter(
+            subscriptionItem ->
+                subscriptionItem
+                    .getPrice()
+                    .getProductObject()
+                    .getId()
+                    .equals(subscriptionProduct.getE2Id()))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "Any SubscriptionItem matches to SubscriptionProduct for User.id="
+                        + user.getId()));
+  }
+
+  private List<ConsumptionUsageSummary> calculateUsageByType(
+      List<SubscriptionConsumptionLog> logs) {
+    if (logs == null || logs.isEmpty()) {
+      return List.of();
+    }
+
+    var consumptionTypeLongMap =
+        logs.stream()
+            .collect(
+                Collectors.groupingBy(
+                    SubscriptionConsumptionLog::getConsumptionType,
+                    Collectors.summingLong(SubscriptionConsumptionLog::getUsageMetric)));
+
+    return consumptionTypeLongMap.entrySet().stream()
+        .map(entry -> new ConsumptionUsageSummary(entry.getKey(), entry.getValue()))
+        .toList();
+  }
 
   public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
     if (userSubscriptionType.equals(ESSENTIAL)) {
@@ -67,7 +183,9 @@ public class SubscriptionService {
               .orElseThrow(
                   () ->
                       new NotFoundException(
-                          "Subscription(id=" + defaultSubscriptionProductId + ") not found"));
+                          "SubscriptionProduct(id="
+                              + defaultSubscriptionProductId
+                              + ") not found"));
       return Subscription.builder()
           .subscriptionProduct(
               getSubscriptionProductByE2Id(
@@ -229,9 +347,9 @@ public class SubscriptionService {
     var userEligibility =
         subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
     var latestTrialPeriodDate = userEligibility.getLatestTrialPeriodDate();
-    var nextBillingDate = monthUtils.fifthOfNextMonth();
-    if (latestTrialPeriodDate.isAfter(monthUtils.endOfActualMonth())) {
-      nextBillingDate = monthUtils.fifthOfMonthAfter(2);
+    var nextBillingDate = temporalUtils.fifthOfNextMonth();
+    if (latestTrialPeriodDate.isAfter(temporalUtils.endOfActualMonth())) {
+      nextBillingDate = temporalUtils.fifthOfMonthAfter(2);
     }
     return Date.from(nextBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
         / 1000L;

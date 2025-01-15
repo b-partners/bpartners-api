@@ -1,7 +1,7 @@
 package app.bpartners.api.service.event;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
-import static app.bpartners.api.service.utils.MonthUtils.actualMonthValue;
+import static app.bpartners.api.service.utils.TemporalUtils.actualMonthValue;
 import static java.time.Instant.now;
 
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceCreated;

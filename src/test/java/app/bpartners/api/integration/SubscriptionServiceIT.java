@@ -1,7 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
-import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELLED;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -317,7 +316,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                 List.of(
                     Subscription.builder()
                         .active(true)
-                        .status(ACTIVE)
+                        .status(TRIALING)
                         .startDatetime(actual.getSubscriptions().getFirst().getStartDatetime())
                         .endDatetime(actual.getSubscriptions().getFirst().getEndDatetime())
                         .build()))

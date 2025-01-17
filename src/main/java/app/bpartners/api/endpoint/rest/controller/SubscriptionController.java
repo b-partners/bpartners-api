@@ -22,7 +22,7 @@ public class SubscriptionController {
     return "Monthly subscription invoice triggered successfully";
   }
 
-  @GetMapping("/users/{uId}/subscriptionConsumptionLog ")
+  @GetMapping("/users/{uId}/subscriptionConsumptionLog")
   public List<SubscriptionConsumptionLog> getConsumptionLogsByUserId(
       @PathVariable String uId,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

@@ -155,6 +155,10 @@ public class SecurityConf {
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(POST, "/users/subscriptionRegistration")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            GET, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(

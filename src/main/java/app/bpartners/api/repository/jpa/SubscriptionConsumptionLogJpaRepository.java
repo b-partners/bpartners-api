@@ -9,6 +9,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SubscriptionConsumptionLogJpaRepository
     extends JpaRepository<SubscriptionConsumptionLog, String> {
-  public List<SubscriptionConsumptionLog> findAllByUserIdAndCreationDatetimeBetween(
+  List<SubscriptionConsumptionLog> findAllByUserIdAndCreationDatetimeBetween(
       String userId, Instant from, Instant to);
 }

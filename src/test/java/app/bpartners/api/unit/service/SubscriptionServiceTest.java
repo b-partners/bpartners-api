@@ -65,6 +65,37 @@ class SubscriptionServiceTest {
           consumptionLogJpaRepository);
 
   @Test
+  void get_subscription_consumption_logs_ok() {
+    var userId = randomUUID().toString();
+    var startOfMonth = temporalUtils.startOfMonth();
+    var endOfMonth = temporalUtils.endOfMonth();
+
+    var expected = List.of(someConsumptionLog(userId, now()));
+    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
+            userId, startOfMonth, endOfMonth))
+        .thenReturn(expected);
+
+    var actualWithOverrideFilterValues =
+        subject.findConsumptionLogsByUserId(userId, startOfMonth, endOfMonth);
+    var actualWithNullFilterValues = subject.findConsumptionLogsByUserId(userId, null, null);
+
+    assertEquals(expected, actualWithOverrideFilterValues);
+    assertEquals(expected, actualWithNullFilterValues);
+  }
+
+  private static SubscriptionConsumptionLog someConsumptionLog(
+      String userId, Instant creationDatetime) {
+    return SubscriptionConsumptionLog.builder()
+        .id(randomUUID().toString())
+        .userId(userId)
+        .consumptionType(ROOF_ANALYSIS)
+        .usageMetric(1L)
+        .consumptionUnit(UNIT)
+        .creationDatetime(creationDatetime)
+        .build();
+  }
+
+  @Test
   void get_by_subscription_type_ok() throws StripeException {
     var userSubscriptionType = UserSubscriptionType.ESSENTIAL;
     when(stripeConfMock.getEssentialSubscriptionProductId())
@@ -454,15 +485,7 @@ class SubscriptionServiceTest {
       String userId, int totalUsageExpected) {
     var logs = new ArrayList<SubscriptionConsumptionLog>();
     for (int i = 0; i < totalUsageExpected; i++) {
-      logs.add(
-          SubscriptionConsumptionLog.builder()
-              .id(randomUUID().toString())
-              .userId(userId)
-              .consumptionType(ROOF_ANALYSIS)
-              .usageMetric(1L)
-              .consumptionUnit(UNIT)
-              .creationDatetime(now())
-              .build());
+      logs.add(someConsumptionLog(userId, now()));
     }
     return logs;
   }

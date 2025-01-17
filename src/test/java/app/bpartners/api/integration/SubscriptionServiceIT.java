@@ -1,8 +1,10 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELLED;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
+import static java.time.Month.JANUARY;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,9 +21,7 @@ import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +38,21 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
   @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
+
+  @Test
+  void get_subscription_log_by_user_id_without_date() {
+    var userId = "ce0c0edb-7d45-4f4f-86d9-363cd5206969";
+    var fromLocalDateTime = LocalDateTime.of(2025, JANUARY, 14, 17, 7);
+    var from = fromLocalDateTime.toInstant(ZoneOffset.UTC);
+    var toLocalDateTime = LocalDateTime.of(2025, JANUARY, 17, 7, 30);
+    var to = toLocalDateTime.toInstant(ZoneOffset.UTC);
+
+    var actual = subject.findConsumptionLogsByUserId(userId, from, to);
+
+    // TODO: replace with the data in db
+    var expected = List.of();
+    assertEquals(expected, actual);
+  }
 
   @Test
   void create_list_delete_customers() {
@@ -316,7 +331,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                 List.of(
                     Subscription.builder()
                         .active(true)
-                        .status(TRIALING)
+                        .status(ACTIVE)
                         .startDatetime(actual.getSubscriptions().getFirst().getStartDatetime())
                         .endDatetime(actual.getSubscriptions().getFirst().getEndDatetime())
                         .build()))

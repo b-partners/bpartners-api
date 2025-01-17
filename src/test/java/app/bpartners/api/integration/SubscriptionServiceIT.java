@@ -1,5 +1,6 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_USER_ID;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELLED;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
@@ -39,6 +40,14 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
   @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
+
+  @Test
+  void get_subscription_log_by_user_id_without_date() {
+    var actual = subject.findConsumptionLogsByUserId(JOE_DOE_USER_ID, null, null);
+
+    var expected = "";
+    assertEquals(expected, actual);
+  }
 
   @Test
   void create_list_delete_customers() {

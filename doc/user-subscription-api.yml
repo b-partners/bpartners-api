@@ -1,4 +1,47 @@
 operations:
+  subscriptionConsumptionLog:
+    get:
+      tags:
+        - User Subscription
+      summary: Get user Subscription log
+      operationId: getConsumptionLogsByUserId
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+          required: false
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+          required: false
+      response:
+        200:
+          description: List of user subscription consumption log
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionConsumptionLog'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   registerUserSubscription:
     post:
       tags:
@@ -92,6 +135,36 @@ operations:
           $ref: './api.yml#/components/responses/500'
 components:
   schemas:
+    SubscriptionConsumptionLog:
+      type: object
+      properties:
+        id:
+          type: string
+          description: L'identifiant unique du journal de consommation.
+        userId:
+          type: string
+          description: L'identifiant de l'utilisateur associé à cette consommation.
+        usageMetric:
+          type: integer
+          format: int64
+          description: La métrique d'utilisation associée à cette consommation.
+        consumptionType:
+          type: string
+          enum:
+            - ROOF_ANALYSIS
+          description: Le type de consommation.
+        consumptionUnit:
+          type: string
+          enum:
+            - UNIT
+          description: L'unité de consommation.
+        comment:
+          type: string
+          description: Un commentaire optionnel associé à cette consommation.
+        creationDatetime:
+          type: string
+          format: date-time
+          description: La date et l'heure de création de cette entrée de journal.
     CreateSubscriptionInitiation:
       type: object
       properties:

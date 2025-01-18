@@ -222,7 +222,7 @@ public class SubscriptionService {
     return List.of(
         Subscription.builder()
             .active(true)
-            .status(ACTIVE)
+            .status(TRIALING)
             .startDatetime(now)
             .endDatetime(now)
             .build());

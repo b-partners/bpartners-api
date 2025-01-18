@@ -113,6 +113,7 @@ class UserIT extends MockedThirdParties {
             List.of(
                 Subscription.builder()
                     .active(isActive)
+                    .status(Subscription.SubscriptionStatus.ACTIVE)
                     .startDatetime(now)
                     .endDatetime(now)
                     .build()))

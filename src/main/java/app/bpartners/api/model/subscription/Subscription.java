@@ -23,7 +23,7 @@ public class Subscription {
   public enum SubscriptionStatus {
     ACTIVE,
     TRIALING,
-    CANCELLED,
+    CANCELED,
     UNKNOWN
   }
 }

@@ -1,6 +1,6 @@
 package app.bpartners.api.model.subscription;
 
-import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELLED;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELED;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.TRIALING;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
@@ -25,7 +25,7 @@ public class UserSubscription {
 
   public boolean hasSubscriptionCancelled() {
     return getLatestSubscription() != null
-        && (CANCELLED).equals(getLatestSubscription().getStatus());
+        && (CANCELED).equals(getLatestSubscription().getStatus());
   }
 
   public Subscription getLatestSubscription() {

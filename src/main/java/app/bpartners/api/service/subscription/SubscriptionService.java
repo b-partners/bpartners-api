@@ -479,13 +479,13 @@ public class SubscriptionService {
       com.stripe.model.Subscription subscription) {
     if (subscription.getCancelAtPeriodEnd() != null
         && subscription.getCancelAtPeriodEnd().equals(true)) {
-      return CANCELLED;
+      return CANCELED;
     }
     var subscriptionStatus = subscription.getStatus();
     return switch (subscriptionStatus) {
       case "active" -> ACTIVE;
       case "trialing" -> TRIALING;
-      case "cancelled" -> CANCELLED;
+      case "canceled" -> CANCELED;
       default -> {
         log.error("Unknown subscription status: {}", subscriptionStatus);
         yield UNKNOWN;

@@ -156,7 +156,7 @@ public class SecurityConf {
                     .requestMatchers(POST, "/users/subscriptionRegistration")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
-                        new SelfAccountMatcher(
+                        new SelfUserMatcher(
                             GET, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
                     .authenticated()
                     .requestMatchers(POST, "/invoicesRefresh")

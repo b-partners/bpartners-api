@@ -298,12 +298,15 @@ public class SubscriptionService {
           "User.id=" + user.getId() + " is not associated to a stripe customer yet");
     }
     var actualUserSubscription = getSubscriptionByUser(user);
-    if (actualUserSubscription.hasValidSubscription()) {
+    var latestSubscription = actualUserSubscription.getLatestSubscription();
+    if (latestSubscription != null
+        && latestSubscription.isActive()
+        && !(TRIALING).equals(latestSubscription.getStatus())) {
       throw new BadRequestException(
           "User.id="
               + user.getId()
               + " has active subscription until "
-              + actualUserSubscription.getLatestSubscription().getEndDatetime());
+              + latestSubscription.getEndDatetime());
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
     var billingCycleAnchor = computeBillingCycleAnchor(user);

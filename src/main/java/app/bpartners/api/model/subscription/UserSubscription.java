@@ -1,7 +1,6 @@
 package app.bpartners.api.model.subscription;
 
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELED;
-import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.TRIALING;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 
@@ -32,11 +31,7 @@ public class UserSubscription {
     if (subscriptions.isEmpty()) {
       return null;
     }
-    var notTrialingSubscriptions =
-        subscriptions.stream()
-            .filter(subscription -> !subscription.getStatus().equals(TRIALING))
-            .toList();
-    return notTrialingSubscriptions.stream()
+    return subscriptions.stream()
         .sorted(comparing(Subscription::getStartDatetime, naturalOrder()).reversed())
         .toList()
         .getFirst();

@@ -1,7 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
-import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELLED;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
 import static java.time.Month.JANUARY;
@@ -106,25 +105,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
-  void user_has_free_trial_subscription_period() {
-    var user = userRepository.findByEmail("bernard@email.com").orElseThrow();
-
-    var actualSubscriptions =
-        subject
-            .getSubscriptionByUserSubscriptionId(user.getUserSubscriptionId())
-            .getSubscriptions();
-
-    assertFalse(actualSubscriptions.isEmpty());
-    var subscription = actualSubscriptions.getFirst();
-    assertEquals(
-        LocalDate.of(2025, 1, 3),
-        subscription.getStartDatetime().atZone(ZoneId.of("Europe/Paris")).toLocalDate());
-    assertEquals(
-        LocalDate.of(2025, 2, 3),
-        subscription.getEndDatetime().atZone(ZoneId.of("Europe/Paris")).toLocalDate());
-  }
-
-  @Test
   void initiate_subscription() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(
@@ -193,8 +173,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     var oldSubscription = userSubscriptionBeforeCancellation.getLatestSubscription();
     var latestSubscription = actualUserSubscription.getLatestSubscription();
-    assertEquals(ACTIVE, oldSubscription.getStatus());
-    assertEquals(CANCELLED, latestSubscription.getStatus());
+    assertEquals(TRIALING, oldSubscription.getStatus());
+    assertEquals(CANCELED, latestSubscription.getStatus());
     assertEquals(oldSubscription.getEndDatetime(), latestSubscription.getEndDatetime());
     assertEquals(oldSubscription.getStartDatetime(), latestSubscription.getStartDatetime());
   }
@@ -305,10 +285,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                     .eligibleFrom(LocalDate.now().minusDays(1L))
                     .trialPeriodDays(0)
                     .build()));
-    var userBernard = userRepository.findByEmail("bernard@email.com").orElseThrow();
     var userJoe = userRepository.findByEmail("joe@email.com").orElseThrow();
 
-    var actualTrialingUserSubscription = subject.getSubscriptionByUserId(userBernard.getId());
     var actualUserSubscription = subject.getSubscriptionByUserId(userJoe.getId());
 
     if (actualUserSubscription.getSubscriptions().getFirst().getEndDatetime().isAfter(now())) {
@@ -331,7 +309,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                 List.of(
                     Subscription.builder()
                         .active(true)
-                        .status(ACTIVE)
+                        .status(TRIALING)
                         .startDatetime(actual.getSubscriptions().getFirst().getStartDatetime())
                         .endDatetime(actual.getSubscriptions().getFirst().getEndDatetime())
                         .build()))

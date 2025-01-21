@@ -222,7 +222,7 @@ public class SubscriptionService {
     return List.of(
         Subscription.builder()
             .active(true)
-            .status(ACTIVE)
+            .status(TRIALING)
             .startDatetime(now)
             .endDatetime(now)
             .build());
@@ -298,12 +298,15 @@ public class SubscriptionService {
           "User.id=" + user.getId() + " is not associated to a stripe customer yet");
     }
     var actualUserSubscription = getSubscriptionByUser(user);
-    if (actualUserSubscription.hasValidSubscription()) {
+    var latestSubscription = actualUserSubscription.getLatestSubscription();
+    if (latestSubscription != null
+        && latestSubscription.isActive()
+        && !(TRIALING).equals(latestSubscription.getStatus())) {
       throw new BadRequestException(
           "User.id="
               + user.getId()
               + " has active subscription until "
-              + actualUserSubscription.getLatestSubscription().getEndDatetime());
+              + latestSubscription.getEndDatetime());
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
     var billingCycleAnchor = computeBillingCycleAnchor(user);
@@ -479,13 +482,13 @@ public class SubscriptionService {
       com.stripe.model.Subscription subscription) {
     if (subscription.getCancelAtPeriodEnd() != null
         && subscription.getCancelAtPeriodEnd().equals(true)) {
-      return CANCELLED;
+      return CANCELED;
     }
     var subscriptionStatus = subscription.getStatus();
     return switch (subscriptionStatus) {
       case "active" -> ACTIVE;
       case "trialing" -> TRIALING;
-      case "cancelled" -> CANCELLED;
+      case "canceled" -> CANCELED;
       default -> {
         log.error("Unknown subscription status: {}", subscriptionStatus);
         yield UNKNOWN;

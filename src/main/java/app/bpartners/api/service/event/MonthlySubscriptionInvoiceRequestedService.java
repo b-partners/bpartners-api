@@ -5,6 +5,8 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static app.bpartners.api.model.mapper.InvoiceMapper.*;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.TRIALING;
+import static app.bpartners.api.service.subscription.SubscriptionService.FREE_ROOF_ANALYSIS;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
@@ -18,6 +20,9 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.subscription.ConsumptionUsageSummary;
+import app.bpartners.api.model.subscription.Subscription;
+import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
@@ -34,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +77,8 @@ public class MonthlySubscriptionInvoiceRequestedService
     subscribedUsers.forEach(
         userToDebit -> {
           var userSubscription = subscriptionService.getSubscriptionByUser(userToDebit);
-          if (userSubscription.getLatestSubscription() != null) {
+          var latestSubscription = userSubscription.getLatestSubscription();
+          if (latestSubscription != null && !TRIALING.equals(latestSubscription.getStatus())) {
             int referenceNb = userIndex.getAndIncrement();
             var monthlySubscriptionInvoice =
                 computeMonthlySusbcriptionInvoice(
@@ -95,6 +102,8 @@ public class MonthlySubscriptionInvoiceRequestedService
   private Invoice computeMonthlySusbcriptionInvoice(
       User userToCredit, User userToDebit, int referenceNb, UserSubscription userSubscription) {
     var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
+    var variableAnalysisConsumptionUsage = getVariableAnalysisConsumptionUsage(userToDebit);
+
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
@@ -104,7 +113,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
-        computeSubscriptionProducts(invoiceId, defaultProductDescription, userSubscription);
+        computeSubscriptionProducts(invoiceId, defaultProductDescription, userSubscription, variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
     LocalDateTime fixedDateTime = LocalDateTime.now();
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
@@ -134,6 +143,17 @@ public class MonthlySubscriptionInvoiceRequestedService
         .createdAt(Instant.now())
         .delayPenaltyPercent(new Fraction(BigInteger.ZERO))
         .build();
+  }
+
+  private long getVariableAnalysisConsumptionUsage(User userToDebit) {
+    var consumptionUsageSummaries = subscriptionService.computeMonthlySubscriptionVariableConsumption(userToDebit);
+    var variableConsumptionUsage = new AtomicLong(0);
+    consumptionUsageSummaries.forEach(consumptionUsageSummary -> {
+      if (consumptionUsageSummary.consumptionType().equals(SubscriptionConsumptionType.ROOF_ANALYSIS)) {
+        variableConsumptionUsage.set(consumptionUsageSummary.usage());
+      }
+    });
+      return variableConsumptionUsage.get();
   }
 
   private Customer computeCustomerToDebit(User userToCredit, User userToDebit) {
@@ -187,7 +207,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private @NotNull ArrayList<InvoiceProduct> computeSubscriptionProducts(
-      String invoiceId, String invoiceTitle, UserSubscription userSubscription) {
+      String invoiceId, String invoiceTitle, UserSubscription userSubscription, Long variableAnalysisConsumptionUsage) {
     var invoiceProducts = new ArrayList<InvoiceProduct>();
     var latestSubscription = userSubscription.getLatestSubscription();
 
@@ -208,7 +228,20 @@ public class MonthlySubscriptionInvoiceRequestedService
             .status(ProductStatus.ENABLED)
             .build());
 
-    // TODO: add variable product when it 's computed correctly
+    var analysisPayableUsage = variableAnalysisConsumptionUsage - FREE_ROOF_ANALYSIS;
+    if (analysisPayableUsage > 0L) {
+      invoiceProducts.add(
+              InvoiceProduct.builder()
+                      .id(randomUUID().toString())
+                      .idInvoice(invoiceId)
+                      .createdAt(Instant.now())
+                      .description("Analyse de toîtures supplémentaire")
+                      .quantity((int) analysisPayableUsage)
+                      .unitPrice(parseFraction(200))
+                      .vatPercent(new Fraction(BigInteger.valueOf(2000)))
+                      .status(ProductStatus.ENABLED)
+                      .build());
+    }
     return invoiceProducts;
   }
 }

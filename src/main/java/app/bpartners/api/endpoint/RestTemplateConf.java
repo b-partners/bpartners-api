@@ -4,6 +4,8 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 import app.bpartners.api.model.exception.ApiException;
 import java.io.IOException;
+import java.time.Duration;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 public class RestTemplateConf {
   @Bean
   public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
-    return restTemplateBuilder.errorHandler(new RestTemplateErrorHandler()).build();
+    return restTemplateBuilder.setConnectTimeout(Duration.ofMinutes(1)).errorHandler(new RestTemplateErrorHandler()).build();
   }
 
   private static class RestTemplateErrorHandler implements ResponseErrorHandler {

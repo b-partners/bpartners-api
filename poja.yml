@@ -31,7 +31,7 @@ gen_api_client:
   with_publish_to_npm_registry: 'true'
 general:
   app_name: bpartners
-  cli_version: 18.3.4
+  cli_version: 18.3.5
   custom_java_deps: poja-custom-java-deps.txt
   custom_java_env_vars: poja-custom-java-env-vars.txt
   custom_java_repositories: poja-custom-java-repositories.txt

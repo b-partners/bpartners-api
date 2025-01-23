@@ -6,7 +6,7 @@ plugins {
     id 'org.springframework.boot' version '3.2.2'
     id 'io.spring.dependency-management' version '1.1.3'
 
-    id 'org.openapi.generator' version '7.4.0'
+    id 'org.openapi.generator' version '7.7.0'
 
     id 'jacoco'
 
@@ -137,7 +137,7 @@ jacocoTestReport {
         }))
     }
     doLast {
-        def coverageReportFile = file("$buildDir/reports/jacoco/test/jacocoTestReport.xml")
+        def coverageReportFile = file("$rootDir/build/reports/jacoco/test/jacocoTestReport.xml")
 
         if (coverageReportFile.exists()) {
             def xmlParser = new XmlParser()
@@ -146,11 +146,19 @@ jacocoTestReport {
 
             def xml = xmlParser.parse(coverageReportFile)
 
-            def totalLines = xml.'counter'.find { it.@type == 'LINE' }.@missed.toInteger() + xml.'counter'.find { it.@type == 'LINE' }.@covered.toInteger()
-            def coveredLines = xml.'counter'.find { it.@type == 'LINE' }.@covered.toInteger()
-            def coverageRate = coveredLines / totalLines.toDouble() * 100
-
-            println "Total Line Coverage Rate: ${coverageRate.round(2)}%"
+            def lineCounter = xml.'counter'.find { it.@type == 'LINE' }
+            if (lineCounter != null) {
+                def totalLines = lineCounter.@missed?.toInteger() + lineCounter.@covered?.toInteger() ?: 0
+                def coveredLines = lineCounter.@covered?.toInteger() ?: 0
+                if (totalLines > 0) {
+                    def coverageRate = coveredLines / totalLines.toDouble() * 100
+                    println "Total Line Coverage Rate: ${coverageRate.round(2)}%"
+                } else {
+                    println "No lines were covered or missed in the report."
+                }
+            } else {
+                println "No LINE coverage counter found in the JaCoCo report."
+            }
         } else {
             println "No JaCoCo coverage report found. Make sure you run 'gradle test jacocoTestReport' first."
         }
@@ -161,14 +169,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.flywaydb:flyway-core'
-    testImplementation 'org.testcontainers:postgresql:1.19.4'
+    testImplementation 'org.testcontainers:postgresql:1.20.0'
     implementation 'org.postgresql:postgresql'
     implementation 'org.xerial:sqlite-jdbc:3.45.1.0'
     implementation 'org.hibernate.orm:hibernate-community-dialects:6.4.3.Final'
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-    implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot3:2.0.0-M2'
+    implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot3:2.1.0'
     implementation 'software.amazon.awssdk:aws-query-protocol:2.20.26'
 
     implementation 'com.amazonaws:aws-lambda-java-core:1.2.3'
@@ -234,11 +242,12 @@ implementation 'org.apache.poi:poi-ooxml:3.12'
 implementation 'org.jsoup:jsoup:1.15.3'
 testImplementation 'org.mockito:mockito-inline:4.6.1'
 testImplementation 'org.springframework.security:spring-security-test'
-implementation 'org.testcontainers:localstack:1.20.1'
+implementation 'org.testcontainers:localstack:1.19.3'
 implementation 'javax.activation:activation:1.1.1'
 implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.3'
 implementation 'org.geotools:gt-geojson:31.0'
 implementation 'com.google.maps:google-maps-services:2.2.0'
-implementation "com.stripe:stripe-java:28.0.1"
+implementation 'com.stripe:stripe-java:28.0.1'
+    
 
 }

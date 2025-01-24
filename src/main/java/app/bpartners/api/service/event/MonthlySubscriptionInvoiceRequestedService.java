@@ -20,8 +20,6 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.subscription.ConsumptionUsageSummary;
-import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.UserSubscriptionConf;
@@ -113,7 +111,11 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
-        computeSubscriptionProducts(invoiceId, defaultProductDescription, userSubscription, variableAnalysisConsumptionUsage);
+        computeSubscriptionProducts(
+            invoiceId,
+            defaultProductDescription,
+            userSubscription,
+            variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
     LocalDateTime fixedDateTime = LocalDateTime.now();
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
@@ -146,14 +148,18 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private long getVariableAnalysisConsumptionUsage(User userToDebit) {
-    var consumptionUsageSummaries = subscriptionService.computeMonthlySubscriptionVariableConsumption(userToDebit);
+    var consumptionUsageSummaries =
+        subscriptionService.computeMonthlySubscriptionVariableConsumption(userToDebit);
     var variableConsumptionUsage = new AtomicLong(0);
-    consumptionUsageSummaries.forEach(consumptionUsageSummary -> {
-      if (consumptionUsageSummary.consumptionType().equals(SubscriptionConsumptionType.ROOF_ANALYSIS)) {
-        variableConsumptionUsage.set(consumptionUsageSummary.usage());
-      }
-    });
-      return variableConsumptionUsage.get();
+    consumptionUsageSummaries.forEach(
+        consumptionUsageSummary -> {
+          if (consumptionUsageSummary
+              .consumptionType()
+              .equals(SubscriptionConsumptionType.ROOF_ANALYSIS)) {
+            variableConsumptionUsage.set(consumptionUsageSummary.usage());
+          }
+        });
+    return variableConsumptionUsage.get();
   }
 
   private Customer computeCustomerToDebit(User userToCredit, User userToDebit) {
@@ -207,7 +213,10 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private @NotNull ArrayList<InvoiceProduct> computeSubscriptionProducts(
-      String invoiceId, String invoiceTitle, UserSubscription userSubscription, Long variableAnalysisConsumptionUsage) {
+      String invoiceId,
+      String invoiceTitle,
+      UserSubscription userSubscription,
+      Long variableAnalysisConsumptionUsage) {
     var invoiceProducts = new ArrayList<InvoiceProduct>();
     var latestSubscription = userSubscription.getLatestSubscription();
 
@@ -231,16 +240,16 @@ public class MonthlySubscriptionInvoiceRequestedService
     var analysisPayableUsage = variableAnalysisConsumptionUsage - FREE_ROOF_ANALYSIS;
     if (analysisPayableUsage > 0L) {
       invoiceProducts.add(
-              InvoiceProduct.builder()
-                      .id(randomUUID().toString())
-                      .idInvoice(invoiceId)
-                      .createdAt(Instant.now())
-                      .description("Analyse de toîtures supplémentaire")
-                      .quantity((int) analysisPayableUsage)
-                      .unitPrice(parseFraction(200))
-                      .vatPercent(new Fraction(BigInteger.valueOf(2000)))
-                      .status(ProductStatus.ENABLED)
-                      .build());
+          InvoiceProduct.builder()
+              .id(randomUUID().toString())
+              .idInvoice(invoiceId)
+              .createdAt(Instant.now())
+              .description("Analyse de toîtures supplémentaire")
+              .quantity((int) analysisPayableUsage)
+              .unitPrice(parseFraction(200))
+              .vatPercent(new Fraction(BigInteger.valueOf(2000)))
+              .status(ProductStatus.ENABLED)
+              .build());
     }
     return invoiceProducts;
   }

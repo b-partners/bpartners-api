@@ -44,6 +44,7 @@ Resources:
       Name: !Join ['', [!Ref Env, -TriggerMonthlySubscriptionInvoice]]
       ScheduleExpression: "cron(0 0 28 * ? *)"
       ScheduleExpressionTimezone: "Europe/Paris"
+      State: DISABLED
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
         RoleArn: !GetAtt ScheduledEventExecutionRole.Arn

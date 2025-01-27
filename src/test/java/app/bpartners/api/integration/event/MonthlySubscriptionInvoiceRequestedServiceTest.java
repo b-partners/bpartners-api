@@ -1,6 +1,9 @@
 package app.bpartners.api.integration.event;
 
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -13,8 +16,7 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.subscription.Subscription;
-import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
@@ -51,6 +53,59 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           userSubscriptionConfMock,
           customDateFormatter,
           temporalUtils);
+
+  @Test
+  void test_invoice_product_for_extra_analysis() {
+    var userPage = 1;
+    var userToCredit = User.builder().build();
+    var userToCreditId = "userToCreditId";
+    when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
+    when(userRepositoryMock.getById(anyString())).thenReturn(userToCredit);
+    var accountHolder = AccountHolder.builder().build();
+    var subscribedUser =
+        User.builder()
+            .userSubscriptionId("subscriptionId")
+            .accountHolders(List.of(accountHolder))
+            .build();
+    var users = List.of(subscribedUser);
+    when(userRepositoryMock.findAllByCriteria(any())).thenReturn(users);
+    var subscriptionProduct = SubscriptionProduct.builder().priceInCents(5L).build();
+    var latestSubscription =
+        Subscription.builder().subscriptionProduct(subscriptionProduct).status(ACTIVE).build();
+    var userSubscription =
+        UserSubscription.builder().subscriptions(List.of(latestSubscription)).build();
+    when(subscriptionServiceMock.getSubscriptionByUser(any())).thenReturn(userSubscription);
+    var customerToDebit = Customer.builder().build();
+    when(customerRepositoryMock.findByIdUserAndCriteria(
+            any(), any(), any(), any(), any(), any(), any(), anyList(), any(), any(), anyInt(),
+            anyInt()))
+        .thenReturn(List.of(customerToDebit));
+    var variableConsumptionUsage = 24L;
+    var consumptionUsageSummary =
+        new ConsumptionUsageSummary(ROOF_ANALYSIS, variableConsumptionUsage);
+    when(subscriptionServiceMock.computeMonthlySubscriptionVariableConsumption(any()))
+        .thenReturn(
+            List.of(
+                consumptionUsageSummary,
+                consumptionUsageSummary,
+                consumptionUsageSummary,
+                consumptionUsageSummary));
+    var invoice = Invoice.builder().build();
+    when(invoiceServiceMock.crupdateSubscriptionInvoice(any())).thenReturn(invoice);
+
+    assertDoesNotThrow(
+        () -> {
+          subject.accept(MonthlySubscriptionInvoiceRequested.builder().userPage(userPage).build());
+        });
+
+    var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
+    verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
+    var invoiceCaptorValue = invoiceCaptor.getValue();
+    assertEquals(2, invoiceCaptorValue.getProducts().size());
+    assertEquals(
+        "Analyse de toîtures supplémentaire",
+        invoiceCaptorValue.getProducts().get(1).getDescription());
+  }
 
   @Test
   void generate_invoice_for_paginated_users_with_existing_customers() {
@@ -179,9 +234,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
             subject.accept(
                 MonthlySubscriptionInvoiceRequested.builder().userPage(userPage).build()));
 
-    var eventCaptor = ArgumentCaptor.forClass(List.class);
-    var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
-    var customerCaptor = ArgumentCaptor.forClass(Customer.class);
+    var eventCaptor = forClass(List.class);
+    var invoiceCaptor = forClass(Invoice.class);
+    var customerCaptor = forClass(Customer.class);
     verify(eventProducerMock).accept(eventCaptor.capture());
     verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
     verify(customerRepositoryMock).save(customerCaptor.capture());

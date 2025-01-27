@@ -167,7 +167,7 @@ public class SecurityConf {
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(POST, "/monthlySubscriptionInvoiceTrigger")
-                    .hasAnyRole(EVAL_PROSPECT.getRole()) // TODO: set ADMIN ROLE when implemented
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/users/accounts/refresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(

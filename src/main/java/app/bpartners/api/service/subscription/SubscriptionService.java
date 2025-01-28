@@ -22,6 +22,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.*;
+import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
@@ -30,10 +31,7 @@ import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.Product;
-import com.stripe.model.SubscriptionItem;
-import com.stripe.model.UsageRecord;
+import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -142,18 +140,22 @@ public class SubscriptionService {
             .getData();
     return subscriptionItems.stream()
         .filter(
-            subscriptionItem ->
-                subscriptionItem
-                    .getPrice()
-                    .getProductObject()
-                    .getId()
-                    .equals(subscriptionProduct.getE2Id()))
+            subscriptionItem -> {
+              var price = subscriptionItem.getPrice();
+              var product = getProductById(price.getProduct());
+              return product.getId().equals(subscriptionProduct.getE2Id());
+            })
         .findFirst()
         .orElseThrow(
             () ->
                 new NotFoundException(
                     "Any SubscriptionItem matches to SubscriptionProduct for User.id="
                         + user.getId()));
+  }
+
+  @SneakyThrows
+  private Product getProductById(String stripeProductId) {
+    return stripeClient.products().retrieve(stripeProductId);
   }
 
   private List<ConsumptionUsageSummary> calculateUsageByType(

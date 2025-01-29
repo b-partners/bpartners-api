@@ -3,6 +3,7 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
@@ -312,6 +313,22 @@ public class SubscriptionService {
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
     var billingCycleAnchor = computeBillingCycleAnchor(user);
+    var subscriptionProductRoofAnalysis =
+        subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
+    var newVariableProductPrice =
+        stripeClient
+            .prices()
+            .create(
+                PriceCreateParams.builder()
+                    .setCurrency(defaultCurrency())
+                    .setProduct(subscriptionProductRoofAnalysis.getE2Id())
+                    .setUnitAmount(200L)
+                    .setRecurring(
+                        PriceCreateParams.Recurring.builder()
+                            .setUsageType(PriceCreateParams.Recurring.UsageType.METERED)
+                            .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
+                            .build())
+                    .build());
     var session =
         Session.create(
             SessionCreateParams.builder()
@@ -329,6 +346,10 @@ public class SubscriptionService {
                                 .setRecurring(
                                     computeRecurringFromSubscriptionProduct(subscriptionProduct))
                                 .build())
+                        .build())
+                .addLineItem(
+                    SessionCreateParams.LineItem.builder()
+                        .setPrice(newVariableProductPrice.getId())
                         .build())
                 .setSuccessUrl(redirectionUrls.getSuccessUrl())
                 .setCancelUrl(redirectionUrls.getFailureUrl())

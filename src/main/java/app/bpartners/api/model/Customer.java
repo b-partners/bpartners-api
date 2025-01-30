@@ -92,4 +92,8 @@ public class Customer {
   public String getFullAddress() {
     return address + " " + zipCode + " " + city + " " + country;
   }
+
+  public String addressWithCityZipCode() {
+    return address + " " + zipCode + " " + city;
+  }
 }

@@ -33,7 +33,7 @@ public class ExportAreaPictureAnnotationImageGenerator {
       BufferedImage image = downloadAnnotationImageWithScale(annotation.getImageUrl());
       return drawAnnotations(image, annotation);
     } catch (IOException | URISyntaxException e) {
-      throw new BadRequestException("Cannot read the downloaded image");
+      throw new BadRequestException("Cannot read the image from the url");
     }
   }
 
@@ -109,8 +109,10 @@ public class ExportAreaPictureAnnotationImageGenerator {
       FontMetrics fontMetrics = graphics2D.getFontMetrics(MEASUREMENT_FONT);
       int textWidth = fontMetrics.stringWidth(measurementText);
       int textHeight = fontMetrics.getHeight();
-      int x1 = xPoints[i], x2 = xPoints[i + 1];
-      int y1 = yPoints[i], y2 = yPoints[i + 1];
+      int x1 = xPoints[i];
+      int x2 = xPoints[i + 1];
+      int y1 = yPoints[i];
+      int y2 = yPoints[i + 1];
       int measurementX = (x1 + x2) / 2 - (textWidth / 2);
       int measurementY = (y1 + y2) / 2 - (textHeight / 2);
 

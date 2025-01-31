@@ -57,6 +57,17 @@ class ExportAreaPictureAnnotationImageGeneratorTest {
   }
 
   @Test
+  void should_throw_if_cannot_read_the_image() {
+    mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenThrow(new IOException());
+    var exportAreaPictureAnnotation = exportAreaPictureAnnotation();
+
+    var error =
+        assertThrows(BadRequestException.class, () -> subject.apply(exportAreaPictureAnnotation));
+
+    assertEquals("Cannot read the image from the url", error.getMessage());
+  }
+
+  @Test
   void generate_image_ok() {
     var expected = mockedImage;
 

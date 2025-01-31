@@ -538,9 +538,6 @@ components:
         y:
           type: number
           format: double
-      required:
-        - x
-        - y
     Polygon:
       type: object
       properties:
@@ -548,8 +545,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Point'
-      required:
-        - points
     AreaPictureAnnotationInstance:
       type: object
       properties:

@@ -3,7 +3,6 @@ package app.bpartners.api.service.annotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private final ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGenerator;
   private static final String IMAGE_FORMAT = "png";
 
-  public File process(ExportAreaPictureAnnotation annotation) throws IOException {
+  public byte[] process(ExportAreaPictureAnnotation annotation) throws IOException {
     var areaPictureAnnotationImage = generateAnnotationImage(annotation);
     return exportAreaPictureAnnotationPDFGenerator.apply(areaPictureAnnotationImage, annotation);
   }

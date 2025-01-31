@@ -5,12 +5,10 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
-import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +21,9 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 @RequiredArgsConstructor
 public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
-  private final FileWriter fileWriter;
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
-  public File apply(byte[] annotationImage, ExportAreaPictureAnnotation annotation) {
+  public byte[] apply(byte[] annotationImage, ExportAreaPictureAnnotation annotation) {
     var renderer = new ITextRenderer();
     renderer.setDocumentFromString(parseDataToString(annotationImage, annotation));
     renderer.layout();
@@ -37,7 +34,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     } catch (DocumentException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
-    return fileWriter.apply(outputStream.toByteArray(), null);
+    return outputStream.toByteArray();
   }
 
   private String parseDataToString(byte[] annotationImage, ExportAreaPictureAnnotation annotation) {

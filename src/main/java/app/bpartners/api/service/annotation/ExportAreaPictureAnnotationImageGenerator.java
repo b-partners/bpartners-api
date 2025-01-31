@@ -1,7 +1,6 @@
 package app.bpartners.api.service.annotation;
 
 import static java.awt.Color.BLACK;
-import static java.awt.Color.WHITE;
 import static java.awt.RenderingHints.KEY_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 import static java.util.Objects.requireNonNull;
@@ -117,7 +116,7 @@ public class ExportAreaPictureAnnotationImageGenerator
       IntXY point2 = coordinates.get(i + 1);
       IntXY measurementCoordinate =
           new IntXY(
-              (point1.x() + point1.x()) / 2 - (textWidth / 2),
+              (point1.x() + point2.x()) / 2 - (textWidth / 2),
               (point1.y() + point2.y()) / 2 - (textHeight / 2));
 
       graphics2D.setColor(conf.measurementBgColor());
@@ -127,7 +126,7 @@ public class ExportAreaPictureAnnotationImageGenerator
           textWidth + conf.measurementOffset().x(),
           textHeight + conf.measurementOffset().y());
 
-      graphics2D.setColor(WHITE);
+      graphics2D.setColor(conf.measurementTextColor());
       graphics2D.drawString(
           measurementText,
           measurementCoordinate.x(),

@@ -167,6 +167,8 @@ paths:
     $ref: './area-pictures-api.yml#/operations/draftAreaPictureAnnotationListOperationsByAccountIdAndAreaPictureId'
   /accounts/{aId}/annotations/drafts:
     $ref: './area-pictures-api.yml#/operations/draftAreaPictureAnnotationListOperationsByAccountId'
+  /accounts/{aId}/annotations/exports:
+    $ref: './area-pictures-api.yml#/operations/exportAreaPictureAnnotations'
 
 
   #############################################

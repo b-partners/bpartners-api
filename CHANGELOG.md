@@ -1,3 +1,26 @@
+# [0.62.0](https://github.com/b-partners/bpartners-api/compare/v0.61.0...v0.62.0) (2025-01-31)
+
+
+### Bug Fixes
+
+* add variable analysis product into monthly subscription according to consumption ([f9554e6](https://github.com/b-partners/bpartners-api/commit/f9554e6ce2956a57d37e8d047f0655ee906b7c27))
+* allow free_trial user to subscribe ([e9ce607](https://github.com/b-partners/bpartners-api/commit/e9ce607c866ce24463f5274f94d351c7d74e63c8))
+* get stripe susbcription product by specific request when retrieving from item ([6aad791](https://github.com/b-partners/bpartners-api/commit/6aad79132fd180cba50cee556f04b9befcd2e407))
+* rename subscription status CANCELLED to CANCELED ([6f5cb5c](https://github.com/b-partners/bpartners-api/commit/6f5cb5cb3a1d1bfd939d08711e32e9d48b39d731))
+* SecurityConf.subscriptionConsumptionLogs filter from SelfUserMatcher ([a2e45c3](https://github.com/b-partners/bpartners-api/commit/a2e45c352ba1ae41f76f90d17b54c7002caacdd8))
+* set active subscription event TRIALING status ([7975bf8](https://github.com/b-partners/bpartners-api/commit/7975bf8500e908db60f7e7238414a98f029f8137))
+* show zip code and city in PDF invoice ([1b9f8f9](https://github.com/b-partners/bpartners-api/commit/1b9f8f97fec50234bcc8e08181f48b59ed2dc74d))
+* subscription with variable consumption logs for active subscription ([6493838](https://github.com/b-partners/bpartners-api/commit/64938386211286ff6407848145981339d93a95eb))
+
+
+### Features
+
+* add pcrs and aerial photography layer ([a792348](https://github.com/b-partners/bpartners-api/commit/a7923484bdb530891c67d6f3d268e3ee192f85c4))
+* get consumption logs ([83ff43b](https://github.com/b-partners/bpartners-api/commit/83ff43b59af5a39f94bcd54788672a9166559370))
+* monitor usage consumption and compute usage record ([0761dc7](https://github.com/b-partners/bpartners-api/commit/0761dc70adba0caa986977bb3c0fcb663f14b073))
+
+
+
 # [0.61.0](https://github.com/b-partners/bpartners-api/compare/v0.60.0...v0.61.0) (2025-01-10)
 
 
@@ -147,15 +170,6 @@
 ### Reverts
 
 * Revert "chore(to-revert): allow invoice duplication for userRole=EVAL_PROSPECT" ([d2eec6d](https://github.com/b-partners/bpartners-api/commit/d2eec6d56b8030349c2e6a50eb7df741d94e367d))
-
-
-
-## [0.52.1](https://github.com/b-partners/bpartners-api/compare/v0.52.0...v0.52.1) (2024-09-09)
-
-
-### Bug Fixes
-
-* update payment regulations after updating invoice payment request ([8b901a7](https://github.com/b-partners/bpartners-api/commit/8b901a783719311deed214f56c6e789fa0eaeeee))
 
 
 

@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.List;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -21,15 +22,20 @@ import org.springframework.core.io.ClassPathResource;
 class ExportAreaPictureAnnotationImageGeneratorTest {
   ExportAreaPictureAnnotationImageGenerator subject =
       new ExportAreaPictureAnnotationImageGenerator();
-  BufferedImage mockedImage =
-      ImageIO.read(
-          new ClassPathResource("files/downloaded-annotation-image.jpeg").getInputStream());
   MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class);
+  private static BufferedImage mockImage;
   private static final int IMAGE_SCALE = 2;
+
+  @BeforeAll
+  static void createMockImage() throws IOException {
+    mockImage =
+        ImageIO.read(
+            new ClassPathResource("files/downloaded-annotation-image.jpeg").getInputStream());
+  }
 
   @BeforeEach
   void setup() {
-    mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenReturn(mockedImage);
+    mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenReturn(mockImage);
   }
 
   @AfterEach
@@ -69,7 +75,7 @@ class ExportAreaPictureAnnotationImageGeneratorTest {
 
   @Test
   void generate_image_ok() {
-    var expected = mockedImage;
+    var expected = mockImage;
 
     var actual = subject.apply(exportAreaPictureAnnotation());
 
@@ -112,6 +118,4 @@ class ExportAreaPictureAnnotationImageGeneratorTest {
                         new Point().x(88d).y(135d),
                         new Point().x(122d).y(81d))));
   }
-
-  ExportAreaPictureAnnotationImageGeneratorTest() throws IOException {}
 }

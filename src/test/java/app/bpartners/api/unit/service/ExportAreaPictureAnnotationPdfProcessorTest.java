@@ -10,7 +10,6 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGene
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class ExportAreaPictureAnnotationPdfProcessorTest {
-  File fileMock = mock();
+  byte[] fileMock = new byte[] {1, 2, 3, 4};
   ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGeneratorMock = mock();
   ExportAreaPictureAnnotationPDFGenerator exportAreaPictureAnnotationPDFGenerator = mock();
   ExportAreaPictureAnnotation exportAreaPictureAnnotationMock = mock();

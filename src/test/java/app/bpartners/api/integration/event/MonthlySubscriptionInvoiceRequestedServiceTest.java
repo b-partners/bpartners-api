@@ -306,9 +306,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   private Invoice computeExpectedInvoice(
       Invoice createdInvoice, User userToCreditMock, Customer customerMock) {
     var startOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth());
+        customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth());
     var endOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+        customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
     var sendingDate = LocalDate.of(2025, 1, 31);
     return Invoice.builder()
         .id(createdInvoice.getId())
@@ -324,7 +324,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 + endOfCurrentMonthFormatted)
         .ref(createdInvoice.getRef())
         .validityDate(sendingDate.plusDays(30L))
-        .toPayAt(createdInvoice.getToPayAt())
+        .toPayAt(temporalUtils.fifthOfMonthAfter(0))
         .sendingDate(sendingDate)
         .createdAt(createdInvoice.getCreatedAt())
         .user(userToCreditMock)

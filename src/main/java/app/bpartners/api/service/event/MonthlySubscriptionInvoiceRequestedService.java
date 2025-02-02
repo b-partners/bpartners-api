@@ -12,7 +12,6 @@ import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceCreated;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
@@ -35,7 +34,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -83,11 +81,18 @@ public class MonthlySubscriptionInvoiceRequestedService
             var createdInvoice =
                 invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
 
+            log.info(
+                "Invoice(ref={}, customer={}) created",
+                createdInvoice.getRef(),
+                createdInvoice.getCustomer().getName());
+            /*
+            TODO : uncomment to triggered mail sent
             eventProducer.accept(
                 List.of(
                     MonthlySubscriptionInvoiceCreated.builder()
                         .invoiceId(createdInvoice.getId())
                         .build()));
+            */
           } else {
             log.info(
                 "User.id={} does not have subscription, skip computing invoice",

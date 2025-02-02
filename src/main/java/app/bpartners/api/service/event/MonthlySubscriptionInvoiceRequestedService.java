@@ -8,7 +8,6 @@ import static app.bpartners.api.model.mapper.InvoiceMapper.*;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.TRIALING;
 import static app.bpartners.api.service.subscription.SubscriptionService.FREE_ROOF_ANALYSIS;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -31,6 +30,7 @@ import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -121,6 +121,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
+    var sendingDate = LocalDate.of(2025, 1, 31);
     LocalDateTime fixedDateTime = LocalDateTime.now();
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
@@ -133,8 +134,8 @@ public class MonthlySubscriptionInvoiceRequestedService
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
         .toPayAt(temporalUtils.fifthOfNextMonth())
-        .sendingDate(now())
-        .validityDate(now().plusDays(30L))
+        .sendingDate(sendingDate)
+        .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)
         .user(userToCredit)
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)

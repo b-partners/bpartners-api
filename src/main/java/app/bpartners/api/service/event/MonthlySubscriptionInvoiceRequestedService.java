@@ -65,7 +65,6 @@ public class MonthlySubscriptionInvoiceRequestedService
     criteria.put("status", ENABLED);
     criteria.put("page", event.getUserPage());
     criteria.put("pageSize", MAX_SIZE);
-    // TODO: add hasSubscriptionStatus criteria
 
     var userToCredit = userRepository.getById(userSubscriptionConf.getUserToCreditId());
     var users = userRepository.findAllByCriteria(criteria);

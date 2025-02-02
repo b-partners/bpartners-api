@@ -1,0 +1,79 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        * {
+            color: #2b2b2a;
+            font-family: Arial, Verdana, Georgia, sans-serif;
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        @page { size: A4; }
+
+        .page {
+            width: 100%;
+            display: block;
+            position: relative;
+            page-break-after: always;
+        }
+
+        .last-page { page-break-after: avoid; }
+
+        .title {
+            font-size: 16px;
+            text-align: center;
+            font-weight: bold;
+            margin: 270px auto 20px auto;
+        }
+
+        .annotation-image {
+            display: block;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto;
+        }
+
+        .annotation-information-title{
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .annotation-item{ margin-top: 20px; }
+        .annotation-item-title{ font-size: 14px; }
+        .annotation-item-title-value{ margin-right: 10px; }
+        .annotation-item-info-label{ font-weight: bold; }
+        .annotation-item-info-value{ font-weight: normal; }
+        .annotation-item-title-color{
+            display: inline-block;
+            width: 20px;
+            height: 10px;
+        }
+        .annotation-item-info-item {
+            font-size: 12px;
+            margin: 5px 0;
+        }
+    </style>
+    <title>Rapport d'analyse</title>
+</head>
+<body>
+    <section class="page">
+        <h1 class="title" th:text="'Rapport d\'analyse de l\'adresse : ' + ${address}"></h1>
+        <img alt="annotation" class="annotation-image"  th:src="'data:image/jpeg;base64,' + ${annotationImage}" />
+    </section>
+    <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last} ? 'last-page' : ''">
+        <h2 class="annotation-information-title"> Informations des annotations </h2>
+        <div th:each="annotation : ${page}" class="annotation-item" th:classappend="${pageStat.last} ? 'last-page'">
+            <h4 class="annotation-item-title">
+                <span class="annotation-item-title-value" th:text="${annotation.labelName} ?: 'Non renseigné'"></span>
+                <span class="annotation-item-title-color"  th:style="'background-color:' + (${annotation.strokeColor} ?: '#00FF00')"></span>
+            </h4>
+            <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
+                <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
+                <span>:</span>
+                <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
+            </p>
+        </div>
+    </section>
+</body>
+</html>

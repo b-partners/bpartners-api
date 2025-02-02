@@ -167,7 +167,7 @@ public class SecurityConf {
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(POST, "/monthlySubscriptionInvoiceTrigger")
-                    .hasAnyRole(EVAL_PROSPECT.getRole()) // TODO: set ADMIN ROLE when implemented
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/users/accounts/refresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(
@@ -369,6 +369,10 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/annotations/drafts", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            POST, "/accounts/*/annotations/exports", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(

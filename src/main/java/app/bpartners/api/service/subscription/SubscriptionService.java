@@ -3,6 +3,7 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
@@ -22,6 +23,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.*;
+import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
@@ -30,10 +32,7 @@ import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.Product;
-import com.stripe.model.SubscriptionItem;
-import com.stripe.model.UsageRecord;
+import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
@@ -142,18 +141,22 @@ public class SubscriptionService {
             .getData();
     return subscriptionItems.stream()
         .filter(
-            subscriptionItem ->
-                subscriptionItem
-                    .getPrice()
-                    .getProductObject()
-                    .getId()
-                    .equals(subscriptionProduct.getE2Id()))
+            subscriptionItem -> {
+              var price = subscriptionItem.getPrice();
+              var product = getProductById(price.getProduct());
+              return product.getId().equals(subscriptionProduct.getE2Id());
+            })
         .findFirst()
         .orElseThrow(
             () ->
                 new NotFoundException(
                     "Any SubscriptionItem matches to SubscriptionProduct for User.id="
                         + user.getId()));
+  }
+
+  @SneakyThrows
+  private Product getProductById(String stripeProductId) {
+    return stripeClient.products().retrieve(stripeProductId);
   }
 
   private List<ConsumptionUsageSummary> calculateUsageByType(
@@ -310,6 +313,22 @@ public class SubscriptionService {
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
     var billingCycleAnchor = computeBillingCycleAnchor(user);
+    var subscriptionProductRoofAnalysis =
+        subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
+    var newVariableProductPrice =
+        stripeClient
+            .prices()
+            .create(
+                PriceCreateParams.builder()
+                    .setCurrency(defaultCurrency())
+                    .setProduct(subscriptionProductRoofAnalysis.getE2Id())
+                    .setUnitAmount(200L)
+                    .setRecurring(
+                        PriceCreateParams.Recurring.builder()
+                            .setUsageType(PriceCreateParams.Recurring.UsageType.METERED)
+                            .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
+                            .build())
+                    .build());
     var session =
         Session.create(
             SessionCreateParams.builder()
@@ -327,6 +346,10 @@ public class SubscriptionService {
                                 .setRecurring(
                                     computeRecurringFromSubscriptionProduct(subscriptionProduct))
                                 .build())
+                        .build())
+                .addLineItem(
+                    SessionCreateParams.LineItem.builder()
+                        .setPrice(newVariableProductPrice.getId())
                         .build())
                 .setSuccessUrl(redirectionUrls.getSuccessUrl())
                 .setCancelUrl(redirectionUrls.getFailureUrl())

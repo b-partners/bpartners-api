@@ -268,9 +268,11 @@ class SubscriptionServiceTest {
     var expectedUsage = 22L;
     var expectedPayableUsage = 2L; // 20L are free roof analysis
     var expected = List.of(new ConsumptionUsageSummary(ROOF_ANALYSIS, expectedUsage));
+    var stripeProductId = "stripeProductId";
 
     var userMock = mock(User.class);
     var stripeSubscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    var stripeProductServiceMock = mock(ProductService.class);
     var stripeSubscriptionCollectionMock = mock(StripeCollection.class);
     var subscriptionProductMock = mock(SubscriptionProduct.class);
     var stripeSubscriptionMock = mock(com.stripe.model.Subscription.class);
@@ -285,7 +287,7 @@ class SubscriptionServiceTest {
     when(stripeSubscriptionItemMock.getId()).thenReturn(stripeSubscriptionItemMockId);
     when(subscriptionProductMock.getE2Id()).thenReturn(subscriptionProductE2Id);
     when(stripeProductMock.getId()).thenReturn(subscriptionProductE2Id);
-    when(stripePriceMock.getProductObject()).thenReturn(stripeProductMock);
+    when(stripePriceMock.getProduct()).thenReturn(stripeProductId);
     when(stripeSubscriptionItemMock.getPrice()).thenReturn(stripePriceMock);
     when(stripeSubscriptionMock.getCurrentPeriodStart()).thenReturn(Instant.now().getEpochSecond());
     when(stripeSubscriptionCollectionMock.getData()).thenReturn(List.of(stripeSubscriptionMock));
@@ -295,6 +297,8 @@ class SubscriptionServiceTest {
         .thenReturn(stripeSubscriptionCollectionMock);
     when(subscriptionItemServiceMock.list(any(SubscriptionItemListParams.class)))
         .thenReturn(stripeSubscriptionItemsCollectionMock);
+    when(stripeProductServiceMock.retrieve(stripeProductId)).thenReturn(stripeProductMock);
+    when(stripeClientMock.products()).thenReturn(stripeProductServiceMock);
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
     when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
     when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
@@ -327,6 +331,7 @@ class SubscriptionServiceTest {
     var userId = randomUUID().toString();
     var subscriptionProductE2Id = "subscriptionProductE2Id";
     var stripeSubscriptionItemMockId = "stripeSubscriptionItemMockId";
+    var stripeProductId = "stripeProductId";
     var expectedUsage = 2L;
     while (expectedUsage <= 20L) {
       var expected = List.of(new ConsumptionUsageSummary(ROOF_ANALYSIS, expectedUsage));
@@ -342,12 +347,13 @@ class SubscriptionServiceTest {
       var stripePriceMock = mock(Price.class);
       var stripeProductMock = mock(Product.class);
       var usageRecordMockedStatic = mockStatic(UsageRecord.class);
+      var stripeProductServiceMock = mock(ProductService.class);
 
       when(userMock.getId()).thenReturn(userId);
       when(stripeSubscriptionItemMock.getId()).thenReturn(stripeSubscriptionItemMockId);
       when(subscriptionProductMock.getE2Id()).thenReturn(subscriptionProductE2Id);
       when(stripeProductMock.getId()).thenReturn(subscriptionProductE2Id);
-      when(stripePriceMock.getProductObject()).thenReturn(stripeProductMock);
+      when(stripePriceMock.getProduct()).thenReturn(stripeProductId);
       when(stripeSubscriptionItemMock.getPrice()).thenReturn(stripePriceMock);
       when(stripeSubscriptionMock.getCurrentPeriodStart())
           .thenReturn(Instant.now().getEpochSecond());
@@ -358,6 +364,7 @@ class SubscriptionServiceTest {
           .thenReturn(stripeSubscriptionCollectionMock);
       when(subscriptionItemServiceMock.list(any(SubscriptionItemListParams.class)))
           .thenReturn(stripeSubscriptionItemsCollectionMock);
+      when(stripeProductServiceMock.retrieve(stripeProductId)).thenReturn(stripeProductMock);
       when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
       when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
       when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(

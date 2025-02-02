@@ -1,5 +1,6 @@
 package app.bpartners.api.service.WMS.imageSource;
 
+import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
@@ -61,7 +62,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 2) int iteration)
+      @Range(from = 0, to = 4) int iteration)
       throws AddressException {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
@@ -69,6 +70,13 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
     } else if (iteration == 1) {
+      alternativeSource = wmsImageSource;
+      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getPCRSLayer();
+    } else if (iteration == 2) {
+      alternativeSource = wmsImageSource;
+      areaPicture.setZoomLevel(BUILDING);
+      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getAerialPhotography();
+    } else if (iteration == 3) {
       alternativeSource = ignGeoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {

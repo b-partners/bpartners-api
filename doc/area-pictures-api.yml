@@ -339,6 +339,41 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  exportAreaPictureAnnotations:
+    post:
+      tags:
+        - AreaPicture
+      summary: Export Area Picture Annotation with information to PDF
+      operationId: exportAreaPictureAnnotationToPdf
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportAreaPictureAnnotation'
+      responses:
+        200:
+          description: The generated pdf
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 components:
   schemas:
     Zoom:
@@ -590,3 +625,67 @@ components:
       properties:
         areaPicture:
           $ref: "#/components/schemas/AreaPictureDetails"
+    ExportAreaPictureAnnotationMeasurement:
+      type: object
+      properties:
+        unit:
+          type: string
+        value:
+          type: number
+          format: double
+        isInvisible:
+          type: boolean
+      required:
+        - unit
+        - value
+        - isInvisible
+    ExportAreaPictureAnnotationInstanceInfo:
+      type: object
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+      required:
+        - label
+        - value
+    ExportAreaPictureAnnotationInstance:
+      type: object
+      properties:
+        measurements:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotationMeasurement"
+        infos:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotationInstanceInfo"
+        polygon:
+          $ref: "#/components/schemas/Polygon"
+        fillColor:
+          type: string
+        strokeColor:
+          type: string
+        labelName:
+          type: string
+      required:
+        - infos
+        - polygon
+        - fillColor
+        - strokeColor
+        - measurements
+    ExportAreaPictureAnnotation:
+      type: object
+      properties:
+        address:
+          type: string
+        imageUrl:
+          type: string
+        annotations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotationInstance"
+      required:
+        - address
+        - imageUrl
+        - annotations

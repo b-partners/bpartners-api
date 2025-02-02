@@ -1,16 +1,19 @@
 package app.bpartners.api.service.WMS.imageSource;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
+import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.controller.health.PingController;
+import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.mail.Mailer;
@@ -19,7 +22,9 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.WMS.ArcgisZoom;
+import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
+import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +37,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.client.RestTemplate;
 
-class WmsImageSourceFacadeIT extends MockedThirdParties {
+public class WmsImageSourceFacadeIT extends MockedThirdParties {
   private static final AreaPicture GEOSERVER_LAYER_AREA_PICTURE =
       AreaPicture.builder()
           .currentTile(Tile.builder().x(10).y(10).arcgisZoom(ArcgisZoom.HOUSES_0).build())
@@ -48,6 +53,35 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
   @MockBean Mailer mailer;
   @MockBean AuthProvider authProviderMock;
   @MockBean TileExtenderImageSource tileExtenderImageSource;
+  @MockBean AreaPictureMapLayerService areaPictureMapLayerServiceMock;
+
+  public static AreaPictureMapLayer aerialPhotographyLayer() {
+    return AreaPictureMapLayer.builder().name("cite:PHOTO_AERIENNE").source(GEOSERVER).build();
+  }
+
+  public static AreaPictureMapLayer pcrsLayer() {
+    return AreaPictureMapLayer.builder().name("cite:PCRS.LAMB93").source(GEOSERVER).build();
+  }
+
+  public static AreaPictureMapLayer ignLayer() {
+    return AreaPictureMapLayer.builder()
+        .name("ORTHOPHOTOS.ORTHOPHOTOIMAGERY")
+        .source(GEOSERVER_IGN)
+        .build();
+  }
+
+  private AreaPictureMapLayer dijon() {
+    return AreaPictureMapLayer.builder().name("cite:Dijon").source(GEOSERVER).build();
+  }
+
+  private AreaPicture anAreaPicture(AreaPictureMapLayer areaPictureMapLayer) {
+    return AreaPicture.builder()
+        .currentLayer(areaPictureMapLayer)
+        .currentGeoPosition(new GeoPosition().latitude(12.34).longitude(56.78))
+        .zoomLevel(HOUSES_0)
+        .currentTile(Tile.builder().arcgisZoom(ArcgisZoom.HOUSES_0).x(1).y(1).build())
+        .build();
+  }
 
   private @NotNull File getMockJpegFile() {
     FileSystemResource mockJpegResource =
@@ -76,6 +110,56 @@ class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(geoserverImageSourceMock.getURI(any(), any()))
         .thenReturn(URI.create("http://localhost:" + localPort + "/ping"));
     when(tileExtenderImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
+  }
+
+  @Test
+  void download_image_with_pcrs_layer_on_cascade_ok() {
+    when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
+        .thenThrow(new BlankImageException("Blank image"));
+    when(tileExtenderImageSource.downloadImage(
+            argThat(area -> area.getCurrentLayer().equals(pcrsLayer()))))
+        .thenReturn(getMockJpegFile());
+
+    subject.downloadImage(anAreaPicture(dijon()));
+
+    verify(tileExtenderImageSource, times(2)).downloadImage(any());
+    verify(areaPictureMapLayerServiceMock, times(1)).getPCRSLayer();
+  }
+
+  @Test
+  void download_image_with_aerial_photography_layer_on_cascade_ok() {
+    when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(areaPictureMapLayerServiceMock.getAerialPhotography())
+        .thenReturn(aerialPhotographyLayer());
+    when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
+        .thenThrow(new BlankImageException("Blank image"));
+    when(tileExtenderImageSource.downloadImage(
+            argThat(area -> area.getCurrentLayer().equals(aerialPhotographyLayer()))))
+        .thenReturn(getMockJpegFile());
+
+    subject.downloadImage(anAreaPicture(dijon()));
+
+    verify(tileExtenderImageSource, times(3)).downloadImage(any());
+    verify(areaPictureMapLayerServiceMock, times(1)).getAerialPhotography();
+  }
+
+  @Test
+  void download_image_with_ign_layer_on_cascade_ok() {
+    when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(areaPictureMapLayerServiceMock.getAerialPhotography())
+        .thenReturn(aerialPhotographyLayer());
+    when(areaPictureMapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
+    when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
+        .thenThrow(new BlankImageException("Blank image"));
+    when(tileExtenderImageSource.downloadImage(
+            argThat(area -> area.getCurrentLayer().equals(ignLayer()))))
+        .thenReturn(getMockJpegFile());
+
+    subject.downloadImage(anAreaPicture(dijon()));
+
+    verify(tileExtenderImageSource, times(4)).downloadImage(any());
+    verify(areaPictureMapLayerServiceMock, times(1)).getDefaultIGNLayer();
   }
 
   @Test

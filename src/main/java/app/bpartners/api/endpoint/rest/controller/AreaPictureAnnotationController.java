@@ -1,18 +1,22 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.springframework.http.MediaType.APPLICATION_PDF;
 
 import app.bpartners.api.endpoint.rest.mapper.AreaPictureAnnotationRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.DraftAreaPictureAnnotation;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.AreaPictureAnnotationService;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -74,5 +78,13 @@ public class AreaPictureAnnotationController {
     return service.findAllDraftByAccountId(authenticatedUserId, page, pageSize).stream()
         .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
         .toList();
+  }
+
+  @PostMapping("/accounts/{aId}/annotations/exports")
+  public ResponseEntity<byte[]> exportAreaPictureAnnotationToPdf(
+      @PathVariable(name = "aId") String aId,
+      @RequestBody ExportAreaPictureAnnotation exportAreaPictureAnnotation) {
+    var generatedPdf = service.exportAreaPictureAnnotationToPdf(exportAreaPictureAnnotation);
+    return ResponseEntity.ok().contentType(APPLICATION_PDF).body(generatedPdf);
   }
 }

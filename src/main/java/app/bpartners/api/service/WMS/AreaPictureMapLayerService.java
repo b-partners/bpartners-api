@@ -22,6 +22,9 @@ import org.springframework.stereotype.Service;
 public class AreaPictureMapLayerService {
   public static final int WGS_84_SRID = 4326;
   public static final String DEFAULT_IGN_LAYER_UUID = "1cccfc17-cbef-4320-bdfa-0d1920b91f11";
+  public static final String DEFAULT_PCRS_LAYER_UUID = "726f5b3b-d23b-40c3-b38e-68a43d7ae155";
+  public static final String DEFAULT_PHOTOAERIENNE_LAYER_UUID =
+      "2f343dba-dd5f-4895-9006-49472f576c02";
   private final AreaPictureMapLayerRepository repository;
 
   public List<AreaPictureMapLayer> getAvailableLayersFrom(Tile tile) {
@@ -45,7 +48,7 @@ public class AreaPictureMapLayerService {
     log.info("Available layers: {}", layers);
     if (layers.isEmpty()) {
       log.info("no layer found for {}", tile);
-      return List.of(getDefaultIGNLayer());
+      return List.of(getDefaultIGNLayer(), getPCRSLayer(), getAerialPhotography());
     }
     return layers;
   }
@@ -65,6 +68,14 @@ public class AreaPictureMapLayerService {
 
   public AreaPictureMapLayer getDefaultIGNLayer() {
     return getById(DEFAULT_IGN_LAYER_UUID);
+  }
+
+  public AreaPictureMapLayer getPCRSLayer() {
+    return getById(DEFAULT_PCRS_LAYER_UUID);
+  }
+
+  public AreaPictureMapLayer getAerialPhotography() {
+    return getById(DEFAULT_PHOTOAERIENNE_LAYER_UUID);
   }
 
   public AreaPictureMapLayer getById(String id) {

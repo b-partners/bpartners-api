@@ -142,6 +142,8 @@ class DraftIT extends MockedThirdParties {
         .phone("+33 6 12 45 89 76")
         .email("exemple@email.com")
         .address("Paris 745")
+        .zipCode(75001)
+        .city("Paris")
         .customerType(CustomerType.PROFESSIONAL)
         .build();
   }

@@ -66,14 +66,12 @@ public class AreaPictureService {
       throws RuntimeException {
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
     var downloadedFile = wmsImageSource.downloadImage(areaPicture);
-    log.info("Filename={}", refreshed.getIdFileInfo());
     if (areaPicture.getFilename().contains("ORTHOIMAGERY")) {
       areaPicture.setZoomLevel(ZoomLevel.BUILDING);
       areaPicture.setCurrentLayer(mapLayerService.getDefaultIGNLayer());
     }
     fileService.upload(
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
-    save(areaPicture);
     return save(refreshed);
   }
 

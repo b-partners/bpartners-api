@@ -5,6 +5,8 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSE
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
+import static app.bpartners.api.service.WMS.imageSource.WmsImageSourceFacadeIT.aerialPhotographyLayer;
+import static app.bpartners.api.service.WMS.imageSource.WmsImageSourceFacadeIT.pcrsLayer;
 import static java.lang.Boolean.TRUE;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -113,6 +115,30 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .source(GEOSERVER_IGN);
   }
 
+  static AreaPictureMapLayer geoserverPCRSLayer() {
+    return new AreaPictureMapLayer()
+        .id("726f5b3b-d23b-40c3-b38e-68a43d7ae155")
+        .name("cite:PCRS.LAMB93")
+        .year(2024)
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("ALL")
+        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
+        .source(GEOSERVER);
+  }
+
+  static AreaPictureMapLayer geoserverPhotoAerialLayer() {
+    return new AreaPictureMapLayer()
+        .id("2f343dba-dd5f-4895-9006-49472f576c02")
+        .name("cite:PHOTO_AERIENNE")
+        .year(2024)
+        .precisionLevelInCm(20)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("ALL")
+        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
+        .source(GEOSERVER);
+  }
+
   static AreaPictureMapLayer geoserverIGNServerLayer() {
     return new AreaPictureMapLayer()
         .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
@@ -167,7 +193,12 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .fileId("montauban_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
-        .otherLayers(List.of(geoserverCharenteLayer(), geoserverIGNPrimaryDefaultServerLayer()))
+        .otherLayers(
+            List.of(
+                geoserverCharenteLayer(),
+                geoserverPCRSLayer(),
+                geoserverPhotoAerialLayer(),
+                geoserverIGNPrimaryDefaultServerLayer()))
         .layer(DEFAULT_OSM_LAYER)
         .zoom(zoom)
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
@@ -219,7 +250,12 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .xTile(xTile)
         .yTile(yTile)
         .layer(DEFAULT_OSM_LAYER)
-        .otherLayers(List.of(geoserverCharenteLayer(), geoserverIGNPrimaryDefaultServerLayer()))
+        .otherLayers(
+            List.of(
+                geoserverCharenteLayer(),
+                geoserverPCRSLayer(),
+                geoserverPhotoAerialLayer(),
+                geoserverIGNPrimaryDefaultServerLayer()))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .address("Cannes Address")
@@ -269,6 +305,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .zoomLevel(HOUSES_0)
         .createdAt(null)
         .shiftNb(0)
+        .layerId("area_picture_map_1_id")
         .updatedAt(null);
   }
 
@@ -289,7 +326,11 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .fileId(crupdate.getFileId())
         .actualLayer(geoserverCharenteLayer())
         .zoomLevel(zoomLevel)
-        .otherLayers(List.of(geoserverIGNPrimaryDefaultServerLayer()))
+        .otherLayers(
+            List.of(
+                geoserverPCRSLayer(),
+                geoserverPhotoAerialLayer(),
+                geoserverIGNPrimaryDefaultServerLayer()))
         .filename(null)
         .layer(TOUS_FR)
         .currentTile(currentTile)
@@ -425,6 +466,12 @@ public class AreaPictureIT extends S3MockedThirdParties {
             app.bpartners.api.service.WMS.Tile.from(
                 coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
-    assertEquals(List.of(domainGeoserverCharenteLayer(), domainGeoserverIGNLayer()), guessedLayers);
+    assertEquals(
+        List.of(
+            domainGeoserverCharenteLayer(),
+            pcrsLayer(),
+            aerialPhotographyLayer(),
+            domainGeoserverIGNLayer()),
+        guessedLayers);
   }
 }

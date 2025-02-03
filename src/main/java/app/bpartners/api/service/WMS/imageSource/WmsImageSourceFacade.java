@@ -69,6 +69,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     if (iteration == 0) {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
+      log.info("First iteration layer={}", areaPicture.getCurrentLayer());
     } else if (iteration == 1) {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getPCRSLayer();

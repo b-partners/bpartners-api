@@ -119,8 +119,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return new AreaPictureMapLayer()
         .id("726f5b3b-d23b-40c3-b38e-68a43d7ae155")
         .name("cite:PCRS.LAMB93")
-        .year(2024)
-        .precisionLevelInCm(5)
+        .year(2023)
+        .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
         .maximumZoom(new Zoom().level(HOUSES_0).number(20))
@@ -131,7 +131,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return new AreaPictureMapLayer()
         .id("2f343dba-dd5f-4895-9006-49472f576c02")
         .name("cite:PHOTO_AERIENNE")
-        .year(2024)
+        .year(2023)
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -305,7 +305,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .zoomLevel(HOUSES_0)
         .createdAt(null)
         .shiftNb(0)
-        .layerId("area_picture_map_1_id")
         .updatedAt(null);
   }
 

@@ -56,11 +56,27 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
   @MockBean AreaPictureMapLayerService areaPictureMapLayerServiceMock;
 
   public static AreaPictureMapLayer aerialPhotographyLayer() {
-    return AreaPictureMapLayer.builder().name("cite:PHOTO_AERIENNE").source(GEOSERVER).build();
+    return AreaPictureMapLayer.builder()
+        .id("2f343dba-dd5f-4895-9006-49472f576c02")
+        .name("cite:PHOTO_AERIENNE")
+        .source(GEOSERVER)
+        .year(2024)
+        .maximumZoomLevel(HOUSES_0)
+        .precisionLevelInCm(20)
+        .departementName("ALL")
+        .build();
   }
 
   public static AreaPictureMapLayer pcrsLayer() {
-    return AreaPictureMapLayer.builder().name("cite:PCRS.LAMB93").source(GEOSERVER).build();
+    return AreaPictureMapLayer.builder()
+        .id("726f5b3b-d23b-40c3-b38e-68a43d7ae155")
+        .departementName("ALL")
+        .year(2024)
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .name("cite:PCRS.LAMB93")
+        .source(GEOSERVER)
+        .build();
   }
 
   public static AreaPictureMapLayer ignLayer() {

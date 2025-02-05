@@ -23,7 +23,7 @@ public class AreaPictureMapLayerService {
   public static final int WGS_84_SRID = 4326;
   public static final String DEFAULT_IGN_LAYER_UUID = "1cccfc17-cbef-4320-bdfa-0d1920b91f11";
   public static final String DEFAULT_PCRS_LAYER_UUID = "726f5b3b-d23b-40c3-b38e-68a43d7ae155";
-  public static final String DEFAULT_PHOTOAERIENNE_LAYER_UUID =
+  public static final String DEFAULT_AERIAL_PHOTOGRAPHY_LAYER_UUID =
       "2f343dba-dd5f-4895-9006-49472f576c02";
   private final AreaPictureMapLayerRepository repository;
 
@@ -39,7 +39,7 @@ public class AreaPictureMapLayerService {
             });
     log.info("Tile features: {}", tile);
     if (features.isEmpty()) {
-      return List.of(getDefaultIGNLayer());
+      return List.of(getPCRSLayer(), getAerialPhotography(), getDefaultIGNLayer());
     }
     List<String> matchingFeaturesName =
         features.stream().map(f -> (String) f.getAttribute("nom")).toList();
@@ -58,7 +58,7 @@ public class AreaPictureMapLayerService {
     var result =
         new ArrayList<>(
             repository.findAllByDepartementNameInIgnoreCaseOrderByYear(matchingFeaturesName));
-    result.add(getDefaultIGNLayer());
+    result.addAll(List.of(getPCRSLayer(), getAerialPhotography(), getDefaultIGNLayer()));
     return result;
   }
 
@@ -75,7 +75,7 @@ public class AreaPictureMapLayerService {
   }
 
   public AreaPictureMapLayer getAerialPhotography() {
-    return getById(DEFAULT_PHOTOAERIENNE_LAYER_UUID);
+    return getById(DEFAULT_AERIAL_PHOTOGRAPHY_LAYER_UUID);
   }
 
   public AreaPictureMapLayer getById(String id) {

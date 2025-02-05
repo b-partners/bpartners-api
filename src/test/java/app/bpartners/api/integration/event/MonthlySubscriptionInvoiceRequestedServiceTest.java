@@ -7,7 +7,6 @@ import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceCreated;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
@@ -27,7 +26,6 @@ import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.math.BigInteger;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +73,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var userSubscription =
         UserSubscription.builder().subscriptions(List.of(latestSubscription)).build();
     when(subscriptionServiceMock.getSubscriptionByUser(any())).thenReturn(userSubscription);
-    var customerToDebit = Customer.builder().build();
+    var customerToDebit = Customer.builder().name("dummy").build();
     when(customerRepositoryMock.findByIdUserAndCriteria(
             any(), any(), any(), any(), any(), any(), any(), anyList(), any(), any(), anyInt(),
             anyInt()))
@@ -90,7 +88,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 consumptionUsageSummary,
                 consumptionUsageSummary,
                 consumptionUsageSummary));
-    var invoice = Invoice.builder().build();
+    var invoice = Invoice.builder().customer(customerToDebit).build();
     when(invoiceServiceMock.crupdateSubscriptionInvoice(any())).thenReturn(invoice);
 
     assertDoesNotThrow(
@@ -156,13 +154,13 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
             subject.accept(
                 MonthlySubscriptionInvoiceRequested.builder().userPage(userPage).build()));
 
-    var eventCaptor = ArgumentCaptor.forClass(List.class);
+    // var eventCaptor = ArgumentCaptor.forClass(List.class);
     var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
-    verify(eventProducerMock).accept(eventCaptor.capture());
+    // verify(eventProducerMock).accept(eventCaptor.capture());
     verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
     verify(customerRepositoryMock, never()).save(any());
-    var monthlySubscriptionInvoiceCreated =
-        (MonthlySubscriptionInvoiceCreated) eventCaptor.getValue().getFirst();
+    // var monthlySubscriptionInvoiceCreated =
+    //   (MonthlySubscriptionInvoiceCreated) eventCaptor.getValue().getFirst();
     var createdInvoice = invoiceCaptor.getValue();
     var actualInvoiceProduct = createdInvoice.getProducts().getFirst();
     var expectedInvoice = computeExpectedInvoice(createdInvoice, userToCreditMock, customerMock);
@@ -171,13 +169,14 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
             actualInvoiceProduct, expectedInvoice, subscriptionProductName);
 
     assertEquals(expectedInvoice, createdInvoice);
-    assertEquals(monthlySubscriptionInvoiceCreated.getInvoiceId(), createdInvoice.getId());
+    // assertEquals(monthlySubscriptionInvoiceCreated.getInvoiceId(), createdInvoice.getId());
     assertEquals(1, createdInvoice.getProducts().size());
     assertEquals(expectedInvoiceProduct, actualInvoiceProduct);
-    assertEquals(Duration.ofSeconds(300L), monthlySubscriptionInvoiceCreated.maxConsumerDuration());
-    assertEquals(
-        Duration.ofSeconds(60L),
-        monthlySubscriptionInvoiceCreated.maxConsumerBackoffBetweenRetries());
+    // assertEquals(Duration.ofSeconds(300L),
+    // monthlySubscriptionInvoiceCreated.maxConsumerDuration());
+    // assertEquals(
+    //  Duration.ofSeconds(60L),
+    // monthlySubscriptionInvoiceCreated.maxConsumerBackoffBetweenRetries());
   }
 
   @Test
@@ -234,14 +233,14 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
             subject.accept(
                 MonthlySubscriptionInvoiceRequested.builder().userPage(userPage).build()));
 
-    var eventCaptor = forClass(List.class);
+    // var eventCaptor = forClass(List.class);
     var invoiceCaptor = forClass(Invoice.class);
     var customerCaptor = forClass(Customer.class);
-    verify(eventProducerMock).accept(eventCaptor.capture());
+    // verify(eventProducerMock).accept(eventCaptor.capture());
     verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
     verify(customerRepositoryMock).save(customerCaptor.capture());
-    var monthlySubscriptionInvoiceCreated =
-        (MonthlySubscriptionInvoiceCreated) eventCaptor.getValue().getFirst();
+    // var monthlySubscriptionInvoiceCreated =
+    // (MonthlySubscriptionInvoiceCreated) eventCaptor.getValue().getFirst();
     var createdInvoice = invoiceCaptor.getValue();
     var actualInvoiceProduct = createdInvoice.getProducts().getFirst();
     var actualCustomer = customerCaptor.getValue();
@@ -254,13 +253,14 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
 
     assertEquals(expectedCreatedCustomer, actualCustomer);
     assertEquals(expectedInvoice, createdInvoice);
-    assertEquals(monthlySubscriptionInvoiceCreated.getInvoiceId(), createdInvoice.getId());
+    // assertEquals(monthlySubscriptionInvoiceCreated.getInvoiceId(), createdInvoice.getId());
     assertEquals(1, createdInvoice.getProducts().size());
     assertEquals(expectedInvoiceProduct, actualInvoiceProduct);
-    assertEquals(Duration.ofSeconds(300L), monthlySubscriptionInvoiceCreated.maxConsumerDuration());
-    assertEquals(
-        Duration.ofSeconds(60L),
-        monthlySubscriptionInvoiceCreated.maxConsumerBackoffBetweenRetries());
+    // assertEquals(Duration.ofSeconds(300L),
+    // monthlySubscriptionInvoiceCreated.maxConsumerDuration());
+    // assertEquals(
+    //  Duration.ofSeconds(60L),
+    // monthlySubscriptionInvoiceCreated.maxConsumerBackoffBetweenRetries());
   }
 
   private Customer computeExpectedCreatedCustomer(User userToDebit, Customer actual) {
@@ -306,9 +306,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   private Invoice computeExpectedInvoice(
       Invoice createdInvoice, User userToCreditMock, Customer customerMock) {
     var startOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth());
+        customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth());
     var endOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+        customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
+    var sendingDate = LocalDate.of(2025, 1, 31);
     return Invoice.builder()
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)
@@ -322,9 +323,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 + " au "
                 + endOfCurrentMonthFormatted)
         .ref(createdInvoice.getRef())
-        .validityDate(LocalDate.now().plusDays(30L))
-        .toPayAt(createdInvoice.getToPayAt())
-        .sendingDate(LocalDate.now())
+        .validityDate(sendingDate.plusDays(30L))
+        .toPayAt(temporalUtils.fifthOfMonthAfter(0))
+        .sendingDate(sendingDate)
         .createdAt(createdInvoice.getCreatedAt())
         .user(userToCreditMock)
         .customer(customerMock)

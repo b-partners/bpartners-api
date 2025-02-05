@@ -8,11 +8,9 @@ import static app.bpartners.api.model.mapper.InvoiceMapper.*;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.TRIALING;
 import static app.bpartners.api.service.subscription.SubscriptionService.FREE_ROOF_ANALYSIS;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceCreated;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
@@ -32,10 +30,10 @@ import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -65,7 +63,6 @@ public class MonthlySubscriptionInvoiceRequestedService
     criteria.put("status", ENABLED);
     criteria.put("page", event.getUserPage());
     criteria.put("pageSize", MAX_SIZE);
-    // TODO: add hasSubscriptionStatus criteria
 
     var userToCredit = userRepository.getById(userSubscriptionConf.getUserToCreditId());
     var users = userRepository.findAllByCriteria(criteria);
@@ -84,11 +81,18 @@ public class MonthlySubscriptionInvoiceRequestedService
             var createdInvoice =
                 invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
 
+            log.info(
+                "Invoice(ref={}, customer={}) created",
+                createdInvoice.getRef(),
+                createdInvoice.getCustomer().getName());
+            /*
+            TODO : uncomment to triggered mail sent
             eventProducer.accept(
                 List.of(
                     MonthlySubscriptionInvoiceCreated.builder()
                         .invoiceId(createdInvoice.getId())
                         .build()));
+            */
           } else {
             log.info(
                 "User.id={} does not have subscription, skip computing invoice",
@@ -105,9 +109,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
@@ -117,6 +121,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
+    var sendingDate = LocalDate.of(2025, 1, 31);
     LocalDateTime fixedDateTime = LocalDateTime.now();
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
@@ -128,9 +133,9 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfNextMonth())
-        .sendingDate(now())
-        .validityDate(now().plusDays(30L))
+        .toPayAt(temporalUtils.fifthOfMonthAfter(0))
+        .sendingDate(sendingDate)
+        .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)
         .user(userToCredit)
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)

@@ -33,6 +33,14 @@ public class AreaPictureRestMapper {
     Zoom zoom = new Zoom().level(domain.getZoomLevel()).number(arcgisZoom.getZoomLevel());
     var tile = toRestTile(domain.getCurrentTile(), zoom);
     Tile referenceTile = toRestTile(domain.getReferenceTile(), zoom);
+    var actualLayer = layerRestMapper.toRest(domain.getCurrentLayer());
+    var pcrsRestLayer = layerRestMapper.toRest(areaPictureMapLayerService.getPCRSLayer());
+    var aerialPhotographyRestLayer =
+        layerRestMapper.toRest(areaPictureMapLayerService.getAerialPhotography());
+    if (actualLayer == pcrsRestLayer || actualLayer == aerialPhotographyRestLayer) {
+      actualLayer.setPrecisionLevelInCm(5);
+    }
+
     return new AreaPictureDetails()
         .id(domain.getId())
         .fileId(domain.getIdFileInfo())
@@ -47,7 +55,7 @@ public class AreaPictureRestMapper {
         .zoom(zoom)
         .layer(TOUS_FR)
         .availableLayers(List.of(TOUS_FR))
-        .actualLayer(layerRestMapper.toRest(domain.getCurrentLayer()))
+        .actualLayer(actualLayer)
         .otherLayers(domain.getLayers().stream().map(layerRestMapper::toRest).toList())
         .currentGeoPosition(domain.getCurrentGeoPosition())
         .geoPositions(domain.getGeoPositions())

@@ -38,12 +38,13 @@ public class ProjectTokenManager {
   }
 
   /*TODO: retry to get token after 10 secondes in case of server failure*/
+//  TODO: reactivate when fintecture is available
   @Async
   @PostConstruct
   public void refreshFintectureProjectToken() {
-    ssmComponent.setParameterStringValue(
-        getFintectureTokenParameterName(),
-        finctectureTokenManager.getProjectAccessToken().getAccessToken());
+//    ssmComponent.setParameterStringValue(
+//        getFintectureTokenParameterName(),
+//        finctectureTokenManager.getProjectAccessToken().getAccessToken());
   }
 
   private String getFintectureTokenParameterName() {

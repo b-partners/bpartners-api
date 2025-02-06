@@ -30,36 +30,38 @@ public class FinctectureTokenManager {
   private final FintectureConf fintectureConf;
   private static final String BASIC_PREFIX = "Basic ";
 
+//  TODO: reactivate when fintecture is available
   public TokenResponse getProjectAccessToken() {
-    try {
-      HttpClient httpClient = HttpClient.newBuilder().build();
-      HttpRequest.BodyPublisher data = getParamsUrlEncoded(tokenMap());
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(fintectureConf.getOauthUrl()))
-              .header("Content-Type", "application/x-www-form-urlencoded")
-              .header("Accept", "application/json")
-              .header(
-                  "Authorization",
-                  BASIC_PREFIX
-                      + Base64.getEncoder()
-                          .encodeToString(
-                              (fintectureConf.getAppId() + ":" + fintectureConf.getAppSecret())
-                                  .getBytes()))
-              .POST(data)
-              .build();
-      HttpResponse<String> response =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      log.info("TokenResponse Body={}", response.body());
-      return new ObjectMapper()
-          .findAndRegisterModules()
-          .readValue(response.body(), TokenResponse.class);
-    } catch (IOException | URISyntaxException e) {
-      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
+    return null;
+//    try {
+//      HttpClient httpClient = HttpClient.newBuilder().build();
+//      HttpRequest.BodyPublisher data = getParamsUrlEncoded(tokenMap());
+//      HttpRequest request =
+//          HttpRequest.newBuilder()
+//              .uri(new URI(fintectureConf.getOauthUrl()))
+//              .header("Content-Type", "application/x-www-form-urlencoded")
+//              .header("Accept", "application/json")
+//              .header(
+//                  "Authorization",
+//                  BASIC_PREFIX
+//                      + Base64.getEncoder()
+//                          .encodeToString(
+//                              (fintectureConf.getAppId() + ":" + fintectureConf.getAppSecret())
+//                                  .getBytes()))
+//              .POST(data)
+//              .build();
+//      HttpResponse<String> response =
+//          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+//      log.info("TokenResponse Body={}", response.body());
+//      return new ObjectMapper()
+//          .findAndRegisterModules()
+//          .readValue(response.body(), TokenResponse.class);
+//    } catch (IOException | URISyntaxException e) {
+//      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
+//    } catch (InterruptedException e) {
+//      Thread.currentThread().interrupt();
+//      throw new ApiException(SERVER_EXCEPTION, e);
+//    }
   }
 
   private HttpRequest.BodyPublisher getParamsUrlEncoded(Map<String, String> parameters) {

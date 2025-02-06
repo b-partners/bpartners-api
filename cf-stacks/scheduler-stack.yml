@@ -42,7 +42,7 @@ Resources:
       FlexibleTimeWindow:
         Mode: "OFF"
       Name: !Join ['', [!Ref Env, -TriggerMonthlySubscriptionInvoice]]
-      ScheduleExpression: "cron(0 0 28 * ? *)"
+      ScheduleExpression: "cron(0 0 L * ? *)"
       ScheduleExpressionTimezone: "Europe/Paris"
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'

@@ -38,4 +38,7 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
 
   @Query("select u from HUser u where u.userSubscriptionE2Id is not null")
   List<HUser> getUsersWithSubscription();
+
+  @Query("select u from HUser u where u.parentUser.id = ?1")
+  List<HUser> findSubUsersByParentId(String parentId);
 }

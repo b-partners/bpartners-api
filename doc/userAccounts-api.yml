@@ -34,6 +34,37 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  getSubUser:
+    get:
+      tags:
+        - User Accounts
+      summary: Get sub-user
+      operationId: getSubUser
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List of the sub-user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getUserById:
     get:
       tags:
@@ -817,6 +848,8 @@ components:
           $ref: '#/components/schemas/UserSubscriptionStatus'
         subscription:
           $ref: '#/components/schemas/UserSubscription'
+        userParent:
+          $ref: '#/components/schemas/User'
     UserSubscriptionStatus:
       type: string
       enum:

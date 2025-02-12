@@ -193,6 +193,20 @@ class UserIT extends MockedThirdParties {
   }
 
   @Test
+  void get_sub_user_of_the_parent_user() throws ApiException {
+    reset(subscriptionService);
+    when(subscriptionService.getSubscriptionByUser(any())).thenReturn(userSubscriptionMaker(false));
+    when(cognitoComponentMock.getEmailByToken(JOE_DOE_COGNITO_TOKEN)).thenReturn(JOE_DOE_EMAIL);
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    var actual = api.getSubUser(JANE_DOE_USER_ID);
+
+    var expected = List.of();
+    assertEquals(expected, actual);
+  }
+
+  @Test
   void read_user_using_cognito_ok() throws ApiException {
     reset(subscriptionService);
     when(subscriptionService.getSubscriptionByUser(any())).thenReturn(userSubscriptionMaker(false));

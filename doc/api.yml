@@ -39,8 +39,8 @@ paths:
   #############################################
   /users/{id}:
     $ref: './userAccounts-api.yml#/operations/getUserById'
-  /users/{id}/subUsers:
-    $ref: './userAccounts-api.yml#/operations/getSubUser'
+  /users/{id}/subordinatesUsers:
+    $ref: './userAccounts-api.yml#/operations/getSubordinatesUsers'
   /dummy-user/:
     $ref: './userAccounts-api.yml#/operations/deleteUser'
   /users/{id}/accounts:

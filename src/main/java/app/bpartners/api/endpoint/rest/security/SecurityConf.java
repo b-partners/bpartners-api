@@ -160,7 +160,7 @@ public class SecurityConf {
                             GET, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(GET, "/users/*/subUsers", authResourceProvider))
+                        new SelfUserMatcher(GET, "/users/*/subordinatesUsers", authResourceProvider))
                     .authenticated()
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())

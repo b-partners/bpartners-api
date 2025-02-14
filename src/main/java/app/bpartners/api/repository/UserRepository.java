@@ -34,5 +34,5 @@ public interface UserRepository {
 
   List<User> getUsersWithSubscription();
 
-  List<User> findSubUsersByParentId(String id);
+  List<User> findSubordinatesUsersByParentId(String id);
 }

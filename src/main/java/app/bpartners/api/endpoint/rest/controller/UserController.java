@@ -86,9 +86,9 @@ public class UserController {
     return mapper.toRest(getAuthUser(request, id));
   }
 
-  @GetMapping("/users/{id}/subUsers")
-  public List<User> getSubUser(@PathVariable String id) {
-    return service.findSubUsersByParentId(id).stream().map(mapper::toRest).toList();
+  @GetMapping("/users/{id}/subordinatesUsers")
+  public List<User> getSubordinatesUsers(@PathVariable String id) {
+    return service.findSubordinatesUsersByParentId(id).stream().map(mapper::toRest).toList();
   }
 
   // TODO: put into a customAuthProvider that does not needs legal file check

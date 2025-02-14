@@ -1,5 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
+import static java.util.stream.Collectors.toList;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
@@ -22,7 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,13 +64,15 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
-  public List<User> findSubUsersByParentId(String id) {
-    return jpaRepository.findSubUsersByParentId(id).stream().map(userMapper::toDomain).toList();
+  public List<User> findSubordinatesUsersByParentId(String parentId) {
+    return jpaRepository.findSubordinatesUsersByParentId(parentId).stream()
+        .map(userMapper::toDomain)
+        .toList();
   }
 
   @Override
   public List<User> findAll() {
-    return jpaRepository.findAll().stream().map(userMapper::toDomain).collect(Collectors.toList());
+    return jpaRepository.findAll().stream().map(userMapper::toDomain).collect(toList());
   }
 
   @Override

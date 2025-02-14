@@ -41,8 +41,8 @@ public class UserService {
   }
 
   @Transactional
-  public List<User> findSubUsersByParentId(String parentId) {
-    return userRepository.findSubUsersByParentId(parentId);
+  public List<User> findSubordinatesUsersByParentId(String parentId) {
+    return userRepository.findSubordinatesUsersByParentId(parentId);
   }
 
   @Transactional

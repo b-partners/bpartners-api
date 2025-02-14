@@ -197,7 +197,7 @@ class UserIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient(JANE_DOE_TOKEN);
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    List<User> actualUser = api.getSubUser(JANE_DOE_ID);
+    List<User> actualUser = api.getSubordinatesUsers(JANE_DOE_ID);
 
     assertEquals(JOE_DOE_ID, actualUser.getFirst().getId());
   }

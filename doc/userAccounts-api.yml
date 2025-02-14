@@ -34,12 +34,12 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  getSubUser:
+  getSubordinatesUsers:
     get:
       tags:
         - User Accounts
       summary: Get sub-user
-      operationId: getSubUser
+      operationId: getSubordinatesUsers
       parameters:
         - name: id
           in: path

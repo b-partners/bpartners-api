@@ -40,5 +40,5 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
   List<HUser> getUsersWithSubscription();
 
   @Query("select u from HUser u where u.parentUser.id = ?1")
-  List<HUser> findSubUsersByParentId(String parentId);
+  List<HUser> findSubordinatesUsersByParentId(String parentId);
 }

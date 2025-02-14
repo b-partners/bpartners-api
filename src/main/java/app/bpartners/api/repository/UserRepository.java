@@ -33,4 +33,6 @@ public interface UserRepository {
   void deleteById(String id);
 
   List<User> getUsersWithSubscription();
+
+  List<User> findSubordinatesUsersByParentId(String id);
 }

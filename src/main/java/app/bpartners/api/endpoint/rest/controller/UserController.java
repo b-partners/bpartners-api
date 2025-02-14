@@ -86,6 +86,11 @@ public class UserController {
     return mapper.toRest(getAuthUser(request, id));
   }
 
+  @GetMapping("/users/{id}/subordinatesUsers")
+  public List<User> getSubordinatesUsers(@PathVariable String id) {
+    return service.findSubordinatesUsersByParentId(id).stream().map(mapper::toRest).toList();
+  }
+
   // TODO: put into a customAuthProvider that does not needs legal file check
   private app.bpartners.api.model.User getAuthUser(HttpServletRequest request, String userId) {
     String bearer = request.getHeader(AUTHORIZATION_HEADER);

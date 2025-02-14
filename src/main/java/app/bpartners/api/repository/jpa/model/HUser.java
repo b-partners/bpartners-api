@@ -56,6 +56,10 @@ public class HUser implements Serializable {
   @Column(name = "preferred_account_id")
   private String preferredAccountId;
 
+  @ManyToOne(fetch = EAGER)
+  @JoinColumn(name = "parent_user_id")
+  private HUser parentUser;
+
   private String email;
   private String bridgeUserId; // TODO: persist this when creating new users
   private String bridgePassword; // TODO: persist this when creating new users

@@ -52,6 +52,7 @@ public class User implements Serializable {
   private List<Role> roles;
   private String snsArn;
   private String deviceToken;
+  private User parentUser;
 
   public String describe() {
     return "User(id" + id + ", name=" + getName() + ", email=" + email + ")";

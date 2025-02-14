@@ -193,6 +193,16 @@ class UserIT extends MockedThirdParties {
   }
 
   @Test
+  void get_sub_user_of_the_parent_user() throws ApiException {
+    ApiClient joeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+
+    List<User> actualUser = api.getSubordinatesUsers(JANE_DOE_ID);
+
+    assertEquals(JOE_DOE_ID, actualUser.getFirst().getId());
+  }
+
+  @Test
   void read_user_using_cognito_ok() throws ApiException {
     reset(subscriptionService);
     when(subscriptionService.getSubscriptionByUser(any())).thenReturn(userSubscriptionMaker(false));

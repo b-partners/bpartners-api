@@ -14,7 +14,6 @@ import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
-import app.bpartners.api.service.subscription.SubscriptionService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,11 +34,15 @@ public class UserService {
   private final InvoiceSummaryJpaRepository invoiceSummaryJpaRepository;
   private final BridgeApi bridgeApi;
   private final EventProducer<UserRegistrationRequested> eventProducer;
-  private final SubscriptionService subscriptionService;
 
   @Transactional
   public User getByIdAccount(String idAccount) {
     return userRepository.getByIdAccount(idAccount);
+  }
+
+  @Transactional
+  public List<User> findSubordinatesUsersByParentId(String parentId) {
+    return userRepository.findSubordinatesUsersByParentId(parentId);
   }
 
   @Transactional

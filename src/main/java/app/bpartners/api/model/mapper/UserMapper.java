@@ -79,6 +79,8 @@ public class UserMapper {
         .roles(entityUser.getRoles() == null ? List.of() : Arrays.asList(entityUser.getRoles()))
         .snsArn(entityUser.getSnsArn())
         .deviceToken(entityUser.getDeviceToken())
+        .parentUser(
+            entityUser.getParentUser() == null ? null : toDomain(entityUser.getParentUser()))
         .build();
   }
 
@@ -123,6 +125,7 @@ public class UserMapper {
         .roles(toSave.getRoles() == null ? new Role[] {} : toSave.getRoles().toArray(Role[]::new))
         .snsArn(toSave.getSnsArn())
         .deviceToken(toSave.getDeviceToken())
+        .parentUser(toSave.getParentUser() == null ? null : toEntity(toSave.getParentUser()))
         .build();
   }
 

@@ -15,14 +15,20 @@ public class AreaPictureMapLayerRestMapper {
     var maxArcgisZoom = domain.getMaxZoomLevelAsArcgisZoom();
     Zoom maxZoom =
         new Zoom().level(domain.getMaximumZoomLevel()).number(maxArcgisZoom.getZoomLevel());
+    int precision = domain.getPrecisionLevelInCm();
+    int year = domain.getYear();
+    if (domain.getName().equals("cite:PCRS")) {
+      precision = 5;
+      year = 2024;
+    }
     return new AreaPictureMapLayer()
         .id(domain.getId())
         .name(domain.getName())
-        .year(domain.getYear())
+        .year(year)
         .departementName(domain.getDepartementName())
         .maximumZoomLevel(domain.getMaximumZoomLevel())
         .maximumZoom(maxZoom)
-        .precisionLevelInCm(domain.getPrecisionLevelInCm())
+        .precisionLevelInCm(precision)
         .source(domain.getSource());
   }
 

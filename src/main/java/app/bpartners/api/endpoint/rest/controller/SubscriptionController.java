@@ -2,7 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered;
-import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogMapper;
 import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class SubscriptionController {
   private final EventProducer eventProducer;
   private final SubscriptionService service;
-  private final SubscriptionConsumptionLogRestMapper subscriptionConsumptionLogRestMapper;
+  private final SubscriptionConsumptionLogMapper subscriptionConsumptionLogMapper;
 
   @PostMapping("/monthlySubscriptionInvoiceTrigger")
   public String triggerMonthlySubscriptionInvoice() {
@@ -32,7 +32,18 @@ public class SubscriptionController {
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           Instant to) {
     return service.findConsumptionLogsByUserId(uId, from, to).stream()
-        .map(subscriptionConsumptionLogRestMapper::toRest)
+        .map(subscriptionConsumptionLogMapper::toRest)
         .toList();
+  }
+
+  @PostMapping("/users/{uId}/subscriptionConsumptionLogs")
+  public SubscriptionConsumptionLog addSubscriptionConsumptionLogs(
+      @PathVariable String uId,
+      @RequestParam String geoJobsApiKey,
+      @RequestBody SubscriptionConsumptionLog subscriptionConsumptionLog) {
+    app.bpartners.api.model.subscription.SubscriptionConsumptionLog consumptionLog =
+        service.addConsumptionLog(
+            geoJobsApiKey, subscriptionConsumptionLogMapper.toDomain(subscriptionConsumptionLog));
+    return subscriptionConsumptionLogMapper.toRest(consumptionLog);
   }
 }

@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.controller.SubscriptionController;
-import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogMapper;
 import app.bpartners.api.endpoint.rest.model.ConsumptionType;
 import app.bpartners.api.endpoint.rest.model.ConsumptionUnit;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
@@ -19,8 +19,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class SubscriptionControllerTest {
-  SubscriptionConsumptionLogRestMapper consumptionLogRestMapper =
-      new SubscriptionConsumptionLogRestMapper();
+  SubscriptionConsumptionLogMapper consumptionLogRestMapper =
+      new SubscriptionConsumptionLogMapper();
   SubscriptionService subscriptionServiceMock = mock(SubscriptionService.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
   TemporalUtils temporalUtils = new TemporalUtils();

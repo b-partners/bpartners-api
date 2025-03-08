@@ -108,6 +108,9 @@ public class HUser implements Serializable {
   private String deviceToken;
   private String apiKey;
 
+  @Column(name = "geo_jobs_apikey")
+  private String geoJobsApikey;
+
   public Instant getBridgeItemLastRefresh() {
     return bridgeItemLastRefresh == null
         ? null

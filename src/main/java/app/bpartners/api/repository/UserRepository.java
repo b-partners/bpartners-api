@@ -24,6 +24,8 @@ public interface UserRepository {
 
   User getByEmail(String email);
 
+  User getByGeoJobsApikey(String geoJobsApikey);
+
   Optional<User> findByEmail(String email);
 
   User getById(String id);

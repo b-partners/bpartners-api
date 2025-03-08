@@ -1,5 +1,6 @@
 package app.bpartners.api.model.subscription;
 
 public enum SubscriptionConsumptionType {
-  ROOF_ANALYSIS
+  ROOF_ANALYSIS,
+  DETECTION_BUTTON
 }

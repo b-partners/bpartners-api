@@ -69,6 +69,26 @@ public class SubscriptionService {
     return consumptionLogJpaRepository.save(subscriptionConsumptionLog);
   }
 
+  public SubscriptionConsumptionLog addConsumptionLog(
+      String apiKey, SubscriptionConsumptionLog subscriptionConsumptionLog) {
+    User user = userRepository.getByGeoJobsApikey(apiKey);
+    if (user != null) {
+      SubscriptionConsumptionLog consumptionLogToPersist =
+          SubscriptionConsumptionLog.builder()
+              .id(subscriptionConsumptionLog.getId())
+              .userId(user.getId())
+              .usageMetric(subscriptionConsumptionLog.getUsageMetric())
+              .consumptionType(subscriptionConsumptionLog.getConsumptionType())
+              .consumptionUnit(subscriptionConsumptionLog.getConsumptionUnit())
+              .comment(subscriptionConsumptionLog.getComment())
+              .creationDatetime(subscriptionConsumptionLog.getCreationDatetime())
+              .build();
+      addConsumption(consumptionLogToPersist);
+      return consumptionLogToPersist;
+    }
+    return null;
+  }
+
   public List<SubscriptionConsumptionLog> findConsumptionLogsByUserId(
       String userId, @Nullable Instant from, @Nullable Instant to) {
     var startOfMonth = temporalUtils.startOfMonth();

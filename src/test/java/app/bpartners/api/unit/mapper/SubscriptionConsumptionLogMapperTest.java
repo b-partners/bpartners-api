@@ -6,14 +6,14 @@ import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogMapper;
 import app.bpartners.api.endpoint.rest.model.ConsumptionType;
 import app.bpartners.api.endpoint.rest.model.ConsumptionUnit;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import org.junit.jupiter.api.Test;
 
-class SubscriptionConsumptionLogRestMapperTest {
-  SubscriptionConsumptionLogRestMapper subject = new SubscriptionConsumptionLogRestMapper();
+class SubscriptionConsumptionLogMapperTest {
+  SubscriptionConsumptionLogMapper subject = new SubscriptionConsumptionLogMapper();
 
   @Test
   void map_domain_to_rest() {

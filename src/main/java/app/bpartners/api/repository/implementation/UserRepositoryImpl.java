@@ -179,6 +179,11 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
+  public User getByGeoJobsApikey(String geoJosApikey) {
+    return userMapper.toDomain(jpaRepository.getHUserByGeoJobsApikey(geoJosApikey));
+  }
+
+  @Override
   public Optional<User> findByEmail(String email) {
     return jpaRepository.getByEmail(email) != null
         ? Optional.of(userMapper.toDomain(jpaRepository.getByEmail(email)))

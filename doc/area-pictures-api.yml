@@ -67,11 +67,6 @@ operations:
           schema:
             type: string
           required: true
-        - in: query
-          name: userId
-          schema:
-            type: string
-          required: true
       requestBody:
         required: true
         description:

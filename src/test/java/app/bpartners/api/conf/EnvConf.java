@@ -44,5 +44,6 @@ public class EnvConf {
     registry.add("google.geocode.api.key", () -> "dummy");
     registry.add("stripe.subscription.product.essential.id", () -> "dummy");
     registry.add("dashboard.url", () -> "dummy");
+    registry.add("stripe.private.api.key", () -> "dummy");
   }
 }

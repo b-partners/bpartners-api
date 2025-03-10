@@ -144,4 +144,8 @@ public class UserService {
     // TODO: replace to users count who requested registration not those with active subscriptions
     return userRepository.getUsersWithSubscription();
   }
+
+  public User getUserByApiKey(String apikey) {
+    return userRepository.getUserByApiKey(apikey);
+  }
 }

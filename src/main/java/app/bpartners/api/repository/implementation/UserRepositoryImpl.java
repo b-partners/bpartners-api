@@ -160,6 +160,16 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
+  public User getUserByApiKey(String apiKey) {
+    var user =
+        jpaRepository
+            .findByApiKey(apiKey)
+            .orElseThrow(
+                () -> new NotFoundException("No user with the apiKey " + apiKey + " was found"));
+    return userMapper.toDomain(user);
+  }
+
+  @Override
   public User getByEmail(String email) {
     return userMapper.toDomain(
         jpaRepository

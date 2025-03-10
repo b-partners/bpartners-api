@@ -6,6 +6,7 @@ servers:
   - url: https://api.prod.bpartners.app
 security:
   - BearerAuth: [ ]
+  - apiKeyHeader: [ ]
 
 paths:
   #############################################

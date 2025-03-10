@@ -17,7 +17,6 @@ class GeoCodeApiTest {
 
   @Test
   void retrieve_geoposition_from_address() throws IOException, InterruptedException, ApiException {
-    System.out.println(System.getenv("GOOGLE_GEOCODE_API_KEY"));
     GeoPosition geoPosition =
         geoCodeApi.searchGeoPositionFromAddress("12 Boulevard de la Croisette, 06400 Cannes");
     assertNotNull(geoPosition);

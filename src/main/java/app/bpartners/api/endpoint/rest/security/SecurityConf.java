@@ -99,8 +99,7 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/health/email", GET.name()),
                         new AntPathRequestMatcher("/health/event1", GET.name()),
                         new AntPathRequestMatcher("/health/event2", GET.name()),
-                        new AntPathRequestMatcher("/health/event/uuids", POST.name()),
-                        new AntPathRequestMatcher("/accounts/*/areaPictures/*", PUT.name())))),
+                        new AntPathRequestMatcher("/health/event/uuids", POST.name())))),
             AnonymousAuthenticationFilter.class)
         // authorize
         .authorizeHttpRequests(
@@ -357,8 +356,10 @@ public class SecurityConf {
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures/*", authResourceProvider))
                     .authenticated()
-                    .requestMatchers(PUT, "/accounts/*/areaPictures/*")
-                    .permitAll()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
+                            PUT, "/accounts/*/areaPictures/*", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures/*/annotations", authResourceProvider))

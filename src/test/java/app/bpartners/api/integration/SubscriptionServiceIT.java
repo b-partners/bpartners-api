@@ -20,7 +20,6 @@ import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
-import com.stripe.StripeClient;
 import java.time.*;
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +37,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
   @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
-  @MockBean StripeClient stripeClientMock;
 
   @Test
   void get_subscription_log_by_user_id_without_date() {
@@ -56,7 +54,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
-  @Disabled
   void create_list_delete_customers() {
     var user = userRepository.findByEmail("jane@email.com").orElseThrow();
 
@@ -200,7 +197,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
-  @Disabled
   void initiate_subscription_without_stripe_customer_associated_ko() {
     var user = userRepository.findByEmail("jane@email.com").orElseThrow();
     var defaultSubscription = getDefaultSubscription();
@@ -219,7 +215,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
-  @Disabled
   void initiate_subscription_with_active_subscription_ko() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(
@@ -284,7 +279,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
   // TODO: update trial period so it always be in trial mode
   @Test
-  @Disabled
   void user_has_active_subscription() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(

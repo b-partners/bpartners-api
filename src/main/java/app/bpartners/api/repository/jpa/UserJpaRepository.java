@@ -16,6 +16,8 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
 
   Long countByStatus(EnableStatus status);
 
+  Optional<HUser> findByApiKey(String apiKey);
+
   @Lock(PESSIMISTIC_WRITE)
   Optional<HUser> findByAccessToken(String token);
 

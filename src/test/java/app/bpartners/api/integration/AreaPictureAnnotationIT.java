@@ -153,11 +153,11 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   }
 
   private ApiClient joeDoeClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
   }
 
   private ApiClient janeDoeClient() {
-    return TestUtils.anApiClient(JANE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(JANE_DOE_TOKEN, null, localPort);
   }
 
   @Test

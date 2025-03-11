@@ -147,6 +147,7 @@ public class TestUtils {
   public static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   public static final String BEARER_PREFIX = "Bearer ";
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
+  public static final String JOE_DOE_API_KEY = "joe_doe_api_key";
   public static final String BERNARD_DOE_TOKEN = "bernard_doe_token";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_token";
   public static final String PROJECT_TOKEN = "project_token";
@@ -787,13 +788,18 @@ public class TestUtils {
     return new Geojson().type(GEOJSON_TYPE_POINT).longitude(1.0).latitude(23.5);
   }
 
-  public static ApiClient anApiClient(String token, int serverPort) {
+  public static ApiClient anApiClient(String token, String apiKey, int serverPort) {
     ApiClient client = new ApiClient();
     client.setScheme("http");
     client.setHost("localhost");
     client.setPort(serverPort);
-    client.setRequestInterceptor(
-        httpRequestBuilder -> httpRequestBuilder.header("Authorization", BEARER_PREFIX + token));
+    if (apiKey == null) {
+      client.setRequestInterceptor(
+          httpRequestBuilder -> httpRequestBuilder.header("Authorization", BEARER_PREFIX + token));
+    } else {
+      client.setRequestInterceptor(
+          httpRequestBuilder -> httpRequestBuilder.header("x-api-key", apiKey));
+    }
     return client;
   }
 

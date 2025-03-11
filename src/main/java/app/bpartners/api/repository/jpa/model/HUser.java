@@ -106,6 +106,7 @@ public class HUser implements Serializable {
 
   private String snsArn;
   private String deviceToken;
+  private String apiKey;
 
   public Instant getBridgeItemLastRefresh() {
     return bridgeItemLastRefresh == null

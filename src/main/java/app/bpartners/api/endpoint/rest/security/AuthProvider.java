@@ -1,18 +1,7 @@
 package app.bpartners.api.endpoint.rest.security;
 
-import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
-
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
-import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
-import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpiredException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
-import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
-import app.bpartners.api.service.LegalFileService;
-import app.bpartners.api.service.UserService;
-import app.bpartners.api.service.subscription.SubscriptionService;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
@@ -20,16 +9,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
-  private final CognitoComponent cognitoComponent;
-  private final UserService userService;
-  private final LegalFileService legalFileService;
-  private final SubscriptionService subscriptionService;
+  private final UsernamePasswordAuthenticator authenticator;
 
   public static Principal getPrincipal() {
     SecurityContext context = SecurityContextHolder.getContext();
@@ -72,55 +57,6 @@ public class AuthProvider extends AbstractUserDetailsAuthenticationProvider {
   @Override
   protected UserDetails retrieveUser(
       String username, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
-    String bearer = getBearerFromHeader(usernamePasswordAuthenticationToken);
-    if (bearer == null) {
-      throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
-    }
-    String email = cognitoComponent.getEmailByToken(bearer);
-    if (email == null) {
-      throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
-    }
-    User user = userService.getUserByEmail(email);
-    UserToken bridgeUserToken = userService.getLatestToken(user);
-    bearer = bridgeUserToken == null ? bearer : bridgeUserToken.getAccessToken();
-    List<LegalFile> legalFilesList =
-        legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
-    checkLegalFiles(legalFilesList, user);
-    var userSubscription = subscriptionService.getSubscriptionByUserId(user.getId());
-    if (!userSubscription.hasValidSubscription()) {
-      throw new UserSubscriptionExpiredException(
-          "User.id=" + user.getId() + " does not have a valid subscription or free trial expired");
-    }
-
-    return new Principal(user, bearer);
-  }
-
-  private String getBearerFromHeader(
-      UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
-    Object tokenObject = usernamePasswordAuthenticationToken.getCredentials();
-    if (!(tokenObject instanceof String) || !((String) tokenObject).startsWith(BEARER_PREFIX)) {
-      return null;
-    }
-    return ((String) tokenObject).substring(BEARER_PREFIX.length()).trim();
-  }
-
-  private void checkLegalFiles(List<LegalFile> legalFiles, User user) {
-    if (!legalFiles.isEmpty()) {
-      StringBuilder exceptionMessageBuilder = new StringBuilder();
-      legalFiles.forEach(
-          legalFile -> {
-            if (!legalFile.isApproved()) {
-              exceptionMessageBuilder
-                  .append("User.")
-                  .append(user.getId())
-                  .append(" has not approved the legal file ")
-                  .append(legalFile.getName());
-            }
-          });
-      String exceptionMessage = exceptionMessageBuilder.toString();
-      if (!exceptionMessage.isEmpty()) {
-        throw new UnapprovedLegalFileException(exceptionMessage);
-      }
-    }
+    return authenticator.retrieveUser(username, usernamePasswordAuthenticationToken);
   }
 }

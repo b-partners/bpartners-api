@@ -1,42 +1,55 @@
-package app.bpartners.api.unit.security;
+package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
+import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.endpoint.rest.security.BearerAuthenticator;
 import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpiredException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
+import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.service.LegalFileService;
-import app.bpartners.api.service.UserService;
-import app.bpartners.api.service.subscription.SubscriptionService;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-class AuthProviderTest {
+@Testcontainers
+@AutoConfigureMockMvc
+class AuthProviderIT extends MockedThirdParties {
   private static final String TOKEN_VALUE = "token";
-  CognitoComponent cognitoComponentMock = mock();
-  UserService userServiceMock = mock();
-  LegalFileService legalFileServiceMock = mock();
-  SubscriptionService subscriptionServiceMock = mock();
-  AuthProvider subject =
-      new AuthProvider(
-          cognitoComponentMock, userServiceMock, legalFileServiceMock, subscriptionServiceMock);
+  @MockBean BearerAuthenticator bearerAuthenticatorMock;
+  @MockBean LegalFileService legalFileServiceMock;
+  @Autowired AuthProvider subject;
+
+  @BeforeEach
+  void setUp() {
+    when(bearerAuthenticatorMock.retrieveUser(any(), any()))
+        .thenReturn(
+            new Principal(
+                User.builder().roles(List.of(EVAL_PROSPECT)).id(JOE_DOE_ID).build(),
+                JOE_DOE_TOKEN));
+    when(legalFileServiceMock.getAllToBeApprovedLegalFilesByUserId(any())).thenReturn(List.of());
+  }
 
   @Test
   void user_authenticated() {
-    when(cognitoComponentMock.getEmailByToken(TOKEN_VALUE)).thenReturn("dummyEmail");
-    when(userServiceMock.getUserByEmail("dummyEmail")).thenReturn(mockUser());
-    when(legalFileServiceMock.getAllToBeApprovedLegalFilesByUserId(any())).thenReturn(List.of());
     var userSubscriptionMock = mock(UserSubscription.class);
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
-    when(subscriptionServiceMock.getSubscriptionByUserId(any())).thenReturn(userSubscriptionMock);
+    when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(userSubscriptionMock);
+
     var mockCredentials = "Bearer " + TOKEN_VALUE;
     var usernamePasswordAuthenticationToken =
         new UsernamePasswordAuthenticationToken(mockPrincipal(), mockCredentials);
@@ -46,12 +59,10 @@ class AuthProviderTest {
 
   @Test
   void user_does_not_have_valid_subscription() {
-    when(cognitoComponentMock.getEmailByToken(TOKEN_VALUE)).thenReturn("dummyEmail");
-    when(userServiceMock.getUserByEmail("dummyEmail")).thenReturn(mockUser());
-    when(legalFileServiceMock.getAllToBeApprovedLegalFilesByUserId(any())).thenReturn(List.of());
     var userSubscriptionMock = mock(UserSubscription.class);
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(false);
-    when(subscriptionServiceMock.getSubscriptionByUserId(any())).thenReturn(userSubscriptionMock);
+    when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(userSubscriptionMock);
+
     var mockCredentials = "Bearer " + TOKEN_VALUE;
     var usernamePasswordAuthenticationToken =
         new UsernamePasswordAuthenticationToken(mockPrincipal(), mockCredentials);
@@ -62,7 +73,7 @@ class AuthProviderTest {
             () -> subject.authenticate(usernamePasswordAuthenticationToken));
 
     assertEquals(
-        "User.id=null does not have a valid subscription or free trial expired",
+        "User.id=joe_doe_id does not have a valid subscription or free trial expired",
         actual.getMessage());
   }
 

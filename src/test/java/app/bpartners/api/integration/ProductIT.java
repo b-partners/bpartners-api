@@ -52,7 +52,7 @@ class ProductIT extends MockedThirdParties {
   @MockBean private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
   }
 
   private static Product updatedProduct(Product product) {

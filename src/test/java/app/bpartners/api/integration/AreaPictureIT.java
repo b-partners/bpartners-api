@@ -344,7 +344,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   private ApiClient joeDoeClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(null, JOE_DOE_API_KEY, localPort);
   }
 
   @BeforeEach
@@ -449,7 +449,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 .score(0.0));
     when(accountHolderRepository.findById(any()))
         .thenReturn(AccountHolder.builder().id("accountHolderId").build());
-    var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, JOE_DOE_ID, payload);
+    var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
 
     AreaPictureDetails expected = removeAvailableLayers(createFrom(payload, payloadId));
     expected.setGeoPositions(actual.getGeoPositions());

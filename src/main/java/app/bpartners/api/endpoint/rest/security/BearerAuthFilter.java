@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.security;
 
+import static app.bpartners.api.service.utils.SecurityUtils.API_KEY_HEADER;
+import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static org.springframework.http.HttpMethod.GET;
 
 import jakarta.servlet.FilterChain;
@@ -18,7 +20,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
 
   private static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
-  private static final String BEARER_PREFIX = "Bearer ";
   private final String authHeader;
 
   protected BearerAuthFilter(RequestMatcher requestMatcher, String authHeader) {
@@ -34,8 +35,14 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
       String accessToken = request.getParameterMap().get(BEARER_QUERY_PARAMETER_NAME)[0];
       bearer = BEARER_PREFIX + accessToken;
     }
-    return getAuthenticationManager()
-        .authenticate(new UsernamePasswordAuthenticationToken(bearer, bearer));
+    try {
+      return getAuthenticationManager()
+          .authenticate(new UsernamePasswordAuthenticationToken(bearer, bearer));
+    } catch (Exception ignored) {
+      String apikey = request.getHeader(API_KEY_HEADER);
+      return getAuthenticationManager()
+          .authenticate(new UsernamePasswordAuthenticationToken(API_KEY_HEADER, apikey));
+    }
   }
 
   @Override

@@ -2,6 +2,7 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -10,9 +11,12 @@ import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.model.AuthInitiation;
 import app.bpartners.api.endpoint.rest.model.CreateToken;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.security.BearerAuthenticator;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoConf;
+import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -33,15 +37,18 @@ class AuthenticationIT extends MockedThirdParties {
   public static final String DEFAULT_STATE = "12341234";
   private static final String PHONE_NUMBER = "+261340465338";
   @MockBean private CognitoConf cognitoConf;
+  @MockBean private BearerAuthenticator bearerAuthenticatorMock;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
   }
 
   @BeforeEach
   public void setUp() {
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
+    when(bearerAuthenticatorMock.retrieveUser(any(), any()))
+        .thenReturn(new Principal(User.builder().id(JOE_DOE_ID).build(), JOE_DOE_TOKEN));
   }
 
   CreateToken invalidCreateToken() {

@@ -70,8 +70,8 @@ public class SubscriptionService {
   }
 
   public SubscriptionConsumptionLog addConsumptionLog(
-      String apiKey, SubscriptionConsumptionLog subscriptionConsumptionLog) {
-    User user = userRepository.getByGeoJobsApikey(apiKey);
+      SubscriptionConsumptionLog subscriptionConsumptionLog) {
+    User user = userRepository.getUserByApiKey("TODO: get apiKey");
     if (user != null) {
       SubscriptionConsumptionLog consumptionLogToPersist =
           SubscriptionConsumptionLog.builder()

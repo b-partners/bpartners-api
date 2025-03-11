@@ -35,8 +35,6 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
   @Lock(PESSIMISTIC_WRITE)
   HUser getHUserById(String id);
 
-  HUser getHUserByGeoJobsApikey(String apiKey);
-
   @Query("select u from HUser u where u.userSubscriptionE2Id is null and u.status = 'ENABLED'")
   List<HUser> getEnabledUsersWithoutSubscription();
 

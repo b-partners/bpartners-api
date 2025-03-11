@@ -11,11 +11,6 @@ operations:
           schema:
             type: string
           required: true
-        - in: query
-          name: geoJobsApiKey
-          schema:
-            type: string
-          required: true
       requestBody:
         content:
           application/json:

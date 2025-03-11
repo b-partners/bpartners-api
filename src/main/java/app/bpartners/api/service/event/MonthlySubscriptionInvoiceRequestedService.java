@@ -10,7 +10,6 @@ import static app.bpartners.api.service.subscription.SubscriptionService.FREE_RO
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
@@ -23,6 +22,7 @@ import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.invoice.ReferenceGenerator;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -52,10 +52,10 @@ public class MonthlySubscriptionInvoiceRequestedService
   private final UserRepository userRepository;
   private final CustomerRepository customerRepository;
   private final SubscriptionService subscriptionService;
-  private final EventProducer eventProducer;
   private final UserSubscriptionConf userSubscriptionConf;
   private final CustomDateFormatter customDateFormatter;
   private final TemporalUtils temporalUtils;
+  private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
@@ -67,7 +67,25 @@ public class MonthlySubscriptionInvoiceRequestedService
     var userToCredit = userRepository.getById(userSubscriptionConf.getUserToCreditId());
     var users = userRepository.findAllByCriteria(criteria);
     var subscribedUsers =
-        users.stream().filter(user -> user.getUserSubscriptionId() != null).toList();
+        users.stream()
+            .filter(
+                user -> {
+                  var userSubscriptionId = user.getUserSubscriptionId();
+                  if (userSubscriptionId == null) {
+                    return false;
+                  }
+                  var optionalUserSubscriptionEligible =
+                      subscriptionEligibleJpaRepository.findByUserId(user.getId());
+                  if (optionalUserSubscriptionEligible.isEmpty()) {
+                    return false;
+                  }
+                  var subscriptionEligibility = optionalUserSubscriptionEligible.get();
+                  return !subscriptionEligibility
+                          .getEligibleFrom()
+                          .isBefore(LocalDate.of(2025, 3, 11))
+                      && subscriptionEligibility.getTrialPeriodDays() == 0;
+                })
+            .toList();
     var userIndex = new AtomicInteger(1);
     subscribedUsers.forEach(
         userToDebit -> {

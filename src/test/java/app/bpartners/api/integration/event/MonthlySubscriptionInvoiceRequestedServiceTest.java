@@ -2,11 +2,11 @@ package app.bpartners.api.integration.event;
 
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.*;
 
-import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
@@ -20,6 +20,7 @@ import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -29,6 +30,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -37,8 +39,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   UserRepository userRepositoryMock = mock();
   CustomerRepository customerRepositoryMock = mock();
   SubscriptionService subscriptionServiceMock = mock();
-  EventProducer eventProducerMock = mock();
   UserSubscriptionConf userSubscriptionConfMock = mock();
+  UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock = mock();
   CustomDateFormatter customDateFormatter = new CustomDateFormatter();
   TemporalUtils temporalUtils = new TemporalUtils();
   MonthlySubscriptionInvoiceRequestedService subject =
@@ -47,22 +49,28 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           userRepositoryMock,
           customerRepositoryMock,
           subscriptionServiceMock,
-          eventProducerMock,
           userSubscriptionConfMock,
           customDateFormatter,
-          temporalUtils);
+          temporalUtils,
+          subscriptionEligibleJpaRepositoryMock);
 
   @Test
   void test_invoice_product_for_extra_analysis() {
     var userPage = 1;
     var userToCredit = User.builder().build();
     var userToCreditId = "userToCreditId";
+    var userSubscriptionId = "subscriptionId";
+    var subscriptionEligibilityMock = mock(UserSubscriptionEligible.class);
+    var userToDebitId = randomUUID().toString();
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
     when(userRepositoryMock.getById(anyString())).thenReturn(userToCredit);
+    when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
+    when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     var accountHolder = AccountHolder.builder().build();
     var subscribedUser =
         User.builder()
-            .userSubscriptionId("subscriptionId")
+            .id(userToDebitId)
+            .userSubscriptionId(userSubscriptionId)
             .accountHolders(List.of(accountHolder))
             .build();
     var users = List.of(subscribedUser);
@@ -90,6 +98,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 consumptionUsageSummary));
     var invoice = Invoice.builder().customer(customerToDebit).build();
     when(invoiceServiceMock.crupdateSubscriptionInvoice(any())).thenReturn(invoice);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userToDebitId))
+        .thenReturn(Optional.of(subscriptionEligibilityMock));
 
     assertDoesNotThrow(
         () -> {
@@ -117,7 +127,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var userSubscriptionMock = mock(UserSubscription.class);
     var subscriptionMock = mock(Subscription.class);
     var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var subscriptionEligibilityMock = mock(UserSubscriptionEligible.class);
     var subscriptionProductName = "subscriptionProductName";
+    var userSubscriptionId = "notNullSubscription";
 
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
     when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
@@ -127,7 +139,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
     when(userToDebitMock.getId()).thenReturn(userToDebitId);
     when(userToDebitMock.getEmail()).thenReturn(customerEmail);
-    when(userToDebitMock.getUserSubscriptionId()).thenReturn("notNullSubscription");
+    when(userToDebitMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
+    when(userToDebitMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
+    when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
+    when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
@@ -148,6 +163,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenReturn(List.of(customerMock));
     when(subscriptionServiceMock.getSubscriptionByUser(userToDebitMock))
         .thenReturn(userSubscriptionMock);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userToDebitId))
+        .thenReturn(Optional.of(subscriptionEligibilityMock));
 
     assertDoesNotThrow(
         () ->
@@ -190,9 +207,12 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var userSubscriptionMock = mock(UserSubscription.class);
     var subscriptionMock = mock(Subscription.class);
     var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var subscriptionEligibilityMock = mock(UserSubscriptionEligible.class);
     var subscriptionProductName = "subscriptionProductName";
     var customerFirstName = "customerFirstName";
     var customerLastName = "customerLastName";
+    var userSubscriptionId = "notNullSubscription";
+    var userToDebitId = randomUUID().toString();
 
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
     when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
@@ -200,15 +220,20 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(invoiceServiceMock.crupdateSubscriptionInvoice(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
+    when(userToDebitMock.getId()).thenReturn(userToDebitId);
     when(userToDebitMock.getDefaultHolder()).thenReturn(holderMock);
     when(userToDebitMock.getEmail()).thenReturn(customerEmail);
     when(userToDebitMock.getFirstName()).thenReturn(customerFirstName);
     when(userToDebitMock.getLastName()).thenReturn(customerLastName);
-    when(userToDebitMock.getUserSubscriptionId()).thenReturn("notNullSubscription");
+    when(userToDebitMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
+    when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
+    when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userToDebitMock.getId()))
+        .thenReturn(Optional.of(subscriptionEligibilityMock));
     when(customerRepositoryMock.findByIdUserAndCriteria(
             any(),
             any(),

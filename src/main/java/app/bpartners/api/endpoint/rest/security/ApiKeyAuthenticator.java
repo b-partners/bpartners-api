@@ -8,6 +8,7 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,6 +20,9 @@ public class ApiKeyAuthenticator implements UsernamePasswordAuthenticator {
   public UserDetails retrieveUser(
       String username, UsernamePasswordAuthenticationToken authenticationToken) {
     var apiKey = getApiKeyFromHeader(authenticationToken);
+    if (apiKey == null) {
+      throw new UsernameNotFoundException("Bad credentials");
+    }
     var user = userService.getUserByApiKey(apiKey);
     return new Principal(user, apiKey);
   }

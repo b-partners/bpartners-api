@@ -147,6 +147,7 @@ public class TestUtils {
   public static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   public static final String BEARER_PREFIX = "Bearer ";
   public static final String JOE_DOE_TOKEN = "joe_doe_token";
+  public static final String JOE_DOE_API_KEY = "joe_doe_api_key";
   public static final String BERNARD_DOE_TOKEN = "bernard_doe_token";
   public static final String JOE_DOE_COGNITO_TOKEN = "joe_doe_token";
   public static final String PROJECT_TOKEN = "project_token";

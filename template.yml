@@ -76,6 +76,7 @@ Globals:
         STRIPE_SUBSCRIPTION_PRODUCT_ESSENTIAL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/stripe/product/essential/id}}'
         SUBSCRIPTION_USER_CREDIT_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/subscription/user/id}}'
         DASHBOARD_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/dashboard/url}}'
+    
         
 
 Parameters:
@@ -83,12 +84,38 @@ Parameters:
     Type: String
 
 Resources:
-  FrontalServerlessRestApi:
-    Type: AWS::Serverless::Api
+  FrontalServerlessHttpApi:
+    StageName: $default
+    Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: Prod
-      BinaryMediaTypes:
-        - "*~1*"
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - "*"
+        AllowOrigins:
+          - "*"
+
+  HttpApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref FrontalServerlessHttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "${FrontalFunction.Arn}:live"
+      PayloadFormatVersion: "1.0"
+      IntegrationMethod: ANY
+      TimeoutInMillis: 300000
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref FrontalServerlessHttpApi
+      RouteKey: $default
+      Target: !Sub "integrations/${HttpApiIntegration}"
 
   FrontalFunction:
     Type: AWS::Serverless::Function
@@ -100,12 +127,12 @@ Resources:
       
       Events:
         ApiCall:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /{proxy+}
             Method: ANY
-            RestApiId:
-              Ref: FrontalServerlessRestApi
+            ApiId:
+              Ref: FrontalServerlessHttpApi
       ReservedConcurrentExecutions: 20
 
   WorkerFunction1:
@@ -128,7 +155,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: app.bpartners.api.MailboxEventHandler::handleRequest
-      MemorySize: 2048
+      MemorySize: 1024
       Timeout: 600 #note(sqs-visibility)
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
       
@@ -140,25 +167,12 @@ Resources:
             BatchSize: 1
       ReservedConcurrentExecutions: 30
 
-  ApplicationResourceGroup:
-    Type: AWS::ResourceGroups::Group
-    Properties:
-      Name:
-        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
-      ResourceQuery:
-        Type: CLOUDFORMATION_STACK_1_0
-  ApplicationInsightsMonitoring:
-    Type: AWS::ApplicationInsights::Application
-    Properties:
-      ResourceGroupName: !Ref ApplicationResourceGroup
-      AutoConfigurationEnabled: 'true'
-
   ApiUrlSSM:
     Type: AWS::SSM::Parameter
     Properties:
       Name: !Join [ '', [ /bpartners/, !Ref Env, /api/url ] ]
       Type: String
-      Value: !Sub "https://${FrontalServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+      Value: !GetAtt FrontalServerlessHttpApi.ApiEndpoint
 
 Outputs:
   ApiUrl:

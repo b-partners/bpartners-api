@@ -25,7 +25,6 @@ public class SubscriptionConsumptionLogMapper {
   private ConsumptionType consumptionTypeToRest(SubscriptionConsumptionType domainConsumptionType) {
     return switch (domainConsumptionType) {
       case ROOF_ANALYSIS -> ConsumptionType.ROOF_ANALYSIS;
-      case DETECTION_BUTTON -> ConsumptionType.DETECTION_BUTTON;
     };
   }
 
@@ -50,7 +49,6 @@ public class SubscriptionConsumptionLogMapper {
 
   private SubscriptionConsumptionType consumptionTypeToDomain(ConsumptionType restConsumptionType) {
     return switch (restConsumptionType) {
-      case DETECTION_BUTTON -> SubscriptionConsumptionType.DETECTION_BUTTON;
       case ROOF_ANALYSIS -> SubscriptionConsumptionType.ROOF_ANALYSIS;
     };
   }

@@ -27,7 +27,7 @@ class OnboardingIT extends MockedThirdParties {
   @MockBean SesService mailerMock;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
   }
 
   @BeforeEach

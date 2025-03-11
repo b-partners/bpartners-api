@@ -33,7 +33,7 @@ public class SheetAuthIT extends MockedThirdParties {
   @MockBean private SheetConf sheetConfMock;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
   }
 
   static SheetConsentInit sheetConsentInit() {

@@ -86,11 +86,11 @@ class UserIT extends MockedThirdParties {
   }
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
   }
 
   private ApiClient anApiClient(String token) {
-    return TestUtils.anApiClient(token, localPort);
+    return TestUtils.anApiClient(token, null, localPort);
   }
 
   @BeforeEach

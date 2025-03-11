@@ -49,7 +49,7 @@ class InvoiceIT extends S3MockedThirdParties {
   @MockBean private AccountHolderJpaRepository holderJpaRepository;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
   }
 
   @BeforeEach

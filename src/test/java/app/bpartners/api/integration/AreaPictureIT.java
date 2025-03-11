@@ -344,7 +344,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   private ApiClient joeDoeClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
   }
 
   @BeforeEach

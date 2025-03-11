@@ -57,7 +57,7 @@ class CustomerIT extends MockedThirdParties {
   @MockBean private SesService sesService;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
   }
 
   @BeforeEach

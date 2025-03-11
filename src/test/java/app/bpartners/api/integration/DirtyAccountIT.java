@@ -64,11 +64,11 @@ class DirtyAccountIT extends MockedThirdParties {
   private static final String OTHER_USER_ID = "OTHER_USER_ID";
 
   private ApiClient joeDoeClient() {
-    return TestUtils.anApiClient(JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
   }
 
   private ApiClient bernardDoeClient() {
-    return TestUtils.anApiClient(BERNARD_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(BERNARD_DOE_TOKEN, null, localPort);
   }
 
   AccountValidationRedirection accountValidationRedirection() {
@@ -329,7 +329,7 @@ class DirtyAccountIT extends MockedThirdParties {
     when(bankRepositoryImplMock.disconnectBank(any())).thenReturn(true);
     when(bridgeApi.findByAccountById(any(), any())).thenReturn(bridgeAccount);
 
-    ApiClient client = TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, localPort);
+    ApiClient client = TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, null, localPort);
     return new UserAccountsApi(client);
   }
 

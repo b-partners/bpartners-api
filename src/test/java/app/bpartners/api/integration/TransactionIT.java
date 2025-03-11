@@ -19,7 +19,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 class TransactionIT extends MockedThirdParties {
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
   }
 
   @BeforeEach

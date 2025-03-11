@@ -33,7 +33,7 @@ public class CalendarAuthIT extends MockedThirdParties {
   @MockBean private CalendarConf calendarConfMock;
 
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
   }
 
   static CalendarConsentInit sheetConsentInit() {

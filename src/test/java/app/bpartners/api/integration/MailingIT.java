@@ -26,7 +26,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Disabled("TODO(fail)")
 class MailingIT extends MockedThirdParties {
   private ApiClient anApiClient() {
-    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, localPort);
+    return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
   }
 
   @BeforeEach

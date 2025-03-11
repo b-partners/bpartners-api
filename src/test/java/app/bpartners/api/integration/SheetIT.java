@@ -170,7 +170,7 @@ public class SheetIT extends MockedThirdParties {
 
   private static ApiClient anApiClient() {
     return TestUtils.anApiClient(
-        TestUtils.JOE_DOE_TOKEN, SheetEnvContextInitializer.getHttpServerPort());
+        TestUtils.JOE_DOE_TOKEN, null, SheetEnvContextInitializer.getHttpServerPort());
   }
 
   @Test

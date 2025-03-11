@@ -1,3 +1,12 @@
+# [0.64.0](https://github.com/b-partners/bpartners-api/compare/v0.63.0...v0.64.0) (2025-03-11)
+
+
+### Reverts
+
+* Revert "feat: make area picture creation permit for unauthenticated user" ([1e4ca90](https://github.com/b-partners/bpartners-api/commit/1e4ca90fe4d6bf7460a5309a7709406e6d4d3495))
+
+
+
 # [0.63.0](https://github.com/b-partners/bpartners-api/compare/v0.62.0...v0.63.0) (2025-03-10)
 
 
@@ -163,16 +172,6 @@
 ### Features
 
 * allow users to send email during onboarding ([f89c650](https://github.com/b-partners/bpartners-api/commit/f89c650514d00037a5f01faebba7d94948940671))
-
-
-
-## [0.54.1](https://github.com/b-partners/bpartners-api/compare/v0.54.0...v0.54.1) (2024-09-10)
-
-
-### Bug Fixes
-
-* avoid NPE on prospect getById ([2bd849c](https://github.com/b-partners/bpartners-api/commit/2bd849c0710e55691252fd345a48453236d57149))
-* paginate getProspects ([edf00da](https://github.com/b-partners/bpartners-api/commit/edf00da1858245dda8d58e0946b64612e4f66c5f))
 
 
 

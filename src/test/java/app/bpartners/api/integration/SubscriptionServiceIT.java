@@ -1,6 +1,8 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
 import static java.time.Month.JANUARY;
@@ -13,10 +15,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.integration.conf.StripeMockedThirdParties;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.subscription.Subscription;
-import app.bpartners.api.model.subscription.SubscriptionProduct;
-import app.bpartners.api.model.subscription.UserSubscription;
-import app.bpartners.api.model.subscription.UserSubscriptionEligible;
+import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -50,6 +49,35 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     // TODO: replace with the data in db
     var expected = List.of();
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void add_consmption_log() {
+    var apiKey = "joe_doe_api_key";
+    var now = now();
+    var user = userRepository.getUserByApiKey(apiKey);
+    var subscriptionConsumptionLog =
+        SubscriptionConsumptionLog.builder()
+            .id("consumptionLogId")
+            .consumptionType(ROOF_ANALYSIS)
+            .consumptionUnit(UNIT)
+            .usageMetric(2L)
+            .creationDatetime(now)
+            .userId("geoJobsUserId")
+            .build();
+
+    var actual = subject.addConsumptionLog(apiKey, subscriptionConsumptionLog);
+
+    var expected =
+        SubscriptionConsumptionLog.builder()
+            .id("consumptionLogId")
+            .userId(user.getId())
+            .usageMetric(2L)
+            .consumptionType(ROOF_ANALYSIS)
+            .consumptionUnit(UNIT)
+            .creationDatetime(now)
+            .build();
     assertEquals(expected, actual);
   }
 

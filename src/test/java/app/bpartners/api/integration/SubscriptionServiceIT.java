@@ -10,10 +10,13 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.integration.conf.StripeMockedThirdParties;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.repository.UserRepository;
@@ -28,6 +31,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -36,6 +40,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
   @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
+  MockedStatic<AuthProvider> mockedAuthProvider = mockStatic(AuthProvider.class);
 
   @Test
   void get_subscription_log_by_user_id_without_date() {
@@ -56,7 +61,9 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   void add_consmption_log() {
     var apiKey = "joe_doe_api_key";
     var now = now();
-    var user = userRepository.getUserByApiKey(apiKey);
+    mockedAuthProvider
+        .when(AuthProvider::getAuthenticatedUser)
+        .thenReturn(User.builder().id("userId").build());
     var subscriptionConsumptionLog =
         SubscriptionConsumptionLog.builder()
             .id("consumptionLogId")
@@ -67,12 +74,12 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
             .userId("geoJobsUserId")
             .build();
 
-    var actual = subject.addConsumptionLog(apiKey, subscriptionConsumptionLog);
+    var actual = subject.addConsumptionLog("userId", subscriptionConsumptionLog);
 
     var expected =
         SubscriptionConsumptionLog.builder()
             .id("consumptionLogId")
-            .userId(user.getId())
+            .userId("userId")
             .usageMetric(2L)
             .consumptionType(ROOF_ANALYSIS)
             .consumptionUnit(UNIT)

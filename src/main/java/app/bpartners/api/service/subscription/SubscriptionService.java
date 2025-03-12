@@ -17,6 +17,7 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -70,8 +71,8 @@ public class SubscriptionService {
   }
 
   public SubscriptionConsumptionLog addConsumptionLog(
-      String apiKey, SubscriptionConsumptionLog subscriptionConsumptionLog) {
-    User user = userRepository.getUserByApiKey(apiKey);
+      String uId, SubscriptionConsumptionLog subscriptionConsumptionLog) {
+    User user = AuthProvider.getAuthenticatedUser();
     if (user != null) {
       SubscriptionConsumptionLog consumptionLogToPersist =
           SubscriptionConsumptionLog.builder()
@@ -83,10 +84,10 @@ public class SubscriptionService {
               .comment(subscriptionConsumptionLog.getComment())
               .creationDatetime(subscriptionConsumptionLog.getCreationDatetime())
               .build();
-      addConsumption(consumptionLogToPersist);
-      return consumptionLogToPersist;
+      return addConsumption(consumptionLogToPersist);
+    } else {
+      throw new RuntimeException("There is no user");
     }
-    return null;
   }
 
   public List<SubscriptionConsumptionLog> findConsumptionLogsByUserId(

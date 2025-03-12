@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -40,11 +39,10 @@ public class SubscriptionController {
   @PostMapping("/users/{uId}/subscriptionConsumptionLogs")
   public SubscriptionConsumptionLog addSubscriptionConsumptionLogs(
       @PathVariable String uId,
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String apiKey,
       @RequestBody SubscriptionConsumptionLog subscriptionConsumptionLog) {
     app.bpartners.api.model.subscription.SubscriptionConsumptionLog consumptionLog =
         service.addConsumptionLog(
-            apiKey, subscriptionConsumptionLogMapper.toDomain(subscriptionConsumptionLog));
+            uId, subscriptionConsumptionLogMapper.toDomain(subscriptionConsumptionLog));
     return subscriptionConsumptionLogMapper.toRest(consumptionLog);
   }
 }

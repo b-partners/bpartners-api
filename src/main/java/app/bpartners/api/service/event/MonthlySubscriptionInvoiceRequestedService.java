@@ -109,9 +109,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =

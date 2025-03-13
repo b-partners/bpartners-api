@@ -80,7 +80,9 @@ public class SubscriptionService {
   public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {
     var consumptionLogs =
         findConsumptionLogsByUserId(
-            user.getId(), temporalUtils.startOfMonth(), temporalUtils.endOfMonth());
+            user.getId(),
+            Instant.from(temporalUtils.startOfLastMonth()),
+            Instant.from(temporalUtils.endOfLastMonth()));
     return computeSubscriptionVariableConsumption(user, consumptionLogs);
   }
 

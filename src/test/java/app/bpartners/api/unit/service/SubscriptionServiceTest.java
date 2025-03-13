@@ -67,16 +67,16 @@ class SubscriptionServiceTest {
   @Test
   void get_subscription_consumption_logs_ok() {
     var userId = randomUUID().toString();
-    var startOfMonth = temporalUtils.startOfMonth();
-    var endOfMonth = temporalUtils.endOfMonth();
+    var startOfLastMonth = Instant.from(temporalUtils.startOfLastMonth());
+    var endOfLastMonth = Instant.from(temporalUtils.endOfLastMonth());
 
     var expected = List.of(someConsumptionLog(userId, now()));
     when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-            userId, startOfMonth, endOfMonth))
+            userId, startOfLastMonth, endOfLastMonth))
         .thenReturn(expected);
 
     var actualWithOverrideFilterValues =
-        subject.findConsumptionLogsByUserId(userId, startOfMonth, endOfMonth);
+        subject.findConsumptionLogsByUserId(userId, startOfLastMonth, endOfLastMonth);
     var actualWithNullFilterValues = subject.findConsumptionLogsByUserId(userId, null, null);
 
     assertEquals(expected, actualWithOverrideFilterValues);
@@ -302,7 +302,9 @@ class SubscriptionServiceTest {
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
     when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
     when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+            userId,
+            Instant.from(temporalUtils.startOfLastMonth()),
+            Instant.from(temporalUtils.endOfLastMonth())))
         .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
         .thenReturn(subscriptionProductMock);
@@ -368,7 +370,9 @@ class SubscriptionServiceTest {
       when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
       when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
       when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-              userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+              userId,
+              Instant.from(temporalUtils.startOfLastMonth()),
+              Instant.from(temporalUtils.endOfLastMonth())))
           .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
       when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
           .thenReturn(subscriptionProductMock);
@@ -399,7 +403,9 @@ class SubscriptionServiceTest {
 
     when(userMock.getId()).thenReturn(userId);
     when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+            userId,
+            Instant.from(temporalUtils.startOfLastMonth()),
+            Instant.from(temporalUtils.endOfLastMonth())))
         .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
 
     var actual = subject.computeMonthlySubscriptionVariableConsumption(userMock);
@@ -433,7 +439,9 @@ class SubscriptionServiceTest {
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
 
     when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+            userId,
+            Instant.from(temporalUtils.startOfLastMonth()),
+            Instant.from(temporalUtils.endOfLastMonth())))
         .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
         .thenReturn(subscriptionProductMock);
@@ -473,7 +481,9 @@ class SubscriptionServiceTest {
     when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
 
     when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+            userId,
+            Instant.from(temporalUtils.startOfLastMonth()),
+            Instant.from(temporalUtils.endOfLastMonth())))
         .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
         .thenReturn(subscriptionProductMock);

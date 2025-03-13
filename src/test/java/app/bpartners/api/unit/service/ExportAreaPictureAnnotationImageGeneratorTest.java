@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -22,9 +23,10 @@ import org.springframework.core.io.ClassPathResource;
 class ExportAreaPictureAnnotationImageGeneratorTest {
   ExportAreaPictureAnnotationImageGenerator subject =
       new ExportAreaPictureAnnotationImageGenerator();
+  ExportAreaPictureAnnotationImageConf conf = new ExportAreaPictureAnnotationImageConf();
   MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class);
   private static BufferedImage mockImage;
-  private static final int IMAGE_SCALE = 2;
+  private static final int IMAGE_SCALE = 3;
 
   @BeforeAll
   static void createMockImage() throws IOException {
@@ -52,32 +54,24 @@ class ExportAreaPictureAnnotationImageGeneratorTest {
         exportAreaPictureAnnotation().annotations(List.of(badExportAnnotationInstance1));
     var exportAreaPictureAnnotation2 =
         exportAreaPictureAnnotation().annotations(List.of(badExportAnnotationInstance2));
+    var annotations1 = exportAreaPictureAnnotation1.getAnnotations();
+    var annotations2 = exportAreaPictureAnnotation2.getAnnotations();
 
     var error1 =
-        assertThrows(BadRequestException.class, () -> subject.apply(exportAreaPictureAnnotation1));
+        assertThrows(BadRequestException.class, () -> subject.apply(mockImage, conf, annotations1));
     var error2 =
-        assertThrows(BadRequestException.class, () -> subject.apply(exportAreaPictureAnnotation2));
+        assertThrows(BadRequestException.class, () -> subject.apply(mockImage, conf, annotations2));
 
     assertEquals("Wrong color format was received", error1.getMessage());
     assertEquals("Wrong color format was received", error2.getMessage());
   }
 
   @Test
-  void should_throw_if_cannot_read_the_image() {
-    mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenThrow(new IOException());
-    var exportAreaPictureAnnotation = exportAreaPictureAnnotation();
-
-    var error =
-        assertThrows(BadRequestException.class, () -> subject.apply(exportAreaPictureAnnotation));
-
-    assertEquals("Cannot read the image from the url", error.getMessage());
-  }
-
-  @Test
   void generate_image_ok() {
     var expected = mockImage;
+    var annotations = exportAreaPictureAnnotation().getAnnotations();
 
-    var actual = subject.apply(exportAreaPictureAnnotation());
+    var actual = subject.apply(mockImage, conf, annotations);
 
     assertEquals(expected.getHeight() * IMAGE_SCALE, actual.getHeight());
     assertEquals(expected.getWidth() * IMAGE_SCALE, actual.getWidth());

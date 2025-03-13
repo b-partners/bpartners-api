@@ -71,10 +71,10 @@ public class SubscriptionService {
 
   public List<SubscriptionConsumptionLog> findConsumptionLogsByUserId(
       String userId, @Nullable Instant from, @Nullable Instant to) {
-    var startOfMonth = temporalUtils.startOfMonth();
-    var endOfMonth = temporalUtils.endOfMonth();
+    var startOfLastMonth = Instant.from(temporalUtils.startOfLastMonth());
+    var endOfLastMonth = Instant.from(temporalUtils.endOfLastMonth());
     return consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-        userId, from == null ? startOfMonth : from, to == null ? endOfMonth : to);
+        userId, from == null ? startOfLastMonth : from, to == null ? endOfLastMonth : to);
   }
 
   public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {

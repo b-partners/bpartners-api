@@ -5,41 +5,35 @@ import static java.awt.RenderingHints.KEY_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 import static java.util.Objects.requireNonNull;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.annotation.IntXY;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
-import java.util.function.Function;
-import javax.imageio.ImageIO;
+import org.apache.commons.lang3.function.TriFunction;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ExportAreaPictureAnnotationImageGenerator
-    implements Function<ExportAreaPictureAnnotation, BufferedImage> {
-  private final ExportAreaPictureAnnotationImageConf conf =
-      new ExportAreaPictureAnnotationImageConf();
+    implements TriFunction<
+        BufferedImage,
+        ExportAreaPictureAnnotationImageConf,
+        List<ExportAreaPictureAnnotationInstance>,
+        BufferedImage> {
   private static final int HEXADECIMAL_COLOR_LENGTH_WITH_OPACITY = 9;
   private static final int HEXADECIMAL_COLOR_LENGTH_WITHOUT_OPACITY = 7;
 
   @Override
-  public BufferedImage apply(ExportAreaPictureAnnotation annotation) {
-    try {
-      BufferedImage image = downloadAnnotationImageWithScale(annotation.getImageUrl());
-      return drawAnnotations(image, annotation);
-    } catch (IOException | URISyntaxException e) {
-      throw new BadRequestException("Cannot read the image from the url");
-    }
+  public BufferedImage apply(
+      BufferedImage image,
+      ExportAreaPictureAnnotationImageConf conf,
+      List<ExportAreaPictureAnnotationInstance> annotations) {
+    BufferedImage scaledImage = scaleImage(image, conf);
+    return drawAnnotations(scaledImage, conf, annotations);
   }
 
-  private BufferedImage downloadAnnotationImageWithScale(String imageUrl)
-      throws URISyntaxException, IOException {
-    BufferedImage image = ImageIO.read(new URI(imageUrl).toURL());
+  private BufferedImage scaleImage(BufferedImage image, ExportAreaPictureAnnotationImageConf conf) {
     int newWidth = image.getWidth() * conf.scale();
     int newHeight = image.getHeight() * conf.scale();
     var resizedImage = new BufferedImage(newWidth, newHeight, image.getType());
@@ -51,20 +45,23 @@ public class ExportAreaPictureAnnotationImageGenerator
   }
 
   private BufferedImage drawAnnotations(
-      BufferedImage image, ExportAreaPictureAnnotation annotation) {
+      BufferedImage image,
+      ExportAreaPictureAnnotationImageConf conf,
+      List<ExportAreaPictureAnnotationInstance> annotations) {
     Graphics2D graphics2D = image.createGraphics();
     graphics2D.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
     graphics2D.setFont(conf.measurementFont());
     graphics2D.setStroke(conf.stroke());
 
-    var annotationInstances = annotation.getAnnotations();
-    annotationInstances.forEach(
-        annotationInstance -> drawAnnotationInstance(graphics2D, annotationInstance));
+    annotations.forEach(
+        annotationInstance -> drawAnnotationInstance(graphics2D, conf, annotationInstance));
     return image;
   }
 
   private void drawAnnotationInstance(
-      Graphics2D graphics2D, ExportAreaPictureAnnotationInstance annotationInstance) {
+      Graphics2D graphics2D,
+      ExportAreaPictureAnnotationImageConf conf,
+      ExportAreaPictureAnnotationInstance annotationInstance) {
     var points = annotationInstance.getPolygon().getPoints();
     List<IntXY> coordinates =
         requireNonNull(points).stream()
@@ -96,17 +93,18 @@ public class ExportAreaPictureAnnotationImageGenerator
               conf.pointSize());
         });
 
-    drawMeasurements(graphics2D, annotationInstance, coordinates);
+    drawMeasurements(graphics2D, conf, annotationInstance, coordinates);
   }
 
   private void drawMeasurements(
       Graphics2D graphics2D,
+      ExportAreaPictureAnnotationImageConf conf,
       ExportAreaPictureAnnotationInstance annotationInstance,
       List<IntXY> coordinates) {
     var measurements = annotationInstance.getMeasurements();
     for (int i = 0; i < coordinates.size() - 1; i++) {
       var measurement = measurements.get(i);
-      if (measurement.getIsInvisible()) continue;
+      if (measurement.getIsInvisible() && !conf.drawMeasurement()) continue;
 
       String measurementText = measurement.getValue() + measurement.getUnit();
       FontMetrics fontMetrics = graphics2D.getFontMetrics(conf.measurementFont());

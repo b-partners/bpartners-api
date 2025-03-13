@@ -5,6 +5,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.lowagie.text.DocumentException;
@@ -23,9 +24,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
-  public byte[] apply(byte[] annotationImage, ExportAreaPictureAnnotation annotation) {
+  public byte[] apply(
+      byte[] mainImage, List<byte[]> subAnnotationImages, ExportAreaPictureAnnotation annotation) {
     var renderer = new ITextRenderer();
-    renderer.setDocumentFromString(parseDataToString(annotationImage, annotation));
+    renderer.setDocumentFromString(parseDataToString(mainImage, subAnnotationImages, annotation));
     renderer.layout();
 
     var outputStream = new ByteArrayOutputStream();
@@ -37,17 +39,22 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     return outputStream.toByteArray();
   }
 
-  private String parseDataToString(byte[] annotationImage, ExportAreaPictureAnnotation annotation) {
+  private String parseDataToString(
+      byte[] mainImage, List<byte[]> subImages, ExportAreaPictureAnnotation annotation) {
     TemplateEngine templateEngine = templateResolverEngine.getTemplateEngine();
-    Context context = configureContext(annotationImage, annotation);
+    Context context = configureContext(mainImage, subImages, annotation);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 
-  private Context configureContext(byte[] annotationImage, ExportAreaPictureAnnotation annotation) {
+  private Context configureContext(
+      byte[] mainImage, List<byte[]> subImages, ExportAreaPictureAnnotation annotation) {
     var context = new Context();
+    var encodedSubImages = subImages.stream().map(FileWriter::base64Image).toList();
+
     context.setVariable("address", annotation.getAddress());
-    context.setVariable("annotationImage", base64Image(annotationImage));
+    context.setVariable("mainImage", base64Image(mainImage));
     context.setVariable("pages", groupByThree(annotation.getAnnotations()));
+    context.setVariable("subImages", encodedSubImages);
     return context;
   }
 

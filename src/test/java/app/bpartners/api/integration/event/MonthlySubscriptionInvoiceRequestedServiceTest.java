@@ -344,9 +344,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
         .title(
             "Facture pour la période de "
-                + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
+                + startOfCurrentMonthFormatted
                 + " au "
-                + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth()))
+                + endOfCurrentMonthFormatted)
         .ref(createdInvoice.getRef())
         .validityDate(sendingDate.plusDays(30L))
         .toPayAt(temporalUtils.fifthOfMonthAfter(0))

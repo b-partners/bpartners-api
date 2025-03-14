@@ -105,15 +105,16 @@ class UserIT extends MockedThirdParties {
     when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(defaultUserSubscription);
   }
 
-  private static UserSubscription userSubscriptionMaker(boolean isActive) {
+  public static UserSubscription userSubscriptionMaker(boolean isActive) {
     Instant now = now();
+    var status = isActive ? Subscription.SubscriptionStatus.ACTIVE : null;
     return UserSubscription.builder()
         .user(new app.bpartners.api.model.User())
         .subscriptions(
             List.of(
                 Subscription.builder()
                     .active(isActive)
-                    .status(Subscription.SubscriptionStatus.ACTIVE)
+                    .status(status)
                     .startDatetime(now)
                     .endDatetime(now)
                     .build()))

@@ -127,9 +127,11 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
+            + customDateFormatter.formatFrenchDate(
+                temporalUtils.startOfLastMonth()) // TODO : startOfActualMonth
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+            + customDateFormatter.formatFrenchDate(
+                temporalUtils.endOfLastMonth()); // TODO : endOfActualMonth
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
@@ -139,7 +141,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
-    var sendingDate = LocalDate.of(2025, 1, 31);
+    var sendingDate = LocalDate.of(2025, 2, 28); // TODO : localDate.now
     LocalDateTime fixedDateTime = LocalDateTime.now();
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);

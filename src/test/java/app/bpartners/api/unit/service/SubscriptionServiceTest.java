@@ -35,6 +35,7 @@ import com.stripe.service.PriceService;
 import com.stripe.service.ProductService;
 import com.stripe.service.SubscriptionItemService;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -63,6 +64,10 @@ class SubscriptionServiceTest {
           subscriptionEligibleJpaRepositoryMock,
           temporalUtils,
           consumptionLogJpaRepository);
+
+  ZoneId zoneId = ZoneId.systemDefault();
+  Instant start = temporalUtils.startOfLastMonth().atStartOfDay(zoneId).toInstant();
+  Instant end = temporalUtils.endOfLastMonth().atStartOfDay(zoneId).toInstant();
 
   @Test
   void get_subscription_consumption_logs_ok() {
@@ -301,8 +306,7 @@ class SubscriptionServiceTest {
     when(stripeClientMock.products()).thenReturn(stripeProductServiceMock);
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
     when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
-    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(userId, start, end))
         .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
         .thenReturn(subscriptionProductMock);
@@ -368,7 +372,7 @@ class SubscriptionServiceTest {
       when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
       when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
       when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-              userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+              userId, start, end))
           .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
       when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
           .thenReturn(subscriptionProductMock);
@@ -398,8 +402,7 @@ class SubscriptionServiceTest {
     var usageRecordMockedStatic = mockStatic(UsageRecord.class);
 
     when(userMock.getId()).thenReturn(userId);
-    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(userId, start, end))
         .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
 
     var actual = subject.computeMonthlySubscriptionVariableConsumption(userMock);
@@ -432,8 +435,7 @@ class SubscriptionServiceTest {
         .thenReturn(stripeSubscriptionCollectionMock);
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
 
-    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(userId, start, end))
         .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
         .thenReturn(subscriptionProductMock);
@@ -472,8 +474,7 @@ class SubscriptionServiceTest {
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
     when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
 
-    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+    when(consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(userId, start, end))
         .thenReturn(someSubscriptionConsumptionLogs(userId, (int) expectedUsage));
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
         .thenReturn(subscriptionProductMock);

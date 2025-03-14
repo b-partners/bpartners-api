@@ -331,10 +331,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   private Invoice computeExpectedInvoice(
       Invoice createdInvoice, User userToCreditMock, Customer customerMock) {
     var startOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth());
+        customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth());
     var endOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
-    var sendingDate = LocalDate.of(2025, 2, 28); // TODO : localDate.now
+        customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+    var sendingDate = LocalDate.of(2025, 1, 31);
     return Invoice.builder()
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)
@@ -344,9 +344,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
         .title(
             "Facture pour la période de "
-                + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
+                + startOfCurrentMonthFormatted
                 + " au "
-                + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth()))
+                + endOfCurrentMonthFormatted)
         .ref(createdInvoice.getRef())
         .validityDate(sendingDate.plusDays(30L))
         .toPayAt(temporalUtils.fifthOfMonthAfter(0))

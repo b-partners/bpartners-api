@@ -78,10 +78,9 @@ public class SubscriptionService {
   }
 
   public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {
-    ZoneId zoneId = ZoneId.systemDefault();
-    Instant start = temporalUtils.startOfLastMonth().atStartOfDay(zoneId).toInstant();
-    Instant end = temporalUtils.endOfLastMonth().atStartOfDay(zoneId).toInstant();
-    var consumptionLogs = findConsumptionLogsByUserId(user.getId(), start, end);
+    var consumptionLogs =
+        findConsumptionLogsByUserId(
+            user.getId(), temporalUtils.startOfMonth(), temporalUtils.endOfMonth());
     return computeSubscriptionVariableConsumption(user, consumptionLogs);
   }
 

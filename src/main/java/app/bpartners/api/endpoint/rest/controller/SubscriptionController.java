@@ -41,7 +41,8 @@ public class SubscriptionController {
       @PathVariable("uId") String uId,
       @RequestBody SubscriptionConsumptionLog subscriptionConsumptionLog) {
     app.bpartners.api.model.subscription.SubscriptionConsumptionLog consumptionLog =
-        service.addConsumptionLog(subscriptionConsumptionLogMapper.toDomain(subscriptionConsumptionLog));
+        service.addConsumptionLog(
+            subscriptionConsumptionLogMapper.toDomain(subscriptionConsumptionLog));
     return subscriptionConsumptionLogMapper.toRest(consumptionLog);
   }
 }

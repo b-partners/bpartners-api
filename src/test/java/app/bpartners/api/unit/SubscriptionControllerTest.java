@@ -5,7 +5,6 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.U
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -78,8 +77,7 @@ class SubscriptionControllerTest {
             .creationDatetime(now)
             .usageMetric(2L)
             .build();
-    when(subscriptionServiceMock.addConsumptionLog(any()))
-        .thenReturn(consumptionLogDomain);
+    when(subscriptionServiceMock.addConsumptionLog(any())).thenReturn(consumptionLogDomain);
 
     var actual = subject.addSubscriptionConsumptionLogs(userGeoJobsId, consumptionLog);
 

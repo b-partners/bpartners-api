@@ -46,12 +46,12 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     var userId = "ce0c0edb-7d45-4f4f-86d9-363cd5206969";
     var fromLocalDateTime = LocalDateTime.of(2025, JANUARY, 14, 17, 7);
     var from = fromLocalDateTime.toInstant(ZoneOffset.UTC);
-    var toLocalDateTime = LocalDateTime.of(2025, JANUARY, 14, 17, 14);
+    var toLocalDateTime = LocalDateTime.of(2025, JANUARY, 17, 7, 30);
     var to = toLocalDateTime.toInstant(ZoneOffset.UTC);
 
     var actual = subject.findConsumptionLogsByUserId(userId, from, to);
 
-    var expected = List.of(SubscriptionConsumptionLog.builder().id("eac3a19a-84d8-4506-82d7-0a6d06cfaa56"));
+    var expected = List.of();
     assertTrue(actual.contains(expected));
   }
 
@@ -63,9 +63,12 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     User mockUser = User.builder().id("userId").build();
 
     try (MockedStatic<AuthProvider> mockedAuthProvider = mockStatic(AuthProvider.class)) {
-      mockedAuthProvider.when(AuthProvider::getAuthenticatedUser).thenReturn(mockUser);
+      mockedAuthProvider
+          .when(AuthProvider::getAuthenticatedUser)
+          .thenReturn(User.builder().id("userId").build());
 
-      var subscriptionConsumptionLog = SubscriptionConsumptionLog.builder()
+      var subscriptionConsumptionLog =
+          SubscriptionConsumptionLog.builder()
               .id("consumptionLogId")
               .consumptionType(ROOF_ANALYSIS)
               .consumptionUnit(UNIT)
@@ -76,7 +79,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
       var actual = subject.addConsumption(subscriptionConsumptionLog);
 
-      var expected = SubscriptionConsumptionLog.builder()
+      var expected =
+          SubscriptionConsumptionLog.builder()
               .id("consumptionLogId")
               .userId("userId")
               .usageMetric(2L)

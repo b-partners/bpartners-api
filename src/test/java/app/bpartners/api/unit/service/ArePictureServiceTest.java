@@ -75,7 +75,7 @@ class ArePictureServiceTest {
     when(jpaRepositoryMock.save(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(mapper.toDomain(any())).thenReturn(areaPictureMock);
-    when(subscriptionServiceMock.addConsumption(any()))
+    when(subscriptionServiceMock.addConsumptionLog(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     var subscriptionConsumptionLogCaptor =
         ArgumentCaptor.forClass(SubscriptionConsumptionLog.class);
@@ -83,7 +83,7 @@ class ArePictureServiceTest {
     var actual = subject.saveArePictureAndLogConsumption(areaPictureMock);
 
     verify(subscriptionServiceMock, times(1))
-        .addConsumption(subscriptionConsumptionLogCaptor.capture());
+        .addConsumptionLog(subscriptionConsumptionLogCaptor.capture());
     var subscriptionConsumptionLog = subscriptionConsumptionLogCaptor.getValue();
     assertEquals(areaPictureMock, actual);
     assertEquals(

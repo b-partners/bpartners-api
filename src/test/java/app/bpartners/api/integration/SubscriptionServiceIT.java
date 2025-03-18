@@ -74,7 +74,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
             .userId("geoJobsUserId")
             .build();
 
-    var actual = subject.addConsumptionLog("userId", subscriptionConsumptionLog);
+    var actual = subject.addConsumptionLog(subscriptionConsumptionLog);
 
     var expected =
         SubscriptionConsumptionLog.builder()

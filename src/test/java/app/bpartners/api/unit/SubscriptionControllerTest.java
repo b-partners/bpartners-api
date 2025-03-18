@@ -58,7 +58,6 @@ class SubscriptionControllerTest {
   @Test
   void add_consumption_log() {
     var userGeoJobsId = "userGeoJobsId";
-    var apiKey = "apiKey";
     var now = Instant.now();
     var userId = "userId";
     var consumptionLogId = "consumptionLogId";
@@ -79,7 +78,7 @@ class SubscriptionControllerTest {
             .creationDatetime(now)
             .usageMetric(2L)
             .build();
-    when(subscriptionServiceMock.addConsumptionLog(anyString(), any()))
+    when(subscriptionServiceMock.addConsumptionLog(any()))
         .thenReturn(consumptionLogDomain);
 
     var actual = subject.addSubscriptionConsumptionLogs(userGeoJobsId, consumptionLog);

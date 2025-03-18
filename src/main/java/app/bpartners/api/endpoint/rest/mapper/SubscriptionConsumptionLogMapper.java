@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.ConsumptionType;
 import app.bpartners.api.endpoint.rest.model.ConsumptionUnit;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionUnit;
@@ -38,7 +39,7 @@ public class SubscriptionConsumptionLogMapper {
       app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog rest) {
     return SubscriptionConsumptionLog.builder()
         .id(rest.getId())
-        .userId(rest.getUserId())
+        .userId(AuthProvider.getAuthenticatedUserId())
         .usageMetric(rest.getUsageMetric())
         .consumptionType(consumptionTypeToDomain(Objects.requireNonNull(rest.getConsumptionType())))
         .consumptionUnit(consumptionUnitToDomain(Objects.requireNonNull(rest.getConsumptionUnit())))

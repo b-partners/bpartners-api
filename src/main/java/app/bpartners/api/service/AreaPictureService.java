@@ -87,7 +87,7 @@ public class AreaPictureService {
           prospect.getOldName() == null ? prospect.getNewName() : prospect.getOldName();
       comment += " - Prospect : " + prospectName;
     }
-    subscriptionService.addConsumption(
+    subscriptionService.addConsumptionLog(
         SubscriptionConsumptionLog.builder()
             .id(randomUUID().toString())
             .userId(areaPicture.getIdUser())

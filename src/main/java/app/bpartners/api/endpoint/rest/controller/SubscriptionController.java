@@ -38,11 +38,10 @@ public class SubscriptionController {
 
   @PostMapping("/users/{uId}/subscriptionConsumptionLogs")
   public SubscriptionConsumptionLog addSubscriptionConsumptionLogs(
-      @PathVariable String uId,
+      @PathVariable("uId") String uId,
       @RequestBody SubscriptionConsumptionLog subscriptionConsumptionLog) {
     app.bpartners.api.model.subscription.SubscriptionConsumptionLog consumptionLog =
-        service.addConsumptionLog(
-            uId, subscriptionConsumptionLogMapper.toDomain(subscriptionConsumptionLog));
+        service.addConsumptionLog(subscriptionConsumptionLogMapper.toDomain(subscriptionConsumptionLog));
     return subscriptionConsumptionLogMapper.toRest(consumptionLog);
   }
 }

@@ -65,29 +65,9 @@ public class SubscriptionService {
   private final TemporalUtils temporalUtils;
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
 
-  public SubscriptionConsumptionLog addConsumption(
+  public SubscriptionConsumptionLog addConsumptionLog(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
     return consumptionLogJpaRepository.save(subscriptionConsumptionLog);
-  }
-
-  public SubscriptionConsumptionLog addConsumptionLog(
-      String uId, SubscriptionConsumptionLog subscriptionConsumptionLog) {
-    User user = AuthProvider.getAuthenticatedUser();
-    if (user != null) {
-      SubscriptionConsumptionLog consumptionLogToPersist =
-          SubscriptionConsumptionLog.builder()
-              .id(subscriptionConsumptionLog.getId())
-              .userId(user.getId())
-              .usageMetric(subscriptionConsumptionLog.getUsageMetric())
-              .consumptionType(subscriptionConsumptionLog.getConsumptionType())
-              .consumptionUnit(subscriptionConsumptionLog.getConsumptionUnit())
-              .comment(subscriptionConsumptionLog.getComment())
-              .creationDatetime(subscriptionConsumptionLog.getCreationDatetime())
-              .build();
-      return addConsumption(consumptionLogToPersist);
-    } else {
-      throw new RuntimeException("There is no user");
-    }
   }
 
   public List<SubscriptionConsumptionLog> findConsumptionLogsByUserId(

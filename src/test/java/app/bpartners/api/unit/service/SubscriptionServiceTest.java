@@ -254,7 +254,7 @@ class SubscriptionServiceTest {
             .creationDatetime(instantNow)
             .build();
 
-    var actual = subject.addConsumption(subscriptionConsumption);
+    var actual = subject.addConsumptionLog(subscriptionConsumption);
 
     assertEquals(subscriptionConsumption, actual);
   }

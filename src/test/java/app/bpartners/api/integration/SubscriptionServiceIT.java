@@ -1,6 +1,8 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
 import static java.time.Month.JANUARY;
@@ -8,15 +10,15 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.integration.conf.StripeMockedThirdParties;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.subscription.Subscription;
-import app.bpartners.api.model.subscription.SubscriptionProduct;
-import app.bpartners.api.model.subscription.UserSubscription;
-import app.bpartners.api.model.subscription.UserSubscriptionEligible;
+import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -29,6 +31,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -48,9 +51,42 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     var actual = subject.findConsumptionLogsByUserId(userId, from, to);
 
-    // TODO: replace with the data in db
     var expected = List.of();
-    assertEquals(expected, actual);
+    assertTrue(actual.contains(expected));
+  }
+
+  @Test
+  void add_consumption_log() {
+    var now = now();
+
+    try (MockedStatic<AuthProvider> mockedAuthProvider = mockStatic(AuthProvider.class)) {
+      mockedAuthProvider
+          .when(AuthProvider::getAuthenticatedUser)
+          .thenReturn(User.builder().id("userId").build());
+
+      var subscriptionConsumptionLog =
+          SubscriptionConsumptionLog.builder()
+              .id("consumptionLogId")
+              .consumptionType(ROOF_ANALYSIS)
+              .consumptionUnit(UNIT)
+              .usageMetric(2L)
+              .creationDatetime(now)
+              .userId("geoJobsUserId")
+              .build();
+
+      var actual = subject.addConsumption(subscriptionConsumptionLog);
+
+      var expected =
+          SubscriptionConsumptionLog.builder()
+              .id("consumptionLogId")
+              .userId("geoJobsUserId")
+              .usageMetric(2L)
+              .consumptionType(ROOF_ANALYSIS)
+              .consumptionUnit(UNIT)
+              .creationDatetime(now)
+              .build();
+      assertEquals(expected, actual);
+    }
   }
 
   @Test

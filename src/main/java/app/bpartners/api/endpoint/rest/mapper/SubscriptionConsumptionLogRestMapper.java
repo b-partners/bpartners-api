@@ -2,10 +2,13 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.ConsumptionType;
 import app.bpartners.api.endpoint.rest.model.ConsumptionUnit;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionUnit;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 @Component
 public class SubscriptionConsumptionLogRestMapper {
@@ -30,6 +33,30 @@ public class SubscriptionConsumptionLogRestMapper {
   private ConsumptionUnit consumptionUnitToRest(SubscriptionConsumptionUnit domainConsumptionUnit) {
     return switch (domainConsumptionUnit) {
       case UNIT -> ConsumptionUnit.UNIT;
+    };
+  }
+  public SubscriptionConsumptionLog toDomain(
+          app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog rest) {
+    return SubscriptionConsumptionLog.builder()
+            .id(rest.getId())
+            .userId(AuthProvider.getAuthenticatedUserId())
+            .usageMetric(rest.getUsageMetric())
+            .consumptionType(consumptionTypeToDomain(Objects.requireNonNull(rest.getConsumptionType())))
+            .consumptionUnit(consumptionUnitToDomain(Objects.requireNonNull(rest.getConsumptionUnit())))
+            .comment(rest.getComment())
+            .creationDatetime(rest.getCreationDatetime())
+            .build();
+  }
+
+  private SubscriptionConsumptionType consumptionTypeToDomain(ConsumptionType restConsumptionType) {
+    return switch (restConsumptionType) {
+      case ROOF_ANALYSIS -> SubscriptionConsumptionType.ROOF_ANALYSIS;
+    };
+  }
+
+  private SubscriptionConsumptionUnit consumptionUnitToDomain(ConsumptionUnit restConsumptionUnit) {
+    return switch (restConsumptionUnit) {
+      case UNIT -> SubscriptionConsumptionUnit.UNIT;
     };
   }
 }

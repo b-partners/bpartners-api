@@ -40,7 +40,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
   @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
-  MockedStatic<AuthProvider> mockedAuthProvider = mockStatic(AuthProvider.class);
 
   @Test
   void get_subscription_log_by_user_id_without_date() {
@@ -57,34 +56,36 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
-  void add_consmption_log() {
+  void add_consumption_log() {
     var apiKey = "joe_doe_api_key";
     var now = now();
-    mockedAuthProvider
-            .when(AuthProvider::getAuthenticatedUser)
-            .thenReturn(User.builder().id("userId").build());
-    var subscriptionConsumptionLog =
-            SubscriptionConsumptionLog.builder()
-                    .id("consumptionLogId")
-                    .consumptionType(ROOF_ANALYSIS)
-                    .consumptionUnit(UNIT)
-                    .usageMetric(2L)
-                    .creationDatetime(now)
-                    .userId("geoJobsUserId")
-                    .build();
 
-    var actual = subject.addConsumption(subscriptionConsumptionLog);
+    User mockUser = User.builder().id("userId").build();
 
-    var expected =
-            SubscriptionConsumptionLog.builder()
-                    .id("consumptionLogId")
-                    .userId("userId")
-                    .usageMetric(2L)
-                    .consumptionType(ROOF_ANALYSIS)
-                    .consumptionUnit(UNIT)
-                    .creationDatetime(now)
-                    .build();
-    assertEquals(expected, actual);
+    try (MockedStatic<AuthProvider> mockedAuthProvider = mockStatic(AuthProvider.class)) {
+      mockedAuthProvider.when(AuthProvider::getAuthenticatedUser).thenReturn(mockUser);
+
+      var subscriptionConsumptionLog = SubscriptionConsumptionLog.builder()
+              .id("consumptionLogId")
+              .consumptionType(ROOF_ANALYSIS)
+              .consumptionUnit(UNIT)
+              .usageMetric(2L)
+              .creationDatetime(now)
+              .userId("geoJobsUserId")
+              .build();
+
+      var actual = subject.addConsumption(subscriptionConsumptionLog);
+
+      var expected = SubscriptionConsumptionLog.builder()
+              .id("consumptionLogId")
+              .userId("userId")
+              .usageMetric(2L)
+              .consumptionType(ROOF_ANALYSIS)
+              .consumptionUnit(UNIT)
+              .creationDatetime(now)
+              .build();
+      assertEquals(expected, actual);
+    }
   }
 
   @Test

@@ -58,6 +58,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Test
   void add_consumption_log() {
     var now = now();
+    var consumptionLogId = randomUUID().toString();
 
     try (MockedStatic<AuthProvider> mockedAuthProvider = mockStatic(AuthProvider.class)) {
       mockedAuthProvider
@@ -66,7 +67,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
       var subscriptionConsumptionLog =
           SubscriptionConsumptionLog.builder()
-              .id("consumptionLogId")
+              .id(consumptionLogId)
               .consumptionType(ROOF_ANALYSIS)
               .consumptionUnit(UNIT)
               .usageMetric(2L)
@@ -78,8 +79,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
       var expected =
           SubscriptionConsumptionLog.builder()
-              .id("consumptionLogId")
-              .userId("geoJobsUserId")
+              .id(consumptionLogId)
+              .userId("userId")
               .usageMetric(2L)
               .consumptionType(ROOF_ANALYSIS)
               .consumptionUnit(UNIT)

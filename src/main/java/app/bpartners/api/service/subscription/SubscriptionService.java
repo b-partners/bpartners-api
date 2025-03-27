@@ -38,7 +38,7 @@ import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -312,11 +312,6 @@ public class SubscriptionService {
               + latestSubscription.getEndDatetime());
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
-    var endOfTrialPeriod = computeEndOfTrialPeriod(user);
-    Long endOfTrialPeriodLong =
-        Date.from(endOfTrialPeriod.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
-            / 1000L;
-    var billingCycleAnchor = computeBillingCycleAnchor(endOfTrialPeriod);
     var subscriptionProductRoofAnalysis =
         subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
     var newVariableProductPrice =
@@ -333,6 +328,7 @@ public class SubscriptionService {
                             .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
                             .build())
                     .build());
+    var createSubscription = createSubscription(user, stripeCustomer.getId());
     var session =
         Session.create(
             SessionCreateParams.builder()
@@ -358,16 +354,6 @@ public class SubscriptionService {
                 .setSuccessUrl(redirectionUrls.getSuccessUrl())
                 .setCancelUrl(redirectionUrls.getFailureUrl())
                 .setUiMode(HOSTED)
-                .setSubscriptionData(
-                    SessionCreateParams.SubscriptionData.builder()
-                        .setProrationBehavior(
-                            SessionCreateParams.SubscriptionData.ProrationBehavior.NONE)
-                        .setBillingCycleAnchor(billingCycleAnchor)
-                        .setTrialPeriodDays(
-                            endOfTrialPeriod.isAfter(temporalUtils.endOfActualMonth())
-                                ? endOfTrialPeriodLong
-                                : null)
-                        .build())
                 .build());
     return new Redirection()
         .redirectionUrl(session.getUrl())
@@ -377,19 +363,31 @@ public class SubscriptionService {
                 .failureUrl(session.getCancelUrl()));
   }
 
-  private LocalDate computeEndOfTrialPeriod(User user) {
+  private Long nextBillingMonth(User user) {
     var userEligibility =
         subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
-    return userEligibility.getLatestTrialPeriodDate();
+    var latestTrialPeriodDate = userEligibility.getLatestTrialPeriodDate();
+    var nexNaturalBillingDate = temporalUtils.fifthOfNextMonth();
+    var nextBillingMonth = latestTrialPeriodDate.isBefore(nexNaturalBillingDate) ? nexNaturalBillingDate
+            : nexNaturalBillingDate.plusMonths(1);
+
+    return (long) nextBillingMonth.getMonthValue();
   }
 
-  private Long computeBillingCycleAnchor(LocalDate latestTrialPeriodDate) {
-    var nextBillingDate = temporalUtils.fifthOfNextMonth();
-    if (latestTrialPeriodDate.isAfter(temporalUtils.endOfActualMonth())) {
-      nextBillingDate = temporalUtils.fifthOfMonthAfter(2);
-    }
-    return Date.from(nextBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
-        / 1000L;
+  public com.stripe.model.Subscription createSubscription (User user, String customerId) throws StripeException {
+    var dayOfMonth = 5L;
+    var month = nextBillingMonth(user);
+
+    var subscriptionCreateParams = SubscriptionCreateParams.builder()
+            .setCustomer(customerId)
+            .setBillingCycleAnchorConfig(
+                    SubscriptionCreateParams.BillingCycleAnchorConfig.builder()
+                            .setDayOfMonth(dayOfMonth)
+                            .setMonth(month).build()
+            )
+            .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.NONE)
+            .build();
+    return com.stripe.model.Subscription.create(subscriptionCreateParams);
   }
 
   @SneakyThrows

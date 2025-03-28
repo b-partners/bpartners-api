@@ -38,7 +38,7 @@ import com.stripe.param.*;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.Month;
+import java.time.temporal.TemporalField;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -312,23 +312,6 @@ public class SubscriptionService {
               + latestSubscription.getEndDatetime());
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
-    var subscriptionProductRoofAnalysis =
-        subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
-    var newVariableProductPrice =
-        stripeClient
-            .prices()
-            .create(
-                PriceCreateParams.builder()
-                    .setCurrency(defaultCurrency())
-                    .setProduct(subscriptionProductRoofAnalysis.getE2Id())
-                    .setUnitAmount(200L)
-                    .setRecurring(
-                        PriceCreateParams.Recurring.builder()
-                            .setUsageType(PriceCreateParams.Recurring.UsageType.METERED)
-                            .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
-                            .build())
-                    .build());
-    var createSubscription = createSubscription(user, stripeCustomer.getId());
     var session =
         Session.create(
             SessionCreateParams.builder()
@@ -347,10 +330,6 @@ public class SubscriptionService {
                                     computeRecurringFromSubscriptionProduct(subscriptionProduct))
                                 .build())
                         .build())
-                .addLineItem(
-                    SessionCreateParams.LineItem.builder()
-                        .setPrice(newVariableProductPrice.getId())
-                        .build())
                 .setSuccessUrl(redirectionUrls.getSuccessUrl())
                 .setCancelUrl(redirectionUrls.getFailureUrl())
                 .setUiMode(HOSTED)
@@ -368,26 +347,36 @@ public class SubscriptionService {
         subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
     var latestTrialPeriodDate = userEligibility.getLatestTrialPeriodDate();
     var nexNaturalBillingDate = temporalUtils.fifthOfNextMonth();
-    var nextBillingMonth = latestTrialPeriodDate.isBefore(nexNaturalBillingDate) ? nexNaturalBillingDate
+    var nextBillingMonth =
+        latestTrialPeriodDate.isBefore(nexNaturalBillingDate)
+            ? nexNaturalBillingDate
             : nexNaturalBillingDate.plusMonths(1);
 
     return (long) nextBillingMonth.getMonthValue();
   }
 
-  public com.stripe.model.Subscription createSubscription (User user, String customerId) throws StripeException {
+  public com.stripe.model.Subscription createSubscription(
+      User user, String customerId, Price productPrice) {
     var dayOfMonth = 5L;
     var month = nextBillingMonth(user);
+    log.info("Next billing month: {}", month);
 
-    var subscriptionCreateParams = SubscriptionCreateParams.builder()
+    var subscriptionCreateParams =
+        SubscriptionCreateParams.builder()
             .setCustomer(customerId)
+            .addItem(SubscriptionCreateParams.Item.builder().setPrice(productPrice.getId()).build())
             .setBillingCycleAnchorConfig(
-                    SubscriptionCreateParams.BillingCycleAnchorConfig.builder()
-                            .setDayOfMonth(dayOfMonth)
-                            .setMonth(month).build()
-            )
+                SubscriptionCreateParams.BillingCycleAnchorConfig.builder()
+                    .setDayOfMonth(dayOfMonth)
+                    .setMonth(month)
+                    .build())
             .setProrationBehavior(SubscriptionCreateParams.ProrationBehavior.NONE)
             .build();
-    return com.stripe.model.Subscription.create(subscriptionCreateParams);
+      try {
+          return com.stripe.model.Subscription.create(subscriptionCreateParams);
+      } catch (StripeException e) {
+          throw new RuntimeException(e);
+      }
   }
 
   @SneakyThrows

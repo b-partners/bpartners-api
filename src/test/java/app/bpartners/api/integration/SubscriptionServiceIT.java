@@ -4,6 +4,7 @@ import static app.bpartners.api.model.subscription.Subscription.SubscriptionStat
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
+import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static java.time.Instant.now;
 import static java.time.Month.JANUARY;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -27,6 +28,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+
+import com.stripe.StripeClient;
+import com.stripe.param.PriceCreateParams;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
@@ -40,6 +44,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
   @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
+  @Autowired StripeClient stripeClient;
 
   @Test
   void get_subscription_log_by_user_id_without_date() {
@@ -173,37 +178,35 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     assertNotNull(subject.deleteUserFromStripe(user));
   }
 
+  @SneakyThrows
   @Test
-  void initiate_subscription_14_days_before_5_of_month() {
+  void create_subscription_with_specific_billing_cycle_anchor_config() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
-            .thenReturn(
-                    Optional.of(
-                            UserSubscriptionEligible.builder()
-                                    .trialPeriodDays(14)
-                                    .eligibleFrom(LocalDate.now().minusDays(1))
-                                    .build()));
-    var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
-    var createdUserSubscription =
-            subject.createOrLinkUserSubscription(
-                    existingUser.toBuilder().email("joe" + new Random().nextInt() + "@email.com").build());
-    var user = createdUserSubscription.getUser();
+            .thenReturn(Optional.of(UserSubscriptionEligible.builder()
+                            .trialPeriodDays(14)
+                            .eligibleFrom(LocalDate.of(2025, 3, 21))
+                    .build()));
+    var user = userRepository.findByEmail("joe@email.com").orElseThrow();
 
-    var actualSubscriptionRedirection =
-            subject.initiateSubscription(
-                    user, getDefaultSubscription(), getDefaultRedirectionStatusUrls());
+    var newVariableProductPrice =
+            stripeClient
+                    .prices()
+                    .create(
+                            PriceCreateParams.builder()
+                                    .setCurrency(defaultCurrency())
+                                    .setProduct("prod_RfaDtsNd7wClti")
+                                    .setUnitAmount(200L)
+                                    .setRecurring(
+                                            PriceCreateParams.Recurring.builder()
+                                                    .setUsageType(PriceCreateParams.Recurring.UsageType.METERED)
+                                                    .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
+                                                    .build())
+                                    .build());
 
-    assertNotNull(actualSubscriptionRedirection);
-    assertNotNull(actualSubscriptionRedirection.getRedirectionUrl());
-    assertTrue(
-            actualSubscriptionRedirection
-                    .getRedirectionUrl()
-                    .contains("https://checkout.stripe.com/c/pay"));
-    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls());
-    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls().getSuccessUrl());
-    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls().getFailureUrl());
-    log.info(
-            "Redirection stripe checkout url = {}", actualSubscriptionRedirection.getRedirectionUrl());
-    assertNotNull(subject.deleteUserFromStripe(user));
+    var actual = subject.createSubscription(user, user.getUserSubscriptionId(), newVariableProductPrice);
+
+    assertNotNull(actual);
+    log.info(actual.toString());
   }
 
   @Disabled("TODO: local use only")

@@ -59,7 +59,7 @@ public class InvoicePDFGenerator {
   private Context configureContext(Invoice invoice, AccountHolder accountHolder, File logoFile) {
     Context context = new Context();
     Account account = invoice.getActualAccount();
-    byte[] logoAsBytes = fileWriter.writeAsByte(logoFile);
+    byte[] logoAsBytes = logoFile == null ? null : fileWriter.writeAsByte(logoFile);
 
     context.setVariable("invoice", invoice);
     context.setVariable("logo", base64Image(logoAsBytes));

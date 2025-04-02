@@ -312,11 +312,31 @@ public class SubscriptionService {
               + latestSubscription.getEndDatetime());
     }
     var subscriptionProduct = subscription.getSubscriptionProduct();
+    var subscriptionDataBuilder = SessionCreateParams.SubscriptionData.builder();
     var endOfTrialPeriod = computeEndOfTrialPeriod(user);
-    Long endOfTrialPeriodLong =
-        Date.from(endOfTrialPeriod.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
+    var fifthOfThisMonth = LocalDate.now().withDayOfMonth(5);
+    var nextNaturalBillingDate =
+        LocalDate.now().isBefore(fifthOfThisMonth)
+            ? fifthOfThisMonth
+            : fifthOfThisMonth.plusMonths(1);
+    Long afterTwoMonths =
+        Date.from(
+                    nextNaturalBillingDate
+                        .plusMonths(1)
+                        .atStartOfDay(ZoneId.of("Europe/Paris"))
+                        .toInstant())
+                .getTime()
             / 1000L;
-    var billingCycleAnchor = computeBillingCycleAnchor(endOfTrialPeriod);
+    if (endOfTrialPeriod.isAfter(nextNaturalBillingDate)) {
+      subscriptionDataBuilder.setTrialEnd(afterTwoMonths);
+    } else {
+      subscriptionDataBuilder
+          .setBillingCycleAnchor(
+              Date.from(nextNaturalBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant())
+                      .getTime()
+                  / 1000L)
+          .setProrationBehavior(SessionCreateParams.SubscriptionData.ProrationBehavior.NONE);
+    }
     var subscriptionProductRoofAnalysis =
         subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
     var newVariableProductPrice =
@@ -358,16 +378,7 @@ public class SubscriptionService {
                 .setSuccessUrl(redirectionUrls.getSuccessUrl())
                 .setCancelUrl(redirectionUrls.getFailureUrl())
                 .setUiMode(HOSTED)
-                .setSubscriptionData(
-                    SessionCreateParams.SubscriptionData.builder()
-                        .setProrationBehavior(
-                            SessionCreateParams.SubscriptionData.ProrationBehavior.NONE)
-                        .setBillingCycleAnchor(billingCycleAnchor)
-                        .setTrialPeriodDays(
-                            endOfTrialPeriod.isAfter(temporalUtils.endOfActualMonth())
-                                ? endOfTrialPeriodLong
-                                : null)
-                        .build())
+                .setSubscriptionData(subscriptionDataBuilder.build())
                 .build());
     return new Redirection()
         .redirectionUrl(session.getUrl())
@@ -381,15 +392,6 @@ public class SubscriptionService {
     var userEligibility =
         subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
     return userEligibility.getLatestTrialPeriodDate();
-  }
-
-  private Long computeBillingCycleAnchor(LocalDate latestTrialPeriodDate) {
-    var nextBillingDate = temporalUtils.fifthOfNextMonth();
-    if (latestTrialPeriodDate.isAfter(temporalUtils.endOfActualMonth())) {
-      nextBillingDate = temporalUtils.fifthOfMonthAfter(2);
-    }
-    return Date.from(nextBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
-        / 1000L;
   }
 
   @SneakyThrows

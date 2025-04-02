@@ -141,8 +141,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         actual.getMessage());
   }
 
-  // TODO:`billing_cycle_anchor` cannot be later than next natural billing date
-  @Disabled
   @Test
   void initiate_subscription() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
@@ -151,6 +149,39 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                 UserSubscriptionEligible.builder()
                     .trialPeriodDays(0)
                     .eligibleFrom(LocalDate.now().minusDays(1))
+                    .build()));
+    var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
+    var createdUserSubscription =
+        subject.createOrLinkUserSubscription(
+            existingUser.toBuilder().email("joe" + new Random().nextInt() + "@email.com").build());
+    var user = createdUserSubscription.getUser();
+
+    var actualSubscriptionRedirection =
+        subject.initiateSubscription(
+            user, getDefaultSubscription(), getDefaultRedirectionStatusUrls());
+
+    assertNotNull(actualSubscriptionRedirection);
+    assertNotNull(actualSubscriptionRedirection.getRedirectionUrl());
+    assertTrue(
+        actualSubscriptionRedirection
+            .getRedirectionUrl()
+            .contains("https://checkout.stripe.com/c/pay"));
+    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls());
+    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls().getSuccessUrl());
+    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls().getFailureUrl());
+    log.info(
+        "Redirection stripe checkout url = {}", actualSubscriptionRedirection.getRedirectionUrl());
+    assertNotNull(subject.deleteUserFromStripe(user));
+  }
+
+  @Test
+  void initiate_subscription_default_trial_period_days_before_fifth_of_month() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .trialPeriodDays(14)
+                    .eligibleFrom(LocalDate.now())
                     .build()));
     var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
     var createdUserSubscription =

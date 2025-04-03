@@ -17,6 +17,7 @@ import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.TileCreator;
 import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
+import app.bpartners.api.service.areaPicture.AreaPictureConsumptionValidator;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -36,6 +37,7 @@ public class AreaPictureService {
   private final AreaPictureMapLayerService mapLayerService;
   private final SubscriptionService subscriptionService;
   private final ProspectJpaRepository prospectRepository;
+  private final AreaPictureConsumptionValidator areaPictureConsumptionValidator;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -76,7 +78,9 @@ public class AreaPictureService {
   }
 
   @Transactional
-  public AreaPicture saveArePictureAndLogConsumption(AreaPicture picture) {
+  public AreaPicture saveAreaPictureAndLogConsumption(AreaPicture picture) {
+    areaPictureConsumptionValidator.accept(picture);
+
     var areaPicture = downloadFromExternalSourceAndSave(picture);
     var usageMetric = 1L;
     var optionalProspect = prospectRepository.findById(picture.getIdProspect());

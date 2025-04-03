@@ -35,6 +35,7 @@ import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.ban.response.GeoJsonProperty;
 import app.bpartners.api.repository.ban.response.GeoJsonResponse;
 import app.bpartners.api.repository.google.geocode.GeoCodeApi;
+import app.bpartners.api.service.MetaDataComponent;
 import app.bpartners.api.service.WMS.ArcgisZoom;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
@@ -90,6 +91,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @Autowired AccountRepository accountRepository;
   @MockBean AccountHolderRepository accountHolderRepository;
   @MockBean GeoCodeApi geoCodeApiMock;
+  @MockBean MetaDataComponent metaDataComponent;
 
   static AreaPictureMapLayer geoserverCharenteLayer() {
     return new AreaPictureMapLayer()
@@ -211,6 +213,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 .longitude(0.148409)
                 .latitude(45.644018))
         .filename("FLUX_IGN_2023_20CM_HOUSES_0_524720_374531")
+        .xOffset(1234)
+        .yOffset(123)
         .geoPositions(
             List.of(
                 new app.bpartners.api.endpoint.rest.model.GeoPosition()
@@ -282,7 +286,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 new app.bpartners.api.endpoint.rest.model.GeoPosition()
                     .score(60.0)
                     .longitude(0.148409)
-                    .latitude(45.644018)));
+                    .latitude(45.644018)))
+        .xOffset(1234)
+        .yOffset(123);
   }
 
   static AreaPictureDetails ignoreGeneratedDataOf(AreaPictureDetails areaPictureDetails) {
@@ -340,6 +346,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .zoom(zoom)
         .isExtended(isExtended)
         .shiftNb(0)
+        .xOffset(1234)
+        .yOffset(123)
         .updatedAt(null);
   }
 
@@ -354,6 +362,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
     setUpBanApiMock(banApiMock);
     setUpWmsImageSourceMock(wmsImageSourceMock);
     setUpUserSubscription(subscriptionService);
+    when(metaDataComponent.getXOffset()).thenReturn(1234);
+    when(metaDataComponent.getYOffset()).thenReturn(123);
   }
 
   private void setUpWmsImageSourceMock(WmsImageSource wmsImageSource) {
@@ -451,6 +461,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .thenReturn(AccountHolder.builder().id("accountHolderId").build());
     var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
 
+    log.info("AreaPictureDetails={}", actual);
     AreaPictureDetails expected = removeAvailableLayers(createFrom(payload, payloadId));
     expected.setGeoPositions(actual.getGeoPositions());
     expected.setCurrentGeoPosition(actual.getCurrentGeoPosition());

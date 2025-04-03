@@ -1,9 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
 import static app.bpartners.api.integration.UserIT.userSubscriptionMaker;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,7 +9,6 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import java.util.List;
@@ -63,37 +58,5 @@ class WhoamiIT extends MockedThirdParties {
     var actual = api.whoami();
 
     assertEquals(restJoeDoeUser(), actual.getUser().roles(List.of()));
-  }
-
-  private static User restJoeDoeUser() {
-    return new User()
-        .id(JOE_DOE_ID)
-        .firstName("Joe")
-        .lastName("Doe")
-        .idVerified(true)
-        .identificationStatus(VALID_IDENTITY)
-        .phone("+261340465338")
-        .monthlySubscriptionAmount(5)
-        .logoFileId("logo.jpeg")
-        .status(ENABLED)
-        .activeAccount(restJoeAccount())
-        .roles(List.of())
-        .subscriptionStatus(EMPTY)
-        .subscription(
-            new app.bpartners.api.endpoint.rest.model.UserSubscription()
-                .status(EMPTY)
-                .end(null)
-                .start(null));
-  }
-
-  private static app.bpartners.api.endpoint.rest.model.Account restJoeAccount() {
-    return new app.bpartners.api.endpoint.rest.model.Account()
-        .id("other_joe_account_id")
-        .availableBalance(0)
-        .status(OPENED)
-        .active(true)
-        .name("Other joe account")
-        .iban("Other iban")
-        .bic("Other bic");
   }
 }

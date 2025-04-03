@@ -20,10 +20,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class FinctectureTokenManager {
   private final FintectureConf fintectureConf;
   private static final String BASIC_PREFIX = "Basic ";
@@ -48,6 +50,7 @@ public class FinctectureTokenManager {
               .build();
       HttpResponse<String> response =
           httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+      log.info("TokenResponse Body={}", response.body());
       return new ObjectMapper()
           .findAndRegisterModules()
           .readValue(response.body(), TokenResponse.class);

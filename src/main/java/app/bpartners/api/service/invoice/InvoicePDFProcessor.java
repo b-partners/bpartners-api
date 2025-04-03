@@ -35,7 +35,8 @@ public class InvoicePDFProcessor implements Consumer<Invoice> {
   private File process(Invoice invoice) {
     var invoiceStatus = invoice.getStatus();
     var idUser = invoice.getUser().getId();
-    var logoFile = fileService.downloadFile(LOGO, idUser, invoice.getUser().getLogoFileId());
+    var logoFileId = invoice.getUser().getLogoFileId();
+    var logoFile = logoFileId == null ? null : fileService.downloadFile(LOGO, idUser, logoFileId);
     switch (invoiceStatus) {
       case CONFIRMED, PAID -> {
         return invoicePDFGenerator.apply(

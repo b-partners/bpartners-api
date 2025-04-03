@@ -311,6 +311,11 @@ public class SubscriptionService {
               + " has active subscription until "
               + latestSubscription.getEndDatetime());
     }
+    var sessionBuilder =
+        SessionCreateParams.builder()
+            .setMode(SUBSCRIPTION)
+            .setCustomer(stripeCustomer.getId())
+            .setCurrency(defaultCurrency());
     var subscriptionProduct = subscription.getSubscriptionProduct();
     var subscriptionDataBuilder = SessionCreateParams.SubscriptionData.builder();
     var endOfTrialPeriod = computeEndOfTrialPeriod(user);
@@ -327,8 +332,18 @@ public class SubscriptionService {
                         .toInstant())
                 .getTime()
             / 1000L;
+    var priceDataBuilder =
+        SessionCreateParams.LineItem.PriceData.builder()
+            .setProduct(subscriptionProduct.getE2Id())
+            .setCurrency(defaultCurrency())
+            .setUnitAmount(subscriptionProduct.getPriceInCents());
     if (endOfTrialPeriod.isAfter(nextNaturalBillingDate)) {
       subscriptionDataBuilder.setTrialEnd(afterTwoMonths);
+      sessionBuilder.addLineItem(
+          SessionCreateParams.LineItem.builder()
+              .setQuantity(2L)
+              .setPriceData(priceDataBuilder.build())
+              .build());
     } else {
       subscriptionDataBuilder
           .setBillingCycleAnchor(
@@ -355,18 +370,12 @@ public class SubscriptionService {
                     .build());
     var session =
         Session.create(
-            SessionCreateParams.builder()
-                .setMode(SUBSCRIPTION)
-                .setCustomer(stripeCustomer.getId())
-                .setCurrency(defaultCurrency())
+            sessionBuilder
                 .addLineItem(
                     SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(
-                            SessionCreateParams.LineItem.PriceData.builder()
-                                .setProduct(subscriptionProduct.getE2Id())
-                                .setCurrency(defaultCurrency())
-                                .setUnitAmount(subscriptionProduct.getPriceInCents())
+                            priceDataBuilder
                                 .setRecurring(
                                     computeRecurringFromSubscriptionProduct(subscriptionProduct))
                                 .build())

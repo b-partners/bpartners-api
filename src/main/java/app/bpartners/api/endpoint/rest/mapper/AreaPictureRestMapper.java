@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.endpoint.rest.validator.CrupdateAreaPictureDetailsValidator;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
+import app.bpartners.api.service.MetaDataComponent;
 import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
 public class AreaPictureRestMapper {
   private final CrupdateAreaPictureDetailsValidator validator;
   private final AreaPictureMapLayerRestMapper layerRestMapper;
+  private final MetaDataComponent metaDataComponent;
   @Deprecated private final AreaPictureMapLayerService areaPictureMapLayerService;
 
   private static Tile toRestTile(app.bpartners.api.service.WMS.Tile domain, Zoom zoom) {
@@ -33,6 +35,8 @@ public class AreaPictureRestMapper {
     Zoom zoom = new Zoom().level(domain.getZoomLevel()).number(arcgisZoom.getZoomLevel());
     var tile = toRestTile(domain.getCurrentTile(), zoom);
     Tile referenceTile = toRestTile(domain.getReferenceTile(), zoom);
+    int xOffset = metaDataComponent.getXOffset();
+    int yOffset = metaDataComponent.getYOffset();
     return new AreaPictureDetails()
         .id(domain.getId())
         .fileId(domain.getIdFileInfo())
@@ -54,6 +58,8 @@ public class AreaPictureRestMapper {
         .currentTile(tile)
         .referenceTile(referenceTile)
         .shiftNb(domain.getShiftNb())
+        .yOffset(yOffset)
+        .xOffset(xOffset)
         .isExtended(domain.isExtended());
   }
 

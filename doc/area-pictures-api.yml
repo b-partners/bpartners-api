@@ -486,6 +486,10 @@ components:
           type: integer
         yTile:
           type: integer
+        xOffset:
+          type: integer
+        yOffset:
+          type: integer
         currentTile:
           $ref: "#/components/schemas/Tile"
         referenceTile:

@@ -6,6 +6,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.AreaPictureApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -13,12 +14,14 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.service.MetaDataComponent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 public class AreaPictureAnnotationIT extends MockedThirdParties {
   private static final String AREA_PICTURE_ANNOTATION_1_ID = "area_picture_annotation_1_id";
@@ -27,6 +30,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   private static final String DRAFT_AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_5_id";
 
   @Autowired ObjectMapper om;
+  @MockBean MetaDataComponent metaDataComponent;
 
   static AreaPictureAnnotation createAreaPictureAnnotation(String payloadId, String areaPictureId) {
     return new AreaPictureAnnotation()
@@ -233,5 +237,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
+    when(metaDataComponent.getXOffset()).thenReturn(1234);
+    when(metaDataComponent.getYOffset()).thenReturn(123);
   }
 }

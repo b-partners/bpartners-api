@@ -311,12 +311,47 @@ public class SubscriptionService {
               + " has active subscription until "
               + latestSubscription.getEndDatetime());
     }
+    var sessionBuilder =
+        SessionCreateParams.builder()
+            .setMode(SUBSCRIPTION)
+            .setCustomer(stripeCustomer.getId())
+            .setCurrency(defaultCurrency());
     var subscriptionProduct = subscription.getSubscriptionProduct();
+    var subscriptionDataBuilder = SessionCreateParams.SubscriptionData.builder();
     var endOfTrialPeriod = computeEndOfTrialPeriod(user);
-    Long endOfTrialPeriodLong =
-        Date.from(endOfTrialPeriod.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
+    var fifthOfThisMonth = LocalDate.now().withDayOfMonth(5);
+    var nextNaturalBillingDate =
+        LocalDate.now().isBefore(fifthOfThisMonth)
+            ? fifthOfThisMonth
+            : fifthOfThisMonth.plusMonths(1);
+    Long afterTwoMonths =
+        Date.from(
+                    nextNaturalBillingDate
+                        .plusMonths(1)
+                        .atStartOfDay(ZoneId.of("Europe/Paris"))
+                        .toInstant())
+                .getTime()
             / 1000L;
-    var billingCycleAnchor = computeBillingCycleAnchor(endOfTrialPeriod);
+    var priceDataBuilder =
+        SessionCreateParams.LineItem.PriceData.builder()
+            .setProduct(subscriptionProduct.getE2Id())
+            .setCurrency(defaultCurrency())
+            .setUnitAmount(subscriptionProduct.getPriceInCents());
+    if (endOfTrialPeriod.isAfter(nextNaturalBillingDate)) {
+      subscriptionDataBuilder.setTrialEnd(afterTwoMonths);
+      sessionBuilder.addLineItem(
+          SessionCreateParams.LineItem.builder()
+              .setQuantity(2L)
+              .setPriceData(priceDataBuilder.build())
+              .build());
+    } else {
+      subscriptionDataBuilder
+          .setBillingCycleAnchor(
+              Date.from(nextNaturalBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant())
+                      .getTime()
+                  / 1000L)
+          .setProrationBehavior(SessionCreateParams.SubscriptionData.ProrationBehavior.NONE);
+    }
     var subscriptionProductRoofAnalysis =
         subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
     var newVariableProductPrice =
@@ -335,18 +370,12 @@ public class SubscriptionService {
                     .build());
     var session =
         Session.create(
-            SessionCreateParams.builder()
-                .setMode(SUBSCRIPTION)
-                .setCustomer(stripeCustomer.getId())
-                .setCurrency(defaultCurrency())
+            sessionBuilder
                 .addLineItem(
                     SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(
-                            SessionCreateParams.LineItem.PriceData.builder()
-                                .setProduct(subscriptionProduct.getE2Id())
-                                .setCurrency(defaultCurrency())
-                                .setUnitAmount(subscriptionProduct.getPriceInCents())
+                            priceDataBuilder
                                 .setRecurring(
                                     computeRecurringFromSubscriptionProduct(subscriptionProduct))
                                 .build())
@@ -358,16 +387,7 @@ public class SubscriptionService {
                 .setSuccessUrl(redirectionUrls.getSuccessUrl())
                 .setCancelUrl(redirectionUrls.getFailureUrl())
                 .setUiMode(HOSTED)
-                .setSubscriptionData(
-                    SessionCreateParams.SubscriptionData.builder()
-                        .setProrationBehavior(
-                            SessionCreateParams.SubscriptionData.ProrationBehavior.NONE)
-                        .setBillingCycleAnchor(billingCycleAnchor)
-                        .setTrialPeriodDays(
-                            endOfTrialPeriod.isAfter(temporalUtils.endOfActualMonth())
-                                ? endOfTrialPeriodLong
-                                : null)
-                        .build())
+                .setSubscriptionData(subscriptionDataBuilder.build())
                 .build());
     return new Redirection()
         .redirectionUrl(session.getUrl())
@@ -381,15 +401,6 @@ public class SubscriptionService {
     var userEligibility =
         subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
     return userEligibility.getLatestTrialPeriodDate();
-  }
-
-  private Long computeBillingCycleAnchor(LocalDate latestTrialPeriodDate) {
-    var nextBillingDate = temporalUtils.fifthOfNextMonth();
-    if (latestTrialPeriodDate.isAfter(temporalUtils.endOfActualMonth())) {
-      nextBillingDate = temporalUtils.fifthOfMonthAfter(2);
-    }
-    return Date.from(nextBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
-        / 1000L;
   }
 
   @SneakyThrows

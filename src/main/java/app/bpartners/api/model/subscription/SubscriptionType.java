@@ -1,5 +1,6 @@
 package app.bpartners.api.model.subscription;
 
 public enum SubscriptionType {
-  MONTHLY
+  MONTHLY,
+  TRIAL
 }

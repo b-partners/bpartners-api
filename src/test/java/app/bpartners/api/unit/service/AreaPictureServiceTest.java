@@ -21,6 +21,7 @@ import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
 import app.bpartners.api.service.WMS.Tile;
 import app.bpartners.api.service.WMS.TileCreator;
 import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
+import app.bpartners.api.service.areaPicture.AreaPictureConsumptionValidator;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.io.File;
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-class ArePictureServiceTest {
+class AreaPictureServiceTest {
   SubscriptionService subscriptionServiceMock = mock();
   AreaPictureMapLayerService mapLayerServiceMock = mock();
   TileCreator tileCreatorMock = mock();
@@ -37,6 +38,7 @@ class ArePictureServiceTest {
   AreaPictureMapper mapper = mock();
   AreaPictureJpaRepository jpaRepositoryMock = mock();
   ProspectJpaRepository prospectJpaRepositoryMock = mock();
+  AreaPictureConsumptionValidator consumptionValidatorMock = mock();
 
   AreaPictureService subject =
       new AreaPictureService(
@@ -47,7 +49,8 @@ class ArePictureServiceTest {
           tileCreatorMock,
           mapLayerServiceMock,
           subscriptionServiceMock,
-          prospectJpaRepositoryMock);
+          prospectJpaRepositoryMock,
+          consumptionValidatorMock);
 
   @Test
   void save_area_picture_and_add_log() {
@@ -60,6 +63,7 @@ class ArePictureServiceTest {
     var prospectAddress = "prospectAddress";
     var prospectId = "prospectId";
     var prospectName = "prospectOldName";
+    doNothing().when(consumptionValidatorMock).accept(areaPictureMock);
     when(areaPictureMock.getCurrentLayer()).thenReturn(areaPictureMapLayerMock);
     when(areaPictureMock.getFilename()).thenReturn("dummyFilename");
     when(areaPictureMock.getIdUser()).thenReturn(userId);
@@ -80,7 +84,7 @@ class ArePictureServiceTest {
     var subscriptionConsumptionLogCaptor =
         ArgumentCaptor.forClass(SubscriptionConsumptionLog.class);
 
-    var actual = subject.saveArePictureAndLogConsumption(areaPictureMock);
+    var actual = subject.saveAreaPictureAndLogConsumption(areaPictureMock);
 
     verify(subscriptionServiceMock, times(1))
         .addConsumption(subscriptionConsumptionLogCaptor.capture());

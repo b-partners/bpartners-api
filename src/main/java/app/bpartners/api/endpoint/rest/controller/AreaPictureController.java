@@ -48,7 +48,7 @@ public class AreaPictureController {
       @RequestBody CrupdateAreaPictureDetails toCrupdate) {
     String userId = AuthProvider.getAuthenticatedUserId();
     var areaPicture = mapper.toDomain(toCrupdate, areaPictureId, userId);
-    var result = service.saveArePictureAndLogConsumption(areaPicture);
+    var result = service.saveAreaPictureAndLogConsumption(areaPicture);
     return mapper.toRest(result);
   }
 }

@@ -1,5 +1,40 @@
 operations:
   subscriptionConsumptionLogsOperation:
+    post:
+      tags:
+        - User Subscription
+      summary: Create a subscriptionLog for an user
+      operationId: addSubscriptionConsumptionLogs
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionConsumptionLog'
+      responses:
+        200:
+          description: User subscription consumption log
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionConsumptionLog'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
     get:
       tags:
         - User Subscription

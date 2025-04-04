@@ -23,14 +23,39 @@
         .title {
             font-size: 16px;
             text-align: center;
-            font-weight: bold;
-            margin: 270px auto 20px auto;
+            font-weight: bold !important;
+            margin: 250px auto 40px auto;
         }
 
-        .annotation-image {
+        .title-value {
+            color: #7A003D;
+        }
+
+        .main-image {
             display: block;
-            width: 320px;
-            height: 320px;
+            width: 600px;
+            margin: 0 auto;
+        }
+
+        .annotation-item{
+            display: table;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .annotation-item-labels{
+            display: table-cell;
+            width: calc(100% - 320px);
+            vertical-align: top;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        .annotation-item-image{
+            display: table-cell;
+            width: 300px;
+            text-align: right;
             margin: 0 auto;
         }
 
@@ -39,7 +64,6 @@
             font-weight: bold;
         }
 
-        .annotation-item{ margin-top: 20px; }
         .annotation-item-title{ font-size: 14px; }
         .annotation-item-title-value{ margin-right: 10px; }
         .annotation-item-info-label{ font-weight: bold; }
@@ -58,21 +82,31 @@
 </head>
 <body>
     <section class="page">
-        <h1 class="title" th:text="'Rapport d\'analyse de l\'adresse : ' + ${address}"></h1>
-        <img alt="annotation" class="annotation-image"  th:src="'data:image/jpeg;base64,' + ${annotationImage}" />
+        <h1 class="title">
+            <span class="title-label">Rapport d'analyse de l'adresse : </span>
+            <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
+        </h1>
+        <img alt="annotation" class="main-image"  th:src="'data:image/jpeg;base64,' + ${mainImage}" />
     </section>
     <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last} ? 'last-page' : ''">
         <h2 class="annotation-information-title"> Informations des annotations </h2>
-        <div th:each="annotation : ${page}" class="annotation-item" th:classappend="${pageStat.last} ? 'last-page'">
-            <h4 class="annotation-item-title">
-                <span class="annotation-item-title-value" th:text="${annotation.labelName} ?: 'Non renseigné'"></span>
-                <span class="annotation-item-title-color"  th:style="'background-color:' + (${annotation.strokeColor} ?: '#00FF00')"></span>
-            </h4>
-            <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
-                <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
-                <span>:</span>
-                <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
-            </p>
+        <div th:each="annotation, annotationStat : ${page}" class="annotation-item" th:classappend="${pageStat.last} ? 'last-page'">
+            <div class="annotation-item-labels">
+                <h4 class="annotation-item-title">
+                    <span class="annotation-item-title-value" th:text="${annotation.labelName} ?: 'Non renseigné'"></span>
+                    <span class="annotation-item-title-color"  th:style="'background-color:' + (${annotation.strokeColor} ?: '#00FF00')"></span>
+                </h4>
+                <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
+                    <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
+                    <span>:</span>
+                    <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
+                </p>
+            </div>
+            <img
+                class="annotation-item-image"
+                alt="annotation sub-image"
+                th:src="'data:image/jpeg;base64,' + ${subImages[annotationStat.index]}"
+            />
         </div>
     </section>
 </body>

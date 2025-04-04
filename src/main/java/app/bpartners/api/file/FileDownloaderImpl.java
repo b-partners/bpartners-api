@@ -4,12 +4,13 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 import static java.nio.file.attribute.PosixFilePermissions.asFileAttribute;
 import static java.nio.file.attribute.PosixFilePermissions.fromString;
 import static java.util.UUID.randomUUID;
-import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import app.bpartners.api.file.bucket.BucketConf;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.service.MetaDataComponent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;
 import java.io.File;
@@ -22,11 +23,14 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
@@ -42,6 +46,7 @@ public final class FileDownloaderImpl implements FileDownloader {
   private final RestTemplate restTemplate;
   private final ObjectMapper om;
   private final BucketConf bucketConf;
+  private final MetaDataComponent metaDataComponent;
 
   @Override
   @SneakyThrows
@@ -120,19 +125,42 @@ public final class FileDownloaderImpl implements FileDownloader {
     headers.setContentType(APPLICATION_JSON);
     headers.setAccept(List.of(ALL));
     log.info("body {}", body);
-    RequestEntity<byte[]> request =
-        new RequestEntity<>(om.writeValueAsBytes(body), headers, POST, uri);
-    byte[] bytes;
-    if (isBase64Encoded) {
-      var base64Response = restTemplate.postForObject(uri, request, String.class);
-      bytes = Base64.getDecoder().decode(base64Response);
-    } else {
-      bytes = restTemplate.postForObject(uri, request, byte[].class);
+
+    RequestEntity<byte[]> request;
+    try {
+      request = new RequestEntity<>(om.writeValueAsBytes(body), headers, HttpMethod.POST, uri);
+    } catch (JsonProcessingException e) {
+      throw new ApiException(SERVER_EXCEPTION, "Error serializing request body");
     }
 
-    if (bytes == null) {
-      throw new ApiException(SERVER_EXCEPTION, "unable to POST download from " + uri);
+    ResponseEntity<byte[]> response =
+        restTemplate.exchange(uri, HttpMethod.POST, request, byte[].class);
+
+    if (response.getBody() == null) {
+      throw new ApiException(SERVER_EXCEPTION, "Empty response body from " + uri);
     }
+
+    byte[] bytes =
+        isBase64Encoded ? Base64.getDecoder().decode(response.getBody()) : response.getBody();
+    HttpHeaders responseHeaders = response.getHeaders();
+
+    int xOffset =
+        (int)
+            Math.round(
+                Optional.ofNullable(responseHeaders.getFirst("x_offset"))
+                    .map(Double::parseDouble)
+                    .orElse(0.0));
+    int yOffset =
+        (int)
+            Math.round(
+                Optional.ofNullable(responseHeaders.getFirst("y_offset"))
+                    .map(Double::parseDouble)
+                    .orElse(0.0));
+
+    metaDataComponent.setOffsets(xOffset, yOffset);
+
+    log.info("x_offset={}", metaDataComponent.getXOffset());
+    log.info("x_offset={}", metaDataComponent.getYOffset());
     return createFileFrom(filename, bytes);
   }
 

@@ -1,3 +1,12 @@
+# [0.64.0](https://github.com/b-partners/bpartners-api/compare/v0.63.0...v0.64.0) (2025-03-11)
+
+
+### Reverts
+
+* Revert "feat: make area picture creation permit for unauthenticated user" ([1e4ca90](https://github.com/b-partners/bpartners-api/commit/1e4ca90fe4d6bf7460a5309a7709406e6d4d3495))
+
+
+
 # [0.63.0](https://github.com/b-partners/bpartners-api/compare/v0.62.0...v0.63.0) (2025-03-10)
 
 
@@ -173,6 +182,25 @@
 
 * avoid NPE on prospect getById ([2bd849c](https://github.com/b-partners/bpartners-api/commit/2bd849c0710e55691252fd345a48453236d57149))
 * paginate getProspects ([edf00da](https://github.com/b-partners/bpartners-api/commit/edf00da1858245dda8d58e0946b64612e4f66c5f))
+
+
+
+# [0.54.0](https://github.com/b-partners/bpartners-api/compare/v0.52.1...v0.54.0) (2024-09-10)
+
+
+### Bug Fixes
+
+* do not delete old invoice.paymentRequests after update ([acaedbb](https://github.com/b-partners/bpartners-api/commit/acaedbb249014a844c82e1708bcd00ce583082f4))
+
+
+### Features
+
+* paginate getProspects and add get prospect by id ([c0f8a9e](https://github.com/b-partners/bpartners-api/commit/c0f8a9eb43ea3d2b5ceabdbf9849b3b9d5a85e1e))
+
+
+### Reverts
+
+* Revert "chore(to-revert): allow invoice duplication for userRole=EVAL_PROSPECT" ([d2eec6d](https://github.com/b-partners/bpartners-api/commit/d2eec6d56b8030349c2e6a50eb7df741d94e367d))
 
 
 

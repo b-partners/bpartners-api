@@ -15,15 +15,17 @@ public record ExportAreaPictureAnnotationImageConf(
     Color measurementBgColor,
     Color measurementTextColor,
     IntXY measurementOffset,
-    Font measurementFont) {
+    Font measurementFont,
+    boolean drawMeasurement) {
   public static final Stroke DEFAULT_STROKE = new BasicStroke(1.2f);
-  public static final int DEFAULT_SCALE = 2;
-  public static final int DEFAULT_POINT_SIZE = 6;
+  public static final int DEFAULT_SCALE = 3;
+  public static final int DEFAULT_POINT_SIZE = 8;
   public static final Color DEFAULT_POINT_COLOR = BLACK;
   public static final Color DEFAULT_MEASUREMENT_BG_COLOR = new Color(0, 0, 0, 150);
   public static final Color DEFAULT_MEASUREMENT_TEXT_COLOR = WHITE;
   public static final IntXY DEFAULT_MEASUREMENT_OFFSET = new IntXY(6, 4);
-  public static final Font DEFAULT_MEASUREMENT_FONT = new Font("Arial", PLAIN, 11);
+  public static final Font DEFAULT_MEASUREMENT_FONT = new Font("Arial", PLAIN, 15);
+  public static final boolean DRAW_MEASUREMENT = false;
 
   public ExportAreaPictureAnnotationImageConf() {
     this(
@@ -34,6 +36,20 @@ public record ExportAreaPictureAnnotationImageConf(
         DEFAULT_MEASUREMENT_BG_COLOR,
         DEFAULT_MEASUREMENT_TEXT_COLOR,
         DEFAULT_MEASUREMENT_OFFSET,
-        DEFAULT_MEASUREMENT_FONT);
+        DEFAULT_MEASUREMENT_FONT,
+        DRAW_MEASUREMENT);
+  }
+
+  public ExportAreaPictureAnnotationImageConf(boolean drawMeasurement) {
+    this(
+        DEFAULT_STROKE,
+        DEFAULT_SCALE,
+        DEFAULT_POINT_SIZE,
+        DEFAULT_POINT_COLOR,
+        DEFAULT_MEASUREMENT_BG_COLOR,
+        DEFAULT_MEASUREMENT_TEXT_COLOR,
+        DEFAULT_MEASUREMENT_OFFSET,
+        DEFAULT_MEASUREMENT_FONT,
+        drawMeasurement);
   }
 }

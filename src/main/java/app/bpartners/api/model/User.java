@@ -53,6 +53,7 @@ public class User implements Serializable {
   private String snsArn;
   private String deviceToken;
   private User parentUser;
+  private String apiKey;
 
   public String describe() {
     return "User(id" + id + ", name=" + getName() + ", email=" + email + ")";

@@ -7,6 +7,7 @@ import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Primary;
@@ -45,6 +46,15 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
     }
 
     return principal;
+  }
+
+  @Override
+  public User retrieveUserWithoutLegalFileCheck(HttpServletRequest request) {
+    try {
+      return bearerAuthenticator.retrieveUserWithoutLegalFileCheck(request);
+    } catch (AuthenticationException ignored) {
+      return apiKeyAuthenticator.retrieveUserWithoutLegalFileCheck(request);
+    }
   }
 
   private void checkLegalFiles(List<LegalFile> legalFiles, User user) {

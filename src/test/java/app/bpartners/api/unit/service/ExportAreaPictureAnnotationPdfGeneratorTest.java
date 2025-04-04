@@ -31,9 +31,14 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
   void generate_pdf_ok() throws IOException {
     var annotationImage = bufferedImageToByteArray(mockImage);
     var exportAreaPictureAnnotation = exportAreaPictureAnnotation();
+    var subImages =
+        exportAreaPictureAnnotation.getAnnotations().stream()
+            .map(annotation -> annotationImage)
+            .toList();
 
     var file =
-        assertDoesNotThrow(() -> subject.apply(annotationImage, exportAreaPictureAnnotation));
+        assertDoesNotThrow(
+            () -> subject.apply(annotationImage, subImages, exportAreaPictureAnnotation));
     assertNotNull(file);
   }
 
@@ -45,6 +50,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
 
   static ExportAreaPictureAnnotation exportAreaPictureAnnotation() {
     return new ExportAreaPictureAnnotation()
+        .imageUrl("https://dummy.com")
         .address("Dummy Address")
         .annotations(
             List.of(

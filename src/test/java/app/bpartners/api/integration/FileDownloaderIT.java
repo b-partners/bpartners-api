@@ -29,16 +29,22 @@ public class FileDownloaderIT extends MockedThirdParties {
     var downloaded =
         fileDownloader.postJson(
             "filename",
-            URI.create("https://93pm3wtg9e.execute-api.eu-west-3.amazonaws.com/Prod/extend"),
+            URI.create(
+                "https://nviolk4f4xowf62tlzxkafvm4i0btmph.lambda-url.eu-west-3.on.aws/extend"),
             TileExtenderRequestBody.builder()
-                .x(528671)
-                .y(383099)
+                .x(538596)
+                .y(377561)
                 .z(20)
                 .server("geoserver")
-                .layer("cannes_labege")
+                .layer("Auvergne_Rhone_Alpes_All_Region_5cm")
+                .isCropped(true)
+                .latitude(44.9120193)
+                .longitude(4.9125046)
+                .shiftNb(0)
                 .build(),
             true);
 
+    ;
     System.out.println(downloaded.getAbsolutePath());
   }
 }

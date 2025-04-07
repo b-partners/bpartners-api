@@ -1,3 +1,33 @@
+# [0.65.0](https://github.com/b-partners/bpartners-api/compare/v0.64.0...v0.65.0) (2025-04-07)
+
+
+### Bug Fixes
+
+* **InvoicePDFProcessor:** allow processing without logo ([c413899](https://github.com/b-partners/bpartners-api/commit/c4138996fd761b2c114cc505d8a9a7fc59c8cab1))
+* **MonthlySubscriptionInvoiceRequestedService:** compute invoice for actual month date not last month ([1930d4b](https://github.com/b-partners/bpartners-api/commit/1930d4b530db6c607773fb77d4e9c0a74c3d39be))
+* pcrs resolution ([9596184](https://github.com/b-partners/bpartners-api/commit/95961844a2fb73a2f28a34a12d175cbdcde0d61a))
+* remove unnecessary log on GeoCodingApiTest ([264e09d](https://github.com/b-partners/bpartners-api/commit/264e09d62628b394eaf0f31ccfbd51283f67798e))
+* set AreaPictureConsumptionValidator with max free roof analysis consumption ([78c2742](https://github.com/b-partners/bpartners-api/commit/78c2742a8d099742ef3031b2d418b4ae46ec2d5d))
+* whoami with api key ([8d4ddec](https://github.com/b-partners/bpartners-api/commit/8d4ddec11bfd88d8028af9f6dc4575f0799bed76))
+
+
+### Features
+
+* add susbscriptionConsumptionLog endpoint ([5769426](https://github.com/b-partners/bpartners-api/commit/576942662d25c568fc50583c4406da12f27a4fc1))
+* get subordinates users of an user ([1ba3b10](https://github.com/b-partners/bpartners-api/commit/1ba3b101ed3bcb6c168cae44c736837deb7e03f7))
+* make area picture creation permit for unauthenticated user ([59fae2d](https://github.com/b-partners/bpartners-api/commit/59fae2dc1d6e72cb3f82f0f458f2616e1e0a7f18))
+
+
+### Reverts
+
+* Revert "refactor: add price if trial is use" ([e0e5b2a](https://github.com/b-partners/bpartners-api/commit/e0e5b2aa42f04a9a6a08c0cac60b83b1b4125098))
+* Revert "chore(to-fix): WhoamiIT use TestUtils::restJoeDoeUser" ([defca1d](https://github.com/b-partners/bpartners-api/commit/defca1d375d63813ec5ddb4d552f7f614c10374a))
+* Revert "feat: make area picture creation permit for unauthenticated user" ([59f8827](https://github.com/b-partners/bpartners-api/commit/59f882722030fbb224d7e165b54b48bb21b1a5c0))
+* Revert "chore(to-revert): comment deactivate fintecture" ([0e21db6](https://github.com/b-partners/bpartners-api/commit/0e21db6df388fb9f4b5f913fb058a152a0c3c3ab))
+* chore(to-revert): get invoice for february 2025 ([e18abbf](https://github.com/b-partners/bpartners-api/commit/e18abbfd60b2a61c1664c65bccaecb3e6edab291))
+
+
+
 # [0.64.0](https://github.com/b-partners/bpartners-api/compare/v0.63.0...v0.64.0) (2025-03-11)
 
 
@@ -157,50 +187,6 @@
 ### Features
 
 * add tile extension with left-right switching support ([731e7e5](https://github.com/b-partners/bpartners-api/commit/731e7e532f5eaff269d2f42a9ad1974ecb72fc34))
-
-
-
-# [0.55.0](https://github.com/b-partners/bpartners-api/compare/v0.54.1...v0.55.0) (2024-09-19)
-
-
-### Bug Fixes
-
-* check payment regulations changed before invoice crupdate ([5cdb7ab](https://github.com/b-partners/bpartners-api/commit/5cdb7ab200db333ee26b6a2ed5958d60be9bb067))
-* compute payment regulations for CONFIRMED invoice edition directly ([063638f](https://github.com/b-partners/bpartners-api/commit/063638fb2e94e9ba7ab539286b0d09769fa93a62))
-
-
-### Features
-
-* allow users to send email during onboarding ([f89c650](https://github.com/b-partners/bpartners-api/commit/f89c650514d00037a5f01faebba7d94948940671))
-
-
-
-## [0.54.1](https://github.com/b-partners/bpartners-api/compare/v0.54.0...v0.54.1) (2024-09-10)
-
-
-### Bug Fixes
-
-* avoid NPE on prospect getById ([2bd849c](https://github.com/b-partners/bpartners-api/commit/2bd849c0710e55691252fd345a48453236d57149))
-* paginate getProspects ([edf00da](https://github.com/b-partners/bpartners-api/commit/edf00da1858245dda8d58e0946b64612e4f66c5f))
-
-
-
-# [0.54.0](https://github.com/b-partners/bpartners-api/compare/v0.52.1...v0.54.0) (2024-09-10)
-
-
-### Bug Fixes
-
-* do not delete old invoice.paymentRequests after update ([acaedbb](https://github.com/b-partners/bpartners-api/commit/acaedbb249014a844c82e1708bcd00ce583082f4))
-
-
-### Features
-
-* paginate getProspects and add get prospect by id ([c0f8a9e](https://github.com/b-partners/bpartners-api/commit/c0f8a9eb43ea3d2b5ceabdbf9849b3b9d5a85e1e))
-
-
-### Reverts
-
-* Revert "chore(to-revert): allow invoice duplication for userRole=EVAL_PROSPECT" ([d2eec6d](https://github.com/b-partners/bpartners-api/commit/d2eec6d56b8030349c2e6a50eb7df741d94e367d))
 
 
 

@@ -7,6 +7,7 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.R
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SETUP;
+import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
 import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -317,6 +318,7 @@ public class SubscriptionService {
         "Schedule start date = {}",
         Instant.ofEpochSecond(billingCycleAnchor).atZone(ZoneId.of("Europe/Paris")).toLocalDate());
 
+    var subscriptionProduct = subscription.getSubscriptionProduct();
     var subscriptionProductRoofAnalysis =
         subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
     var newVariableProductPrice =
@@ -335,6 +337,105 @@ public class SubscriptionService {
                     .build());
 
     var session =
+        createSession(
+            endOfTrialPeriod,
+            stripeCustomer,
+            redirectionUrls,
+            subscription,
+            newVariableProductPrice,
+            billingCycleAnchor,
+            subscriptionProduct);
+    return new Redirection()
+        .redirectionUrl(session.getUrl())
+        .redirectionStatusUrls(
+            new RedirectionStatusUrls()
+                .successUrl(session.getSuccessUrl())
+                .failureUrl(session.getCancelUrl()));
+  }
+
+  private Session createSession(
+      LocalDate trialEnd,
+      Customer stripeCustomer,
+      RedirectionStatusUrls redirectionUrls,
+      Subscription subscription,
+      Price newVariableProductPrice,
+      Long billingCycleAnchor,
+      SubscriptionProduct subscriptionProduct)
+      throws StripeException {
+    if (trialEnd.isAfter(temporalUtils.fifthOfNextMonth())) {
+      return createSessionSetUp(
+          stripeCustomer,
+          redirectionUrls,
+          subscription,
+          newVariableProductPrice,
+          billingCycleAnchor);
+    } else {
+      var session =
+          createSessionSubscription(
+              stripeCustomer,
+              subscriptionProduct,
+              newVariableProductPrice,
+              redirectionUrls,
+              billingCycleAnchor);
+      simulateSubscriptionScheduleCreation(
+          stripeCustomer.getId(),
+          subscription,
+          newVariableProductPrice.getId(),
+          billingCycleAnchor);
+
+      return session;
+    }
+  }
+
+  private Session createSessionSubscription(
+      Customer stripeCustomer,
+      SubscriptionProduct subscriptionProduct,
+      Price newVariableProductPrice,
+      RedirectionStatusUrls redirectionUrls,
+      Long billingCycleAnchor)
+      throws StripeException {
+    return Session.create(
+        SessionCreateParams.builder()
+            .setMode(SUBSCRIPTION)
+            .setCustomer(stripeCustomer.getId())
+            .setCurrency(defaultCurrency())
+            .addLineItem(
+                SessionCreateParams.LineItem.builder()
+                    .setQuantity(1L)
+                    .setPriceData(
+                        SessionCreateParams.LineItem.PriceData.builder()
+                            .setProduct(subscriptionProduct.getE2Id())
+                            .setCurrency(defaultCurrency())
+                            .setUnitAmount(subscriptionProduct.getPriceInCents())
+                            .setRecurring(
+                                computeRecurringFromSubscriptionProductForSubscriptionMode(
+                                    subscriptionProduct))
+                            .build())
+                    .build())
+            .addLineItem(
+                SessionCreateParams.LineItem.builder()
+                    .setPrice(newVariableProductPrice.getId())
+                    .build())
+            .setSuccessUrl(redirectionUrls.getSuccessUrl())
+            .setCancelUrl(redirectionUrls.getFailureUrl())
+            .setUiMode(HOSTED)
+            .setSubscriptionData(
+                SessionCreateParams.SubscriptionData.builder()
+                    .setProrationBehavior(
+                        SessionCreateParams.SubscriptionData.ProrationBehavior.NONE)
+                    .setBillingCycleAnchor(billingCycleAnchor)
+                    .build())
+            .build());
+  }
+
+  private Session createSessionSetUp(
+      Customer stripeCustomer,
+      RedirectionStatusUrls redirectionUrls,
+      Subscription subscription,
+      Price newVariableProductPrice,
+      Long billingCycleAnchor)
+      throws StripeException {
+    var session =
         Session.create(
             SessionCreateParams.builder()
                 .setMode(SETUP)
@@ -346,12 +447,8 @@ public class SubscriptionService {
                 .build());
     simulateSubscriptionScheduleCreation(
         stripeCustomer.getId(), subscription, newVariableProductPrice.getId(), billingCycleAnchor);
-    return new Redirection()
-        .redirectionUrl(session.getUrl())
-        .redirectionStatusUrls(
-            new RedirectionStatusUrls()
-                .successUrl(session.getSuccessUrl())
-                .failureUrl(session.getCancelUrl()));
+
+    return session;
   }
 
   @SneakyThrows
@@ -363,7 +460,7 @@ public class SubscriptionService {
 
     var phases = new ArrayList<SubscriptionScheduleCreateParams.Phase>();
     var recurringParams =
-        computeRecurringFromSubscriptionProduct(subscription.getSubscriptionProduct());
+        computeRecurringFromSubscriptionProductForSetUpMode(subscription.getSubscriptionProduct());
 
     var basePlanItems =
         List.of(
@@ -611,11 +708,23 @@ public class SubscriptionService {
   }
 
   private SubscriptionScheduleCreateParams.Phase.Item.PriceData.Recurring
-      computeRecurringFromSubscriptionProduct(SubscriptionProduct subscriptionProduct) {
+      computeRecurringFromSubscriptionProductForSetUpMode(SubscriptionProduct subscriptionProduct) {
     if (Objects.requireNonNull(subscriptionProduct.getType()) == MONTHLY) {
       return SubscriptionScheduleCreateParams.Phase.Item.PriceData.Recurring.builder()
           .setInterval(
               SubscriptionScheduleCreateParams.Phase.Item.PriceData.Recurring.Interval.MONTH)
+          .build();
+    }
+    throw new IllegalArgumentException(
+        "Unknown subscription type: " + subscriptionProduct.getType());
+  }
+
+  private SessionCreateParams.LineItem.PriceData.Recurring
+      computeRecurringFromSubscriptionProductForSubscriptionMode(
+          SubscriptionProduct subscriptionProduct) {
+    if (Objects.requireNonNull(subscriptionProduct.getType()) == MONTHLY) {
+      return SessionCreateParams.LineItem.PriceData.Recurring.builder()
+          .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
           .build();
     }
     throw new IllegalArgumentException(

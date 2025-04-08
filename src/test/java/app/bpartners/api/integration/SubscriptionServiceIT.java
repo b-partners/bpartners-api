@@ -155,8 +155,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         .thenReturn(
             Optional.of(
                 UserSubscriptionEligible.builder()
-                    .trialPeriodDays(14)
-                    .eligibleFrom(LocalDate.of(2025, MARCH, 30))
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(1))
                     .build()));
     var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
     var createdUserSubscription =

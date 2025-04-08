@@ -6,7 +6,7 @@ import app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
-import app.bpartners.api.service.AreaPictureService;
+import app.bpartners.api.service.areapicture.AreaPictureService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

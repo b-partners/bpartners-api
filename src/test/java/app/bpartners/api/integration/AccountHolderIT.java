@@ -23,7 +23,7 @@ import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.user.UserService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

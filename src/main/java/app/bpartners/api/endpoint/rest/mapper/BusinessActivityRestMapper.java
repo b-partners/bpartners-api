@@ -3,7 +3,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.service.AccountHolderService;
+import app.bpartners.api.service.accountholder.AccountHolderService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

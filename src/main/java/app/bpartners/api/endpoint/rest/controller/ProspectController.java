@@ -32,7 +32,7 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
-import app.bpartners.api.service.ProspectService;
+import app.bpartners.api.service.prospect.ProspectService;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -1,9 +1,9 @@
 package app.bpartners.api.service.event;
 
 import app.bpartners.api.endpoint.event.model.UserRegistrationRequested;
-import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.user.UserService;
 import java.time.LocalDate;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

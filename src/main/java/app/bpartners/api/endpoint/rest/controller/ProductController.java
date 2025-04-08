@@ -16,7 +16,7 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.service.ProductService;
+import app.bpartners.api.service.product.ProductService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;

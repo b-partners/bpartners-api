@@ -11,7 +11,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
-import app.bpartners.api.service.areaPicture.RoofAnalysisConsumptionFreeTrialValidator;
+import app.bpartners.api.service.areapicture.RoofAnalysisConsumptionFreeTrialValidator;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
 import java.time.LocalDate;

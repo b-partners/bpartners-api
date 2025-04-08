@@ -1,7 +1,7 @@
 package app.bpartners.api.service.event;
 
 import app.bpartners.api.endpoint.event.model.RefreshTransactionsSummariesTriggered;
-import app.bpartners.api.service.TransactionService;
+import app.bpartners.api.service.transaction.TransactionService;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;

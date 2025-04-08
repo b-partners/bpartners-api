@@ -15,7 +15,7 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.UserSubscription;
-import app.bpartners.api.service.LegalFileService;
+import app.bpartners.api.service.user.LegalFileService;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;

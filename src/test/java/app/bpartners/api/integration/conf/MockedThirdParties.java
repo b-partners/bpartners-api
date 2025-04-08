@@ -13,7 +13,7 @@ import app.bpartners.api.repository.connectors.account.AccountConnectorRepositor
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
+import app.bpartners.api.service.payment.PaymentScheduleService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;

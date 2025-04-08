@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.RefreshInvoiceSummaryTriggered;
 import app.bpartners.api.endpoint.event.model.RefreshUserInvoiceSummaryTriggered;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.user.UserService;
 import java.util.List;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

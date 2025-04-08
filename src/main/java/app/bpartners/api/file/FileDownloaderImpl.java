@@ -9,7 +9,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import app.bpartners.api.file.bucket.BucketConf;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.service.MetaDataComponent;
+import app.bpartners.api.service.areapicture.MetaDataComponent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;

@@ -3,7 +3,7 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.MailingRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateEmail;
 import app.bpartners.api.endpoint.rest.model.Email;
-import app.bpartners.api.service.MailingService;
+import app.bpartners.api.service.mail.MailingService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;

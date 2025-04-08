@@ -10,7 +10,7 @@ import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.MultipartFileConverter;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.FileMapper;
-import app.bpartners.api.service.FileService;
+import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.FileInfoUtils;
 import java.io.File;
 import lombok.AllArgsConstructor;

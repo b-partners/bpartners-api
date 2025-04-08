@@ -7,7 +7,6 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
-import app.bpartners.api.service.PaymentInitiationService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;

@@ -5,7 +5,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 import app.bpartners.api.endpoint.rest.model.AreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.DraftAreaPictureAnnotation;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.service.AreaPictureService;
+import app.bpartners.api.service.areapicture.AreaPictureService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -1,4 +1,4 @@
-package app.bpartners.api.service.WMS.imageSource;
+package app.bpartners.api.service.wms.imageSource;
 
 import app.bpartners.api.model.AreaPicture;
 import java.io.File;

@@ -2,8 +2,8 @@ package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
-import app.bpartners.api.service.WMS.ArcgisZoom;
-import app.bpartners.api.service.WMS.Tile;
+import app.bpartners.api.service.wms.ArcgisZoom;
+import app.bpartners.api.service.wms.Tile;
 import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;

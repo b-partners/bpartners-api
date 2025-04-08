@@ -11,7 +11,7 @@ import app.bpartners.api.endpoint.rest.validator.CrupdateAreaPictureDetailsValid
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.MetaDataComponent;
-import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
+import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class AreaPictureRestMapper {
   private final MetaDataComponent metaDataComponent;
   @Deprecated private final AreaPictureMapLayerService areaPictureMapLayerService;
 
-  private static Tile toRestTile(app.bpartners.api.service.WMS.Tile domain, Zoom zoom) {
+  private static Tile toRestTile(app.bpartners.api.service.wms.Tile domain, Zoom zoom) {
     return new Tile().x(domain.getX()).y(domain.getY()).zoom(zoom);
   }
 

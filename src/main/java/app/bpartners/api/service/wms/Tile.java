@@ -1,4 +1,4 @@
-package app.bpartners.api.service.WMS;
+package app.bpartners.api.service.wms;
 
 import static java.lang.Math.PI;
 

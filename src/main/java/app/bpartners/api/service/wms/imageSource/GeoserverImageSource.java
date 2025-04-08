@@ -1,4 +1,4 @@
-package app.bpartners.api.service.WMS.imageSource;
+package app.bpartners.api.service.wms.imageSource;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -7,7 +7,7 @@ import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.service.WMS.Tile;
+import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.converter.XYZToBoundingBox;
 import java.io.File;
 import java.math.BigDecimal;

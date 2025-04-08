@@ -1,11 +1,11 @@
-package app.bpartners.api.service.WMS.imageSource;
+package app.bpartners.api.service.wms.imageSource;
 
-import static app.bpartners.api.service.WMS.Tile.from;
+import static app.bpartners.api.service.wms.Tile.from;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
-import app.bpartners.api.service.WMS.ArcgisZoom;
+import app.bpartners.api.service.wms.ArcgisZoom;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import java.io.Serializable;
 import lombok.Builder;

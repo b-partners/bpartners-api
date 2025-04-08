@@ -1,9 +1,9 @@
-package app.bpartners.api.service.WMS.imageSource;
+package app.bpartners.api.service.wms.imageSource;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
+import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;

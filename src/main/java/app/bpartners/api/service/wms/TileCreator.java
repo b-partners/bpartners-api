@@ -1,4 +1,4 @@
-package app.bpartners.api.service.WMS;
+package app.bpartners.api.service.wms;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.AreaPicture;

@@ -1,11 +1,11 @@
-package app.bpartners.api.service.WMS.imageSource;
+package app.bpartners.api.service.wms.imageSource;
 
-import static app.bpartners.api.service.WMS.Tile.from;
+import static app.bpartners.api.service.wms.Tile.from;
 
 import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
-import app.bpartners.api.service.WMS.Tile;
+import app.bpartners.api.service.wms.Tile;
 import java.io.File;
 import java.net.URI;
 import lombok.extern.slf4j.Slf4j;

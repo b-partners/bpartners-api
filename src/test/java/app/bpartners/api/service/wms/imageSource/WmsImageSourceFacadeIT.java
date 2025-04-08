@@ -1,4 +1,4 @@
-package app.bpartners.api.service.WMS.imageSource;
+package app.bpartners.api.service.wms.imageSource;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
@@ -21,10 +21,10 @@ import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.service.WMS.ArcgisZoom;
-import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
-import app.bpartners.api.service.WMS.Tile;
-import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
+import app.bpartners.api.service.wms.ArcgisZoom;
+import app.bpartners.api.service.wms.AreaPictureMapLayerService;
+import app.bpartners.api.service.wms.Tile;
+import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
 import org.jetbrains.annotations.NotNull;

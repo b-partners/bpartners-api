@@ -1,4 +1,4 @@
-package app.bpartners.api.service;
+package app.bpartners.api.service.customer;
 
 import static app.bpartners.api.endpoint.event.EventProducer.Conf.MAX_PUT_EVENT_ENTRIES;
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;

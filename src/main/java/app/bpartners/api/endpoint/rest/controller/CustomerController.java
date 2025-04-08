@@ -1,8 +1,8 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.CustomerService.EXCEL_MIME_TYPE;
-import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
+import static app.bpartners.api.service.customer.CustomerService.EXCEL_MIME_TYPE;
+import static app.bpartners.api.service.customer.CustomerService.TEXT_CSV_MIME_TYPE;
 
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateCustomer;
@@ -15,7 +15,7 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.service.CustomerService;
+import app.bpartners.api.service.customer.CustomerService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;

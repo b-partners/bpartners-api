@@ -77,14 +77,7 @@ public class MonthlySubscriptionInvoiceRequestedService
                   }
                   var optionalUserSubscriptionEligible =
                       subscriptionEligibleJpaRepository.findByUserId(user.getId());
-                  if (optionalUserSubscriptionEligible.isEmpty()) {
-                    return false;
-                  }
-                  var subscriptionEligibility = optionalUserSubscriptionEligible.get();
-                  return !subscriptionEligibility
-                          .getEligibleFrom()
-                          .isBefore(LocalDate.of(2025, 3, 11))
-                      && subscriptionEligibility.getTrialPeriodDays() == 0;
+                  return optionalUserSubscriptionEligible.isPresent();
                 })
             .toList();
     var userIndex = new AtomicInteger(1);

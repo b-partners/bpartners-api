@@ -2,7 +2,7 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.repository.google.calendar.drive.DriveApi.EXCEL_MIME_TYPE;
-import static app.bpartners.api.service.CustomerService.TEXT_CSV_MIME_TYPE;
+import static app.bpartners.api.service.customer.CustomerService.TEXT_CSV_MIME_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

@@ -22,6 +22,7 @@ import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.InvoiceService;
+import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -43,6 +44,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock = mock();
   CustomDateFormatter customDateFormatter = new CustomDateFormatter();
   TemporalUtils temporalUtils = new TemporalUtils();
+  UserCustomerConverter userCustomerConverter =
+      new UserCustomerConverter(userRepositoryMock, customerRepositoryMock);
   MonthlySubscriptionInvoiceRequestedService subject =
       new MonthlySubscriptionInvoiceRequestedService(
           invoiceServiceMock,
@@ -52,7 +55,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           userSubscriptionConfMock,
           customDateFormatter,
           temporalUtils,
-          subscriptionEligibleJpaRepositoryMock);
+          subscriptionEligibleJpaRepositoryMock,
+          userCustomerConverter);
 
   @Test
   void test_invoice_product_for_extra_analysis() {
@@ -213,6 +217,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var customerLastName = "customerLastName";
     var userSubscriptionId = "notNullSubscription";
     var userToDebitId = randomUUID().toString();
+    var adminUserId = randomUUID().toString();
+    var adminUserMock = mock(User.class);
 
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
     when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
@@ -232,6 +238,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
+    when(adminUserMock.getId()).thenReturn(adminUserId);
+    when(userRepositoryMock.findByEmail(System.getenv("ADMIN_EMAIL")))
+        .thenReturn(Optional.of(adminUserMock));
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(userToDebitMock.getId()))
         .thenReturn(Optional.of(subscriptionEligibilityMock));
     when(customerRepositoryMock.findByIdUserAndCriteria(
@@ -269,7 +278,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var createdInvoice = invoiceCaptor.getValue();
     var actualInvoiceProduct = createdInvoice.getProducts().getFirst();
     var actualCustomer = customerCaptor.getValue();
-    var expectedCreatedCustomer = computeExpectedCreatedCustomer(userToDebitMock, actualCustomer);
+    var expectedCreatedCustomer =
+        computeExpectedCreatedCustomer(adminUserId, userToDebitMock, actualCustomer);
     var expectedInvoice =
         computeExpectedInvoice(createdInvoice, userToCreditMock, expectedCreatedCustomer);
     var expectedInvoiceProduct =
@@ -288,12 +298,13 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     // monthlySubscriptionInvoiceCreated.maxConsumerBackoffBetweenRetries());
   }
 
-  private Customer computeExpectedCreatedCustomer(User userToDebit, Customer actual) {
+  private Customer computeExpectedCreatedCustomer(
+      String adminUserId, User userToDebit, Customer actual) {
     return Customer.builder()
         .id(actual.getId())
+        .idUser(adminUserId)
         .createdAt(actual.getCreatedAt())
         .updatedAt(actual.getUpdatedAt())
-        .idUser(userToDebit.getId())
         .name("accountHolderToDebitName")
         .firstName(userToDebit.getFirstName())
         .lastName(userToDebit.getLastName())
@@ -331,10 +342,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   private Invoice computeExpectedInvoice(
       Invoice createdInvoice, User userToCreditMock, Customer customerMock) {
     var startOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth());
+        customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth());
     var endOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
-    var sendingDate = LocalDate.of(2025, 1, 31);
+        customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
+    var sendingDate = LocalDate.of(2025, 3, 31);
     return Invoice.builder()
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)

@@ -1,6 +1,6 @@
 package app.bpartners.api.service.utils;
 
-import static app.bpartners.api.service.CustomerService.EXCEL_MIME_TYPE;
+import static app.bpartners.api.service.customer.CustomerService.EXCEL_MIME_TYPE;
 
 import app.bpartners.api.model.exception.BadRequestException;
 import lombok.NoArgsConstructor;

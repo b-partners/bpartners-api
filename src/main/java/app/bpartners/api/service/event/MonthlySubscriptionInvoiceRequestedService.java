@@ -24,6 +24,7 @@ import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.InvoiceService;
+import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.invoice.ReferenceGenerator;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -57,6 +58,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   private final CustomDateFormatter customDateFormatter;
   private final TemporalUtils temporalUtils;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
+  private final UserCustomerConverter userCustomerConverter;
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
@@ -197,36 +199,7 @@ public class MonthlySubscriptionInvoiceRequestedService
                 MAX_SIZE)
             .stream()
             .findAny();
-    return optionalCustomerToDebit.orElseGet(() -> computeCustomerFromUserToDebit(userToDebit));
-  }
-
-  private Customer computeCustomerFromUserToDebit(User userToDebit) {
-    var accountHolderToDebit = userToDebit.getDefaultHolder();
-    return customerRepository.save(
-        Customer.builder()
-            .id(randomUUID().toString())
-            .idUser(userToDebit.getId())
-            .name(accountHolderToDebit.getName())
-            .firstName(userToDebit.getFirstName()) // TODO: Bad ! because customers are company
-            .lastName(userToDebit.getLastName()) // TODO: Bad ! because customers are company
-            .email(userToDebit.getEmail())
-            .phone(accountHolderToDebit.getMobilePhoneNumber())
-            .website(accountHolderToDebit.getWebsite())
-            .address(accountHolderToDebit.getAddress())
-            .zipCode(
-                accountHolderToDebit.getPostalCode() == null
-                    ? null
-                    : Integer.valueOf(accountHolderToDebit.getPostalCode()))
-            .city(accountHolderToDebit.getCity())
-            .country(accountHolderToDebit.getCountry())
-            .comment(null)
-            .location(null) // TODO: compute location ?
-            .status(CustomerStatus.ENABLED)
-            .customerType(CustomerType.PROFESSIONAL)
-            .recentlyAdded(false)
-            .updatedAt(Instant.now())
-            .createdAt(Instant.now())
-            .build());
+    return optionalCustomerToDebit.orElseGet(() -> userCustomerConverter.apply(userToDebit));
   }
 
   private @NotNull ArrayList<InvoiceProduct> computeSubscriptionProducts(

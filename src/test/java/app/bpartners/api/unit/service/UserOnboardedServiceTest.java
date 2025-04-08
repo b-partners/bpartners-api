@@ -2,15 +2,12 @@ package app.bpartners.api.unit.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
-import app.bpartners.api.model.Account;
-import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.OnboardedUser;
-import app.bpartners.api.model.User;
+import app.bpartners.api.model.*;
 import app.bpartners.api.service.aws.SesService;
+import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.UserOnboardedService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -22,8 +19,10 @@ class UserOnboardedServiceTest {
   SesService mailerMock = mock();
   TemplateResolverEngine engineMock = mock();
   SubscriptionService subscriptionServiceMock = mock();
+  UserCustomerConverter userCustomerConverterMock = mock();
   UserOnboardedService subject =
-      new UserOnboardedService(mailerMock, engineMock, subscriptionServiceMock);
+      new UserOnboardedService(
+          mailerMock, engineMock, subscriptionServiceMock, userCustomerConverterMock);
 
   @SneakyThrows
   @Test
@@ -31,6 +30,8 @@ class UserOnboardedServiceTest {
     var userMock = mock(User.class);
     var accountMock = mock(Account.class);
     var accountHolderMock = mock(AccountHolder.class);
+    when(userCustomerConverterMock.apply(userMock)).thenReturn(mock(Customer.class));
+
     var emailRecipient = "recipient@email.com";
     var emailSubject = "subject";
     var event =

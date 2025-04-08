@@ -8,7 +8,7 @@ import app.bpartners.api.endpoint.rest.validator.CreateInvoiceRelaunchValidator;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.service.InvoiceRelaunchService;
+import app.bpartners.api.service.invoice.InvoiceRelaunchService;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;

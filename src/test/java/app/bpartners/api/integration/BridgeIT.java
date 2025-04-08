@@ -22,7 +22,7 @@ import app.bpartners.api.repository.connectors.account.AccountConnectorRepositor
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
-import app.bpartners.api.service.PaymentScheduleService;
+import app.bpartners.api.service.payment.PaymentScheduleService;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;

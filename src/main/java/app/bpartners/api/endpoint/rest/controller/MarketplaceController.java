@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.MarketplaceRestMapper;
 import app.bpartners.api.endpoint.rest.model.Marketplace;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.service.MarketplaceService;
+import app.bpartners.api.service.marketplace.MarketplaceService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -22,7 +22,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.*;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
-import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.account.AccountService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

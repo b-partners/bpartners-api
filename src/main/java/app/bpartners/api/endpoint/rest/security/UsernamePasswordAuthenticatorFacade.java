@@ -5,8 +5,8 @@ import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpire
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.LegalFileService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.user.LegalFileService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.AllArgsConstructor;

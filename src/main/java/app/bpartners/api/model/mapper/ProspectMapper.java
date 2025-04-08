@@ -11,7 +11,7 @@ import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.get
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.infestationType;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.interventionType;
 import static app.bpartners.api.repository.expressif.utils.ProspectEvalUtils.professionalCustomerType;
-import static app.bpartners.api.service.ProspectService.defaultStatusHistoryEntity;
+import static app.bpartners.api.service.prospect.ProspectService.defaultStatusHistoryEntity;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.UUID.randomUUID;
 

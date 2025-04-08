@@ -10,7 +10,7 @@ import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.endpoint.rest.validator.CrupdateAreaPictureDetailsValidator;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
-import app.bpartners.api.service.MetaDataComponent;
+import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import java.util.List;
 import lombok.AllArgsConstructor;

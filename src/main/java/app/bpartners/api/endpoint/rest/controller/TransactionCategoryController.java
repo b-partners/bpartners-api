@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.rest.model.CreateTransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionCategory;
 import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.endpoint.rest.validator.DateFilterValidator;
-import app.bpartners.api.service.TransactionCategoryService;
+import app.bpartners.api.service.transaction.TransactionCategoryService;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;

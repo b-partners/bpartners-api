@@ -1,7 +1,7 @@
 package app.bpartners.api.service.event;
 
-import static app.bpartners.api.service.AccountService.resetDefaultAccount;
-import static app.bpartners.api.service.AccountService.resetDefaultUser;
+import static app.bpartners.api.service.account.AccountService.resetDefaultAccount;
+import static app.bpartners.api.service.account.AccountService.resetDefaultUser;
 
 import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
@@ -11,7 +11,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.account.AccountService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;

@@ -3,7 +3,7 @@ package app.bpartners.api.service.event;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.InvoiceService.MAX_PAGE;
+import static app.bpartners.api.service.invoice.InvoiceService.MAX_PAGE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.UUID.randomUUID;
 

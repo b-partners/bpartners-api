@@ -15,7 +15,7 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.FileMapper;
-import app.bpartners.api.service.TransactionService;
+import app.bpartners.api.service.transaction.TransactionService;
 import java.io.File;
 import java.util.List;
 import lombok.AllArgsConstructor;

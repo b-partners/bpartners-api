@@ -3,7 +3,7 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.PreUserRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.model.PreUser;
-import app.bpartners.api.service.PreUserService;
+import app.bpartners.api.service.user.PreUserService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

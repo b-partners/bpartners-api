@@ -6,7 +6,7 @@ import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
-import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.user.UserService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;

@@ -136,7 +136,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
     var sendingDate = LocalDate.of(2025, 3, 31);
-    LocalDateTime fixedDateTime = LocalDateTime.of(sendingDate, LocalTime.of(8, 0));
+    LocalDateTime fixedDateTime = LocalDateTime.of(sendingDate, LocalTime.of(10, 0));
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
     return Invoice.builder()

@@ -1,4 +1,4 @@
-package app.bpartners.api.service.WMS.imageSource;
+package app.bpartners.api.service.wms.imageSource;
 
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -8,9 +8,9 @@ import app.bpartners.api.mail.Mailer;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
-import app.bpartners.api.service.WMS.Tile;
-import app.bpartners.api.service.WMS.imageSource.exception.BlankImageException;
+import app.bpartners.api.service.wms.AreaPictureMapLayerService;
+import app.bpartners.api.service.wms.Tile;
+import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
 import jakarta.mail.internet.AddressException;
 import java.io.File;
 import java.net.URI;

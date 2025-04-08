@@ -2,7 +2,7 @@ package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.AreaPictureImageSource;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
-import app.bpartners.api.service.WMS.ArcgisZoom;
+import app.bpartners.api.service.wms.ArcgisZoom;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

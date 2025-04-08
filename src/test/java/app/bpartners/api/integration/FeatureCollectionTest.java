@@ -1,6 +1,6 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.service.WMS.GeojsonFeatureCollection.getFranceDepartementsSimpleFeaturesMatchingPredicate;
+import static app.bpartners.api.service.wms.GeojsonFeatureCollection.getFranceDepartementsSimpleFeaturesMatchingPredicate;
 
 import java.util.ArrayList;
 import java.util.List;

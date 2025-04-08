@@ -1,14 +1,14 @@
 package app.bpartners.api.unit.service;
 
-import static app.bpartners.api.service.WMS.imageSource.WmsImageSourceFacadeIT.aerialPhotographyLayer;
-import static app.bpartners.api.service.WMS.imageSource.WmsImageSourceFacadeIT.pcrsLayer;
+import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.aerialPhotographyLayer;
+import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.pcrsLayer;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.repository.AreaPictureMapLayerRepository;
-import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
+import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;

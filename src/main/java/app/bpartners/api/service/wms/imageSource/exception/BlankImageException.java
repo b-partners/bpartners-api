@@ -1,4 +1,4 @@
-package app.bpartners.api.service.WMS.imageSource.exception;
+package app.bpartners.api.service.wms.imageSource.exception;
 
 public class BlankImageException extends RuntimeException {
   public BlankImageException(String message) {

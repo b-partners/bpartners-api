@@ -2,7 +2,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.Zoom;
-import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
+import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -1,6 +1,6 @@
 package app.bpartners.api.service.converter;
 
-import app.bpartners.api.service.WMS.Tile;
+import app.bpartners.api.service.wms.Tile;
 import java.math.BigDecimal;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;

@@ -1,8 +1,8 @@
-package app.bpartners.api.service.WMS.imageSource;
+package app.bpartners.api.service.wms.imageSource;
 
 import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.model.AreaPictureMapLayer;
-import app.bpartners.api.service.WMS.Tile;
+import app.bpartners.api.service.wms.Tile;
 import java.net.URI;
 
 abstract sealed class AbstractWmsImageSource implements WmsImageSource

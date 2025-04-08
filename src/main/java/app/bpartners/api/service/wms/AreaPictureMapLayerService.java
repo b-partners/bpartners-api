@@ -1,6 +1,6 @@
-package app.bpartners.api.service.WMS;
+package app.bpartners.api.service.wms;
 
-import static app.bpartners.api.service.WMS.GeojsonFeatureCollection.getFranceDepartementsSimpleFeaturesMatchingPredicate;
+import static app.bpartners.api.service.wms.GeojsonFeatureCollection.getFranceDepartementsSimpleFeaturesMatchingPredicate;
 
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;

@@ -12,8 +12,8 @@ on:
   workflow_call:
 
 env:
-  STRIPE_PRIVATE_API_KEY: ${{ secrets.STRIPE_PRIVATE_API_KEY }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  STRIPE_PRIVATE_API_KEY: ${{ secrets.STRIPE_PRIVATE_API_KEY }}
   GOOGLE_GEOCODE_API_KEY: ${{ secrets.GOOGLE_GEOCODE_API_KEY }}
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
       - run: ./gradlew test
 
       - name: Cache SonarCloud packages
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.2
         with:
           path: ~/.sonar/cache
           key: sonar-${{ runner.os }}-${{ hashFiles('build.gradle') }}

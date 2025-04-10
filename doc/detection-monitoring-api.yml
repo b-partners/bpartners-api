@@ -1,7 +1,16 @@
 operations:
   registerDetection:
     post:
+      tags:
+        - Detection Tracking
       summary: Register detection for tracking
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+      operationId: registerDetection
       requestBody:
         content:
           application/json:
@@ -33,7 +42,7 @@ components:
   schemas:
     DetectionTracking:
       allOf:
-        - $ref: '#/components/schemas/DetectionTracking'
+        - $ref: '#/components/schemas/CreateDetectionTracking'
       properties:
         id:
           type: string
@@ -57,4 +66,4 @@ components:
         email:
           type: string
         phoneNumber:
-          type: integer
+          type: string

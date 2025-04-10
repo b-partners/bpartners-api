@@ -43,7 +43,7 @@ class DetectionTrackingIT extends MockedThirdParties {
   }
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     when(userMock.getId()).thenReturn(JOE_DOE_ID);
     when(userMock.getEmail()).thenReturn(JOE_EMAIL);
     when(userRepository.getUserByApiKey(dummyApiKey)).thenReturn(userMock);

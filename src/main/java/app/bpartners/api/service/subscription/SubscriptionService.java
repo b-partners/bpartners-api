@@ -4,6 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTI
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
@@ -17,6 +18,7 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -67,6 +69,18 @@ public class SubscriptionService {
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
     return consumptionLogJpaRepository.save(subscriptionConsumptionLog);
+  }
+
+  public SubscriptionConsumptionLog addConsumption() {
+    var usageMetric = 1L;
+    return addConsumption(SubscriptionConsumptionLog.builder()
+            .id(randomUUID().toString())
+            .userId(AuthProvider.getAuthenticatedUserId())
+            .consumptionType(ROOF_ANALYSIS)
+            .usageMetric(usageMetric)
+            .consumptionUnit(UNIT)
+            .creationDatetime(now())
+            .build());
   }
 
   public List<SubscriptionConsumptionLog> findConsumptionLogsByUserId(

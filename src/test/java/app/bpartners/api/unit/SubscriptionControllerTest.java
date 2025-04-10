@@ -79,7 +79,7 @@ class SubscriptionControllerTest {
             .build();
     when(subscriptionServiceMock.addConsumption(any())).thenReturn(consumptionLogDomain);
 
-    var actual = subject.addSubscriptionConsumptionLogs(userGeoJobsId, consumptionLog);
+    var actual = subject.addSubscriptionConsumptionLogs(userGeoJobsId);
 
     var consumptionLogExpected =
         new app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog()

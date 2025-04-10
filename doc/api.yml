@@ -242,6 +242,13 @@ paths:
   #############################################
   /users/{userId}/emails:
     $ref: './mailing-api.yml#/operations/mailingOperations'
+
+  #############################################
+  ############## Detection Tracking API #############
+  #############################################
+  /users/{userId}/detectionTracking:
+    $ref: './detection-monitoring-api.yml#/operations/registerDetection'
+
 components:
   securitySchemes:
     BearerAuth:

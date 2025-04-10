@@ -35,14 +35,4 @@ public class SubscriptionController {
         .map(subscriptionConsumptionLogRestMapper::toRest)
         .toList();
   }
-
-  @PostMapping("/users/{uId}/subscriptionConsumptionLogs")
-  public SubscriptionConsumptionLog addSubscriptionConsumptionLogs(
-      @PathVariable("uId") String uId,
-      @RequestBody SubscriptionConsumptionLog subscriptionConsumptionLog) {
-    app.bpartners.api.model.subscription.SubscriptionConsumptionLog consumptionLog =
-        service.addConsumption(
-            subscriptionConsumptionLogRestMapper.toDomain(subscriptionConsumptionLog));
-    return subscriptionConsumptionLogRestMapper.toRest(consumptionLog);
-  }
 }

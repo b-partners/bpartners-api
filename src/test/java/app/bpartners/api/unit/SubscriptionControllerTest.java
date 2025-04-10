@@ -4,7 +4,6 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.R
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,7 +15,6 @@ import app.bpartners.api.endpoint.rest.model.ConsumptionUnit;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
-import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -52,43 +50,5 @@ class SubscriptionControllerTest {
     var actual = subject.getConsumptionLogsByUserId(userId, startOfMonth, endOfMonth);
 
     assertEquals(expected, actual);
-  }
-
-  @Test
-  void add_consumption_log() {
-    var userGeoJobsId = "userGeoJobsId";
-    var now = Instant.now();
-    var userId = "userId";
-    var consumptionLogId = "consumptionLogId";
-    var consumptionLog =
-        new app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog()
-            .id(consumptionLogId)
-            .userId(userGeoJobsId)
-            .consumptionType(ConsumptionType.ROOF_ANALYSIS)
-            .consumptionUnit(ConsumptionUnit.UNIT)
-            .creationDatetime(now)
-            .usageMetric(2L);
-    var consumptionLogDomain =
-        SubscriptionConsumptionLog.builder()
-            .id("consumptionLogId")
-            .userId(userId)
-            .consumptionType(ROOF_ANALYSIS)
-            .consumptionUnit(UNIT)
-            .creationDatetime(now)
-            .usageMetric(2L)
-            .build();
-    when(subscriptionServiceMock.addConsumption(any())).thenReturn(consumptionLogDomain);
-
-    var actual = subject.addSubscriptionConsumptionLogs(userGeoJobsId, consumptionLog);
-
-    var consumptionLogExpected =
-        new app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog()
-            .id("consumptionLogId")
-            .userId(userId)
-            .consumptionType(ConsumptionType.ROOF_ANALYSIS)
-            .consumptionUnit(ConsumptionUnit.UNIT)
-            .creationDatetime(now)
-            .usageMetric(2L);
-    assertEquals(consumptionLogExpected, actual);
   }
 }

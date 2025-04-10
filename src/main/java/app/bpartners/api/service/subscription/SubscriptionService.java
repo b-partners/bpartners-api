@@ -334,54 +334,20 @@ public class SubscriptionService {
                     .build());
 
     var session =
-        createSession(
-            endOfTrialPeriod,
-            stripeCustomer,
-            redirectionUrls,
-            subscription,
-            newVariableProductPrice,
-            billingCycleAnchor,
-            subscriptionProduct);
+        stripeSessionFactory.createSession(
+                endOfTrialPeriod,
+                stripeCustomer,
+                subscriptionProduct,
+                newVariableProductPrice,
+                redirectionUrls,
+                billingCycleAnchor,
+                subscription);
     return new Redirection()
         .redirectionUrl(session.getUrl())
         .redirectionStatusUrls(
             new RedirectionStatusUrls()
                 .successUrl(session.getSuccessUrl())
                 .failureUrl(session.getCancelUrl()));
-  }
-
-  private Session createSession(
-      LocalDate trialEnd,
-      Customer stripeCustomer,
-      RedirectionStatusUrls redirectionUrls,
-      Subscription subscription,
-      Price newVariableProductPrice,
-      Long billingCycleAnchor,
-      SubscriptionProduct subscriptionProduct)
-      throws StripeException {
-    if (trialEnd.isAfter(temporalUtils.fifthOfNextMonth())) {
-      return stripeSessionFactory.createSessionSetUp(
-          stripeCustomer,
-          redirectionUrls,
-          subscription,
-          newVariableProductPrice,
-          billingCycleAnchor);
-    } else {
-      var session =
-          stripeSessionFactory.createSessionSubscription(
-              stripeCustomer,
-              subscriptionProduct,
-              newVariableProductPrice,
-              redirectionUrls,
-              billingCycleAnchor);
-      stripeSessionFactory.simulateSubscriptionScheduleCreation(
-          stripeCustomer.getId(),
-          subscription,
-          newVariableProductPrice.getId(),
-          billingCycleAnchor);
-
-      return session;
-    }
   }
 
   private LocalDate computeEndOfTrialPeriod(User user) {

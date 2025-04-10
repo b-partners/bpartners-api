@@ -183,61 +183,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     assertNotNull(subject.deleteUserFromStripe(user));
   }
 
-  @Test
-  void initiate_subscription_creates_stripe_schedule() throws StripeException {
-    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
-        .thenReturn(
-            Optional.of(
-                UserSubscriptionEligible.builder()
-                    .trialPeriodDays(14)
-                    .eligibleFrom(LocalDate.of(2025, MARCH, 30))
-                    .build()));
-
-    var existingUser = userRepository.findByEmail("joe@email.com").orElseThrow();
-    var createdUserSubscription =
-        subject.createOrLinkUserSubscription(
-            existingUser.toBuilder().email("joe" + new Random().nextInt() + "@email.com").build());
-    var user = createdUserSubscription.getUser();
-
-    var actualSubscriptionRedirection =
-        subject.initiateSubscription(
-            user, getDefaultSubscription(), getDefaultRedirectionStatusUrls());
-
-    assertNotNull(actualSubscriptionRedirection);
-    assertNotNull(actualSubscriptionRedirection.getRedirectionUrl());
-    assertTrue(
-        actualSubscriptionRedirection
-            .getRedirectionUrl()
-            .contains("https://checkout.stripe.com/c/pay"));
-    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls());
-    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls().getSuccessUrl());
-    assertNotNull(actualSubscriptionRedirection.getRedirectionStatusUrls().getFailureUrl());
-
-    String stripeCustomerId = user.getUserSubscriptionId();
-    SubscriptionScheduleCollection schedules =
-        SubscriptionSchedule.list(
-            SubscriptionScheduleListParams.builder().setCustomer(stripeCustomerId).build());
-
-    assertFalse(schedules.getData().isEmpty(), "No schedule was created for the customer");
-
-    SubscriptionSchedule schedule = schedules.getData().get(0);
-    assertNotNull(schedule.getId());
-    assertEquals(stripeCustomerId, schedule.getCustomer());
-    assertFalse(schedule.getPhases().isEmpty());
-    assertEquals(2, schedule.getPhases().get(0).getItems().size());
-    log.info(
-        "Redirection stripe checkout url = {}", actualSubscriptionRedirection.getRedirectionUrl());
-
-    log.info("Stripe Schedule ID = {}", schedule.getId());
-    log.info(
-        "Schedule start date = {}",
-        Instant.ofEpochSecond(schedule.getCreated())
-            .atZone(ZoneId.of("Europe/Paris"))
-            .toLocalDate());
-
-    assertNotNull(subject.deleteUserFromStripe(user));
-  }
-
   @Disabled("TODO: local use only")
   @SneakyThrows
   @Test

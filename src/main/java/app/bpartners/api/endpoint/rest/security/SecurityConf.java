@@ -554,6 +554,10 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfUserMatcher(GET, "/users/*/emails", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/detectionTracking", authResourceProvider))
+                    .authenticated()
                     .requestMatchers("/**")
                     .denyAll())
 

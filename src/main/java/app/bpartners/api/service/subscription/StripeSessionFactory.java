@@ -17,7 +17,6 @@ import com.stripe.model.SubscriptionSchedule;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.SubscriptionScheduleCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,26 +33,23 @@ public class StripeSessionFactory {
   private final TemporalUtils temporalUtils;
 
   public Session createSession(
-          LocalDate trialEnd, Customer stripeCustomer,
-          SubscriptionProduct subscriptionProduct, Price price,
-          RedirectionStatusUrls redirectionUrls, long billingCycleAnchor,
-          Subscription subscription) throws StripeException {
-    if (temporalUtils.fifthOfNextMonth().isAfter(trialEnd)){
+      LocalDate trialEnd,
+      Customer stripeCustomer,
+      SubscriptionProduct subscriptionProduct,
+      Price price,
+      RedirectionStatusUrls redirectionUrls,
+      long billingCycleAnchor,
+      Subscription subscription)
+      throws StripeException {
+    if (temporalUtils.fifthOfNextMonth().isAfter(trialEnd)) {
       return createSessionSubscription(
-              stripeCustomer,
-              subscriptionProduct,
-              price,
-              redirectionUrls,
-              billingCycleAnchor);
-    }else {
+          stripeCustomer, subscriptionProduct, price, redirectionUrls, billingCycleAnchor);
+    } else {
       return createSessionSetUp(
-              stripeCustomer,
-              redirectionUrls,
-              subscription,
-              price,
-              billingCycleAnchor);
+          stripeCustomer, redirectionUrls, subscription, price, billingCycleAnchor);
     }
   }
+
   private Session createSessionSubscription(
       Customer stripeCustomer,
       SubscriptionProduct subscriptionProduct,

@@ -6,7 +6,6 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.U
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
 import static java.time.Month.JANUARY;
-import static java.time.Month.MARCH;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,10 +22,6 @@ import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
-import com.stripe.exception.StripeException;
-import com.stripe.model.SubscriptionSchedule;
-import com.stripe.model.SubscriptionScheduleCollection;
-import com.stripe.param.SubscriptionScheduleListParams;
 import java.time.*;
 import java.util.Arrays;
 import java.util.List;

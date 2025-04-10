@@ -31,7 +31,6 @@ import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
-import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -335,13 +334,13 @@ public class SubscriptionService {
 
     var session =
         stripeSessionFactory.createSession(
-                endOfTrialPeriod,
-                stripeCustomer,
-                subscriptionProduct,
-                newVariableProductPrice,
-                redirectionUrls,
-                billingCycleAnchor,
-                subscription);
+            endOfTrialPeriod,
+            stripeCustomer,
+            subscriptionProduct,
+            newVariableProductPrice,
+            redirectionUrls,
+            billingCycleAnchor,
+            subscription);
     return new Redirection()
         .redirectionUrl(session.getUrl())
         .redirectionStatusUrls(

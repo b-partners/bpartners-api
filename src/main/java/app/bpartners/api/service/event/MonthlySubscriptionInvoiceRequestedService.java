@@ -147,7 +147,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfMonthAfter(0))
+        .toPayAt(temporalUtils.fifthOfNextMonth())
         .sendingDate(sendingDate)
         .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)

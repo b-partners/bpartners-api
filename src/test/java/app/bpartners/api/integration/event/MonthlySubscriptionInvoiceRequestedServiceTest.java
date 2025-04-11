@@ -360,7 +360,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 + endOfCurrentMonthFormatted)
         .ref(createdInvoice.getRef())
         .validityDate(sendingDate.plusDays(30L))
-        .toPayAt(temporalUtils.fifthOfMonthAfter(0))
+        .toPayAt(temporalUtils.fifthOfNextMonth())
         .sendingDate(sendingDate)
         .createdAt(createdInvoice.getCreatedAt())
         .user(userToCreditMock)

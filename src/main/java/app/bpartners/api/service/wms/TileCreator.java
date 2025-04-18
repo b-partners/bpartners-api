@@ -49,7 +49,6 @@ public class TileCreator implements Function<AreaPicture, Tile> {
   private AreaPicture refreshAreaPictureGeoPosition(AreaPicture areaPicture)
       throws IOException, ApiException, MessagingException, InterruptedException {
     var geoPosition = geoCodeApi.searchGeoPositionFromAddress(areaPicture.getAddress());
-    log.info("Google geoposition = {}", geoPosition);
     return updateAreaPictureGeoCoordinates(areaPicture, geoPosition);
   }
 

@@ -158,9 +158,6 @@ public final class FileDownloaderImpl implements FileDownloader {
                     .orElse(0.0));
 
     metaDataComponent.setOffsets(xOffset, yOffset);
-
-    log.info("x_offset={}", metaDataComponent.getXOffset());
-    log.info("x_offset={}", metaDataComponent.getYOffset());
     return createFileFrom(filename, bytes);
   }
 

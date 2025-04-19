@@ -66,15 +66,33 @@ public class AreaPictureService {
 
   private AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
       throws RuntimeException {
+
+    long startRefresh = System.currentTimeMillis();
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
+    long endRefresh = System.currentTimeMillis();
+    log.info("Elapsed time for refreshAreaPictureTileAndLayers: {} ms", endRefresh - startRefresh);
+
+    long startDownload = System.currentTimeMillis();
     var downloadedFile = wmsImageSource.downloadImage(areaPicture);
+    long endDownload = System.currentTimeMillis();
+    log.info("Elapsed time for downloadImage: {} ms", endDownload - startDownload);
+
     if (areaPicture.getFilename().contains("ORTHOIMAGERY")) {
       areaPicture.setZoomLevel(ZoomLevel.BUILDING);
       areaPicture.setCurrentLayer(mapLayerService.getDefaultIGNLayer());
     }
+
+    long startUpload = System.currentTimeMillis();
     fileService.upload(
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
-    return save(refreshed);
+    long endUpload = System.currentTimeMillis();
+    log.info("Elapsed time for fileService.upload: {} ms", endUpload - startUpload);
+
+    long startSave = System.currentTimeMillis();
+    var saved = save(refreshed);
+    long endSave = System.currentTimeMillis();
+    log.info("Elapsed time for save: {} ms", endSave - startSave);
+    return saved;
   }
 
   @Transactional

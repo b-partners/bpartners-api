@@ -41,7 +41,7 @@ public class StripeSessionFactory {
       long billingCycleAnchor,
       Subscription subscription)
       throws StripeException {
-    if (temporalUtils.fifthOfNextMonth().isAfter(trialEnd)) {
+    if (trialEnd.isBefore(temporalUtils.endOfActualMonth().plusDays(1))) {
       return createSessionSubscription(
           stripeCustomer, subscriptionProduct, price, redirectionUrls, billingCycleAnchor);
     } else {

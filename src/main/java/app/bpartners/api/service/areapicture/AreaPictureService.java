@@ -101,14 +101,21 @@ public class AreaPictureService {
 
     var areaPicture = downloadFromExternalSourceAndSave(picture);
     var usageMetric = 1L;
-    var optionalProspect = prospectRepository.findById(picture.getIdProspect());
+    var idProspect = picture.getIdProspect();
     var comment = "Adresse : " + areaPicture.getAddress();
-    if (optionalProspect.isPresent()) {
-      var prospect = optionalProspect.get();
-      var prospectName =
-          prospect.getOldName() == null ? prospect.getNewName() : prospect.getOldName();
-      comment += " - Prospect : " + prospectName;
+
+    // TODO: Bad ! Only areaPicture must be returned done here
+    if (idProspect != null) {
+      var optionalProspect = prospectRepository.findById(idProspect);
+      if (optionalProspect.isPresent()) {
+        var prospect = optionalProspect.get();
+        var prospectName =
+            prospect.getOldName() == null ? prospect.getNewName() : prospect.getOldName();
+        comment += " - Prospect : " + prospectName;
+      }
     }
+
+    // TODO: Bad ! Only areaPicture must be returned done here
     subscriptionService.addConsumption(
         SubscriptionConsumptionLog.builder()
             .id(randomUUID().toString())
@@ -119,6 +126,7 @@ public class AreaPictureService {
             .comment(comment)
             .creationDatetime(now())
             .build());
+
     return areaPicture;
   }
 

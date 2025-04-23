@@ -28,9 +28,6 @@ public class AreaPictureValidator implements Consumer<AreaPicture> {
     if (filename == null) {
       exceptionMessageBuilder.append("filename is mandatory. ");
     }
-    if (areaPicture.getIdProspect() == null) {
-      exceptionMessageBuilder.append("prospectId is mandatory. ");
-    }
     if (areaPicture.getCurrentGeoPosition() == null) {
       exceptionMessageBuilder.append("currentGeoPosition is mandatory. ");
     }

@@ -249,6 +249,12 @@ paths:
   /users/{userId}/detectionTracking:
     $ref: './detection-monitoring-api.yml#/operations/registerDetection'
 
+  #############################################
+  ############## Address Autocompletion API #############
+  #############################################
+  /address/autocomplete:
+    $ref: './address-autocompletion-api.yml#/operations/autoCompleteAddress'
+
 components:
   securitySchemes:
     BearerAuth:

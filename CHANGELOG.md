@@ -1,3 +1,23 @@
+# [0.66.0](https://github.com/b-partners/bpartners-api/compare/v0.65.0...v0.66.0) (2025-04-24)
+
+
+### Bug Fixes
+
+* add onboarded user to admin customers ([3e16cd8](https://github.com/b-partners/bpartners-api/commit/3e16cd8fe80267467f2a0c86798ba3f789c639e2))
+* do not filter by date users to compute invoice ([7fdad2c](https://github.com/b-partners/bpartners-api/commit/7fdad2cf46f48d55f1eaf8e32c2d4ffc6996fa39))
+* **MonhtlySubscriptionInvoiceRequestedService:** toPayAt = fifthOfNextMonth ([e890b53](https://github.com/b-partners/bpartners-api/commit/e890b53637b0beb99675d30c6b7bb35282d701c8))
+* **MonthlySubscriptionInvoiceRequestedService:** set default subscription period and sendingDate ([a1bcff5](https://github.com/b-partners/bpartners-api/commit/a1bcff5d888b8924c685e9db2fe75b084e704848))
+* PUT /accounts/*/areaPictures/* handles null prospectId ([c2db0ac](https://github.com/b-partners/bpartners-api/commit/c2db0ac6aa805a69ae76a452b137f4494bac03fa))
+* **SubscriptionController:** remove POST /users/id/subscriptionConsumptionLogs implementation ([82df2ff](https://github.com/b-partners/bpartners-api/commit/82df2ffbf245fa1de0c578a18628c23ab623442c))
+
+
+### Features
+
+* POST /users/id/detectionTracking without consumption log computed ([dfb6b0c](https://github.com/b-partners/bpartners-api/commit/dfb6b0cde56ca7e339c881867cead7fac85698b0))
+* provide autocompletion when user typing address ([ba2ca76](https://github.com/b-partners/bpartners-api/commit/ba2ca763a1c898ad5f95744d4cf07d036d9c8ef1))
+
+
+
 # [0.65.0](https://github.com/b-partners/bpartners-api/compare/v0.64.0...v0.65.0) (2025-04-07)
 
 
@@ -178,15 +198,6 @@
 * generate invoices export link ([043661e](https://github.com/b-partners/bpartners-api/commit/043661e43ae4120832f50e2ab247488abfaf218e))
 * implement delete user ([e4d0c66](https://github.com/b-partners/bpartners-api/commit/e4d0c66e54c82525a78b2df00c6c9221d3ca49c5))
 * initiate user subscription ([92d2e3d](https://github.com/b-partners/bpartners-api/commit/92d2e3d842988a2847898081d8680078dbbd109d))
-
-
-
-# [0.56.0](https://github.com/b-partners/bpartners-api/compare/v0.55.0...v0.56.0) (2024-10-04)
-
-
-### Features
-
-* add tile extension with left-right switching support ([731e7e5](https://github.com/b-partners/bpartners-api/commit/731e7e532f5eaff269d2f42a9ad1974ecb72fc34))
 
 
 

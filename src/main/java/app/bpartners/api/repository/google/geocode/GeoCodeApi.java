@@ -1,7 +1,7 @@
 package app.bpartners.api.repository.google.geocode;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.util.UUID.randomUUID;
+import static java.util.UUID.fromString;
 
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.repository.validator.AddressValidator;
@@ -48,12 +48,14 @@ public class GeoCodeApi {
     return position;
   }
 
-  public List<AutocompletePrediction> autoCompleteAddress(String address) {
+  public List<AutocompletePrediction> autoCompleteAddress(String address, String sessionId) {
     addressValidator.accept(address);
     try {
       AutocompletePrediction[] suggestions =
           PlacesApi.placeAutocomplete(
-                  geoApiContext, address, new PlaceAutocompleteRequest.SessionToken(randomUUID()))
+                  geoApiContext,
+                  address,
+                  new PlaceAutocompleteRequest.SessionToken(fromString(sessionId)))
               .await();
       return Arrays.stream(suggestions).toList();
     } catch (Exception e) {

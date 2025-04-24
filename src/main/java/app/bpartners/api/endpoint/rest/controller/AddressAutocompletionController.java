@@ -14,7 +14,8 @@ public class AddressAutocompletionController {
   private final AddressAutoCompleteService service;
 
   @PostMapping("/address/autocomplete")
-  public List<AutoCompletePrediction> autoCompleteAddress(@RequestParam("address") String address) {
-    return service.autoCompleteAddress(address);
+  public List<AutoCompletePrediction> autoCompleteAddress(
+      @RequestParam("address") String address, @RequestParam("sessionId") String sessionId) {
+    return service.autoCompleteAddress(address, sessionId);
   }
 }

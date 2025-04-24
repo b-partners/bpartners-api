@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 public class AddressAutoCompleteService {
   private final GeoCodeApi geoCodeApi;
 
-  public List<AutoCompletePrediction> autoCompleteAddress(String address) {
-    return geoCodeApi.autoCompleteAddress(address).stream()
+  public List<AutoCompletePrediction> autoCompleteAddress(String address, String sessionId) {
+    return geoCodeApi.autoCompleteAddress(address, sessionId).stream()
         .map(
             pred ->
                 new AutoCompletePrediction()

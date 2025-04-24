@@ -21,4 +21,11 @@ class GeoCodeApiTest {
         geoCodeApi.searchGeoPositionFromAddress("12 Boulevard de la Croisette, 06400 Cannes");
     assertNotNull(geoPosition);
   }
+
+  @Test
+  void autocompletion_from_address() {
+    var actual = geoCodeApi.autoCompleteAddress("12 Boulevard de la Croisette, 06400 Cannes");
+
+    assertNotNull(actual);
+  }
 }

@@ -558,6 +558,8 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             POST, "/users/*/detectionTracking", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(POST, "/address/autocomplete")
+                    .authenticated()
                     .requestMatchers("/**")
                     .denyAll())
 

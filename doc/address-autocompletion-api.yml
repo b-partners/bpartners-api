@@ -11,6 +11,11 @@ operations:
           schema:
             type: string
           required: true
+        - in: query
+          name: sessionId
+          schema:
+            type: string
+          required: true
       responses:
         200:
           description: List of suggesting address

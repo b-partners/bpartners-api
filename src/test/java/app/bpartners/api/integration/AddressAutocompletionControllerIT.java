@@ -1,6 +1,7 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -40,7 +41,7 @@ class AddressAutocompletionControllerIT extends MockedThirdParties {
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
 
-    when(autoCompleteServiceMock.autoCompleteAddress(any()))
+    when(autoCompleteServiceMock.autoCompleteAddress(any(), any()))
         .thenReturn(List.of(new AutoCompletePrediction()));
   }
 
@@ -49,7 +50,9 @@ class AddressAutocompletionControllerIT extends MockedThirdParties {
     ApiClient client = anApiClientWithBearer();
     AddressAutocompletionApi api = new AddressAutocompletionApi(client);
 
-    var actual = api.autoCompleteAddress("12 Boulevard de la Croisette, 06400 Cannes");
+    var actual =
+        api.autoCompleteAddress(
+            "12 Boulevard de la Croisette, 06400 Cannes", randomUUID().toString());
 
     assertFalse(actual.isEmpty());
   }
@@ -59,7 +62,9 @@ class AddressAutocompletionControllerIT extends MockedThirdParties {
     ApiClient client = anApiClientWithApiKey();
     AddressAutocompletionApi api = new AddressAutocompletionApi(client);
 
-    var actual = api.autoCompleteAddress("12 Boulevard de la Croisette, 06400 Cannes");
+    var actual =
+        api.autoCompleteAddress(
+            "12 Boulevard de la Croisette, 06400 Cannes", randomUUID().toString());
 
     assertFalse(actual.isEmpty());
   }

@@ -41,7 +41,22 @@ public class StripeSessionFactory {
       long billingCycleAnchor,
       Subscription subscription)
       throws StripeException {
-    if (trialEnd.isBefore(temporalUtils.endOfActualMonth().plusDays(1))) {
+    boolean isTrialEndBetweenFirstAndFourthOfActualMonth =
+        (trialEnd.isAfter(temporalUtils.startOfActualMonth())
+                || trialEnd.isEqual(temporalUtils.startOfActualMonth()))
+            && (trialEnd.isBefore(temporalUtils.fourthOfActualMonth())
+                || trialEnd.isEqual(temporalUtils.fourthOfActualMonth()));
+    boolean isTrialEndBetweenFirstAndFourthOfNextMonth =
+        (trialEnd.isAfter(temporalUtils.startOfNextMonth())
+                || trialEnd.isEqual(temporalUtils.startOfNextMonth()))
+            && (trialEnd.isBefore(temporalUtils.fourthOfNextMonth())
+                || trialEnd.isBefore(temporalUtils.fourthOfNextMonth()));
+    if (isTrialEndBetweenFirstAndFourthOfNextMonth
+        || isTrialEndBetweenFirstAndFourthOfActualMonth) {
+      return createSessionSetUp(
+          stripeCustomer, redirectionUrls, subscription, price, billingCycleAnchor);
+    }
+    if (trialEnd.isBefore(temporalUtils.endOfActualMonth())) {
       return createSessionSubscription(
           stripeCustomer, subscriptionProduct, price, redirectionUrls, billingCycleAnchor);
     } else {

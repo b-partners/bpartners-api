@@ -38,6 +38,12 @@ public class TemporalUtils {
     return currentMonth.atDay(1);
   }
 
+  public LocalDate fourthOfActualMonth() {
+    var today = now();
+    var currentMonth = YearMonth.from(today);
+    return currentMonth.atDay(4);
+  }
+
   public LocalDate startOfLastMonth() {
     var today = now();
     var lastMonth = YearMonth.from(today).minusMonths(1);

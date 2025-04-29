@@ -1,5 +1,8 @@
 package app.bpartners.api.service.annotation;
 
+import static app.bpartners.api.file.FileWriter.base64Image;
+import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
+
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -21,21 +24,35 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private final ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGenerator;
   private final ExportAreaPictureAnnotationImageConf mainConf =
       new ExportAreaPictureAnnotationImageConf();
-  private final ExportAreaPictureAnnotationImageConf subImageConf =
-      new ExportAreaPictureAnnotationImageConf(true);
   private static final String IMAGE_FORMAT = "png";
+  private static final int SUB_IMAGE_SCALE = 2;
+  private static final boolean SUB_IMAGE_DRAW_MEASUREMENT = true;
+  private final ExportAreaPictureAnnotationImageConf subImageConf =
+      new ExportAreaPictureAnnotationImageConf(
+          SUB_IMAGE_SCALE,
+          DEFAULT_POINT_SIZE,
+          DEFAULT_STROKE,
+          DEFAULT_POINT_COLOR,
+          DEFAULT_MEASUREMENT_BG_COLOR,
+          DEFAULT_MEASUREMENT_TEXT_COLOR,
+          DEFAULT_MEASUREMENT_OFFSET,
+          DEFAULT_MEASUREMENT_FONT,
+          SUB_IMAGE_DRAW_MEASUREMENT);
 
   public byte[] process(ExportAreaPictureAnnotation exportAnnotation) throws IOException {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
-    var mainImage =
-        generateAnnotationImage(downloadedImage, mainConf, exportAnnotation.getAnnotations());
-    List<byte[]> subImages = new ArrayList<>();
+    var base64MainImage =
+        generateAnnotationImageAsBase64(
+            downloadedImage, mainConf, exportAnnotation.getAnnotations());
+    List<String> base64SubImages = new ArrayList<>();
 
     for (ExportAreaPictureAnnotationInstance annotation : exportAnnotation.getAnnotations()) {
-      subImages.add(generateAnnotationImage(downloadedImage, subImageConf, List.of(annotation)));
+      base64SubImages.add(
+          generateAnnotationImageAsBase64(downloadedImage, subImageConf, List.of(annotation)));
     }
 
-    return exportAreaPictureAnnotationPDFGenerator.apply(mainImage, subImages, exportAnnotation);
+    return exportAreaPictureAnnotationPDFGenerator.apply(
+        base64MainImage, base64SubImages, exportAnnotation);
   }
 
   private static BufferedImage downloadImage(String imageUrl) {
@@ -46,7 +63,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     }
   }
 
-  private byte[] generateAnnotationImage(
+  private String generateAnnotationImageAsBase64(
       BufferedImage image,
       ExportAreaPictureAnnotationImageConf conf,
       List<ExportAreaPictureAnnotationInstance> annotations)
@@ -55,6 +72,6 @@ public class ExportAreaPictureAnnotationPDFProcessor {
         exportAreaPictureAnnotationImageGenerator.apply(image, conf, annotations);
     var outputStream = new ByteArrayOutputStream();
     ImageIO.write(generateImage, IMAGE_FORMAT, outputStream);
-    return outputStream.toByteArray();
+    return base64Image(outputStream.toByteArray());
   }
 }

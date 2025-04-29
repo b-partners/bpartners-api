@@ -6,50 +6,41 @@ import static java.awt.Font.PLAIN;
 
 import app.bpartners.api.model.annotation.IntXY;
 import java.awt.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-public record ExportAreaPictureAnnotationImageConf(
-    Stroke stroke,
-    int scale,
-    int pointSize,
-    Color pointColor,
-    Color measurementBgColor,
-    Color measurementTextColor,
-    IntXY measurementOffset,
-    Font measurementFont,
-    boolean drawMeasurement) {
-  public static final Stroke DEFAULT_STROKE = new BasicStroke(1.2f);
+@Data
+@AllArgsConstructor
+public class ExportAreaPictureAnnotationImageConf {
+  private int scale;
+  private int pointSize;
+  private Stroke stroke;
+  private Color pointColor;
+  private Color measurementBgColor;
+  private Color measurementTextColor;
+  private IntXY measurementOffset;
+  private Font measurementFont;
+  private boolean drawMeasurements;
+
+  public ExportAreaPictureAnnotationImageConf() {
+    this.stroke = DEFAULT_STROKE;
+    this.scale = DEFAULT_SCALE;
+    this.pointSize = DEFAULT_POINT_SIZE;
+    this.pointColor = DEFAULT_POINT_COLOR;
+    this.measurementBgColor = DEFAULT_MEASUREMENT_BG_COLOR;
+    this.measurementTextColor = DEFAULT_MEASUREMENT_TEXT_COLOR;
+    this.measurementOffset = DEFAULT_MEASUREMENT_OFFSET;
+    this.measurementFont = DEFAULT_MEASUREMENT_FONT;
+    this.drawMeasurements = DRAW_MEASUREMENT;
+  }
+
   public static final int DEFAULT_SCALE = 3;
-  public static final int DEFAULT_POINT_SIZE = 8;
+  public static final int DEFAULT_POINT_SIZE = 30;
+  public static final Stroke DEFAULT_STROKE = new BasicStroke(3.2f);
   public static final Color DEFAULT_POINT_COLOR = BLACK;
   public static final Color DEFAULT_MEASUREMENT_BG_COLOR = new Color(0, 0, 0, 150);
   public static final Color DEFAULT_MEASUREMENT_TEXT_COLOR = WHITE;
-  public static final IntXY DEFAULT_MEASUREMENT_OFFSET = new IntXY(6, 4);
-  public static final Font DEFAULT_MEASUREMENT_FONT = new Font("Arial", PLAIN, 15);
+  public static final IntXY DEFAULT_MEASUREMENT_OFFSET = new IntXY(20, 18);
+  public static final Font DEFAULT_MEASUREMENT_FONT = new Font("Arial", PLAIN, 70);
   public static final boolean DRAW_MEASUREMENT = false;
-
-  public ExportAreaPictureAnnotationImageConf() {
-    this(
-        DEFAULT_STROKE,
-        DEFAULT_SCALE,
-        DEFAULT_POINT_SIZE,
-        DEFAULT_POINT_COLOR,
-        DEFAULT_MEASUREMENT_BG_COLOR,
-        DEFAULT_MEASUREMENT_TEXT_COLOR,
-        DEFAULT_MEASUREMENT_OFFSET,
-        DEFAULT_MEASUREMENT_FONT,
-        DRAW_MEASUREMENT);
-  }
-
-  public ExportAreaPictureAnnotationImageConf(boolean drawMeasurement) {
-    this(
-        DEFAULT_STROKE,
-        DEFAULT_SCALE,
-        DEFAULT_POINT_SIZE,
-        DEFAULT_POINT_COLOR,
-        DEFAULT_MEASUREMENT_BG_COLOR,
-        DEFAULT_MEASUREMENT_TEXT_COLOR,
-        DEFAULT_MEASUREMENT_OFFSET,
-        DEFAULT_MEASUREMENT_FONT,
-        drawMeasurement);
-  }
 }

@@ -60,7 +60,8 @@ class StripeSessionFactoryIT extends StripeMockedThirdParties {
   }
 
   @Test
-  void create_session_if_trial_end_is_before_end_of_actual_month() throws StripeException {
+  void create_session_if_trial_end_is_before_end_of_actual_month_not_between_1_and_4_of_month()
+      throws StripeException {
     var trialEnd = LocalDate.of(2025, APRIL, 20);
     var billingCycleAnchorLocalDate = LocalDate.of(2025, MAY, 5);
     var startOfNextMonth = LocalDate.of(2025, MAY, 1);

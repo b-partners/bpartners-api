@@ -65,7 +65,7 @@ public class StripeSessionFactory {
     }
   }
 
-  private Session createSessionSubscription(
+  public Session createSessionSubscription(
       Customer stripeCustomer,
       SubscriptionProduct subscriptionProduct,
       Price newVariableProductPrice,
@@ -106,7 +106,7 @@ public class StripeSessionFactory {
             .build());
   }
 
-  private Session createSessionSetUp(
+  public Session createSessionSetUp(
       Customer stripeCustomer,
       RedirectionStatusUrls redirectionUrls,
       Subscription subscription,

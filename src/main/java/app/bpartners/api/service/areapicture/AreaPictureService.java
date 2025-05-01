@@ -8,6 +8,7 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.model.AreaPicture;
+import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
@@ -19,6 +20,8 @@ import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.wms.TileCreator;
 import app.bpartners.api.service.wms.imageSource.WmsImageSource;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -143,6 +146,12 @@ public class AreaPictureService {
       areaPicture.setCurrentLayer(latest);
     }
     areaPicture.setLayers(guessedMaps);
+  }
+
+  public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude) {
+    var guessedMaps = mapLayerService.getAvailableLayersFrom(longitude, latitude);
+    Collections.sort(guessedMaps, Comparator.reverseOrder());
+    return guessedMaps;
   }
 
   private void refreshAreaPictureTile(AreaPicture areaPicture) {

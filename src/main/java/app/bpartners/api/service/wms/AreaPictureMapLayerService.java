@@ -28,9 +28,13 @@ public class AreaPictureMapLayerService {
   private final AreaPictureMapLayerRepository repository;
 
   public List<AreaPictureMapLayer> getAvailableLayersFrom(Tile tile) {
+    return getAvailableLayersFrom(tile.getLongitude(), tile.getLatitude());
+  }
+
+  public List<AreaPictureMapLayer> getAvailableLayersFrom(Double longitude, Double latitude) {
     var geometryFactory = new GeometryFactory(new PrecisionModel(), WGS_84_SRID);
     var areaPictureCoordinatesAsPoint =
-        geometryFactory.createPoint(new Coordinate(tile.getLongitude(), tile.getLatitude()));
+        geometryFactory.createPoint(new Coordinate(longitude, latitude));
     List<SimpleFeature> features =
         getFranceDepartementsSimpleFeaturesMatchingPredicate(
             feature -> {
@@ -45,7 +49,7 @@ public class AreaPictureMapLayerService {
     log.info("Features name: {}", matchingFeaturesName);
     var layers = getAllByDepartementNameInIgnoreCaseOrderByYearAndAddDefault(matchingFeaturesName);
     if (layers.isEmpty()) {
-      log.info("no layer found for {}", tile);
+      log.info("no layer found for longitude={} latitude={}", longitude, latitude);
       return List.of(getDefaultIGNLayer(), getPCRSLayer(), getAerialPhotography());
     }
     return layers;

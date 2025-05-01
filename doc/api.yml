@@ -158,6 +158,8 @@ paths:
   #############################################
   ################# Area Picture API #################
   #############################################
+  /areaPictureMapLayers:
+    $ref: './area-pictures-api.yml#/operations/areaPictureMapLayerOperations'
   /accounts/{aId}/areaPictures:
     $ref: './area-pictures-api.yml#/operations/getAllAreaPictures'
   /accounts/{aId}/areaPictures/{id}:

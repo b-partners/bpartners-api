@@ -546,7 +546,6 @@ components:
         - OPENSTREETMAP
         - GEOSERVER
         - GEOSERVER_IGN
-        - AIRBUS
     AreaPictureMapLayer:
       type: object
       properties:
@@ -604,7 +603,14 @@ components:
           type: integer
         isOpaque:
           type: boolean
+        shiftDirection:
+          $ref: '#/components/schemas/ShiftDirection'
 
+    ShiftDirection:
+      type: string
+      enum:
+        - RIGHT_LEFT_SIDE,
+        - UP_DOWN_SIDE
     CrupdateAreaPictureDetails:
       type: object
       allOf:

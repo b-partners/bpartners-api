@@ -242,6 +242,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .xOffset(1234)
         .yOffset(123)
         .isOpaque(false)
+        .shiftDirection(null)
         .geoPositions(
             List.of(
                 new app.bpartners.api.endpoint.rest.model.GeoPosition()
@@ -316,6 +317,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
                     .longitude(0.148409)
                     .latitude(45.644018)))
         .isOpaque(false)
+        .shiftDirection(null)
         .xOffset(1234)
         .yOffset(123);
   }

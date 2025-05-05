@@ -546,6 +546,7 @@ components:
         - OPENSTREETMAP
         - GEOSERVER
         - GEOSERVER_IGN
+        - AIRBUS
     AreaPictureMapLayer:
       type: object
       properties:
@@ -609,7 +610,7 @@ components:
     ShiftDirection:
       type: string
       enum:
-        - RIGHT_LEFT_SIDE,
+        - RIGHT_LEFT_SIDE
         - UP_DOWN_SIDE
     CrupdateAreaPictureDetails:
       type: object

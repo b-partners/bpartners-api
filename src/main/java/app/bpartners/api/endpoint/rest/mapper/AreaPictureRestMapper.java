@@ -4,6 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.ShiftDirection;
 import app.bpartners.api.endpoint.rest.model.Tile;
 import app.bpartners.api.endpoint.rest.model.Zoom;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
@@ -12,6 +13,7 @@ import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
+import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -77,6 +79,7 @@ public class AreaPictureRestMapper {
         .yOffset(yOffset)
         .xOffset(xOffset)
         .isExtended(domain.isExtended())
+        .shiftDirection(toRest(domain.getShiftDirection()))
         .isOpaque(domain.isOpaque());
   }
 
@@ -93,6 +96,7 @@ public class AreaPictureRestMapper {
       zoomLevel = zoom.getLevel();
     }
     Boolean isExtended = rest.getIsExtended();
+    ShiftDirection restShiftDirection = rest.getShiftDirection();
     return AreaPicture.builder()
         .id(id)
         .address(rest.getAddress())
@@ -106,6 +110,21 @@ public class AreaPictureRestMapper {
         .isExtended(isExtended != null && isExtended)
         .shiftNb(rest.getShiftNb() == null ? null : rest.getShiftNb())
         .isOpaque(Boolean.TRUE.equals(rest.getIsOpaque()))
+        .shiftDirection(restShiftDirection != null ? toDomain(restShiftDirection) : null)
         .build();
+  }
+
+  public ShiftDirection toRest(TileExtenderRequestBody.ShiftDirection domain) {
+    if (domain == null) return null;
+
+    return domain == TileExtenderRequestBody.ShiftDirection.RIGHT_LEFT_SIDE
+        ? ShiftDirection.RIGHT_LEFT_SIDE
+        : ShiftDirection.UP_DOWN_SIDE;
+  }
+
+  public TileExtenderRequestBody.ShiftDirection toDomain(ShiftDirection rest) {
+    return "RIGHT_LEFT_SIDE".equals(rest.getValue())
+        ? TileExtenderRequestBody.ShiftDirection.RIGHT_LEFT_SIDE
+        : TileExtenderRequestBody.ShiftDirection.UP_DOWN_SIDE;
   }
 }

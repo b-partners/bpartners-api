@@ -1,9 +1,12 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
+import static app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody.ShiftDirection.RIGHT_LEFT_SIDE;
+import static app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody.ShiftDirection.UP_DOWN_SIDE;
 
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.ShiftDirection;
 import app.bpartners.api.endpoint.rest.model.Tile;
 import app.bpartners.api.endpoint.rest.model.Zoom;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
@@ -12,6 +15,7 @@ import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
+import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,6 +80,7 @@ public class AreaPictureRestMapper {
       zoomLevel = zoom.getLevel();
     }
     Boolean isExtended = rest.getIsExtended();
+    ShiftDirection restDirection = rest.getShiftDirection();
     return AreaPicture.builder()
         .id(id)
         .address(rest.getAddress())
@@ -88,6 +93,14 @@ public class AreaPictureRestMapper {
         .updatedAt(rest.getUpdatedAt())
         .isExtended(isExtended != null && isExtended)
         .shiftNb(rest.getShiftNb() == null ? null : rest.getShiftNb())
+        .shiftDirection(restDirection != null ? toDomain(restDirection) : null)
         .build();
+  }
+
+  public TileExtenderRequestBody.ShiftDirection toDomain(ShiftDirection rest) {
+    if ("RIGHT_LEFT_SIDE".equals(rest.getValue())) {
+      return RIGHT_LEFT_SIDE;
+    }
+    return UP_DOWN_SIDE;
   }
 }

@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.service.wms.ArcgisZoom;
 import app.bpartners.api.service.wms.Tile;
+import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
 import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -40,6 +41,7 @@ public class AreaPicture {
   private Boolean leftShift;
   private Integer shiftNb;
   private List<GeoPosition> geoPositions;
+  private TileExtenderRequestBody.ShiftDirection shiftDirection;
 
   public String getFilename() {
     return isExtended

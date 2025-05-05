@@ -30,6 +30,12 @@ public class TileExtenderRequestBody implements Serializable {
   private Double longitude;
   private boolean isCropped;
   private int shiftNb;
+  private ShiftDirection shiftDirection;
+
+  public enum ShiftDirection {
+    RIGHT_LEFT_SIDE,
+    UP_DOWN_SIDE
+  }
 
   private static String getSource(AreaPictureMapLayer areaPictureMapLayer) {
     return switch (areaPictureMapLayer.getSource()) {
@@ -72,6 +78,7 @@ public class TileExtenderRequestBody implements Serializable {
         .longitude(areaPicture.getCurrentGeoPosition().getLongitude())
         .isCropped(isCropped)
         .shiftNb(areaPicture.getShiftNb())
+        .shiftDirection(areaPicture.getShiftDirection())
         .build();
   }
 }

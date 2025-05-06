@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.Token;
 import app.bpartners.api.endpoint.rest.validator.RestTokenValidator;
 import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.service.AuthService;
+import app.bpartners.api.service.authentication.AuthService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

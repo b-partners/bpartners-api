@@ -158,6 +158,8 @@ paths:
   #############################################
   ################# Area Picture API #################
   #############################################
+  /areaPictureMapLayers:
+    $ref: './area-pictures-api.yml#/operations/areaPictureMapLayerOperations'
   /accounts/{aId}/areaPictures:
     $ref: './area-pictures-api.yml#/operations/getAllAreaPictures'
   /accounts/{aId}/areaPictures/{id}:
@@ -242,6 +244,19 @@ paths:
   #############################################
   /users/{userId}/emails:
     $ref: './mailing-api.yml#/operations/mailingOperations'
+
+  #############################################
+  ############## Detection Tracking API #############
+  #############################################
+  /users/{userId}/detectionTracking:
+    $ref: './detection-monitoring-api.yml#/operations/registerDetection'
+
+  #############################################
+  ############## Address Autocompletion API #############
+  #############################################
+  /address/autocomplete:
+    $ref: './address-autocompletion-api.yml#/operations/autoCompleteAddress'
+
 components:
   securitySchemes:
     BearerAuth:

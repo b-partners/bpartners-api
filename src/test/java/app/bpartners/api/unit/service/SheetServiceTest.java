@@ -12,7 +12,7 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.validator.SheetAuthValidator;
 import app.bpartners.api.repository.SheetStoredCredentialRepository;
 import app.bpartners.api.repository.google.sheets.SheetApi;
-import app.bpartners.api.service.SheetService;
+import app.bpartners.api.service.google.sheet.SheetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

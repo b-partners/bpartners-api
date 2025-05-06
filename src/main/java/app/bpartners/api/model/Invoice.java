@@ -1,8 +1,8 @@
 package app.bpartners.api.model;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
-import static app.bpartners.api.service.InvoiceService.DRAFT_REF_PREFIX;
-import static app.bpartners.api.service.InvoiceService.PROPOSAL_REF_PREFIX;
+import static app.bpartners.api.service.invoice.InvoiceService.DRAFT_REF_PREFIX;
+import static app.bpartners.api.service.invoice.InvoiceService.PROPOSAL_REF_PREFIX;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;

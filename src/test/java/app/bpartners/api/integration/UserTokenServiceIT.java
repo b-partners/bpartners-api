@@ -13,7 +13,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
-import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.user.UserService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;

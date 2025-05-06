@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.google;
 
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
@@ -20,5 +21,14 @@ class GeoCodeApiTest {
     GeoPosition geoPosition =
         geoCodeApi.searchGeoPositionFromAddress("12 Boulevard de la Croisette, 06400 Cannes");
     assertNotNull(geoPosition);
+  }
+
+  @Test
+  void autocompletion_from_address() {
+    var actual =
+        geoCodeApi.autoCompleteAddress(
+            "12 Boulevard de la Croisette, 06400 Cannes", randomUUID().toString());
+
+    assertNotNull(actual);
   }
 }

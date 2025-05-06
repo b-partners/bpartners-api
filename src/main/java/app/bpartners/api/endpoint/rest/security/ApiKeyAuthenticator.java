@@ -4,7 +4,7 @@ import static app.bpartners.api.service.utils.SecurityUtils.API_KEY_HEADER;
 
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Objects;
 import lombok.AllArgsConstructor;

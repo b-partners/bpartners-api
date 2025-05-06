@@ -9,7 +9,7 @@ import app.bpartners.api.endpoint.rest.model.TransactionTypeEnum;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.repository.TransactionCategoryRepository;
 import app.bpartners.api.repository.TransactionCategoryTemplateRepository;
-import app.bpartners.api.service.TransactionCategoryService;
+import app.bpartners.api.service.transaction.TransactionCategoryService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;

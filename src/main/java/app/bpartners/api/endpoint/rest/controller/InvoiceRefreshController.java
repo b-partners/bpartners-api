@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.rest.controller;
 
-import app.bpartners.api.service.InvoiceRefreshService;
+import app.bpartners.api.service.invoice.InvoiceRefreshService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;

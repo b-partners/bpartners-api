@@ -32,7 +32,7 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.Buildi
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermit;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.BuildingPermitList;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.GeoJson;
-import app.bpartners.api.service.UserService;
+import app.bpartners.api.service.user.UserService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;

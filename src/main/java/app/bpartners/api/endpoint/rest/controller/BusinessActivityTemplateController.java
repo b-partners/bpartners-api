@@ -4,7 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.BusinessActivityRestMapper;
 import app.bpartners.api.endpoint.rest.model.BusinessActivity;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.service.BusinessActivityTemplateService;
+import app.bpartners.api.service.accountholder.BusinessActivityTemplateService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

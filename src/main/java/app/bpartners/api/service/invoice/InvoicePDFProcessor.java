@@ -3,12 +3,12 @@ package app.bpartners.api.service.invoice;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.InvoiceService.DRAFT_TEMPLATE;
-import static app.bpartners.api.service.InvoiceService.INVOICE_TEMPLATE;
+import static app.bpartners.api.service.invoice.InvoiceService.DRAFT_TEMPLATE;
+import static app.bpartners.api.service.invoice.InvoiceService.INVOICE_TEMPLATE;
 
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.service.FileService;
+import app.bpartners.api.service.file.FileService;
 import java.io.File;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;

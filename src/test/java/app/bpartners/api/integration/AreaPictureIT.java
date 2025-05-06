@@ -5,8 +5,8 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSE
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static app.bpartners.api.service.WMS.imageSource.WmsImageSourceFacadeIT.aerialPhotographyLayer;
-import static app.bpartners.api.service.WMS.imageSource.WmsImageSourceFacadeIT.pcrsLayer;
+import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.aerialPhotographyLayer;
+import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.pcrsLayer;
 import static java.lang.Boolean.TRUE;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,11 +35,11 @@ import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.ban.response.GeoJsonProperty;
 import app.bpartners.api.repository.ban.response.GeoJsonResponse;
 import app.bpartners.api.repository.google.geocode.GeoCodeApi;
-import app.bpartners.api.service.MetaDataComponent;
-import app.bpartners.api.service.WMS.ArcgisZoom;
-import app.bpartners.api.service.WMS.AreaPictureMapLayerService;
-import app.bpartners.api.service.WMS.imageSource.WmsImageSource;
+import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.utils.GeoUtils;
+import app.bpartners.api.service.wms.ArcgisZoom;
+import app.bpartners.api.service.wms.AreaPictureMapLayerService;
+import app.bpartners.api.service.wms.imageSource.WmsImageSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.Instant;
@@ -63,8 +63,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
           .label("charente")
           .coordinates(SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES)
           .build();
-  private static final app.bpartners.api.service.WMS.Tile DEFAULT_KNOWN_TILE =
-      app.bpartners.api.service.WMS.Tile.builder()
+  private static final app.bpartners.api.service.wms.Tile DEFAULT_KNOWN_TILE =
+      app.bpartners.api.service.wms.Tile.builder()
           .x(524720)
           .y(374531)
           .arcgisZoom(ArcgisZoom.HOUSES_0)
@@ -474,7 +474,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
     var guessedLayers =
         mapLayerService.getAvailableLayersFrom(
-            app.bpartners.api.service.WMS.Tile.from(
+            app.bpartners.api.service.wms.Tile.from(
                 coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
     assertEquals(

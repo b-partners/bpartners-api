@@ -21,9 +21,9 @@ import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
-import app.bpartners.api.service.InvoiceService;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
+import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -360,7 +360,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 + endOfCurrentMonthFormatted)
         .ref(createdInvoice.getRef())
         .validityDate(sendingDate.plusDays(30L))
-        .toPayAt(temporalUtils.fifthOfMonthAfter(0))
+        .toPayAt(temporalUtils.fifthOfNextMonth())
         .sendingDate(sendingDate)
         .createdAt(createdInvoice.getCreatedAt())
         .user(userToCreditMock)

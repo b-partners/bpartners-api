@@ -14,7 +14,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.service.AccountService;
+import app.bpartners.api.service.account.AccountService;
 import app.bpartners.api.service.event.DisconnectionInitiatedService;
 import java.util.List;
 import org.junit.jupiter.api.Test;

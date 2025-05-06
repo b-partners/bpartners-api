@@ -8,7 +8,7 @@ import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.endpoint.rest.validator.OnboardingValidator;
 import app.bpartners.api.endpoint.rest.validator.VisitorEmailRestValidator;
 import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.service.OnboardingService;
+import app.bpartners.api.service.user.OnboardingService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;

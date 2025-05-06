@@ -5,7 +5,7 @@ import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.SheetAuth;
 import app.bpartners.api.endpoint.rest.model.SheetConsentInit;
 import app.bpartners.api.endpoint.rest.model.TokenValidity;
-import app.bpartners.api.service.SheetService;
+import app.bpartners.api.service.google.sheet.SheetService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

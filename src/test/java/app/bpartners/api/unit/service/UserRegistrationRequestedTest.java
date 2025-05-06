@@ -7,10 +7,10 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.event.model.UserRegistrationRequested;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.UserSubscription;
-import app.bpartners.api.service.UserService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.UserRegistrationRequestedService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.user.UserService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 

@@ -1,7 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.ProspectService.defaultStatusHistoryEntity;
+import static app.bpartners.api.service.prospect.ProspectService.defaultStatusHistoryEntity;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
 import app.bpartners.api.model.exception.ApiException;

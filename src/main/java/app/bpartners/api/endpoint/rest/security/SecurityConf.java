@@ -352,6 +352,8 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/files/*", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(GET, "/areaPictureMapLayers")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures", authResourceProvider))
@@ -553,6 +555,12 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(GET, "/users/*/emails", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/detectionTracking", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(POST, "/address/autocomplete")
                     .authenticated()
                     .requestMatchers("/**")
                     .denyAll())

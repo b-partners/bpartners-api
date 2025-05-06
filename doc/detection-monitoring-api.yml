@@ -1,0 +1,69 @@
+operations:
+  registerDetection:
+    post:
+      tags:
+        - Detection Tracking
+      summary: Register detection for tracking
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+      operationId: registerDetection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateDetectionTracking'
+        required: true
+      responses:
+        200:
+          description: List of registered detection tracking
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DetectionTracking"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    DetectionTracking:
+      allOf:
+        - $ref: '#/components/schemas/CreateDetectionTracking'
+      properties:
+        id:
+          type: string
+    CreateDetectionTracking:
+      type: object
+      properties:
+        zone:
+          type: string
+        address:
+          type: string
+        initiator:
+          $ref: '#/components/schemas/DetectionInitiator'
+        creationDatetime:
+          type: string
+          format: date-time
+    DetectionInitiator:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phoneNumber:
+          type: string

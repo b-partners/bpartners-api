@@ -6,8 +6,6 @@ import static app.bpartners.api.model.subscription.Subscription.SubscriptionStat
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
-import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
-import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
@@ -33,9 +31,7 @@ import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
-import com.stripe.model.checkout.Session;
 import com.stripe.param.*;
-import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -63,6 +59,7 @@ public class SubscriptionService {
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
   private final TemporalUtils temporalUtils;
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
+  private final StripeSessionFactory stripeSessionFactory;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -311,12 +308,13 @@ public class SubscriptionService {
               + " has active subscription until "
               + latestSubscription.getEndDatetime());
     }
-    var subscriptionProduct = subscription.getSubscriptionProduct();
     var endOfTrialPeriod = computeEndOfTrialPeriod(user);
-    Long endOfTrialPeriodLong =
-        Date.from(endOfTrialPeriod.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
-            / 1000L;
     var billingCycleAnchor = computeBillingCycleAnchor(endOfTrialPeriod);
+    log.info(
+        "Schedule start date = {}",
+        Instant.ofEpochSecond(billingCycleAnchor).atZone(ZoneId.of("Europe/Paris")).toLocalDate());
+
+    var subscriptionProduct = subscription.getSubscriptionProduct();
     var subscriptionProductRoofAnalysis =
         subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
     var newVariableProductPrice =
@@ -333,42 +331,16 @@ public class SubscriptionService {
                             .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
                             .build())
                     .build());
+
     var session =
-        Session.create(
-            SessionCreateParams.builder()
-                .setMode(SUBSCRIPTION)
-                .setCustomer(stripeCustomer.getId())
-                .setCurrency(defaultCurrency())
-                .addLineItem(
-                    SessionCreateParams.LineItem.builder()
-                        .setQuantity(1L)
-                        .setPriceData(
-                            SessionCreateParams.LineItem.PriceData.builder()
-                                .setProduct(subscriptionProduct.getE2Id())
-                                .setCurrency(defaultCurrency())
-                                .setUnitAmount(subscriptionProduct.getPriceInCents())
-                                .setRecurring(
-                                    computeRecurringFromSubscriptionProduct(subscriptionProduct))
-                                .build())
-                        .build())
-                .addLineItem(
-                    SessionCreateParams.LineItem.builder()
-                        .setPrice(newVariableProductPrice.getId())
-                        .build())
-                .setSuccessUrl(redirectionUrls.getSuccessUrl())
-                .setCancelUrl(redirectionUrls.getFailureUrl())
-                .setUiMode(HOSTED)
-                .setSubscriptionData(
-                    SessionCreateParams.SubscriptionData.builder()
-                        .setProrationBehavior(
-                            SessionCreateParams.SubscriptionData.ProrationBehavior.NONE)
-                        .setBillingCycleAnchor(billingCycleAnchor)
-                        .setTrialPeriodDays(
-                            endOfTrialPeriod.isAfter(temporalUtils.endOfActualMonth())
-                                ? endOfTrialPeriodLong
-                                : null)
-                        .build())
-                .build());
+        stripeSessionFactory.createSession(
+            endOfTrialPeriod,
+            stripeCustomer,
+            subscriptionProduct,
+            newVariableProductPrice,
+            redirectionUrls,
+            billingCycleAnchor,
+            subscription);
     return new Redirection()
         .redirectionUrl(session.getUrl())
         .redirectionStatusUrls(
@@ -597,17 +569,6 @@ public class SubscriptionService {
     stripeClient.customers().delete(user.getUserSubscriptionId());
 
     return userRepository.save(user.toBuilder().userSubscriptionId(null).build());
-  }
-
-  private SessionCreateParams.LineItem.PriceData.Recurring computeRecurringFromSubscriptionProduct(
-      SubscriptionProduct subscriptionProduct) {
-    if (Objects.requireNonNull(subscriptionProduct.getType()) == MONTHLY) {
-      return SessionCreateParams.LineItem.PriceData.Recurring.builder()
-          .setInterval(SessionCreateParams.LineItem.PriceData.Recurring.Interval.MONTH)
-          .build();
-    }
-    throw new IllegalArgumentException(
-        "Unknown subscription type: " + subscriptionProduct.getType());
   }
 
   private SubscriptionType computeTypeFromRecurring(String intervalValue) {

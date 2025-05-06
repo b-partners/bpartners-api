@@ -1,13 +1,21 @@
 package app.bpartners.api.repository.google.geocode;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static java.util.UUID.fromString;
+
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.repository.validator.AddressValidator;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
+import com.google.maps.PlaceAutocompleteRequest;
+import com.google.maps.PlacesApi;
 import com.google.maps.errors.ApiException;
+import com.google.maps.model.AutocompletePrediction;
 import com.google.maps.model.GeocodingResult;
 import com.google.maps.model.LatLng;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -38,5 +46,20 @@ public class GeoCodeApi {
             .longitude(location.lng);
     log.info("GeoCode Position={}", position);
     return position;
+  }
+
+  public List<AutocompletePrediction> autoCompleteAddress(String address, String sessionId) {
+    addressValidator.accept(address);
+    try {
+      AutocompletePrediction[] suggestions =
+          PlacesApi.placeAutocomplete(
+                  geoApiContext,
+                  address,
+                  new PlaceAutocompleteRequest.SessionToken(fromString(sessionId)))
+              .await();
+      return Arrays.stream(suggestions).toList();
+    } catch (Exception e) {
+      throw new app.bpartners.api.model.exception.ApiException(SERVER_EXCEPTION, e.getMessage());
+    }
   }
 }

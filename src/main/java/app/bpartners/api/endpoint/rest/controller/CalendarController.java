@@ -10,7 +10,7 @@ import app.bpartners.api.endpoint.rest.model.CalendarProvider;
 import app.bpartners.api.endpoint.rest.model.CreateCalendarEvent;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.TokenValidity;
-import app.bpartners.api.service.CalendarService;
+import app.bpartners.api.service.google.calendar.CalendarService;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;

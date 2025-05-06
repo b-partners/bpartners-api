@@ -8,8 +8,8 @@ import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.model.validator.AreaPictureValidator;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
-import app.bpartners.api.service.areaPicture.AreaPictureConsumptionValidator;
-import app.bpartners.api.service.areaPicture.RoofAnalysisConsumptionFreeTrialValidator;
+import app.bpartners.api.service.areapicture.AreaPictureConsumptionValidator;
+import app.bpartners.api.service.areapicture.RoofAnalysisConsumptionFreeTrialValidator;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 

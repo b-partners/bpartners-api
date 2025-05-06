@@ -17,8 +17,8 @@ import app.bpartners.api.endpoint.rest.validator.CreateAnnualRevenueTargetValida
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.service.AccountHolderService;
-import app.bpartners.api.service.FeedbackService;
+import app.bpartners.api.service.accountholder.AccountHolderService;
+import app.bpartners.api.service.feedback.FeedbackService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;

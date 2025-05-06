@@ -2,11 +2,13 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
 
+import app.bpartners.api.endpoint.rest.mapper.AreaPictureMapLayerRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
-import app.bpartners.api.service.AreaPictureService;
+import app.bpartners.api.service.areapicture.AreaPictureService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AreaPictureController {
   private final AreaPictureService service;
   private final AreaPictureRestMapper mapper;
+  private final AreaPictureMapLayerRestMapper layerMapper;
 
   @GetMapping(value = "/accounts/{accountId}/areaPictures")
   public List<AreaPictureDetails> findAllAreaPictures(
@@ -50,5 +53,12 @@ public class AreaPictureController {
     var areaPicture = mapper.toDomain(toCrupdate, areaPictureId, userId);
     var result = service.saveAreaPictureAndLogConsumption(areaPicture);
     return mapper.toRest(result);
+  }
+
+  @GetMapping("/areaPictureMapLayers")
+  public List<AreaPictureMapLayer> getAreaPictureMapLayers(
+      @RequestParam(name = "longitude") Double longitude,
+      @RequestParam(name = "latitude") Double latitude) {
+    return service.getMapLayers(longitude, latitude).stream().map(layerMapper::toRest).toList();
   }
 }

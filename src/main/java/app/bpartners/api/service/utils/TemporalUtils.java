@@ -14,6 +14,18 @@ public class TemporalUtils {
     return fifthOfMonthAfter(1);
   }
 
+  public LocalDate startOfNextMonth() {
+    var today = now();
+    var nextMonth = today.plusMonths(1);
+    return nextMonth.withDayOfMonth(1);
+  }
+
+  public LocalDate fourthOfNextMonth() {
+    var today = now();
+    var nextMonth = today.plusMonths(1);
+    return nextMonth.withDayOfMonth(4);
+  }
+
   public LocalDate fifthOfMonthAfter(int monthsOffset) {
     var today = now();
     var nextMonth = today.plusMonths(monthsOffset);
@@ -24,6 +36,12 @@ public class TemporalUtils {
     var today = now();
     var currentMonth = YearMonth.from(today);
     return currentMonth.atDay(1);
+  }
+
+  public LocalDate fourthOfActualMonth() {
+    var today = now();
+    var currentMonth = YearMonth.from(today);
+    return currentMonth.atDay(4);
   }
 
   public LocalDate startOfLastMonth() {

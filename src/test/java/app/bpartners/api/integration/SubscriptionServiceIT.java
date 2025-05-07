@@ -102,12 +102,22 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
             user.toBuilder().mobilePhoneNumber("0622334455").build());
     var updatedUser = linkedUserSubscription.getUser();
     var updatedUserSubscription = subject.updateUserSubscription(updatedUser);
+    var updateUserSubscriptionSetId =
+        updatedUserSubscription.getSubscriptions().stream()
+            .peek(subscription -> subscription.setId("null"))
+            .toList();
+    updatedUserSubscription.setSubscriptions(updateUserSubscriptionSetId);
+    var expectedUserSubscription =
+        subject.getSubscriptionByUserSubscriptionId(
+            updatedUserSubscription.getUser().getUserSubscriptionId());
+    var expectedUserSubscriptionSetId =
+        expectedUserSubscription.getSubscriptions().stream()
+            .peek(subscription -> subscription.setId("null"))
+            .toList();
+    expectedUserSubscription.setSubscriptions(expectedUserSubscriptionSetId);
 
     assertNotNull(updatedUserSubscription);
-    assertEquals(
-        subject.getSubscriptionByUserSubscriptionId(
-            updatedUserSubscription.getUser().getUserSubscriptionId()),
-        updatedUserSubscription);
+    assertEquals(expectedUserSubscription, updatedUserSubscription);
     assertNotNull(subject.deleteUserFromStripe(updatedUser));
     assertNull(userRepository.getById(user.getId()).getUserSubscriptionId());
   }

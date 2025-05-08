@@ -62,21 +62,21 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 4) int iteration)
+      @Range(from = 0, to = 3) int iteration)
       throws AddressException {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
     if (iteration == 0) {
       alternativeSource = wmsImageSource;
+      AreaPictureMapLayer layer = areaPicture.getCurrentLayer();
+      if ("IGN_PHOTO_AERIENNE".equals(layer.getName())) {
+        areaPicture.setZoomLevel(BUILDING);
+      }
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
     } else if (iteration == 1) {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getPCRSLayer();
     } else if (iteration == 2) {
-      alternativeSource = wmsImageSource;
-      areaPicture.setZoomLevel(BUILDING);
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getAerialPhotography();
-    } else if (iteration == 3) {
       alternativeSource = ignGeoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {

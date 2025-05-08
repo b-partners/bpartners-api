@@ -95,6 +95,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
         .currentLayer(areaPictureMapLayer)
         .currentGeoPosition(new GeoPosition().latitude(12.34).longitude(56.78))
         .zoomLevel(HOUSES_0)
+        .currentLayer(AreaPictureMapLayer.builder().name("cite:Dijon").build())
         .currentTile(Tile.builder().arcgisZoom(ArcgisZoom.HOUSES_0).x(1).y(1).build())
         .build();
   }
@@ -144,17 +145,18 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
   }
 
   @Test
+  @Disabled("PHOTO_AERIENNE layer has been removed as default layer")
   void download_image_with_aerial_photography_layer_on_cascade_ok() {
+    AreaPicture dijon = anAreaPicture(dijon());
+
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
-    when(areaPictureMapLayerServiceMock.getAerialPhotography())
-        .thenReturn(aerialPhotographyLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
         .thenThrow(new BlankImageException("Blank image"));
     when(tileExtenderImageSource.downloadImage(
             argThat(area -> area.getCurrentLayer().equals(aerialPhotographyLayer()))))
         .thenReturn(getMockJpegFile());
 
-    subject.downloadImage(anAreaPicture(dijon()));
+    subject.downloadImage(dijon);
 
     verify(tileExtenderImageSource, times(3)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getAerialPhotography();
@@ -163,8 +165,6 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
   @Test
   void download_image_with_ign_layer_on_cascade_ok() {
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
-    when(areaPictureMapLayerServiceMock.getAerialPhotography())
-        .thenReturn(aerialPhotographyLayer());
     when(areaPictureMapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
         .thenThrow(new BlankImageException("Blank image"));
@@ -174,7 +174,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
 
     subject.downloadImage(anAreaPicture(dijon()));
 
-    verify(tileExtenderImageSource, times(4)).downloadImage(any());
+    verify(tileExtenderImageSource, times(3)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getDefaultIGNLayer();
   }
 

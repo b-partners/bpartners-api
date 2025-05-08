@@ -17,9 +17,7 @@ class AreaPictureServiceIT extends MockedThirdParties {
 
     var actual = areaPictureService.getMapLayers(longitude, latitude);
 
-    assertEquals(3, actual.size());
+    assertEquals(2, actual.size());
     assertEquals("cite:PCRS.LAMB93", actual.get(0).getName());
-    assertEquals("cite:PHOTO_AERIENNE", actual.get(1).getName());
-    assertEquals("ORTHOIMAGERY.ORTHOPHOTOS", actual.get(2).getName());
   }
 }

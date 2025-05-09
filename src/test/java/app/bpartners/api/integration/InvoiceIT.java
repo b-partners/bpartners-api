@@ -12,6 +12,7 @@ import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.*;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.ignoreStatusDatetime;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
+import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static java.util.UUID.randomUUID;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -185,7 +186,7 @@ class InvoiceIT extends S3MockedThirdParties {
     assertEquals(DEFAULT_DELAY_PENALTY_PERCENT, actualDraft.getDelayPenaltyPercent());
     assertEquals(
         expectedDraft()
-            .delayInPaymentAllowed(30)
+            .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
             .fileId(actualUpdatedDraft.getFileId())
             .archiveStatus(ENABLED)
             .createdAt(actualUpdatedDraft.getCreatedAt())

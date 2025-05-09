@@ -42,7 +42,7 @@ import org.springframework.core.io.ClassPathResource;
 @ToString
 @Slf4j
 public class Invoice {
-  public static final int DEFAULT_TO_PAY_DELAY_DAYS = 30;
+  public static final int DEFAULT_TO_PAY_DELAY_DAYS = 7;
   public static final int DEFAULT_DELAY_PENALTY_PERCENT = 0;
   private String id;
   private PaymentTypeEnum paymentType;

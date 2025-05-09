@@ -12,6 +12,7 @@ import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
@@ -37,6 +38,7 @@ class AreaPictureMapLayerServiceTest {
   }
 
   @Test
+  @Disabled("PHOTO_AERIENNE layer has been removed as default layer")
   void get_aerial_photography_layer_ok() {
     AreaPictureMapLayer aerialPhotographyLayer;
     when(areaPictureMapLayerRepositoryMock.findById("2f343dba-dd5f-4895-9006-49472f576c02"))

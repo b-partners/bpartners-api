@@ -5,7 +5,6 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSE
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.aerialPhotographyLayer;
 import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.pcrsLayer;
 import static java.lang.Boolean.TRUE;
 import static java.util.UUID.randomUUID;
@@ -199,7 +198,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
             List.of(
                 geoserverCharenteLayer(),
                 geoserverPCRSLayer(),
-                geoserverPhotoAerialLayer(),
                 geoserverIGNPrimaryDefaultServerLayer()))
         .layer(DEFAULT_OSM_LAYER)
         .zoom(zoom)
@@ -258,7 +256,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
             List.of(
                 geoserverCharenteLayer(),
                 geoserverPCRSLayer(),
-                geoserverPhotoAerialLayer(),
                 geoserverIGNPrimaryDefaultServerLayer()))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
@@ -478,11 +475,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
     assertEquals(
-        List.of(
-            domainGeoserverCharenteLayer(),
-            pcrsLayer(),
-            aerialPhotographyLayer(),
-            domainGeoserverIGNLayer()),
+        List.of(domainGeoserverCharenteLayer(), pcrsLayer(), domainGeoserverIGNLayer()),
         guessedLayers);
   }
 }

@@ -2,6 +2,8 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.subscription.SessionMode.SETUP;
+import static app.bpartners.api.model.subscription.SessionMode.SUBSCRIPTION;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
@@ -27,6 +29,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
@@ -60,6 +63,7 @@ public class SubscriptionService {
   private final TemporalUtils temporalUtils;
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
   private final StripeSessionFactory stripeSessionFactory;
+  private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -341,6 +345,16 @@ public class SubscriptionService {
             redirectionUrls,
             billingCycleAnchor,
             subscription);
+    userSubscriptionSessionRepository.save(
+        UserSubscriptionSession.builder()
+            .id(randomUUID().toString())
+            .sessionId(session.getId())
+            .sessionMode(
+                Objects.equals(session.getMode().toUpperCase(), "SUBSCRIPTION")
+                    ? SUBSCRIPTION
+                    : SETUP)
+            .userId(user.getId())
+            .build());
     return new Redirection()
         .redirectionUrl(session.getUrl())
         .redirectionStatusUrls(
@@ -532,6 +546,11 @@ public class SubscriptionService {
               + user.getId()
               + " does not have userSubscriptionId");
     }
+    // TODO: check if subscription is type SETUP
+    /**
+     * if true: cancel subscriptionScheduler persist user whom cancel subscription during setup
+     * (userId, date) return what stripe return
+     */
     var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
     if (subscriptions.isEmpty()) {
       throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");

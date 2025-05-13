@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.model.subscription.SessionMode.SUBSCRIPTION;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -21,12 +23,14 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
 import app.bpartners.api.service.subscription.StripeSessionFactory;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
+import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerListParams;
 import com.stripe.param.SubscriptionItemListParams;
 import com.stripe.param.SubscriptionListParams;
@@ -36,6 +40,7 @@ import com.stripe.service.PriceService;
 import com.stripe.service.ProductService;
 import com.stripe.service.SubscriptionItemService;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +61,8 @@ class SubscriptionServiceTest {
       mock(SubscriptionConsumptionLogJpaRepository.class);
   TemporalUtils temporalUtils = new TemporalUtils();
   StripeSessionFactory sessionFactoryMock = mock(StripeSessionFactory.class);
+  UserSubscriptionSessionRepository sessionRepositoryMock =
+      mock(UserSubscriptionSessionRepository.class);
   SubscriptionService subject =
       new SubscriptionService(
           stripeConfMock,
@@ -65,7 +72,69 @@ class SubscriptionServiceTest {
           subscriptionEligibleJpaRepositoryMock,
           temporalUtils,
           consumptionLogJpaRepositoryMock,
-          sessionFactoryMock);
+          sessionFactoryMock,
+          sessionRepositoryMock);
+
+  @Test
+  void initiate_subscription_call_user_subscription_session_save() throws StripeException {
+    var user = User.builder().id("user_id").userSubscriptionId("user_subscription_id").build();
+    var customers = mock(CustomerService.class);
+    when(stripeClientMock.customers()).thenReturn(customers);
+    var stripeCustomer = mock(Customer.class);
+    when(customers.retrieve(any())).thenReturn(stripeCustomer);
+    var userSubscriptionEligible =
+        UserSubscriptionEligible.builder()
+            .eligibleFrom(LocalDate.now().minusDays(1))
+            .trialPeriodDays(1)
+            .build();
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.ofNullable(userSubscriptionEligible));
+    var priceService = mock(PriceService.class);
+    when(stripeClientMock.prices()).thenReturn(priceService);
+    var price = mock(Price.class);
+    when(priceService.create(any())).thenReturn(price);
+    var stripeSubscriptionService = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionService);
+    var stripeCollection = mock(StripeCollection.class);
+    when(stripeSubscriptionService.list(any(SubscriptionListParams.class)))
+        .thenReturn(stripeCollection);
+    var stripeSubscription = mock(com.stripe.model.Subscription.class);
+    when(stripeCollection.getData()).thenReturn(List.of(stripeSubscription));
+    when(stripeSubscription.getCurrentPeriodStart())
+        .thenReturn(temporalUtils.startOfMonth().getEpochSecond());
+    when(stripeSubscription.getCurrentPeriodEnd())
+        .thenReturn(temporalUtils.endOfMonth().getEpochSecond());
+    when(stripeSubscription.getStatus()).thenReturn("trialing");
+    var paymentSetting = mock(com.stripe.model.Subscription.PaymentSettings.class);
+    when(stripeSubscription.getPaymentSettings()).thenReturn(paymentSetting);
+    when(paymentSetting.getPaymentMethodTypes()).thenReturn(List.of());
+    var subscription =
+        Subscription.builder().subscriptionProduct(SubscriptionProduct.builder().build()).build();
+    var subscriptionProduct = SubscriptionProduct.builder().e2Id("subscriptionProductId").build();
+    when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(any()))
+        .thenReturn(subscriptionProduct);
+    var redirectionUrls = new RedirectionStatusUrls();
+    var session = new Session();
+    session.setId("session_id");
+    session.setMode(String.valueOf(SUBSCRIPTION));
+    when(sessionFactoryMock.createSession(
+            any(LocalDate.class),
+            any(Customer.class),
+            any(SubscriptionProduct.class),
+            any(Price.class),
+            any(RedirectionStatusUrls.class),
+            anyLong(),
+            any(Subscription.class)))
+        .thenReturn(session);
+
+    var actual = subject.initiateSubscription(user, subscription, redirectionUrls);
+
+    var userSubscriptionSession = ArgumentCaptor.forClass(UserSubscriptionSession.class);
+    verify(sessionRepositoryMock).save(userSubscriptionSession.capture());
+    var userSubscriptionSessionSaved = userSubscriptionSession.getValue();
+    assertNotNull(userSubscriptionSessionSaved);
+    assertEquals(user.getId(), userSubscriptionSessionSaved.getUserId());
+  }
 
   @Test
   void get_subscription_consumption_logs_ok() {

@@ -118,6 +118,7 @@ class SubscriptionServiceTest {
     session.setId("session_id");
     session.setMode(String.valueOf(SUBSCRIPTION));
     when(sessionFactoryMock.createSession(
+            any(User.class),
             any(LocalDate.class),
             any(Customer.class),
             any(SubscriptionProduct.class),
@@ -245,6 +246,17 @@ class SubscriptionServiceTest {
     assertEquals(
         "User.id=null does not have any subscriptions",
         actualEmptySubscriptionException.getMessage());
+  }
+
+  @Test
+  void cancel_subscription_in_set_up_ok() throws StripeException {
+    var user = User.builder().userSubscriptionId("user_subscription_id").build();
+    var subscriptionService = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionService);
+    var stripeCollection = mock(StripeCollection.class);
+    when(subscriptionService.list(any(SubscriptionListParams.class))).thenReturn(stripeCollection);
+    var stripeSubscription = mock(com.stripe.model.Subscription.class);
+    when(stripeCollection.getData()).thenReturn(List.of(stripeSubscription));
   }
 
   @SneakyThrows

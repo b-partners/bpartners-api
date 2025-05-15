@@ -6,8 +6,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
 import app.bpartners.api.service.subscription.StripeSessionFactory;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.exception.StripeException;
@@ -23,11 +25,13 @@ public class StripeSessionFactoryTest {
 
   @Mock private TemporalUtils temporalUtils;
   @InjectMocks private StripeSessionFactory stripeSessionFactorySpy;
+  @Mock private UserSubscriptionSessionRepository userSubscriptionSessionRepository;
 
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
-    stripeSessionFactorySpy = Mockito.spy(new StripeSessionFactory(temporalUtils));
+    stripeSessionFactorySpy =
+        Mockito.spy(new StripeSessionFactory(temporalUtils, userSubscriptionSessionRepository));
   }
 
   @Test
@@ -41,16 +45,17 @@ public class StripeSessionFactoryTest {
     var urls = mock(RedirectionStatusUrls.class);
     var subscription = mock(Subscription.class);
     var billingCycleAnchor = 123456L;
+    var user = User.builder().id("user_id").build();
     doReturn(mockSession)
         .when(stripeSessionFactorySpy)
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor);
+        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
 
     var actual =
         stripeSessionFactorySpy.createSession(
-            trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
+            user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
     verify(stripeSessionFactorySpy, times(1))
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor);
+        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
     verify(stripeSessionFactorySpy, never())
         .createSessionSubscription(any(), any(), any(), any(), any());
     assertThat(actual).isEqualTo(mockSession);
@@ -69,17 +74,19 @@ public class StripeSessionFactoryTest {
     var urls = mock(RedirectionStatusUrls.class);
     var subscription = mock(Subscription.class);
     var billingCycleAnchor = 123456L;
+    var user = User.builder().id("user_id").build();
     doReturn(mockSession)
         .when(stripeSessionFactorySpy)
         .createSessionSubscription(customer, product, price, urls, billingCycleAnchor);
 
     var actual =
         stripeSessionFactorySpy.createSession(
-            trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
+            user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
     verify(stripeSessionFactorySpy, times(1))
         .createSessionSubscription(customer, product, price, urls, billingCycleAnchor);
-    verify(stripeSessionFactorySpy, never()).createSessionSetUp(any(), any(), any(), any(), any());
+    verify(stripeSessionFactorySpy, never())
+        .createSessionSetUp(any(), any(), any(), any(), any(), any());
     assertThat(actual).isEqualTo(mockSession);
   }
 
@@ -97,15 +104,17 @@ public class StripeSessionFactoryTest {
     var urls = mock(RedirectionStatusUrls.class);
     var subscription = mock(Subscription.class);
     var billingCycleAnchor = 123456L;
+    var user = User.builder().build();
     doReturn(mockSession)
         .when(stripeSessionFactorySpy)
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor);
+        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
 
     var actual =
         stripeSessionFactorySpy.createSession(
-            trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
+            user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
-    verify(stripeSessionFactorySpy, times(1)).createSessionSetUp(any(), any(), any(), any(), any());
+    verify(stripeSessionFactorySpy, times(1))
+        .createSessionSetUp(any(), any(), any(), any(), any(), any());
     verify(stripeSessionFactorySpy, never())
         .createSessionSubscription(any(), any(), any(), any(), any());
     assertThat(actual).isEqualTo(mockSession);
@@ -123,16 +132,17 @@ public class StripeSessionFactoryTest {
     var urls = mock(RedirectionStatusUrls.class);
     var subscription = mock(Subscription.class);
     var billingCycleAnchor = 123456L;
+    var user = User.builder().id("user_id").build();
     doReturn(mockSession)
         .when(stripeSessionFactorySpy)
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor);
+        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
 
     var actual =
         stripeSessionFactorySpy.createSession(
-            trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
+            user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
     verify(stripeSessionFactorySpy, times(1))
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor);
+        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
     verify(stripeSessionFactorySpy, never())
         .createSessionSubscription(any(), any(), any(), any(), any());
     assertThat(actual).isEqualTo(mockSession);

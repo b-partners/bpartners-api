@@ -3,6 +3,7 @@ package app.bpartners.api.model.subscription;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import java.time.LocalDate;
 import lombok.*;
 
 @Entity(name = "user_subscription_session")
@@ -23,4 +24,13 @@ public class UserSubscriptionSession {
 
   @Column(name = "session_mode")
   private SessionMode sessionMode;
+
+  @Column(name = "subscription_schedule_id")
+  private String subscriptionScheduleId;
+
+  @Column(name = "set_up_until")
+  private LocalDate setUpUntil;
+
+  @Column(name = "is_cancelled")
+  private boolean isCancelled;
 }

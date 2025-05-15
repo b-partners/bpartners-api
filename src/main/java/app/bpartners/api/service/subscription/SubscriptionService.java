@@ -2,8 +2,6 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.model.subscription.SessionMode.SETUP;
-import static app.bpartners.api.model.subscription.SessionMode.SUBSCRIPTION;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
@@ -338,6 +336,7 @@ public class SubscriptionService {
 
     var session =
         stripeSessionFactory.createSession(
+            user,
             endOfTrialPeriod,
             stripeCustomer,
             subscriptionProduct,
@@ -345,16 +344,6 @@ public class SubscriptionService {
             redirectionUrls,
             billingCycleAnchor,
             subscription);
-    userSubscriptionSessionRepository.save(
-        UserSubscriptionSession.builder()
-            .id(randomUUID().toString())
-            .sessionId(session.getId())
-            .sessionMode(
-                Objects.equals(session.getMode().toUpperCase(), "SUBSCRIPTION")
-                    ? SUBSCRIPTION
-                    : SETUP)
-            .userId(user.getId())
-            .build());
     return new Redirection()
         .redirectionUrl(session.getUrl())
         .redirectionStatusUrls(
@@ -546,11 +535,7 @@ public class SubscriptionService {
               + user.getId()
               + " does not have userSubscriptionId");
     }
-    // TODO: check if subscription is type SETUP
-    /**
-     * if true: cancel subscriptionScheduler persist user whom cancel subscription during setup
-     * (userId, date) return what stripe return
-     */
+
     var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
     if (subscriptions.isEmpty()) {
       throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");
@@ -566,6 +551,36 @@ public class SubscriptionService {
               + latestSubscription.getStatus());
     }
 
+    // TODO: check if subscription is type SETUP
+    /**
+     * if true: cancel subscriptionScheduler persist user whom cancel subscription during setup
+     * (userId, date) return what stripe return
+     */
+    List<UserSubscriptionSession> userSubscriptionSessions =
+        userSubscriptionSessionRepository.findAllByUserId(user.getId()).stream()
+            .filter(
+                userSubscriptionSession ->
+                    userSubscriptionSession.getSetUpUntil().isAfter(LocalDate.now()))
+            .filter(userSubscriptionSession -> !userSubscriptionSession.isCancelled())
+            .toList();
+    if (!userSubscriptionSessions.isEmpty()) {
+      UserSubscriptionSession userInSetUpMode =
+          userSubscriptionSessions.stream()
+              .filter(
+                  userSubscriptionSession ->
+                      userSubscriptionSession.getUserId().equals(user.getId()))
+              .findFirst()
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Aucune session trouvée pour l'utilisateur " + user.getId()));
+
+      userSubscriptionSessionRepository.save(userInSetUpMode.toBuilder().isCancelled(true).build());
+      SubscriptionSchedule resource =
+          SubscriptionSchedule.retrieve(userInSetUpMode.getSubscriptionScheduleId());
+      resource.cancel();
+      return UserSubscription.builder().user(user).build();
+    }
     stripeClient
         .subscriptions()
         .update(

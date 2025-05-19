@@ -5,6 +5,7 @@ import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
+import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceNoVatWithDiscount;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceWithoutDiscount;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalPriceWithVatAndDiscount;
@@ -144,8 +145,8 @@ public class InvoiceRestMapper {
     // TODO: check default value if necessary
     if (delayInPaymentAllowed == null && rest.getPaymentType() == CASH) {
       log.warn(
-          "Delay in payment allowed is mandatory for CASH Payment type. 30 is given by default");
-      delayInPaymentAllowed = 30;
+          "Delay in payment allowed is mandatory for CASH Payment type. 7 is given by default");
+      delayInPaymentAllowed = DEFAULT_TO_PAY_DELAY_DAYS;
     }
 
     // TODO: deprecated ! discount must be mandatory

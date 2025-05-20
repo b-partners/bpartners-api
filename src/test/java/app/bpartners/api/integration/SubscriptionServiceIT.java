@@ -188,7 +188,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     assertNotNull(subject.deleteUserFromStripe(user));
   }
 
-  // @Disabled("TODO: local use only")
+  @Disabled("TODO: local use only")
   @SneakyThrows
   @Test
   void initiate_subscription_then_cancel() {

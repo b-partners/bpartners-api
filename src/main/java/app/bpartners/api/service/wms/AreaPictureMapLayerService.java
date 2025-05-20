@@ -42,7 +42,7 @@ public class AreaPictureMapLayerService {
               return geometry.contains(areaPictureCoordinatesAsPoint);
             });
     if (features.isEmpty()) {
-      return List.of(getPCRSLayer(), getAerialPhotography(), getDefaultIGNLayer());
+      return List.of(getPCRSLayer(), getDefaultIGNLayer());
     }
     List<String> matchingFeaturesName =
         features.stream().map(f -> (String) f.getAttribute("nom")).toList();
@@ -50,7 +50,7 @@ public class AreaPictureMapLayerService {
     var layers = getAllByDepartementNameInIgnoreCaseOrderByYearAndAddDefault(matchingFeaturesName);
     if (layers.isEmpty()) {
       log.info("no layer found for longitude={} latitude={}", longitude, latitude);
-      return List.of(getDefaultIGNLayer(), getPCRSLayer(), getAerialPhotography());
+      return List.of(getPCRSLayer(), getDefaultIGNLayer());
     }
     return layers;
   }
@@ -60,7 +60,7 @@ public class AreaPictureMapLayerService {
     var result =
         new ArrayList<>(
             repository.findAllByDepartementNameInIgnoreCaseOrderByYear(matchingFeaturesName));
-    result.addAll(List.of(getPCRSLayer(), getAerialPhotography(), getDefaultIGNLayer()));
+    result.addAll(List.of(getPCRSLayer(), getDefaultIGNLayer()));
     return result;
   }
 

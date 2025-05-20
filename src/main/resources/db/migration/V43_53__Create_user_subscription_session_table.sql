@@ -2,7 +2,7 @@ do
 $$
 begin
         if not exists(select from pg_type where typname = 'session_mode') then
-create type email_status
+create type session_mode
     as enum ('SUBSCRIPTION', 'SETUP');
 end if;
 end
@@ -16,5 +16,6 @@ create table if not exists user_subscription_session
     session_id                varchar ,
     subscription_schedule_id       varchar,
     set_up_until date,
-    is_cancelled boolean default false
+    is_cancelled boolean default false,
+    mode session_mode
 );

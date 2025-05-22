@@ -561,7 +561,7 @@ public class SubscriptionService {
             .filter(
                 userSubscriptionSession ->
                     userSubscriptionSession.getSetUpUntil().isAfter(LocalDate.now()))
-            .filter(userSubscriptionSession -> !userSubscriptionSession.isCancelled())
+            .filter(UserSubscriptionSession::isCancelled)
             .toList();
     if (!userSubscriptionSessions.isEmpty()) {
       UserSubscriptionSession userInSetUpMode =

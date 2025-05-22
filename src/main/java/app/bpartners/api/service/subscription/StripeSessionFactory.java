@@ -184,7 +184,7 @@ public class StripeSessionFactory {
             .build());
   }
 
-  private SubscriptionScheduleCreateParams.Phase.Item.PriceData.Recurring
+  public SubscriptionScheduleCreateParams.Phase.Item.PriceData.Recurring
       computeRecurringFromSubscriptionProductForSetUpMode(SubscriptionProduct subscriptionProduct) {
     if (Objects.requireNonNull(subscriptionProduct.getType()) == MONTHLY) {
       return SubscriptionScheduleCreateParams.Phase.Item.PriceData.Recurring.builder()

@@ -28,8 +28,8 @@ public class UserSubscriptionSession {
   @Column(name = "subscription_schedule_id")
   private String subscriptionScheduleId;
 
-  @Column(name = "set_up_until")
-  private LocalDate setUpUntil;
+  @Column(name = "trial_until")
+  private LocalDate trialUntil;
 
   @Column(name = "is_cancelled")
   private boolean isCancelled;

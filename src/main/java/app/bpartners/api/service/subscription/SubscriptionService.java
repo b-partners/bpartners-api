@@ -2,6 +2,7 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.subscription.SessionMode.SETUP;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
@@ -550,25 +551,18 @@ public class SubscriptionService {
           "Only active subscription can be cancelled but actual status is "
               + latestSubscription.getStatus());
     }
-
-    // TODO: check if subscription is type SETUP
-    /**
-     * if true: cancel subscriptionScheduler persist user whom cancel subscription during setup
-     * (userId, date) return what stripe return
-     */
     List<UserSubscriptionSession> userSubscriptionSessions =
         userSubscriptionSessionRepository.findAllByUserId(user.getId()).stream()
             .filter(
+                userSubscriptionSession -> userSubscriptionSession.getSessionMode().equals(SETUP))
+            .filter(
                 userSubscriptionSession ->
-                    userSubscriptionSession.getSetUpUntil().isAfter(LocalDate.now()))
-            .filter(UserSubscriptionSession::isCancelled)
+                    userSubscriptionSession.getTrialUntil().isAfter(LocalDate.now()))
+            .filter(userSubscriptionSession -> !userSubscriptionSession.isCancelled())
             .toList();
     if (!userSubscriptionSessions.isEmpty()) {
       UserSubscriptionSession userInSetUpMode =
           userSubscriptionSessions.stream()
-              .filter(
-                  userSubscriptionSession ->
-                      userSubscriptionSession.getUserId().equals(user.getId()))
               .findFirst()
               .orElseThrow(
                   () ->

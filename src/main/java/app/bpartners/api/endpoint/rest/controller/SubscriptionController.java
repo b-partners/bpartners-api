@@ -28,9 +28,9 @@ public class SubscriptionController {
   @PostMapping("/MonthlyCancelledClientsPayment")
   public String triggerMonthlyCancelledClientsPayment() {
     eventProducer.accept(List.of(new MonthlyCancelledClientsPayment()));
-    return "Monthly subscription invoice for clients whom cancelled during SETUP triggered successfully";
+    return "Monthly subscription invoice for clients whom cancelled during SETUP triggered"
+               + " successfully";
   }
-
 
   @GetMapping("/users/{uId}/subscriptionConsumptionLogs")
   public List<SubscriptionConsumptionLog> getConsumptionLogsByUserId(

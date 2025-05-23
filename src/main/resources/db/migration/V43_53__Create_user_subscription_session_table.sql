@@ -15,6 +15,6 @@ create table if not exists user_subscription_session
     session_id                  varchar ,
     session_mode                session_mode,
     subscription_schedule_id    varchar,
-    set_up_until                date,
+    trial_until                date,
     is_cancelled boolean        default false
 );

@@ -1,5 +1,12 @@
 package app.bpartners.api.integration.event;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import app.bpartners.api.LogCaptor;
 import app.bpartners.api.endpoint.event.model.MonthlyCancelledClientsPayment;
 import app.bpartners.api.integration.conf.StripeMockedThirdParties;
 import app.bpartners.api.model.User;
@@ -9,44 +16,54 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
 import app.bpartners.api.service.event.MonthlyCancelledClientsPaymentService;
-import app.bpartners.api.service.subscription.StripeSessionFactory;
 import app.bpartners.api.service.utils.TemporalUtils;
-import com.stripe.StripeClient;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import java.time.LocalDate;
 import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class MonthlyCancelledClientsPaymentServiceIT extends StripeMockedThirdParties {
-    UserSubscriptionSessionRepository userSubscriptionSessionRepositoryMock = mock();
-    TemporalUtils temporalUtilsMock = mock();
-    UserRepository userRepositoryMock = mock();
-    SubscriptionProductRepository productRepositoryMock = mock();
-    @Autowired StripeClient stripeClient ;
-    MonthlyCancelledClientsPaymentService subject = new MonthlyCancelledClientsPaymentService(
-            userSubscriptionSessionRepositoryMock,
-            temporalUtilsMock,
-            userRepositoryMock,
-            productRepositoryMock,
-            stripeClient);
+  UserSubscriptionSessionRepository userSubscriptionSessionRepositoryMock = mock();
+  TemporalUtils temporalUtilsMock = mock();
+  UserRepository userRepositoryMock = mock();
+  SubscriptionProductRepository productRepositoryMock = mock();
+  LogCaptor logCaptor = new LogCaptor();
 
-    @Test
-    void generate_punctual_invoice(){
-        var userSubscriptionSession = UserSubscriptionSession.builder()
-                .userId("user_id")
-                .setUpUntil(LocalDate.now().plusDays(1)).build();
-        when(userSubscriptionSessionRepositoryMock.findAll()).thenReturn(List.of(userSubscriptionSession));
-        var user = User.builder().build();
-        when(userRepositoryMock.getById(any())).thenReturn(user);
-        var subscriptionProduct = SubscriptionProduct.builder().build();
-        when(productRepositoryMock.findByPriceInCents(anyDouble())).thenReturn(subscriptionProduct);
+  MonthlyCancelledClientsPaymentService subject =
+      new MonthlyCancelledClientsPaymentService(
+          userSubscriptionSessionRepositoryMock,
+          temporalUtilsMock,
+          userRepositoryMock,
+          productRepositoryMock);
 
-        subject.accept(MonthlyCancelledClientsPayment.builder().build());
-    }
+  @BeforeEach
+  void setUp() {
+    logCaptor.configure(MonthlyCancelledClientsPaymentService.class);
+  }
+
+  @Test
+  void generate_punctual_invoice() {
+    var userSubscriptionSession =
+        UserSubscriptionSession.builder()
+            .userId("user_id")
+            .trialUntil(LocalDate.now().plusDays(1))
+            .isCancelled(true)
+            .build();
+    when(temporalUtilsMock.startOfActualMonth()).thenReturn(LocalDate.now().minusMonths(1));
+    when(userSubscriptionSessionRepositoryMock.findAll())
+        .thenReturn(List.of(userSubscriptionSession));
+    var customerTestId = "cus_RdcQzc7CmQmAFr";
+    when(userRepositoryMock.getById(any()))
+        .thenReturn(User.builder().userSubscriptionId(customerTestId).build());
+    var productTestId = "prod_RFgyd9ExtdsCw8";
+    when(productRepositoryMock.findByPriceInCents(anyDouble()))
+        .thenReturn(SubscriptionProduct.builder().e2Id(productTestId).priceInCents(5880L).build());
+
+    subject.accept(MonthlyCancelledClientsPayment.builder().build());
+
+    List<ILoggingEvent> logEvents = logCaptor.getLogEvents();
+    assertEquals("", logEvents.getFirst().getFormattedMessage());
+    logEvents.stream().map(ILoggingEvent::getFormattedMessage);
+  }
 }

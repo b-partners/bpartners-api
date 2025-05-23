@@ -23,15 +23,16 @@ import org.mockito.*;
 
 public class StripeSessionFactoryTest {
 
-  @Mock private TemporalUtils temporalUtils;
+  @Mock private TemporalUtils temporalUtilsMock;
   @InjectMocks private StripeSessionFactory stripeSessionFactorySpy;
-  @Mock private UserSubscriptionSessionRepository userSubscriptionSessionRepository;
+  @Mock private UserSubscriptionSessionRepository userSubscriptionSessionRepositoryMock;
 
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
     stripeSessionFactorySpy =
-        Mockito.spy(new StripeSessionFactory(temporalUtils, userSubscriptionSessionRepository));
+        Mockito.spy(
+            new StripeSessionFactory(temporalUtilsMock, userSubscriptionSessionRepositoryMock));
   }
 
   @Test
@@ -66,7 +67,7 @@ public class StripeSessionFactoryTest {
       throws StripeException {
     var trialEnd = LocalDate.of(2025, APRIL, 10);
     mockTemporalWindow();
-    when(temporalUtils.endOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 30));
+    when(temporalUtilsMock.endOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 30));
     var mockSession = mock(Session.class);
     var customer = mock(Customer.class);
     var product = mock(SubscriptionProduct.class);
@@ -96,7 +97,7 @@ public class StripeSessionFactoryTest {
           throws StripeException {
     var trialEnd = LocalDate.of(2025, MAY, 10);
     mockTemporalWindow();
-    when(temporalUtils.endOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 30));
+    when(temporalUtilsMock.endOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 30));
     var mockSession = mock(Session.class);
     var customer = mock(Customer.class);
     var product = mock(SubscriptionProduct.class);
@@ -124,7 +125,7 @@ public class StripeSessionFactoryTest {
   void create_session_if_trial_end_is_between_1_to_4_next_month() throws StripeException {
     var trialEnd = LocalDate.of(2025, MAY, 2);
     mockTemporalWindow();
-    when(temporalUtils.endOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 30));
+    when(temporalUtilsMock.endOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 30));
     var mockSession = mock(Session.class);
     var customer = mock(Customer.class);
     var product = mock(SubscriptionProduct.class);
@@ -150,10 +151,10 @@ public class StripeSessionFactoryTest {
 
   private void mockTemporalWindow() {
     // Setup mocks for trialEnd checks
-    when(temporalUtils.startOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 1));
-    when(temporalUtils.fourthOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 4));
+    when(temporalUtilsMock.startOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 1));
+    when(temporalUtilsMock.fourthOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 4));
 
-    when(temporalUtils.startOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 1));
-    when(temporalUtils.fourthOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 4));
+    when(temporalUtilsMock.startOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 1));
+    when(temporalUtilsMock.fourthOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 4));
   }
 }

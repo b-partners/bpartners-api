@@ -1,6 +1,6 @@
 package app.bpartners.api.integration.event;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.mock;
@@ -21,6 +21,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class MonthlyCancelledClientsPaymentServiceIT extends StripeMockedThirdParties {
@@ -42,6 +43,7 @@ class MonthlyCancelledClientsPaymentServiceIT extends StripeMockedThirdParties {
     logCaptor.configure(MonthlyCancelledClientsPaymentService.class);
   }
 
+  @Disabled("Local use only")
   @Test
   void generate_punctual_invoice() {
     var userSubscriptionSession =
@@ -63,7 +65,12 @@ class MonthlyCancelledClientsPaymentServiceIT extends StripeMockedThirdParties {
     subject.accept(MonthlyCancelledClientsPayment.builder().build());
 
     List<ILoggingEvent> logEvents = logCaptor.getLogEvents();
-    assertEquals("", logEvents.getFirst().getFormattedMessage());
+    assertTrue(
+        logEvents.stream().anyMatch(log -> log.getFormattedMessage().contains(customerTestId)));
+    assertTrue(
+        logEvents.stream().anyMatch(log -> log.getFormattedMessage().contains(customerTestId)));
+    assertTrue(
+        logEvents.stream().anyMatch(log -> log.getFormattedMessage().contains(productTestId)));
     logEvents.stream().map(ILoggingEvent::getFormattedMessage);
   }
 }

@@ -145,6 +145,7 @@ public class StripeSessionFactory {
             .userId(user.getId())
             .subscriptionScheduleId(subscriptionSchedule.getId())
             .isCancelled(false)
+            .trialUntil(LocalDate.ofEpochDay(billingCycleAnchor))
             .build());
 
     return session;

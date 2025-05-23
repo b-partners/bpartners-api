@@ -33,7 +33,6 @@ public class MonthlyCancelledClientsPaymentService
 
   @Override
   public void accept(MonthlyCancelledClientsPayment event) {
-    log.info("MonthlyCancelledClientsPayment started");
     var userCancelled =
         userSubscriptionSessionRepository.findAll().stream()
             .filter(UserSubscriptionSession::isCancelled)

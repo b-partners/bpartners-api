@@ -29,7 +29,7 @@ public class SubscriptionController {
   public String triggerMonthlyCancelledClientsPayment() {
     eventProducer.accept(List.of(new MonthlyCancelledClientsPayment()));
     return "Monthly subscription invoice for clients whom cancelled during SETUP triggered"
-               + " successfully";
+        + " successfully";
   }
 
   @GetMapping("/users/{uId}/subscriptionConsumptionLogs")

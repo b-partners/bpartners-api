@@ -153,9 +153,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         actual.getMessage());
   }
 
-  // TODO:`billing_cycle_anchor` cannot be later than next natural billing date
   @Test
-  @Disabled
   void initiate_subscription() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(
@@ -164,7 +162,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                     .trialPeriodDays(0)
                     .eligibleFrom(LocalDate.now().minusDays(1))
                     .build()));
-    var existingUser = userRepository.findByEmail("test@gmail.com").orElseThrow();
+    var existingUser = userRepository.findByEmail("jane@email.com").orElseThrow();
     var createdUserSubscription =
         subject.createOrLinkUserSubscription(
             existingUser.toBuilder().email("joe" + new Random().nextInt() + "@email.com").build());

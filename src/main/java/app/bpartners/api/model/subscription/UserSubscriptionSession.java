@@ -1,10 +1,10 @@
 package app.bpartners.api.model.subscription;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity(name = "user_subscription_session")
 @AllArgsConstructor
@@ -22,6 +22,8 @@ public class UserSubscriptionSession {
   @Column(name = "session_id")
   private String sessionId;
 
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  @Enumerated(EnumType.STRING)
   @Column(name = "session_mode")
   private SessionMode sessionMode;
 

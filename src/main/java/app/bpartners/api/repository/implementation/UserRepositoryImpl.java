@@ -180,6 +180,7 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public Optional<User> findByEmail(String email) {
+    var mail = jpaRepository.findByEmail(email);
     return jpaRepository.getByEmail(email) != null
         ? Optional.of(userMapper.toDomain(jpaRepository.getByEmail(email)))
         : Optional.empty();

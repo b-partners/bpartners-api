@@ -13,7 +13,7 @@ create table if not exists user_subscription_session
     id                          varchar primary key,
     user_id                     varchar references "user" (id),
     session_id                  varchar ,
-    session_mode                session_mode,
+    session_mode                session_mode not null,
     subscription_schedule_id    varchar,
     trial_until                date,
     is_cancelled boolean        default false

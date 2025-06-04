@@ -245,7 +245,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
   @Test
   void initiate_subscription_without_stripe_customer_associated_ko() {
-    var user = userRepository.findByEmail("bernard@email.com").orElseThrow();
+    var user = userRepository.findByEmail("kris@email.com").orElseThrow();
 
     var defaultSubscription = getDefaultSubscription();
     var defaultRedirectionStatusUrls = getDefaultRedirectionStatusUrls();

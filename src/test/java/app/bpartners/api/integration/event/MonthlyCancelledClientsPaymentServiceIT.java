@@ -21,7 +21,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class MonthlyCancelledClientsPaymentServiceIT extends StripeMockedThirdParties {
@@ -43,7 +42,6 @@ class MonthlyCancelledClientsPaymentServiceIT extends StripeMockedThirdParties {
     logCaptor.configure(MonthlyCancelledClientsPaymentService.class);
   }
 
-  @Disabled("Local use only")
   @Test
   void generate_punctual_invoice() {
     var userSubscriptionSession =

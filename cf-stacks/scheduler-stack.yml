@@ -42,7 +42,7 @@ Resources:
         for users whom cancelled during setup mode
       FlexibleTimeWindow:
         Mode: "OFF"
-      Name: !Join [ '', [ !Ref Env, -TriggerMonthlySubscriptionInvoiceSessionSetupModeCancelled ] ]
+      Name: !Join [ '', [ !Ref Env, -TriggerMonthlyCancelledClientsPayment ] ]
       ScheduleExpression: "cron(0 8 5 *  ? *)"
       ScheduleExpressionTimezone: "Europe/Paris"
       Target:

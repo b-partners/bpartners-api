@@ -7,12 +7,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.service.areapicture.RoofAnalysisConsumptionFreeTrialValidator;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.user.UserService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -21,8 +23,9 @@ import org.junit.jupiter.api.Test;
 
 class RoofAnalysisConsumptionFreeTrialValidatorTest {
   SubscriptionService subscriptionServiceMock = mock();
+  UserService userServiceMock = mock();
   RoofAnalysisConsumptionFreeTrialValidator subject =
-      new RoofAnalysisConsumptionFreeTrialValidator(subscriptionServiceMock);
+      new RoofAnalysisConsumptionFreeTrialValidator(subscriptionServiceMock, userServiceMock);
 
   @Test
   void any_validation_for_user_without_free_trial_period() {
@@ -58,6 +61,10 @@ class RoofAnalysisConsumptionFreeTrialValidatorTest {
     var userId = randomUUID().toString();
     var today = LocalDate.now();
     var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    var userMock = mock(User.class);
+
+    when(userMock.getApiKey()).thenReturn(null);
+    when(userServiceMock.getUserById(userId)).thenReturn(userMock);
     when(userSubscriptionEligibleMock.getUserId()).thenReturn(userId);
     when(userSubscriptionEligibleMock.getEligibleFrom()).thenReturn(today);
     when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(true);
@@ -73,6 +80,25 @@ class RoofAnalysisConsumptionFreeTrialValidatorTest {
         assertThrows(BadRequestException.class, () -> subject.accept(userSubscriptionEligibleMock));
 
     assertEquals(expectedMessage, actual.getMessage());
+  }
+
+  @Test
+  void consumptions_equals_max_free_consumption_with_user_api_ok() {
+    var userId = randomUUID().toString();
+    var today = LocalDate.now();
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    var userMock = mock(User.class);
+
+    when(userMock.getApiKey()).thenReturn(randomUUID().toString());
+    when(userServiceMock.getUserById(userId)).thenReturn(userMock);
+    when(userSubscriptionEligibleMock.getUserId()).thenReturn(userId);
+    when(userSubscriptionEligibleMock.getEligibleFrom()).thenReturn(today);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(true);
+    when(subscriptionServiceMock.findConsumptionLogsByUserId(
+            eq(userId), any(Instant.class), any(Instant.class)))
+        .thenReturn(someConsumptionLogs(10, ROOF_ANALYSIS));
+
+    assertDoesNotThrow(() -> subject.accept(userSubscriptionEligibleMock));
   }
 
   private List<SubscriptionConsumptionLog> someConsumptionLogs(

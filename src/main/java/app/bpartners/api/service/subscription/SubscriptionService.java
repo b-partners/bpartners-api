@@ -472,6 +472,17 @@ public class SubscriptionService {
                       : Instant.ofEpochSecond(currentPeriodEndLongValue);
               var status = computeUserSubscriptionStatus(subscription);
               var paymentSettings = subscription.getPaymentSettings();
+              /*
+              var subscriptionItem = subscription.getItems().getData();
+                for (SubscriptionItem item : subscriptionItem) {
+                  var priceId = item.getPrice().getId();
+                    try {
+                        var price = Price.retrieve(priceId);
+                        var product = Product.retrieve(price.getProduct());
+                    } catch (StripeException e) {
+                        throw new RuntimeException(e);
+                    }
+                }*/
               return Subscription.builder()
                   .id(randomUUID().toString()) // TODO: update when subscription history persisted
                   .e2Id(subscription.getId())
@@ -479,6 +490,7 @@ public class SubscriptionService {
                   .endDatetime(endDatetime)
                   .status(status)
                   .active(!status.equals(UNKNOWN))
+                      /*.subscriptionProduct(subscription.getItems().getData().)*/
                   .paymentMethods(
                       paymentSettings == null
                           ? new ArrayList<>()

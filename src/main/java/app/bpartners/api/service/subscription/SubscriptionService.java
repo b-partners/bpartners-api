@@ -490,7 +490,7 @@ public class SubscriptionService {
                   .endDatetime(endDatetime)
                   .status(status)
                   .active(!status.equals(UNKNOWN))
-                      /*.subscriptionProduct(subscription.getItems().getData().)*/
+                  /*.subscriptionProduct(subscription.getItems().getData().)*/
                   .paymentMethods(
                       paymentSettings == null
                           ? new ArrayList<>()

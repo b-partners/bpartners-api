@@ -6,8 +6,8 @@ import static java.time.Instant.now;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
+import app.bpartners.api.repository.jpa.UserApiKeyFullAuthorizationJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
-import app.bpartners.api.service.user.UserService;
 import java.time.ZoneId;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class RoofAnalysisConsumptionFreeTrialValidator
     implements Consumer<UserSubscriptionEligible> {
   private static final long MAX_FREE_ROOF_ANALYSIS_CONSUMPTION_ALLOWED = 10L;
   private final SubscriptionService subscriptionService;
-  private final UserService userService;
+  private final UserApiKeyFullAuthorizationJpaRepository apiKeyFullAuthorizationRepository;
 
   @Override
   public void accept(UserSubscriptionEligible userSubscriptionEligible) {
@@ -27,7 +27,6 @@ public class RoofAnalysisConsumptionFreeTrialValidator
       return;
     }
     var userId = userSubscriptionEligible.getUserId();
-    var user = userService.getUserById(userId);
     var trialPeriodStartDate = userSubscriptionEligible.getEligibleFrom();
     var trialPeriodStartInstant =
         trialPeriodStartDate.atStartOfDay().atZone(ZoneId.of("Europe/Paris")).toInstant();
@@ -43,7 +42,7 @@ public class RoofAnalysisConsumptionFreeTrialValidator
             .orElse(0L);
 
     if (actualRoofAnalysisConsumption >= MAX_FREE_ROOF_ANALYSIS_CONSUMPTION_ALLOWED
-        && user.getApiKey() == null) {
+        && apiKeyFullAuthorizationRepository.findByIdUser(userId).isEmpty()) {
       throw new BadRequestException(
           "Roof analysis consumption "
               + actualRoofAnalysisConsumption

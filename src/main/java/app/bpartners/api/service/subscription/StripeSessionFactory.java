@@ -152,7 +152,7 @@ public class StripeSessionFactory {
   }
 
   @SneakyThrows
-  private SubscriptionSchedule subscriptionScheduleCreation(
+  public SubscriptionSchedule subscriptionScheduleCreation(
       String customerId,
       Subscription subscription,
       String meteredPriceId,

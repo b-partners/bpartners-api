@@ -233,7 +233,7 @@ public class SubscriptionService {
 
   @SneakyThrows
   public SubscriptionProduct createSubscriptionProduct(SubscriptionProduct subscriptionProduct) {
-    var productCreateParams =
+    var productCreateParamsBuilder =
         ProductCreateParams.builder()
             .setName(subscriptionProduct.getName())
             .setDescription(subscriptionProduct.getDescription())
@@ -243,7 +243,6 @@ public class SubscriptionService {
                         feature ->
                             ProductCreateParams.MarketingFeature.builder().setName(feature).build())
                     .toList())
-            .addImage(subscriptionProduct.getImageUrl())
             .setActive(true)
             .setDefaultPriceData(
                 ProductCreateParams.DefaultPriceData.builder()
@@ -254,10 +253,14 @@ public class SubscriptionService {
                             .setInterval(
                                 intervalFromSubscriptionType(subscriptionProduct.getType()))
                             .build())
-                    .build())
-            .build();
-    var createdStripeProduct = stripeClient.products().create(productCreateParams);
-    // TODO persist subscriptionProduct here and return persisted domain subscription product id
+                    .build());
+
+    if (subscriptionProduct.getImageUrl() != null && !subscriptionProduct.getImageUrl().isBlank()) {
+      productCreateParamsBuilder.addImage(subscriptionProduct.getImageUrl());
+    }
+
+    var createdStripeProduct = Product.create(productCreateParamsBuilder.build());
+    log.info("createdStripeProductId: {}", createdStripeProduct.getId());
     return fromStripeProduct(randomUUID().toString(), createdStripeProduct);
   }
 
@@ -266,20 +269,29 @@ public class SubscriptionService {
       String domainProductId, Product createdStripeProduct) {
     var createdDefaultPriceId = createdStripeProduct.getDefaultPrice();
     var price = stripeClient.prices().retrieve(createdDefaultPriceId);
-    return SubscriptionProduct.builder()
-        .id(domainProductId)
-        .e2Id(createdStripeProduct.getId())
-        .name(createdStripeProduct.getName())
-        .description(createdStripeProduct.getDescription())
-        .features(
-            createdStripeProduct.getMarketingFeatures().stream()
-                .map(Product.MarketingFeature::getName)
-                .toList())
-        .priceInCents(price.getUnitAmount())
-        .imageUrl(createdStripeProduct.getImages().getFirst())
-        .type(computeTypeFromRecurring(price.getRecurring().getInterval()))
-        .creationDatetime(Instant.ofEpochSecond(createdStripeProduct.getCreated()))
-        .build();
+    var subscriptionProductToPersistBuilder =
+        SubscriptionProduct.builder()
+            .id(domainProductId)
+            .e2Id(createdStripeProduct.getId())
+            .name(createdStripeProduct.getName())
+            .description(createdStripeProduct.getDescription())
+            .features(
+                createdStripeProduct.getMarketingFeatures().stream()
+                    .map(Product.MarketingFeature::getName)
+                    .toList())
+            .priceInCents(price.getUnitAmount())
+            .type(computeTypeFromRecurring(price.getRecurring().getInterval()))
+            .creationDatetime(Instant.ofEpochSecond(createdStripeProduct.getCreated()));
+
+    if (!createdStripeProduct.getImages().isEmpty()
+        && createdStripeProduct.getImages().getFirst() != null
+        && !createdStripeProduct.getImages().getFirst().isBlank()) {
+      subscriptionProductToPersistBuilder.imageUrl(createdStripeProduct.getImages().getFirst());
+    }
+
+    var productPersist =
+        subscriptionProductRepository.save(subscriptionProductToPersistBuilder.build());
+    return productPersist;
   }
 
   private ProductCreateParams.DefaultPriceData.Recurring.Interval intervalFromSubscriptionType(

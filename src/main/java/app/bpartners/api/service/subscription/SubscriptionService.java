@@ -268,7 +268,7 @@ public class SubscriptionService {
   private SubscriptionProduct fromStripeProduct(
       String domainProductId, Product createdStripeProduct) {
     var createdDefaultPriceId = createdStripeProduct.getDefaultPrice();
-    var price = stripeClient.prices().retrieve(createdDefaultPriceId);
+    var price = Price.retrieve(createdDefaultPriceId);
     var subscriptionProductToPersistBuilder =
         SubscriptionProduct.builder()
             .id(domainProductId)
@@ -657,6 +657,6 @@ public class SubscriptionService {
 
   @SneakyThrows
   public SubscriptionProduct getSubscriptionProductByE2Id(String domainProductId, String e2Id) {
-    return fromStripeProduct(domainProductId, stripeClient.products().retrieve(e2Id));
+    return fromStripeProduct(domainProductId, Product.retrieve(e2Id));
   }
 }

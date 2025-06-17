@@ -161,6 +161,15 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
   @Test
   void initiate_subscription() {
+    var product =
+        SubscriptionProduct.builder()
+            .e2Id(defaultSubscriptionProductId())
+            .type(MONTHLY)
+            .priceInCents(5880L)
+            .build();
+    when(subscriptionProductRepositoryMock.save(any())).thenReturn(product);
+    when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
+        .thenReturn(product);
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(
             Optional.of(

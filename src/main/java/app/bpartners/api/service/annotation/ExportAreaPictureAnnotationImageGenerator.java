@@ -34,8 +34,8 @@ public class ExportAreaPictureAnnotationImageGenerator
   }
 
   private BufferedImage scaleImage(BufferedImage image, ExportAreaPictureAnnotationImageConf conf) {
-    int newWidth = image.getWidth() * conf.scale();
-    int newHeight = image.getHeight() * conf.scale();
+    int newWidth = image.getWidth() * conf.getScale();
+    int newHeight = image.getHeight() * conf.getScale();
     var resizedImage = new BufferedImage(newWidth, newHeight, image.getType());
 
     Graphics2D graphics2D = resizedImage.createGraphics();
@@ -50,8 +50,8 @@ public class ExportAreaPictureAnnotationImageGenerator
       List<ExportAreaPictureAnnotationInstance> annotations) {
     Graphics2D graphics2D = image.createGraphics();
     graphics2D.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-    graphics2D.setFont(conf.measurementFont());
-    graphics2D.setStroke(conf.stroke());
+    graphics2D.setFont(conf.getMeasurementFont());
+    graphics2D.setStroke(conf.getStroke());
 
     annotations.forEach(
         annotationInstance -> drawAnnotationInstance(graphics2D, conf, annotationInstance));
@@ -68,8 +68,8 @@ public class ExportAreaPictureAnnotationImageGenerator
             .map(
                 point ->
                     new IntXY(
-                        requireNonNull(point.getX()).intValue() * conf.scale(),
-                        requireNonNull(point.getY()).intValue() * conf.scale()))
+                        requireNonNull(point.getX()).intValue() * conf.getScale(),
+                        requireNonNull(point.getY()).intValue() * conf.getScale()))
             .toList();
     int[] xPoints = coordinates.stream().mapToInt(IntXY::x).toArray();
     int[] yPoints = coordinates.stream().mapToInt(IntXY::y).toArray();
@@ -87,10 +87,10 @@ public class ExportAreaPictureAnnotationImageGenerator
     coordinates.forEach(
         coordinate -> {
           graphics2D.fillOval(
-              coordinate.x() - conf.pointSize() / 2,
-              coordinate.y() - conf.pointSize() / 2,
-              conf.pointSize(),
-              conf.pointSize());
+              coordinate.x() - conf.getPointSize() / 2,
+              coordinate.y() - conf.getPointSize() / 2,
+              conf.getPointSize(),
+              conf.getPointSize());
         });
 
     drawMeasurements(graphics2D, conf, annotationInstance, coordinates);
@@ -104,10 +104,10 @@ public class ExportAreaPictureAnnotationImageGenerator
     var measurements = annotationInstance.getMeasurements();
     for (int i = 0; i < coordinates.size() - 1; i++) {
       var measurement = measurements.get(i);
-      if (measurement.getIsInvisible() && !conf.drawMeasurement()) continue;
+      if (measurement.getIsInvisible() && !conf.isDrawMeasurements()) continue;
 
       String measurementText = measurement.getValue() + measurement.getUnit();
-      FontMetrics fontMetrics = graphics2D.getFontMetrics(conf.measurementFont());
+      FontMetrics fontMetrics = graphics2D.getFontMetrics(conf.getMeasurementFont());
       int textWidth = fontMetrics.stringWidth(measurementText);
       int textHeight = fontMetrics.getHeight();
       IntXY point1 = coordinates.get(i);
@@ -117,18 +117,18 @@ public class ExportAreaPictureAnnotationImageGenerator
               (point1.x() + point2.x()) / 2 - (textWidth / 2),
               (point1.y() + point2.y()) / 2 - (textHeight / 2));
 
-      graphics2D.setColor(conf.measurementBgColor());
+      graphics2D.setColor(conf.getMeasurementBgColor());
       graphics2D.fillRect(
-          measurementCoordinate.x() - conf.measurementOffset().x() / 2,
-          measurementCoordinate.y() - conf.measurementOffset().y() / 2,
-          textWidth + conf.measurementOffset().x(),
-          textHeight + conf.measurementOffset().y());
+          measurementCoordinate.x() - conf.getMeasurementOffset().x() / 2,
+          measurementCoordinate.y() - conf.getMeasurementOffset().y() / 2,
+          textWidth + conf.getMeasurementOffset().x(),
+          textHeight + conf.getMeasurementOffset().y());
 
-      graphics2D.setColor(conf.measurementTextColor());
+      graphics2D.setColor(conf.getMeasurementTextColor());
       graphics2D.drawString(
           measurementText,
           measurementCoordinate.x(),
-          measurementCoordinate.y() + conf.measurementOffset().y() + textHeight / 2);
+          measurementCoordinate.y() + conf.getMeasurementOffset().y() + textHeight / 2);
     }
   }
 

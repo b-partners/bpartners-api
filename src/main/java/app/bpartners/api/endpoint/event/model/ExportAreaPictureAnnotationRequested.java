@@ -20,6 +20,6 @@ public class ExportAreaPictureAnnotationRequested extends PojaEvent {
 
   @Override
   public Duration maxConsumerBackoffBetweenRetries() {
-    return null;
+    return Duration.ofMinutes(1);
   }
 }

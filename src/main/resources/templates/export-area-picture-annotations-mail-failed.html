@@ -1,0 +1,33 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Erreur lors de la génération du rapport</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, sans-serif;
+            color: black;
+        }
+
+        .address {
+            font-weight: bold;
+        }
+    </style>
+O</head>
+<body>
+<p>Bonjour,</p>
+
+<p>
+    Une erreur est survenue lors de la génération du rapport d’analyse pour l’adresse : <span class="address" th:text="${address}"></span>
+</p>
+
+<p>
+    Nous vous invitons à réessayer ultérieurement ou à contacter notre équipe support si le
+    problème persiste.
+</p>
+
+<p>Merci de votre compréhension.</p>
+
+<p>
+    <em>Birdia : Valorisez ce que vous voyez depuis le ciel.</em>
+</p>
+</body>
+</html>

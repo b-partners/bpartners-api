@@ -189,6 +189,7 @@ public class SubscriptionService {
                           "SubscriptionProduct(id="
                               + defaultSubscriptionProductId
                               + ") not found"));
+      log.info("subscriprtionProduct: {}", subscriptionProduct);
       return Subscription.builder()
           .subscriptionProduct(
               getSubscriptionProductByE2Id(

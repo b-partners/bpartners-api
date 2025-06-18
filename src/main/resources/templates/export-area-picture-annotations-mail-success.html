@@ -1,0 +1,30 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Rapport d'analyse disponible</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, sans-serif;
+            color: black;
+        }
+
+        .address {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<p>Bonjour,</p>
+
+<p>
+    Le rapport d’analyse concernant l’adresse <span class="address" th:text="${address}"></span> a été généré avec succès.
+</p>
+
+<p>
+    Vous trouverez en pièce jointe le rapport d’analyse de cette adresse.
+</p>
+
+<p>
+    <em>Birdia : Valorisez ce que vous voyez depuis le ciel.</em>
+</p>
+</body>
+</html>

@@ -1,13 +1,13 @@
 package app.bpartners.api.service.areapicture;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.ExportAreaPictureAnnotationRequested;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.model.AreaPictureAnnotation;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureAnnotationRepository;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
-import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class AreaPictureAnnotationService {
   private final AreaPictureAnnotationRepository repository;
-  private final ExportAreaPictureAnnotationPDFProcessor exportProcessor;
+  private final EventProducer<ExportAreaPictureAnnotationRequested> eventProducer;
 
   public AreaPictureAnnotation save(AreaPictureAnnotation areaPictureAnnotation) {
     return repository.save(areaPictureAnnotation);
@@ -70,11 +70,16 @@ public class AreaPictureAnnotationService {
             Sort.by(Sort.Order.desc("creationDatetime"))));
   }
 
-  public byte[] exportAreaPictureAnnotationToPdf(ExportAreaPictureAnnotation annotation) {
-    try {
-      return exportProcessor.process(annotation);
-    } catch (IOException e) {
-      throw new RuntimeException(e.getMessage());
-    }
+  public ExportAreaPictureAnnotation exportAreaPictureAnnotationToPdf(
+      String userId, ExportAreaPictureAnnotation annotation) {
+    var request =
+        ExportAreaPictureAnnotationRequested.builder()
+            .annotation(annotation)
+            .userId(userId)
+            .build();
+
+    eventProducer.accept(List.of(request));
+
+    return annotation;
   }
 }

@@ -34,6 +34,7 @@ public class ExportAreaPictureAnnotationRequestedService
       "export-area-picture-annotations-mail-success";
   private static final String TEMPLATE_FAILED_NAME = "export-area-picture-annotations-mail-failed";
   private static final long ONE_HOUR_IN_SECONDS = 3600L;
+  private static final String PDF_EXTENSION = ".pdf";
 
   @Override
   public void accept(ExportAreaPictureAnnotationRequested requested) {
@@ -46,9 +47,9 @@ public class ExportAreaPictureAnnotationRequestedService
       log.info("Export rapport d'analyse de l'adresse: {}", address);
       var generatedPDF = this.processor.process(requested.getAnnotation());
 
-      var fileId = randomUUID().toString();
       var fileToUpload = fileWriter.apply(generatedPDF, null);
 
+      String fileId = "Rapport_d_analyse_" + randomUUID() + PDF_EXTENSION;
       s3Service.uploadFile(ATTACHMENT, fileId, userId, fileToUpload);
 
       var fileUrl = s3Service.presignURL(ATTACHMENT, fileId, userId, ONE_HOUR_IN_SECONDS);

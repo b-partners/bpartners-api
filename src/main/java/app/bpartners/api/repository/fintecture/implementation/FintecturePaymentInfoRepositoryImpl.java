@@ -13,6 +13,7 @@ import static app.bpartners.api.repository.fintecture.implementation.utils.Finte
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getHeaderSignatureWithDigest;
 import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getParsedDate;
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
+import static java.time.LocalDate.now;
 import static java.util.UUID.randomUUID;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
@@ -87,7 +88,7 @@ public class FintecturePaymentInfoRepositoryImpl implements FintecturePaymentInf
   public List<Session> getAllPaymentsByStatus(String status) {
     String requestId = String.valueOf(randomUUID());
     String date = getParsedDate();
-    String urlParams = "?filter[status]=" + status;
+    String urlParams = "?filter[status]=" + status + "&filter[date_from]=" + now().minusDays(1L);
     try {
       HttpRequest request =
           HttpRequest.newBuilder()

@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpire
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
+import app.bpartners.api.repository.jpa.UserApiKeyFullAuthorizationJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.LegalFileService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
   private final ApiKeyAuthenticator apiKeyAuthenticator;
   private final LegalFileService legalFileService;
   private final SubscriptionService subscriptionService;
+  private final UserApiKeyFullAuthorizationJpaRepository userApiKeyFullAuthorizationJpaRepository;
 
   @Override
   public UserDetails retrieveUser(
@@ -40,7 +42,8 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
     checkLegalFiles(legalFilesList, user);
     var userSubscription = subscriptionService.getSubscriptionByUserId(user.getId());
-    if (!userSubscription.hasValidSubscription()) {
+    if (!userSubscription.hasValidSubscription()
+        && userApiKeyFullAuthorizationJpaRepository.findByIdUser(user.getId()).isEmpty()) {
       throw new UserSubscriptionExpiredException(
           "User.id=" + user.getId() + " does not have a valid subscription or free trial expired");
     }

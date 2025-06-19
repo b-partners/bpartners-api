@@ -2,7 +2,6 @@ package app.bpartners.api.service.payment;
 
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.PAID;
-import static app.bpartners.api.repository.fintecture.implementation.utils.FintecturePaymentUtils.getSignature;
 import static app.bpartners.api.service.payment.PaymentScheduleService.PAYMENT_CREATED;
 import static app.bpartners.api.service.payment.PaymentScheduleService.paymentMessage;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
@@ -17,7 +16,6 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.PaymentRequestJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
@@ -27,10 +25,8 @@ import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
-import java.security.Signature;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +43,6 @@ import org.thymeleaf.context.Context;
 public class PaymentReceivedService {
   public static final String PAYMENT_STATUS_CHANGED_TEMPLATE = "payment_status_changed";
   private final PaymentRequestJpaRepository jpaRepository;
-  private final FintectureConf fintectureConf;
   private final SesService sesService;
   private final SesConf sesConf;
   private final UserRepository userRepository;
@@ -193,29 +188,5 @@ public class PaymentReceivedService {
     return String.format(
         "Réception d'un nouveau paiement de %s € de la part de %s",
         paymentAmount.getCentsAsDecimal(), payment.getPayerName());
-  }
-
-  @SneakyThrows
-  public void verifySignature(String signatureHeader, String sessionId, String paymentStatus) {
-    String signatureAttribute = "signature=\"";
-    int signatureAttributeIndex = signatureHeader.indexOf(signatureAttribute);
-    String signatureValue =
-        signatureHeader
-            .substring(signatureAttributeIndex + 1)
-            .replaceAll(signatureAttribute, "")
-            .replaceAll("\"", "");
-    Signature sign = getSignature(fintectureConf.getPrivateKey(), signatureValue);
-    byte[] signatureAsBytes = Base64.getDecoder().decode(signatureValue);
-    try {
-      sign.verify(signatureAsBytes);
-    } catch (Exception e) {
-      log.warn(
-          "Unable to verify signature {} when trying to handle payment status change "
-              + "of Payment(sessionId={}, status={}). Exception thrown : {}",
-          signatureValue,
-          sessionId,
-          paymentStatus,
-          e.getMessage());
-    }
   }
 }

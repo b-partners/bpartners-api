@@ -10,6 +10,22 @@
         .address {
             font-weight: bold;
         }
+
+        .download-link {
+            cursor: pointer;
+            display: inline-block;
+            background-color: #FF521B;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .download-link:hover {
+            background-color: #ba5e1c;
+        }
     </style>
 </head>
 <body>
@@ -20,7 +36,11 @@
 </p>
 
 <p>
-    Vous trouverez en pièce jointe le rapport d’analyse de cette adresse.
+    Vous pouvez télécharger le rapport d’analyse en cliquant sur le lien ci-dessous :
+</p>
+
+<p>
+    <a th:href="${fileUrl}" class="download-link">Télécharger le rapport</a>
 </p>
 
 <p>

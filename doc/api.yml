@@ -80,6 +80,8 @@ paths:
     $ref: './userAccounts-api.yml#/operations/getLegalFiles'
   /users/{uId}/legalFiles/{lId}:
     $ref: './userAccounts-api.yml#/operations/approveLegalFile'
+  /users/{uId}/keys:
+    $ref: './userAccounts-api.yml#/operations/keyOperations'
 
   #############################################
   ############## User Subscription API #############

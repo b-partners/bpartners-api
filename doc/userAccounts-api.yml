@@ -757,6 +757,28 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  keyOperations:
+    put:
+      summary: Update user api key
+      tags:
+        - User Accounts
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserApiKey'
+      responses:
+        200:
+          description: User's API key generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiKey'
   approveLegalFile:
     put:
       summary: Approve a user legal file
@@ -1087,4 +1109,9 @@ components:
       type: object
       properties:
         token:
+          type: string
+    UserApiKey:
+      type: object
+      properties:
+        key:
           type: string

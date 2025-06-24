@@ -15,12 +15,7 @@ import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
@@ -52,6 +47,16 @@ public class UserController {
     List<app.bpartners.api.model.User> users =
         service.registerOnStripeActiveUsersWithNullSubscription();
     return users.stream().map(mapper::toRest).toList();
+  }
+
+  @PostMapping("/users/{uId}/keys")
+  public UserApiKey updateApiKey(@PathVariable String uId, @RequestBody UserApiKey apiKey) {
+    if (apiKey.getKey() != null) {
+      throw new BadRequestException("Provided key can not be null");
+    }
+    var updatedUser = service.getUserById(uId).toBuilder().apiKey(apiKey.getKey()).build();
+
+    return new UserApiKey().key(service.save(updatedUser).getApiKey());
   }
 
   @PostMapping("/users/{uId}/subscriptionCancel")

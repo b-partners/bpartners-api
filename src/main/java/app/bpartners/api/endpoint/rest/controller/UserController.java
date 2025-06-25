@@ -56,7 +56,7 @@ public class UserController {
 
   @PostMapping("/users/{uId}/keys")
   public UserApiKey updateApiKey(@PathVariable String uId, @RequestBody UserApiKey apiKey) {
-    if (apiKey.getKey() != null) {
+    if (apiKey.getKey() == null) {
       throw new BadRequestException("Provided key can not be null");
     }
     var updatedUser = service.getUserById(uId).toBuilder().apiKey(apiKey.getKey()).build();

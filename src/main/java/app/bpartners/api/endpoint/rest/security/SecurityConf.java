@@ -153,6 +153,8 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(GET, "/accountHolders")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(GET, "/users")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/users/subscriptionRegistration")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
@@ -349,8 +351,6 @@ public class SecurityConf {
                             POST,
                             "/accounts/*/transactions/*/transactionCategories",
                             authResourceProvider))
-                    .authenticated()
-                    .requestMatchers(GET, "/users")
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/files/*", authResourceProvider))

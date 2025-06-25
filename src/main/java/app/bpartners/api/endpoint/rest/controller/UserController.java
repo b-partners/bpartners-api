@@ -1,18 +1,23 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
+import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.account.AccountRefreshService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -51,7 +56,7 @@ public class UserController {
 
   @PostMapping("/users/{uId}/keys")
   public UserApiKey updateApiKey(@PathVariable String uId, @RequestBody UserApiKey apiKey) {
-    if (apiKey.getKey() != null) {
+    if (apiKey.getKey() == null) {
       throw new BadRequestException("Provided key can not be null");
     }
     var updatedUser = service.getUserById(uId).toBuilder().apiKey(apiKey.getKey()).build();
@@ -84,6 +89,18 @@ public class UserController {
   @PostMapping(value = "/users/{uId}/accounts/{aId}/active")
   public User setActiveAccount(@PathVariable String aId, @PathVariable String uId) {
     return mapper.toRest(service.changeActiveAccount(uId, aId));
+  }
+
+  @GetMapping("/users")
+  public List<User> geUsers(
+      @RequestParam String email,
+      @RequestParam(name = "page", required = false) PageFromOne page,
+      @RequestParam(value = "pageSize", required = false) BoundedPageSize pageSize) {
+    HashMap<String, Object> criteria = new HashMap<>();
+    criteria.put("email", email);
+    criteria.put("page", page == null ? MIN_PAGE : page.getValue());
+    criteria.put("pageSize", pageSize == null ? MAX_SIZE : pageSize.getValue());
+    return service.getUsersByCriteria(criteria).stream().map(mapper::toRest).toList();
   }
 
   @GetMapping(value = "/users/{id}")

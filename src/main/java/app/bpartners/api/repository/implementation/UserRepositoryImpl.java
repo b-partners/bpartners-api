@@ -91,11 +91,13 @@ public class UserRepositoryImpl implements UserRepository {
           if ("status".equals(key)) {
             var enableStatus = EnableStatus.valueOf(value.toString());
             predicates.add(criteriaBuilder.equal(root.get("status"), enableStatus));
+          } else if ("email".equals(key)) {
+            predicates.add(criteriaBuilder.like(root.get("email"), "%" + value.toString() + "%"));
           } else {
             if (!("page".equals(key) || "pageSize".equals(key))) {
               throw new NotImplementedException(
-                  "Only status, page and pageSize criteria filter are handled for now but criteria"
-                      + " was "
+                  "Only email, status, page and pageSize criteria filter are handled for now but"
+                      + " criteria was "
                       + key);
             }
           }

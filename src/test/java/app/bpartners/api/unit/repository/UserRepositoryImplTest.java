@@ -134,7 +134,8 @@ class UserRepositoryImplTest {
     var typedQueryMock = mock(TypedQuery.class);
     var criteriaKey = "name";
     var expectedMessage =
-        "Only status, page and pageSize criteria filter are handled for now but criteria was "
+        "Only email, status, page and pageSize criteria filter are handled for now but criteria was"
+            + " "
             + criteriaKey;
     var criteria = new HashMap<String, Object>();
     criteria.put(criteriaKey, "dummy");

@@ -15,6 +15,7 @@ import app.bpartners.api.repository.jpa.InvoiceSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.SnsService;
+import java.util.HashMap;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -105,6 +106,10 @@ public class UserService {
   @Transactional
   public List<User> findAll() {
     return userRepository.findAll();
+  }
+
+  public List<User> getUsersByCriteria(HashMap<String, Object> criteria) {
+    return userRepository.findAllByCriteria(criteria);
   }
 
   @Transactional

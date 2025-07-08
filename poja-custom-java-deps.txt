@@ -33,3 +33,4 @@ implementation 'io.hypersistence:hypersistence-utils-hibernate-63:3.7.3'
 implementation 'org.geotools:gt-geojson:31.0'
 implementation 'com.google.maps:google-maps-services:2.2.0'
 implementation 'com.stripe:stripe-java:28.0.1'
+testImplementation("nl.altindag:log-captor:2.7.10")

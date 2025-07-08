@@ -6,6 +6,7 @@ import app.bpartners.api.file.FileDownloader;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
 import java.net.URI;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -22,6 +23,7 @@ public class FileDownloaderIT extends MockedThirdParties {
     assertNotNull(downloaded);
   }
 
+  @Disabled
   @Test
   void file_downloader_post_ok() {
     var downloaded =

@@ -2,6 +2,7 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static app.bpartners.api.model.subscription.SessionMode.SETUP;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
@@ -27,6 +28,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
@@ -60,6 +62,7 @@ public class SubscriptionService {
   private final TemporalUtils temporalUtils;
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
   private final StripeSessionFactory stripeSessionFactory;
+  private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -186,6 +189,7 @@ public class SubscriptionService {
                           "SubscriptionProduct(id="
                               + defaultSubscriptionProductId
                               + ") not found"));
+      log.info("subscriprtionProduct: {}", subscriptionProduct);
       return Subscription.builder()
           .subscriptionProduct(
               getSubscriptionProductByE2Id(
@@ -230,7 +234,7 @@ public class SubscriptionService {
 
   @SneakyThrows
   public SubscriptionProduct createSubscriptionProduct(SubscriptionProduct subscriptionProduct) {
-    var productCreateParams =
+    var productCreateParamsBuilder =
         ProductCreateParams.builder()
             .setName(subscriptionProduct.getName())
             .setDescription(subscriptionProduct.getDescription())
@@ -240,7 +244,6 @@ public class SubscriptionService {
                         feature ->
                             ProductCreateParams.MarketingFeature.builder().setName(feature).build())
                     .toList())
-            .addImage(subscriptionProduct.getImageUrl())
             .setActive(true)
             .setDefaultPriceData(
                 ProductCreateParams.DefaultPriceData.builder()
@@ -251,10 +254,14 @@ public class SubscriptionService {
                             .setInterval(
                                 intervalFromSubscriptionType(subscriptionProduct.getType()))
                             .build())
-                    .build())
-            .build();
-    var createdStripeProduct = stripeClient.products().create(productCreateParams);
-    // TODO persist subscriptionProduct here and return persisted domain subscription product id
+                    .build());
+
+    if (subscriptionProduct.getImageUrl() != null && !subscriptionProduct.getImageUrl().isBlank()) {
+      productCreateParamsBuilder.addImage(subscriptionProduct.getImageUrl());
+    }
+
+    var createdStripeProduct = Product.create(productCreateParamsBuilder.build());
+    log.info("createdStripeProductId: {}", createdStripeProduct.getId());
     return fromStripeProduct(randomUUID().toString(), createdStripeProduct);
   }
 
@@ -262,21 +269,30 @@ public class SubscriptionService {
   private SubscriptionProduct fromStripeProduct(
       String domainProductId, Product createdStripeProduct) {
     var createdDefaultPriceId = createdStripeProduct.getDefaultPrice();
-    var price = stripeClient.prices().retrieve(createdDefaultPriceId);
-    return SubscriptionProduct.builder()
-        .id(domainProductId)
-        .e2Id(createdStripeProduct.getId())
-        .name(createdStripeProduct.getName())
-        .description(createdStripeProduct.getDescription())
-        .features(
-            createdStripeProduct.getMarketingFeatures().stream()
-                .map(Product.MarketingFeature::getName)
-                .toList())
-        .priceInCents(price.getUnitAmount())
-        .imageUrl(createdStripeProduct.getImages().getFirst())
-        .type(computeTypeFromRecurring(price.getRecurring().getInterval()))
-        .creationDatetime(Instant.ofEpochSecond(createdStripeProduct.getCreated()))
-        .build();
+    var price = Price.retrieve(createdDefaultPriceId);
+    var subscriptionProductToPersistBuilder =
+        SubscriptionProduct.builder()
+            .id(domainProductId)
+            .e2Id(createdStripeProduct.getId())
+            .name(createdStripeProduct.getName())
+            .description(createdStripeProduct.getDescription())
+            .features(
+                createdStripeProduct.getMarketingFeatures().stream()
+                    .map(Product.MarketingFeature::getName)
+                    .toList())
+            .priceInCents(price.getUnitAmount())
+            .type(computeTypeFromRecurring(price.getRecurring().getInterval()))
+            .creationDatetime(Instant.ofEpochSecond(createdStripeProduct.getCreated()));
+
+    if (!createdStripeProduct.getImages().isEmpty()
+        && createdStripeProduct.getImages().getFirst() != null
+        && !createdStripeProduct.getImages().getFirst().isBlank()) {
+      subscriptionProductToPersistBuilder.imageUrl(createdStripeProduct.getImages().getFirst());
+    }
+
+    var productPersist =
+        subscriptionProductRepository.save(subscriptionProductToPersistBuilder.build());
+    return productPersist;
   }
 
   private ProductCreateParams.DefaultPriceData.Recurring.Interval intervalFromSubscriptionType(
@@ -334,6 +350,7 @@ public class SubscriptionService {
 
     var session =
         stripeSessionFactory.createSession(
+            user,
             endOfTrialPeriod,
             stripeCustomer,
             subscriptionProduct,
@@ -532,6 +549,7 @@ public class SubscriptionService {
               + user.getId()
               + " does not have userSubscriptionId");
     }
+
     var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
     if (subscriptions.isEmpty()) {
       throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");
@@ -546,7 +564,30 @@ public class SubscriptionService {
           "Only active subscription can be cancelled but actual status is "
               + latestSubscription.getStatus());
     }
+    List<UserSubscriptionSession> userSubscriptionSessions =
+        userSubscriptionSessionRepository.findAllByUserId(user.getId()).stream()
+            .filter(
+                userSubscriptionSession -> userSubscriptionSession.getSessionMode().equals(SETUP))
+            .filter(
+                userSubscriptionSession ->
+                    userSubscriptionSession.getTrialUntil().isAfter(LocalDate.now()))
+            .filter(userSubscriptionSession -> !userSubscriptionSession.isCancelled())
+            .toList();
+    if (!userSubscriptionSessions.isEmpty()) {
+      UserSubscriptionSession userInSetUpMode =
+          userSubscriptionSessions.stream()
+              .findFirst()
+              .orElseThrow(
+                  () ->
+                      new IllegalStateException(
+                          "Aucune session trouvée pour l'utilisateur " + user.getId()));
 
+      userSubscriptionSessionRepository.save(userInSetUpMode.toBuilder().isCancelled(true).build());
+      SubscriptionSchedule resource =
+          SubscriptionSchedule.retrieve(userInSetUpMode.getSubscriptionScheduleId());
+      resource.cancel();
+      return UserSubscription.builder().user(user).build();
+    }
     stripeClient
         .subscriptions()
         .update(
@@ -605,6 +646,6 @@ public class SubscriptionService {
 
   @SneakyThrows
   public SubscriptionProduct getSubscriptionProductByE2Id(String domainProductId, String e2Id) {
-    return fromStripeProduct(domainProductId, stripeClient.products().retrieve(e2Id));
+    return fromStripeProduct(domainProductId, Product.retrieve(e2Id));
   }
 }

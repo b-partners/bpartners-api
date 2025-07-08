@@ -21,6 +21,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
 import app.bpartners.api.service.subscription.StripeSessionFactory;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -32,7 +33,6 @@ import com.stripe.param.SubscriptionItemListParams;
 import com.stripe.param.SubscriptionListParams;
 import com.stripe.param.UsageRecordCreateOnSubscriptionItemParams;
 import com.stripe.service.CustomerService;
-import com.stripe.service.PriceService;
 import com.stripe.service.ProductService;
 import com.stripe.service.SubscriptionItemService;
 import java.time.Instant;
@@ -43,8 +43,12 @@ import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class SubscriptionServiceTest {
+  private static final Logger log = LoggerFactory.getLogger(SubscriptionServiceTest.class);
   StripeConf stripeConfMock = mock(StripeConf.class);
   StripeClient stripeClientMock = mock(StripeClient.class);
   UserRepository userRepositoryMock = mock(UserRepository.class);
@@ -56,6 +60,8 @@ class SubscriptionServiceTest {
       mock(SubscriptionConsumptionLogJpaRepository.class);
   TemporalUtils temporalUtils = new TemporalUtils();
   StripeSessionFactory sessionFactoryMock = mock(StripeSessionFactory.class);
+  UserSubscriptionSessionRepository sessionRepositoryMock =
+      mock(UserSubscriptionSessionRepository.class);
   SubscriptionService subject =
       new SubscriptionService(
           stripeConfMock,
@@ -65,7 +71,8 @@ class SubscriptionServiceTest {
           subscriptionEligibleJpaRepositoryMock,
           temporalUtils,
           consumptionLogJpaRepositoryMock,
-          sessionFactoryMock);
+          sessionFactoryMock,
+          sessionRepositoryMock);
 
   @Test
   void get_subscription_consumption_logs_ok() {
@@ -99,51 +106,71 @@ class SubscriptionServiceTest {
   }
 
   @Test
-  void get_by_subscription_type_ok() throws StripeException {
-    var userSubscriptionType = UserSubscriptionType.ESSENTIAL;
-    when(stripeConfMock.getEssentialSubscriptionProductId())
-        .thenReturn("esentialSubscriptionProductId");
-    when(subscriptionProductRepositoryMock.findById(any()))
-        .thenReturn(Optional.ofNullable(mock(SubscriptionProduct.class)));
-    var product = new Product();
-    var products = mock(ProductService.class);
-    when(stripeClientMock.products()).thenReturn(products);
-    when(products.retrieve(any())).thenReturn(product);
-    product.setDefaultPrice("");
-    product.setMarketingFeatures(List.of(new Product.MarketingFeature()));
-    product.setImages(List.of("image"));
-    product.setCreated(1L);
-    var price = new Price();
-    var prices = mock(PriceService.class);
-    when(stripeClientMock.prices()).thenReturn(prices);
-    when(prices.retrieve(any())).thenReturn(price);
-    var recurring = new Price.Recurring();
-    price.setRecurring(recurring);
-    recurring.setInterval("month");
+  void get_by_subscription_type_ok() {
+    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
+        MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {
 
-    var actual = subject.getBySubscriptionType(userSubscriptionType);
+      var userSubscriptionType = UserSubscriptionType.ESSENTIAL;
+      when(stripeConfMock.getEssentialSubscriptionProductId())
+          .thenReturn("esentialSubscriptionProductId");
+      var subscriptionProduct =
+          SubscriptionProduct.builder().id("subscriptionProductId").e2Id("stripeProductId").build();
+      when(subscriptionProductRepositoryMock.findById(any()))
+          .thenReturn(Optional.ofNullable(subscriptionProduct));
+      var product = new Product();
+      product.setDefaultPrice("");
+      product.setMarketingFeatures(List.of(new Product.MarketingFeature()));
+      product.setImages(List.of("image"));
+      product.setCreated(1L);
+      var price = new Price();
+      var recurring = new Price.Recurring();
+      price.setRecurring(recurring);
+      recurring.setInterval("month");
+      when(subscriptionProductRepositoryMock.save(any()))
+          .thenReturn(
+              subscriptionProduct.toBuilder()
+                  .e2Id(product.getId())
+                  .name(product.getName())
+                  .description(product.getDescription())
+                  .features(
+                      product.getMarketingFeatures().stream()
+                          .map(Product.MarketingFeature::getName)
+                          .toList())
+                  .priceInCents(price.getUnitAmount())
+                  .imageUrl(product.getImages().getFirst())
+                  .type(MONTHLY)
+                  .creationDatetime(now())
+                  .build());
 
-    var subscriptionProduct =
-        SubscriptionProduct.builder()
-            .id(actual.getSubscriptionProduct().getId())
-            .e2Id(product.getId())
-            .name(product.getName())
-            .description(product.getDescription())
-            .features(
-                product.getMarketingFeatures().stream()
-                    .map(Product.MarketingFeature::getName)
-                    .toList())
-            .priceInCents(price.getUnitAmount())
-            .imageUrl(product.getImages().getFirst())
-            .type(MONTHLY)
-            .creationDatetime(actual.getSubscriptionProduct().getCreationDatetime())
-            .build();
-    var expected =
-        Subscription.builder()
-            .subscriptionProduct(subscriptionProduct)
-            .endDatetime(actual.getEndDatetime())
-            .build();
-    assertEquals(expected, actual);
+      productMockedStatic.when(() -> Product.retrieve(any())).thenReturn(product);
+      priceMockedStatic.when(() -> Price.retrieve(any())).thenReturn(price);
+
+      var actual = subject.getBySubscriptionType(userSubscriptionType);
+      log.info("actual: {}", actual);
+
+      var subscriptionProductExpected =
+          SubscriptionProduct.builder()
+              .id(actual.getSubscriptionProduct().getId())
+              .e2Id(product.getId())
+              .name(product.getName())
+              .description(product.getDescription())
+              .features(
+                  product.getMarketingFeatures().stream()
+                      .map(Product.MarketingFeature::getName)
+                      .toList())
+              .priceInCents(price.getUnitAmount())
+              .imageUrl(product.getImages().getFirst())
+              .type(MONTHLY)
+              .creationDatetime(actual.getSubscriptionProduct().getCreationDatetime())
+              .build();
+      var expected =
+          Subscription.builder()
+              .subscriptionProduct(subscriptionProductExpected)
+              .endDatetime(actual.getEndDatetime())
+              .build();
+      assertEquals(expected, actual);
+      assertNotNull(subscriptionProduct);
+    }
   }
 
   @SneakyThrows
@@ -176,6 +203,17 @@ class SubscriptionServiceTest {
     assertEquals(
         "User.id=null does not have any subscriptions",
         actualEmptySubscriptionException.getMessage());
+  }
+
+  @Test
+  void cancel_subscription_in_set_up_ok() throws StripeException {
+    var user = User.builder().userSubscriptionId("user_subscription_id").build();
+    var subscriptionService = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionService);
+    var stripeCollection = mock(StripeCollection.class);
+    when(subscriptionService.list(any(SubscriptionListParams.class))).thenReturn(stripeCollection);
+    var stripeSubscription = mock(com.stripe.model.Subscription.class);
+    when(stripeCollection.getData()).thenReturn(List.of(stripeSubscription));
   }
 
   @SneakyThrows

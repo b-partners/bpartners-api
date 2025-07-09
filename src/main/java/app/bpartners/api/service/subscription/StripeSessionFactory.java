@@ -22,7 +22,9 @@ import com.stripe.model.SubscriptionSchedule;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.SubscriptionScheduleCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -145,7 +147,10 @@ public class StripeSessionFactory {
             .userId(user.getId())
             .subscriptionScheduleId(subscriptionSchedule.getId())
             .isCancelled(false)
-            .trialUntil(LocalDate.ofEpochDay(billingCycleAnchor))
+            .trialUntil(
+                Instant.ofEpochSecond(billingCycleAnchor)
+                    .atZone(ZoneId.of("Europe/Paris"))
+                    .toLocalDate())
             .build());
 
     return session;

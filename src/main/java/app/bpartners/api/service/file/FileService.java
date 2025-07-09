@@ -48,4 +48,12 @@ public class FileService {
     HUser entity = userJpaRepository.getById(idUser).toBuilder().logoFileId(fileId).build();
     userJpaRepository.save(entity);
   }
+
+  public File downloadLandingFile(String key) {
+    return s3Service.downloadLandingFile(key);
+  }
+
+  public String uploadLandingFile(File file, String key) {
+    return s3Service.uploadLandingFile(file, key);
+  }
 }

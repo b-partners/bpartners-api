@@ -79,6 +79,7 @@ public class SecurityConf {
                 new NegatedRequestMatcher(
                     new OrRequestMatcher(
                         new AntPathRequestMatcher("/ping"),
+                        new AntPathRequestMatcher("/landing-file/*"),
                         new AntPathRequestMatcher("/preUsers", POST.name()),
                         new AntPathRequestMatcher("/authInitiation"),
                         new AntPathRequestMatcher("/token"),
@@ -106,6 +107,8 @@ public class SecurityConf {
             (authorize) ->
                 authorize
                     .requestMatchers("/ping")
+                    .permitAll()
+                    .requestMatchers("/landing-file")
                     .permitAll()
                     .requestMatchers("/authInitiation")
                     .permitAll()

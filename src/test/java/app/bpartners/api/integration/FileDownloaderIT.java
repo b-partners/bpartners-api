@@ -43,8 +43,6 @@ public class FileDownloaderIT extends MockedThirdParties {
                 .shiftNb(0)
                 .build(),
             true);
-
-    ;
     System.out.println(downloaded.getAbsolutePath());
   }
 }

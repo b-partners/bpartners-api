@@ -41,6 +41,6 @@ public class S3Service {
 
   public String uploadLandingFile(File file, String key) {
     bucketComponent.upload(file, key, false);
-    return bucketComponent.presignLanding(key, Duration.ofSeconds(60)).toString();
+    return bucketComponent.presignLanding(key, Duration.ofSeconds(60), false).toString();
   }
 }

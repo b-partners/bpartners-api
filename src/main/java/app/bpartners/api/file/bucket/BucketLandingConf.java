@@ -22,7 +22,7 @@ public class BucketLandingConf implements BucketAccess {
 
   @Getter private final String bucketName;
   private final S3TransferManager s3TransferManager;
-  @Getter private final S3Presigner s3Presigner;
+  private final S3Presigner s3Presigner;
   @Getter private final S3Client s3Client;
   private final AWSProviderConf awsProviderConf;
 
@@ -74,5 +74,10 @@ public class BucketLandingConf implements BucketAccess {
   @Override
   public S3TransferManager getS3TransferManager() {
     return this.s3TransferManager;
+  }
+
+  @Override
+  public S3Presigner getS3Presigner() {
+    return this.s3Presigner;
   }
 }

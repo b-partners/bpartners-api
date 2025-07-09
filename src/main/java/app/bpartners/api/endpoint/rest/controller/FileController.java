@@ -67,7 +67,8 @@ public class FileController {
   }
 
   @PostMapping("/landing-file/{fileKey}")
-  public String uploadLandingFile(@PathVariable String fileKey, @RequestPart("file") MultipartFile file) {
+  public String uploadLandingFile(
+      @PathVariable String fileKey, @RequestPart("file") MultipartFile file) {
     var filesAsBytes = multipartFileConverter.apply(file);
     var fileToUpload = fileWriter.apply(filesAsBytes, null);
     return service.uploadLandingFile(fileToUpload, fileKey);

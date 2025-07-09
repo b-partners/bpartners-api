@@ -117,12 +117,12 @@ public class BucketComponent {
     return presignedRequest.url();
   }
 
-  public URL presignLanding(String bucketKey, Duration expiration) {
+  public URL presignLanding(String bucketKey, Duration expiration, boolean isBucketPrincipal) {
+    var conf = getBucketConf(isBucketPrincipal);
     GetObjectRequest getObjectRequest =
-        GetObjectRequest.builder().bucket(bucketConf.getBucketName()).key(bucketKey).build();
+        GetObjectRequest.builder().bucket(conf.getBucketName()).key(bucketKey).build();
     PresignedGetObjectRequest presignedRequest =
-        bucketConf
-            .getS3Presigner()
+        conf.getS3Presigner()
             .presignGetObject(
                 GetObjectPresignRequest.builder()
                     .signatureDuration(expiration)

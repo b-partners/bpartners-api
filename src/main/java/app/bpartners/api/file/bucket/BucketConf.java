@@ -75,4 +75,9 @@ public class BucketConf implements BucketAccess {
   public S3TransferManager getS3TransferManager() {
     return this.s3TransferManager;
   }
+
+  @Override
+  public S3Presigner getS3Presigner() {
+    return this.s3Presigner;
+  }
 }

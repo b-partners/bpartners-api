@@ -124,10 +124,10 @@ operations:
         - Security
       summary: get authenticated user api key
       security: []
-      operation: findApiKey
+      operationId: findApiKey
       responses:
         200:
-          description: Who is the user
+          description: Authenticated user api key
           content:
             application/json:
               schema:

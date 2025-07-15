@@ -157,6 +157,8 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(DELETE, "/dummy-user")
                     .permitAll()
+                    .requestMatchers(GET, "/api/keys")
+                    .authenticated()
                     .requestMatchers(GET, "/accountHolders")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(GET, "/users")

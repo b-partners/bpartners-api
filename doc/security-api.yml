@@ -118,6 +118,32 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  findApiKey:
+    get:
+      tags:
+        - Security
+      summary: get authenticated user api key
+      security: []
+      operation: findApiKey
+      responses:
+        200:
+          description: Who is the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/apiKey'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 
 components:
   securitySchemes:
@@ -161,3 +187,10 @@ components:
       properties:
         user:
           $ref: './userAccounts-api.yml#/components/schemas/User'
+    apiKey:
+      type: object
+      properties:
+        apiKey:
+          type: string
+        userId:
+          type: string

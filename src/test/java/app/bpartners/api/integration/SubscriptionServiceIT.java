@@ -10,9 +10,9 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import app.bpartners.api.LogCaptor;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.integration.conf.StripeMockedThirdParties;
@@ -20,8 +20,13 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Product;
+import com.stripe.param.ProductUpdateParams;
 import java.time.*;
 import java.util.Arrays;
 import java.util.List;
@@ -40,6 +45,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
   @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
+  @MockBean SubscriptionProductRepository subscriptionProductRepositoryMock;
 
   @Test
   @Disabled("TODO: fix test data and implementation")
@@ -153,10 +159,17 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         actual.getMessage());
   }
 
-  // TODO:`billing_cycle_anchor` cannot be later than next natural billing date
   @Test
-  @Disabled
   void initiate_subscription() {
+    var product =
+        SubscriptionProduct.builder()
+            .e2Id(defaultSubscriptionProductId())
+            .type(MONTHLY)
+            .priceInCents(5880L)
+            .build();
+    when(subscriptionProductRepositoryMock.save(any())).thenReturn(product);
+    when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
+        .thenReturn(product);
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(
             Optional.of(
@@ -164,7 +177,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                     .trialPeriodDays(0)
                     .eligibleFrom(LocalDate.now().minusDays(1))
                     .build()));
-    var existingUser = userRepository.findByEmail("test@gmail.com").orElseThrow();
+    var existingUser = userRepository.findByEmail("jane@email.com").orElseThrow();
     var createdUserSubscription =
         subject.createOrLinkUserSubscription(
             existingUser.toBuilder().email("joe" + new Random().nextInt() + "@email.com").build());
@@ -247,7 +260,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
   @Test
   void initiate_subscription_without_stripe_customer_associated_ko() {
-    var user = userRepository.findByEmail("jane@email.com").orElseThrow();
+    var user = userRepository.findByEmail("kris@email.com").orElseThrow();
+
     var defaultSubscription = getDefaultSubscription();
     var defaultRedirectionStatusUrls = getDefaultRedirectionStatusUrls();
 
@@ -295,36 +309,34 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
-  @Disabled("TODO: remove new product in stripe dashboard after running")
-  void add_product_and_initiate_subscriptions() {
-    var actualSubscriptionProduct =
-        subject.createSubscriptionProduct(
-            SubscriptionProduct.builder()
-                .name("L'Abonnement Essentiel")
-                .description(
-                    "Sans engagement - Idéal pour les artisans couvreurs. "
-                        + String.join(" ", subscriptionProductFeatures()))
-                .features(subscriptionProductFeatures())
-                .priceInCents(5880L)
-                .type(MONTHLY)
-                .build());
+  void add_product_and_initiate_subscriptions() throws StripeException {
+    var logCaptor = new LogCaptor();
+    logCaptor.configure(SubscriptionService.class);
+    when(subscriptionProductRepositoryMock.save(any()))
+        .thenReturn(SubscriptionProduct.builder().build());
 
-    var expectedSubscriptionProduct =
+    subject.createSubscriptionProduct(
         SubscriptionProduct.builder()
-            .id(actualSubscriptionProduct.getId())
-            .e2Id(actualSubscriptionProduct.getE2Id())
             .name("L'Abonnement Essentiel")
             .description(
                 "Sans engagement - Idéal pour les artisans couvreurs. "
                     + String.join(" ", subscriptionProductFeatures()))
             .features(subscriptionProductFeatures())
-            .type(MONTHLY)
             .priceInCents(5880L)
-            .creationDatetime(actualSubscriptionProduct.getCreationDatetime())
-            .build();
-    assertEquals(expectedSubscriptionProduct, actualSubscriptionProduct);
-    assertNotNull(actualSubscriptionProduct.getId());
-    assertNotNull(actualSubscriptionProduct.getE2Id());
+            .type(MONTHLY)
+            .build());
+
+    verify(subscriptionProductRepositoryMock, times(1)).save(any(SubscriptionProduct.class));
+    var stripeProductId =
+        logCaptor.getLogEvents().stream()
+            .map(ILoggingEvent::getFormattedMessage)
+            .filter(msg -> msg.startsWith("createdStripeProductId: "))
+            .map(msg -> msg.replace("createdStripeProductId: ", "").trim())
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("Product ID non trouvé dans les logs"));
+    var product = Product.retrieve(stripeProductId);
+    var updateParams = ProductUpdateParams.builder().setActive(false).build();
+    product.update(updateParams);
   }
 
   // TODO: update trial period so it always be in trial mode

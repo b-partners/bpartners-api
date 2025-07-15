@@ -27,11 +27,20 @@ public class S3Service {
   @SneakyThrows
   public FileHash uploadFile(FileType fileType, String fileId, String idUser, File fileToUpload) {
     String key = bucketKeyRetriever.apply(fileType, fileId, idUser);
-    return bucketComponent.upload(fileToUpload, key);
+    return bucketComponent.upload(fileToUpload, key, true);
   }
 
   public File downloadFile(FileType fileType, String fileId, String idUser) {
     String key = bucketKeyRetriever.apply(fileType, fileId, idUser);
-    return bucketComponent.download(key);
+    return bucketComponent.download(key, true);
+  }
+
+  public File downloadLandingFile(String key) {
+    return bucketComponent.download(key, false);
+  }
+
+  public String uploadLandingFile(File file, String key) {
+    bucketComponent.upload(file, key, false);
+    return bucketComponent.presignLanding(key, Duration.ofSeconds(60), false).toString();
   }
 }

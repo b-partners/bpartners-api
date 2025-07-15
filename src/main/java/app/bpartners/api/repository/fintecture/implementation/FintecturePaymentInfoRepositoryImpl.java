@@ -21,6 +21,7 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
+import app.bpartners.api.repository.fintecture.implementation.utils.FintectureRateLimiter;
 import app.bpartners.api.repository.fintecture.model.MultipleSessionResponse;
 import app.bpartners.api.repository.fintecture.model.PaymentMeta;
 import app.bpartners.api.repository.fintecture.model.Session;
@@ -60,6 +61,13 @@ public class FintecturePaymentInfoRepositoryImpl implements FintecturePaymentInf
 
   @Override
   public List<Session> getAllPayments() {
+    if (!FintectureRateLimiter.canCall()) {
+      long minutes = FintectureRateLimiter.minutesToWait();
+      throw new ApiException(
+          SERVER_EXCEPTION,
+          "Trop d'appels à /pis/v2/payments. Réessaye dans " + minutes + " minutes.");
+    }
+
     String requestId = String.valueOf(randomUUID());
     String date = getParsedDate();
     try {

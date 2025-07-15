@@ -13,8 +13,14 @@ import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.FileInfoUtils;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +45,33 @@ public class FileController {
       @PathVariable(name = "accountId") String accountId,
       @PathVariable(name = "id") String fileId) {
     return mapper.toRest(service.findById(fileId));
+  }
+
+  @GetMapping(value = "/landing-file/{filekey}")
+  public ResponseEntity<byte[]> retrieveLandingFile(@PathVariable String filekey) {
+    File file = service.downloadLandingFile(filekey);
+
+    try {
+      byte[] fileContent = Files.readAllBytes(file.toPath());
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+      headers.setContentLength(fileContent.length);
+      headers.setContentDisposition(
+          ContentDisposition.builder("attachment").filename(file.getName()).build());
+
+      return new ResponseEntity<>(fileContent, headers, HttpStatus.OK);
+    } catch (IOException e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @PostMapping("/landing-file/{fileKey}")
+  public String uploadLandingFile(
+      @PathVariable String fileKey, @RequestPart("file") MultipartFile file) {
+    var filesAsBytes = multipartFileConverter.apply(file);
+    var fileToUpload = fileWriter.apply(filesAsBytes, null);
+    return service.uploadLandingFile(fileToUpload, fileKey);
   }
 
   @GetMapping(value = "/accounts/{accountId}/files/{id}/raw")

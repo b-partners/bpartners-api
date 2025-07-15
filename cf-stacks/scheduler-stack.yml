@@ -35,6 +35,24 @@ Resources:
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RefreshInvoiceSummaryTriggered'
           Source: 'app.bpartners.api.event1'
+  MonthlyCancelledClientsPaymentScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: Scheduler that triggers the computing of monthly subscription invoices 
+        for users whom cancelled during setup mode
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Name: !Join [ '', [ !Ref Env, -TriggerMonthlyCancelledClientsPayment ] ]
+      ScheduleExpression: "cron(0 8 5 *  ? *)"
+      ScheduleExpressionTimezone: "Europe/Paris"
+      Target:
+        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
+        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
+        DeadLetterConfig:
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
+        EventBridgeParameters:
+          DetailType: 'app.bpartners.api.endpoint.event.model.MonthlyCancelledClientsPayment'
+          Source: 'app.bpartners.api.event1'
   MonthlySubscriptionInvoiceTriggeredScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:
@@ -52,7 +70,6 @@ Resources:
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered'
           Source: 'app.bpartners.api.event1'
-
   RefreshTransactionSummariesScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:

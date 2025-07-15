@@ -22,6 +22,8 @@ paths:
     $ref: './security-api.yml#/operations/whoami'
   /whois/{id}:
     $ref: './security-api.yml#/operations/whois'
+  /api/keys:
+    $ref: './security-api.yml#/operations/findApiKey'
 
   #############################################
   ############## Onboarding API ###############
@@ -156,6 +158,8 @@ paths:
     $ref: './files-api.yml#/operations/getFileById'
   /accounts/{aId}/files/{id}/raw:
     $ref: './files-api.yml#/operations/downloadOrUploadFile'
+  /landing/{fileKey}:
+    $ref: './files-api.yml#/operations/getLandingFile'
 
   #############################################
   ################# Area Picture API #################

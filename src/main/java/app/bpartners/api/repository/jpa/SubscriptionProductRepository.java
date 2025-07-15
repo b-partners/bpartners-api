@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SubscriptionProductRepository extends JpaRepository<SubscriptionProduct, String> {
   SubscriptionProduct findByConsumptionTypeAttached(SubscriptionConsumptionType consumptionType);
+
+  SubscriptionProduct findByPriceInCents(double price);
 }

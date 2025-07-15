@@ -388,10 +388,10 @@ operations:
         200:
           description: The generated pdf
           content:
-            application/pdf:
+            application/json:
               schema:
-                type: string
-                format: binary
+                $ref: '#/components/schemas/ExportAreaPictureAnnotation'
+
         400:
           $ref: './api.yml#/components/responses/400'
         403:

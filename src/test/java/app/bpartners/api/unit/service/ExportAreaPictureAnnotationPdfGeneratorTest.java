@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.file.FileWriter.base64Image;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -29,7 +30,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
 
   @Test
   void generate_pdf_ok() throws IOException {
-    var annotationImage = bufferedImageToByteArray(mockImage);
+    var annotationImage = bufferedImageToBase64(mockImage);
     var exportAreaPictureAnnotation = exportAreaPictureAnnotation();
     var subImages =
         exportAreaPictureAnnotation.getAnnotations().stream()
@@ -42,10 +43,10 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
     assertNotNull(file);
   }
 
-  byte[] bufferedImageToByteArray(BufferedImage image) throws IOException {
+  String bufferedImageToBase64(BufferedImage image) throws IOException {
     var outputStream = new ByteArrayOutputStream();
     ImageIO.write(image, "png", outputStream);
-    return outputStream.toByteArray();
+    return base64Image(outputStream.toByteArray());
   }
 
   static ExportAreaPictureAnnotation exportAreaPictureAnnotation() {

@@ -59,9 +59,9 @@ public class HealthBucketController {
 
   private File can_upload_file_then_download_file(File toUpload, String bucketKey)
       throws IOException {
-    bucketComponent.upload(toUpload, bucketKey);
+    bucketComponent.upload(toUpload, bucketKey, true);
 
-    var downloaded = bucketComponent.download(bucketKey);
+    var downloaded = bucketComponent.download(bucketKey, true);
     var downloadedContent = Files.readString(downloaded.toPath());
     var uploadedContent = Files.readString(toUpload.toPath());
     if (!uploadedContent.equals(downloadedContent)) {
@@ -72,7 +72,7 @@ public class HealthBucketController {
   }
 
   private FileHash can_upload_directory(File toUpload, String bucketKey) {
-    var hash = bucketComponent.upload(toUpload, bucketKey);
+    var hash = bucketComponent.upload(toUpload, bucketKey, true);
     if (!NONE.equals(hash.algorithm())) {
       throw new RuntimeException("FileHashAlgorithm.NONE expected but got: " + hash.algorithm());
     }

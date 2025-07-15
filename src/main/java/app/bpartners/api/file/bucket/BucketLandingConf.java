@@ -18,18 +18,18 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 @PojaGenerated
 @SuppressWarnings("all")
 @Configuration
-public class BucketConf implements BucketAccess {
+public class BucketLandingConf implements BucketAccess {
 
   @Getter private final String bucketName;
   private final S3TransferManager s3TransferManager;
-  @Getter private final S3Presigner s3Presigner;
+  private final S3Presigner s3Presigner;
   @Getter private final S3Client s3Client;
   private final AWSProviderConf awsProviderConf;
 
   @SneakyThrows
-  public BucketConf(
+  public BucketLandingConf(
       @Value("${aws.region}") String regionString,
-      @Value("${aws.s3.bucket}") String bucketName,
+      @Value("${aws.s3.landing.bucket}") String bucketName,
       @Value("${aws.endpoint.override}") String endpointOverride,
       AWSProviderConf awsProviderConf) {
     this.awsProviderConf = awsProviderConf;

@@ -28,7 +28,7 @@
         }
 
         .title-value {
-            color: #7A003D;
+            color: #FF521B;
         }
 
         .main-image {
@@ -105,7 +105,7 @@
             <img
                 class="annotation-item-image"
                 alt="annotation sub-image"
-                th:src="'data:image/jpeg;base64,' + ${subImages[annotationStat.index]}"
+                th:src="'data:image/jpeg;base64,' + ${subImages[3 * pageStat.index + annotationStat.index]}"
             />
         </div>
     </section>

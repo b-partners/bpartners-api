@@ -1,0 +1,50 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Rapport d'analyse disponible</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, sans-serif;
+            color: black;
+        }
+
+        .address {
+            font-weight: bold;
+        }
+
+        .download-link {
+            cursor: pointer;
+            display: inline-block;
+            background-color: #FF521B;
+            color: white !important;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .download-link:hover {
+            background-color: #ba5e1c;
+        }
+    </style>
+</head>
+<body>
+<p>Bonjour,</p>
+
+<p>
+    Le rapport d’analyse concernant l’adresse <span class="address" th:text="${address}"></span> a été généré avec succès.
+</p>
+
+<p>
+    Vous pouvez télécharger le rapport d’analyse en cliquant sur le lien ci-dessous :
+</p>
+
+<p>
+    <a th:href="${fileUrl}" class="download-link">Télécharger le rapport</a>
+</p>
+
+<p>
+    <em>Birdia : Valorisez ce que vous voyez depuis le ciel.</em>
+</p>
+</body>
+</html>

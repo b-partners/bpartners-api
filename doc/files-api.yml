@@ -1,4 +1,57 @@
 operations:
+  getLandingFile:
+    get:
+      tags:
+        - Files
+      summary: Get file from landing bucket
+      operationId: getLandingFile
+      parameters:
+        - in: path
+          name: fileKey
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Successfully retrieved file from landing bucket
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: File not found
+        500:
+          description: Internal server error
+      paths:
+
+    post:
+      summary: Upload file to landing bucket
+      tags:
+        - Files
+      parameters:
+        - name: fileKey
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "https://s3.amazonaws.com/bucket-name/mon-fichier.txt"
   getFileById:
     get:
       tags:

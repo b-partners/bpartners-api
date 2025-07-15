@@ -12,6 +12,7 @@ public class EnvConf {
     registry.add("sns.platform.arn", () -> "dummy");
     registry.add("admin.email", () -> "dummy");
     registry.add("aws.bucket.name", () -> "bpartners");
+    registry.add("aws.s3.landing.bucket", () -> "landing");
     registry.add("aws.cognito.userPool.id", () -> "eu-west-3_vq2jlNjq7");
     registry.add("aws.cognito.userPool.domain", () -> "dummy");
     registry.add("aws.cognito.userPool.clientId", () -> "dummy");

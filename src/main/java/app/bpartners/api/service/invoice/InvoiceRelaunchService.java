@@ -11,9 +11,7 @@ import static app.bpartners.api.service.utils.FileInfoUtils.PDF_EXTENSION;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.SesConf;
-import app.bpartners.api.endpoint.event.model.InvoiceRelaunchSaved;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
-import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.AccountHolder;
@@ -24,7 +22,6 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceRelaunch;
 import app.bpartners.api.model.InvoiceRelaunchConf;
 import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserInvoiceRelaunchConf;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
@@ -282,55 +279,6 @@ public class InvoiceRelaunchService {
     context.setVariable("isFromScratch", fromScratch);
 
     return templateResolverEngine.parseTemplateResolver(MAIL_TEMPLATE, context);
-  }
-
-  private InvoiceRelaunchSaved getTypedInvoiceRelaunched(
-      Invoice invoice,
-      AccountHolder accountHolder,
-      String subject,
-      String customEmailBody,
-      List<Attachment> attachments,
-      boolean fromScratch) {
-    // TODO: if invoice has already been relaunched then change this
-    subject = subject == null ? getDefaultSubject(invoice) : subject;
-    String recipient = invoice.getCustomer().getEmail();
-
-    return toTypedEvent(
-        recipient,
-        subject,
-        emailBody(customEmailBody, invoice, accountHolder, fromScratch),
-        invoice.getRef() + PDF_EXTENSION,
-        invoice,
-        accountHolder,
-        attachments.stream().map(this::deleteAttachmentContent).toList());
-  }
-
-  private InvoiceRelaunchSaved toTypedEvent(
-      String recipient,
-      String subject,
-      String emailBody,
-      String attachmentName,
-      Invoice invoice,
-      AccountHolder accountHolder,
-      List<Attachment> attachments) {
-    return InvoiceRelaunchSaved.builder()
-        .subject(subject)
-        .recipient(recipient)
-        .htmlBody(emailBody)
-        .attachmentName(attachmentName)
-        .invoice(invoice)
-        .accountHolder(accountHolder)
-        .logoFileId(userLogoFileId())
-        .attachments(attachments)
-        .build();
-  }
-
-  private String userLogoFileId() {
-    return ((Principal) auth.getAuthentication().getPrincipal()).getUser().getLogoFileId();
-  }
-
-  private User authenticatedUser() {
-    return ((Principal) auth.getAuthentication().getPrincipal()).getUser();
   }
 
   private String removeDuplicateBrackets(String input) {

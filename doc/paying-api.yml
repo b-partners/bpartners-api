@@ -1652,8 +1652,6 @@ components:
       properties:
         id:
           type: string
-        paymentUrl:
-          type: string
         products:
           type: array
           items:

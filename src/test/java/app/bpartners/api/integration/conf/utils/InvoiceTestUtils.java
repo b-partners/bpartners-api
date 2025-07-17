@@ -321,7 +321,6 @@ public class InvoiceTestUtils {
         .fileId("file1_id")
         .comment(null)
         .title("Outils pour plomberie")
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
         .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .customer(customer1())
@@ -366,7 +365,6 @@ public class InvoiceTestUtils {
         .customer(actualConfirmed.getCustomer())
         .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
         .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
-        .paymentUrl(actualConfirmed.getPaymentUrl())
         .paymentMethod(UNKNOWN)
         .globalDiscount(new InvoiceDiscount().amountValue(0).percentValue(0))
         .paymentRegulations(confirmedPaymentRegulations(id));
@@ -416,7 +414,6 @@ public class InvoiceTestUtils {
 
   public static Invoice expectedConfirmed() {
     return new Invoice()
-        .paymentUrl(null)
         .ref(confirmedInvoice().getRef())
         .title(confirmedInvoice().getTitle())
         .customer(confirmedInvoice().getCustomer())
@@ -459,7 +456,6 @@ public class InvoiceTestUtils {
 
   public static Invoice expectedPaid() {
     return new Invoice()
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .ref(paidInvoice().getRef())
         .title(paidInvoice().getTitle())
         .customer(paidInvoice().getCustomer())
@@ -595,7 +591,6 @@ public class InvoiceTestUtils {
   public static Invoice invoice6() {
     return new Invoice()
         .id("invoice6_id")
-        .paymentUrl(null)
         .comment(null)
         .ref(DRAFT_REF_PREFIX + "BP007")
         .title("Facture transaction")

@@ -129,7 +129,6 @@ class DraftIT extends MockedThirdParties {
         .paymentRegulations(paymentRegulations)
         .products(creatableProds(1))
         .customer(customer())
-        .paymentUrl("text")
         .updatedAt(Instant.now())
         .build();
   }

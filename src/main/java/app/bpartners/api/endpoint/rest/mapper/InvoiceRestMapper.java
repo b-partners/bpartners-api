@@ -80,7 +80,6 @@ public class InvoiceRestMapper {
         .totalPriceWithVat(domain.getTotalPriceWithVat().getCentsRoundUp())
         .totalPriceWithoutDiscount(domain.getTotalPriceWithoutDiscount().getCentsRoundUp())
         .totalPriceWithoutVat(domain.getTotalPriceWithoutVat().getCentsRoundUp())
-        .paymentUrl(domain.getPaymentUrl())
         .sendingDate(domain.getSendingDate())
         .validityDate(domain.getValidityDate())
         .delayInPaymentAllowed(domain.getDelayInPaymentAllowed())

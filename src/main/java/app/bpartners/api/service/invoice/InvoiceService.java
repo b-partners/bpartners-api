@@ -194,7 +194,6 @@ public class InvoiceService {
             .fileId(String.valueOf(randomUUID()))
             .ref(reference)
             .status(DRAFT)
-            .paymentUrl(null)
             .paymentRegulations(paymentRegulations)
             .products(
                 new ArrayList<>(actual.getProducts())
@@ -274,7 +273,6 @@ public class InvoiceService {
           invoiceBuilder.sendingDate(oldInvoice.getSendingDate());
 
           if (newInvoice.getPaymentType() == CASH) {
-            invoiceBuilder.paymentUrl(oldInvoice.getPaymentUrl());
             if (!newInvoice.isSubscriptionInvoice()) {
               invoiceBuilder.toPayAt(
                   newInvoice.getSendingDate().plusDays(newInvoice.getDelayInPaymentAllowed()));
@@ -341,14 +339,9 @@ public class InvoiceService {
               : newInvoice.getDelayInPaymentAllowed();
       if (!newInvoice.isSubscriptionInvoice()) {
         invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
-        invoiceBuilder.paymentUrl(
-            newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
-                ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
-                : newInvoice.getPaymentUrl());
         invoiceBuilder.paymentRegulations(new ArrayList<>());
       }
     } else {
-      invoiceBuilder.paymentUrl(null);
       if (oldInvoice == null
           || (hasChangedRegulationsAmount(newInvoice, oldInvoice)
               || hasChangedRegulationsPercent(newInvoice, oldInvoice))) {

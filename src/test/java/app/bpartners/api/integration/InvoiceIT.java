@@ -235,7 +235,6 @@ class InvoiceIT extends S3MockedThirdParties {
         expectedPaid()
             .fileId(actualPaid.getFileId())
             .id(actualPaid.getId())
-            .paymentUrl(actualConfirmed.getPaymentUrl())
             .paymentRegulations(actualConfirmed.getPaymentRegulations())
             .sendingDate(actualConfirmed.getSendingDate())
             .toPayAt(actualConfirmed.getToPayAt())

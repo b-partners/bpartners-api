@@ -174,13 +174,6 @@
             <td class="text-right">
                 <div
                         th:if="${invoice.paymentType == null || (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
-                    <div class="image-text">
-                        <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}"
-                             alt="qr-code"/>
-                        <span class="caption" th:if="${invoice.paymentUrl != null}">
-                            <a th:href="${invoice.paymentUrl}">Payez ici</a>
-                        </span>
-                    </div>
                     <p>Date limite de paiement : <span
                             th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
                     </p>
@@ -389,7 +382,7 @@
                     <span th:unless="${accountHolder.isSubjectToVat()}">Montant HT</span>
                 </th>
                 <th style="width: 150px">Commentaire</th>
-                <th>Payer <br/>via le code</th>
+                <th>Status <br/>du paiement</th>
                 </thead>
                 <tbody>
                 <th:block th:each="paymentReg,i : ${invoice.getSortedMultiplePayments()}">
@@ -421,11 +414,6 @@
                         </td>
                         <td>
                             <div class="payment-container">
-                                <img class="payment-code"
-                                     th:src="${'data:image/jpeg;base64,' + paymentReg.getPaymentUrlAsQrCode()}"
-                                     alt="payment-code-qr"/>
-                                <span class="caption"><a
-                                        th:href="${paymentReg.paymentRequest.paymentUrl}">Payez ici</a></span>
                                 <span th:if="${paymentReg.paymentRequest.paymentHistoryStatus != null
                                 && paymentReg.paymentRequest.paymentHistoryStatus.status != null
                                 && paymentReg.paymentRequest.paymentHistoryStatus.status.value == 'PAID'

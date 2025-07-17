@@ -53,7 +53,6 @@ public class Invoice {
   private LocalDate toPayAt;
   private Integer delayInPaymentAllowed;
   private Fraction delayPenaltyPercent;
-  private String paymentUrl;
   private Customer customer;
   private String customerEmail;
   private String customerPhone;

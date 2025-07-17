@@ -589,7 +589,6 @@ public class TestUtils {
     return new Invoice()
         .id(INVOICE2_ID)
         .title("Facture plomberie")
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .paymentRegulations(List.of())
         .customer(customer2())
         .ref("BP002")

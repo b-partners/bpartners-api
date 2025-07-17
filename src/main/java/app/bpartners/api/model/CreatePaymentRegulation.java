@@ -1,9 +1,7 @@
 package app.bpartners.api.model;
 
-import static app.bpartners.api.file.FileWriter.base64Image;
 import static org.apfloat.Apcomplex.ZERO;
 
-import app.bpartners.api.service.utils.QrCodeUtils;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -36,13 +34,6 @@ public class CreatePaymentRegulation implements Serializable {
           Aprational percentAprational = ZERO.add(percentValue.divide(new Aprational(10000)));
           return amountValue.multiply(percentAprational);
         });
-  }
-
-  public String getPaymentUrlAsQrCode() {
-    if (paymentRequest.getPaymentUrl() == null) {
-      return null;
-    }
-    return base64Image(QrCodeUtils.generateQrCode(paymentRequest.getPaymentUrl()));
   }
 
   public Date getFormattedMaturityDate() {

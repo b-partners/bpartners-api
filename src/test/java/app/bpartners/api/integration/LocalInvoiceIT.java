@@ -204,7 +204,6 @@ class LocalInvoiceIT extends S3MockedThirdParties {
     assertEquals(initial, initialAfter);
     assertEquals(
         initial
-            .paymentUrl(null)
             .ref("BROUILLON-" + newReference.getNewReference())
             .status(DRAFT)
             .updatedAt(actual.getUpdatedAt())

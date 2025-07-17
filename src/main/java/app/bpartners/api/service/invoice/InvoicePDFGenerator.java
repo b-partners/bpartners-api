@@ -2,7 +2,6 @@ package app.bpartners.api.service.invoice;
 
 import static app.bpartners.api.file.FileWriter.base64Image;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.utils.QrCodeUtils.generateQrCode;
 
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.Account;
@@ -65,10 +64,6 @@ public class InvoicePDFGenerator {
     context.setVariable("logo", base64Image(logoAsBytes));
     context.setVariable("account", account);
     context.setVariable("accountHolder", accountHolder);
-    if (invoice.getPaymentUrl() != null) {
-      byte[] qrCodeBytes = generateQrCode(invoice.getPaymentUrl());
-      context.setVariable("qrcode", base64Image(qrCodeBytes));
-    }
     return context;
   }
 }

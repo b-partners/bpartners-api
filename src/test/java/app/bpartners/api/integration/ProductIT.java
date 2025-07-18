@@ -18,8 +18,6 @@ import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateProductStatus;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
@@ -37,7 +35,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -48,8 +45,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProductIT extends MockedThirdParties {
-  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
-  @MockBean private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
 
   private ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
@@ -83,8 +78,6 @@ class ProductIT extends MockedThirdParties {
 
   @BeforeEach
   public void setUp() {
-    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
-    setUpPaymentInfoRepository(paymentInfoRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);

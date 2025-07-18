@@ -8,10 +8,8 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
-import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
-import static app.bpartners.api.model.Invoice.DEFAULT_TO_PAY_DELAY_DAYS;
 import static app.bpartners.api.model.Money.fromMinor;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,7 +57,6 @@ import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.Money;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.UserSubscription;
@@ -67,14 +64,7 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
-import app.bpartners.api.repository.fintecture.FintectureConf;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
-import app.bpartners.api.repository.fintecture.model.FPaymentInitiation;
-import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
-import app.bpartners.api.repository.fintecture.model.Session;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
-import app.bpartners.api.repository.model.AccountConnector;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
 import app.bpartners.api.repository.sendinblue.model.Contact;
@@ -87,13 +77,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,8 +102,6 @@ public class TestUtils {
   public static final String JOE_DOE_ACCOUNT_HOLDER_ID = "b33e6eb0-e262-4596-a91f-20c6a7bfd343";
   public static final String JANE_DOE_USER_ID = "jane_doe_user_id";
   public static final String VALID_EMAIL = "username@domain.com";
-  public static final String OAUTH_URL = "https://api-sandbox.fintecture.com/oauth/accesstoken";
-  public static final String PIS_URL = "https://api-sandbox.fintecture.com/pis/v2/";
   public static final String REDIRECT_SUCCESS_URL =
       "https://dashboard-dev.bpartners.app/login/success";
   public static final String REDIRECT_FAILURE_URL =
@@ -506,21 +490,8 @@ public class TestUtils {
         .supportingDocs(List.of());
   }
 
-  public static app.bpartners.api.endpoint.rest.model.Transaction restTransaction3() {
-    return new app.bpartners.api.endpoint.rest.model.Transaction()
-        .id("bosci_28cb4daf35d3ab24cb775dcdefc8fdab")
-        .label("Test du virement")
-        .reference("TEST-001")
-        .amount(10000)
-        .type(OUTCOME)
-        .status(TransactionStatus.BOOKED)
-        .paymentDatetime(Instant.parse("2022-08-24T04:57:02.606Z"))
-        .category(null);
-  }
-
   public static InvoicePaymentReq basePaymentRequest() {
     return new InvoicePaymentReq()
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .amount(4400)
         .payerName("Luc Artisan")
         .payerEmail("bpartners.artisans@gmail.com");
@@ -562,7 +533,6 @@ public class TestUtils {
         .comment(null)
         .title("Outils pour plomberie")
         .fileId("file1_id")
-        // .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .customer(customer1())
         .ref("BP001")
         .createdAt(Instant.parse("2022-01-01T01:00:00.00Z"))
@@ -581,29 +551,6 @@ public class TestUtils {
         .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .totalPriceWithoutDiscount(8000)
         .globalDiscount(new InvoiceDiscount().percentValue(0).amountValue(0))
-        .paymentMethod(UNKNOWN)
-        .metadata(Map.of());
-  }
-
-  public static Invoice invoice2() {
-    return new Invoice()
-        .id(INVOICE2_ID)
-        .title("Facture plomberie")
-        .paymentRegulations(List.of())
-        .customer(customer2())
-        .ref("BP002")
-        .sendingDate(LocalDate.of(2022, 9, 10))
-        .validityDate(LocalDate.of(2022, 10, 14))
-        .createdAt(Instant.parse("2022-01-01T03:00:00.00Z"))
-        .toPayAt(LocalDate.of(2022, 10, 10))
-        .delayInPaymentAllowed(DEFAULT_TO_PAY_DELAY_DAYS)
-        .delayPenaltyPercent(DEFAULT_DELAY_PENALTY_PERCENT)
-        .status(CONFIRMED)
-        .archiveStatus(ArchiveStatus.ENABLED)
-        .products(List.of(product5()))
-        .totalPriceWithVat(1100)
-        .totalVat(100)
-        .totalPriceWithoutVat(1000)
         .paymentMethod(UNKNOWN)
         .metadata(Map.of());
   }
@@ -671,21 +618,6 @@ public class TestUtils {
         .fileUrl(defaultLegalFile().getFileUrl())
         .name(defaultLegalFile().getName())
         .approvalDatetime(Instant.now())
-        .build();
-  }
-
-  public static Session fintectureSession() {
-    return Session.builder()
-        .meta(Session.Meta.builder().code("200").build())
-        .data(
-            Session.Data.builder()
-                .type("payments")
-                .attributes(
-                    Session.Attributes.builder()
-                        .paymentScheme("SEPA")
-                        .endToEndId("end_to_end_id")
-                        .build())
-                .build())
         .build();
   }
 
@@ -815,43 +747,6 @@ public class TestUtils {
                 new Principal(new app.bpartners.api.model.User(), JOE_DOE_TOKEN), new Object()));
   }
 
-  public static void setUpFintectureConf(FintectureConf fintectureConfMock)
-      throws NoSuchAlgorithmException {
-    KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-    generator.initialize(2048);
-    KeyPair pair = generator.generateKeyPair();
-    String encodedKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
-    when(fintectureConfMock.getPrivateKey()).thenReturn(encodedKey);
-    when(fintectureConfMock.getRequestToPayUrl()).thenReturn(PIS_URL + "request-to-pay");
-    when(fintectureConfMock.getPaymentUrl()).thenReturn(PIS_URL + "payments");
-  }
-
-  public static void setUpPaymentInitiationRep(FintecturePaymentInitiationRepository repository) {
-    when(repository.save(any(FPaymentInitiation.class), any()))
-        .thenAnswer(
-            invocation ->
-                FPaymentRedirection.builder()
-                    .meta(
-                        FPaymentRedirection.Meta.builder()
-                            .sessionId(SESSION1_ID)
-                            .url("https://connect-v2-sbx.fintecture.com")
-                            .build())
-                    .build())
-        .thenAnswer(
-            invocation ->
-                FPaymentRedirection.builder()
-                    .meta(
-                        FPaymentRedirection.Meta.builder()
-                            .sessionId(SESSION2_ID)
-                            .url("https://connect-v2-sbx.fintecture.com")
-                            .build())
-                    .build());
-  }
-
-  public static void setUpPaymentInfoRepository(FintecturePaymentInfoRepository repository) {
-    when(repository.getPaymentBySessionId(any(String.class))).thenReturn(fintectureSession());
-  }
-
   public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {
     Attributes attributes =
         Attributes.builder()
@@ -979,16 +874,6 @@ public class TestUtils {
       body = "[no body]";
     }
     return operationId + " call failed with: " + statusCode + " - " + body;
-  }
-
-  public static AccountConnector toConnector(BridgeAccount bridgeAccount) {
-    return AccountConnector.builder()
-        .id(String.valueOf(bridgeAccount.getId()))
-        .name(bridgeAccount.getName())
-        .balance(Money.fromMinor(bridgeAccount.getBalance()))
-        .iban(bridgeAccount.getIban())
-        .status(bridgeAccount.getDomainStatus())
-        .build();
   }
 
   public static Map<String, String> adsFilter() {

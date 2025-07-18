@@ -35,7 +35,6 @@ public class EnvConf {
     registry.add("google.sheet.client.id", () -> "dummy");
     registry.add("google.sheet.client.secret", () -> "dummy");
     registry.add("google.sheet.redirect.uris", () -> "https://dummy.com/success");
-    registry.add("fintecture.base.url", () -> "https://api-sandbox.fintecture.com");
     registry.add("spring.flyway.locations", () -> "classpath:/db/migration,classpath:/db/testdata");
     registry.add("env", () -> TEST_ENV);
     registry.add("geoserver.baseurl", () -> MOCK_SERVER_URL);

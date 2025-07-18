@@ -18,8 +18,6 @@ import app.bpartners.api.endpoint.rest.model.InvoiceRelaunch;
 import app.bpartners.api.endpoint.rest.model.RelaunchType;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
 import java.time.Instant;
@@ -37,8 +35,6 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 @Testcontainers
 @AutoConfigureMockMvc
 class InvoiceRelaunchIT extends S3MockedThirdParties {
-  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
-  @MockBean private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
   @MockBean private EventBridgeClient eventBridgeClientMock;
   @MockBean private SesService sesServiceMock;
 
@@ -48,8 +44,6 @@ class InvoiceRelaunchIT extends S3MockedThirdParties {
 
   @BeforeEach
   public void setUp() {
-    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
-    setUpPaymentInfoRepository(paymentInfoRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);

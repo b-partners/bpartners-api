@@ -148,8 +148,6 @@ paths:
     $ref: './paying-api.yml#/operations/getRelaunches'
   /accounts/{aId}/invoices/{iId}/relaunch:
     $ref: './paying-api.yml#/operations/relaunchInvoice'
-  /accounts/{id}/paymentInitiations:
-    $ref: './paying-api.yml#/operations/paymentInitiationsOperations'
 
   #############################################
   ################# Files API #################

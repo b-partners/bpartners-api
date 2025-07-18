@@ -48,7 +48,6 @@ public class EnvContextInitializer
         "google.sheet.client.id=dummy",
         "google.sheet.client.secret=dummy",
         "google.sheet.redirect.uris=https://dummy.com/success",
-        "fintecture.base.url=https://api-sandbox.fintecture.com",
         "swan.base.url=https://api.swan.io/sandbox-partner",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),
         "spring.datasource.username=" + postgresContainer.getUsername(),

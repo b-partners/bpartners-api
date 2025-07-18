@@ -9,15 +9,12 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.InvoiceRelaunchConf;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInfoRepository;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
@@ -25,8 +22,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class InvoiceRelaunchConfIT extends S3MockedThirdParties {
   private static final String RELAUNCH_CONF1_ID = "relaunchConf1_id";
-  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
-  @MockBean private FintecturePaymentInfoRepository paymentInfoRepositoryMock;
 
   private ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
@@ -34,8 +29,6 @@ class InvoiceRelaunchConfIT extends S3MockedThirdParties {
 
   @BeforeEach
   public void setUp() {
-    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
-    setUpPaymentInfoRepository(paymentInfoRepositoryMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);

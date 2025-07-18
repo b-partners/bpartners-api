@@ -12,7 +12,6 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentHistoryStatus;
 import app.bpartners.api.model.PaymentInitiation;
 import app.bpartners.api.model.PaymentRequest;
-import app.bpartners.api.repository.fintecture.model.FPaymentRedirection;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -54,16 +53,13 @@ public class PaymentRequestMapper {
         .build();
   }
 
-  public HPaymentRequest toEntity(
-      FPaymentRedirection paymentRedirection, PaymentInitiation domain, String idInvoice) {
+  public HPaymentRequest toEntity(PaymentInitiation domain, String idInvoice) {
     PaymentHistoryStatus historyStatus = domain.getPaymentHistoryStatus();
     Instant createdDatetime = Instant.now();
     return HPaymentRequest.builder()
         .id(domain.getId())
         .idInvoice(idInvoice)
         .idUser(AuthProvider.getAuthenticatedUserId())
-        .sessionId(paymentRedirection == null ? null : paymentRedirection.getMeta().getSessionId())
-        .paymentUrl(paymentRedirection == null ? null : paymentRedirection.getMeta().getUrl())
         .label(domain.getLabel())
         .comment(domain.getComment())
         .payerEmail(domain.getPayerEmail())

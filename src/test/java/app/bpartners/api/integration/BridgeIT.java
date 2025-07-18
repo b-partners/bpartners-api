@@ -19,7 +19,6 @@ import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
 import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
-import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
@@ -48,7 +47,6 @@ public class BridgeIT {
   @MockBean private BuildingPermitConf buildingPermitConf;
   @MockBean private SentryConf sentryConf;
   @MockBean private SendinblueConf sendinblueConf;
-  @MockBean private FintectureConf fintectureConf;
   @MockBean private ProjectTokenManager projectTokenManager;
   @MockBean private AccountConnectorRepository accountConnectorRepositoryMock;
 

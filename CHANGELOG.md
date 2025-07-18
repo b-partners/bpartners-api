@@ -1,3 +1,28 @@
+# [0.68.0](https://github.com/b-partners/bpartners-api/compare/v0.67.0...v0.68.0) (2025-07-18)
+
+
+### Bug Fixes
+
+* check bucket conf during url presigning ([2b01d89](https://github.com/b-partners/bpartners-api/commit/2b01d89572f4117e49a7c15f2d563bad0ccf47a2))
+* **FintecturePaymentInfoRepository:** filter payment by date_from today minus 1 day ([4319b0b](https://github.com/b-partners/bpartners-api/commit/4319b0b81c3f64b7d5521c53cf536762f6fd9388))
+* handle cancelled reneweal ([68c26e3](https://github.com/b-partners/bpartners-api/commit/68c26e32f70d7582979d2adc5fd1549bc0bf697f))
+* retrieve validated userApiKeyFullAuthorization from specific persisted table ([e580d9d](https://github.com/b-partners/bpartners-api/commit/e580d9ddf66d489bf65f0a620ec0f0c73fa84cab))
+* **RoofAnalysisConsumptionFreeTrialValidator:** do not filter consumption for user with apiKey ([7b09503](https://github.com/b-partners/bpartners-api/commit/7b095039922aa9180a3a1a00b101d4c7ef501146))
+* set default invoice.delayInPaymentAllowed=7 days ([4095082](https://github.com/b-partners/bpartners-api/commit/40950824184c483f198af726696a7de48d095e24))
+* throw exception when provided apiKey null during update ([b5d78e6](https://github.com/b-partners/bpartners-api/commit/b5d78e6855b4cc7a161e70fc55e35cea3c2a6714))
+* **UsernamePasswordAuthenticatorFacade:** do not validate subscription for user with apiKeyF ullAuthorization ([a48fdf0](https://github.com/b-partners/bpartners-api/commit/a48fdf066d0e587005b13388c3bdc6b55026bd7a))
+
+
+### Features
+
+* GET /areaPictureMapLayers providing longitude and latitude ([1f355cf](https://github.com/b-partners/bpartners-api/commit/1f355cf2158f30f84dd4aefc43ef4b72fd331ada))
+* GET /users by criteria for ADMIN_ROLE ([f963e54](https://github.com/b-partners/bpartners-api/commit/f963e54d5dfad4bcbe128c9761b99337911d7bfd))
+* retrieve user api key by token ([9c1c570](https://github.com/b-partners/bpartners-api/commit/9c1c5707c010721a317d77c2ac073a0f8db2784f))
+* update user api key by ADMIN_ROLE ([d95e03e](https://github.com/b-partners/bpartners-api/commit/d95e03e4cd6b3d07185167d14cdcdbf9a3f142b0))
+* upload and retrieve from landing bucket ([a49c962](https://github.com/b-partners/bpartners-api/commit/a49c96299b21a2062dc65272c10c93a3232f1da3))
+
+
+
 # [0.67.0](https://github.com/b-partners/bpartners-api/compare/v0.66.0...v0.67.0) (2025-04-24)
 
 
@@ -164,22 +189,6 @@
 
 * add humidityLevel on annotationInstance ([1ef58fc](https://github.com/b-partners/bpartners-api/commit/1ef58fcaea5c495ceceb0f3f11d7d0dcfca7fadc))
 * cancel user subscription ([aa56e18](https://github.com/b-partners/bpartners-api/commit/aa56e18818aa0ffb632ec93fb928b5794a0b2747))
-
-
-
-# [0.58.0](https://github.com/b-partners/bpartners-api/compare/v0.57.0...v0.58.0) (2024-11-28)
-
-
-### Bug Fixes
-
-* do not authorize subscription if stripe customer not associated ([2ecab7b](https://github.com/b-partners/bpartners-api/commit/2ecab7bb31a4908d84d8b39c18f347d32f8d7b3e))
-* empty subscription is considered as invalid ([521a5a2](https://github.com/b-partners/bpartners-api/commit/521a5a2e21207a7f9e24fe9c24008a6db3dba1f8))
-* subscriptionInitiation endpoint accessible without AuthProvider filter ([508edc8](https://github.com/b-partners/bpartners-api/commit/508edc8cb24c36e523e4d6f4699959c70d42229c))
-
-
-### Features
-
-* include subscription period in user attributes ([d0820f5](https://github.com/b-partners/bpartners-api/commit/d0820f56bda603b2f2126daf28ae5bc4fd148abd))
 
 
 

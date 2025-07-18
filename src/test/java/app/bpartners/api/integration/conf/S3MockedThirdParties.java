@@ -10,7 +10,6 @@ import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
-import app.bpartners.api.repository.fintecture.FintectureConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
@@ -27,7 +26,6 @@ public class S3MockedThirdParties extends S3FacadeIT {
   @MockBean protected SentryConf sentryConf;
   @MockBean protected SendinblueConf sendinblueConf;
   @MockBean protected CognitoComponent cognitoComponentMock;
-  @MockBean protected FintectureConf fintectureConf;
   @MockBean protected ProjectTokenManager projectTokenManager;
   @MockBean protected AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean protected LegalFileRepository legalFileRepositoryMock;

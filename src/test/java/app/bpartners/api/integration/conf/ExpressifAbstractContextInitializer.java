@@ -44,7 +44,6 @@ public abstract class ExpressifAbstractContextInitializer
         "google.sheet.client.secret=dummy",
         "google.sheet.redirect.uris=dummy",
         "ban.base.url=dummy",
-        "fintecture.base.url=https://api-sandbox.fintecture.com",
         "swan.base.url=https://api.swan.io/sandbox-partner",
         "spring.datasource.url=" + postgresContainer.getJdbcUrl(),
         "spring.datasource.username=" + postgresContainer.getUsername(),

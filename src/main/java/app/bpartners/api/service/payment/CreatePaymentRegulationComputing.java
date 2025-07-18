@@ -20,13 +20,6 @@ public class CreatePaymentRegulationComputing {
   private final PaymentInitiationComputing paymentInitiationComputing;
   private final PaymentRequestMapper requestMapper;
 
-  public List<CreatePaymentRegulation> computeWithPisURL(Invoice actual) {
-    var paymentInitiations = paymentInitiationComputing.apply(actual);
-    var paymentRequests =
-        pis.retrievePaymentEntitiesWithUrl(paymentInitiations, actual.getId(), actual.getUser());
-    return convertPaymentRequests(paymentRequests);
-  }
-
   public List<CreatePaymentRegulation> computeWithoutPisURL(Invoice actual) {
     var paymentInitiations = paymentInitiationComputing.apply(actual);
     var paymentRequests =

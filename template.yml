@@ -30,7 +30,6 @@ Globals:
         AWS_EVENT_STACK_2_SQS_QUEUE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/2/sqs/mailbox-queue-url}}'
         
         
-        
         SENTRY_DSN: !Sub '{{resolve:ssm:/bpartners/sentry/dsn}}'
         SENTRY_ENVIRONMENT: !Ref Env
         AWS_COGNITO_USERPOOL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-id}}'
@@ -38,6 +37,7 @@ Globals:
         FINTECTURE_APP_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/app-secret}}'
         FINTECTURE_BASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/fintecture/base-url}}'
         AWS_BUCKET_NAME: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/bucket-name}}'
+        AWS_S3_LANDING_BUCKET: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/landing-bucket-name}}'
         SENDINBLUE_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/api-key}}'
         SENDINBLUE_CONTACTLIST_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/sendinblue/contactlist-id}}'
         ADS_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/sogefi/ads-base-url}}'
@@ -76,47 +76,36 @@ Globals:
         STRIPE_SUBSCRIPTION_PRODUCT_ESSENTIAL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/stripe/product/essential/id}}'
         SUBSCRIPTION_USER_CREDIT_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/subscription/user/id}}'
         DASHBOARD_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/dashboard/url}}'
-        AWS_S3_LANDING_BUCKET: !Sub '{{resolve:ssm:/bpartners/${Env}/s3/landing-bucket-name}}'
-        
+
+
 
 Parameters:
   Env:
     Type: String
 
 Resources:
-  FrontalServerlessRestApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: Prod
-      BinaryMediaTypes:
-        - "*~1*"
-
+  
   FrontalFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: app.bpartners.api.ApiEventHandler::handleRequest
+      Handler: app.bpartners.api.handler.LambdaHandler::handleRequest
       MemorySize: 1024
-      Timeout: 30
+      Timeout: 60
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
       
-      Events:
-        ApiCall:
-          Type: Api
-          Properties:
-            Path: /{proxy+}
-            Method: ANY
-            RestApiId:
-              Ref: FrontalServerlessRestApi
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: BUFFERED
+        
       ReservedConcurrentExecutions: 20
 
   WorkerFunction1:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: app.bpartners.api.MailboxEventHandler::handleRequest
+      Handler: app.bpartners.api.handler.MailboxEventHandler::handleRequest
       MemorySize: 1024
       Timeout: 600 #note(sqs-visibility)
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
-      
       Events:
         AllEvents:
           Type: SQS
@@ -128,11 +117,10 @@ Resources:
   WorkerFunction2:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: app.bpartners.api.MailboxEventHandler::handleRequest
+      Handler: app.bpartners.api.handler.MailboxEventHandler::handleRequest
       MemorySize: 2048
       Timeout: 600 #note(sqs-visibility)
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
-      
       Events:
         AllEvents:
           Type: SQS
@@ -141,27 +129,15 @@ Resources:
             BatchSize: 1
       ReservedConcurrentExecutions: 30
 
-  ApplicationResourceGroup:
-    Type: AWS::ResourceGroups::Group
-    Properties:
-      Name:
-        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
-      ResourceQuery:
-        Type: CLOUDFORMATION_STACK_1_0
-  ApplicationInsightsMonitoring:
-    Type: AWS::ApplicationInsights::Application
-    Properties:
-      ResourceGroupName: !Ref ApplicationResourceGroup
-      AutoConfigurationEnabled: 'true'
-
   ApiUrlSSM:
     Type: AWS::SSM::Parameter
     Properties:
       Name: !Join [ '', [ /bpartners/, !Ref Env, /api/url ] ]
       Type: String
-      Value: !Sub "https://${FrontalServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
-
+      Value: !GetAtt FrontalFunctionUrl.FunctionUrl
+  
 Outputs:
   ApiUrl:
-    Description: API Gateway endpoint URL
-    Value: !GetAtt ApiUrlSSM.Value
+    Description: Url to access the frontal function
+    Value: !GetAtt FrontalFunctionUrl.FunctionUrl
+        

@@ -169,7 +169,8 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             GET, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
                     .authenticated()
-                    .requestMatchers(POST, "/users/*/keys")
+                    .requestMatchers(
+                        new SelfUserMatcher(POST, "/users/*/keys", authResourceProvider))
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
                         new SelfUserMatcher(

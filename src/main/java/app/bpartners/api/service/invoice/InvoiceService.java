@@ -340,6 +340,15 @@ public class InvoiceService {
       if (!newInvoice.isSubscriptionInvoice()) {
         invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
         invoiceBuilder.paymentRegulations(new ArrayList<>());
+      } else {
+        if (oldInvoice == null
+            || (hasChangedRegulationsAmount(newInvoice, oldInvoice)
+                || hasChangedRegulationsPercent(newInvoice, oldInvoice))) {
+          invoiceBuilder.paymentRegulations(
+              paymentRegulationComputing.computeWithoutPisURL(newInvoice));
+        } else {
+          invoiceBuilder.paymentRegulations(oldInvoice.getPaymentRegulations());
+        }
       }
     }
   }

@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.rest.mapper.AccountRestMapper;
 import app.bpartners.api.endpoint.rest.model.Account;
 import app.bpartners.api.endpoint.rest.model.AccountValidationRedirection;
-import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import app.bpartners.api.endpoint.rest.validator.UpdateAccountIdentityRestValidator;
@@ -41,25 +40,6 @@ public class AccountController {
             new RedirectionStatusUrls()
                 .successUrl(redirectionUrls.getSuccessUrl())
                 .failureUrl(redirectionUrls.getFailureUrl()));
-  }
-
-  @PostMapping("/users/{userId}/accounts/{accountId}/initiateBankConnection")
-  public BankConnectionRedirection initiateBankConnection(
-      @PathVariable String userId,
-      @PathVariable String accountId,
-      @RequestBody(required = false) RedirectionStatusUrls urls) {
-    return service.initiateBankConnection(userId, urls);
-  }
-
-  @PostMapping("/users/{userId}/initiateBankConnection")
-  public BankConnectionRedirection initiateBankConnectionWithoutAccount(
-      @PathVariable String userId, @RequestBody(required = false) RedirectionStatusUrls urls) {
-    return service.initiateBankConnection(userId, urls);
-  }
-
-  @PostMapping("/users/{userId}/disconnectBank")
-  public Account disconnectBank(@PathVariable String userId) {
-    return mapper.toRest(service.disconnectBank(userId));
   }
 
   @PutMapping("/users/{userId}/accounts/{accountId}/identity")

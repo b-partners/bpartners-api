@@ -8,15 +8,12 @@ import static app.bpartners.api.model.BankConnection.BankConnectionStatus.UNDERG
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.UNKNOWN;
 import static app.bpartners.api.model.BankConnection.BankConnectionStatus.VALIDATION_REQUIRED;
 
-import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
@@ -51,7 +48,6 @@ public class BankRepositoryImpl implements BankRepository {
   private final UserMapper userMapper;
   private final BankMapper mapper;
   private final BankJpaRepository jpaRepository;
-  private final UserTokenRepository userTokenRepository;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final AccountJpaRepository accountJpaRepository;
 
@@ -78,12 +74,6 @@ public class BankRepositoryImpl implements BankRepository {
     }
   }
 
-  // TODO: check if it is necessary to persist values
-  @Override
-  public String initiateConnection(User user) {
-    return bridgeRepository.initiateBankConnection(user.getEmail());
-  }
-
   // TODO: check why bank is persisted twice and turn back to optional
   @Override
   public Bank findByExternalId(String id) {
@@ -99,15 +89,6 @@ public class BankRepositoryImpl implements BankRepository {
       entity = entities.get(0);
     }
     return mapper.toDomain(entity, bridgeBank);
-  }
-
-  // TODO: improve this
-  @Override
-  public Bank findById(String id) {
-    if (id == null) {
-      return null;
-    }
-    return mapper.toDomain(jpaRepository.findById(id).orElse(null), null);
   }
 
   @Override
@@ -140,70 +121,5 @@ public class BankRepositoryImpl implements BankRepository {
         .bank(bank)
         .status(savedEntity.getBankConnectionStatus())
         .build();
-  }
-
-  @Override
-  public Instant refreshBankConnection(UserToken userToken) {
-    if (userToken == null || userToken.getUser().getBankConnectionId() == null) {
-      return null;
-    }
-    User user = userToken.getUser();
-    if (bridgeRepository.refreshBankConnection(
-            user.getBankConnectionId(), userToken.getAccessToken())
-        != null) {
-      Instant refreshedAt =
-          bridgeRepository.getItemStatusRefreshedAt(
-              user.getBankConnectionId(), userToken.getAccessToken());
-      HUser userEntity = userJpaRepository.getById(user.getId());
-      if (userEntity.getBridgeItemLastRefresh() != null
-          && userEntity.getBridgeItemLastRefresh().equals(refreshedAt)) {
-        // Do not update item last refresh instant
-        return null;
-      }
-      return userJpaRepository
-          .save(userEntity.toBuilder().bridgeItemLastRefresh(refreshedAt).build())
-          .getBridgeItemLastRefresh();
-    }
-    return null;
-  }
-
-  @Override
-  public String initiateProValidation(String accountId) {
-    UserToken userToken = userTokenRepository.getLatestTokenByAccount(accountId);
-    return bridgeRepository.validateCurrentProItems(userToken.getAccessToken()).getRedirectUrl();
-  }
-
-  @Override
-  public String initiateBankConnectionEdition(Account account) {
-    BridgeItem defaultItem = getDefaultItem(account);
-    return bridgeRepository.editItem(defaultItem.getId()).getRedirectUrl();
-  }
-
-  @Override
-  public String initiateScaSync(Account account) {
-    BridgeItem defaultItem = getDefaultItem(account);
-    return bridgeRepository.synchronizeSca(defaultItem.getId()).getRedirectUrl();
-  }
-
-  @Override
-  public boolean disconnectBank(User user) {
-    return bridgeRepository.deleteItem(user.getBankConnectionId(), user.getAccessToken());
-  }
-
-  private BridgeItem getDefaultItem(Account account) {
-    // TODO: item should be retrieved from HAccount not from Bridge
-    List<BridgeItem> items = bridgeRepository.getBridgeItems();
-    BridgeItem defaultItem = items.getFirst();
-    if (items.size() > 1) {
-      log.warn(
-          "[Bridge] Multiple items ("
-              + items
-              + ")  found for"
-              + account.describeInfos()
-              + "."
-              + defaultItem.toString()
-              + "chosen by default)");
-    }
-    return defaultItem;
   }
 }

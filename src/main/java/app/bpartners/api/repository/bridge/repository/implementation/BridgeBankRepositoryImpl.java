@@ -9,7 +9,6 @@ import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeCreateItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
-import java.time.Instant;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -25,19 +24,6 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
     return bridgeApi.findBankById(id);
   }
 
-  @Override
-  public String initiateBankConnection(String userEmail) {
-    UserToken bridgeToken =
-        tokenRepository.getLatestTokenByUser(AuthProvider.getPrincipal().getUser());
-    return bridgeApi.initiateBankConnection(
-        BridgeCreateItem.builder().prefillEmail(userEmail).build(), bridgeToken.getAccessToken());
-  }
-
-  // TODO: refresh can have multiple status but we don't handle this here
-  @Override
-  public Instant getItemStatusRefreshedAt(Long itemId, String token) {
-    return bridgeApi.getItemStatusRefreshedAt(itemId, token);
-  }
 
   @Override
   public List<BridgeItem> getBridgeItems() {
@@ -50,24 +36,4 @@ public class BridgeBankRepositoryImpl implements BridgeBankRepository {
     return bridgeApi.refreshBankConnection(itemId, token);
   }
 
-  @Override
-  public BridgeConnectItem validateCurrentProItems(String bearer) {
-    return bridgeApi.validateCurrentProItems(bearer);
-  }
-
-  @Override
-  public BridgeConnectItem editItem(Long id) {
-    var token = AuthProvider.getAuthenticatedUser().getAccessToken();
-    return bridgeApi.editItem(token, id);
-  }
-
-  @Override
-  public BridgeConnectItem synchronizeSca(Long id) {
-    return bridgeApi.initiateScaSync(AuthProvider.getBearer(), id);
-  }
-
-  @Override
-  public boolean deleteItem(Long itemId, String token) {
-    return bridgeApi.deleteItem(itemId, AuthProvider.getAuthenticatedUser().getAccessToken());
-  }
 }

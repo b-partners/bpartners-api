@@ -1,7 +1,6 @@
 package app.bpartners.api.integration;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -57,14 +56,6 @@ public class BridgeIT {
         .uuid("c2ebbe2c-7804-4d7d-b1b0-77059a0c1519")
         .email("bpartners.artisans@mail.com")
         .build();
-  }
-
-  @Test
-  void read_user_by_id_ok() {
-    BridgeUser actual = subject.findById(bridgeUser().getUuid());
-
-    assertNotNull(actual);
-    assertEquals(bridgeUser(), actual);
   }
 
   @Test
@@ -159,14 +150,6 @@ public class BridgeIT {
 
     log.info("BridgeTransaction={}", actual);
     assertNotNull(actual);
-  }
-
-  @Test
-  void read_banks_ok() {
-    List<BridgeBank> actual = subject.findAllBanks();
-
-    log.info("BridgeBanks={}", actual);
-    assertFalse(actual.isEmpty());
   }
 
   @Test

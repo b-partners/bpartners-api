@@ -34,7 +34,6 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
-import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.repository.implementation.BankRepositoryImpl;
 import app.bpartners.api.repository.model.AccountConnector;
@@ -180,7 +179,6 @@ class DirtyAccountIT extends MockedThirdParties {
     setUpBridge(bridgeApi, joeDoeBridgeAccount(), otherBridgeAccount());
     when(bankRepositoryImplMock.findByExternalId(String.valueOf(joeDoeBridgeAccount().getBankId())))
         .thenReturn(new Bank());
-    when(bankRepositoryImplMock.disconnectBank(any())).thenReturn(true);
   }
 
   @BeforeEach
@@ -227,8 +225,6 @@ class DirtyAccountIT extends MockedThirdParties {
 
   @Test
   void initiate_bank_connection_ok() throws ApiException {
-    when(bankRepositoryImplMock.initiateConnection(any()))
-        .thenReturn("https://connect.bridgeapi.io");
     ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
     String failureUrl = "failure_url";
@@ -326,7 +322,6 @@ class DirtyAccountIT extends MockedThirdParties {
     setUpBridge(bridgeApi, bridgeAccount);
     when(bankRepositoryImplMock.findByExternalId(String.valueOf(joeDoeBridgeAccount().getBankId())))
         .thenReturn(new Bank());
-    when(bankRepositoryImplMock.disconnectBank(any())).thenReturn(true);
     when(bridgeApi.findByAccountById(any(), any())).thenReturn(bridgeAccount);
 
     ApiClient client = TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, null, localPort);
@@ -405,9 +400,6 @@ class DirtyAccountIT extends MockedThirdParties {
     UserAccountsApi api = new UserAccountsApi(bernarDoeClient);
 
     setUpUserBernardRepository(userRepositoryMock);
-    when(bridgeBankRepositoryMock.validateCurrentProItems(BERNARD_DOE_TOKEN))
-        .thenReturn(BridgeConnectItem.builder().redirectUrl(redirectUrl).build());
-    when(bankRepositoryImplMock.initiateProValidation(any())).thenReturn(redirectUrl);
     when(userTokenRepositoryMock.getLatestTokenByAccount(any()))
         .thenReturn(UserToken.builder().accessToken(BERNARD_DOE_TOKEN).user(bernardUser()).build());
 
@@ -423,7 +415,6 @@ class DirtyAccountIT extends MockedThirdParties {
   @Test
   void manage_bank_connection_with_strong_auth_ok() throws ApiException {
     final String redirectUrl = "https://connect.bridge.io";
-    when(bankRepositoryImplMock.initiateScaSync(any())).thenReturn(redirectUrl);
     BridgeAccount scaRequiredAccount =
         otherBridgeAccount().toBuilder().status(BRIDGE_STATUS_SCA).build();
     when(accountConnectorRepositoryMock.findById(any()))
@@ -443,7 +434,6 @@ class DirtyAccountIT extends MockedThirdParties {
   @Test
   void manage_bank_connection_with_strong_auth_ko() {
     final String redirectUrl = "https://connect.bridge.io";
-    when(bankRepositoryImplMock.initiateScaSync(any())).thenReturn(redirectUrl);
     BridgeAccount scaRequiredAccount =
         otherBridgeAccount().toBuilder().status(BRIDGE_STATUS_OK).build();
     UserAccountsApi api = configureBridgeUserAccountApi(scaRequiredAccount);

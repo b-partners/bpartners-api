@@ -10,7 +10,6 @@ import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
 import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeCreateItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
-import app.bpartners.api.repository.bridge.model.Item.BridgeItemStatus;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
@@ -24,11 +23,8 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -46,122 +42,6 @@ public class BridgeApi {
 
   public BridgeApi(BridgeConf conf) {
     this.conf = conf;
-  }
-
-  public BridgeUser findById(String uuid) {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getUserUrl() + "/" + uuid))
-              .headers(defaultHeaders())
-              .GET()
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return null;
-      }
-      return objectMapper.readValue(httpResponse.body(), BridgeUser.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  public void deleteUser(String uuid, String password) {
-    HashMap<String, String> body = new HashMap<>();
-    log.info("DELETE USER uuid = {} , password = {}", uuid, password);
-    body.put("password", password);
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getUserUrl() + "/" + uuid + "/delete"))
-              .headers(defaultHeadersWithJsonContentType())
-              .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 204) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-      }
-    } catch (URISyntaxException | IOException | InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public Instant getItemStatusRefreshedAt(Long id, String token) {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getItemStatusUrl(id)))
-              .headers(defaultHeadersWithToken(token))
-              .GET()
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return null;
-      }
-      return objectMapper
-          .readValue(httpResponse.body(), BridgeItemStatus.class)
-          .getRefreshedAt()
-          .truncatedTo(ChronoUnit.MILLIS);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  public BridgeConnectItem validateCurrentProItems(String token) {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getProItemsValidationUrl()))
-              .headers(defaultHeadersWithToken(token))
-              .GET()
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return null;
-      }
-      return objectMapper.readValue(httpResponse.body(), BridgeConnectItem.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  public BridgeConnectItem editItem(String token, Long itemId) {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getEditItemsUrl() + itemId))
-              .headers(defaultHeadersWithToken(token))
-              .GET()
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return null;
-      }
-      return objectMapper.readValue(httpResponse.body(), BridgeConnectItem.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
   }
 
   public BridgeConnectItem initiateScaSync(String token, Long itemId) {
@@ -492,31 +372,6 @@ public class BridgeApi {
         return null;
       }
       return objectMapper.readValue(httpResponse.body(), BridgeTransaction.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  public List<BridgeBank> findAllBanks() {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getBankUrl()))
-              .headers(defaultHeadersWithJsonContentType())
-              .GET()
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return List.of();
-      }
-      BridgeListResponse<BridgeBank> response =
-          objectMapper.readValue(httpResponse.body(), new TypeReference<>() {});
-      return response.getResources();
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {

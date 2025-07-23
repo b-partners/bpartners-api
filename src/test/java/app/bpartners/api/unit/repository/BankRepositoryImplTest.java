@@ -29,7 +29,6 @@ import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HBank;
 import app.bpartners.api.repository.jpa.model.HUser;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +64,6 @@ class BankRepositoryImplTest {
             userMapperMock,
             bankMapperMock,
             bankJpaRepositoryMock,
-            userTokenRepositoryMock,
             holderJpaRepositoryMock,
             accountJpaRepositoryMock);
 
@@ -73,13 +71,8 @@ class BankRepositoryImplTest {
     when(bankJpaRepositoryMock.findAllByExternalId(any())).thenReturn(List.of(bankEntity()));
     when(bankMapperMock.toDomain(any(), any())).thenReturn(bank());
     when(bankJpaRepositoryMock.findById(any())).thenReturn(Optional.of(bankEntity()));
-    when(bridgeBankRepositoryMock.getItemStatusRefreshedAt(any(), any()))
-        .thenReturn(Instant.now().minus(1L, ChronoUnit.HOURS));
     when(bridgeBankRepositoryMock.refreshBankConnection(any(), any())).thenReturn(REDIRECT_URL);
     when(bridgeBankRepositoryMock.getBridgeItems()).thenReturn(List.of(bridgeItem()));
-    when(bridgeBankRepositoryMock.validateCurrentProItems(any())).thenReturn(connectItem());
-    when(bridgeBankRepositoryMock.editItem(any())).thenReturn(connectItem());
-    when(bridgeBankRepositoryMock.synchronizeSca(any())).thenReturn(connectItem());
     when(userJpaRepositoryMock.save(any())).thenReturn(userEntity());
     when(userJpaRepositoryMock.getById(any())).thenReturn(userEntity());
     when(userMapperMock.toDomain(any())).thenReturn(user());
@@ -131,55 +124,11 @@ class BankRepositoryImplTest {
   }
 
   @Test
-  void initiate_bank_connection_ok() {
-    when(bridgeBankRepositoryMock.initiateBankConnection(any())).thenReturn(REDIRECT_URL);
-
-    String actual = subject.initiateConnection(user());
-
-    assertEquals(REDIRECT_URL, actual);
-  }
-
-  @Test
   void find_external_id_ok() {
     Bank actual = subject.findByExternalId(bank().getId());
     Bank actualNull = subject.findByExternalId(null);
 
     assertEquals(bank(), actual);
     assertNull(actualNull);
-  }
-
-  @Test
-  void read_bank_by_identifier_ok() {
-    Bank actual = subject.findById(bank().getId());
-
-    assertEquals(bank(), actual);
-  }
-
-  @Test
-  void refresh_bank_connection_ok() {
-    Instant actual = subject.refreshBankConnection(userToken());
-
-    assertEquals(Instant.now().toString().substring(0, 9), actual.toString().substring(0, 9));
-  }
-
-  @Test
-  void initiate_pro_account_validation() {
-    String actual = subject.initiateProValidation(JOE_DOE_ACCOUNT_ID);
-
-    assertEquals(REDIRECT_URL, actual);
-  }
-
-  @Test
-  void initiate_bank_connection_edition() {
-    String actual = subject.initiateBankConnectionEdition(user().getDefaultAccount());
-
-    assertEquals(REDIRECT_URL, actual);
-  }
-
-  @Test
-  void manage_strong_authentication() {
-    String actual = subject.initiateScaSync(user().getDefaultAccount());
-
-    assertEquals(REDIRECT_URL, actual);
   }
 }

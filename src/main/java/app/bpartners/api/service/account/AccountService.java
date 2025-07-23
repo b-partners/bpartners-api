@@ -1,27 +1,22 @@
 package app.bpartners.api.service.account;
 
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.repository.implementation.BankRepositoryImpl.TRY_AGAIN;
 import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
-import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
-import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -95,59 +90,9 @@ public class AccountService {
   public String initiateAccountValidation(String accountId) {
     Account account = repository.findById(accountId);
     switch (account.getStatus()) {
-      case VALIDATION_REQUIRED:
-        return bankRepository.initiateProValidation(accountId);
-      case INVALID_CREDENTIALS:
-        return bankRepository.initiateBankConnectionEdition(account);
-      case SCA_REQUIRED:
-        return bankRepository.initiateScaSync(account);
       default:
         throw new BadRequestException(account.describeInfos() + " does not need validation.");
     }
-  }
-
-  @Transactional
-  public BankConnectionRedirection initiateBankConnection(
-      String userId, RedirectionStatusUrls urls) {
-    User user = userRepository.getById(userId);
-    Account defaultAccount =
-        user.getAccounts().stream()
-            .filter(
-                account ->
-                    account.getExternalId() == null && account.getName().contains(user.getName()))
-            .findAny()
-            .orElse(user.getDefaultAccount());
-    // TODO: map bank when mapping account inside userMapper and use it here
-    if (user.getBankConnectionId() != null && user.getBankConnectionId() != TRY_AGAIN) {
-      throw new BadRequestException(
-          defaultAccount.describeMinInfos()
-              + " is already connected to a bank."
-              + " Disconnect before initiating another bank connection.");
-    }
-    String redirectionUrl = bankRepository.initiateConnection(user);
-    resetDefaultAccount(userId, user, defaultAccount);
-    return new BankConnectionRedirection()
-        .redirectionUrl(redirectionUrl)
-        .redirectionStatusUrls(urls);
-  }
-
-  @Transactional
-  public Account disconnectBank(String userId) {
-    User user = userRepository.getById(userId);
-    List<BridgeItem> bridgeBankConnections = bridgeApi.findItemsByToken(user.getAccessToken());
-    if (bridgeBankConnections.isEmpty()) {
-      throw new BadRequestException(
-          "User(id="
-              + userId
-              + ",name="
-              + user.getName()
-              + ")"
-              + " is not still connected to a bank");
-    }
-    if (bankRepository.disconnectBank(user)) {
-      eventProducer.accept(List.of(new DisconnectionInitiated(userId)));
-    }
-    return user.getDefaultAccount();
   }
 
   @Transactional
@@ -193,11 +138,6 @@ public class AccountService {
         .bridgeItemLastRefresh(null)
         .bridgeItemUpdatedAt(Instant.now())
         .build();
-  }
-
-  @Transactional
-  public Instant refreshBankConnection(UserToken userToken) {
-    return bankRepository.refreshBankConnection(userToken);
   }
 
   public List<Account> saveAll(List<Account> accounts) {

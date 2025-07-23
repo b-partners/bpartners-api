@@ -49,10 +49,6 @@ public class BridgeConf {
     return baseUrl + "/items/" + itemId + "/refresh";
   }
 
-  public String getTransactionUpdatedUrl() {
-    return baseUrl + "/transactions/updated";
-  }
-
   public String getTransactionUrl() {
     return baseUrl + "/transactions";
   }

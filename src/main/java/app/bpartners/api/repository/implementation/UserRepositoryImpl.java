@@ -10,7 +10,6 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
@@ -209,11 +208,7 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User create(User user) {
-    BridgeUser bridgeUser = bridgeUserRepository.createUser(userMapper.toBridgeUser(user));
-    if (bridgeUser == null) {
-      BridgeUser.builder().email("it.bpartners@mail.hei.school").build();
-    }
-    HUser entityToSave = userMapper.toEntity(user, bridgeUser);
+    HUser entityToSave = userMapper.toEntity(user);
     HUser savedUser = jpaRepository.save(entityToSave);
     return userMapper.toDomain(savedUser);
   }

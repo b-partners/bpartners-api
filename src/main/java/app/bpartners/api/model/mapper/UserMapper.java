@@ -7,7 +7,6 @@ import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
@@ -133,13 +132,6 @@ public class UserMapper {
 
   public HUser toEntity(User user, List<HAccountHolder> accountHolders, List<HAccount> accounts) {
     return toEntity(user).toBuilder().accountHolders(accountHolders).accounts(accounts).build();
-  }
-
-  public HUser toEntity(User toSave, BridgeUser bridgeUser) {
-    return toEntity(toSave).toBuilder()
-        .bridgeUserId(bridgeUser.getUuid())
-        .email(bridgeUser.getEmail())
-        .build();
   }
 
   public CreateBridgeUser toBridgeUser(User user) {

@@ -4,8 +4,6 @@ import app.bpartners.api.endpoint.rest.mapper.TransactionRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.TransactionsSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.Transaction;
-import app.bpartners.api.endpoint.rest.model.TransactionExportInput;
-import app.bpartners.api.endpoint.rest.model.TransactionExportLink;
 import app.bpartners.api.endpoint.rest.model.TransactionStatus;
 import app.bpartners.api.endpoint.rest.model.TransactionsSummary;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
@@ -63,15 +61,6 @@ public class TransactionController {
       @PathVariable String tId,
       @RequestBody List<String> supportingDocumentsIds) {
     throw new NotImplementedException("Not supported");
-  }
-
-  @PostMapping(value = "/accounts/{id}/transactions/exportLink")
-  public TransactionExportLink generateTransactionsExportLink(
-      @PathVariable String id, @RequestBody TransactionExportInput input) {
-    exportValidator.accept(input);
-    return mapper.toRest(
-        service.generateTransactionSummaryLink(
-            id, input.getFrom(), input.getTo(), input.getTransactionStatus()));
   }
 
   @GetMapping(value = "/accounts/{id}/transactions")

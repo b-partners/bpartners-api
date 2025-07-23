@@ -3,7 +3,6 @@ package app.bpartners.api.integration;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
-import static app.bpartners.api.integration.UserServiceIT.bridgeUser;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.*;
@@ -275,7 +274,6 @@ class UserIT extends MockedThirdParties {
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
   void onboard_users_ok() throws IOException, InterruptedException {
-    when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
@@ -325,8 +323,6 @@ class UserIT extends MockedThirdParties {
   // TODO: check why two attempts with same email are all OK
   @Test
   void onboard_users_ko() throws IOException, InterruptedException {
-    when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
-
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
 

@@ -7,11 +7,8 @@ import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.bridge.model.Bank.BridgeBank;
-import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
-import app.bpartners.api.repository.bridge.model.Item.BridgeCreateItem;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
-import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.bridge.response.BridgeListResponse;
 import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
@@ -24,7 +21,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +30,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Data
 public class BridgeApi {
-  public static final String MAX_DAILY_REFRESHES_REACHED = "max_daily_refreshes_reached";
   private final HttpClient httpClient = HttpClient.newBuilder().build();
 
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
@@ -42,85 +37,6 @@ public class BridgeApi {
 
   public BridgeApi(BridgeConf conf) {
     this.conf = conf;
-  }
-
-  public BridgeConnectItem initiateScaSync(String token, Long itemId) {
-    try {
-      String queryParams = "?item_id=" + itemId;
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getScaSyncUrl() + queryParams))
-              .headers(defaultHeadersWithToken(token))
-              .GET()
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return null;
-      }
-      return objectMapper.readValue(httpResponse.body(), BridgeConnectItem.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  public String refreshBankConnection(Long itemId, String token) {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getRefreshUrl(itemId)))
-              .headers(defaultHeadersWithToken(token))
-              .POST(HttpRequest.BodyPublishers.noBody())
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (itemHasReachMaxDailyRefresh(httpResponse)) {
-        return null;
-      }
-      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return null;
-      }
-      return objectMapper.readValue(httpResponse.body(), String.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  private boolean itemHasReachMaxDailyRefresh(HttpResponse<String> httpResponse) {
-    return httpResponse.body().contains(MAX_DAILY_REFRESHES_REACHED);
-  }
-
-  public List<BridgeUser> findAllUsers() {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getUserUrl()))
-              .headers(defaultHeadersWithJsonContentType())
-              .GET()
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return List.of();
-      }
-      BridgeListResponse<BridgeUser> response =
-          objectMapper.readValue(httpResponse.body(), new TypeReference<>() {});
-      return response.getResources();
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
   }
 
   public BridgeAccount findByAccountById(Long id, String token) {
@@ -171,31 +87,6 @@ public class BridgeApi {
     }
   }
 
-  public BridgeUser createUser(CreateBridgeUser createBridgeUser) {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getUserUrl()))
-              .headers(defaultHeadersWithJsonContentType())
-              .POST(
-                  HttpRequest.BodyPublishers.ofString(
-                      objectMapper.writeValueAsString(createBridgeUser)))
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return null;
-      }
-      return objectMapper.readValue(httpResponse.body(), BridgeUser.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
   public BridgeTokenResponse authenticateUser(CreateBridgeUser user) {
     try {
       HttpRequest request =
@@ -212,33 +103,6 @@ public class BridgeApi {
         return null;
       }
       return objectMapper.readValue(httpResponse.body(), BridgeTokenResponse.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  public String initiateBankConnection(BridgeCreateItem item, String token) {
-    try {
-      ArrayList<String> requestHeaders =
-          new ArrayList<>(Arrays.asList(defaultHeadersWithToken(token)));
-      addParams(requestHeaders, "Content-Type", "application/json");
-      String[] headers = new String[requestHeaders.size()];
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getAddItemUrl()))
-              .headers(requestHeaders.toArray(headers))
-              .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(item)))
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 201) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return null;
-      }
-      return objectMapper.readValue(httpResponse.body(), BridgeConnectItem.class).getRedirectUrl();
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
@@ -264,52 +128,6 @@ public class BridgeApi {
       BridgeListResponse<BridgeItem> response =
           objectMapper.readValue(httpResponse.body(), new TypeReference<>() {});
       return response.getResources();
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  public BridgeItem findItemByIdAndToken(String id, String token) {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getItemByIdUrl(id)))
-              .headers(defaultHeadersWithToken(token))
-              .GET()
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return null;
-      }
-      return objectMapper.readValue(httpResponse.body(), BridgeItem.class);
-    } catch (URISyntaxException | IOException e) {
-      throw new ApiException(SERVER_EXCEPTION, e);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  public boolean deleteItem(Long id, String token) {
-    try {
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(new URI(conf.getItemByIdUrl(String.valueOf(id))))
-              .headers(defaultHeadersWithToken(token))
-              .DELETE()
-              .build();
-      HttpResponse<String> httpResponse =
-          httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      if (httpResponse.statusCode() != 200 && httpResponse.statusCode() != 204) {
-        log.warn("BridgeApi errors : {}", httpResponse.body());
-        return false;
-      }
-      return true;
     } catch (URISyntaxException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     } catch (InterruptedException e) {
@@ -403,14 +221,6 @@ public class BridgeApi {
     }
   }
 
-  public String[] defaultHeaders() {
-    return new String[] {
-      "Client-Id", conf.getClientId(),
-      "Client-Secret", conf.getClientSecret(),
-      "Bridge-Version", conf.getBridgeVersion(),
-    };
-  }
-
   public String[] defaultHeadersWithJsonContentType() {
     return new String[] {
       "Content-Type", "application/json",
@@ -427,11 +237,5 @@ public class BridgeApi {
       "Client-Secret", conf.getClientSecret(),
       "Bridge-Version", conf.getBridgeVersion()
     };
-  }
-
-  List<String> addParams(ArrayList<String> headers, String paramName, String paramValue) {
-    headers.add(paramName);
-    headers.add(paramValue);
-    return headers;
   }
 }

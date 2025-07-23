@@ -79,8 +79,6 @@ class UserServiceIT extends MockedThirdParties {
          .thenReturn(new Principal(userToOnboard, JOE_DOE_TOKEN));*/
     User userToOnboard = toOnboard();
     when(bridgeApi.findItemsByToken(any())).thenReturn(List.of(new BridgeItem()));
-    when(bridgeBankRepositoryMock.refreshBankConnection(any(), any())).thenReturn("success");
-    when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 
     OnboardedUser actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
     User actualUser = actual.getOnboardedUser();

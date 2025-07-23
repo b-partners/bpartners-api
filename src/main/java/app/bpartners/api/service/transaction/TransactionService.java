@@ -3,7 +3,6 @@ package app.bpartners.api.service.transaction;
 import static app.bpartners.api.endpoint.rest.model.FileType.TRANSACTION_SUPPORTING_DOCS;
 import static app.bpartners.api.endpoint.rest.model.TransactionStatus.BOOKED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
@@ -20,13 +19,11 @@ import app.bpartners.api.model.JustifyTransaction;
 import app.bpartners.api.model.MonthlyTransactionsSummary;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.Transaction;
-import app.bpartners.api.model.TransactionExportDetails;
 import app.bpartners.api.model.TransactionInvoiceDetails;
 import app.bpartners.api.model.TransactionSupportingDocs;
 import app.bpartners.api.model.TransactionsSummary;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.DbTransactionRepository;
@@ -126,49 +123,6 @@ public class TransactionService {
             .get(0);
 
     return savedTransaction.getSupportingDocuments();
-  }
-
-  public TransactionExportDetails generateTransactionSummaryLink(
-      String idAccount, Instant from, Instant to, TransactionStatus transactionStatus) {
-    if (from.isAfter(to)) {
-      throw new BadRequestException(
-          String.format("Min interval (%s) must be after max interval (%s)", from, to));
-    }
-    if (transactionStatus == null) {
-      transactionStatus = BOOKED;
-    }
-    List<Transaction> transactions =
-        dbTransactionRepository.findByAccountIdAndStatusBetweenInstants(
-            idAccount, transactionStatus, from, to);
-    User user = userService.getByIdAccount(idAccount);
-
-    Map<byte[], Map<String, String>> excelFileWithAssociatedInvoices =
-        convertToExcelFileWithAssociatedInvoices(transactions);
-    byte[] transactionExcelBytes = excelFileWithAssociatedInvoices.keySet().iterator().next();
-    Map<String, byte[]> pdfInvoices =
-        convertToFileNameAndBytes(user, excelFileWithAssociatedInvoices.get(transactionExcelBytes));
-
-    String transactionExcelFileName =
-        String.format(
-            "Transactions du %s au %s.xlsx",
-            customDateFormatter.formatFrenchDateUnderscore(from),
-            customDateFormatter.formatFrenchDateUnderscore(to));
-    byte[] compressed =
-        compressedFiles(transactionExcelFileName, transactionExcelBytes, pdfInvoices);
-    String compressedFileId = String.valueOf(randomUUID());
-    s3Service.uploadFile(
-        FileType.TRANSACTION, compressedFileId, user.getId(), fileWriter.apply(compressed, null));
-
-    Instant createdAt = now();
-    Instant expiredAt = createdAt.plusSeconds(ONE_HOUR_IN_SECONDS);
-    String presignedUrl =
-        s3Service.presignURL(
-            FileType.TRANSACTION, compressedFileId, user.getId(), ONE_HOUR_IN_SECONDS);
-    return TransactionExportDetails.builder()
-        .downloadLink(presignedUrl)
-        .createdAt(createdAt)
-        .expiredAt(expiredAt)
-        .build();
   }
 
   private Map<String, byte[]> convertToFileNameAndBytes(

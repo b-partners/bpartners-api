@@ -31,7 +31,6 @@ class BridgeBankRepositoryImplTest {
     bridgeBankRepository = new BridgeBankRepositoryImpl(bridgeApi, userTokenRepository);
 
     when(bridgeApi.findBankById(any(Long.class))).thenReturn(bridgeBank());
-    when(bridgeApi.initiateBankConnection(any(), any())).thenReturn(JOE_DOE_TOKEN);
     when(userTokenRepository.getLatestTokenByUser(any(User.class)))
         .thenReturn(UserToken.builder().accessToken(JOE_DOE_TOKEN).build());
   }

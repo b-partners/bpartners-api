@@ -2,7 +2,6 @@ package app.bpartners.api.integration;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import app.bpartners.api.endpoint.SentryConf;
@@ -56,14 +55,6 @@ public class BridgeIT {
         .uuid("c2ebbe2c-7804-4d7d-b1b0-77059a0c1519")
         .email("bpartners.artisans@mail.com")
         .build();
-  }
-
-  @Test
-  void read_users_ok() {
-    List<BridgeUser> actual = subject.findAllUsers();
-
-    assertFalse(actual.isEmpty());
-    assertTrue(actual.contains(bridgeUser()));
   }
 
   @Test
@@ -129,14 +120,6 @@ public class BridgeIT {
   }
 
   @Test
-  void read_item_by_id_ok() {
-    BridgeItem actual = subject.findItemByIdAndToken(ITEM_ID, userToken());
-
-    log.info("BridgeItem={}", actual);
-    assertNotNull(actual);
-  }
-
-  @Test
   void read_transactions_ok() {
     List<BridgeTransaction> actual = subject.findTransactionsUpdatedByToken(userToken());
 
@@ -162,11 +145,6 @@ public class BridgeIT {
 
   private String userToken() {
     return "7aeb445c2f48a9eb7a9e1d3d81105558c00d0488-fd723599-f559-40a6-a7ea-4d9dd24dc650";
-  }
-
-  @Test
-  void delete_item_ok() {
-    assertTrue(subject.deleteItem(7838784L, userToken()));
   }
 
   public static class ContextInitializer extends BridgeAbstractContextInitializer {

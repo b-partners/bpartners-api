@@ -71,7 +71,6 @@ class BankRepositoryImplTest {
     when(bankJpaRepositoryMock.findAllByExternalId(any())).thenReturn(List.of(bankEntity()));
     when(bankMapperMock.toDomain(any(), any())).thenReturn(bank());
     when(bankJpaRepositoryMock.findById(any())).thenReturn(Optional.of(bankEntity()));
-    when(bridgeBankRepositoryMock.refreshBankConnection(any(), any())).thenReturn(REDIRECT_URL);
     when(bridgeBankRepositoryMock.getBridgeItems()).thenReturn(List.of(bridgeItem()));
     when(userJpaRepositoryMock.save(any())).thenReturn(userEntity());
     when(userJpaRepositoryMock.getById(any())).thenReturn(userEntity());

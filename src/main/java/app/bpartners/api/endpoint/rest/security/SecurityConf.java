@@ -159,6 +159,10 @@ public class SecurityConf {
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/users/subscriptionRegistration")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/landing-file/*")
+                    .authenticated()
+                    .requestMatchers(GET, "/landing-file/*")
+                    .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(
                             GET, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
@@ -497,9 +501,6 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfAccountHolderMatcher(
                             PUT, "/accountHolders/*/prospects", authResourceProvider))
-                    .authenticated()
-                    .requestMatchers(
-                        new SelfAccountHolderMatcher(PUT, "/landing-file/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountHolderMatcher(

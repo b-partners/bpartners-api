@@ -79,8 +79,6 @@ public class SecurityConf {
                 new NegatedRequestMatcher(
                     new OrRequestMatcher(
                         new AntPathRequestMatcher("/ping"),
-                        new AntPathRequestMatcher("/landing-file/*", POST.name()),
-                        new AntPathRequestMatcher("/landing-file/*", GET.name()),
                         new AntPathRequestMatcher("/preUsers", POST.name()),
                         new AntPathRequestMatcher("/authInitiation"),
                         new AntPathRequestMatcher("/token"),
@@ -108,10 +106,6 @@ public class SecurityConf {
             (authorize) ->
                 authorize
                     .requestMatchers("/ping")
-                    .permitAll()
-                    .requestMatchers(GET, "/landing-file/*")
-                    .permitAll()
-                    .requestMatchers(POST, "/landing-file/*")
                     .permitAll()
                     .requestMatchers("/authInitiation")
                     .permitAll()
@@ -503,6 +497,9 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfAccountHolderMatcher(
                             PUT, "/accountHolders/*/prospects", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(PUT, "/landing-file/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountHolderMatcher(

@@ -8,9 +8,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.UserMapper;
-import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
@@ -33,10 +31,8 @@ public class UserRepositoryImpl implements UserRepository {
   private final UserJpaRepository jpaRepository;
   private final UserMapper userMapper;
   private final CognitoComponent cognitoComponent;
-  private final BridgeUserRepository bridgeUserRepository;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final AccountJpaRepository accountJpaRepository;
-  private final BankRepository bankRepository;
   private final EntityManager entityManager;
 
   @Override
@@ -203,7 +199,7 @@ public class UserRepositoryImpl implements UserRepository {
     Optional<HAccount> optionalAccount =
         accounts.stream().filter(account -> account.getIdBank() != null).findAny();
     String idBank = optionalAccount.isEmpty() ? null : optionalAccount.get().getIdBank();
-    return userMapper.toDomain(savedUser, bankRepository.findByExternalId(idBank));
+    return userMapper.toDomain(savedUser);
   }
 
   @Override

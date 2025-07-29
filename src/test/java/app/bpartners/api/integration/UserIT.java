@@ -23,7 +23,6 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,7 +58,6 @@ class UserIT extends MockedThirdParties {
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
   @MockBean private EventBridgeClient eventBridgeClientMock;
-  @MockBean private BridgeUserRepository bridgeUserRepositoryMock;
   @Autowired private UserJpaRepository userJpaRepository;
   @Autowired private UserRepository userRepository;
 
@@ -266,6 +264,15 @@ class UserIT extends MockedThirdParties {
     return new OnboardUser()
         .firstName("Bernard")
         .lastName("Germain")
+        .email("bernardgermaincompany@email.com")
+        .phoneNumber("+33123456789")
+        .companyName("BG Company");
+  }
+
+  public OnboardUser onboardUserKo() {
+    return new OnboardUser()
+        .firstName("Bernard")
+        .lastName("Germain")
         .email("bernardgermain@email.com")
         .phoneNumber("+33123456789")
         .companyName("BG Company");
@@ -326,7 +333,7 @@ class UserIT extends MockedThirdParties {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
 
-    OnboardUser toOnboard = onboardUser();
+    OnboardUser toOnboard = onboardUserKo();
     HttpResponse<String> firstAttempt =
         unauthenticatedClient.send(
             HttpRequest.newBuilder()

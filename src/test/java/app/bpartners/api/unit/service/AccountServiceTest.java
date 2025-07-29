@@ -13,7 +13,6 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.*;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.service.account.AccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,29 +20,17 @@ import org.junit.jupiter.api.Test;
 class AccountServiceTest {
   AccountService subject;
   AccountRepository repositoryMock;
-  BankRepository bankRepositoryMock;
   UserRepository userRepositoryMock;
   TransactionsSummaryRepository summaryRepositoryMock;
-  DbTransactionRepository transactionRepositoryMock;
-  BridgeApi bridgeApiMock;
   EventProducer<DisconnectionInitiated> eventProducerMock;
 
   @BeforeEach
   void setUp() {
-    bankRepositoryMock = mock(BankRepository.class);
     userRepositoryMock = mock(UserRepository.class);
     summaryRepositoryMock = mock(TransactionsSummaryRepository.class);
-    transactionRepositoryMock = mock(DbTransactionRepository.class);
     repositoryMock = mock(AccountRepository.class);
-    bridgeApiMock = mock(BridgeApi.class);
     eventProducerMock = mock(EventProducer.class);
-    subject =
-        new AccountService(
-            repositoryMock,
-            bankRepositoryMock,
-            userRepositoryMock,
-            bridgeApiMock,
-            eventProducerMock);
+    subject = new AccountService(repositoryMock, userRepositoryMock, eventProducerMock);
   }
 
   @Test

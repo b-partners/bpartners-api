@@ -15,7 +15,6 @@ import app.bpartners.api.repository.google.calendar.CalendarConf;
 import app.bpartners.api.repository.jpa.CalendarStoredCredentialJpaRep;
 import app.bpartners.api.repository.jpa.model.HCalendarStoredCredential;
 import app.bpartners.api.service.customer.CustomerService;
-import app.bpartners.api.service.transaction.TransactionService;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
@@ -52,7 +51,6 @@ public class CalendarIT extends MockedThirdParties {
   @Autowired private CalendarApi calendarApi;
   @Autowired private CalendarConf calendarConf;
   @Autowired private CalendarStoredCredentialJpaRep storeRepository;
-  @MockBean private TransactionService transactionService;
   @MockBean private BanApi banApi;
   @MockBean private CustomerService customerService;
 

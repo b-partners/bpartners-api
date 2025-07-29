@@ -53,7 +53,6 @@ import app.bpartners.api.repository.google.sheets.SheetConf;
 import app.bpartners.api.repository.jpa.SheetStoredCredentialJpaRep;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.prospect.ProspectService;
-import app.bpartners.api.service.transaction.TransactionService;
 import app.bpartners.api.service.user.UserService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import com.google.api.client.auth.oauth2.Credential;
@@ -118,7 +117,6 @@ public class SheetIT extends MockedThirdParties {
   @Autowired private SheetConf sheetConf;
   @Autowired private DriveApi driveApi;
   @Autowired private SheetStoredCredentialJpaRep storeRepository;
-  @MockBean private TransactionService transactionService;
   @MockBean private BanApi banApiMock;
   @MockBean private CustomerService customerService;
   @MockBean private CalendarApi calendarApiMock;

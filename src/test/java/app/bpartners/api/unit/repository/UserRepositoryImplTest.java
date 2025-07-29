@@ -11,8 +11,6 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.UserMapper;
-import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.implementation.UserRepositoryImpl;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
@@ -28,10 +26,8 @@ import org.mockito.ArgumentCaptor;
 
 class UserRepositoryImplTest {
   EntityManager entityManagerMock = mock();
-  BankRepository bankRepositoryMock = mock();
   AccountJpaRepository accountJpaRepositoryMock = mock();
   AccountHolderJpaRepository holderJpaRepositoryMock = mock();
-  BridgeUserRepository bridgeUserRepositoryMock = mock();
   CognitoComponent cognitoComponentMock = mock();
   UserMapper userMapperMock = mock();
   UserJpaRepository userJpaRepositoryMock = mock();
@@ -40,10 +36,8 @@ class UserRepositoryImplTest {
           userJpaRepositoryMock,
           userMapperMock,
           cognitoComponentMock,
-          bridgeUserRepositoryMock,
           holderJpaRepositoryMock,
           accountJpaRepositoryMock,
-          bankRepositoryMock,
           entityManagerMock);
 
   @Test

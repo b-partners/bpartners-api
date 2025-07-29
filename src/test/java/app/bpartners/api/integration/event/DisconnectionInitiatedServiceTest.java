@@ -9,9 +9,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.User;
-import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.account.AccountService;
@@ -29,7 +27,6 @@ public class DisconnectionInitiatedServiceTest extends MockedThirdParties {
   @MockBean AccountService accountServiceMock;
   @MockBean UserRepository userRepositoryMock;
   @MockBean TransactionsSummaryRepository transactionsSummaryRepositoryMock;
-  @MockBean DbTransactionRepository transactionRepositoryMock;
   @Autowired DisconnectionInitiatedService subject;
 
   Account account() {
@@ -42,14 +39,9 @@ public class DisconnectionInitiatedServiceTest extends MockedThirdParties {
         .thenReturn(User.builder().id(USER1_ID).accounts(List.of(account())).build());
     when(accountServiceMock.getAccountsByUserId(any())).thenReturn(List.of(account()));
     when(accountServiceMock.getActive(any())).thenReturn(account());
-    when(transactionRepositoryMock.findByAccountId(any())).thenReturn(List.of(new Transaction()));
 
     subject.accept(new DisconnectionInitiated(USER1_ID));
 
-    verify(transactionsSummaryRepositoryMock, times(1)).removeAll(any());
-    verify(transactionRepositoryMock, times(1)).saveAll(any());
-    verify(accountServiceMock, times(1)).saveAll(any());
-    verify(userRepositoryMock, times(1)).save(any());
     verify(accountServiceMock, times(1)).save(any());
   }
 }

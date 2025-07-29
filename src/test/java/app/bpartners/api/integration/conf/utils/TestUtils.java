@@ -11,7 +11,6 @@ import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Money.fromMinor;
-import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,7 +62,6 @@ import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
-import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import app.bpartners.api.repository.sendinblue.model.Attributes;
@@ -204,29 +202,6 @@ public class TestUtils {
         .name("Account_name")
         .iban("FR0123456789")
         .bic("BIC_NOT_NULL");
-  }
-
-  public static BridgeAccount joeDoeBridgeAccount() {
-    return BridgeAccount.builder()
-        .id(String.valueOf(123L))
-        .bankId(1234L)
-        .name("Numer Bridge Account")
-        .iban("FR7699999001001190346460988")
-        .status(BRIDGE_STATUS_OK)
-        .balance(1000.0)
-        .build();
-  }
-
-  public static BridgeAccount otherBridgeAccount() {
-    return BridgeAccount.builder()
-        // /!\ this should be a long value but to pass test we use same ID with different bodies
-        .id("beed1765-5c16-472a-b3f4-5c376ce5db58")
-        .bankId(456L)
-        .name("Other")
-        .iban("FR12349001001190346460988")
-        .status(BRIDGE_STATUS_OK)
-        .balance(0.0)
-        .build();
   }
 
   public static AnnualRevenueTarget annualRevenueTarget1() {

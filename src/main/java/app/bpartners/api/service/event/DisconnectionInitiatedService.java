@@ -6,10 +6,7 @@ import static app.bpartners.api.service.account.AccountService.resetDefaultUser;
 import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.Account;
-import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.User;
-import app.bpartners.api.repository.DbTransactionRepository;
-import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.account.AccountService;
 import java.util.ArrayList;
@@ -21,8 +18,6 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class DisconnectionInitiatedService implements Consumer<DisconnectionInitiated> {
-  private final TransactionsSummaryRepository summaryRepository;
-  private final DbTransactionRepository transactionRepository;
   private final AccountService accountService;
   private final UserRepository userRepository;
 
@@ -32,19 +27,7 @@ public class DisconnectionInitiatedService implements Consumer<DisconnectionInit
     var user = userRepository.getById(userId);
     List<Account> accounts = accountService.getAccountsByUserId(userId);
     Account active = accountService.getActive(accounts);
-    disableTransactions(userId, accounts);
     saveDefaultAccount(user, accounts, active);
-  }
-
-  private void disableTransactions(String userId, List<Account> accounts) {
-    summaryRepository.removeAll(userId);
-    List<Transaction> allTransactions = new ArrayList<>();
-    for (Account account : accounts) {
-      List<Transaction> transactions = transactionRepository.findByAccountId(account.getId());
-      allTransactions.addAll(transactions);
-    }
-    allTransactions.forEach(transaction -> transaction.setEnableStatus(EnableStatus.DISABLED));
-    transactionRepository.saveAll(allTransactions);
   }
 
   private void saveDefaultAccount(User user, List<Account> accounts, Account activeAccount) {

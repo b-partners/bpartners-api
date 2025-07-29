@@ -56,10 +56,4 @@ public class TransactionsSummaryRepositoryImpl implements TransactionsSummaryRep
   public MonthlyTransactionsSummary getByIdUserAndYearMonth(String idUser, int year, int month) {
     return mapper.toDomain(jpaRepository.getByIdUserAndYearAndMonth(idUser, year, month));
   }
-
-  @Override
-  public void removeAll(String userId) {
-    List<HMonthlyTransactionsSummary> toRemove = jpaRepository.getByIdUser(userId);
-    jpaRepository.deleteAll(toRemove);
-  }
 }

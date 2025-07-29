@@ -9,7 +9,6 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.validator.LegalFileRestValidator;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ForbiddenException;
-import app.bpartners.api.repository.UserTokenRepository;
 import app.bpartners.api.service.user.LegalFileService;
 import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class LegalFileController {
   private final CognitoComponent cognitoComponent;
   private final UserService userService;
-  private final UserTokenRepository bridgeRepository;
   private final LegalFileService service;
   private final LegalFileRestMapper mapper;
   private final LegalFileRestValidator validator;

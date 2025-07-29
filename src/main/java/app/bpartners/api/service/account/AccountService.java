@@ -14,9 +14,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
-import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -30,9 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class AccountService {
   private final AccountRepository repository;
-  private final BankRepository bankRepository;
   private final UserRepository userRepository;
-  private final BridgeApi bridgeApi;
   private final EventProducer<DisconnectionInitiated> eventProducer;
 
   public Account getActive(List<Account> accounts) {

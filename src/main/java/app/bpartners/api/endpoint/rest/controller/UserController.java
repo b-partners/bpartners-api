@@ -13,7 +13,6 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
-import app.bpartners.api.service.account.AccountRefreshService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +27,6 @@ public class UserController {
   private final UserRestMapper mapper;
   private final CognitoComponent cognitoComponent;
   private final UserService service;
-  private final AccountRefreshService accountRefreshService;
   private final SubscriptionService subscriptionService;
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
 
@@ -71,11 +69,6 @@ public class UserController {
     var userSubscription = subscriptionService.cancelLatestUserSubscription(user);
 
     return mapper.toRest(userSubscription.getUser());
-  }
-
-  @PostMapping("/users/accounts/refresh")
-  public List<User> refreshUserAccounts() {
-    return accountRefreshService.refreshDisconnectedUsers().stream().map(mapper::toRest).toList();
   }
 
   @PostMapping(value = "/users/{uId}/deviceRegistration")

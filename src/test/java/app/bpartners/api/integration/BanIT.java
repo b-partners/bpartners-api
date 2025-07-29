@@ -2,11 +2,9 @@ package app.bpartners.api.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import app.bpartners.api.endpoint.rest.security.bridge.BridgeConf;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
-import app.bpartners.api.service.transaction.TransactionService;
 import app.bpartners.api.service.utils.GeoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -19,10 +17,8 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 @Testcontainers
 @Slf4j
 class BanIT extends MockedThirdParties {
-  @MockBean private BridgeConf bridgeConf;
   @MockBean private EventBridgeClient eventBridgeClient;
   @MockBean private SqsClient sqsClient;
-  @MockBean private TransactionService transactionService;
   @Autowired private BanApi subject;
 
   @Test

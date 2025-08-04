@@ -79,8 +79,6 @@ public class SecurityConf {
                 new NegatedRequestMatcher(
                     new OrRequestMatcher(
                         new AntPathRequestMatcher("/ping"),
-                        new AntPathRequestMatcher("/landing-file/*", POST.name()),
-                        new AntPathRequestMatcher("/landing-file/*", GET.name()),
                         new AntPathRequestMatcher("/preUsers", POST.name()),
                         new AntPathRequestMatcher("/authInitiation"),
                         new AntPathRequestMatcher("/token"),
@@ -108,10 +106,6 @@ public class SecurityConf {
             (authorize) ->
                 authorize
                     .requestMatchers("/ping")
-                    .permitAll()
-                    .requestMatchers(GET, "/landing-file/*")
-                    .permitAll()
-                    .requestMatchers(POST, "/landing-file/*")
                     .permitAll()
                     .requestMatchers("/authInitiation")
                     .permitAll()
@@ -165,6 +159,10 @@ public class SecurityConf {
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/users/subscriptionRegistration")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/landing-file/*")
+                    .authenticated()
+                    .requestMatchers(GET, "/landing-file/*")
+                    .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(
                             GET, "/users/*/subscriptionConsumptionLogs", authResourceProvider))

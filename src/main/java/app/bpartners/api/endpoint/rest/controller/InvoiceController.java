@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUserId;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoicesSummaryRestMapper;
@@ -22,9 +23,10 @@ import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.InvoiceSummaryService;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @AllArgsConstructor
@@ -101,16 +104,29 @@ public class InvoiceController {
       @RequestParam(name = "page", required = false) PageFromOne page,
       @RequestParam(name = "pageSize", required = false) BoundedPageSize pageSize,
       @RequestParam(name = "status", required = false) InvoiceStatus status,
-      @RequestParam(name = "statusList", required = false) List<InvoiceStatus> statusList,
+      @RequestParam(name = "statusList", required = false) String statusListRaw,
       @RequestParam(name = "archiveStatus", required = false) ArchiveStatus archiveStatus,
       @RequestParam(name = "title", required = false) String title,
       @RequestParam(name = "filters", required = false) List<String> filters) {
-    String idUser = getAuthenticatedUserId(); // TODO: should be changed when endpoint changed
-    if (status != null && (statusList == null || statusList.isEmpty())) {
-      log.warn("DEPRECATED: GET /accounts/{aId}/invoices query_param=status is still used");
-      statusList = new ArrayList<>();
-      statusList.add(status);
+    String idUser = getAuthenticatedUserId();
+    List<InvoiceStatus> statusList;
+
+    if (statusListRaw != null && !statusListRaw.isBlank()) {
+      try {
+        statusList =
+            Arrays.stream(statusListRaw.split("%2C"))
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .map(InvoiceStatus::valueOf)
+                .collect(Collectors.toList());
+        log.info("Status list={}", statusList);
+      } catch (IllegalArgumentException e) {
+        throw new ResponseStatusException(BAD_REQUEST, "Invalid status in statusList", e);
+      }
+    } else {
+      statusList = null;
     }
+
     return service
         .getInvoices(idUser, page, pageSize, statusList, archiveStatus, title, filters)
         .stream()

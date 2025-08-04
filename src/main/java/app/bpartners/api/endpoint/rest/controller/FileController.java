@@ -6,6 +6,7 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import app.bpartners.api.endpoint.rest.model.FileInfo;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.endpoint.rest.security.UsernamePasswordAuthenticator;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.MultipartFileConverter;
 import app.bpartners.api.model.exception.NotImplementedException;
@@ -39,6 +40,7 @@ public class FileController {
   private final FileMapper mapper;
   private final MultipartFileConverter multipartFileConverter;
   private final FileWriter fileWriter;
+  private UsernamePasswordAuthenticator authenticator;
 
   @GetMapping(value = "/accounts/{accountId}/files/{id}")
   public FileInfo getFileInfoById(

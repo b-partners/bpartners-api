@@ -114,7 +114,7 @@ public class InvoiceController {
     if (statusListRaw != null && !statusListRaw.isBlank()) {
       try {
         statusList =
-            Arrays.stream(statusListRaw.split(","))
+            Arrays.stream(statusListRaw.split("%2C"))
                 .map(String::trim)
                 .map(String::toUpperCase)
                 .map(InvoiceStatus::valueOf)

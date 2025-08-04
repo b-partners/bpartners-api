@@ -999,7 +999,7 @@ operations:
           name: statusList
           description: 'Filter invoices by some statuses. If null, returns all invoices'
           schema:
-            type: array
+            type: string
             items:
               $ref: '#/components/schemas/InvoiceStatus'
         - in: query

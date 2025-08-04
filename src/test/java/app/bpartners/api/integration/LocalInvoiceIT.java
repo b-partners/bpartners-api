@@ -67,7 +67,6 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -79,7 +78,6 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@Slf4j
 class LocalInvoiceIT extends S3MockedThirdParties {
   @MockBean private BanApi banApi;
   @MockBean private AccountHolderJpaRepository holderJpaRepository;
@@ -132,17 +130,17 @@ class LocalInvoiceIT extends S3MockedThirdParties {
     List<Invoice> actualAll =
         api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null, null, null);
     List<Invoice> actualDraft =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(DRAFT), null, null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, "DRAFT", null, null, null);
     List<Invoice> actualProposal =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PROPOSAL), null, null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, "PROPOSAL", null, null, null);
     List<Invoice> actualConfirmed =
         api.getInvoices(
-            JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(CONFIRMED), null, null, null);
+            JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, "CONFIRMED", null, null, null);
     List<Invoice> actualPaid =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(PAID), null, null, null);
+        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, "PAID", null, null, null);
     List<Invoice> actualConfirmedAndPaid =
         api.getInvoices(
-            JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, List.of(CONFIRMED, PAID), null, null, null);
+            JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, "PAID,CONFIRMED", null, null, null);
     String titleToFitler = "Facture";
     List<Invoice> actualByTitle =
         api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null, titleToFitler, null);

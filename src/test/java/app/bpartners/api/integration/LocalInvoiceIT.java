@@ -138,7 +138,8 @@ class LocalInvoiceIT extends S3MockedThirdParties {
     List<Invoice> actualPaid =
         api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, "PAID", null, null, null);
     List<Invoice> actualConfirmedAndPaid =
-        api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, "PAID%2CCONFIRMED", null, null, null);
+        api.getInvoices(
+            JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, "PAID%2CCONFIRMED", null, null, null);
     String titleToFitler = "Facture";
     List<Invoice> actualByTitle =
         api.getInvoices(JOE_DOE_ACCOUNT_ID, 1, MAX_SIZE, null, null, null, titleToFitler, null);

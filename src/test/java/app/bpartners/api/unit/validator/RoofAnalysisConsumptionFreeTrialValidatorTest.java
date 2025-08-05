@@ -71,9 +71,9 @@ class RoofAnalysisConsumptionFreeTrialValidatorTest {
     when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(true);
     when(subscriptionServiceMock.findConsumptionLogsByUserId(
             eq(userId), any(Instant.class), any(Instant.class)))
-        .thenReturn(someConsumptionLogs(10, ROOF_ANALYSIS));
+        .thenReturn(someConsumptionLogs(20, ROOF_ANALYSIS));
     var expectedMessage =
-        "Roof analysis consumption 10 limit exceeded"
+        "Roof analysis consumption 20 limit exceeded"
             + " for free trial period for User.id="
             + userId;
 

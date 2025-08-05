@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RoofAnalysisConsumptionFreeTrialValidator
     implements Consumer<UserSubscriptionEligible> {
-  private static final long MAX_FREE_ROOF_ANALYSIS_CONSUMPTION_ALLOWED = 10L;
+  private static final long MAX_FREE_ROOF_ANALYSIS_CONSUMPTION_ALLOWED = 20L;
   private final SubscriptionService subscriptionService;
   private final UserApiKeyFullAuthorizationJpaRepository apiKeyFullAuthorizationRepository;
 

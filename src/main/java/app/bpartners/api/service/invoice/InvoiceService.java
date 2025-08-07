@@ -312,17 +312,15 @@ public class InvoiceService {
     var oldPayments = oldInvoice.getAllPaymentRegulations();
     if (!newPaymentRegulations.isEmpty()) {
       var disabledPayments =
-          new ArrayList<>(
-              oldPayments.stream()
-                  .map(
-                      paymentRegulation -> {
-                        var paymentRequest = paymentRegulation.getPaymentRequest();
-                        return paymentRegulation.toBuilder()
-                            .paymentRequest(
-                                paymentRequest.toBuilder().enableStatus(DISABLED).build())
-                            .build();
-                      })
-                  .toList());
+          oldPayments.stream()
+              .map(
+                  paymentRegulation -> {
+                    var paymentRequest = paymentRegulation.getPaymentRequest();
+                    return paymentRegulation.toBuilder()
+                        .paymentRequest(paymentRequest.toBuilder().enableStatus(DISABLED).build())
+                        .build();
+                  })
+              .collect(Collectors.toCollection(ArrayList::new));
       newPaymentRegulations.addAll(disabledPayments);
     } else {
       newPaymentRegulations.addAll(oldPayments);

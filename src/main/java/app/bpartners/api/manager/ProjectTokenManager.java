@@ -14,11 +14,9 @@ public class ProjectTokenManager {
   public static final String PARAMS_NAME_GOOGLE_SERVICE_ACCOUNT =
       "/bpartners/google/service-account";
   private final SsmComponent ssmComponent;
-  private final String env;
 
   public ProjectTokenManager(SsmComponent ssmComponent, @Value("${env}") String env) {
     this.ssmComponent = ssmComponent;
-    this.env = env;
   }
 
   public InputStream googleServiceAccountStream() {

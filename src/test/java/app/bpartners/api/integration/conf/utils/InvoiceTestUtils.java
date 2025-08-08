@@ -178,38 +178,6 @@ public class InvoiceTestUtils {
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId, validInvoice().ref(uniqueRef));
   }
 
-  private static PaymentRegulation expectedDated2() {
-    return new PaymentRegulation()
-        .status(new PaymentRegStatus().paymentStatus(UNPAID))
-        .maturityDate(LocalDate.of(2023, 2, 15))
-        .paymentRequest(
-            new InvoicePaymentReq()
-                .reference("BP005")
-                .payerName(customer1().getFirstName())
-                .payerEmail(customer1().getEmail())
-                .percentValue(10000 - 909)
-                .amount(1000)
-                .comment("Montant restant")
-                .label("Facture achat - Restant dû")
-                .paymentStatus(UNPAID));
-  }
-
-  private static PaymentRegulation expectedDated1() {
-    return new PaymentRegulation()
-        .status(new PaymentRegStatus().paymentStatus(UNPAID))
-        .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(
-            new InvoicePaymentReq()
-                .reference("BP005")
-                .payerName(customer1().getFirstName())
-                .payerEmail(customer1().getEmail())
-                .percentValue(909)
-                .amount(100)
-                .comment("Un euro")
-                .label("Facture achat - Acompte N°1")
-                .paymentStatus(UNPAID));
-  }
-
   public static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
     List<PaymentRegulation> paymentRegulations =
         actualConfirmed.getPaymentRegulations().stream()

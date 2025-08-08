@@ -69,7 +69,7 @@ Resources:
           Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered'
-          Source: 'app.bpartners.api.event1'
+          Source: 'app.bpartners.api.event2'
   RefreshTransactionSummariesScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:

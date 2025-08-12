@@ -4,6 +4,8 @@ Description: Bpartners - Schedulers
 Parameters:
   Env:
     Type: String
+Conditions:
+  IsProd: !Equals [!Ref Env, "prod"]
 
 Resources:
   ScheduledEventExecutionRole:
@@ -60,8 +62,10 @@ Resources:
       FlexibleTimeWindow:
         Mode: "OFF"
       Name: !Join ['', [!Ref Env, -TriggerMonthlySubscriptionInvoice]]
-      #run this scheduler every last day of month when push into prod, change 20 to L
-      ScheduleExpression: "cron(0 8 20 * ? *)"
+      ScheduleExpression: !If
+        - IsProd
+        - "cron(0 8 L * ? *)"
+        - "cron(0 8 20 * ? *)"
       ScheduleExpressionTimezone: "Europe/Paris"
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'

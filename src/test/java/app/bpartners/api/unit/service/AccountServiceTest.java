@@ -82,6 +82,30 @@ class AccountServiceTest {
   }
 
   @Test
+  void reset_default_account() {
+    var user = User.builder().id("userId").firstName("firstName").lastName("lastName").build();
+    var defaultAccount = Account.builder().build();
+
+    var actual = resetDefaultAccount(user, defaultAccount);
+
+    var expected =
+        defaultAccount.toBuilder()
+            .id(actual.getId())
+            .name(user.getName())
+            .userId(user.getId())
+            .bic(null)
+            .iban(null)
+            .externalId(null)
+            .bank(null)
+            .externalId(null)
+            .availableBalance(new Money())
+            .status(OPENED)
+            .enableStatus(EnableStatus.ENABLED)
+            .build();
+    assertEquals(expected, actual);
+  }
+
+  @Test
   void update_account_identity_ok() {
     var account = mock(UpdateAccountIdentity.class);
 

@@ -3,6 +3,8 @@ package app.bpartners.api.service.invoice;
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.UNPAID;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
+import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.MINUTES;
 
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
@@ -17,7 +19,6 @@ import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.service.user.UserService;
-import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.AllArgsConstructor;
@@ -61,12 +62,8 @@ public class InvoiceRefreshService {
                   .filter(
                       invoice -> {
                         boolean updatedAtDeploy =
-                            invoice
-                                    .getUpdatedAt()
-                                    .isAfter(Instant.parse("2024-01-04T16:00:32.203Z"))
-                                && invoice
-                                    .getUpdatedAt()
-                                    .isBefore(Instant.parse("2024-01-04T16:10:32.203Z"));
+                            invoice.getUpdatedAt().isAfter(now().minus(10, MINUTES))
+                                && invoice.getUpdatedAt().isBefore(now());
                         PaymentTypeEnum paymentType = invoice.getPaymentType();
                         List<PaymentRequest> payments =
                             paymentType == PaymentTypeEnum.CASH

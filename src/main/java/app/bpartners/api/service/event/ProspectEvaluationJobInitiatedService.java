@@ -300,7 +300,7 @@ public class ProspectEvaluationJobInitiatedService
                         .getInterventionResult()
                         .getAddress()
                         .equals(interventionLocation))
-            .collect(Collectors.toList());
+            .toList();
     List<EvaluatedProspect> evaluatedProspects =
         dispatchedResults.stream().map(prospectRestMapper::toRest).collect(Collectors.toList());
     List<EvaluatedProspect> oldCustomers =
@@ -309,7 +309,7 @@ public class ProspectEvaluationJobInitiatedService
                 prospect ->
                     prospect.getContactNature() != null
                         && prospect.getContactNature() == OLD_CUSTOMER)
-            .collect(Collectors.toList());
+            .toList();
     List<EvaluatedProspect> newProspects =
         evaluatedProspects.stream()
             .filter(

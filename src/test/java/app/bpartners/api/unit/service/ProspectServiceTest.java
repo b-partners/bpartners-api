@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.*;
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
 import static app.bpartners.api.service.prospect.ProspectService.removeDuplications;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,6 +14,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -126,5 +128,18 @@ class ProspectServiceTest {
     var actual = removeDuplications(List.of(prospectResult));
 
     assertEquals(List.of(prospectResult), actual);
+  }
+
+  @Test
+  void get_evaluation_jobs() {
+    var idAccountHolder = "idAccountHolder";
+    var statues = List.of(NOT_STARTED, IN_PROGRESS);
+    var prospectEvaluationJob = ProspectEvaluationJob.builder().build();
+    when(jobRepositoryMock.findAllByIdAccountHolderAndStatusesIn(idAccountHolder, statues))
+            .thenReturn(List.of(prospectEvaluationJob));
+
+    var actual = subject.getEvaluationJobs(idAccountHolder, statues);
+
+    assertEquals(List.of(prospectEvaluationJob), actual);
   }
 }

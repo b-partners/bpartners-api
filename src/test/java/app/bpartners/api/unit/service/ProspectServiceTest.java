@@ -4,17 +4,18 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.*;
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
 import static app.bpartners.api.service.prospect.ProspectService.removeDuplications;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.model.prospect.job.EventJobRunner;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
+import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -37,6 +38,7 @@ import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +54,7 @@ class ProspectServiceTest {
   SheetApi sheetApi = mock(SheetApi.class);
   DriveApi driveApi = mock(DriveApi.class);
   ProspectMapper prospectMapper = mock(ProspectMapper.class);
-  ProspectEvaluationJobRepository jobRepositoryMock = mock(ProspectEvaluationJobRepository.class);
+  ProspectEvaluationJobRepository evalJobRepositoryMock = mock(ProspectEvaluationJobRepository.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
   SesConf sesConfMock = mock(SesConf.class);
   ProspectStatusService prospectStatusService = mock(ProspectStatusService.class);
@@ -69,7 +71,7 @@ class ProspectServiceTest {
           customerService,
           sheetApi,
           prospectMapper,
-          jobRepositoryMock,
+              evalJobRepositoryMock,
           eventProducerMock,
           sesConfMock,
           prospectStatusService,
@@ -135,11 +137,45 @@ class ProspectServiceTest {
     var idAccountHolder = "idAccountHolder";
     var statues = List.of(NOT_STARTED, IN_PROGRESS);
     var prospectEvaluationJob = ProspectEvaluationJob.builder().build();
-    when(jobRepositoryMock.findAllByIdAccountHolderAndStatusesIn(idAccountHolder, statues))
+    when(evalJobRepositoryMock.findAllByIdAccountHolderAndStatusesIn(idAccountHolder, statues))
             .thenReturn(List.of(prospectEvaluationJob));
 
     var actual = subject.getEvaluationJobs(idAccountHolder, statues);
 
     assertEquals(List.of(prospectEvaluationJob), actual);
+  }
+
+  @Test
+  void run_evaluation_jobs_bad_request(){
+    var userId = "userId";
+    var ahId = "ahId";
+    var eventJobRunner = EventJobRunner.builder().build();
+    var anyEventConversionJob = ProspectEvaluationJobRunner.builder()
+            .eventJobRunner(eventJobRunner)
+            .build();
+    when(calendarApiMock.hasValidToken(any())).thenReturn(false);
+
+    assertThrows(BadRequestException.class, () -> subject.runEvaluationJobs(userId, ahId, List.of(anyEventConversionJob)));
+  }
+
+  @Test
+  void run_evaluation_jobs_ok(){
+    var userId = "userId";
+    var ahId = "ahId";
+    var metadata = mock(Map.class);
+    var eventJobRunner = EventJobRunner.builder().build();
+    var jobRunner = ProspectEvaluationJobRunner.builder()
+            .jobId("jobId")
+            .metadata(metadata)
+            .eventJobRunner(eventJobRunner)
+            .build();
+    when(calendarApiMock.hasValidToken(any())).thenReturn(true);
+    var savedJobs = ProspectEvaluationJob.builder().build();
+    when(evalJobRepositoryMock.saveAll(anyList())).thenReturn(List.of(savedJobs));
+    doNothing().when(eventProducerMock).accept(anyList());
+
+    var actual = subject.runEvaluationJobs(userId, ahId, List.of(jobRunner));
+
+    assertEquals(List.of(savedJobs), actual);
   }
 }

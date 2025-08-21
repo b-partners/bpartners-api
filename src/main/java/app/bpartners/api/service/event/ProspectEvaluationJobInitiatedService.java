@@ -207,9 +207,7 @@ public class ProspectEvaluationJobInitiatedService
             ranges.getFrom(),
             ranges.getTo());
     List<CalendarEvent> eventsWithAddress =
-        calendarEvents.stream()
-            .filter(event -> event.getLocation() != null)
-            .collect(Collectors.toList());
+        calendarEvents.stream().filter(event -> event.getLocation() != null).toList();
     return eventsWithAddress;
   }
 
@@ -300,16 +298,16 @@ public class ProspectEvaluationJobInitiatedService
                         .getInterventionResult()
                         .getAddress()
                         .equals(interventionLocation))
-            .collect(Collectors.toList());
+            .toList();
     List<EvaluatedProspect> evaluatedProspects =
-        dispatchedResults.stream().map(prospectRestMapper::toRest).collect(Collectors.toList());
+        dispatchedResults.stream().map(prospectRestMapper::toRest).toList();
     List<EvaluatedProspect> oldCustomers =
         evaluatedProspects.stream()
             .filter(
                 prospect ->
                     prospect.getContactNature() != null
                         && prospect.getContactNature() == OLD_CUSTOMER)
-            .collect(Collectors.toList());
+            .toList();
     List<EvaluatedProspect> newProspects =
         evaluatedProspects.stream()
             .filter(
@@ -331,7 +329,7 @@ public class ProspectEvaluationJobInitiatedService
   private String spreadsheetEvaluationEmailBody(
       AccountHolder accountHolder, List<ProspectResult> prospectResults) {
     List<EvaluatedProspect> evaluatedProspects =
-        prospectResults.stream().map(prospectRestMapper::toRest).collect(Collectors.toList());
+        prospectResults.stream().map(prospectRestMapper::toRest).toList();
     List<EvaluatedProspect> oldCustomers =
         evaluatedProspects.stream()
             .filter(
@@ -500,11 +498,6 @@ public class ProspectEvaluationJobInitiatedService
 
   private List<String> retrieveLocations(List<CalendarEvent> calendarEvents) {
     return calendarEvents.stream().map(CalendarEvent::getLocation).collect(Collectors.toList());
-  }
-
-  private List<ProspectEval> fromDatabase(String idUser, EventJobRunner eventJobRunner) {
-    // TODO: retrieve from database here
-    return List.of();
   }
 
   // TODO: use this function to import inside database

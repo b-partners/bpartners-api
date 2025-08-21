@@ -1,6 +1,8 @@
 package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
+import static app.bpartners.api.service.prospect.ProspectService.removeDuplications;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -13,6 +15,9 @@ import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.repository.ProspectEvaluationJobRepository;
 import app.bpartners.api.repository.ProspectRepository;
+import app.bpartners.api.repository.expressif.ProspectEval;
+import app.bpartners.api.repository.expressif.ProspectEvalInfo;
+import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
@@ -101,5 +106,25 @@ class ProspectServiceTest {
     subject.prospect();
 
     verify(sesServiceMock, never()).sendEmail(any(), any(), any(), any(), any());
+  }
+
+  @Test
+  void remove_duplications() {
+    var info = ProspectEvalInfo.builder()
+            .name("name")
+            .email("email")
+            .phoneNumber("phoneNumber")
+            .address("address")
+            .build();
+    var eval = ProspectEval.builder()
+            .prospectEvalInfo(info)
+            .build();
+    var prospectResult = ProspectResult.builder()
+            .prospectEval(eval)
+            .build();
+
+    var actual = removeDuplications(List.of(prospectResult));
+
+    assertEquals(List.of(prospectResult), actual);
   }
 }

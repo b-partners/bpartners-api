@@ -488,6 +488,7 @@ public class ProspectService {
       Double minCustomerRating,
       List<ProspectResult> prospectResults) {
     List<ProspectResult> prospectWithoutDuplication = removeDuplications(prospectResults);
+    log.info("prospectWithoutDuplication: {}", prospectWithoutDuplication);
     List<ProspectResult> filteredRatingResults =
         prospectWithoutDuplication.stream()
             .filter(
@@ -544,6 +545,7 @@ public class ProspectService {
       String ahId, AntiHarmRules antiHarmRules, List<ProspectEval> prospectEvals) {
     HashMap<String, List<ProspectEval>> groupByOwner =
         prospectEvals.isEmpty() ? ownerHashMap(ahId) : dispatchEvalByOwner(prospectEvals);
+    log.info("groupByOwner: {}", groupByOwner);
     List<ProspectEval> customersToEvaluate = new ArrayList<>();
 
     for (Map.Entry<String, List<ProspectEval>> entry : groupByOwner.entrySet()) {
@@ -611,6 +613,7 @@ public class ProspectService {
         }
       }
     }
+    log.info("customersToEvaluate: {}", customersToEvaluate);
     return customersToEvaluate;
   }
 

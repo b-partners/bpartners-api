@@ -29,10 +29,6 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
   private final BanApi banApi;
   private final TemplateResolverEngine templateResolverEngine;
 
-  public void accept(List<CustomerCrupdated> customerCrupdatedList) {
-    customerCrupdatedList.forEach(this);
-  }
-
   @Override
   public void accept(CustomerCrupdated customerCrupdated) {
     String subject = customerCrupdated.getSubject();

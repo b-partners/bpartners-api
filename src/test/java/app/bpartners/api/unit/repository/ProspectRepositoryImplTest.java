@@ -1,14 +1,16 @@
 package app.bpartners.api.unit.repository;
 
+import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.OTHER_ACCOUNT_ID;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.time.Instant.now;
 import static java.time.Month.MARCH;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.mapper.ProspectEvalMapper;
@@ -21,6 +23,7 @@ import app.bpartners.api.repository.implementation.ProspectRepositoryImpl;
 import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectEvalInfoJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
+import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitApi;
 import app.bpartners.api.service.accountholder.BusinessActivityService;
 import app.bpartners.api.service.target.AnnualRevenueTargetService;
@@ -28,6 +31,7 @@ import app.bpartners.api.service.utils.CustomDateFormatter;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +39,7 @@ import org.junit.jupiter.api.Test;
 class ProspectRepositoryImplTest {
 
   ProspectRepositoryImpl subject;
-  ProspectJpaRepository prospectJpaRepositoryMock;
+  ProspectJpaRepository jpaRepositoryMock;
   ProspectMapper prospectMapper;
   BuildingPermitApi buildingPermitApiMock;
   SogefiBuildingPermitRepository sogefiBuildingPermitRepositoryMock;
@@ -52,7 +56,7 @@ class ProspectRepositoryImplTest {
 
   @BeforeEach
   void setUp() {
-    prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
+    jpaRepositoryMock = mock(ProspectJpaRepository.class);
     banApiMock = mock(BanApi.class);
     prospectMapper = new ProspectMapper(banApiMock, new CustomDateFormatter());
     buildingPermitApiMock = mock(BuildingPermitApi.class);
@@ -68,15 +72,12 @@ class ProspectRepositoryImplTest {
     em = mock(EntityManager.class);
     subject =
         new ProspectRepositoryImpl(
-            prospectJpaRepositoryMock,
+            jpaRepositoryMock,
             prospectMapper,
-            buildingPermitApiMock,
-            sogefiBuildingPermitRepositoryMock,
             businessActivityServiceMock,
             resourceProviderMock,
             revenueTargetServiceMock,
             accountHolderRepositoryMock,
-            municipalityJpaRepositoryMock,
             expressifApiMock,
             evalMapperMock,
             evalInfoJpaRepositoryMock,
@@ -98,6 +99,37 @@ class ProspectRepositoryImplTest {
                     .amountAttempted(parseFraction(30000))
                     .idAccountHolder(EMPTY)
                     .build()));
+  }
+
+  @Test
+  void find_all_by_status() {
+    var hProspect =
+        HProspect.builder()
+            .posLatitude(2.2)
+            .posLongitude(3.3)
+            .id("id")
+            .firstName("firstName")
+            .idJob("idJob")
+            .idAccountHolder("accountHolderId")
+            .newEmail("newEmail")
+            .oldName("oldName")
+            .managerName("managerName")
+            .newPhone("newPhone")
+            .oldAddress("oldPhone")
+            .statusHistories(List.of())
+            .townCode(123)
+            .lastEvaluationDate(now())
+            .comment("comment")
+            .defaultComment("defaultComment")
+            .prospectFeedback(ProspectFeedback.INTERESTED)
+            .idInvoice("idInvoice")
+            .latestOldHolder("latestOldHolder")
+            .build();
+    when(jpaRepositoryMock.findAllByStatus(any())).thenReturn(List.of(hProspect));
+
+    var actual = subject.findAllByStatus(TO_CONTACT);
+
+    assertEquals(hProspect.getId(), actual.getFirst().getId());
   }
 
   @Test

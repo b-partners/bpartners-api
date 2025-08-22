@@ -3,8 +3,10 @@ package app.bpartners.api.unit.service;
 import static app.bpartners.api.endpoint.rest.model.InterventionType.INSECT_CONTROL;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.*;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.ALL;
+import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
 import static app.bpartners.api.service.prospect.ProspectService.removeDuplications;
+import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,6 +19,7 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Location;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.prospect.job.AntiHarmRules;
 import app.bpartners.api.model.prospect.job.EventJobRunner;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
@@ -52,7 +55,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ProspectServiceTest {
-  ProspectRepository prospectRepositoryMock = mock(ProspectRepository.class);
+  ProspectRepository repositoryMock = mock(ProspectRepository.class);
   ProspectDataProcesser dataProcesserMock = mock(ProspectDataProcesser.class);
   AccountHolderJpaRepository accountHolderJpaRepositoryMock =
       mock(AccountHolderJpaRepository.class);
@@ -72,7 +75,7 @@ class ProspectServiceTest {
   CalendarApi calendarApiMock = mock(CalendarApi.class);
   ProspectService subject =
       new ProspectService(
-          prospectRepositoryMock,
+          repositoryMock,
           dataProcesserMock,
           accountHolderJpaRepositoryMock,
           sesServiceMock,
@@ -96,9 +99,9 @@ class ProspectServiceTest {
             List.of(
                 HAccountHolder.builder().id(ACCOUNTHOLDER_ID).build(),
                 HAccountHolder.builder().id("fake_accountholder_id").build()));
-    when(prospectRepositoryMock.needsProspects(ACCOUNTHOLDER_ID, LocalDate.now()))
+    when(repositoryMock.needsProspects(ACCOUNTHOLDER_ID, LocalDate.now()))
         .thenAnswer(i -> Objects.equals(i.getArgument(0), ACCOUNTHOLDER_ID));
-    when(prospectRepositoryMock.isSogefiProspector(any()))
+    when(repositoryMock.isSogefiProspector(any()))
         .thenAnswer(i -> Objects.equals(i.getArgument(0), ACCOUNTHOLDER_ID));
   }
 
@@ -111,9 +114,8 @@ class ProspectServiceTest {
 
   @Test
   void should_not_send_email() throws MessagingException, IOException {
-    when(prospectRepositoryMock.needsProspects(ACCOUNTHOLDER_ID, LocalDate.now()))
-        .thenReturn(false);
-    when(prospectRepositoryMock.isSogefiProspector(any())).thenReturn(false);
+    when(repositoryMock.needsProspects(ACCOUNTHOLDER_ID, LocalDate.now())).thenReturn(false);
+    when(repositoryMock.isSogefiProspector(any())).thenReturn(false);
 
     subject.prospect();
 
@@ -138,7 +140,7 @@ class ProspectServiceTest {
   }
 
   @Test
-  void get_evaluation_jobs() {
+  void get_evaluation_jobs_with_account_holder_and_statues() {
     var idAccountHolder = "idAccountHolder";
     var statues = List.of(NOT_STARTED, IN_PROGRESS);
     var prospectEvaluationJob = ProspectEvaluationJob.builder().build();
@@ -148,6 +150,16 @@ class ProspectServiceTest {
     var actual = subject.getEvaluationJobs(idAccountHolder, statues);
 
     assertEquals(List.of(prospectEvaluationJob), actual);
+  }
+
+  @Test
+  void get_evaluation_job_with_job_id() {
+    var prospectEvaluationJob = ProspectEvaluationJob.builder().build();
+    when(evalJobRepositoryMock.getById(anyString())).thenReturn(prospectEvaluationJob);
+
+    var actual = subject.getEvaluationJob("jobId");
+
+    assertEquals(prospectEvaluationJob, actual);
   }
 
   @Test
@@ -184,6 +196,49 @@ class ProspectServiceTest {
     var actual = subject.runEvaluationJobs(userId, ahId, List.of(jobRunner));
 
     assertEquals(List.of(savedJobs), actual);
+  }
+
+  @Test
+  void evaluate_and_save_prospects() {
+    var ahId = "ahId";
+    var antiHarmRules = AntiHarmRules.builder().build();
+    var minProspectRating = 0.5;
+    var minCustomerRating = 0.5;
+    var prospectsToEvaluate = ProspectEval.builder().build();
+    var interventionResult = new ProspectResult.InterventionResult(1.1, 20.3, "address");
+    var coordinate = GeoUtils.Coordinate.builder().latitude(2.0).longitude(3.0).build();
+    var info =
+        ProspectEvalInfo.builder()
+            .coordinates(coordinate)
+            .postalCode("123")
+            .name("name")
+            .managerName("managerName")
+            .email("email")
+            .phoneNumber("phoneNumber")
+            .address("address")
+            .defaultComment("defaultComment")
+            .build();
+    var prospectEval = ProspectEval.builder().prospectEvalInfo(info).build();
+    var prospectResults =
+        ProspectResult.builder() // newProspects
+            .interventionResult(interventionResult)
+            .evaluationDate(now())
+            .prospectEval(prospectEval)
+            .build();
+    when(repositoryMock.evaluate(anyList())).thenReturn(List.of(prospectResults));
+    var prospect = Prospect.builder().build();
+    when(repositoryMock.create(anyList())).thenReturn(List.of(prospect));
+
+    var actual =
+        subject.evaluateAndSaveProspects(
+            ahId,
+            antiHarmRules,
+            List.of(prospectsToEvaluate),
+            NEW_PROSPECT,
+            minProspectRating,
+            minCustomerRating);
+
+    assertEquals(List.of(prospectResults), actual);
   }
 
   @Test
@@ -242,7 +297,7 @@ class ProspectServiceTest {
             .interventionResult(interventionResult)
             .customerInterventionResult(customerInterventionResult)
             .build();
-    when(prospectRepositoryMock.evaluate(anyList())).thenReturn(List.of(prospectResult));
+    when(repositoryMock.evaluate(anyList())).thenReturn(List.of(prospectResult));
 
     var actual =
         subject.evaluateProspects(

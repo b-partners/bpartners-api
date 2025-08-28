@@ -4,9 +4,11 @@ import static app.bpartners.api.endpoint.rest.model.ContactNature.OLD_CUSTOMER;
 import static app.bpartners.api.endpoint.rest.model.InterventionType.DISINFECTION;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.LogCaptor;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
@@ -64,7 +66,7 @@ class ProspectEvaluationJobInitiatedServiceTest {
           customDateFormatter);
 
   @Test
-  void accept() {
+  void accept_ok() {
     var idUser = "idUser";
     var antiHarmRules = AntiHarmRules.builder().interventionTypes(List.of(DISINFECTION)).build();
     var evaluationRules = EvaluationRules.builder().antiHarmRules(antiHarmRules).build();
@@ -169,5 +171,44 @@ class ProspectEvaluationJobInitiatedServiceTest {
         .readEvaluationsFromSheetsWithoutFilter(any(), any(), any(), any(), anyInt(), anyInt());
     verify(customDateFormatter, times(1)).formatFrenchDatetime(any());
     verify(templateResolverEngine, times(1)).parseTemplateResolver(anyString(), any());
+  }
+
+  @Test
+  void accept_ko() {
+    var logCaptor = new LogCaptor();
+    logCaptor.configure(ProspectEvaluationJobInitiatedService.class);
+    var ranges = EventJobRunner.EventDateRanges.builder().build();
+    var antiHarmRules = AntiHarmRules.builder().build();
+    var ratingProperties = RatingProperties.builder().build();
+    var eventJobRunner =
+        EventJobRunner.builder()
+            .eventDateRanges(ranges)
+            .evaluationRules(EvaluationRules.builder().antiHarmRules(antiHarmRules).build())
+            .ratingProperties(ratingProperties)
+            .build();
+    var job =
+        ProspectEvaluationJobRunner.builder().jobId("jobId").eventJobRunner(eventJobRunner).build();
+    var jobInitiated =
+        ProspectEvaluationJobInitiated.builder().jobRunner(job).idUser("idUser").build();
+    var jobStatus = mock(ProspectEvaluationJobStatus.class);
+    when(jobStatus.getValue()).thenReturn(NOT_STARTED);
+    var runningJob =
+        ProspectEvaluationJob.builder()
+            .jobStatus(jobStatus)
+            .id("jobId")
+            .idAccountHolder("holderId")
+            .startedAt(Instant.now())
+            .build();
+    when(prospectServiceMock.getEvaluationJob(anyString())).thenReturn(runningJob);
+    when(prospectServiceMock.saveEvaluationJobs(anyList())).thenReturn(List.of(runningJob));
+    var user = User.builder().build();
+    when(userServiceMock.getUserById(anyString())).thenReturn(user);
+    var runningHolder = AccountHolder.builder().build();
+    when(holderServiceMock.findDefaultByIdUser(anyString())).thenReturn(runningHolder);
+    when(calendarServiceMock.getEvents(any(), any(), any(), any(), any()))
+        .thenThrow(new RuntimeException());
+    when(sesConfMock.getAdminEmail()).thenReturn("admin@admin.com");
+
+    assertThrows(RuntimeException.class, () -> subject.accept(jobInitiated));
   }
 }

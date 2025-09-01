@@ -230,9 +230,9 @@ public class StripeSessionFactoryTest {
   private void mockTemporalWindow() {
     // Setup mocks for trialEnd checks
     when(temporalUtilsMock.startOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 1));
-    when(temporalUtilsMock.fourthOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 4));
+    when(temporalUtilsMock.fifthOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 4));
 
     when(temporalUtilsMock.startOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 1));
-    when(temporalUtilsMock.fourthOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 4));
+    when(temporalUtilsMock.fifthOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 4));
   }
 }

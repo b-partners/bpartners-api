@@ -50,28 +50,26 @@ public class StripeSessionFactory {
       long billingCycleAnchor,
       Subscription subscription)
       throws StripeException {
-    boolean isTrialEndBetweenFirstAndFourthOfActualMonth =
+    boolean isTrialEndBetweenFirstAndFifthOfActualMonth =
         (trialEnd.isAfter(temporalUtils.startOfActualMonth())
                 || trialEnd.isEqual(temporalUtils.startOfActualMonth()))
-            && (trialEnd.isBefore(temporalUtils.fourthOfActualMonth())
-                || trialEnd.isEqual(temporalUtils.fourthOfActualMonth()));
-    boolean isTrialEndBetweenFirstAndFourthOfNextMonth =
+            && (trialEnd.isBefore(temporalUtils.fifthOfActualMonth())
+                || trialEnd.isEqual(temporalUtils.fifthOfActualMonth()));
+    boolean isTrialEndBetweenFirstAndFifthOfNextMonth =
         (trialEnd.isAfter(temporalUtils.startOfNextMonth())
                 || trialEnd.isEqual(temporalUtils.startOfNextMonth()))
-            && (trialEnd.isBefore(temporalUtils.fourthOfNextMonth())
-                || trialEnd.isBefore(temporalUtils.fourthOfNextMonth()));
-    if (isTrialEndBetweenFirstAndFourthOfNextMonth
-        || isTrialEndBetweenFirstAndFourthOfActualMonth) {
+            && (trialEnd.isBefore(temporalUtils.fifthOfNextMonth())
+                || trialEnd.isBefore(temporalUtils.fifthOfNextMonth()));
+    if (isTrialEndBetweenFirstAndFifthOfNextMonth || isTrialEndBetweenFirstAndFifthOfActualMonth) {
       return createSessionSetUp(
           stripeCustomer, redirectionUrls, subscription, price, billingCycleAnchor, user);
-    }
-    if (trialEnd.isBefore(temporalUtils.endOfActualMonth())) {
+    } else if (trialEnd.isAfter(temporalUtils.fifthOfActualMonth())
+        && trialEnd.isBefore(temporalUtils.endOfActualMonth())) {
       return createSessionSubscription(
           stripeCustomer, subscriptionProduct, price, redirectionUrls, billingCycleAnchor);
-    } else {
-      return createSessionSetUp(
-          stripeCustomer, redirectionUrls, subscription, price, billingCycleAnchor, user);
     }
+    return createSessionSetUp(
+        stripeCustomer, redirectionUrls, subscription, price, billingCycleAnchor, user);
   }
 
   public Session createSessionSubscription(

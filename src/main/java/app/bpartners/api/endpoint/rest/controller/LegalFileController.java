@@ -13,7 +13,6 @@ import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.user.LegalFileService;
 import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -33,23 +32,21 @@ public class LegalFileController {
   private final LegalFileRestValidator validator;
   private final ApiKeyAuthenticator apiKeyAuthenticator;
 
-
   @GetMapping("/users/{id}/legalFiles")
   public List<LegalFile> getLegalFiles(
       HttpServletRequest request, @PathVariable(name = "id") String userId) {
     List<LegalFile> legalFiles = new ArrayList<>();
-    try{
+    try {
       var user = apiKeyAuthenticator.retrieveUserWithoutLegalFileCheck(request);
-      if(user != null) {
+      if (user != null) {
         legalFiles = service.getLegalFiles(userId).stream().map(mapper::toRest).toList();
       }
-    } catch (UsernameNotFoundException e){
+    } catch (UsernameNotFoundException e) {
       checkUserSelfMatcher(request, userId);
       legalFiles = service.getLegalFiles(userId).stream().map(mapper::toRest).toList();
     }
     return legalFiles;
   }
-
 
   @PutMapping("/users/{id}/legalFiles/{lId}")
   public LegalFile approveLegalFile(
@@ -58,13 +55,13 @@ public class LegalFileController {
       @PathVariable(name = "lId") String legalFileId) {
     LegalFile legalFile = new LegalFile();
 
-    try{
+    try {
       var user = apiKeyAuthenticator.retrieveUserWithoutLegalFileCheck(request);
-      if(user != null) {
+      if (user != null) {
         validator.accept(userId, legalFileId);
-        legalFile =  mapper.toRest(service.approveLegalFile(userId, legalFileId));
+        legalFile = mapper.toRest(service.approveLegalFile(userId, legalFileId));
       }
-    } catch (UsernameNotFoundException e){
+    } catch (UsernameNotFoundException e) {
       checkUserSelfMatcher(request, userId);
       validator.accept(userId, legalFileId);
       legalFile = mapper.toRest(service.approveLegalFile(userId, legalFileId));

@@ -387,7 +387,7 @@ public class InvoiceTestUtils {
         .archiveStatus(ENABLED)
         .sendingDate(confirmedInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
-        .paymentRegulations(List.of())
+        .paymentRegulations(List.of(expectedDated1(), expectedDated2()))
         .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
         .toPayAt(LocalDate.of(2022, 11, 13))
         .delayInPaymentAllowed(confirmedInvoice().getDelayInPaymentAllowed())
@@ -418,6 +418,40 @@ public class InvoiceTestUtils {
         .globalDiscount(new InvoiceDiscount().percentValue(0).amountValue(0))
         .paymentMethod(UNKNOWN)
         .metadata(Map.of());
+  }
+
+  private static PaymentRegulation expectedDated2() {
+    return new PaymentRegulation()
+        .status(new PaymentRegStatus().paymentStatus(UNPAID))
+        .maturityDate(LocalDate.of(2023, 2, 15))
+        .paymentRequest(
+            new InvoicePaymentReq()
+                .reference("BP005")
+                .payerName(customer1().getFirstName())
+                .payerEmail(customer1().getEmail())
+                .paymentUrl(null)
+                .percentValue(10000 - 909)
+                .amount(1000)
+                .comment("Montant restant")
+                .label("Facture achat - Restant dû")
+                .paymentStatus(UNPAID));
+  }
+
+  private static PaymentRegulation expectedDated1() {
+    return new PaymentRegulation()
+        .status(new PaymentRegStatus().paymentStatus(UNPAID))
+        .maturityDate(LocalDate.of(2023, 2, 1))
+        .paymentRequest(
+            new InvoicePaymentReq()
+                .reference("BP005")
+                .payerName(customer1().getFirstName())
+                .payerEmail(customer1().getEmail())
+                .paymentUrl(null)
+                .percentValue(909)
+                .amount(100)
+                .comment("Un euro")
+                .label("Facture achat - Acompte N°1")
+                .paymentStatus(UNPAID));
   }
 
   public static Invoice expectedPaid() {

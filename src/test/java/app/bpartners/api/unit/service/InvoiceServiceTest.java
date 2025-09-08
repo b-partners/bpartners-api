@@ -25,7 +25,6 @@ import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.InvoiceValidator;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
-import app.bpartners.api.service.payment.PaymentInitiationService;
 import app.bpartners.api.service.payment.PaymentService;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -35,7 +34,6 @@ import org.junit.jupiter.api.Test;
 
 class InvoiceServiceTest {
   InvoiceRepository repositoryMock = mock(InvoiceRepository.class);
-  PaymentInitiationService pisMock = mock(PaymentInitiationService.class);
   PaymentRequestRepository paymentRepositoryMock = mock(PaymentRequestRepository.class);
   InvoicePDFProcessor invoicePDFProcessorMock = mock(InvoicePDFProcessor.class);
   CreatePaymentRegulationComputing paymentRegulationComputingMock =
@@ -49,7 +47,6 @@ class InvoiceServiceTest {
   InvoiceService subject =
       new InvoiceService(
           repositoryMock,
-          pisMock,
           paymentRepositoryMock,
           invoicePDFProcessorMock,
           paymentRegulationComputingMock,
@@ -85,8 +82,7 @@ class InvoiceServiceTest {
             .build();
     doNothing().when(invoiceValidatorMock).checkReferenceAvailability(any());
     doNothing().when(customerInvoiceValidatorMock).accept(any());
-    when(paymentRegulationComputingMock.computeWithoutPisURL(any()))
-        .thenReturn(List.of(paymentRegulation));
+    when(paymentRegulationComputingMock.apply(any())).thenReturn(List.of(paymentRegulation));
     when(repositoryMock.pwFindOptionalById(any())).thenReturn(Optional.ofNullable(invoice));
     when(repositoryMock.save(any())).thenReturn(invoice);
     doNothing().when(invoicePDFProcessorMock).accept(any());
@@ -95,7 +91,7 @@ class InvoiceServiceTest {
 
     verify(invoiceValidatorMock).checkReferenceAvailability(any());
     verify(customerInvoiceValidatorMock).accept(any());
-    verify(paymentRegulationComputingMock).computeWithoutPisURL(any());
+    verify(paymentRegulationComputingMock).apply(any());
     verify(repositoryMock).pwFindOptionalById(any());
     verify(repositoryMock).save(any());
     verify(invoicePDFProcessorMock).accept(any());

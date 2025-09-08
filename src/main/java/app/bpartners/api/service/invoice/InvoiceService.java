@@ -31,7 +31,6 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
-import app.bpartners.api.service.payment.PaymentInitiationService;
 import app.bpartners.api.service.payment.PaymentService;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -53,7 +52,6 @@ public class InvoiceService {
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
   private final InvoiceRepository repository;
-  private final PaymentInitiationService pis;
   private final PaymentRequestRepository paymentRepository;
   private final InvoicePDFProcessor invoicePDFProcessor;
   private final CreatePaymentRegulationComputing paymentRegulationComputing;
@@ -232,7 +230,7 @@ public class InvoiceService {
     }
 
     var invoiceBuilder = newInvoice.toBuilder();
-    invoiceBuilder.paymentRegulations(paymentRegulationComputing.computeWithoutPisURL(newInvoice));
+    invoiceBuilder.paymentRegulations(paymentRegulationComputing.apply(newInvoice));
     repository
         .pwFindOptionalById(newInvoice.getId())
         .ifPresentOrElse(
@@ -343,8 +341,7 @@ public class InvoiceService {
       if (oldInvoice == null
           || (hasChangedRegulationsAmount(newInvoice, oldInvoice)
               || hasChangedRegulationsPercent(newInvoice, oldInvoice))) {
-        invoiceBuilder.paymentRegulations(
-            paymentRegulationComputing.computeWithoutPisURL(newInvoice));
+        invoiceBuilder.paymentRegulations(paymentRegulationComputing.apply(newInvoice));
       } else {
         invoiceBuilder.paymentRegulations(oldInvoice.getPaymentRegulations());
       }

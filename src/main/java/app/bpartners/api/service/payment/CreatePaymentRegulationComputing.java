@@ -8,6 +8,7 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.apfloat.Aprational;
@@ -15,12 +16,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class CreatePaymentRegulationComputing {
+public class CreatePaymentRegulationComputing
+    implements Function<Invoice, List<CreatePaymentRegulation>> {
   private final PaymentInitiationService pis;
   private final PaymentInitiationComputing paymentInitiationComputing;
   private final PaymentRequestMapper requestMapper;
 
-  public List<CreatePaymentRegulation> computeWithoutPisURL(Invoice actual) {
+  @Override
+  public List<CreatePaymentRegulation> apply(Invoice actual) {
     var paymentInitiations = paymentInitiationComputing.apply(actual);
     var paymentRequests =
         pis.retrievePaymentEntities(paymentInitiations, actual.getId(), actual.getStatus());

@@ -5,26 +5,20 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.INVOICE1_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ACCOUNT_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.setUpProvider;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
+import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.SesConf;
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
 import app.bpartners.api.file.FileWriter;
-import app.bpartners.api.model.Account;
-import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.Customer;
-import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.InvoiceRelaunch;
-import app.bpartners.api.model.InvoiceRelaunchConf;
-import app.bpartners.api.model.User;
+import app.bpartners.api.model.*;
 import app.bpartners.api.model.validator.InvoiceRelaunchValidator;
 import app.bpartners.api.repository.InvoiceRelaunchRepository;
 import app.bpartners.api.repository.InvoiceRepository;
@@ -40,29 +34,29 @@ import app.bpartners.api.service.invoice.InvoicePDFGenerator;
 import app.bpartners.api.service.invoice.InvoiceRelaunchConfService;
 import app.bpartners.api.service.invoice.InvoiceRelaunchService;
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.PageRequest;
 
 class InvoiceRelaunchServiceTest {
   private static final String RANDOM_CONF_ID = "random conf id";
-  private InvoiceRelaunchService invoiceRelaunchService = mock();
-  private UserInvoiceRelaunchConfRepository accountInvoiceRelaunchRepository = mock();
-  private InvoiceRelaunchRepository invoiceRelaunchRepository = mock();
-  private InvoiceRelaunchValidator invoiceRelaunchValidator = new InvoiceRelaunchValidator();
-  private InvoiceRepository invoiceRepository = mock();
-  private InvoiceJpaRepository invoiceJpaRepository = mock();
-  private InvoiceRelaunchConfService relaunchConfService = mock();
-  private AccountHolderService holderService = mock();
-  private PrincipalProvider auth = mock();
-  private FileService fileService = mock();
-  private AttachmentService attachmentService = mock();
-  private SesConf sesConf = mock();
+  private InvoiceRelaunchService subject;
+  private UserInvoiceRelaunchConfRepository accountInvoiceRelaunchRepositoryMock = mock();
+  private InvoiceRelaunchRepository invoiceRelaunchRepositoryMock = mock();
+  private InvoiceRelaunchValidator invoiceRelaunchValidatorMock = mock();
+  private InvoiceRepository invoiceRepositoryMock = mock();
+  private InvoiceJpaRepository invoiceJpaRepositoryMock = mock();
+  private InvoiceRelaunchConfService relaunchConfServiceMock = mock();
+  private AccountHolderService holderServiceMock = mock();
+  private PrincipalProvider authMock = mock();
+  private FileService fileServiceMock = mock();
+  private AttachmentService attachmentServiceMock = mock();
+  private SesConf sesConfMock = mock();
   private SesService sesServiceMock = mock();
   InvoicePDFGenerator invoicePDFGeneratorMock = mock();
   InvoiceRelaunchSavedService invoiceRelaunchSavedServiceMock = mock();
@@ -71,27 +65,27 @@ class InvoiceRelaunchServiceTest {
   @SneakyThrows
   @BeforeEach
   void setUp() {
-    setUpProvider(auth);
+    setUpProvider(authMock);
 
-    invoiceRelaunchService =
+    subject =
         new InvoiceRelaunchService(
-            accountInvoiceRelaunchRepository,
-            invoiceRelaunchRepository,
-            invoiceRelaunchValidator,
-            invoiceRepository,
-            invoiceJpaRepository,
-            relaunchConfService,
-            holderService,
-            auth,
-            fileService,
-            attachmentService,
-            sesConf,
+            accountInvoiceRelaunchRepositoryMock,
+            invoiceRelaunchRepositoryMock,
+            invoiceRelaunchValidatorMock,
+            invoiceRepositoryMock,
+            invoiceJpaRepositoryMock,
+            relaunchConfServiceMock,
+            holderServiceMock,
+            authMock,
+            fileServiceMock,
+            attachmentServiceMock,
+            sesConfMock,
             invoicePDFGeneratorMock,
             sesServiceMock,
             invoiceRelaunchSavedServiceMock,
             fileWriterMock,
             mock());
-    when(invoiceJpaRepository.findAllByToBeRelaunched(true))
+    when(invoiceJpaRepositoryMock.findAllByToBeRelaunched(true))
         .thenReturn(
             List.of(
                 HInvoice.builder()
@@ -100,7 +94,7 @@ class InvoiceRelaunchServiceTest {
                     .archiveStatus(ENABLED)
                     .sendingDate(LocalDate.now().minusDays(10))
                     .build()));
-    when(relaunchConfService.findByIdInvoice(any(String.class)))
+    when(relaunchConfServiceMock.findByIdInvoice(any(String.class)))
         .thenAnswer(
             i ->
                 InvoiceRelaunchConf.builder()
@@ -109,20 +103,23 @@ class InvoiceRelaunchServiceTest {
                     .delay(10)
                     .rehearsalNumber(2)
                     .build());
-    when(invoiceRepository.getById(INVOICE1_ID))
+    when(invoiceRepositoryMock.getById(INVOICE1_ID))
         .thenReturn(
             Invoice.builder()
                 .id(INVOICE1_ID)
                 .user(
                     User.builder()
                         .accounts(List.of(Account.builder().id(JOE_DOE_ACCOUNT_ID).build()))
+                        .accountHolders(List.of(AccountHolder.builder().build()))
                         .build())
                 .status(InvoiceStatus.PROPOSAL)
+                .customer(Customer.builder().firstName("firstName").lastName("lastName").build())
                 .archiveStatus(ENABLED)
                 .build());
-    when(invoiceRelaunchRepository.getByInvoiceId(INVOICE1_ID, null, PageRequest.of(0, MAX_SIZE)))
-        .thenReturn(List.of(InvoiceRelaunch.builder().build()));
-    when(invoiceRelaunchRepository.save(any(Invoice.class), any(), any(), eq(true)))
+    when(invoiceRelaunchRepositoryMock.getByInvoiceId(
+            INVOICE1_ID, null, PageRequest.of(0, MAX_SIZE)))
+        .thenReturn(List.of(InvoiceRelaunch.builder().emailObject("[TEST]").build()));
+    when(invoiceRelaunchRepositoryMock.save(any(Invoice.class), any(), any(), eq(true)))
         .thenReturn(
             InvoiceRelaunch.builder()
                 .invoice(
@@ -133,32 +130,97 @@ class InvoiceRelaunchServiceTest {
                             Customer.builder().firstName("someName").lastName("lastName").build())
                         .build())
                 .build());
-    when(holderService.getDefaultByAccountId(JOE_DOE_ACCOUNT_ID))
+    when(holderServiceMock.getDefaultByAccountId(JOE_DOE_ACCOUNT_ID))
         .thenReturn(AccountHolder.builder().build());
-    when(fileService.downloadFile(any(), any(), any()))
+    when(fileServiceMock.downloadFile(any(), any(), any()))
         .thenReturn(File.createTempFile(randomUUID().toString(), randomUUID().toString()));
-    when(attachmentService.saveAll(any(), any())).thenReturn(List.of());
+    when(attachmentServiceMock.saveAll(any(), any())).thenReturn(List.of());
   }
 
   @Test
-  @Disabled
-  // TODO: check if should be removed or not as scheduler is disabled
   void test_scheduler() {
     ArgumentCaptor<String> idInvoiceCaptor = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> idInvoiceCaptor2 = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> idInvoiceCaptor3 = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<HInvoice> invoiceSaveCaptor = ArgumentCaptor.forClass(HInvoice.class);
 
-    invoiceRelaunchService.relaunch();
-    verify(relaunchConfService).findByIdInvoice(idInvoiceCaptor.capture());
-    verify(invoiceRelaunchRepository)
+    subject.relaunch();
+    verify(relaunchConfServiceMock).findByIdInvoice(idInvoiceCaptor.capture());
+    verify(invoiceRelaunchRepositoryMock)
         .getByInvoiceId(idInvoiceCaptor2.capture(), eq(null), eq(PageRequest.of(0, MAX_SIZE)));
-    verify(invoiceRepository).getById(idInvoiceCaptor3.capture());
-    verify(invoiceJpaRepository).save(invoiceSaveCaptor.capture());
+    verify(invoiceRepositoryMock).getById(idInvoiceCaptor3.capture());
+    verify(invoiceJpaRepositoryMock).save(invoiceSaveCaptor.capture());
 
     assertEquals(INVOICE1_ID, idInvoiceCaptor.getValue());
     assertEquals(INVOICE1_ID, idInvoiceCaptor2.getValue());
     assertEquals(INVOICE1_ID, idInvoiceCaptor3.getValue());
     assertFalse(invoiceSaveCaptor.getValue().isToBeRelaunched());
+  }
+
+  @Test
+  void restart_last_relaunch() throws IOException {
+    var invoiceId = "invoiceId";
+    var attachment = Attachment.builder().build();
+    var invoiceRelaunch =
+        InvoiceRelaunch.builder()
+            .creationDatetime(now())
+            .emailObject("emailObject")
+            .emailBody("emailBody")
+            .attachments(List.of(attachment))
+            .build();
+    when(invoiceRelaunchRepositoryMock.getByInvoiceId(any(), any(), any()))
+        .thenReturn(List.of(invoiceRelaunch));
+    var account =
+        Account.builder()
+            .enableStatus(EnableStatus.ENABLED)
+            .id("preferredAccountId")
+            .iban("iban")
+            .build();
+    var user =
+        User.builder()
+            .accounts(List.of(account))
+            .preferredAccountId("preferredAccountId")
+            .accountHolders(
+                List.of(AccountHolder.builder().email("accountHolder@gmail.com").build()))
+            .build();
+    var customer = Customer.builder().email("email@gmail.com").build();
+    var invoice =
+        Invoice.builder()
+            .archiveStatus(ENABLED)
+            .customer(customer)
+            .user(user)
+            .status(InvoiceStatus.PROPOSAL)
+            .ref("REF")
+            .build();
+    when(invoiceRepositoryMock.getById(any())).thenReturn(invoice);
+    doNothing().when(invoiceRelaunchValidatorMock).accept(any());
+    when(holderServiceMock.getDefaultByAccountId(any()))
+        .thenReturn(AccountHolder.builder().build());
+    when(invoiceRelaunchRepositoryMock.save(any(), any(), any(), anyBoolean()))
+        .thenReturn(invoiceRelaunch);
+    when(fileWriterMock.apply(any(), any())).thenReturn(File.createTempFile("temp", "file"));
+    when(fileServiceMock.upload(any(), any(), any(), any()))
+        .thenReturn(FileInfo.builder().id("fileId").build());
+    when(attachmentServiceMock.saveAll(any(), any())).thenReturn(List.of(attachment));
+    when(sesConfMock.getAdminEmail()).thenReturn("admin@email.com");
+    doNothing()
+        .when(invoiceRelaunchSavedServiceMock)
+        .relaunchInvoiceAction(
+            any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            any());
+
+    subject.restartLastRelaunch(List.of(invoiceId));
+
+    verify(invoiceRelaunchRepositoryMock).getByInvoiceId(any(), any(), any());
+    verify(invoiceRepositoryMock).getById(any());
+    verify(invoiceRelaunchValidatorMock).accept(any());
+    verify(holderServiceMock).getDefaultByAccountId(any());
+    verify(invoiceRelaunchRepositoryMock).save(any(), any(), any(), anyBoolean());
+    verify(attachmentServiceMock).saveAll(any(), any());
+    verify(sesConfMock).getAdminEmail();
+    verify(invoiceRelaunchSavedServiceMock)
+        .relaunchInvoiceAction(
+            any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            any());
   }
 }

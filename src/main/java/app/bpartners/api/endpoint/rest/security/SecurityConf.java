@@ -93,7 +93,6 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/users/*/subscriptionInitiation", POST.name()),
                         new AntPathRequestMatcher("/**", OPTIONS.toString()),
                         new AntPathRequestMatcher("/whois/*", GET.name()),
-                        new AntPathRequestMatcher("/webhooks/paymentStatus", POST.name()),
                         new AntPathRequestMatcher("/health/db", GET.name()),
                         new AntPathRequestMatcher("/health/bucket", GET.name()),
                         new AntPathRequestMatcher("/health/email", GET.name()),
@@ -134,8 +133,6 @@ public class SecurityConf {
                     .requestMatchers(OPTIONS, "/**")
                     .permitAll()
                     .requestMatchers(GET, "/whois/*")
-                    .permitAll()
-                    .requestMatchers(POST, "/webhooks/paymentStatus")
                     .permitAll()
                     .requestMatchers(GET, "/health/db")
                     .permitAll()

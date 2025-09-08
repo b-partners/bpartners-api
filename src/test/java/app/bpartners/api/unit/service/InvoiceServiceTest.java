@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.CASH;
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.UNPAID;
 import static app.bpartners.api.integration.UserTokenServiceIT.ACCOUNT_ID;
@@ -24,41 +25,76 @@ import app.bpartners.api.service.invoice.InvoicePDFProcessor;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.InvoiceValidator;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
-import app.bpartners.api.service.payment.PaymentInitiationService;
 import app.bpartners.api.service.payment.PaymentService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class InvoiceServiceTest {
   InvoiceRepository repositoryMock = mock(InvoiceRepository.class);
-  PaymentInitiationService pis = mock(PaymentInitiationService.class);
-  PaymentRequestRepository paymentRepository = mock(PaymentRequestRepository.class);
-  InvoicePDFProcessor invoicePDFProcessor = mock(InvoicePDFProcessor.class);
-  CreatePaymentRegulationComputing paymentRegulationComputing =
+  PaymentRequestRepository paymentRepositoryMock = mock(PaymentRequestRepository.class);
+  InvoicePDFProcessor invoicePDFProcessorMock = mock(InvoicePDFProcessor.class);
+  CreatePaymentRegulationComputing paymentRegulationComputingMock =
       mock(CreatePaymentRegulationComputing.class);
-  PaymentService paymentService = mock(PaymentService.class);
-  InvoiceValidator invoiceValidator = mock(InvoiceValidator.class);
-  CustomerInvoiceValidator customerInvoiceValidator = mock(CustomerInvoiceValidator.class);
+  PaymentService paymentServiceMock = mock(PaymentService.class);
+  InvoiceValidator invoiceValidatorMock = mock(InvoiceValidator.class);
+  CustomerInvoiceValidator customerInvoiceValidatorMock = mock(CustomerInvoiceValidator.class);
   UserRepository userRepositoryMock = mock(UserRepository.class);
-  EventProducer eventProducer = mock(EventProducer.class);
+  EventProducer eventProducerMock = mock(EventProducer.class);
 
   InvoiceService subject =
       new InvoiceService(
           repositoryMock,
-          pis,
-          paymentRepository,
-          invoicePDFProcessor,
-          paymentRegulationComputing,
-          paymentService,
-          invoiceValidator,
-          customerInvoiceValidator,
-          eventProducer,
+          paymentRepositoryMock,
+          invoicePDFProcessorMock,
+          paymentRegulationComputingMock,
+          paymentServiceMock,
+          invoiceValidatorMock,
+          customerInvoiceValidatorMock,
+          eventProducerMock,
           userRepositoryMock);
 
   User user() {
     return User.builder().id(null).accountHolders(List.of(AccountHolder.builder().build())).build();
+  }
+
+  @Test
+  void crupdate_subscription_invoice() {
+    var accountHolder = AccountHolder.builder().subjectToVat(false).build();
+    var user =
+        User.builder()
+            .preferredAccountId("preferredAccountId")
+            .accountHolders(List.of(accountHolder))
+            .build();
+    var product = InvoiceProduct.builder().build();
+    var paymentRequest = PaymentRequest.builder().enableStatus(ENABLED).build();
+    var paymentRegulation =
+        CreatePaymentRegulation.builder().paymentRequest(paymentRequest).build();
+    var invoice =
+        Invoice.builder()
+            .products(List.of(product))
+            .fileId("fileId")
+            .status(DRAFT)
+            .paymentRegulations(List.of(paymentRegulation))
+            .user(user)
+            .build();
+    doNothing().when(invoiceValidatorMock).checkReferenceAvailability(any());
+    doNothing().when(customerInvoiceValidatorMock).accept(any());
+    when(paymentRegulationComputingMock.apply(any())).thenReturn(List.of(paymentRegulation));
+    when(repositoryMock.pwFindOptionalById(any())).thenReturn(Optional.ofNullable(invoice));
+    when(repositoryMock.save(any())).thenReturn(invoice);
+    doNothing().when(invoicePDFProcessorMock).accept(any());
+
+    subject.crupdateSubscriptionInvoice(invoice);
+
+    verify(invoiceValidatorMock).checkReferenceAvailability(any());
+    verify(customerInvoiceValidatorMock).accept(any());
+    verify(paymentRegulationComputingMock).apply(any());
+    verify(repositoryMock).pwFindOptionalById(any());
+    verify(repositoryMock).save(any());
+    verify(invoicePDFProcessorMock).accept(any());
   }
 
   @Test
@@ -85,7 +121,7 @@ class InvoiceServiceTest {
             .updatedAt(actual.getUpdatedAt())
             .build();
     assertEquals(expected, actual);
-    verify(eventProducer, never()).accept(any());
+    verify(eventProducerMock, never()).accept(any());
   }
 
   @Test
@@ -120,10 +156,10 @@ class InvoiceServiceTest {
             .paymentRegulations(List.of(paymentRegulation))
             .build();
     var paymentRequest = PaymentRequest.builder().enableStatus(ENABLED).build();
-    when(paymentService.filterByPaymentId(any(), any(), any())).thenReturn(paymentRequest);
-    when(paymentRepository.save(any())).thenReturn(savedPaymentRequest);
+    when(paymentServiceMock.filterByPaymentId(any(), any(), any())).thenReturn(paymentRequest);
+    when(paymentRepositoryMock.save(any())).thenReturn(savedPaymentRequest);
     when(repositoryMock.getById(any())).thenReturn(invoice);
-    doNothing().when(invoicePDFProcessor).accept(any());
+    doNothing().when(invoicePDFProcessorMock).accept(any());
 
     var actual = subject.updatePaymentStatus("invoiceId", "paymentId", CASH);
 

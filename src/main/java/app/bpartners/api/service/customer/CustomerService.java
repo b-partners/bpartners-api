@@ -4,7 +4,6 @@ import static app.bpartners.api.endpoint.event.EventProducer.Conf.MAX_PUT_EVENT_
 import static app.bpartners.api.service.utils.CustomerUtils.getCustomersInfoFromFile;
 import static java.util.stream.Collectors.toList;
 
-import app.bpartners.api.endpoint.event.EventConf;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.CustomerCrupdated;
@@ -14,14 +13,10 @@ import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateCustomerStatus;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.Customer;
-import app.bpartners.api.model.Location;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.ban.BanApi;
-import app.bpartners.api.repository.ban.model.GeoPosition;
 import jakarta.transaction.Transactional;
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
@@ -44,7 +39,6 @@ public class CustomerService {
   private final CustomerRepository repository;
   private final CustomerRestMapper restMapper;
   private final EventProducer eventProducer;
-  private final EventConf eventConf;
   private final SesConf sesConf;
   private final BanApi banApi;
 
@@ -179,57 +173,6 @@ public class CustomerService {
         .type(isNew ? CustomerCrupdated.Type.CREATE : CustomerCrupdated.Type.UPDATE)
         .user(user)
         .customer(customer);
-  }
-
-  // @Scheduled(cron = Scheduled.CRON_DISABLED)
-  public void updateCustomersLocation() {
-    List<Customer> customers = repository.findWhereLatitudeOrLongitudeIsNull();
-    int customersCount = customers.size();
-    if (customersCount > 0) {
-      log.warn("{} customers are to be updated on their latitude and longitude", customersCount);
-    }
-    StringBuilder sb = new StringBuilder();
-    customers.forEach(
-        customer -> {
-          if (customer.getAddress() != null) {
-            try {
-              String fullAddress = customer.getFullAddress();
-              if (fullAddress.length() < 3 || fullAddress.length() > 200) {
-                sb.append(
-                    String.format(
-                        "Unable to update Customer(id=%s,name=%s) position because address was %s",
-                        customer.getId(), customer.getFullName(), fullAddress));
-              } else {
-                GeoPosition position = banApi.search(fullAddress);
-                if (position == null) {
-                  sb.append("Customer(id=")
-                      .append(customer.getId())
-                      .append(") location was not updated because")
-                      .append(" address ")
-                      .append(fullAddress)
-                      .append(" was not found");
-                } else {
-                  Location newLocation =
-                      Location.builder()
-                          .latitude(position.getCoordinates().getLatitude())
-                          .longitude(position.getCoordinates().getLongitude())
-                          .build();
-                  customer.setLocation(newLocation);
-                  repository.save(customer);
-                }
-              }
-            } catch (BadRequestException | NotFoundException e) {
-              sb.append("Customer(id=")
-                  .append(customer.getId())
-                  .append(") location was not updated because ")
-                  .append(e.getMessage());
-            }
-          }
-        });
-    String exceptionMessage = sb.toString();
-    if (!exceptionMessage.isEmpty()) {
-      log.warn(exceptionMessage);
-    }
   }
 
   @Transactional

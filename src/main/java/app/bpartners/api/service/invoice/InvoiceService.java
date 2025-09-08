@@ -31,7 +31,6 @@ import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
-import app.bpartners.api.service.payment.PaymentInitiationService;
 import app.bpartners.api.service.payment.PaymentService;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -53,7 +52,6 @@ public class InvoiceService {
   public static final String DRAFT_REF_PREFIX = "BROUILLON-";
   public static final String PROPOSAL_REF_PREFIX = "DEVIS-";
   private final InvoiceRepository repository;
-  private final PaymentInitiationService pis;
   private final PaymentRequestRepository paymentRepository;
   private final InvoicePDFProcessor invoicePDFProcessor;
   private final CreatePaymentRegulationComputing paymentRegulationComputing;
@@ -194,7 +192,6 @@ public class InvoiceService {
             .fileId(String.valueOf(randomUUID()))
             .ref(reference)
             .status(DRAFT)
-            .paymentUrl(null)
             .paymentRegulations(paymentRegulations)
             .products(
                 new ArrayList<>(actual.getProducts())
@@ -233,7 +230,7 @@ public class InvoiceService {
     }
 
     var invoiceBuilder = newInvoice.toBuilder();
-    invoiceBuilder.paymentRegulations(paymentRegulationComputing.computeWithoutPisURL(newInvoice));
+    invoiceBuilder.paymentRegulations(paymentRegulationComputing.apply(newInvoice));
     repository
         .pwFindOptionalById(newInvoice.getId())
         .ifPresentOrElse(
@@ -274,7 +271,6 @@ public class InvoiceService {
           invoiceBuilder.sendingDate(oldInvoice.getSendingDate());
 
           if (newInvoice.getPaymentType() == CASH) {
-            invoiceBuilder.paymentUrl(oldInvoice.getPaymentUrl());
             if (!newInvoice.isSubscriptionInvoice()) {
               invoiceBuilder.toPayAt(
                   newInvoice.getSendingDate().plusDays(newInvoice.getDelayInPaymentAllowed()));
@@ -314,17 +310,15 @@ public class InvoiceService {
     var oldPayments = oldInvoice.getAllPaymentRegulations();
     if (!newPaymentRegulations.isEmpty()) {
       var disabledPayments =
-          new ArrayList<>(
-              oldPayments.stream()
-                  .map(
-                      paymentRegulation -> {
-                        var paymentRequest = paymentRegulation.getPaymentRequest();
-                        return paymentRegulation.toBuilder()
-                            .paymentRequest(
-                                paymentRequest.toBuilder().enableStatus(DISABLED).build())
-                            .build();
-                      })
-                  .toList());
+          oldPayments.stream()
+              .map(
+                  paymentRegulation -> {
+                    var paymentRequest = paymentRegulation.getPaymentRequest();
+                    return paymentRegulation.toBuilder()
+                        .paymentRequest(paymentRequest.toBuilder().enableStatus(DISABLED).build())
+                        .build();
+                  })
+              .collect(Collectors.toCollection(ArrayList::new));
       newPaymentRegulations.addAll(disabledPayments);
     } else {
       newPaymentRegulations.addAll(oldPayments);
@@ -341,18 +335,13 @@ public class InvoiceService {
               : newInvoice.getDelayInPaymentAllowed();
       if (!newInvoice.isSubscriptionInvoice()) {
         invoiceBuilder.toPayAt(newInvoice.getSendingDate().plusDays(delayInPaymentAllowed));
-        invoiceBuilder.paymentUrl(
-            newInvoice.getTotalPriceWithVat().getCentsAsDecimal() != 0
-                ? pis.initiateInvoicePayment(newInvoice).getRedirectUrl()
-                : newInvoice.getPaymentUrl());
         invoiceBuilder.paymentRegulations(new ArrayList<>());
       }
     } else {
-      invoiceBuilder.paymentUrl(null);
       if (oldInvoice == null
           || (hasChangedRegulationsAmount(newInvoice, oldInvoice)
               || hasChangedRegulationsPercent(newInvoice, oldInvoice))) {
-        invoiceBuilder.paymentRegulations(paymentRegulationComputing.computeWithPisURL(newInvoice));
+        invoiceBuilder.paymentRegulations(paymentRegulationComputing.apply(newInvoice));
       } else {
         invoiceBuilder.paymentRegulations(oldInvoice.getPaymentRegulations());
       }

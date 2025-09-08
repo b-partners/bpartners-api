@@ -174,13 +174,6 @@
             <td class="text-right">
                 <div
                         th:if="${invoice.paymentType == null || (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
-                    <div class="image-text">
-                        <img class="code" th:src="${'data:image/jpeg;base64,' + qrcode}"
-                             alt="qr-code"/>
-                        <span class="caption" th:if="${invoice.paymentUrl != null}">
-                            <a th:href="${invoice.paymentUrl}">Payez ici</a>
-                        </span>
-                    </div>
                     <p>Date limite de paiement : <span
                             th:text="${#dates.format(invoice.getFormattedPayingDate, 'dd-MM-yyyy')}"></span>
                     </p>
@@ -389,7 +382,7 @@
                     <span th:unless="${accountHolder.isSubjectToVat()}">Montant HT</span>
                 </th>
                 <th style="width: 150px">Commentaire</th>
-                <th>Payer <br/>via le code</th>
+                <th>Statut <br/>du paiement</th>
                 </thead>
                 <tbody>
                 <th:block th:each="paymentReg,i : ${invoice.getSortedMultiplePayments()}">
@@ -421,11 +414,6 @@
                         </td>
                         <td>
                             <div class="payment-container">
-                                <img class="payment-code"
-                                     th:src="${'data:image/jpeg;base64,' + paymentReg.getPaymentUrlAsQrCode()}"
-                                     alt="payment-code-qr"/>
-                                <span class="caption"><a
-                                        th:href="${paymentReg.paymentRequest.paymentUrl}">Payez ici</a></span>
                                 <span th:if="${paymentReg.paymentRequest.paymentHistoryStatus != null
                                 && paymentReg.paymentRequest.paymentHistoryStatus.status != null
                                 && paymentReg.paymentRequest.paymentHistoryStatus.status.value == 'PAID'
@@ -433,9 +421,12 @@
                                     Payée le <span
                                         th:text="${paymentReg.paymentRequest.paymentHistoryStatus.getUpdatedAtFrenchDate()}"></span>
                                 </span>
-                                <img style="position: absolute; top: -10px;left: 35px;width:120px;height: 100px;object-fit: contain; z-index: 1"
-                                     th:src="${'data:image/jpeg;base64,' + paymentReg.paymentRequest.stamp}"
-                                     alt="payment-reg-qr"/>
+                                <span th:if="${paymentReg.paymentRequest.paymentHistoryStatus == null
+                                || (paymentReg.paymentRequest.paymentHistoryStatus != null
+                                && paymentReg.paymentRequest.paymentHistoryStatus.status != null
+                                && paymentReg.paymentRequest.paymentHistoryStatus.status.value == 'UNPAID')}">
+                                    En attente
+                                </span>
                             </div>
                         </td>
                     </tr>
@@ -446,9 +437,7 @@
         <div style="width: 100%;" class="no-break-inside">
             <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
             <p class="muted" th:if="${!invoice.isSubscriptionInvoice()}">
-                La facture est payable à réception en scannant le QR code ou en cliquant sur le
-                lien.
-                Sinon, vous avez la possibilité de faire un virement classique avec nos
+                La facture est payable à réception en faisant un virement classique avec nos
                 coordonnées ci-dessous. <br/>
                 <!--        TODO : change delay in payment allowed properly-->
                 <span

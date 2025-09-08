@@ -4,6 +4,8 @@ Description: Bpartners - Schedulers
 Parameters:
   Env:
     Type: String
+Conditions:
+  IsProd: !Equals [!Ref Env, "prod"]
 
 Resources:
   ScheduledEventExecutionRole:
@@ -60,7 +62,10 @@ Resources:
       FlexibleTimeWindow:
         Mode: "OFF"
       Name: !Join ['', [!Ref Env, -TriggerMonthlySubscriptionInvoice]]
-      ScheduleExpression: "cron(0 8 L * ? *)"
+      ScheduleExpression: !If
+        - IsProd
+        - "cron(0 8 L * ? *)"
+        - "cron(0 8 20 * ? *)"
       ScheduleExpressionTimezone: "Europe/Paris"
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
@@ -102,23 +107,6 @@ Resources:
           Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.UpdatePaymentTriggered'
-          Source: 'app.bpartners.api.event1'
-
-  RefreshFintectureProjectTokenScheduler:
-    Type: AWS::Scheduler::Schedule
-    Properties:
-      Description: Scheduler that trigger the refresh of fintecture project token
-      FlexibleTimeWindow:
-        Mode: "OFF"
-      Name: !Join ['', [!Ref Env, -RefreshFintectureToken]]
-      ScheduleExpression: "rate(45 minutes)"
-      Target:
-        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
-        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
-        DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
-        EventBridgeParameters:
-          DetailType: 'app.bpartners.api.endpoint.event.model.RefreshFintectureProjectTokenTriggered'
           Source: 'app.bpartners.api.event1'
 
   RelaunchProspectsScheduler:

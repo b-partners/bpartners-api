@@ -17,7 +17,9 @@ import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Price;
+import com.stripe.model.SubscriptionSchedule;
 import com.stripe.model.checkout.Session;
+import com.stripe.param.SubscriptionScheduleCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +29,7 @@ import org.mockito.*;
 public class StripeSessionFactoryTest {
 
   @Mock private TemporalUtils temporalUtilsMock;
-  @InjectMocks private StripeSessionFactory stripeSessionFactorySpy;
+  @InjectMocks private StripeSessionFactory subject;
   @Mock private UserSubscriptionSessionRepository userSubscriptionSessionRepositoryMock;
   @Mock private Session stripeSessionMock;
 
@@ -38,10 +40,10 @@ public class StripeSessionFactoryTest {
       mockedSession
           .when(() -> Session.create(any(SessionCreateParams.class)))
           .thenReturn(stripeSessionMock);
-
       when(stripeSessionMock.getId()).thenReturn("session_id");
     }
-    stripeSessionFactorySpy =
+
+    subject =
         spy(new StripeSessionFactory(temporalUtilsMock, userSubscriptionSessionRepositoryMock));
   }
 
@@ -54,7 +56,6 @@ public class StripeSessionFactoryTest {
     var billingCycleAnchor = 123456L;
     var user = User.builder().id("user_id").build();
     var product = mock(SubscriptionProduct.class);
-
     when(customer.getId()).thenReturn("customer_id");
     when(urls.getSuccessUrl()).thenReturn("success_url");
     when(urls.getFailureUrl()).thenReturn("failure_url");
@@ -74,18 +75,46 @@ public class StripeSessionFactoryTest {
           .when(() -> Session.create(any(SessionCreateParams.class)))
           .thenReturn(fakeSession);
       doReturn(fakeSchedule)
-          .when(stripeSessionFactorySpy)
+          .when(subject)
           .subscriptionScheduleCreation(
               anyString(), any(Subscription.class), anyString(), anyLong());
 
       Session result =
-          stripeSessionFactorySpy.createSessionSetUp(
-              customer, urls, subscription, price, billingCycleAnchor, user);
+          subject.createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
 
       assertThat(result.getId()).isEqualTo("session_id");
       mockedSession.verify(() -> Session.create(any(SessionCreateParams.class)), times(1));
       verify(userSubscriptionSessionRepositoryMock, times(1))
           .save(any(UserSubscriptionSession.class));
+    }
+  }
+
+  @Test
+  void subscription_schedule_creation() {
+    var customerId = "customer_id";
+    var billingCycleAnchor = 123456L;
+    var subscriptionProduct = mock(SubscriptionProduct.class);
+    when(subscriptionProduct.getE2Id()).thenReturn("e2id");
+    when(subscriptionProduct.getPriceInCents()).thenReturn(5880L);
+    when(subscriptionProduct.getType()).thenReturn(MONTHLY);
+    var subscription = mock(Subscription.class);
+    when(subscription.getSubscriptionProduct()).thenReturn(subscriptionProduct);
+    var meteredPriceId = "metered_price_id";
+    var fakeSchedule = new SubscriptionSchedule();
+    fakeSchedule.setId("schedule_id");
+    try (MockedStatic<SubscriptionSchedule> mockedSchedule =
+        mockStatic(SubscriptionSchedule.class)) {
+      mockedSchedule
+          .when(() -> SubscriptionSchedule.create(any(SubscriptionScheduleCreateParams.class)))
+          .thenReturn(fakeSchedule);
+
+      var actual =
+          subject.subscriptionScheduleCreation(
+              customerId, subscription, meteredPriceId, billingCycleAnchor);
+
+      assertThat(actual.getId()).isEqualTo("schedule_id");
+      mockedSchedule.verify(
+          () -> SubscriptionSchedule.create(any(SubscriptionScheduleCreateParams.class)), times(1));
     }
   }
 
@@ -102,17 +131,16 @@ public class StripeSessionFactoryTest {
     var billingCycleAnchor = 123456L;
     var user = User.builder().id("user_id").build();
     doReturn(mockSession)
-        .when(stripeSessionFactorySpy)
+        .when(subject)
         .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
 
     var actual =
-        stripeSessionFactorySpy.createSession(
+        subject.createSession(
             user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
-    verify(stripeSessionFactorySpy, times(1))
+    verify(subject, times(1))
         .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
-    verify(stripeSessionFactorySpy, never())
-        .createSessionSubscription(any(), any(), any(), any(), any());
+    verify(subject, never()).createSessionSubscription(any(), any(), any(), any(), any());
     assertThat(actual).isEqualTo(mockSession);
   }
 
@@ -131,17 +159,16 @@ public class StripeSessionFactoryTest {
     var billingCycleAnchor = 123456L;
     var user = User.builder().id("user_id").build();
     doReturn(mockSession)
-        .when(stripeSessionFactorySpy)
+        .when(subject)
         .createSessionSubscription(customer, product, price, urls, billingCycleAnchor);
 
     var actual =
-        stripeSessionFactorySpy.createSession(
+        subject.createSession(
             user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
-    verify(stripeSessionFactorySpy, times(1))
+    verify(subject, times(1))
         .createSessionSubscription(customer, product, price, urls, billingCycleAnchor);
-    verify(stripeSessionFactorySpy, never())
-        .createSessionSetUp(any(), any(), any(), any(), any(), any());
+    verify(subject, never()).createSessionSetUp(any(), any(), any(), any(), any(), any());
     assertThat(actual).isEqualTo(mockSession);
   }
 
@@ -161,17 +188,15 @@ public class StripeSessionFactoryTest {
     var billingCycleAnchor = 123456L;
     var user = User.builder().build();
     doReturn(mockSession)
-        .when(stripeSessionFactorySpy)
+        .when(subject)
         .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
 
     var actual =
-        stripeSessionFactorySpy.createSession(
+        subject.createSession(
             user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
-    verify(stripeSessionFactorySpy, times(1))
-        .createSessionSetUp(any(), any(), any(), any(), any(), any());
-    verify(stripeSessionFactorySpy, never())
-        .createSessionSubscription(any(), any(), any(), any(), any());
+    verify(subject, times(1)).createSessionSetUp(any(), any(), any(), any(), any(), any());
+    verify(subject, never()).createSessionSubscription(any(), any(), any(), any(), any());
     assertThat(actual).isEqualTo(mockSession);
   }
 
@@ -189,26 +214,25 @@ public class StripeSessionFactoryTest {
     var billingCycleAnchor = 123456L;
     var user = User.builder().id("user_id").build();
     doReturn(mockSession)
-        .when(stripeSessionFactorySpy)
+        .when(subject)
         .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
 
     var actual =
-        stripeSessionFactorySpy.createSession(
+        subject.createSession(
             user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
-    verify(stripeSessionFactorySpy, times(1))
+    verify(subject, times(1))
         .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
-    verify(stripeSessionFactorySpy, never())
-        .createSessionSubscription(any(), any(), any(), any(), any());
+    verify(subject, never()).createSessionSubscription(any(), any(), any(), any(), any());
     assertThat(actual).isEqualTo(mockSession);
   }
 
   private void mockTemporalWindow() {
     // Setup mocks for trialEnd checks
     when(temporalUtilsMock.startOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 1));
-    when(temporalUtilsMock.fourthOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 4));
+    when(temporalUtilsMock.fifthOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 4));
 
     when(temporalUtilsMock.startOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 1));
-    when(temporalUtilsMock.fourthOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 4));
+    when(temporalUtilsMock.fifthOfNextMonth()).thenReturn(LocalDate.of(2025, MAY, 4));
   }
 }

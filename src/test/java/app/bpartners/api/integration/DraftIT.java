@@ -129,7 +129,6 @@ class DraftIT extends MockedThirdParties {
         .paymentRegulations(paymentRegulations)
         .products(creatableProds(1))
         .customer(customer())
-        .paymentUrl("text")
         .updatedAt(Instant.now())
         .build();
   }
@@ -175,7 +174,6 @@ class DraftIT extends MockedThirdParties {
     return PaymentRequest.builder()
         .paymentHistoryStatus(paymentHistoryStatus(paymentMethod))
         .amount(new Fraction(amount))
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .enableStatus(ENABLED)
         .build();
   }

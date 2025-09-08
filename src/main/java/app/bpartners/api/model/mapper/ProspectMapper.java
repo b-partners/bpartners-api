@@ -490,6 +490,8 @@ public class ProspectMapper {
   private String getInfestationType(CellData cellData) {
     String stringValue = cellData.getFormattedValue();
     String realValue = getRealValue(stringValue);
+    log.info("realvalue: {}", realValue);
+    log.info("stringValue: {}", stringValue);
     if (!Arrays.asList(infestationType()).contains(realValue)) {
       throw new BadRequestException("Bad infestation type : " + stringValue);
     }

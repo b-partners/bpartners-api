@@ -14,7 +14,6 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
@@ -193,11 +192,6 @@ public class AccountService {
         .bridgeItemLastRefresh(null)
         .bridgeItemUpdatedAt(Instant.now())
         .build();
-  }
-
-  @Transactional
-  public Instant refreshBankConnection(UserToken userToken) {
-    return bankRepository.refreshBankConnection(userToken);
   }
 
   public List<Account> saveAll(List<Account> accounts) {

@@ -178,40 +178,6 @@ public class InvoiceTestUtils {
         api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, firstInvoiceId, validInvoice().ref(uniqueRef));
   }
 
-  private static PaymentRegulation expectedDated2() {
-    return new PaymentRegulation()
-        .status(new PaymentRegStatus().paymentStatus(UNPAID))
-        .maturityDate(LocalDate.of(2023, 2, 15))
-        .paymentRequest(
-            new InvoicePaymentReq()
-                .reference("BP005")
-                .payerName(customer1().getFirstName())
-                .payerEmail(customer1().getEmail())
-                .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                .percentValue(10000 - 909)
-                .amount(1000)
-                .comment("Montant restant")
-                .label("Facture achat - Restant dû")
-                .paymentStatus(UNPAID));
-  }
-
-  private static PaymentRegulation expectedDated1() {
-    return new PaymentRegulation()
-        .status(new PaymentRegStatus().paymentStatus(UNPAID))
-        .maturityDate(LocalDate.of(2023, 2, 1))
-        .paymentRequest(
-            new InvoicePaymentReq()
-                .reference("BP005")
-                .payerName(customer1().getFirstName())
-                .payerEmail(customer1().getEmail())
-                .paymentUrl("https://connect-v2-sbx.fintecture.com")
-                .percentValue(909)
-                .amount(100)
-                .comment("Un euro")
-                .label("Facture achat - Acompte N°1")
-                .paymentStatus(UNPAID));
-  }
-
   public static List<PaymentRegulation> ignoreIdsAndDatetime(Invoice actualConfirmed) {
     List<PaymentRegulation> paymentRegulations =
         actualConfirmed.getPaymentRegulations().stream()
@@ -321,7 +287,6 @@ public class InvoiceTestUtils {
         .fileId("file1_id")
         .comment(null)
         .title("Outils pour plomberie")
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
         .paymentRegulations(List.of(datedPaymentRequest1(), datedPaymentRequest2()))
         .customer(customer1())
@@ -366,7 +331,6 @@ public class InvoiceTestUtils {
         .customer(actualConfirmed.getCustomer())
         .delayPenaltyPercent(actualConfirmed.getDelayPenaltyPercent())
         .delayInPaymentAllowed(actualConfirmed.getDelayInPaymentAllowed())
-        .paymentUrl(actualConfirmed.getPaymentUrl())
         .paymentMethod(UNKNOWN)
         .globalDiscount(new InvoiceDiscount().amountValue(0).percentValue(0))
         .paymentRegulations(confirmedPaymentRegulations(id));
@@ -416,7 +380,6 @@ public class InvoiceTestUtils {
 
   public static Invoice expectedConfirmed() {
     return new Invoice()
-        .paymentUrl(null)
         .ref(confirmedInvoice().getRef())
         .title(confirmedInvoice().getTitle())
         .customer(confirmedInvoice().getCustomer())
@@ -424,7 +387,7 @@ public class InvoiceTestUtils {
         .archiveStatus(ENABLED)
         .sendingDate(confirmedInvoice().getSendingDate())
         .products(List.of(product5().id(null)))
-        .paymentRegulations(List.of(expectedDated1(), expectedDated2()))
+        .paymentRegulations(List.of())
         .paymentType(Invoice.PaymentTypeEnum.IN_INSTALMENT)
         .toPayAt(LocalDate.of(2022, 11, 13))
         .delayInPaymentAllowed(confirmedInvoice().getDelayInPaymentAllowed())
@@ -459,7 +422,6 @@ public class InvoiceTestUtils {
 
   public static Invoice expectedPaid() {
     return new Invoice()
-        .paymentUrl("https://connect-v2-sbx.fintecture.com")
         .ref(paidInvoice().getRef())
         .title(paidInvoice().getTitle())
         .customer(paidInvoice().getCustomer())
@@ -551,7 +513,6 @@ public class InvoiceTestUtils {
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(
                 new InvoicePaymentReq()
-                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
                     .reference(id)
                     .percentValue(1025)
                     .amount(225)
@@ -565,7 +526,6 @@ public class InvoiceTestUtils {
             .maturityDate(LocalDate.of(2023, 1, 1))
             .paymentRequest(
                 new InvoicePaymentReq()
-                    .paymentUrl("https://connect-v2-sbx.fintecture.com")
                     .percentValue(10000 - 1025)
                     .amount(1975)
                     .reference(id)
@@ -595,7 +555,6 @@ public class InvoiceTestUtils {
   public static Invoice invoice6() {
     return new Invoice()
         .id("invoice6_id")
-        .paymentUrl(null)
         .comment(null)
         .ref(DRAFT_REF_PREFIX + "BP007")
         .title("Facture transaction")

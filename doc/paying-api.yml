@@ -1336,47 +1336,6 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  paymentInitiationsOperations:
-    post:
-      tags:
-        - Paying
-      summary: Initiate payment processes to an account
-      operationId: initiatePayments
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                #TODO: rename to CreatePaymentInitiation
-                $ref: '#/components/schemas/PaymentInitiation'
-      responses:
-        200:
-          description: List of redirections where to initiate payments to the account
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PaymentRedirection'
-        400:
-          $ref: './api.yml#/components/responses/400'
-        403:
-          $ref: './api.yml#/components/responses/403'
-        404:
-          $ref: './api.yml#/components/responses/404'
-        429:
-          $ref: './api.yml#/components/responses/429'
-        500:
-          $ref: './api.yml#/components/responses/500'
-
 components:
   schemas:
     Transaction:
@@ -1651,8 +1610,6 @@ components:
         - $ref: '#/components/schemas/CrupdateInvoiceTemplate'
       properties:
         id:
-          type: string
-        paymentUrl:
           type: string
         products:
           type: array

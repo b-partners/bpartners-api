@@ -3,9 +3,7 @@ package app.bpartners.api.integration;
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.CrupdateInvoice.PaymentTypeEnum.IN_INSTALMENT;
 import static app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.DRAFT;
-import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PROPOSAL;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.integration.AreaPictureIT.AREA_PICTURE_1_ID;
 import static app.bpartners.api.integration.conf.utils.InvoiceTestUtils.*;
@@ -30,7 +28,6 @@ import app.bpartners.api.endpoint.rest.model.Invoice;
 import app.bpartners.api.endpoint.rest.model.InvoiceDiscount;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -45,7 +42,6 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 @Testcontainers
 @AutoConfigureMockMvc
 class InvoiceIT extends S3MockedThirdParties {
-  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
   @MockBean private EventBridgeClient eventBridgeClientMock;
   @MockBean private AccountHolderJpaRepository holderJpaRepository;
 
@@ -55,7 +51,6 @@ class InvoiceIT extends S3MockedThirdParties {
 
   @BeforeEach
   public void setUp() {
-    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
@@ -79,80 +74,6 @@ class InvoiceIT extends S3MockedThirdParties {
     assertTrue(
         actualFiltered.stream()
             .anyMatch(invoice -> invoice.getTitle().equals("Outils pour plomberie")));
-  }
-
-  @Test
-  void crupdate_percent_multiple_payments_ok() throws ApiException {
-    ApiClient joeDoeClient = anApiClient();
-    PayingApi api = new PayingApi(joeDoeClient);
-    String id = String.valueOf(randomUUID());
-    CrupdateInvoice crupdateInvoice =
-        new CrupdateInvoice()
-            .title("Fabrication Jean")
-            .ref(id)
-            .paymentType(IN_INSTALMENT)
-            .customer(customer1()) // TODO: could not be null before creating a payment link
-            .products(
-                List.of(createProduct4())) // TODO: could not be null before creating a payment link
-            .paymentRegulations(
-                List.of(
-                    new CreatePaymentRegulation()
-                        .maturityDate(LocalDate.of(2023, 1, 1))
-                        .percent(2510)
-                        .comment("Acompte de 10%")
-                        .amount(null),
-                    new CreatePaymentRegulation()
-                        .maturityDate(LocalDate.of(2023, 1, 1))
-                        .percent(10000 - 2510)
-                        .comment("Reste 90%")
-                        .amount(null)));
-
-    Invoice actualDraft =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(DRAFT));
-    actualDraft.setPaymentRegulations(ignoreIdsAndDatetime(actualDraft));
-    Invoice actualProposal =
-        api.crupdateInvoice(
-            JOE_DOE_ACCOUNT_ID,
-            id,
-            crupdateInvoice
-                .status(PROPOSAL)
-                .paymentRegulations(
-                    List.of(
-                        new CreatePaymentRegulation()
-                            .maturityDate(LocalDate.of(2023, 1, 1))
-                            .percent(1025)
-                            .comment("Acompte de 10%")
-                            .amount(null),
-                        new CreatePaymentRegulation()
-                            .maturityDate(LocalDate.of(2023, 1, 1))
-                            .percent(10000 - 1025)
-                            .comment("Reste 90%")
-                            .amount(null))));
-    actualProposal.setPaymentRegulations(ignoreIdsAndDatetime(actualProposal));
-    Invoice actualConfirmed =
-        api.crupdateInvoice(JOE_DOE_ACCOUNT_ID, id, crupdateInvoice.status(CONFIRMED));
-    actualConfirmed.setPaymentRegulations(ignoreIdsAndDatetime(actualConfirmed));
-    actualConfirmed.setProducts(ignoreIdsOf(actualConfirmed.getProducts()));
-    actualConfirmed.setPaymentRegulations(ignoreStatusDatetime(actualConfirmed));
-
-    assertEquals(initPaymentReg(id), ignoreStatusDatetime(actualDraft));
-    assertTrue(
-        actualDraft.getPaymentRegulations().stream()
-            .allMatch(
-                paymentRegulation ->
-                    paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
-    assertEquals(updatedPaymentRegulations(id), ignoreStatusDatetime(actualProposal));
-    assertTrue(
-        actualProposal.getPaymentRegulations().stream()
-            .allMatch(
-                paymentRegulation ->
-                    paymentRegulation.getPaymentRequest().getPaymentUrl() == null));
-    assertEquals(expectedMultiplePayments(id, actualConfirmed), actualConfirmed);
-    assertTrue(
-        actualConfirmed.getPaymentRegulations().stream()
-            .allMatch(
-                paymentRegulation ->
-                    paymentRegulation.getPaymentRequest().getPaymentUrl() != null));
   }
 
   // note(no-ses):
@@ -235,7 +156,6 @@ class InvoiceIT extends S3MockedThirdParties {
         expectedPaid()
             .fileId(actualPaid.getFileId())
             .id(actualPaid.getId())
-            .paymentUrl(actualConfirmed.getPaymentUrl())
             .paymentRegulations(actualConfirmed.getPaymentRegulations())
             .sendingDate(actualConfirmed.getSendingDate())
             .toPayAt(actualConfirmed.getToPayAt())

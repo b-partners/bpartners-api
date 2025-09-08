@@ -54,7 +54,6 @@ import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.InvoiceTestUtils;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.repository.ban.BanApi;
-import app.bpartners.api.repository.fintecture.FintecturePaymentInitiationRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -82,12 +81,10 @@ class LocalInvoiceIT extends S3MockedThirdParties {
   @MockBean private BanApi banApi;
   @MockBean private AccountHolderJpaRepository holderJpaRepository;
   @MockBean private EventBridgeClient eventBridgeClientMock;
-  @MockBean private FintecturePaymentInitiationRepository paymentInitiationRepositoryMock;
 
   @BeforeEach
   @SneakyThrows
   public void setUp() {
-    setUpPaymentInitiationRep(paymentInitiationRepositoryMock);
     setUpEventBridge(eventBridgeClientMock);
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
@@ -204,7 +201,6 @@ class LocalInvoiceIT extends S3MockedThirdParties {
     assertEquals(initial, initialAfter);
     assertEquals(
         initial
-            .paymentUrl(null)
             .ref("BROUILLON-" + newReference.getNewReference())
             .status(DRAFT)
             .updatedAt(actual.getUpdatedAt())

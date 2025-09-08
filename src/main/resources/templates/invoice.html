@@ -414,9 +414,6 @@
                         </td>
                         <td>
                             <div class="payment-container">
-                                <img style="position: absolute; top: -10px;left: 35px;width:120px;height: 100px;object-fit: contain; z-index: 1"
-                                     th:src="${'data:image/jpeg;base64,' + paymentReg.paymentRequest.stamp}"
-                                     alt="payment-reg-qr"/>
                                 <span th:if="${paymentReg.paymentRequest.paymentHistoryStatus != null
                                 && paymentReg.paymentRequest.paymentHistoryStatus.status != null
                                 && paymentReg.paymentRequest.paymentHistoryStatus.status.value == 'PAID'

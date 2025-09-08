@@ -382,7 +382,7 @@
                     <span th:unless="${accountHolder.isSubjectToVat()}">Montant HT</span>
                 </th>
                 <th style="width: 150px">Commentaire</th>
-                <th>Status <br/>du paiement</th>
+                <th>Statut <br/>du paiement</th>
                 </thead>
                 <tbody>
                 <th:block th:each="paymentReg,i : ${invoice.getSortedMultiplePayments()}">
@@ -434,9 +434,7 @@
         <div style="width: 100%;" class="no-break-inside">
             <p><strong>Bien à vous et merci pour votre confiance.</strong></p>
             <p class="muted" th:if="${!invoice.isSubscriptionInvoice()}">
-                La facture est payable à réception en scannant le QR code ou en cliquant sur le
-                lien.
-                Sinon, vous avez la possibilité de faire un virement classique avec nos
+                La facture est payable à réception en faisant un virement classique avec nos
                 coordonnées ci-dessous. <br/>
                 <!--        TODO : change delay in payment allowed properly-->
                 <span

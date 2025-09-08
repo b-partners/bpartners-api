@@ -15,6 +15,6 @@ public class RefreshFintectureProjectTokenTriggeredService
   @Override
   public void accept(
       RefreshFintectureProjectTokenTriggered refreshFintectureProjectTokenTriggered) {
-    projectTokenManager.refreshFintectureProjectToken();
+//    projectTokenManager.refreshFintectureProjectToken();
   }
 }

@@ -64,24 +64,11 @@ class UserTokenRepositoryImplTest {
             holderJpaRepository);
 
     when(userTokenMapper.toBridgeAuthUser(any())).thenReturn(bridgeUser());
-    when(bridgeApi.authenticateUser(any()))
-        .thenReturn(
-            BridgeTokenResponse.builder()
-                .user(BridgeUser.builder().email(user().getEmail()).build())
-                .accessToken(user().getAccessToken())
-                .build());
     when(userTokenMapper.toDomain(any()))
         .thenReturn(UserToken.builder().user(user()).accessToken(user().getAccessToken()).build());
     when(userMapper.toEntity(any(), any(), any())).thenReturn(HUser.builder().build());
     when(userJpaRepository.getHUserById(any())).thenReturn(entity());
     when(userJpaRepository.save(any())).thenReturn(entity());
-  }
-
-  @Test
-  void update_user_token_ok() {
-    UserToken actual = subject.updateUserToken(user());
-
-    assertNotNull(actual);
   }
 
   @Test

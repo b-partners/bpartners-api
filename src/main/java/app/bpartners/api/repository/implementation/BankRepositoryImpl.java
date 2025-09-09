@@ -12,7 +12,6 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.BankConnection;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.mapper.BankMapper;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
@@ -140,49 +139,6 @@ public class BankRepositoryImpl implements BankRepository {
         .bank(bank)
         .status(savedEntity.getBankConnectionStatus())
         .build();
-  }
-
-  @Override
-  public Instant refreshBankConnection(UserToken userToken) {
-    if (userToken == null || userToken.getUser().getBankConnectionId() == null) {
-      return null;
-    }
-    User user = userToken.getUser();
-    if (bridgeRepository.refreshBankConnection(
-            user.getBankConnectionId(), userToken.getAccessToken())
-        != null) {
-      Instant refreshedAt =
-          bridgeRepository.getItemStatusRefreshedAt(
-              user.getBankConnectionId(), userToken.getAccessToken());
-      HUser userEntity = userJpaRepository.getById(user.getId());
-      if (userEntity.getBridgeItemLastRefresh() != null
-          && userEntity.getBridgeItemLastRefresh().equals(refreshedAt)) {
-        // Do not update item last refresh instant
-        return null;
-      }
-      return userJpaRepository
-          .save(userEntity.toBuilder().bridgeItemLastRefresh(refreshedAt).build())
-          .getBridgeItemLastRefresh();
-    }
-    return null;
-  }
-
-  @Override
-  public String initiateProValidation(String accountId) {
-    UserToken userToken = userTokenRepository.getLatestTokenByAccount(accountId);
-    return bridgeRepository.validateCurrentProItems(userToken.getAccessToken()).getRedirectUrl();
-  }
-
-  @Override
-  public String initiateBankConnectionEdition(Account account) {
-    BridgeItem defaultItem = getDefaultItem(account);
-    return bridgeRepository.editItem(defaultItem.getId()).getRedirectUrl();
-  }
-
-  @Override
-  public String initiateScaSync(Account account) {
-    BridgeItem defaultItem = getDefaultItem(account);
-    return bridgeRepository.synchronizeSca(defaultItem.getId()).getRedirectUrl();
   }
 
   @Override

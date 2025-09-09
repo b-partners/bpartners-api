@@ -115,53 +115,6 @@ class AccountServiceTest {
   }
 
   @Test
-  void initiate_account_validation_validation_required() {
-    var account = mock(Account.class);
-
-    when(repositoryMock.findById(any())).thenReturn(account);
-    when(account.getStatus()).thenReturn(AccountStatus.VALIDATION_REQUIRED);
-    when(bankRepositoryMock.initiateProValidation(any())).thenReturn("");
-
-    assertNotNull(subject.initiateAccountValidation("accountId"));
-  }
-
-  @Test
-  void initiate_account_validation_invalid_credentials() {
-    var account = mock(Account.class);
-
-    when(repositoryMock.findById(any())).thenReturn(account);
-    when(account.getStatus()).thenReturn(AccountStatus.INVALID_CREDENTIALS);
-    when(bankRepositoryMock.initiateBankConnectionEdition(any())).thenReturn("");
-
-    assertNotNull(subject.initiateAccountValidation("accountId"));
-  }
-
-  @Test
-  void initiate_account_validation_sca_required() {
-    var account = mock(Account.class);
-
-    when(repositoryMock.findById(any())).thenReturn(account);
-    when(account.getStatus()).thenReturn(AccountStatus.SCA_REQUIRED);
-    when(bankRepositoryMock.initiateScaSync(any())).thenReturn("");
-
-    assertNotNull(subject.initiateAccountValidation("accountId"));
-  }
-
-  @Test
-  void initiate_account_validation_default() {
-    var account = mock(Account.class);
-
-    when(repositoryMock.findById(any())).thenReturn(account);
-    when(account.getStatus()).thenReturn(AccountStatus.OPENED);
-
-    assertThrows(
-        BadRequestException.class,
-        () -> {
-          subject.initiateAccountValidation("accountId");
-        });
-  }
-
-  @Test
   void initiate_bank_conneciton_throws_bad_request_exception() {
     var urls = mock(RedirectionStatusUrls.class);
     var user = mock(User.class);

@@ -73,13 +73,7 @@ class BankRepositoryImplTest {
     when(bankJpaRepositoryMock.findAllByExternalId(any())).thenReturn(List.of(bankEntity()));
     when(bankMapperMock.toDomain(any(), any())).thenReturn(bank());
     when(bankJpaRepositoryMock.findById(any())).thenReturn(Optional.of(bankEntity()));
-    when(bridgeBankRepositoryMock.getItemStatusRefreshedAt(any(), any()))
-        .thenReturn(Instant.now().minus(1L, ChronoUnit.HOURS));
-    when(bridgeBankRepositoryMock.refreshBankConnection(any(), any())).thenReturn(REDIRECT_URL);
     when(bridgeBankRepositoryMock.getBridgeItems()).thenReturn(List.of(bridgeItem()));
-    when(bridgeBankRepositoryMock.validateCurrentProItems(any())).thenReturn(connectItem());
-    when(bridgeBankRepositoryMock.editItem(any())).thenReturn(connectItem());
-    when(bridgeBankRepositoryMock.synchronizeSca(any())).thenReturn(connectItem());
     when(userJpaRepositoryMock.save(any())).thenReturn(userEntity());
     when(userJpaRepositoryMock.getById(any())).thenReturn(userEntity());
     when(userMapperMock.toDomain(any())).thenReturn(user());
@@ -153,33 +147,5 @@ class BankRepositoryImplTest {
     Bank actual = subject.findById(bank().getId());
 
     assertEquals(bank(), actual);
-  }
-
-  @Test
-  void refresh_bank_connection_ok() {
-    Instant actual = subject.refreshBankConnection(userToken());
-
-    assertEquals(Instant.now().toString().substring(0, 9), actual.toString().substring(0, 9));
-  }
-
-  @Test
-  void initiate_pro_account_validation() {
-    String actual = subject.initiateProValidation(JOE_DOE_ACCOUNT_ID);
-
-    assertEquals(REDIRECT_URL, actual);
-  }
-
-  @Test
-  void initiate_bank_connection_edition() {
-    String actual = subject.initiateBankConnectionEdition(user().getDefaultAccount());
-
-    assertEquals(REDIRECT_URL, actual);
-  }
-
-  @Test
-  void manage_strong_authentication() {
-    String actual = subject.initiateScaSync(user().getDefaultAccount());
-
-    assertEquals(REDIRECT_URL, actual);
   }
 }

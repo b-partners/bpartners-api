@@ -50,8 +50,6 @@ paths:
     $ref: './userAccounts-api.yml#/operations/getAccountsByUserId'
   /users/{uId}/accounts/{aId}/active:
     $ref: './userAccounts-api.yml#/operations/setActiveAccount'
-  /users/{userId}/accounts/{accountId}/initiateAccountValidation:
-    $ref: './userAccounts-api.yml#/operations/accountValidationOperations'
   /users/{userId}/accounts/{accountId}/identity:
     $ref: './userAccounts-api.yml#/operations/updateAccountIdentity'
   /users/{userId}/accounts/{accountId}/initiateBankConnection:

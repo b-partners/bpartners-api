@@ -61,16 +61,6 @@ public class UserTokenServiceIT extends MockedThirdParties {
     return userService.getLatestToken(user);
   }
 
-  @BeforeEach
-  public void setUp() {
-    when(bridgeApi.authenticateUser(any()))
-        .thenReturn(
-            new BridgeTokenResponse(
-                new BridgeUser("uuid", "joe@email.com"),
-                "access_token",
-                Instant.parse("2023-01-01T01:00:00.00Z")));
-  }
-
   @Test
   void concurrently_get_latest_token_by_account() {
     var callerNb = 100;

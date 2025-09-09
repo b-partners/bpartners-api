@@ -87,24 +87,6 @@ public class AccountService {
         .collect(Collectors.toList());
   }
 
-  // TODO: IMPORTANT ! The obtained account here is the persisted account
-  // Must get the most recent value from Bridge not from database
-  // Need to update account from Bridge when getting account by ID
-  @Transactional
-  public String initiateAccountValidation(String accountId) {
-    Account account = repository.findById(accountId);
-    switch (account.getStatus()) {
-      case VALIDATION_REQUIRED:
-        return bankRepository.initiateProValidation(accountId);
-      case INVALID_CREDENTIALS:
-        return bankRepository.initiateBankConnectionEdition(account);
-      case SCA_REQUIRED:
-        return bankRepository.initiateScaSync(account);
-      default:
-        throw new BadRequestException(account.describeInfos() + " does not need validation.");
-    }
-  }
-
   @Transactional
   public BankConnectionRedirection initiateBankConnection(
       String userId, RedirectionStatusUrls urls) {

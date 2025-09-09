@@ -45,8 +45,6 @@ class AccountRefreshServiceTest {
             .accounts(List.of(defaultAccount, account))
             .build();
     when(userServiceMock.findAll()).thenReturn(List.of(user));
-    var bridgeTokenResponse = BridgeTokenResponse.builder().accessToken("accessToken").build();
-    when(bridgeApiMock.authenticateUser(any())).thenReturn(bridgeTokenResponse);
     when(bridgeApiMock.findItemsByToken(any())).thenReturn(List.of());
     when(accountServiceMock.save(any())).thenReturn(account);
     when(userServiceMock.save(any())).thenReturn(user);

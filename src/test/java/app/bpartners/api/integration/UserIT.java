@@ -24,7 +24,6 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -60,7 +59,6 @@ class UserIT extends MockedThirdParties {
   private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
   @MockBean private EventBridgeClient eventBridgeClientMock;
-  @MockBean private BridgeUserRepository bridgeUserRepositoryMock;
   @Autowired private UserJpaRepository userJpaRepository;
   @Autowired private UserRepository userRepository;
 
@@ -275,8 +273,6 @@ class UserIT extends MockedThirdParties {
   @Test
   @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
   void onboard_users_ok() throws IOException, InterruptedException {
-    when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
-
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
 
@@ -325,8 +321,6 @@ class UserIT extends MockedThirdParties {
   // TODO: check why two attempts with same email are all OK
   @Test
   void onboard_users_ko() throws IOException, InterruptedException {
-    when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
-
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
     String basePath = "http://localhost:" + localPort;
 

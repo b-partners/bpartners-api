@@ -5,6 +5,7 @@ import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthen
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.bridge.BridgeApi;
@@ -24,21 +25,12 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
   private final AccountMapper accountMapper;
   private final SavableAccountConnectorRepository savableRepository;
   private final BankRepository bankRepository;
+    private static final String UNSUPPORTED_ERROR_MESSAGE = "Unsupported: only saving methods are!";
 
-  @Override
+    @Override
   public List<AccountConnector> findByBearer(String bearer) {
-    List<AccountConnector> connectors =
-        bridgeApi.findAccountsByToken(bearer).stream()
-            .map(accountMapper::toConnector)
-            .collect(Collectors.toList());
-    if (!connectors.isEmpty()) {
-      User authenticated = AuthProvider.getAuthenticatedUser();
-      if (authenticated.getBankConnectionId() == null) {
-        bankRepository.updateBankConnection(authenticated);
-      }
+        throw new NotImplementedException(UNSUPPORTED_ERROR_MESSAGE);
     }
-    return connectors;
-  }
 
   @Override
   public List<AccountConnector> findByUserId(String userId) {
@@ -62,14 +54,6 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
 
   @Override
   public AccountConnector findById(String id) {
-    try {
-      Long bridgeId = Long.valueOf(id);
-      return !userIsAuthenticated()
-          ? null
-          : accountMapper.toConnector(
-              bridgeApi.findByAccountById(bridgeId, AuthProvider.getBearer()));
-    } catch (NumberFormatException e) {
-      return null;
-    }
+      throw new NotImplementedException(UNSUPPORTED_ERROR_MESSAGE);
   }
 }

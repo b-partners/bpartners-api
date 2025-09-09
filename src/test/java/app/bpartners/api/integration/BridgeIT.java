@@ -59,35 +59,6 @@ public class BridgeIT {
         .build();
   }
 
-  @Test
-  void read_user_by_id_ok() {
-    BridgeUser actual = subject.findById(bridgeUser().getUuid());
-
-    assertNotNull(actual);
-    assertEquals(bridgeUser(), actual);
-  }
-
-  @Test
-  void read_users_ok() {
-    List<BridgeUser> actual = subject.findAllUsers();
-
-    assertFalse(actual.isEmpty());
-    assertTrue(actual.contains(bridgeUser()));
-  }
-
-  @Test
-  void authenticate_user_ok() {
-    BridgeTokenResponse accessToken =
-        subject.authenticateUser(
-            CreateBridgeUser.builder()
-                .email(bridgeUser().getEmail())
-                .password("12345678") // TODO
-                .build());
-
-    log.info("Token={}", accessToken);
-    assertNotNull(accessToken);
-  }
-
   //  TODO: do not run this test
   //  @Test
   //  void create_users_ok() {
@@ -112,22 +83,6 @@ public class BridgeIT {
   //    log.info("Connect redirect url={}", actual);
   //    assertNotNull(actual);
   //  }
-
-  @Test
-  void read_account_by_id_ok() {
-    BridgeAccount actual = subject.findByAccountById(0L, userToken());
-
-    log.info("BridgeAccount ={}", actual);
-    assertNotNull(actual);
-  }
-
-  @Test
-  void read_accounts_ok() {
-    List<BridgeAccount> actual = subject.findAccountsByToken(userToken());
-
-    log.info("BridgeAccounts ={}", actual);
-    assertFalse(actual.isEmpty());
-  }
 
   @Test
   void read_items_ok() {

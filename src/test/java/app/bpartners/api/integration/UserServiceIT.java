@@ -23,7 +23,6 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
-import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.service.account.AccountService;
 import app.bpartners.api.service.accountholder.AccountHolderService;
 import app.bpartners.api.service.user.OnboardingService;
@@ -41,7 +40,6 @@ class UserServiceIT extends MockedThirdParties {
   @MockBean private BridgeBankRepository bridgeBankRepositoryMock;
   @MockBean private EventBridgeClient eventBridgeClientMock;
   @Autowired private OnboardingService onboardingService;
-  @MockBean private BridgeUserRepository bridgeUserRepositoryMock;
   @Autowired private AccountService accountService;
   @Autowired private AccountHolderService accountHolderService;
 
@@ -79,8 +77,6 @@ class UserServiceIT extends MockedThirdParties {
          .thenReturn(new Principal(userToOnboard, JOE_DOE_TOKEN));*/
     User userToOnboard = toOnboard();
     when(bridgeApi.findItemsByToken(any())).thenReturn(List.of(new BridgeItem()));
-    when(bridgeBankRepositoryMock.refreshBankConnection(any(), any())).thenReturn("success");
-    when(bridgeUserRepositoryMock.createUser(any())).thenReturn(bridgeUser());
 
     OnboardedUser actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
     User actualUser = actual.getOnboardedUser();

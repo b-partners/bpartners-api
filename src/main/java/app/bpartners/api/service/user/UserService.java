@@ -123,7 +123,6 @@ public class UserService {
     if (user == null) {
       throw new NotFoundException(String.format("The user %s is not found", email));
     }
-    bridgeApi.deleteUser(user.getBridgeUserId(), user.getBridgePassword());
     invoiceSummaryJpaRepository.deleteByIdUser(user.getId());
     accountJpaRepository.deleteHAccountByUserId(user.getId());
     accountHolderJpaRepository.deleteByIdUser(user.getBridgeUserId());

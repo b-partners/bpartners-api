@@ -1,14 +1,10 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
-import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_SCA;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -20,23 +16,14 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Account;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
-import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
-import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.UserTokenRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
-import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
-import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
-import app.bpartners.api.repository.implementation.BankRepositoryImpl;
-import app.bpartners.api.repository.model.AccountConnector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,7 +34,6 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -57,9 +43,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Disabled("TODO(fail)")
 class DirtyAccountIT extends MockedThirdParties {
   @MockBean private UserRepository userRepositoryMock;
-  @MockBean private BridgeBankRepository bridgeBankRepositoryMock;
-  @MockBean private BankRepositoryImpl bankRepositoryImplMock;
-  @Mock private UserTokenRepository userTokenRepositoryMock;
   private static final String OTHER_USER_ID = "OTHER_USER_ID";
 
   private ApiClient joeDoeClient() {
@@ -160,14 +143,6 @@ class DirtyAccountIT extends MockedThirdParties {
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
   }
 
-  private void setUpBridgeRepositories() {
-    reset(userRepositoryMock);
-    setUpUserRepositoryWithPreferredAccount(userRepositoryMock);
-    when(bankRepositoryImplMock.findByExternalId(String.valueOf(joeDoeBridgeAccount().getBankId())))
-        .thenReturn(new Bank());
-    when(bankRepositoryImplMock.disconnectBank(any())).thenReturn(true);
-  }
-
   @BeforeEach
   void setUp() {
     setUpUserRepository(userRepositoryMock);
@@ -209,33 +184,6 @@ class DirtyAccountIT extends MockedThirdParties {
     assertNull(afterDisconnection.getBic());
   }
   */
-
-  @Test
-  void initiate_bank_connection_ok() throws ApiException {
-    when(bankRepositoryImplMock.initiateConnection(any()))
-        .thenReturn("https://connect.bridgeapi.io");
-    ApiClient joeDoeClient = joeDoeClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-    String failureUrl = "failure_url";
-    String successUrl = "success_url";
-    RedirectionStatusUrls redirectionStatusUrls =
-        new RedirectionStatusUrls().failureUrl(failureUrl).successUrl(successUrl);
-
-    BankConnectionRedirection actual1 =
-        api.initiateBankConnection(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, redirectionStatusUrls);
-    BankConnectionRedirection actual2 =
-        api.initiateBankConnectionWithoutAccount(JOE_DOE_ID, redirectionStatusUrls);
-
-    assertNotNull(actual1);
-    assertTrue(actual1.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
-    assertEquals(successUrl, actual1.getRedirectionStatusUrls().getSuccessUrl());
-    assertEquals(failureUrl, actual1.getRedirectionStatusUrls().getFailureUrl());
-
-    assertNotNull(actual2);
-    assertTrue(actual2.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
-    assertEquals(successUrl, actual2.getRedirectionStatusUrls().getSuccessUrl());
-    assertEquals(failureUrl, actual2.getRedirectionStatusUrls().getFailureUrl());
-  }
 
   @Test
   void concurrently_get_bridge_accounts() {
@@ -308,9 +256,6 @@ class DirtyAccountIT extends MockedThirdParties {
 
     reset(userRepositoryMock);
     setUpUserRepositoryWithoutPreferredAccount(userRepositoryMock);
-    when(bankRepositoryImplMock.findByExternalId(String.valueOf(joeDoeBridgeAccount().getBankId())))
-        .thenReturn(new Bank());
-    when(bankRepositoryImplMock.disconnectBank(any())).thenReturn(true);
 
     ApiClient client = TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, null, localPort);
     return new UserAccountsApi(client);
@@ -334,7 +279,6 @@ class DirtyAccountIT extends MockedThirdParties {
 
   @Test
   void update_account_identity_ok() throws ApiException {
-    setUpBridgeRepositories();
     ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 

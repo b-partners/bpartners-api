@@ -199,15 +199,12 @@ public class UserRepositoryImpl implements UserRepository {
     List<HAccountHolder> accountHolders = holderJpaRepository.findAllByIdUser(toSave.getId());
     List<HAccount> accounts = accountJpaRepository.findByUser_Id(toSave.getId());
     HUser savedUser = jpaRepository.save(userMapper.toEntity(toSave, accountHolders, accounts));
-    Optional<HAccount> optionalAccount =
-        accounts.stream().filter(account -> account.getIdBank() != null).findAny();
-    String idBank = optionalAccount.isEmpty() ? null : optionalAccount.get().getIdBank();
-    return userMapper.toDomain(savedUser, bankRepository.findByExternalId(idBank));
+    return userMapper.toDomain(savedUser);
   }
 
   @Override
   public User create(User user) {
-    BridgeUser bridgeUser = BridgeUser.builder().email("it.bpartners@mail.hei.school").build();
+    BridgeUser bridgeUser = BridgeUser.builder().email(user.getEmail()).build();
     HUser entityToSave = userMapper.toEntity(user, bridgeUser);
     HUser savedUser = jpaRepository.save(entityToSave);
     return userMapper.toDomain(savedUser);

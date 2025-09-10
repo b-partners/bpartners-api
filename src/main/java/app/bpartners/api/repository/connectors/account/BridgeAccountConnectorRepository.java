@@ -4,14 +4,11 @@ import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthentic
 import static app.bpartners.api.endpoint.rest.security.AuthProvider.userIsAuthenticated;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.model.AccountConnector;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -21,16 +18,15 @@ import org.springframework.stereotype.Repository;
 @AllArgsConstructor
 @Slf4j
 public class BridgeAccountConnectorRepository implements AccountConnectorRepository {
-  private final BridgeApi bridgeApi;
   private final AccountMapper accountMapper;
   private final SavableAccountConnectorRepository savableRepository;
   private final BankRepository bankRepository;
-    private static final String UNSUPPORTED_ERROR_MESSAGE = "Unsupported: only saving methods are!";
+  private static final String UNSUPPORTED_ERROR_MESSAGE = "Unsupported: only saving methods are!";
 
-    @Override
+  @Override
   public List<AccountConnector> findByBearer(String bearer) {
-        throw new NotImplementedException(UNSUPPORTED_ERROR_MESSAGE);
-    }
+    throw new NotImplementedException(UNSUPPORTED_ERROR_MESSAGE);
+  }
 
   @Override
   public List<AccountConnector> findByUserId(String userId) {
@@ -54,6 +50,6 @@ public class BridgeAccountConnectorRepository implements AccountConnectorReposit
 
   @Override
   public AccountConnector findById(String id) {
-      throw new NotImplementedException(UNSUPPORTED_ERROR_MESSAGE);
+    throw new NotImplementedException(UNSUPPORTED_ERROR_MESSAGE);
   }
 }

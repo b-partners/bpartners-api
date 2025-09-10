@@ -12,17 +12,12 @@ import static app.bpartners.api.service.user.OnboardingService.DEFAULT_VERIFIED;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.User;
-import app.bpartners.api.repository.bridge.model.Item.BridgeItem;
-import app.bpartners.api.repository.bridge.model.User.BridgeUser;
-import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
 import app.bpartners.api.service.account.AccountService;
 import app.bpartners.api.service.accountholder.AccountHolderService;
 import app.bpartners.api.service.user.OnboardingService;
@@ -37,7 +32,6 @@ import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
 @Testcontainers
 class UserServiceIT extends MockedThirdParties {
   private static final String COMPANY_NAME = "user company name";
-  @MockBean private BridgeBankRepository bridgeBankRepositoryMock;
   @MockBean private EventBridgeClient eventBridgeClientMock;
   @Autowired private OnboardingService onboardingService;
   @Autowired private AccountService accountService;
@@ -49,13 +43,6 @@ class UserServiceIT extends MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
-  }
-
-  public static BridgeUser bridgeUser() {
-    return BridgeUser.builder()
-        .email(toOnboard().getEmail())
-        .uuid(String.valueOf(randomUUID()))
-        .build();
   }
 
   public static User toOnboard() {
@@ -76,7 +63,6 @@ class UserServiceIT extends MockedThirdParties {
          .when(AuthProvider::getPrincipal)
          .thenReturn(new Principal(userToOnboard, JOE_DOE_TOKEN));*/
     User userToOnboard = toOnboard();
-    when(bridgeApi.findItemsByToken(any())).thenReturn(List.of(new BridgeItem()));
 
     OnboardedUser actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
     User actualUser = actual.getOnboardedUser();

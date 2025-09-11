@@ -10,7 +10,6 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class AccountRepositoryImpl implements AccountRepository {
   private final AccountMapper mapper;
-  private final AccountConnectorRepository connectorRepository;
   private final AccountJpaRepository jpaRepository;
   private final UserJpaRepository userJpaRepository;
   private final BankRepository bankRepository;
@@ -44,18 +42,8 @@ public class AccountRepositoryImpl implements AccountRepository {
    */
   @Override
   public List<Account> findByBearer(String bearer) {
-    List<AccountConnector> accountConnectors = connectorRepository.findByBearer(bearer);
     String preferredAccountId = AuthProvider.getPreferredAccountId();
-    List<Account> jpaAccounts =
-        getJpaAccounts(AuthProvider.getAuthenticatedUserId(), preferredAccountId);
-    return combineAccounts(preferredAccountId, accountConnectors, jpaAccounts);
-  }
-
-  private List<Account> convertConnectors(
-      String preferredAccountId, List<AccountConnector> accountConnectors) {
-    return filterByActive(
-        preferredAccountId,
-        accountConnectors.stream().map(this::convertConnector).collect(Collectors.toList()));
+    return getJpaAccounts(AuthProvider.getAuthenticatedUserId(), preferredAccountId);
   }
 
   @Override
@@ -64,21 +52,14 @@ public class AccountRepositoryImpl implements AccountRepository {
         jpaRepository
             .findById(id)
             .orElseThrow(() -> new NotFoundException("Account(id=" + id + ") not found"));
-    String externalId = entity.getExternalId(); // Default for Bridge
-    AccountConnector accountConnector = connectorRepository.findById(externalId);
-    if (accountConnector == null) {
       return mapper.toDomain(entity);
-    }
-    return mapper.toDomain(accountConnector, entity);
   }
 
   @Override
   public List<Account> findByUserId(String userId) {
     HUser user = getUserById(userId);
     String preferredAccountId = user.getPreferredAccountId();
-    List<AccountConnector> accountConnectors = connectorRepository.findByUserId(userId);
-    List<Account> jpaAccounts = getJpaAccounts(userId, preferredAccountId);
-    return combineAccounts(preferredAccountId, accountConnectors, jpaAccounts);
+    return getJpaAccounts(userId, preferredAccountId);
   }
 
   @Override
@@ -131,17 +112,6 @@ public class AccountRepositoryImpl implements AccountRepository {
     return jpaRepository.findAll().stream().map(mapper::toDomain).collect(Collectors.toList());
   }
 
-  private Account convertConnector(AccountConnector accountConnector) {
-    String accountConnectorId = accountConnector.getId();
-    HAccount entity =
-        AccountUtils.findByExternalId(accountConnectorId, jpaRepository)
-            .orElseThrow(
-                () ->
-                    new NotFoundException(
-                        "Account(externalId=" + accountConnectorId + ") not found"));
-    return mapper.toDomain(accountConnector, entity);
-  }
-
   private List<Account> getJpaAccounts(String userId, String preferredAccountId) {
     List<HAccount> accountEntities = jpaRepository.findByUser_Id(userId);
     List<Account> accounts =
@@ -159,20 +129,6 @@ public class AccountRepositoryImpl implements AccountRepository {
       userJpaRepository.save(user.toBuilder().preferredAccountId(activeAccount.getId()).build());
     }
     return accounts;
-  }
-
-  private List<Account> combineAccounts(
-      String preferredAccountId,
-      List<AccountConnector> accountConnectors,
-      List<Account> jpaAccounts) {
-    if (accountConnectors.isEmpty()) {
-      return jpaAccounts;
-    }
-    List<Account> convertedAccounts = convertConnectors(preferredAccountId, accountConnectors);
-    convertedAccounts.addAll(jpaAccounts);
-    return convertedAccounts.stream()
-        .filter(distinctByKeys(Account::getId))
-        .collect(Collectors.toList());
   }
 
   private HUser getUserById(String idUser) {

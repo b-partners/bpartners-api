@@ -17,7 +17,6 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.payment.UserSubscriptionConf;
-import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
@@ -40,7 +39,6 @@ class LegalFileIT extends FacadeIT {
   @MockBean SendinblueConf sendinblueConf;
   @MockBean CognitoComponent cognitoComponentMock;
   @MockBean ProjectTokenManager projectTokenManager;
-  @MockBean AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean EventProducer eventProducer;
   @MockBean StripeConf stripeConf;
   @MockBean UserSubscriptionConf userSubscriptionConf;

@@ -4,6 +4,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
+import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
@@ -29,6 +30,17 @@ public class UserMapper {
   public static final String UNINITIATED_STATUS = "Uninitiated";
   private final AccountMapper accountMapper;
   private final AccountHolderMapper accountHolderMapper;
+
+  public User toDomain(HUser entity, Bank bank) {
+    return toDomain(entity).toBuilder()
+        .accounts(
+            entity.getAccounts() == null
+                ? null
+                : entity.getAccounts().stream()
+                    .map(account -> accountMapper.toDomain(account, bank))
+                    .collect(Collectors.toList()))
+        .build();
+  }
 
   public User toDomain(HUser entityUser) {
     return User.builder()

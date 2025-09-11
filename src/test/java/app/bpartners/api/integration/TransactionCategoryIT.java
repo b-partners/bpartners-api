@@ -5,6 +5,8 @@ import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.OUTCOME;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -15,6 +17,8 @@ import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.TransactionCategoryTemplate;
+import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
+import app.bpartners.api.repository.bridge.repository.BridgeTransactionRepository;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
@@ -24,6 +28,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -31,6 +36,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TransactionCategoryIT extends MockedThirdParties {
+  @MockBean private BridgeTransactionRepository bridgeTransactionRepositoryMock;
 
   private ApiClient anApiClient() {
     return TestUtils.anApiClient(TestUtils.JOE_DOE_TOKEN, null, localPort);
@@ -65,6 +71,9 @@ class TransactionCategoryIT extends MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
+
+    when(bridgeTransactionRepositoryMock.findById(any()))
+        .thenReturn(BridgeTransaction.builder().build());
   }
 
   CreateTransactionCategory incomeTransactionCategory() {

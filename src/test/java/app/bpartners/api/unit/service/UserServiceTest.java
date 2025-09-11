@@ -13,13 +13,10 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.UserTokenRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceSummaryJpaRepository;
@@ -35,14 +32,12 @@ import org.junit.jupiter.api.Test;
 class UserServiceTest {
   UserService subject;
   UserRepository userRepositoryMock;
-  UserTokenRepository userTokenRepositoryMock;
   SnsService snsServiceMock;
   CognitoComponent cognitoComponentMock;
   UserJpaRepository userJpaRepositoryMock;
   AccountJpaRepository accountJpaRepositoryMock;
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
   InvoiceSummaryJpaRepository invoiceSummaryJpaRepositoryMock;
-  BridgeApi bridgeApiMock;
   EventProducer<UserRegistrationRequested> eventProducerMock;
   SesService mailerMock;
   SubscriptionService subscriptionServiceMock;
@@ -50,7 +45,6 @@ class UserServiceTest {
   @BeforeEach
   void setUp() {
     userRepositoryMock = mock(UserRepository.class);
-    userTokenRepositoryMock = mock(UserTokenRepository.class);
     snsServiceMock = mock(SnsService.class);
     subscriptionServiceMock = mock(SubscriptionService.class);
     mailerMock = mock(SesService.class);
@@ -58,19 +52,16 @@ class UserServiceTest {
     subject =
         new UserService(
             userRepositoryMock,
-            userTokenRepositoryMock,
             snsServiceMock,
             cognitoComponentMock,
             userJpaRepositoryMock,
             accountJpaRepositoryMock,
             accountHolderJpaRepositoryMock,
             invoiceSummaryJpaRepositoryMock,
-            bridgeApiMock,
             eventProducerMock);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
-    when(userTokenRepositoryMock.getLatestTokenByUser(any())).thenReturn(new UserToken());
   }
 
   @Test
@@ -175,13 +166,6 @@ class UserServiceTest {
 
     var actual = subject.changeActiveAccount(USER1_ID, JOE_DOE_ACCOUNT_ID);
     assertEquals(user, actual);
-  }
-
-  @Test
-  void read_user_token_ok() {
-    UserToken userToken = subject.getLatestToken(user());
-
-    assertNotNull(userToken);
   }
 
   User user() {

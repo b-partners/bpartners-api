@@ -8,7 +8,6 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.LegalFileRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.connectors.account.AccountConnectorRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
@@ -29,7 +28,6 @@ public class MockedThirdParties extends FacadeIT {
   @MockBean protected ProjectTokenManager projectTokenManager;
   @MockBean protected AccountConnectorRepository accountConnectorRepositoryMock;
   @MockBean protected LegalFileRepository legalFileRepositoryMock;
-  @MockBean protected BridgeApi bridgeApi;
   @MockBean protected StripeConf stripeConf;
   @MockBean protected UserSubscriptionConf userSubscriptionConf;
   @MockBean protected SubscriptionService subscriptionService;

@@ -14,7 +14,6 @@ import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.UserMapper;
 import app.bpartners.api.repository.BankRepository;
-import app.bpartners.api.repository.bridge.repository.BridgeUserRepository;
 import app.bpartners.api.repository.implementation.UserRepositoryImpl;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
@@ -31,7 +30,6 @@ class UserRepositoryTest {
   UserMapper userMapperMock;
   CognitoComponent cognitoComponentMock;
   UserRepositoryImpl subject;
-  BridgeUserRepository bridgeUserRepositoryMock;
   AccountHolderJpaRepository accountHolderJpaRepositoryMock;
   AccountJpaRepository accountJpaRepositoryMock;
   BankRepository bankRepositoryMock;
@@ -42,7 +40,6 @@ class UserRepositoryTest {
     userJpaRepositoryMock = mock(UserJpaRepository.class);
     userMapperMock = mock(UserMapper.class);
     cognitoComponentMock = mock(CognitoComponent.class);
-    bridgeUserRepositoryMock = mock(BridgeUserRepository.class);
     accountHolderJpaRepositoryMock = mock(AccountHolderJpaRepository.class);
     accountJpaRepositoryMock = mock(AccountJpaRepository.class);
     bankRepositoryMock = mock(BankRepository.class);
@@ -52,7 +49,6 @@ class UserRepositoryTest {
             userJpaRepositoryMock,
             userMapperMock,
             cognitoComponentMock,
-            bridgeUserRepositoryMock,
             accountHolderJpaRepositoryMock,
             accountJpaRepositoryMock,
             bankRepositoryMock,

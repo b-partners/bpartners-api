@@ -4,11 +4,8 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserRegistrationRequested;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.UserTokenRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceSummaryJpaRepository;
@@ -27,14 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UserService {
   private final UserRepository userRepository;
-  private final UserTokenRepository userTokenRepository;
   private final SnsService snsService;
   private final CognitoComponent cognitoComponent;
   private final UserJpaRepository userJpaRepository;
   private final AccountJpaRepository accountJpaRepository;
   private final AccountHolderJpaRepository accountHolderJpaRepository;
   private final InvoiceSummaryJpaRepository invoiceSummaryJpaRepository;
-  private final BridgeApi bridgeApi;
   private final EventProducer<UserRegistrationRequested> eventProducer;
 
   @Transactional
@@ -99,11 +94,6 @@ public class UserService {
   }
 
   @Transactional
-  public UserToken getLatestToken(User user) {
-    return userTokenRepository.getLatestTokenByUser(user);
-  }
-
-  @Transactional
   public List<User> findAll() {
     return userRepository.findAll();
   }
@@ -113,17 +103,11 @@ public class UserService {
   }
 
   @Transactional
-  public UserToken getLatestTokenByAccount(String accountId) {
-    return userTokenRepository.getLatestTokenByAccount(accountId);
-  }
-
-  @Transactional
   public void deleteUserByEmail(String email) {
     HUser user = userJpaRepository.getByEmail(email);
     if (user == null) {
       throw new NotFoundException(String.format("The user %s is not found", email));
     }
-    bridgeApi.deleteUser(user.getBridgeUserId(), user.getBridgePassword());
     invoiceSummaryJpaRepository.deleteByIdUser(user.getId());
     accountJpaRepository.deleteHAccountByUserId(user.getId());
     accountHolderJpaRepository.deleteByIdUser(user.getBridgeUserId());

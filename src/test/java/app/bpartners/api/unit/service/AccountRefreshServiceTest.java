@@ -8,6 +8,8 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
+import app.bpartners.api.repository.bridge.BridgeApi;
+import app.bpartners.api.repository.bridge.response.BridgeTokenResponse;
 import app.bpartners.api.service.account.AccountRefreshService;
 import app.bpartners.api.service.account.AccountService;
 import app.bpartners.api.service.user.UserService;
@@ -19,12 +21,14 @@ class AccountRefreshServiceTest {
   AccountRefreshService subject;
   UserService userServiceMock;
   AccountService accountServiceMock;
+  BridgeApi bridgeApiMock;
 
   @BeforeEach
   void setUp() {
     userServiceMock = mock(UserService.class);
     accountServiceMock = mock(AccountService.class);
-    subject = new AccountRefreshService(userServiceMock, accountServiceMock);
+    bridgeApiMock = mock(BridgeApi.class);
+    subject = new AccountRefreshService(userServiceMock, accountServiceMock, bridgeApiMock);
   }
 
   @Test
@@ -41,6 +45,9 @@ class AccountRefreshServiceTest {
             .accounts(List.of(defaultAccount, account))
             .build();
     when(userServiceMock.findAll()).thenReturn(List.of(user));
+    var bridgeTokenResponse = BridgeTokenResponse.builder().accessToken("accessToken").build();
+    when(bridgeApiMock.authenticateUser(any())).thenReturn(bridgeTokenResponse);
+    when(bridgeApiMock.findItemsByToken(any())).thenReturn(List.of());
     when(accountServiceMock.save(any())).thenReturn(account);
     when(userServiceMock.save(any())).thenReturn(user);
 

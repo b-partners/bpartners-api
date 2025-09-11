@@ -51,20 +51,6 @@ public class AccountMapper {
         .build();
   }
 
-  public Account toDomain(AccountConnector accountConnector, HAccount entity) {
-    return Account.builder()
-        .id(entity.getId())
-        .externalId(accountConnector.getId())
-        .userId(entity.getUser().getId())
-        .bic(entity.getBic())
-        .name(accountConnector.getName())
-        .iban(accountConnector.getIban())
-        .availableBalance(accountConnector.getBalance())
-        .status(accountConnector.getStatus())
-        .enableStatus(entity.getEnableStatus())
-        .build();
-  }
-
   public Account toDomain(AccountConnector accountConnector, HAccount entity, Bank bank) {
     return Account.builder()
         .id(entity.getId())
@@ -76,25 +62,6 @@ public class AccountMapper {
         .iban(accountConnector.getIban())
         .availableBalance(accountConnector.getBalance())
         .status(accountConnector.getStatus())
-        .enableStatus(entity.getEnableStatus())
-        .build();
-  }
-
-  public Account toDomain(HAccount entity) {
-    if (entity == null) {
-      return null;
-    }
-
-    Money availableBalance = Money.fromMajor(entity.getAvailableBalance());
-    return Account.builder()
-        .id(entity.getId())
-        .externalId(entity.getExternalId())
-        .userId(entity.getUser().getId())
-        .name(entity.getName())
-        .iban(entity.getIban())
-        .bic(entity.getBic())
-        .availableBalance(availableBalance)
-        .status(entity.getStatus())
         .enableStatus(entity.getEnableStatus())
         .build();
   }

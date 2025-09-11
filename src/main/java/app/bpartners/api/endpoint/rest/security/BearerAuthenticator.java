@@ -6,6 +6,7 @@ import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserToken;
 import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,8 @@ public class BearerAuthenticator implements UsernamePasswordAuthenticator {
       throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
     }
     User user = userService.getUserByEmail(email);
+    UserToken bridgeUserToken = userService.getLatestToken(user);
+    bearer = bridgeUserToken == null ? bearer : bridgeUserToken.getAccessToken();
 
     return new Principal(user, bearer);
   }

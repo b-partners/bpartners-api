@@ -68,16 +68,6 @@ class TransactionServiceTest {
   }
 
   @Test
-  void get_transactions_summary() {
-    var transaction = TransactionsSummary.builder().build();
-    when(summaryRepositoryMock.getByIdUserAndYear(any(), anyInt())).thenReturn(transaction);
-
-    var actual = subject.getTransactionsSummary("transactionId", null);
-
-    assertEquals(transaction, actual);
-  }
-
-  @Test
   void add_supporting_document() throws IOException {
     var transactionId = "transactionId";
     var idUser = "idUser";

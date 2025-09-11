@@ -67,9 +67,10 @@ public class AccountRepositoryImpl implements AccountRepository {
     String externalId = entity.getExternalId(); // Default for Bridge
     AccountConnector accountConnector = connectorRepository.findById(externalId);
     if (accountConnector == null) {
-      return mapper.toDomain(entity);
+      return mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank()));
     }
-    return mapper.toDomain(accountConnector, entity);
+    return mapper.toDomain(
+        accountConnector, entity, bankRepository.findByExternalId(accountConnector.getBankId()));
   }
 
   @Override
@@ -95,7 +96,9 @@ public class AccountRepositoryImpl implements AccountRepository {
                     updateAccount.getIban() == null ? existing.getIban() : updateAccount.getIban())
                 .bic(updateAccount.getBic())
                 .build());
-    return mapper.toDomain(saved);
+    return mapper.toDomain(
+        saved,
+        saved.getIdBank() == null ? null : bankRepository.findByExternalId(saved.getIdBank()));
   }
 
   @Override
@@ -108,7 +111,15 @@ public class AccountRepositoryImpl implements AccountRepository {
                   return mapper.toEntity(account, user);
                 })
             .toList();
-    return jpaRepository.saveAll(entities).stream().map(mapper::toDomain).toList();
+    return jpaRepository.saveAll(entities).stream()
+        .map(
+            saved ->
+                mapper.toDomain(
+                    saved,
+                    saved.getIdBank() == null
+                        ? null
+                        : bankRepository.findByExternalId(saved.getIdBank())))
+        .toList();
   }
 
   @Override
@@ -116,7 +127,9 @@ public class AccountRepositoryImpl implements AccountRepository {
     HUser user = getUserById(toSave.getUserId());
     HAccount entity = mapper.toEntity(toSave, user);
     HAccount saved = jpaRepository.save(entity);
-    return mapper.toDomain(saved);
+    return mapper.toDomain(
+        saved,
+        saved.getIdBank() == null ? null : bankRepository.findByExternalId(saved.getIdBank()));
   }
 
   @Override
@@ -128,7 +141,11 @@ public class AccountRepositoryImpl implements AccountRepository {
 
   @Override
   public List<Account> findAll() {
-    return jpaRepository.findAll().stream().map(mapper::toDomain).collect(Collectors.toList());
+    return jpaRepository.findAll().stream()
+        .map(
+            account ->
+                mapper.toDomain(account, bankRepository.findByExternalId(account.getIdBank())))
+        .collect(Collectors.toList());
   }
 
   private Account convertConnector(AccountConnector accountConnector) {
@@ -139,13 +156,18 @@ public class AccountRepositoryImpl implements AccountRepository {
                 () ->
                     new NotFoundException(
                         "Account(externalId=" + accountConnectorId + ") not found"));
-    return mapper.toDomain(accountConnector, entity);
+    return mapper.toDomain(
+        accountConnector, entity, bankRepository.findByExternalId(accountConnector.getBankId()));
   }
 
   private List<Account> getJpaAccounts(String userId, String preferredAccountId) {
     List<HAccount> accountEntities = jpaRepository.findByUser_Id(userId);
     List<Account> accounts =
-        accountEntities.stream().map(mapper::toDomain).collect(Collectors.toList());
+        accountEntities.stream()
+            .map(
+                entity ->
+                    mapper.toDomain(entity, bankRepository.findByExternalId(entity.getIdBank())))
+            .collect(Collectors.toList());
     return filterByActive(preferredAccountId, accounts);
   }
 

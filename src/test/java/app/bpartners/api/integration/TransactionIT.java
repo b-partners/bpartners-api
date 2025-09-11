@@ -2,6 +2,8 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.PayingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
@@ -25,6 +27,7 @@ class TransactionIT extends MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
+    when(bridgeApi.findTransactionsUpdatedByToken(any())).thenReturn(List.of());
   }
 
   @Test

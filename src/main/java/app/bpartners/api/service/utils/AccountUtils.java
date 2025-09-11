@@ -3,7 +3,6 @@ package app.bpartners.api.service.utils;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +25,7 @@ public class AccountUtils {
     return Optional.of(accountsWithSameId.get(0));
   }
 
-    public static String describeAccountList(List<Account> accounts) {
+  public static String describeAccountList(List<Account> accounts) {
     StringBuilder builder = new StringBuilder();
     accounts.forEach(account -> builder.append(account.describeInfos()).append(". "));
     return builder.toString();

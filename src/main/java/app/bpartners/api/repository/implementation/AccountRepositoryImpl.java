@@ -1,7 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
 import static app.bpartners.api.service.utils.AccountUtils.filterActive;
-import static app.bpartners.api.service.utils.FilterUtils.distinctByKeys;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.Account;
@@ -50,7 +49,7 @@ public class AccountRepositoryImpl implements AccountRepository {
         jpaRepository
             .findById(id)
             .orElseThrow(() -> new NotFoundException("Account(id=" + id + ") not found"));
-      return mapper.toDomain(entity);
+    return mapper.toDomain(entity);
   }
 
   @Override

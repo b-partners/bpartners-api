@@ -20,7 +20,7 @@ public class AccountMapper {
   public static final String VALIDATION_REQUIRED = "Validation Required";
   public static final String INVALID_CREDENTIALS = "Invalid Credentials";
 
-    public Account toDomain(HAccount entity) {
+  public Account toDomain(HAccount entity) {
     if (entity == null) {
       return null;
     }
@@ -59,7 +59,7 @@ public class AccountMapper {
         .build();
   }
 
-    public HAccount toEntity(Account account, HUser userEntity) {
+  public HAccount toEntity(Account account, HUser userEntity) {
     return HAccount.builder()
         .id(account.getId())
         .externalId(account.getExternalId())
@@ -74,5 +74,4 @@ public class AccountMapper {
         .enableStatus(account.getEnableStatus())
         .build();
   }
-
 }

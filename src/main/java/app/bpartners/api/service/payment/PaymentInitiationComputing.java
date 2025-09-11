@@ -4,7 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.PaymentInitiation;
+import app.bpartners.api.model.PaymentRegulation;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import java.util.Comparator;
 import java.util.List;
@@ -15,11 +15,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class PaymentInitiationComputing implements Function<Invoice, List<PaymentInitiation>> {
+public class PaymentInitiationComputing implements Function<Invoice, List<PaymentRegulation>> {
   private final PaymentRequestMapper requestMapper;
 
   @Override
-  public List<PaymentInitiation> apply(Invoice invoice) {
+  public List<PaymentRegulation> apply(Invoice invoice) {
     var payments =
         invoice.getPaymentRegulations().stream()
             .map(
@@ -43,7 +43,7 @@ public class PaymentInitiationComputing implements Function<Invoice, List<Paymen
                       payment,
                       paymentRequest.getPaymentHistoryStatus());
                 })
-            .sorted(Comparator.comparing(PaymentInitiation::getPaymentDueDate))
+            .sorted(Comparator.comparing(PaymentRegulation::getPaymentDueDate))
             .toList();
 
     var counter = new AtomicInteger(1);

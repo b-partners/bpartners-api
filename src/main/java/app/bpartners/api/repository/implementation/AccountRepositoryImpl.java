@@ -14,8 +14,6 @@ import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HUser;
-import app.bpartners.api.repository.model.AccountConnector;
-import app.bpartners.api.service.utils.AccountUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

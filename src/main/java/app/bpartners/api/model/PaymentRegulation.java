@@ -17,7 +17,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class PaymentInitiation {
+public class PaymentRegulation {
   private String id;
   private String label;
   private String comment;

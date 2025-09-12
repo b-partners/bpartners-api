@@ -3,7 +3,6 @@ package app.bpartners.api.service.utils;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
-import app.bpartners.api.repository.model.AccountConnector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,36 +23,6 @@ public class AccountUtils {
       log.warn("Multiple accounts with same externalID=" + externalId + " detected");
     }
     return Optional.of(accountsWithSameId.get(0));
-  }
-
-  public static Optional<HAccount> findByIbanOrNameAndBank(
-      AccountConnector accountConnector, AccountJpaRepository jpaRepository) {
-    String iban = accountConnector.getIban();
-    String name = accountConnector.getName();
-    String bankId = accountConnector.getBankId();
-    List<HAccount> accountsWithIbanOrNameAndBank;
-    if (iban != null) {
-      accountsWithIbanOrNameAndBank = jpaRepository.findAllByIban(iban);
-    } else if (bankId == null) {
-      accountsWithIbanOrNameAndBank = jpaRepository.findAllByNameContainingIgnoreCase(name);
-    } else {
-      accountsWithIbanOrNameAndBank =
-          jpaRepository.findAllByNameContainingIgnoreCaseAndIdBank(name, bankId);
-    }
-    if (accountsWithIbanOrNameAndBank.isEmpty()) {
-      return Optional.empty();
-    }
-    if (accountsWithIbanOrNameAndBank.size() > 1) {
-      log.warn(
-          "Multiple accounts with same iban="
-              + iban
-              + " or name="
-              + name
-              + " and bankId="
-              + bankId
-              + " detected");
-    }
-    return Optional.of(accountsWithIbanOrNameAndBank.get(0));
   }
 
   public static String describeAccountList(List<Account> accounts) {

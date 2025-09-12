@@ -10,7 +10,7 @@ import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentHistoryStatus;
-import app.bpartners.api.model.PaymentInitiation;
+import app.bpartners.api.model.PaymentRegulation;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.time.Instant;
@@ -53,7 +53,7 @@ public class PaymentRequestMapper {
         .build();
   }
 
-  public HPaymentRequest toEntity(PaymentInitiation domain, String idInvoice) {
+  public HPaymentRequest toEntity(PaymentRegulation domain, String idInvoice) {
     PaymentHistoryStatus historyStatus = domain.getPaymentHistoryStatus();
     Instant createdDatetime = Instant.now();
     return HPaymentRequest.builder()
@@ -75,7 +75,7 @@ public class PaymentRequestMapper {
         .build();
   }
 
-  public PaymentInitiation convertFromInvoice(
+  public PaymentRegulation convertFromInvoice(
       String paymentInitiationId,
       String label,
       String reference,
@@ -83,7 +83,7 @@ public class PaymentRequestMapper {
       CreatePaymentRegulation payment,
       PaymentHistoryStatus paymentHistoryStatus) {
     Fraction totalPriceWithVat = invoice.getTotalPriceWithVat();
-    return PaymentInitiation.builder()
+    return PaymentRegulation.builder()
         .id(paymentInitiationId)
         .reference(reference)
         .label(label)

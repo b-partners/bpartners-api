@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class CreatePaymentRegulationComputing
     implements Function<Invoice, List<CreatePaymentRegulation>> {
-  private final PaymentInitiationService pis;
+  private final PaymentRegulationService prs;
   private final PaymentInitiationComputing paymentInitiationComputing;
   private final PaymentRequestMapper requestMapper;
 
@@ -26,7 +26,7 @@ public class CreatePaymentRegulationComputing
   public List<CreatePaymentRegulation> apply(Invoice actual) {
     var paymentInitiations = paymentInitiationComputing.apply(actual);
     var paymentRequests =
-        pis.retrievePaymentEntities(paymentInitiations, actual.getId(), actual.getStatus());
+        prs.retrievePaymentEntities(paymentInitiations, actual.getId(), actual.getStatus());
     return convertPaymentRequests(paymentRequests);
   }
 

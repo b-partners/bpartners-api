@@ -1,8 +1,8 @@
 package app.bpartners.api.repository.implementation;
 
-import app.bpartners.api.model.PaymentInitiation;
+import app.bpartners.api.model.PaymentRegulation;
 import app.bpartners.api.model.mapper.PaymentRequestMapper;
-import app.bpartners.api.repository.PaymentInitiationRepository;
+import app.bpartners.api.repository.PaymentRegulationRepository;
 import app.bpartners.api.repository.jpa.model.HPaymentRequest;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,13 +13,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 @Slf4j
-public class PaymentInitiationRepositoryImpl implements PaymentInitiationRepository {
+public class PaymentRegulationRepositoryImpl implements PaymentRegulationRepository {
   private final PaymentRequestMapper paymentRequestMapper;
 
   @Override
   public List<HPaymentRequest> retrievePaymentEntities(
-      List<PaymentInitiation> paymentInitiations, String invoice) {
-    return paymentInitiations.stream()
+      List<PaymentRegulation> paymentRegulations, String invoice) {
+    return paymentRegulations.stream()
         .map(payment -> paymentRequestMapper.toEntity(payment, invoice))
         .collect(Collectors.toList());
   }

@@ -61,7 +61,7 @@ public class SubscriptionService {
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
   private final TemporalUtils temporalUtils;
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
-  private final StripeSessionFactory stripeSessionFactory;
+  private final StripeFactory stripeFactory;
   private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
 
   public SubscriptionConsumptionLog addConsumption(
@@ -349,7 +349,7 @@ public class SubscriptionService {
                     .build());
 
     var session =
-        stripeSessionFactory.createSession(
+        stripeFactory.createSession(
             user,
             endOfTrialPeriod,
             stripeCustomer,

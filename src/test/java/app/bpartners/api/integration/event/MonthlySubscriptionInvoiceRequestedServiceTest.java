@@ -17,6 +17,7 @@ import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -24,9 +25,14 @@ import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
 import app.bpartners.api.service.invoice.InvoiceService;
+import app.bpartners.api.service.subscription.StripeFactory;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Plan;
+import com.stripe.model.SubscriptionItem;
+import com.stripe.model.SubscriptionItemCollection;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -44,8 +50,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock = mock();
   CustomDateFormatter customDateFormatter = new CustomDateFormatter();
   TemporalUtils temporalUtils = new TemporalUtils();
+  StripeConf stripeConfMock = mock();
   UserCustomerConverter userCustomerConverter =
       new UserCustomerConverter(userRepositoryMock, customerRepositoryMock);
+  StripeFactory stripeFactoryMock = mock();
   MonthlySubscriptionInvoiceRequestedService subject =
       new MonthlySubscriptionInvoiceRequestedService(
           invoiceServiceMock,
@@ -56,10 +64,12 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           customDateFormatter,
           temporalUtils,
           subscriptionEligibleJpaRepositoryMock,
-          userCustomerConverter);
+          userCustomerConverter,
+          stripeConfMock,
+          stripeFactoryMock);
 
   @Test
-  void test_invoice_product_for_extra_analysis() {
+  void test_invoice_product_for_extra_analysis() throws StripeException {
     var userPage = 1;
     var userToCredit = User.builder().build();
     var userToCreditId = "userToCreditId";
@@ -82,8 +92,19 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var subscriptionProduct = SubscriptionProduct.builder().priceInCents(5L).build();
     var latestSubscription =
         Subscription.builder().subscriptionProduct(subscriptionProduct).status(ACTIVE).build();
+    var user = User.builder().id(userToDebitId).userSubscriptionId("subscriptionId").build();
+    when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
+    var subscription = mock(com.stripe.model.Subscription.class);
+    when(stripeFactoryMock.retrieveUserSubscriptions(any())).thenReturn(List.of(subscription));
+    var items = mock(SubscriptionItemCollection.class);
+    when(subscription.getItems()).thenReturn(items);
+    var data = mock(SubscriptionItem.class);
+    when(items.getData()).thenReturn(List.of(data));
+    var plan = mock(Plan.class);
+    when(data.getPlan()).thenReturn(plan);
+    when(plan.getProduct()).thenReturn("essentialProduct");
     var userSubscription =
-        UserSubscription.builder().subscriptions(List.of(latestSubscription)).build();
+        UserSubscription.builder().user(user).subscriptions(List.of(latestSubscription)).build();
     when(subscriptionServiceMock.getSubscriptionByUser(any())).thenReturn(userSubscription);
     var customerToDebit = Customer.builder().name("dummy").build();
     when(customerRepositoryMock.findByIdUserAndCriteria(
@@ -120,7 +141,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   }
 
   @Test
-  void generate_invoice_for_paginated_users_with_existing_customers() {
+  void generate_invoice_for_paginated_users_with_existing_customers() throws StripeException {
     var userPage = 1;
     var userToCreditId = "userToCreditId";
     var userToDebitId = "userToDebitId";
@@ -134,6 +155,16 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var subscriptionEligibilityMock = mock(UserSubscriptionEligible.class);
     var subscriptionProductName = "subscriptionProductName";
     var userSubscriptionId = "notNullSubscription";
+    when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
+    var subscription = mock(com.stripe.model.Subscription.class);
+    when(stripeFactoryMock.retrieveUserSubscriptions(any())).thenReturn(List.of(subscription));
+    var items = mock(SubscriptionItemCollection.class);
+    when(subscription.getItems()).thenReturn(items);
+    var data = mock(SubscriptionItem.class);
+    when(items.getData()).thenReturn(List.of(data));
+    var plan = mock(Plan.class);
+    when(data.getPlan()).thenReturn(plan);
+    when(plan.getProduct()).thenReturn("essentialProduct");
 
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
     when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);

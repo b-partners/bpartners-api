@@ -13,12 +13,15 @@ public class StripeConf {
   private static final String EURO_ISO_CURRENCY_CODE = "EUR";
   private final String apiKey;
   private final String essentialSubscriptionProductId;
+  private final String basicSubscriptionProductId;
 
   public StripeConf(
       @Value("${stripe.private.api.key}") String apiKey,
-      @Value("${stripe.subscription.product.essential.id}") String essentialSubscriptionProductId) {
+      @Value("${stripe.subscription.product.essential.id}") String essentialSubscriptionProductId,
+      @Value("${stripe.subscription.product.basic.id}") String basicSubscriptionProductId) {
     this.apiKey = apiKey;
     this.essentialSubscriptionProductId = essentialSubscriptionProductId;
+    this.basicSubscriptionProductId = basicSubscriptionProductId;
     Stripe.apiKey = apiKey;
   }
 

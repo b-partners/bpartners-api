@@ -19,6 +19,7 @@ import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -26,9 +27,11 @@ import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.ReferenceGenerator;
+import app.bpartners.api.service.subscription.StripeFactory;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
+import com.stripe.exception.StripeException;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -36,6 +39,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -59,6 +63,8 @@ public class MonthlySubscriptionInvoiceRequestedService
   private final TemporalUtils temporalUtils;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
   private final UserCustomerConverter userCustomerConverter;
+  private final StripeConf stripeConf;
+  private final StripeFactory stripeFactory;
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
@@ -89,9 +95,14 @@ public class MonthlySubscriptionInvoiceRequestedService
           var latestSubscription = userSubscription.getLatestSubscription();
           if (latestSubscription != null && !TRIALING.equals(latestSubscription.getStatus())) {
             int referenceNb = userIndex.getAndIncrement();
-            var monthlySubscriptionInvoice =
-                computeMonthlySusbcriptionInvoice(
-                    userToCredit, userToDebit, referenceNb, userSubscription);
+            Invoice monthlySubscriptionInvoice = null;
+            try {
+              monthlySubscriptionInvoice =
+                  computeMonthlySusbcriptionInvoice(
+                      userToCredit, userToDebit, referenceNb, userSubscription);
+            } catch (StripeException e) {
+              throw new RuntimeException(e);
+            }
             var createdInvoice =
                 invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
 
@@ -116,7 +127,8 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private Invoice computeMonthlySusbcriptionInvoice(
-      User userToCredit, User userToDebit, int referenceNb, UserSubscription userSubscription) {
+      User userToCredit, User userToDebit, int referenceNb, UserSubscription userSubscription)
+      throws StripeException {
     var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
     var variableAnalysisConsumptionUsage = getVariableAnalysisConsumptionUsage(userToDebit);
 
@@ -202,14 +214,30 @@ public class MonthlySubscriptionInvoiceRequestedService
     return optionalCustomerToDebit.orElseGet(() -> userCustomerConverter.apply(userToDebit));
   }
 
+  private double getProductUnitPrice(List<String> productIds) {
+    if (productIds.stream()
+        .anyMatch(productId -> productId.contains(stripeConf.getBasicSubscriptionProductId()))) {
+      return 700;
+    } else {
+      return 4900;
+    }
+  }
+
   private @NotNull ArrayList<InvoiceProduct> computeSubscriptionProducts(
       String invoiceId,
       String invoiceTitle,
       UserSubscription userSubscription,
-      Long variableAnalysisConsumptionUsage) {
+      Long variableAnalysisConsumptionUsage)
+      throws StripeException {
     var invoiceProducts = new ArrayList<InvoiceProduct>();
     var latestSubscription = userSubscription.getLatestSubscription();
 
+    var user = userSubscription.getUser();
+    var subscriptions =
+        stripeFactory.retrieveUserSubscriptions(user).stream()
+            .flatMap(subscription -> subscription.getItems().getData().stream())
+            .map(subscriptionItem -> subscriptionItem.getPlan().getProduct())
+            .toList();
     var subscriptionProduct = latestSubscription.getSubscriptionProduct();
     invoiceProducts.add(
         InvoiceProduct.builder()
@@ -218,11 +246,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             .createdAt(Instant.now())
             .description(subscriptionProduct == null ? invoiceTitle : subscriptionProduct.getName())
             .quantity(1)
-            .unitPrice(
-                parseFraction(
-                    subscriptionProduct == null
-                        ? 4900
-                        : subscriptionProduct.getPriceInCents().doubleValue()))
+            .unitPrice(parseFraction(getProductUnitPrice(subscriptions)))
             .vatPercent(new Fraction(BigInteger.valueOf(2000)))
             .status(ProductStatus.ENABLED)
             .build());

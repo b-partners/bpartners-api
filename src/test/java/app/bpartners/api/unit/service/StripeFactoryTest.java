@@ -12,7 +12,7 @@ import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscriptionSession;
 import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
-import app.bpartners.api.service.subscription.StripeSessionFactory;
+import app.bpartners.api.service.subscription.StripeFactory;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -26,10 +26,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
-public class StripeSessionFactoryTest {
+public class StripeFactoryTest {
 
   @Mock private TemporalUtils temporalUtilsMock;
-  @InjectMocks private StripeSessionFactory subject;
+  @InjectMocks private StripeFactory subject;
   @Mock private UserSubscriptionSessionRepository userSubscriptionSessionRepositoryMock;
   @Mock private Session stripeSessionMock;
 
@@ -43,8 +43,7 @@ public class StripeSessionFactoryTest {
       when(stripeSessionMock.getId()).thenReturn("session_id");
     }
 
-    subject =
-        spy(new StripeSessionFactory(temporalUtilsMock, userSubscriptionSessionRepositoryMock));
+    subject = spy(new StripeFactory(temporalUtilsMock, userSubscriptionSessionRepositoryMock));
   }
 
   @Test

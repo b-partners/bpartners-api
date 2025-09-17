@@ -51,13 +51,9 @@ public class CustomerController {
     }
     String idUser = AuthProvider.getAuthenticatedUserId();
     try {
-      String fileExtension =
-          fileType.equals(TEXT_CSV_MIME_TYPE)
-              ? CSV_EXTENSION
-              : (fileType.equals(EXCEL_MIME_TYPE) ? EXCEL_EXTENSION : null);
-      response.setContentType(fileType);
+        response.setContentType(fileType);
       response.setHeader(
-          "Content-Disposition", "attachment; filename=\"customers" + fileExtension + "\"");
+          "Content-Disposition", "attachment; filename=\"customers" + CSV_EXTENSION + "\"");
       response.setCharacterEncoding("UTF-8");
       PrintWriter writer = response.getWriter();
 

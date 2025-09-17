@@ -49,6 +49,7 @@ public class InvoiceController {
   private final UpdatePaymentRegValidator paymentValidator;
   private final InvoicesSummaryRestMapper summaryRestMapper;
   private final InvoiceSummaryService summaryService;
+  private Random random = new Random();
 
   @GetMapping("/accounts/{aId}/invoices/exportLink")
   public PreSignedURL getInvoicesExportLink(
@@ -159,7 +160,6 @@ public class InvoiceController {
       try {
         return service.crupdateInvoice(invoice);
       } catch (Exception e) {
-        Random random = new Random();
         Thread.sleep(Duration.ofSeconds((long) (1 + random.nextDouble() * 2)));
         retries--;
         if (retries == 0) {

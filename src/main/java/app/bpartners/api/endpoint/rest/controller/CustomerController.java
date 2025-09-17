@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.customer.CustomerService.EXCEL_MIME_TYPE;
 import static app.bpartners.api.service.customer.CustomerService.TEXT_CSV_MIME_TYPE;
 
 import app.bpartners.api.endpoint.rest.mapper.CustomerRestMapper;
@@ -51,7 +50,7 @@ public class CustomerController {
     }
     String idUser = AuthProvider.getAuthenticatedUserId();
     try {
-        response.setContentType(fileType);
+      response.setContentType(fileType);
       response.setHeader(
           "Content-Disposition", "attachment; filename=\"customers" + CSV_EXTENSION + "\"");
       response.setCharacterEncoding("UTF-8");

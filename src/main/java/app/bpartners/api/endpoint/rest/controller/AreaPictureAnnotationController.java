@@ -40,16 +40,18 @@ public class AreaPictureAnnotationController {
 
   @GetMapping("/accounts/{aId}/areaPictures/{areaPictureId}/annotations/{annotationId}")
   public AreaPictureAnnotation getAreaPictureAnnotation(
-          @PathVariable String aId,
-      @PathVariable String areaPictureId, @PathVariable String annotationId) {
+      @PathVariable String aId,
+      @PathVariable String areaPictureId,
+      @PathVariable String annotationId) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return mapper.toRest(service.findBy(authenticatedUserId, areaPictureId, annotationId));
   }
 
   @PutMapping("/accounts/{aId}/areaPictures/{areaPictureId}/annotations/{annotationId}")
   public AreaPictureAnnotation annotateAreaPicture(
-          @PathVariable String aId,
-      @PathVariable String annotationId, @RequestBody AreaPictureAnnotation toCreate) {
+      @PathVariable String aId,
+      @PathVariable String annotationId,
+      @RequestBody AreaPictureAnnotation toCreate) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return mapper.toRest(
         service.save(mapper.toDomain(annotationId, authenticatedUserId, toCreate)));

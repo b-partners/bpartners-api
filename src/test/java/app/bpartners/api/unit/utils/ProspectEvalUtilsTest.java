@@ -5,12 +5,12 @@ import static app.bpartners.api.model.mapper.CalendarEventMapper.PARIS_TIMEZONE;
 import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.OTHER;
 import static app.bpartners.api.repository.expressif.ProspectEvalInfo.ContactNature.PROSPECT;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.PROFESSIONAL;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
@@ -20,10 +20,15 @@ import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.expressif.fact.Robbery;
 import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.service.utils.GeoUtils;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -222,6 +227,67 @@ class ProspectEvalUtilsTest {
 
     when(banApiMock.search(any())).thenReturn(defaultGeoPosition());
     when(banApiMock.fSearch(any())).thenReturn(defaultGeoPosition());
+  }
+
+  @Test
+  void convertIntoExcel_should_write_expected_headers_and_data()
+      throws IOException, InvalidFormatException {
+    var prospect =
+        new EvaluatedProspect()
+            .id("123")
+            .reference("REF-001")
+            .name("Test Prospect")
+            .email("test@example.com")
+            .website("www.test.com")
+            .phone("0102030405")
+            .address("1 rue de Paris")
+            .city("Paris")
+            .managerName("Jean Dupont")
+            .contactNature(ContactNature.PROSPECT)
+            .evaluationDate(new Date().toInstant());
+    var geojson = new Geojson().latitude(48.8566).longitude(2.3522);
+    var area = new Area().geojson(geojson);
+    prospect.area(area);
+    var interventionResult =
+        new InterventionResult()
+            .value(BigDecimal.valueOf(8))
+            .address("2 rue de Lyon")
+            .distanceFromProspect(BigDecimal.valueOf(12.5));
+    prospect.interventionResult(interventionResult);
+    var oldCustomerResult =
+        new OldCustomerResult()
+            .value(BigDecimal.valueOf(7))
+            .address("3 rue de Marseille")
+            .distanceFromProspect(BigDecimal.valueOf(5.2));
+    prospect.oldCustomerResult(oldCustomerResult);
+
+    byte[] actual = ProspectEvalUtils.convertIntoExcel(null, List.of(prospect));
+
+    var workbook = WorkbookFactory.create(new ByteArrayInputStream(actual));
+    var sheet = workbook.getSheet("Résultats évaluation");
+    assertNotNull(sheet);
+    var headerRow = sheet.getRow(0);
+    assertEquals("ID", headerRow.getCell(0).getStringCellValue());
+    assertEquals("Nature du contact", headerRow.getCell(9).getStringCellValue());
+    assertEquals(
+        "Ancien client - Distance depuis le prospect", headerRow.getCell(19).getStringCellValue());
+    var dataRow = sheet.getRow(1);
+    assertEquals("123", dataRow.getCell(0).getStringCellValue());
+    assertEquals("Test Prospect", dataRow.getCell(2).getStringCellValue());
+    assertEquals("test@example.com", dataRow.getCell(3).getStringCellValue());
+    assertEquals("1 rue de Paris", dataRow.getCell(6).getStringCellValue());
+    assertEquals("Paris", dataRow.getCell(7).getStringCellValue());
+    assertEquals(ContactNature.PROSPECT.getValue(), dataRow.getCell(9).getStringCellValue());
+    assertEquals(48.8566, dataRow.getCell(11).getNumericCellValue(), 0.0001);
+    assertEquals(2.3522, dataRow.getCell(12).getNumericCellValue(), 0.0001);
+    assertEquals("8", dataRow.getCell(14).getStringCellValue());
+    assertEquals("2 rue de Lyon", dataRow.getCell(15).getStringCellValue());
+    assertEquals("12.5", dataRow.getCell(16).getStringCellValue());
+    assertEquals("7", dataRow.getCell(17).getStringCellValue());
+    assertEquals("3 rue de Marseille", dataRow.getCell(18).getStringCellValue());
+    assertEquals("5.2", dataRow.getCell(19).getStringCellValue());
+
+    workbook.close();
   }
 
   @Test

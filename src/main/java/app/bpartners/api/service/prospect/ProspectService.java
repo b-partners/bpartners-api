@@ -6,8 +6,6 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
 import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONTACTED;
-import static app.bpartners.api.endpoint.rest.model.ProspectStatus.CONVERTED;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
@@ -309,7 +307,6 @@ public class ProspectService {
     if (existing == null) {
       throw new NotFoundException("Prospect(id=" + toSave.getId() + ") not found");
     }
-    // validateStatusUpdateFlow(toSave, existing);
     Prospect savedProspect = repository.save(toSave);
 
     eventProducer.accept(
@@ -317,31 +314,6 @@ public class ProspectService {
             ProspectUpdated.builder().prospect(savedProspect).updatedAt(Instant.now()).build()));
 
     return savedProspect;
-  }
-
-  private void validateStatusUpdateFlow(Prospect toSave, Prospect existing) {
-    StringBuilder exceptionBuilder = new StringBuilder();
-    if (toSave.getActualStatus() == TO_CONTACT && existing.getActualStatus() != CONTACTED) {
-      exceptionBuilder
-          .append("Prospect(id=")
-          .append(toSave.getId())
-          .append(",status=")
-          .append(toSave.getActualStatus())
-          .append(") can only be updated to status ")
-          .append(CONTACTED);
-    } else if (toSave.getActualStatus() == CONTACTED && existing.getActualStatus() != CONVERTED) {
-      exceptionBuilder
-          .append("Prospect(id=")
-          .append(toSave.getId())
-          .append(",status=")
-          .append(toSave.getActualStatus())
-          .append(") can only be updated to status ")
-          .append(CONVERTED);
-    }
-    String errorMsg = exceptionBuilder.toString();
-    if (!errorMsg.isEmpty()) {
-      throw new BadRequestException(errorMsg);
-    }
   }
 
   @Scheduled(cron = Scheduled.CRON_DISABLED, zone = "Europe/Paris")

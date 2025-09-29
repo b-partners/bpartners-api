@@ -123,6 +123,24 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+        501:
+          description: Address or zone not yet supported
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/NotImplementedException'
+                example:
+                  type: NotImplementedException
+                  example: Address or zone <address/zone> not yet supported
+        503:
+          description: Address or zone temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/ServiceUnavailableException'
+                example:
+                  type: ServiceUnavailableException
+                  message: Address or zone <address/zone> temporarily unavailable
     get:
       tags:
         - Files

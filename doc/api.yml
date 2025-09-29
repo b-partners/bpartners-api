@@ -426,3 +426,15 @@ components:
       example:
         type: InternalServerException
         message: Unexpected error
+    NotImplementedException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: NotImplementedException
+        message: Features not supported yet
+    ServiceUnavailableException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: ServiceUnavailableException
+        message: Service temporarily unavailable

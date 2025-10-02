@@ -1,10 +1,6 @@
 package app.bpartners.api.endpoint.rest;
 
-import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.exception.ForbiddenException;
-import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.model.exception.TooManyRequestsException;
+import app.bpartners.api.model.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.dao.CannotAcquireLockException;
@@ -110,6 +106,14 @@ public class InternalToRestExceptionHandler {
       NotImplementedException e) {
     log.error("Not implemented", e);
     return new ResponseEntity<>(toRest(e, HttpStatus.NOT_IMPLEMENTED), HttpStatus.NOT_IMPLEMENTED);
+  }
+
+  @ExceptionHandler(value = {ServiceUnavailableException.class})
+  ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleServiceUnavailable(
+      ServiceUnavailableException e) {
+    log.error("Service unavailable", e);
+    return new ResponseEntity<>(
+        toRest(e, HttpStatus.SERVICE_UNAVAILABLE), HttpStatus.SERVICE_UNAVAILABLE);
   }
 
   @ExceptionHandler(value = {DataIntegrityViolationException.class})

@@ -2,14 +2,16 @@ package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.FileInfo;
+import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.exception.ServiceUnavailableException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
@@ -17,6 +19,7 @@ import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.service.areapicture.AreaPictureConsumptionValidator;
 import app.bpartners.api.service.areapicture.AreaPictureService;
+import app.bpartners.api.service.areapicture.AreaPictureZoomValidator;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
@@ -39,6 +42,7 @@ class AreaPictureServiceTest {
   AreaPictureJpaRepository jpaRepositoryMock = mock();
   ProspectJpaRepository prospectJpaRepositoryMock = mock();
   AreaPictureConsumptionValidator consumptionValidatorMock = mock();
+  AreaPictureZoomValidator areaPictureZoomValidatorMock = mock();
 
   AreaPictureService subject =
       new AreaPictureService(
@@ -50,10 +54,12 @@ class AreaPictureServiceTest {
           mapLayerServiceMock,
           subscriptionServiceMock,
           prospectJpaRepositoryMock,
-          consumptionValidatorMock);
+          consumptionValidatorMock,
+          areaPictureZoomValidatorMock);
 
   @Test
   void save_area_picture_and_add_log() {
+    doNothing().when(areaPictureZoomValidatorMock).accept(any());
     var areaPictureMock = mock(AreaPicture.class);
     var tileMock = mock(Tile.class);
     var areaPictureMapLayerMock = mock(AreaPictureMapLayer.class);
@@ -103,5 +109,62 @@ class AreaPictureServiceTest {
         subscriptionConsumptionLog);
     assertNotNull(subscriptionConsumptionLog.getId());
     assertNotNull(subscriptionConsumptionLog.getCreationDatetime());
+  }
+
+  @Test
+  void return_service_unavailable() {
+    var areaPictureMock = mock(AreaPicture.class);
+    var downloadedFileMock = mock(File.class);
+    var randomAddress = "random address " + randomUUID();
+
+    when(areaPictureMock.getAddress()).thenReturn(randomAddress);
+    when(areaPictureMock.getFilename()).thenReturn("dummyFilename");
+    doNothing().when(consumptionValidatorMock).accept(areaPictureMock);
+    when(wmsImageSourceMock.downloadImage(areaPictureMock)).thenReturn(downloadedFileMock);
+    when(fileServiceMock.upload(any(), any(), any(), any())).thenReturn(mock(FileInfo.class));
+    when(mapper.toEntity(areaPictureMock)).thenReturn(mock());
+    when(jpaRepositoryMock.save(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(mapper.toDomain(any())).thenReturn(areaPictureMock);
+    doThrow(ServiceUnavailableException.class)
+        .when(areaPictureZoomValidatorMock)
+        .accept(areaPictureMock);
+
+    var actualException =
+        assertThrows(
+            ServiceUnavailableException.class,
+            () -> subject.saveAreaPictureAndLogConsumption(areaPictureMock));
+
+    assertEquals(
+        "Address or zone " + randomAddress + " temporarily unavailable",
+        actualException.getMessage());
+  }
+
+  @Test
+  void return_not_implemented() {
+    var areaPictureMock = mock(AreaPicture.class);
+    var downloadedFileMock = mock(File.class);
+    var randomAddress = "random address " + randomUUID();
+
+    when(areaPictureMock.getAddress()).thenReturn(randomAddress);
+    when(areaPictureMock.getFilename()).thenReturn("dummyFilename");
+    doNothing().when(consumptionValidatorMock).accept(areaPictureMock);
+    when(wmsImageSourceMock.downloadImage(areaPictureMock)).thenReturn(downloadedFileMock);
+    when(fileServiceMock.upload(any(), any(), any(), any())).thenReturn(mock(FileInfo.class));
+    when(mapper.toEntity(areaPictureMock)).thenReturn(mock());
+    when(jpaRepositoryMock.save(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(mapper.toDomain(any())).thenReturn(areaPictureMock);
+    doThrow(NotImplementedException.class)
+        .when(areaPictureZoomValidatorMock)
+        .accept(areaPictureMock);
+
+    var actualException =
+        assertThrows(
+            NotImplementedException.class,
+            () -> subject.saveAreaPictureAndLogConsumption(areaPictureMock));
+
+    assertEquals(
+        "Address or zone " + randomAddress + " not yet supported", actualException.getMessage());
   }
 }

@@ -10,6 +10,8 @@ import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.exception.NotImplementedException;
+import app.bpartners.api.model.exception.ServiceUnavailableException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
@@ -41,6 +43,7 @@ public class AreaPictureService {
   private final SubscriptionService subscriptionService;
   private final ProspectJpaRepository prospectRepository;
   private final AreaPictureConsumptionValidator areaPictureConsumptionValidator;
+  private final AreaPictureZoomValidator areaPictureZoomValidator;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -105,7 +108,17 @@ public class AreaPictureService {
     var areaPicture = downloadFromExternalSourceAndSave(picture);
     var usageMetric = 1L;
     var idProspect = picture.getIdProspect();
-    var comment = "Adresse : " + areaPicture.getAddress();
+    var address = areaPicture.getAddress();
+    var comment = "Adresse : " + address;
+
+    try {
+      areaPictureZoomValidator.accept(areaPicture);
+    } catch (NotImplementedException e) {
+      throw new NotImplementedException("Address or zone " + address + " not yet supported");
+    } catch (ServiceUnavailableException e) {
+      throw new ServiceUnavailableException(
+          "Address or zone " + address + " temporarily unavailable");
+    }
 
     // TODO: Bad ! Only areaPicture must be returned done here
     if (idProspect != null) {

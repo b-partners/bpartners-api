@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.AreaPictureApi;
@@ -34,6 +35,7 @@ import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.ban.response.GeoJsonProperty;
 import app.bpartners.api.repository.ban.response.GeoJsonResponse;
 import app.bpartners.api.repository.google.geocode.GeoCodeApi;
+import app.bpartners.api.service.areapicture.AreaPictureZoomValidator;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.wms.ArcgisZoom;
@@ -91,6 +93,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @MockBean AccountHolderRepository accountHolderRepository;
   @MockBean GeoCodeApi geoCodeApiMock;
   @MockBean MetaDataComponent metaDataComponent;
+  @MockBean AreaPictureZoomValidator areaPictureZoomValidatorMock;
 
   static AreaPictureMapLayer geoserverCharenteLayer() {
     return new AreaPictureMapLayer()
@@ -361,6 +364,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     setUpUserSubscription(subscriptionService);
     when(metaDataComponent.getXOffset()).thenReturn(1234);
     when(metaDataComponent.getYOffset()).thenReturn(123);
+    doNothing().when(areaPictureZoomValidatorMock).accept(any());
   }
 
   private void setUpWmsImageSourceMock(WmsImageSource wmsImageSource) {

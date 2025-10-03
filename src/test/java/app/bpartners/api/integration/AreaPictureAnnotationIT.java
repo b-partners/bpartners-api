@@ -83,6 +83,10 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .obstacle("panneau")
                 .moldRate(10.0)
                 .humidityLevel(10.0)
+                .height(7.0)
+                .globalRateValue(15.0)
+                .revetement1("TUILES")
+                .revetement2("AUTRES")
                 .wearness(PARTIAL)
                 .wearLevel(100.0));
   }
@@ -108,6 +112,10 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .obstacle("panneau")
                 .moldRate(10.0)
                 .humidityLevel(10.0)
+                .height(7.0)
+                .globalRateValue(15.0)
+                .revetement1("TUILES")
+                .revetement2("AUTRES")
                 .wearness(PARTIAL)
                 .wearLevel(100.0));
   }
@@ -132,6 +140,10 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .obstacle("panneau")
                 .wearLevel(100.0)
                 .humidityLevel(10.0)
+                .height(7.0)
+                .globalRateValue(15.0)
+                .revetement1("TUILES")
+                .revetement2("AUTRES")
                 .moldRate(10.0)
                 .wearness(PARTIAL));
   }

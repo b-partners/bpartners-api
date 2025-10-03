@@ -47,7 +47,11 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .wearness(domain.wearness())
         .moldRate(domain.moldRate())
         .slope(domain.slope())
-        .humidityLevel(domain.humidityLevel());
+        .height(domain.height())
+        .humidityLevel(domain.humidityLevel())
+        .revetement1(domain.revetement1())
+        .revetement2(domain.revetement2())
+        .globalRateValue(domain.globalRateValue());
   }
 
   private Polygon toRest(app.bpartners.api.model.AreaPictureAnnotationInstance.Polygon domain) {
@@ -90,6 +94,10 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .wearness(rest.getWearness())
         .moldRate(rest.getMoldRate())
         .humidityLevel(rest.getHumidityLevel())
+        .height(rest.getHeight())
+        .globalRateValue(rest.getGlobalRateValue())
+        .revetement1(rest.getRevetement1())
+        .revetement2(rest.getRevetement2())
         .build();
   }
 

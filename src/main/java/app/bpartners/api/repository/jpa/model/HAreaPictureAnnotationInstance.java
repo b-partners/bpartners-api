@@ -5,10 +5,7 @@ import static org.hibernate.type.SqlTypes.JSON;
 
 import app.bpartners.api.endpoint.rest.model.Wearness;
 import app.bpartners.api.model.AreaPictureAnnotationInstance.Polygon;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,4 +47,12 @@ public class HAreaPictureAnnotationInstance {
   private String idUser;
   private String idAreaPicture;
   private Double humidityLevel;
+  private Double globalRateValue;
+  private Double height;
+
+  @Column(name = "revetement_1")
+  private String revetement1;
+
+  @Column(name = "revetement_2")
+  private String revetement2;
 }

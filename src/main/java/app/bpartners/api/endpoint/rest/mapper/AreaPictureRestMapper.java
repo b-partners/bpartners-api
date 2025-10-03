@@ -12,6 +12,8 @@ import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,19 @@ public class AreaPictureRestMapper {
     Tile referenceTile = toRestTile(domain.getReferenceTile(), zoom);
     int xOffset = metaDataComponent.getXOffset();
     int yOffset = metaDataComponent.getYOffset();
+    List<AreaPictureMapLayer> layers = new ArrayList<>();
+    var existingLayers = domain.getLayers();
+    if (existingLayers != null) {
+      layers.addAll(existingLayers);
+    }
+    layers.addAll(
+        Arrays.asList(
+            areaPictureMapLayerService.getRhonePCRSLayer(),
+            areaPictureMapLayerService.getPCRSLayer(),
+            areaPictureMapLayerService.getDefaultIGNLayer()));
+    domain.setLayers(layers);
+    log.info("Layers={}", domain.getLayers());
+
     return new AreaPictureDetails()
         .id(domain.getId())
         .fileId(domain.getIdFileInfo())
@@ -52,7 +67,7 @@ public class AreaPictureRestMapper {
         .layer(TOUS_FR)
         .availableLayers(List.of(TOUS_FR))
         .actualLayer(layerRestMapper.toRest(domain.getCurrentLayer()))
-        .otherLayers(domain.getLayers().stream().map(layerRestMapper::toRest).toList())
+        .otherLayers(layers.stream().map(layerRestMapper::toRest).toList())
         .currentGeoPosition(domain.getCurrentGeoPosition())
         .geoPositions(domain.getGeoPositions())
         .currentTile(tile)

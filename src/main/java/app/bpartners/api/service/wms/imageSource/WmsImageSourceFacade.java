@@ -62,7 +62,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 3) int iteration)
+      @Range(from = 0, to = 4) int iteration)
       throws AddressException {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
@@ -77,6 +77,9 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getPCRSLayer();
     } else if (iteration == 2) {
+      alternativeSource = wmsImageSource;
+      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getRhonePCRSLayer();
+    } else if (iteration == 3) {
       alternativeSource = ignGeoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {

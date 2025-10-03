@@ -22,7 +22,7 @@ import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
-import app.bpartners.api.service.subscription.StripeSessionFactory;
+import app.bpartners.api.service.subscription.StripeFactory;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
@@ -59,7 +59,7 @@ class SubscriptionServiceTest {
   SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepositoryMock =
       mock(SubscriptionConsumptionLogJpaRepository.class);
   TemporalUtils temporalUtils = new TemporalUtils();
-  StripeSessionFactory sessionFactoryMock = mock(StripeSessionFactory.class);
+  StripeFactory sessionFactoryMock = mock(StripeFactory.class);
   UserSubscriptionSessionRepository sessionRepositoryMock =
       mock(UserSubscriptionSessionRepository.class);
   SubscriptionService subject =

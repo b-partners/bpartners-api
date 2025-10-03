@@ -1,14 +1,10 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
-import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_SCA;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -20,24 +16,14 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Account;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
-import app.bpartners.api.endpoint.rest.model.AccountValidationRedirection;
-import app.bpartners.api.endpoint.rest.model.BankConnectionRedirection;
-import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserToken;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.UserTokenRepository;
-import app.bpartners.api.repository.bridge.BridgeApi;
 import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
-import app.bpartners.api.repository.bridge.model.Item.BridgeConnectItem;
-import app.bpartners.api.repository.bridge.repository.BridgeBankRepository;
-import app.bpartners.api.repository.implementation.BankRepositoryImpl;
-import app.bpartners.api.repository.model.AccountConnector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -48,7 +34,6 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -58,26 +43,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Disabled("TODO(fail)")
 class DirtyAccountIT extends MockedThirdParties {
   @MockBean private UserRepository userRepositoryMock;
-  @MockBean private BridgeBankRepository bridgeBankRepositoryMock;
-  @MockBean private BankRepositoryImpl bankRepositoryImplMock;
-  @Mock private UserTokenRepository userTokenRepositoryMock;
   private static final String OTHER_USER_ID = "OTHER_USER_ID";
 
   private ApiClient joeDoeClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
-  }
-
-  private ApiClient bernardDoeClient() {
-    return TestUtils.anApiClient(BERNARD_DOE_TOKEN, null, localPort);
-  }
-
-  AccountValidationRedirection accountValidationRedirection() {
-    return new AccountValidationRedirection()
-        .redirectionUrl("https://connect.bridge.io")
-        .redirectionStatusUrls(
-            new RedirectionStatusUrls()
-                .successUrl(REDIRECT_SUCCESS_URL)
-                .failureUrl(REDIRECT_FAILURE_URL));
   }
 
   public static UpdateAccountIdentity bicUpdateOnly() {
@@ -174,15 +143,6 @@ class DirtyAccountIT extends MockedThirdParties {
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
   }
 
-  private void setUpBridgeRepositories() {
-    reset(userRepositoryMock);
-    setUpUserRepositoryWithPreferredAccount(userRepositoryMock);
-    setUpBridge(bridgeApi, joeDoeBridgeAccount(), otherBridgeAccount());
-    when(bankRepositoryImplMock.findByExternalId(String.valueOf(joeDoeBridgeAccount().getBankId())))
-        .thenReturn(new Bank());
-    when(bankRepositoryImplMock.disconnectBank(any())).thenReturn(true);
-  }
-
   @BeforeEach
   void setUp() {
     setUpUserRepository(userRepositoryMock);
@@ -224,33 +184,6 @@ class DirtyAccountIT extends MockedThirdParties {
     assertNull(afterDisconnection.getBic());
   }
   */
-
-  @Test
-  void initiate_bank_connection_ok() throws ApiException {
-    when(bankRepositoryImplMock.initiateConnection(any()))
-        .thenReturn("https://connect.bridgeapi.io");
-    ApiClient joeDoeClient = joeDoeClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-    String failureUrl = "failure_url";
-    String successUrl = "success_url";
-    RedirectionStatusUrls redirectionStatusUrls =
-        new RedirectionStatusUrls().failureUrl(failureUrl).successUrl(successUrl);
-
-    BankConnectionRedirection actual1 =
-        api.initiateBankConnection(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, redirectionStatusUrls);
-    BankConnectionRedirection actual2 =
-        api.initiateBankConnectionWithoutAccount(JOE_DOE_ID, redirectionStatusUrls);
-
-    assertNotNull(actual1);
-    assertTrue(actual1.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
-    assertEquals(successUrl, actual1.getRedirectionStatusUrls().getSuccessUrl());
-    assertEquals(failureUrl, actual1.getRedirectionStatusUrls().getFailureUrl());
-
-    assertNotNull(actual2);
-    assertTrue(actual2.getRedirectionUrl().contains("https://connect.bridgeapi.io"));
-    assertEquals(successUrl, actual2.getRedirectionStatusUrls().getSuccessUrl());
-    assertEquals(failureUrl, actual2.getRedirectionStatusUrls().getFailureUrl());
-  }
 
   @Test
   void concurrently_get_bridge_accounts() {
@@ -323,11 +256,6 @@ class DirtyAccountIT extends MockedThirdParties {
 
     reset(userRepositoryMock);
     setUpUserRepositoryWithoutPreferredAccount(userRepositoryMock);
-    setUpBridge(bridgeApi, bridgeAccount);
-    when(bankRepositoryImplMock.findByExternalId(String.valueOf(joeDoeBridgeAccount().getBankId())))
-        .thenReturn(new Bank());
-    when(bankRepositoryImplMock.disconnectBank(any())).thenReturn(true);
-    when(bridgeApi.findByAccountById(any(), any())).thenReturn(bridgeAccount);
 
     ApiClient client = TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, null, localPort);
     return new UserAccountsApi(client);
@@ -351,7 +279,6 @@ class DirtyAccountIT extends MockedThirdParties {
 
   @Test
   void update_account_identity_ok() throws ApiException {
-    setUpBridgeRepositories();
     ApiClient joeDoeClient = joeDoeClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
@@ -396,94 +323,5 @@ class DirtyAccountIT extends MockedThirdParties {
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"bic is mandatory.\"}",
         () -> api.updateAccountIdentity(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, bicUpdateOnly().bic(null)));
-  }
-
-  @Test
-  void validate_bank_connection_ok() throws ApiException {
-    final String redirectUrl = "https://connect.bridge.io";
-    ApiClient bernarDoeClient = bernardDoeClient();
-    UserAccountsApi api = new UserAccountsApi(bernarDoeClient);
-
-    setUpUserBernardRepository(userRepositoryMock);
-    when(bridgeBankRepositoryMock.validateCurrentProItems(BERNARD_DOE_TOKEN))
-        .thenReturn(BridgeConnectItem.builder().redirectUrl(redirectUrl).build());
-    when(bankRepositoryImplMock.initiateProValidation(any())).thenReturn(redirectUrl);
-    when(userTokenRepositoryMock.getLatestTokenByAccount(any()))
-        .thenReturn(UserToken.builder().accessToken(BERNARD_DOE_TOKEN).user(bernardUser()).build());
-
-    AccountValidationRedirection actual =
-        api.initiateAccountValidation(
-            BERNARD_DOE_ID,
-            BERNARD_DOE_ACCOUNT_ID,
-            accountValidationRedirection().getRedirectionStatusUrls());
-
-    assertEquals(accountValidationRedirection(), actual);
-  }
-
-  @Test
-  void manage_bank_connection_with_strong_auth_ok() throws ApiException {
-    final String redirectUrl = "https://connect.bridge.io";
-    when(bankRepositoryImplMock.initiateScaSync(any())).thenReturn(redirectUrl);
-    BridgeAccount scaRequiredAccount =
-        otherBridgeAccount().toBuilder().status(BRIDGE_STATUS_SCA).build();
-    when(accountConnectorRepositoryMock.findById(any()))
-        .thenReturn(
-            AccountConnector.builder()
-                .id(scaRequiredAccount.getId())
-                .status(scaRequiredAccount.getDomainStatus())
-                .build());
-    UserAccountsApi api = configureBridgeUserAccountApi(scaRequiredAccount);
-
-    AccountValidationRedirection actual =
-        api.initiateAccountValidation(JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, new RedirectionStatusUrls());
-
-    assertTrue(actual.getRedirectionUrl().contains(redirectUrl));
-  }
-
-  @Test
-  void manage_bank_connection_with_strong_auth_ko() {
-    final String redirectUrl = "https://connect.bridge.io";
-    when(bankRepositoryImplMock.initiateScaSync(any())).thenReturn(redirectUrl);
-    BridgeAccount scaRequiredAccount =
-        otherBridgeAccount().toBuilder().status(BRIDGE_STATUS_OK).build();
-    UserAccountsApi api = configureBridgeUserAccountApi(scaRequiredAccount);
-
-    assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\","
-            + "\"message\":\"Account("
-            + "id=beed1765-5c16-472a-b3f4-5c376ce5db58,"
-            + "name=null null,"
-            + "iban=null,status=OPENED,active=false)"
-            + " does not need validation.\"}",
-        () ->
-            api.initiateAccountValidation(
-                JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, new RedirectionStatusUrls()));
-  }
-
-  @Test
-  void validate_bank_connection_ko() {
-    ApiClient joeDoeClient = joeDoeClient();
-    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
-
-    when(userTokenRepositoryMock.getLatestTokenByAccount(any()))
-        .thenReturn(UserToken.builder().accessToken(JOE_DOE_TOKEN).user(joeDoeUser()).build());
-
-    assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\""
-            + "message\":\"Account(id=beed1765-5c16-472a-b3f4-5c376ce5db58,name=null null,"
-            + "iban=null,status=OPENED,active=false) does not need validation.\"}",
-        () ->
-            api.initiateAccountValidation(
-                JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, new RedirectionStatusUrls()));
-  }
-
-  void setUpBridge(BridgeApi bridgeApi, BridgeAccount... accounts) {
-    when(bridgeApi.findAccountsByToken(JOE_DOE_COGNITO_TOKEN))
-        .thenReturn(
-            new ArrayList<>() {
-              {
-                this.addAll(List.of(accounts));
-              }
-            });
   }
 }

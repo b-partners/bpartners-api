@@ -16,10 +16,9 @@ import app.bpartners.api.model.subscription.UserSubscriptionSession;
 import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.Price;
-import com.stripe.model.SubscriptionSchedule;
+import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
+import com.stripe.param.SubscriptionListParams;
 import com.stripe.param.SubscriptionScheduleCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
@@ -36,9 +35,16 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class StripeSessionFactory {
+public class StripeFactory {
   private final TemporalUtils temporalUtils;
   private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
+
+  public List<com.stripe.model.Subscription> retrieveUserSubscriptions(User user)
+      throws StripeException {
+    SubscriptionListParams params =
+        SubscriptionListParams.builder().setCustomer(user.getUserSubscriptionId()).build();
+    return com.stripe.model.Subscription.list(params).getData();
+  }
 
   public Session createSession(
       User user,

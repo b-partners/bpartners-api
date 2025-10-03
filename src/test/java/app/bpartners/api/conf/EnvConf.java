@@ -43,6 +43,7 @@ public class EnvConf {
     registry.add("xyz.to.bbox.converter.url", () -> MOCK_SERVER_URL);
     registry.add("google.geocode.api.key", () -> "dummy");
     registry.add("stripe.subscription.product.essential.id", () -> "dummy");
+    registry.add("stripe.subscription.product.basic.id", () -> "dummy");
     registry.add("dashboard.url", () -> "dummy");
   }
 }

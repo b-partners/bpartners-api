@@ -48,6 +48,10 @@ public class AreaPictureAnnotationInstance {
       Wearness wearness,
       Double moldRate,
       Boolean hasVelux,
-      Double humidityLevel)
+      Double humidityLevel,
+      Double height,
+      Double globalRateValue,
+      String revetement1,
+      String revetement2)
       implements Serializable {}
 }

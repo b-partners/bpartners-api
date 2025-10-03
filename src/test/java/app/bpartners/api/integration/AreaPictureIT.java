@@ -5,7 +5,6 @@ import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSE
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.pcrsLayer;
 import static java.lang.Boolean.TRUE;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +29,7 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.AccountRepository;
+import app.bpartners.api.repository.AreaPictureMapLayerRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.ban.response.GeoJsonProperty;
@@ -87,6 +87,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
           .build();
   @Autowired ObjectMapper om;
   @Autowired AreaPictureMapLayerService mapLayerService;
+  @Autowired AreaPictureMapLayerRepository areaPictureMapLayerRepositoryMock;
   @MockBean BanApi banApiMock;
   @MockBean WmsImageSource wmsImageSourceMock;
   @Autowired AccountRepository accountRepository;
@@ -131,7 +132,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .source(GEOSERVER);
   }
 
-  static AreaPictureMapLayer geoserverPhotoAerialLayer() {
+  static AreaPictureMapLayer geoserverRhonePCRSLayer() {
     return new AreaPictureMapLayer()
         .id("2f343dba-dd5f-4895-9006-49472f576c02")
         .name("cite:PHOTO_AERIENNE")
@@ -197,11 +198,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .fileId("montauban_5cm_544729_383060.jpg")
         .prospectId(PROSPECT_1_ID)
-        .otherLayers(
-            List.of(
-                geoserverCharenteLayer(),
-                geoserverPCRSLayer(),
-                geoserverIGNPrimaryDefaultServerLayer()))
+        .otherLayers(List.of(geoserverCharenteLayer()))
         .layer(DEFAULT_OSM_LAYER)
         .zoom(zoom)
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
@@ -255,11 +252,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .xTile(xTile)
         .yTile(yTile)
         .layer(DEFAULT_OSM_LAYER)
-        .otherLayers(
-            List.of(
-                geoserverCharenteLayer(),
-                geoserverPCRSLayer(),
-                geoserverIGNPrimaryDefaultServerLayer()))
+        .otherLayers(List.of(geoserverCharenteLayer()))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .address("Cannes Address")
@@ -335,7 +328,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .otherLayers(
             List.of(
                 geoserverPCRSLayer(),
-                geoserverPhotoAerialLayer(),
+                geoserverRhonePCRSLayer(),
                 geoserverIGNPrimaryDefaultServerLayer()))
         .filename(null)
         .layer(TOUS_FR)
@@ -478,8 +471,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
             app.bpartners.api.service.wms.Tile.from(
                 coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
 
-    assertEquals(
-        List.of(domainGeoserverCharenteLayer(), pcrsLayer(), domainGeoserverIGNLayer()),
-        guessedLayers);
+    assertEquals(List.of(domainGeoserverCharenteLayer()), guessedLayers);
   }
 }

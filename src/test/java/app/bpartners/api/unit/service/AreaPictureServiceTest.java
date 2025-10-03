@@ -2,6 +2,9 @@ package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
+import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.ignLayer;
+import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.pcrsLayer;
+import static app.bpartners.api.service.wms.imageSource.WmsImageSourceFacadeIT.rhonePCRSLayer;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -87,6 +90,9 @@ class AreaPictureServiceTest {
     when(mapper.toDomain(any())).thenReturn(areaPictureMock);
     when(subscriptionServiceMock.addConsumption(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(mapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(mapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
+    when(mapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
     var subscriptionConsumptionLogCaptor =
         ArgumentCaptor.forClass(SubscriptionConsumptionLog.class);
 
@@ -129,6 +135,9 @@ class AreaPictureServiceTest {
     doThrow(ServiceUnavailableException.class)
         .when(areaPictureZoomValidatorMock)
         .accept(areaPictureMock);
+    when(mapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(mapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
+    when(mapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
 
     var actualException =
         assertThrows(
@@ -158,6 +167,9 @@ class AreaPictureServiceTest {
     doThrow(NotImplementedException.class)
         .when(areaPictureZoomValidatorMock)
         .accept(areaPictureMock);
+    when(mapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(mapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
+    when(mapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
 
     var actualException =
         assertThrows(

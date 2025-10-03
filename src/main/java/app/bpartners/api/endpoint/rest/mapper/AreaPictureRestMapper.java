@@ -37,6 +37,7 @@ public class AreaPictureRestMapper {
     Tile referenceTile = toRestTile(domain.getReferenceTile(), zoom);
     int xOffset = metaDataComponent.getXOffset();
     int yOffset = metaDataComponent.getYOffset();
+    log.info("Layers={}", domain.getLayers());
     return new AreaPictureDetails()
         .id(domain.getId())
         .fileId(domain.getIdFileInfo())

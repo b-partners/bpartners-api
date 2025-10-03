@@ -6,6 +6,7 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureMapLayerRepository;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +24,7 @@ public class AreaPictureMapLayerService {
   public static final int WGS_84_SRID = 4326;
   public static final String DEFAULT_IGN_LAYER_UUID = "1cccfc17-cbef-4320-bdfa-0d1920b91f11";
   public static final String DEFAULT_PCRS_LAYER_UUID = "726f5b3b-d23b-40c3-b38e-68a43d7ae155";
-  public static final String DEFAULT_AERIAL_PHOTOGRAPHY_LAYER_UUID =
-      "2f343dba-dd5f-4895-9006-49472f576c02";
+  public static final String DEFAULT_RHONE_PCRS_LAYER_UUID = "2f343dba-dd5f-4895-9006-49472f576c02";
   private final AreaPictureMapLayerRepository repository;
 
   public List<AreaPictureMapLayer> getAvailableLayersFrom(Tile tile) {
@@ -42,7 +42,7 @@ public class AreaPictureMapLayerService {
               return geometry.contains(areaPictureCoordinatesAsPoint);
             });
     if (features.isEmpty()) {
-      return List.of(getPCRSLayer(), getDefaultIGNLayer());
+      log.info("no feature found for longitude={} latitude={}", longitude, latitude);
     }
     List<String> matchingFeaturesName =
         features.stream().map(f -> (String) f.getAttribute("nom")).toList();
@@ -50,7 +50,6 @@ public class AreaPictureMapLayerService {
     var layers = getAllByDepartementNameInIgnoreCaseOrderByYearAndAddDefault(matchingFeaturesName);
     if (layers.isEmpty()) {
       log.info("no layer found for longitude={} latitude={}", longitude, latitude);
-      return List.of(getPCRSLayer(), getDefaultIGNLayer());
     }
     return layers;
   }
@@ -60,11 +59,11 @@ public class AreaPictureMapLayerService {
     var result =
         new ArrayList<>(
             repository.findAllByDepartementNameInIgnoreCaseOrderByYear(matchingFeaturesName));
-    result.addAll(List.of(getPCRSLayer(), getDefaultIGNLayer()));
     return result;
   }
 
-  public AreaPictureMapLayer getLatestMostPreciseOrDefault(List<AreaPictureMapLayer> layers) {
+  public AreaPictureMapLayer getLatestMostPreciseOrDefault(
+      LinkedHashSet<AreaPictureMapLayer> layers) {
     return layers.stream().max(AreaPictureMapLayer::compareTo).orElse(getDefaultIGNLayer());
   }
 
@@ -76,8 +75,8 @@ public class AreaPictureMapLayerService {
     return getById(DEFAULT_PCRS_LAYER_UUID);
   }
 
-  public AreaPictureMapLayer getAerialPhotography() {
-    return getById(DEFAULT_AERIAL_PHOTOGRAPHY_LAYER_UUID);
+  public AreaPictureMapLayer getRhonePCRSLayer() {
+    return getById(DEFAULT_RHONE_PCRS_LAYER_UUID);
   }
 
   public AreaPictureMapLayer getById(String id) {

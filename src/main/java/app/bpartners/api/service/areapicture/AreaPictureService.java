@@ -22,8 +22,10 @@ import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.wms.TileCreator;
 import app.bpartners.api.service.wms.imageSource.WmsImageSource;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -153,16 +155,36 @@ public class AreaPictureService {
   }
 
   private void refreshAreaPictureMapLayers(AreaPicture areaPicture) {
-    var guessedMaps = mapLayerService.getAvailableLayersFrom(areaPicture.getCurrentTile());
+    var guessedMaps =
+        new LinkedHashSet<>(mapLayerService.getAvailableLayersFrom(areaPicture.getCurrentTile()));
+    log.info(
+        "RhonePCRSLayer={}, PCRSLayer={}, IGNLayer={}",
+        mapLayerService.getRhonePCRSLayer(),
+        mapLayerService.getPCRSLayer(),
+        mapLayerService.getDefaultIGNLayer());
+    var fallbackLayers =
+        List.of(
+            mapLayerService.getRhonePCRSLayer(),
+            mapLayerService.getPCRSLayer(),
+            mapLayerService.getDefaultIGNLayer());
+
     if (areaPicture.getCurrentLayer() == null) {
-      var latest = mapLayerService.getLatestMostPreciseOrDefault(guessedMaps);
-      areaPicture.setCurrentLayer(latest);
+      if (guessedMaps.isEmpty()) {
+        areaPicture.setCurrentLayer(mapLayerService.getPCRSLayer());
+        guessedMaps.add(areaPicture.getCurrentLayer());
+      } else {
+        var latest = mapLayerService.getLatestMostPreciseOrDefault(guessedMaps);
+        areaPicture.setCurrentLayer(latest);
+      }
     }
-    areaPicture.setLayers(guessedMaps);
+
+    guessedMaps.addAll(fallbackLayers);
+    areaPicture.setLayers(new ArrayList<>(guessedMaps));
   }
 
   public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude) {
     var guessedMaps = mapLayerService.getAvailableLayersFrom(longitude, latitude);
+    log.info("Guessed MAPS={}", guessedMaps);
     Collections.sort(guessedMaps, Comparator.reverseOrder());
     return guessedMaps;
   }

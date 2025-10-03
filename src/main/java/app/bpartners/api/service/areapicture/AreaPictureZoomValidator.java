@@ -52,6 +52,12 @@ public class AreaPictureZoomValidator implements Consumer<AreaPicture> {
         "ILE-DE-RE",
         "FINISTERE_2023_5cm",
         "HAUTE-GARONNE_2022_5cm",
-        "HAUTE-SAVOIE_2023_5CM");
+        "HAUTE-SAVOIE_2023_5CM",
+        "Thionville_2021_5cm",
+        "Angouleme_2019",
+        "Seine-Saint-Denis_2018_5cm",
+        "Haut-De-Seine_2018_5cm",
+        "Savoie-Enedis",
+        "Auvergne_Rhone_Alpes_PCRS_5cm");
   }
 }

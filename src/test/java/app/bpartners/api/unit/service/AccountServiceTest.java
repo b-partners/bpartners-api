@@ -9,8 +9,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Money;
@@ -25,23 +23,13 @@ import org.junit.jupiter.api.Test;
 class AccountServiceTest {
   AccountService subject;
   AccountRepository repositoryMock;
-  BankRepository bankRepositoryMock;
   UserRepository userRepositoryMock;
-  TransactionsSummaryRepository summaryRepositoryMock;
-  DbTransactionRepository transactionRepositoryMock;
-  EventProducer<DisconnectionInitiated> eventProducerMock;
 
   @BeforeEach
   void setUp() {
-    bankRepositoryMock = mock(BankRepository.class);
     userRepositoryMock = mock(UserRepository.class);
-    summaryRepositoryMock = mock(TransactionsSummaryRepository.class);
-    transactionRepositoryMock = mock(DbTransactionRepository.class);
     repositoryMock = mock(AccountRepository.class);
-    eventProducerMock = mock(EventProducer.class);
-    subject =
-        new AccountService(
-            repositoryMock, bankRepositoryMock, userRepositoryMock, eventProducerMock);
+    subject = new AccountService(repositoryMock, userRepositoryMock);
   }
 
   @Test
@@ -62,6 +50,13 @@ class AccountServiceTest {
     when(repositoryMock.save((Account) any())).thenReturn(joePersistedAccount());
 
     assertEquals(joePersistedAccount(), subject.save(joePersistedAccount()));
+  }
+
+  @Test
+  void save_all() {
+    when(repositoryMock.saveAll(anyList())).thenReturn(List.of(joePersistedAccount()));
+
+    assertEquals(List.of(joePersistedAccount()), subject.saveAll(List.of(joePersistedAccount())));
   }
 
   @Test

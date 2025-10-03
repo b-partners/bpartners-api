@@ -47,7 +47,6 @@ public class HAreaPictureAnnotationInstance {
   private String idUser;
   private String idAreaPicture;
   private Double humidityLevel;
-  private Double globalRateValue;
   private Double height;
 
   @Column(name = "revetement_1")

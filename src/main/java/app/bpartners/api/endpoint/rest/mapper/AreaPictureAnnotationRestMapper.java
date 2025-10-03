@@ -22,6 +22,7 @@ public class AreaPictureAnnotationRestMapper {
         .creationDatetime(domain.getCreationDatetime())
         .idAreaPicture(domain.getIdAreaPicture())
         .isDraft(domain.getIsDraft())
+        .properties(domain.getProperties())
         .annotations(
             domain.getAnnotationInstances().stream()
                 .map(instanceRestMapper::toRest)
@@ -39,6 +40,7 @@ public class AreaPictureAnnotationRestMapper {
         .idAreaPicture(rest.getIdAreaPicture())
         .creationDatetime(rest.getCreationDatetime())
         .isDraft(rest.getIsDraft() != null && rest.getIsDraft())
+        .properties(rest.getProperties())
         .annotationInstances(
             rest.getAnnotations().stream()
                 .map(instanceRestMapper::toDomain)
@@ -56,6 +58,7 @@ public class AreaPictureAnnotationRestMapper {
         .isDraft(restAnnotation.getIsDraft())
         .annotations(restAnnotation.getAnnotations())
         .idAreaPicture(restAnnotation.getIdAreaPicture())
+        .properties(restAnnotation.getProperties())
         .creationDatetime(restAnnotation.getCreationDatetime())
         .areaPicture(areaPictureRestMapper.toRest(areaPicture));
   }

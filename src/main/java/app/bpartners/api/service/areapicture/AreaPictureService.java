@@ -184,7 +184,6 @@ public class AreaPictureService {
 
   public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude) {
     var guessedMaps = mapLayerService.getAvailableLayersFrom(longitude, latitude);
-    log.info("Guessed MAPS={}", guessedMaps);
     Collections.sort(guessedMaps, Comparator.reverseOrder());
     return guessedMaps;
   }

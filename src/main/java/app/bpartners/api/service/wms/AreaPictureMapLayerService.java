@@ -6,8 +6,8 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureMapLayerRepository;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.geotools.api.feature.simple.SimpleFeature;
@@ -56,14 +56,11 @@ public class AreaPictureMapLayerService {
 
   private List<AreaPictureMapLayer> getAllByDepartementNameInIgnoreCaseOrderByYearAndAddDefault(
       List<String> matchingFeaturesName) {
-    var result =
-        new ArrayList<>(
-            repository.findAllByDepartementNameInIgnoreCaseOrderByYear(matchingFeaturesName));
-    return result;
+    return new ArrayList<>(
+        repository.findAllByDepartementNameInIgnoreCaseOrderByYear(matchingFeaturesName));
   }
 
-  public AreaPictureMapLayer getLatestMostPreciseOrDefault(
-      LinkedHashSet<AreaPictureMapLayer> layers) {
+  public AreaPictureMapLayer getLatestMostPreciseOrDefault(Set<AreaPictureMapLayer> layers) {
     return layers.stream().max(AreaPictureMapLayer::compareTo).orElse(getDefaultIGNLayer());
   }
 

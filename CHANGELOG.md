@@ -1,3 +1,23 @@
+# [0.69.0](https://github.com/b-partners/bpartners-api/compare/v0.68.0...v0.69.0) (2025-10-03)
+
+
+### Bug Fixes
+
+* do not add SelfMatcher for POST /users/*/keys ([5a67c49](https://github.com/b-partners/bpartners-api/commit/5a67c49b8a9d608d6ac4ef8de3fab31e7c851faf))
+* do not add SelfUserMatcher for POST /users/*/keys ([50a0aee](https://github.com/b-partners/bpartners-api/commit/50a0aee9261155bf6f0f27e7e4c5bf6b91d03a95))
+* do not use invoice status list in request param ([144993c](https://github.com/b-partners/bpartners-api/commit/144993c27e63c3c7ba723ba5db1b3f1ed074faa2))
+* http method should be post instead of put on landing file retrieval ([0ce09f4](https://github.com/b-partners/bpartners-api/commit/0ce09f4b53c7896657507bf819460e7bc501b487))
+* implement add 501 and 503 response on crupdateAreaPictureDetails ([7721a61](https://github.com/b-partners/bpartners-api/commit/7721a613225e3ced531d5b381afe79af5cafe29a))
+* **Invoice:** compute payment regulation event if invoiceStatus=CONFIRMED ([4fd5c82](https://github.com/b-partners/bpartners-api/commit/4fd5c82e375b0a919fd4041e7a470a2bdf58db43))
+* use url encoded comma format ([748b0d9](https://github.com/b-partners/bpartners-api/commit/748b0d9753de0a0c17f04c018f9242723c9fd85f))
+
+
+### Features
+
+* use lambda-url ([305f8e2](https://github.com/b-partners/bpartners-api/commit/305f8e234a14724565406c1cc8719b36df3b808f))
+
+
+
 # [0.68.0](https://github.com/b-partners/bpartners-api/compare/v0.67.0...v0.68.0) (2025-07-18)
 
 
@@ -179,16 +199,6 @@
 
 * add direct-debit payment method for invoice ([7f4f9ad](https://github.com/b-partners/bpartners-api/commit/7f4f9adb2a3bd3f3c7eebeb3c3162443f05364e1))
 * trigger monthly subscription invoice ([6d2178e](https://github.com/b-partners/bpartners-api/commit/6d2178eec902e81fc3d4b0ae835e4e13943ad6da))
-
-
-
-# [0.59.0](https://github.com/b-partners/bpartners-api/compare/v0.58.0...v0.59.0) (2024-12-09)
-
-
-### Features
-
-* add humidityLevel on annotationInstance ([1ef58fc](https://github.com/b-partners/bpartners-api/commit/1ef58fcaea5c495ceceb0f3f11d7d0dcfca7fadc))
-* cancel user subscription ([aa56e18](https://github.com/b-partners/bpartners-api/commit/aa56e18818aa0ffb632ec93fb928b5794a0b2747))
 
 
 

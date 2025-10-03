@@ -27,6 +27,10 @@ public class AreaPictureAnnotationInstanceMapper {
             .wearness(entity.getWearness())
             .moldRate(entity.getMoldRate())
             .humidityLevel(entity.getHumidityLevel())
+            .revetement2(entity.getRevetement2())
+            .revetement1(entity.getRevetement1())
+            .height(entity.getHeight())
+            .globalRateValue(entity.getGlobalRateValue())
             .build();
     return AreaPictureAnnotationInstance.builder()
         .id(entity.getId())
@@ -63,6 +67,10 @@ public class AreaPictureAnnotationInstanceMapper {
         .wearness(metadata.wearness())
         .moldRate(metadata.moldRate())
         .humidityLevel(metadata.humidityLevel())
+        .globalRateValue(metadata.globalRateValue())
+        .height(metadata.height())
+        .revetement1(metadata.revetement1())
+        .revetement2(metadata.revetement2())
         .build();
   }
 }

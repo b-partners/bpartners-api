@@ -644,6 +644,16 @@ components:
         humidityLevel:
           type: number
           format: double
+        height:
+          type: number
+          format: double
+        globalRateValue:
+          type: number
+          format: double
+        revetement1:
+          type: string
+        revetement2:
+          type: string
     Wearness:
       type: string
       enum:

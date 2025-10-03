@@ -654,6 +654,10 @@ components:
           type: string
         revetement2:
           type: string
+        globalRateType:
+          type: string
+        llm:
+          type: string
     Wearness:
       type: string
       enum:
@@ -740,6 +744,13 @@ components:
         address:
           type: string
         imageUrl:
+          type: string
+        globalRateValue:
+          type: number
+          format: double
+        globalRateType:
+          type: string
+        llm:
           type: string
         annotations:
           type: array

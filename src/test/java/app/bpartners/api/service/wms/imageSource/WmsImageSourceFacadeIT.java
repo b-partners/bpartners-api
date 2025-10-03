@@ -35,7 +35,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.web.client.RestTemplate;
 
 public class WmsImageSourceFacadeIT extends MockedThirdParties {
   private static final AreaPicture GEOSERVER_LAYER_AREA_PICTURE =
@@ -46,23 +45,21 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
               AreaPictureMapLayer.builder().source(GEOSERVER).name("area_picture").build())
           .build();
   @Autowired WmsImageSourceFacade subject;
-  @MockBean RestTemplate restTemplateMock;
   @MockBean GeoserverImageSource geoserverImageSourceMock;
   @MockBean PingController pingControllerMock;
   @MockBean IGNGeoserverImageSource ignGeoserverImageSource;
   @MockBean Mailer mailer;
-  @MockBean AuthProvider authProviderMock;
   @MockBean TileExtenderImageSource tileExtenderImageSource;
   @MockBean AreaPictureMapLayerService areaPictureMapLayerServiceMock;
 
-  public static AreaPictureMapLayer aerialPhotographyLayer() {
+  public static AreaPictureMapLayer rhonePCRSLayer() {
     return AreaPictureMapLayer.builder()
         .id("2f343dba-dd5f-4895-9006-49472f576c02")
-        .name("cite:PHOTO_AERIENNE")
+        .name("Auvergne_Rhone_Alpes_PCRS_5cm")
         .source(GEOSERVER)
-        .year(2024)
+        .year(2009)
         .maximumZoomLevel(HOUSES_0)
-        .precisionLevelInCm(20)
+        .precisionLevelInCm(5)
         .departementName("ALL")
         .build();
   }
@@ -129,7 +126,6 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(tileExtenderImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
   }
 
-  @Disabled("flaky test")
   @Test
   void download_image_with_pcrs_layer_on_cascade_ok() {
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
@@ -146,27 +142,25 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
   }
 
   @Test
-  @Disabled("PHOTO_AERIENNE layer has been removed as default layer")
-  void download_image_with_aerial_photography_layer_on_cascade_ok() {
-    AreaPicture dijon = anAreaPicture(dijon());
-
+  void download_image_with_rhone_pcrs_layer_on_cascade_ok() {
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
         .thenThrow(new BlankImageException("Blank image"));
     when(tileExtenderImageSource.downloadImage(
-            argThat(area -> area.getCurrentLayer().equals(aerialPhotographyLayer()))))
+            argThat(area -> area.getCurrentLayer().equals(rhonePCRSLayer()))))
         .thenReturn(getMockJpegFile());
 
-    subject.downloadImage(dijon);
+    subject.downloadImage(anAreaPicture(dijon()));
 
     verify(tileExtenderImageSource, times(3)).downloadImage(any());
-    verify(areaPictureMapLayerServiceMock, times(1)).getAerialPhotography();
+    verify(areaPictureMapLayerServiceMock, times(1)).getRhonePCRSLayer();
   }
 
-  @Disabled("flaky test")
   @Test
   void download_image_with_ign_layer_on_cascade_ok() {
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
     when(areaPictureMapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
         .thenThrow(new BlankImageException("Blank image"));
@@ -176,11 +170,10 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
 
     subject.downloadImage(anAreaPicture(dijon()));
 
-    verify(tileExtenderImageSource, times(3)).downloadImage(any());
+    verify(tileExtenderImageSource, times(4)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getDefaultIGNLayer();
   }
 
-  @Disabled("flaky test")
   @Test
   void downloadImage_cascade_on_server_error_ok() {
     setupGeoserverMock(geoserverImageSourceMock);
@@ -188,29 +181,6 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
     File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
 
     verify(tileExtenderImageSource, times(1)).downloadImage(any());
-    assertEquals(getMockJpegFile(), actual);
-  }
-
-  @Disabled("flaky test")
-  @Test
-  void downloadImage_cascade_on_blank_image_ok() {
-    when(tileExtenderImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
-    File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
-
-    verify(tileExtenderImageSource, times(1)).downloadImage(any());
-    assertEquals(getMockJpegFile(), actual);
-  }
-
-  @Test
-  @Disabled
-  void geoserver_download_image_is_null() {
-    when(geoserverImageSourceMock.downloadImage(any())).thenReturn(null);
-    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
-
-    File actual = subject.downloadImage(GEOSERVER_LAYER_AREA_PICTURE);
-
-    verify(geoserverImageSourceMock, times(1)).downloadImage(any());
-    verify(ignGeoserverImageSource, times(1)).downloadImage(any());
     assertEquals(getMockJpegFile(), actual);
   }
 

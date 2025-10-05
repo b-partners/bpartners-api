@@ -9,7 +9,9 @@ import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
@@ -54,10 +56,22 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       ExportAreaPictureAnnotation annotation) {
     var context = new Context();
 
-    context.setVariable("address", annotation.getAddress());
-    context.setVariable("mainImage", base64MainImage);
-    context.setVariable("pages", groupByThree(annotation.getAnnotations()));
     context.setVariable("subImages", base64SubImages);
+    context.setVariable("llm", annotation.getLlm());
+    context.setVariable("mainImage", base64MainImage);
+    context.setVariable("address", annotation.getAddress());
+    context.setVariable("pages", groupByThree(annotation.getAnnotations()));
+    context.setVariable("globalRateType", annotation.getGlobalRateType());
+    context.setVariable("globalRateValue", annotation.getGlobalRateValue());
+    context.setVariable(
+        "degradationLevels",
+        Arrays.asList(
+            Map.of("label", "A", "color", "#47BE62"),
+            Map.of("label", "B", "color", "#F4FBAB"),
+            Map.of("label", "C", "color", "#F9DD56"),
+            Map.of("label", "D", "color", "#F38F4B"),
+            Map.of("label", "E", "color", "#EF2C2D")));
+
     return context;
   }
 

@@ -51,7 +51,7 @@ public final class IGNGeoserverImageSource extends AbstractWmsImageSource {
 
   @Override
   public boolean supports(AreaPicture areaPicture) {
-    log.info("IGN is the expected layer: {}", areaPicture.getCurrentLayer().getSource());
+    log.info("GEOSERVER_IGN is the expected layer : {}", areaPicture.getCurrentLayer().getSource());
     return GEOSERVER_IGN.equals(areaPicture.getCurrentLayer().getSource());
   }
 

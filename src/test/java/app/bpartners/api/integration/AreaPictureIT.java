@@ -9,6 +9,7 @@ import static java.lang.Boolean.TRUE;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -40,6 +41,7 @@ import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.wms.ArcgisZoom;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
+import app.bpartners.api.service.wms.imageSource.IGNGeoserverImageSource;
 import app.bpartners.api.service.wms.imageSource.WmsImageSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -95,6 +97,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @MockBean GeoCodeApi geoCodeApiMock;
   @MockBean MetaDataComponent metaDataComponent;
   @MockBean AreaPictureZoomValidator areaPictureZoomValidatorMock;
+  @MockBean IGNGeoserverImageSource ignGeoserverImageSourceMock;
 
   static AreaPictureMapLayer geoserverCharenteLayer() {
     return new AreaPictureMapLayer()
@@ -231,7 +234,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 new app.bpartners.api.endpoint.rest.model.GeoPosition()
                     .score(40.0)
                     .longitude(0.148409)
-                    .latitude(45.644018)));
+                    .latitude(45.644018)))
+        .isIgn(false);
   }
 
   private static Tile getReferenceTile(Tile originalTile, boolean isExtended) {
@@ -291,7 +295,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
                     .longitude(0.148409)
                     .latitude(45.644018)))
         .xOffset(1234)
-        .yOffset(123);
+        .yOffset(123)
+        .isIgn(false);
   }
 
   static AreaPictureDetails ignoreGeneratedDataOf(AreaPictureDetails areaPictureDetails) {
@@ -305,7 +310,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return areaPictureDetails.availableLayers(List.of()).otherLayers(List.of());
   }
 
-  static CrupdateAreaPictureDetails crupdatableAreaPictureDetails() {
+  static CrupdateAreaPictureDetails crupdatableAreaPictureDetails(boolean isIgn) {
     String fileId = randomUUID().toString();
     return new CrupdateAreaPictureDetails()
         .address("Angoulême")
@@ -315,6 +320,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .createdAt(null)
         .shiftNb(0)
         .layerId("area_picture_map_1_id")
+        .isIgn(isIgn)
         .updatedAt(null);
   }
 
@@ -351,7 +357,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .shiftNb(0)
         .xOffset(1234)
         .yOffset(123)
-        .updatedAt(null);
+        .updatedAt(null)
+        .isIgn(false);
   }
 
   private ApiClient joeDoeClient() {
@@ -364,6 +371,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     setUpCognito(cognitoComponentMock);
     setUpBanApiMock(banApiMock);
     setUpWmsImageSourceMock(wmsImageSourceMock);
+    setUpIgnImageSourceMock(ignGeoserverImageSourceMock);
     setUpUserSubscription(subscriptionService);
     when(metaDataComponent.getXOffset()).thenReturn(1234);
     when(metaDataComponent.getYOffset()).thenReturn(123);
@@ -375,6 +383,13 @@ public class AreaPictureIT extends S3MockedThirdParties {
         new FileSystemResource(
             this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
     when(wmsImageSource.downloadImage(any())).thenReturn(mockJpegFile.getFile());
+  }
+
+  private void setUpIgnImageSourceMock(IGNGeoserverImageSource ignGeoserverImageSource) {
+    FileSystemResource mockJpegFile =
+        new FileSystemResource(
+            this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
+    when(ignGeoserverImageSource.downloadImage(any())).thenReturn(mockJpegFile.getFile());
   }
 
   void setUpBanApiMock(BanApi banApi) {
@@ -449,12 +464,39 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   @Test
+  void crupdate_area_picture_details_ign()
+      throws ApiException, IOException, InterruptedException, com.google.maps.errors.ApiException {
+    ApiClient joeDoeClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(joeDoeClient);
+    String payloadId = randomUUID().toString();
+    CrupdateAreaPictureDetails payload = crupdatableAreaPictureDetails(true);
+    when(geoCodeApiMock.searchGeoPositionFromAddress(any()))
+        .thenReturn(
+            new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                .latitude(CHARENTE_KNOWN_GEO_POSITION.getCoordinates().getLatitude())
+                .longitude(CHARENTE_KNOWN_GEO_POSITION.getCoordinates().getLongitude())
+                .score(0.0));
+    when(accountHolderRepository.findById(any()))
+        .thenReturn(AccountHolder.builder().id("accountHolderId").build());
+    var expected =
+        new AreaPictureMapLayer()
+            .id("1cccfc17-cbef-4320-bdfa-0d1920b91f11")
+            .name("ORTHOIMAGERY.ORTHOPHOTOS");
+
+    var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
+
+    log.info("AreaPictureDetails={}", actual);
+    assertNotNull(actual);
+    assertEquals(expected.getName(), actual.getActualLayer().getName());
+  }
+
+  @Test
   void crupdate_area_picture_details()
       throws ApiException, IOException, InterruptedException, com.google.maps.errors.ApiException {
     ApiClient joeDoeClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(joeDoeClient);
     String payloadId = randomUUID().toString();
-    CrupdateAreaPictureDetails payload = crupdatableAreaPictureDetails();
+    CrupdateAreaPictureDetails payload = crupdatableAreaPictureDetails(false);
     when(geoCodeApiMock.searchGeoPositionFromAddress(any()))
         .thenReturn(
             new app.bpartners.api.endpoint.rest.model.GeoPosition()

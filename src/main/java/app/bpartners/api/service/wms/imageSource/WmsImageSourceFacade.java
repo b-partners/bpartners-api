@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final GeoserverImageSource geoserverImageSource;
-  private final IGNGeoserverImageSource ignGeoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
   private final TileExtenderImageSource tileExtenderImageSource;
   private final ImageValidator imageValidator;
@@ -34,14 +33,12 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private WmsImageSourceFacade(
       FileDownloader fileDownloader,
       GeoserverImageSource geoserverImageSource,
-      IGNGeoserverImageSource ignGeoserverImageSource,
       AreaPictureMapLayerService areaPictureMapLayerService,
       TileExtenderImageSource tileExtenderImageSource,
       ImageValidator imageValidator,
       Mailer mailer) {
     super(fileDownloader);
     this.geoserverImageSource = geoserverImageSource;
-    this.ignGeoserverImageSource = ignGeoserverImageSource;
     this.areaPictureMapLayerService = areaPictureMapLayerService;
     this.tileExtenderImageSource = tileExtenderImageSource;
     this.imageValidator = imageValidator;
@@ -62,7 +59,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 4) int iteration)
+      @Range(from = 0, to = 3) int iteration)
       throws AddressException {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
@@ -79,9 +76,6 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     } else if (iteration == 2) {
       alternativeSource = wmsImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getRhonePCRSLayer();
-    } else if (iteration == 3) {
-      alternativeSource = ignGeoserverImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {
       throw new ApiException(
           SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());

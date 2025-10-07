@@ -87,11 +87,12 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
     return AreaPictureMapLayer.builder().name("cite:Dijon").source(GEOSERVER).build();
   }
 
-  private AreaPicture anAreaPicture(AreaPictureMapLayer areaPictureMapLayer) {
+  private AreaPicture anAreaPicture(AreaPictureMapLayer areaPictureMapLayer, boolean isIgn) {
     return AreaPicture.builder()
         .currentLayer(areaPictureMapLayer)
         .currentGeoPosition(new GeoPosition().latitude(12.34).longitude(56.78))
         .zoomLevel(HOUSES_0)
+        .isIgn(isIgn)
         .currentLayer(AreaPictureMapLayer.builder().name("cite:Dijon").build())
         .currentTile(Tile.builder().arcgisZoom(ArcgisZoom.HOUSES_0).x(1).y(1).build())
         .build();
@@ -135,7 +136,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
             argThat(area -> area.getCurrentLayer().equals(pcrsLayer()))))
         .thenReturn(getMockJpegFile());
 
-    subject.downloadImage(anAreaPicture(dijon()));
+    subject.downloadImage(anAreaPicture(dijon(), false));
 
     verify(tileExtenderImageSource, times(2)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getPCRSLayer();
@@ -151,13 +152,14 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
             argThat(area -> area.getCurrentLayer().equals(rhonePCRSLayer()))))
         .thenReturn(getMockJpegFile());
 
-    subject.downloadImage(anAreaPicture(dijon()));
+    subject.downloadImage(anAreaPicture(dijon(), false));
 
     verify(tileExtenderImageSource, times(3)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getRhonePCRSLayer();
   }
 
   @Test
+  @Disabled("IGN is removed from the cascade retrieval")
   void download_image_with_ign_layer_on_cascade_ok() {
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
     when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
@@ -168,7 +170,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
             argThat(area -> area.getCurrentLayer().equals(ignLayer()))))
         .thenReturn(getMockJpegFile());
 
-    subject.downloadImage(anAreaPicture(dijon()));
+    subject.downloadImage(anAreaPicture(dijon(), false));
 
     verify(tileExtenderImageSource, times(4)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getDefaultIGNLayer();

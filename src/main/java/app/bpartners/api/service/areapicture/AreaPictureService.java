@@ -10,8 +10,6 @@ import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.model.exception.ServiceUnavailableException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
@@ -21,7 +19,9 @@ import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.wms.TileCreator;
+import app.bpartners.api.service.wms.imageSource.IGNGeoserverImageSource;
 import app.bpartners.api.service.wms.imageSource.WmsImageSource;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -46,6 +46,8 @@ public class AreaPictureService {
   private final ProspectJpaRepository prospectRepository;
   private final AreaPictureConsumptionValidator areaPictureConsumptionValidator;
   private final AreaPictureZoomValidator areaPictureZoomValidator;
+  private final IGNGeoserverImageSource ignGeoserverImageSource;
+  private final AreaPictureMapLayerService areaPictureMapLayer;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -74,14 +76,21 @@ public class AreaPictureService {
 
   private AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
       throws RuntimeException {
-
+    File downloadedFile;
     long startRefresh = System.currentTimeMillis();
     var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
     long endRefresh = System.currentTimeMillis();
     log.info("Elapsed time for refreshAreaPictureTileAndLayers: {} ms", endRefresh - startRefresh);
 
     long startDownload = System.currentTimeMillis();
-    var downloadedFile = wmsImageSource.downloadImage(areaPicture);
+
+    if (areaPicture.isIgn()) {
+      areaPicture.setCurrentLayer(areaPictureMapLayer.getDefaultIGNLayer());
+      downloadedFile = ignGeoserverImageSource.downloadImage(areaPicture);
+    } else {
+      downloadedFile = wmsImageSource.downloadImage(areaPicture);
+    }
+
     long endDownload = System.currentTimeMillis();
     log.info("Elapsed time for downloadImage: {} ms", endDownload - startDownload);
 
@@ -112,15 +121,6 @@ public class AreaPictureService {
     var idProspect = picture.getIdProspect();
     var address = areaPicture.getAddress();
     var comment = "Adresse : " + address;
-
-    try {
-      areaPictureZoomValidator.accept(areaPicture);
-    } catch (NotImplementedException e) {
-      throw new NotImplementedException("Address or zone " + address + " not yet supported");
-    } catch (ServiceUnavailableException e) {
-      throw new ServiceUnavailableException(
-          "Address or zone " + address + " temporarily unavailable");
-    }
 
     // TODO: Bad ! Only areaPicture must be returned done here
     if (idProspect != null) {

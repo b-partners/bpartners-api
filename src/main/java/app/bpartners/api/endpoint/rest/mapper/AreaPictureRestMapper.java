@@ -50,7 +50,7 @@ public class AreaPictureRestMapper {
             areaPictureMapLayerService.getPCRSLayer(),
             areaPictureMapLayerService.getDefaultIGNLayer()));
     domain.setLayers(layers);
-    log.info("Layers={}", domain.getLayers());
+    log.info("Layers={}", layers);
 
     return new AreaPictureDetails()
         .id(domain.getId())
@@ -75,7 +75,8 @@ public class AreaPictureRestMapper {
         .shiftNb(domain.getShiftNb())
         .yOffset(yOffset)
         .xOffset(xOffset)
-        .isExtended(domain.isExtended());
+        .isExtended(domain.isExtended())
+        .isIgn(domain.isIgn());
   }
 
   public AreaPicture toDomain(CrupdateAreaPictureDetails rest, String id, String userId) {
@@ -103,6 +104,7 @@ public class AreaPictureRestMapper {
         .updatedAt(rest.getUpdatedAt())
         .isExtended(isExtended != null && isExtended)
         .shiftNb(rest.getShiftNb() == null ? null : rest.getShiftNb())
+        .isIgn(rest.getIsIgn() == null || rest.getIsIgn())
         .build();
   }
 }

@@ -8,14 +8,19 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import com.lowagie.text.pdf.BaseFont;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.xhtmlrenderer.pdf.ITextFontResolver;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 @Component
@@ -29,6 +34,9 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       List<String> base64SubImages,
       ExportAreaPictureAnnotation annotation) {
     var renderer = new ITextRenderer();
+
+    loadCustomFonts(renderer);
+
     renderer.setDocumentFromString(parseDataToString(base64MainImage, base64SubImages, annotation));
     renderer.layout();
 
@@ -89,4 +97,23 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     }
     return pages;
   }
+
+    private void loadCustomFonts(ITextRenderer renderer) {
+        ITextFontResolver fontResolver = renderer.getFontResolver();
+        try {
+            fontResolver.addFont(
+                new ClassPathResource("fonts/KumbhSans-VariableFont_YOPQ,wght.ttf").getPath(),
+                BaseFont.IDENTITY_H,
+                BaseFont.EMBEDDED
+            );
+
+            fontResolver.addFont(
+                new ClassPathResource("fonts/NotoEmoji-VariableFont_wght.ttf").getPath(),
+                BaseFont.IDENTITY_H,
+                BaseFont.EMBEDDED
+            );
+        } catch (DocumentException | IOException e) {
+            throw new ApiException(SERVER_EXCEPTION, e);
+        }
+    }
 }

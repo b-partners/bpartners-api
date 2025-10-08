@@ -6,22 +6,17 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
-import com.lowagie.text.DocumentException;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import com.lowagie.text.pdf.BaseFont;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.xhtmlrenderer.pdf.ITextFontResolver;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
 @Component
 @RequiredArgsConstructor
@@ -29,24 +24,34 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
+  @SneakyThrows
   public byte[] apply(
       String base64MainImage,
       List<String> base64SubImages,
       ExportAreaPictureAnnotation annotation) {
-    var renderer = new ITextRenderer();
 
-    loadCustomFonts(renderer);
+    String html = parseDataToString(base64MainImage, base64SubImages, annotation);
 
-    renderer.setDocumentFromString(parseDataToString(base64MainImage, base64SubImages, annotation));
-    renderer.layout();
+    EmojReplacer replacer =
+        new EmojReplacer(
+            new ClassPathResource("fonts/twemoji/v/14.0.2/svg").getFile().toPath(),
+            "<span class=\"emoj\">",
+            "</span>");
+    html = replacer.replaceEmoji(html);
 
-    var outputStream = new ByteArrayOutputStream();
-    try {
-      renderer.createPDF(outputStream);
-    } catch (DocumentException e) {
+    try (var outputStream = new ByteArrayOutputStream()) {
+      PdfRendererBuilder builder = new PdfRendererBuilder();
+      builder.useFastMode();
+      builder.withHtmlContent(html, null);
+      builder.toStream(outputStream);
+      builder.useSVGDrawer(new BatikSVGDrawer());
+      loadCustomFonts(builder);
+      builder.run();
+
+      return outputStream.toByteArray();
+    } catch (Exception e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
-    return outputStream.toByteArray();
   }
 
   private String parseDataToString(
@@ -98,22 +103,13 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     return pages;
   }
 
-    private void loadCustomFonts(ITextRenderer renderer) {
-        ITextFontResolver fontResolver = renderer.getFontResolver();
-        try {
-            fontResolver.addFont(
-                new ClassPathResource("fonts/KumbhSans-VariableFont_YOPQ,wght.ttf").getPath(),
-                BaseFont.IDENTITY_H,
-                BaseFont.EMBEDDED
-            );
-
-            fontResolver.addFont(
-                new ClassPathResource("fonts/NotoEmoji-VariableFont_wght.ttf").getPath(),
-                BaseFont.IDENTITY_H,
-                BaseFont.EMBEDDED
-            );
-        } catch (DocumentException | IOException e) {
-            throw new ApiException(SERVER_EXCEPTION, e);
-        }
+  private void loadCustomFonts(PdfRendererBuilder builder) {
+    try {
+      builder.useFont(
+          new ClassPathResource("fonts/KumbhSans-VariableFont_YOPQ,wght.ttf").getFile(),
+          "Kumbh Sans");
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
 }

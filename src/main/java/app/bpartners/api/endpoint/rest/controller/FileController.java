@@ -95,9 +95,6 @@ public class FileController {
       @PathVariable(name = "id") String fileId,
       @RequestParam(name = "fileType") FileType fileType,
       @RequestBody byte[] toUpload) {
-    if (AREA_PICTURE.equals(fileType)) {
-      throw new NotImplementedException("Area picture upload is made through a specific endpoint");
-    }
     File fileToUpload = fileWriter.apply(toUpload, null);
     service.upload(fileType, fileId, AuthProvider.getAuthenticatedUserId(), fileToUpload);
     return ResponseEntity.ok()

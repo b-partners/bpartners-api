@@ -5,13 +5,16 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.exception.ServiceUnavailableException;
 import java.util.List;
 import java.util.function.Consumer;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class AreaPictureZoomValidator implements Consumer<AreaPicture> {
   @Override
   public void accept(AreaPicture areaPicture) {
     var currentLayer = areaPicture.getCurrentLayer();
+    log.info("CurrentLayer={}", currentLayer);
     if (supportedLayers().contains(currentLayer.getName())) {
       if (currentLayer.getPrecisionLevelInCm() != 5) {
         throw new ServiceUnavailableException(
@@ -52,6 +55,12 @@ public class AreaPictureZoomValidator implements Consumer<AreaPicture> {
         "ILE-DE-RE",
         "FINISTERE_2023_5cm",
         "HAUTE-GARONNE_2022_5cm",
-        "HAUTE-SAVOIE_2023_5CM");
+        "HAUTE-SAVOIE_2023_5CM",
+        "Thionville_2021_5cm",
+        "Angouleme_2019",
+        "Seine-Saint-Denis_2018_5cm",
+        "Haut-De-Seine_2018_5cm",
+        "Savoie-Enedis",
+        "Auvergne_Rhone_Alpes_PCRS_5cm");
   }
 }

@@ -18,6 +18,7 @@ public class AreaPictureAnnotationMapper {
         .creationDatetime(entity.getCreationDatetime())
         .idUser(entity.getIdUser())
         .isDraft(entity.getIsDraft())
+        .properties(entity.getProperties())
         .idAreaPicture(entity.getIdAreaPicture())
         .annotationInstances(
             entity.getAnnotationInstances().stream()
@@ -33,6 +34,7 @@ public class AreaPictureAnnotationMapper {
         .idUser(domain.getIdUser())
         .isDraft(domain.getIsDraft())
         .idAreaPicture(domain.getIdAreaPicture())
+        .properties(domain.getProperties())
         .annotationInstances(
             domain.getAnnotationInstances().stream()
                 .map(instanceMapper::toEntity)

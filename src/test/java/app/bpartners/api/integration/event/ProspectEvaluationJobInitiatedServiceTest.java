@@ -1,10 +1,10 @@
 package app.bpartners.api.integration.event;
 
 import static app.bpartners.api.endpoint.rest.model.ContactNature.OLD_CUSTOMER;
+import static app.bpartners.api.endpoint.rest.model.ContactNature.PROSPECT;
 import static app.bpartners.api.endpoint.rest.model.InterventionType.DISINFECTION;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.IN_PROGRESS;
-import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static app.bpartners.api.endpoint.rest.model.JobStatusValue.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -17,6 +17,7 @@ import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.CalendarEvent;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.prospect.job.*;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
@@ -34,6 +35,7 @@ import app.bpartners.api.service.user.UserService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
+import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -64,6 +66,119 @@ class ProspectEvaluationJobInitiatedServiceTest {
           snsServiceMock,
           templateResolverEngine,
           customDateFormatter);
+
+  @Test
+  void spread_sheet_evaluation_email_body()
+      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    AccountHolder holder = AccountHolder.builder().id("h1").name("ArtisanTest").build();
+
+    ProspectResult prospectResult =
+        ProspectResult.builder()
+            .prospectEval(
+                ProspectEval.builder()
+                    .prospectEvalInfo(
+                        ProspectEvalInfo.builder()
+                            .name("John Doe")
+                            .coordinates(new GeoUtils.Coordinate(1.0, 2.0))
+                            .build())
+                    .build())
+            .build();
+
+    EvaluatedProspect evaluatedProspect = new EvaluatedProspect();
+    evaluatedProspect.setContactNature(PROSPECT);
+
+    when(prospectRestMapperMock.toRest(prospectResult)).thenReturn(evaluatedProspect);
+    when(templateResolverEngine.parseTemplateResolver(any(), any())).thenReturn("<html>ok</html>");
+
+    var method =
+        ProspectEvaluationJobInitiatedService.class.getDeclaredMethod(
+            "spreadsheetEvaluationEmailBody", AccountHolder.class, List.class);
+    method.setAccessible(true);
+
+    String result = (String) method.invoke(subject, holder, List.of(prospectResult));
+
+    assertEquals("<html>ok</html>", result);
+    verify(templateResolverEngine)
+        .parseTemplateResolver(eq("prospect_sheet_evaluation_result"), any());
+  }
+
+  @Test
+  void send_job_result_through_email() throws Exception {
+    AccountHolder holder = AccountHolder.builder().id("h1").email("test@mail.com").build();
+
+    ProspectEvaluationJob job =
+        ProspectEvaluationJob.builder()
+            .id("j1")
+            .jobStatus(new ProspectEvaluationJobStatus().value(FINISHED).message("done"))
+            .build();
+
+    when(sesConfMock.getAdminEmail()).thenReturn("admin@mail.com");
+
+    var method =
+        ProspectEvaluationJobInitiatedService.class.getDeclaredMethod(
+            "sendJobResultThroughEmail",
+            AccountHolder.class,
+            ProspectEvaluationJob.class,
+            String.class,
+            String.class);
+    method.setAccessible(true);
+
+    method.invoke(subject, holder, job, "subject", "body");
+
+    verify(sesServiceMock)
+        .sendEmail(
+            eq("test@mail.com"),
+            isNull(),
+            eq("subject"),
+            eq("body"),
+            eq(List.of()),
+            eq("admin@mail.com"));
+  }
+
+  @Test
+  void convert_prospect_from_results() throws Exception {
+    ProspectEvalInfo info =
+        ProspectEvalInfo.builder()
+            .name("TestProspect")
+            .managerName("Manager")
+            .email("prospect@mail.com")
+            .phoneNumber("123456")
+            .postalCode("101")
+            .coordinates(new GeoUtils.Coordinate(48.85, 2.35))
+            .address("Paris")
+            .defaultComment("Default comment")
+            .build();
+
+    ProspectEval prospectEval = ProspectEval.builder().prospectEvalInfo(info).build();
+
+    ProspectResult result =
+        ProspectResult.builder()
+            .prospectEval(prospectEval)
+            .interventionResult(new ProspectResult.InterventionResult(5.0, 10.0, "Paris"))
+            .build();
+
+    AccountHolder holder = AccountHolder.builder().id("h1").build();
+    ProspectEvaluationJob job = ProspectEvaluationJob.builder().id("j1").build();
+
+    var method =
+        ProspectEvaluationJobInitiatedService.class.getDeclaredMethod(
+            "convertProspectFromResults",
+            ProspectEvaluationJob.class,
+            AccountHolder.class,
+            List.class);
+    method.setAccessible(true);
+
+    @SuppressWarnings("unchecked")
+    List<Prospect> prospects = (List<Prospect>) method.invoke(null, job, holder, List.of(result));
+
+    assertEquals(1, prospects.size());
+    Prospect prospect = prospects.get(0);
+    assertEquals("TestProspect", prospect.getName());
+    assertEquals("Manager", prospect.getManagerName());
+    assertEquals("prospect@mail.com", prospect.getEmail());
+    assertEquals("Paris", prospect.getAddress());
+    assertNotNull(prospect.getRating());
+  }
 
   @Test
   void accept_ok() {

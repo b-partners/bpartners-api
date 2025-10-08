@@ -3,6 +3,7 @@ package app.bpartners.api.model;
 import jakarta.persistence.Id;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,5 +23,6 @@ public class AreaPictureAnnotation {
   private Instant creationDatetime;
   private String idUser;
   private String idAreaPicture;
+  private Map<String, Object> properties;
   private List<AreaPictureAnnotationInstance> annotationInstances;
 }

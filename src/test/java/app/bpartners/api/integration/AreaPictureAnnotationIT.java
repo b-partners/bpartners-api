@@ -15,12 +15,11 @@ import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 public class AreaPictureAnnotationIT extends MockedThirdParties {
@@ -29,7 +28,6 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   private static final String DRAFT_AREA_PICTURE_ANNOTATION_1_ID = "area_picture_annotation_4_id";
   private static final String DRAFT_AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_5_id";
 
-  @Autowired ObjectMapper om;
   @MockBean MetaDataComponent metaDataComponent;
 
   static AreaPictureAnnotation createAreaPictureAnnotation(String payloadId, String areaPictureId) {
@@ -37,6 +35,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .id(payloadId)
         .isDraft(false)
         .idAreaPicture(areaPictureId)
+        .properties(Map.of("globalRateValue", 15.0d))
         .creationDatetime(Instant.parse("2024-04-17T01:02:00.00Z"))
         .annotations(List.of(areaPictureAnnotationInstance(payloadId, areaPictureId)));
   }
@@ -50,6 +49,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .id(AREA_PICTURE_ANNOTATION_1_ID)
         .isDraft(false)
         .idAreaPicture(AREA_PICTURE_1_ID)
+        .properties(null)
         .creationDatetime(Instant.parse("2022-01-08T01:00:00Z"))
         .annotations(List.of(areaPictureAnnotationInstance1(), areaPictureAnnotationInstance2()));
   }
@@ -59,6 +59,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .id(AREA_PICTURE_ANNOTATION_2_ID)
         .isDraft(false)
         .idAreaPicture(AREA_PICTURE_1_ID)
+        .properties(null)
         .creationDatetime(Instant.parse("2022-01-08T01:02:00.00Z"))
         .annotations(List.of());
   }
@@ -83,6 +84,9 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .obstacle("panneau")
                 .moldRate(10.0)
                 .humidityLevel(10.0)
+                .height(7.0)
+                .revetement1("TUILES")
+                .revetement2("AUTRES")
                 .wearness(PARTIAL)
                 .wearLevel(100.0));
   }
@@ -108,6 +112,9 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .obstacle("panneau")
                 .moldRate(10.0)
                 .humidityLevel(10.0)
+                .height(7.0)
+                .revetement1("TUILES")
+                .revetement2("AUTRES")
                 .wearness(PARTIAL)
                 .wearLevel(100.0));
   }
@@ -132,6 +139,9 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .obstacle("panneau")
                 .wearLevel(100.0)
                 .humidityLevel(10.0)
+                .height(7.0)
+                .revetement1("TUILES")
+                .revetement2("AUTRES")
                 .moldRate(10.0)
                 .wearness(PARTIAL));
   }
@@ -142,6 +152,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .idAreaPicture(AREA_PICTURE_1_ID)
         .isDraft(true)
         .areaPicture(areaPicture1())
+        .properties(null)
         .annotations(List.of())
         .creationDatetime(Instant.parse("2024-01-08T01:00:00.00Z"));
   }
@@ -151,6 +162,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .id(DRAFT_AREA_PICTURE_ANNOTATION_2_ID)
         .idAreaPicture(AREA_PICTURE_1_ID)
         .isDraft(true)
+        .properties(null)
         .areaPicture(areaPicture1())
         .annotations(List.of())
         .creationDatetime(Instant.parse("2024-01-08T01:05:00.00Z"));

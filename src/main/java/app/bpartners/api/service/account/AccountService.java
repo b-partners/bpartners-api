@@ -4,8 +4,6 @@ import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.DisconnectionInitiated;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Money;
@@ -13,7 +11,6 @@ import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
-import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -28,9 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class AccountService {
   private final AccountRepository repository;
-  private final BankRepository bankRepository;
   private final UserRepository userRepository;
-  private final EventProducer<DisconnectionInitiated> eventProducer;
 
   public Account getActive(List<Account> accounts) {
     return accounts.stream()
@@ -59,11 +54,6 @@ public class AccountService {
   @Transactional
   public Account save(Account toSave) {
     return repository.save(toSave);
-  }
-
-  @Transactional
-  public Account getAccountById(String id) {
-    return repository.findById(id);
   }
 
   @Transactional
@@ -107,12 +97,6 @@ public class AccountService {
         .status(OPENED)
         .enableStatus(EnableStatus.ENABLED)
         .build();
-  }
-
-  private void resetDefaultAccount(String userId, User user, Account account) {
-    Account defaultAccount =
-        account.toBuilder().userId(userId).bank(null).bic(null).iban(null).externalId(null).build();
-    repository.save(defaultAccount);
   }
 
   public static User resetDefaultUser(User user, Account account) {

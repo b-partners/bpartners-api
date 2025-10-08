@@ -1,10 +1,11 @@
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <style>
         * {
             color: #2b2b2a;
-            font-family: Arial, Verdana, Georgia, sans-serif;
             box-sizing: border-box;
+            font-family: Arial, Verdana;
             padding: 0;
             margin: 0;
         }
@@ -21,20 +22,21 @@
         .last-page { page-break-after: avoid; }
 
         .title {
-            font-size: 16px;
+            font-size: 30px;
             text-align: center;
             font-weight: bold !important;
-            margin: 250px auto 40px auto;
+            margin: 50px auto 50px auto;
         }
 
         .title-value {
             color: #FF521B;
+            margin: 5px 0px;
         }
 
         .main-image {
             display: block;
-            width: 600px;
-            margin: 0 auto;
+            width: 550px;
+            margin: 20px auto 0px auto;
         }
 
         .annotation-item{
@@ -60,41 +62,156 @@
         }
 
         .annotation-information-title{
-            font-size: 14px;
+            font-size: 30px;
+            margin-bottom: 10px;
             font-weight: bold;
+            color: #FF521B;
+            text-align: center;
         }
 
-        .annotation-item-title{ font-size: 14px; }
-        .annotation-item-title-value{ margin-right: 10px; }
+        .annotation-item-title{ font-size: 16px; }
+        .annotation-item-title-value{ margin-right: 15px; }
         .annotation-item-info-label{ font-weight: bold; }
         .annotation-item-info-value{ font-weight: normal; }
-        .annotation-item-title-color{
-            display: inline-block;
-            width: 20px;
+        .annotation-item-title-color {
+            display: none;
+            width: 1px;
             height: 10px;
+            border-radius: 3px;
+            border: 10px solid;
+            margin-left: 5px;
         }
         .annotation-item-info-item {
-            font-size: 12px;
+            font-size: 16px;
             margin: 5px 0;
         }
+
+        .degradation-container {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .degradation-left {
+            text-align: left;
+            vertical-align: middle;
+            padding-left: 10px;
+            width: 65%;
+        }
+
+        .degradation-right {
+            text-align: right;
+            vertical-align: middle;
+            padding-right: 10px;
+            width: 35%;
+        }
+
+        .degradation-levels td {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+            color: black;
+            border: 2px solid transparent;
+        }
+
+        .degradation-levels td.active {
+            border: 3px solid black;
+        }
+
+        .degradation-score {
+            display: inline-block;
+            background-color: #4A644E;
+            color: white;
+            font-size: 14px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .degradation-score span {
+            color: white;
+        }
+
+        /* LLM */
+        .llm h2 {
+            font-size: 30px !important;
+            color: #FF521B;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .llm h3 {
+            color: #000000;
+            font-size: 25px !important;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .llm section ul {
+            list-style-type: dot;
+            padding-left: 0;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        .llm section ul li {
+            margin: 8px 0;
+            line-height: 1.5;
+            text-align: justify;
+        }
+
     </style>
+    <meta charset="UTF-8"/>
     <title>Rapport d'analyse</title>
 </head>
 <body>
     <section class="page">
         <h1 class="title">
             <span class="title-label">Rapport d'analyse de l'adresse : </span>
+            <br />
             <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
         </h1>
-        <img alt="annotation" class="main-image"  th:src="'data:image/jpeg;base64,' + ${mainImage}" />
+        <img alt="annotation" class="main-image" th:src="'data:image/jpeg;base64,' + ${mainImage}"/>
+        <table class="degradation-container">
+            <tr>
+                <td class="degradation-left">
+                    <table class="degradation-levels">
+                        <tr>
+                            <td th:each="level : ${degradationLevels}"
+                                th:classappend="${level.label == globalRateType} ? ' active' : ''"
+                                th:style="'background-color:' + ${level.color}">
+                                <span th:text="${level.label}"></span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td class="degradation-right">
+                    <div class="degradation-score">
+                        <span th:text="'NOTE DE DÉGRADATION GLOBALE : ' + ${globalRateValue} + '%'"></span>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </section>
-    <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last} ? 'last-page' : ''">
+    <section th:each="page, pageStat : ${pages}" class="page">
         <h2 class="annotation-information-title"> Informations des annotations </h2>
-        <div th:each="annotation, annotationStat : ${page}" class="annotation-item" th:classappend="${pageStat.last} ? 'last-page'">
+        <div th:each="annotation, annotationStat : ${page}" class="annotation-item"
+             th:classappend="${pageStat.last} ? 'last-page'">
             <div class="annotation-item-labels">
                 <h4 class="annotation-item-title">
                     <span class="annotation-item-title-value" th:text="${annotation.labelName} ?: 'Non renseigné'"></span>
-                    <span class="annotation-item-title-color"  th:style="'background-color:' + (${annotation.strokeColor} ?: '#00FF00')"></span>
+                    <span class="annotation-item-title-color"
+                          th:style="'border-color:' + (${annotation.strokeColor} != null ? ${annotation.strokeColor} : '#00FF00') + ' !important'">
+                    </span>
                 </h4>
                 <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
                     <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
@@ -105,9 +222,12 @@
             <img
                 class="annotation-item-image"
                 alt="annotation sub-image"
-                th:src="'data:image/jpeg;base64,' + ${subImages[3 * pageStat.index + annotationStat.index]}"
+                th:src="'data:image/png;base64,' + ${subImages[3 * pageStat.index + annotationStat.index]}"
             />
         </div>
+    </section>
+    <section class="llm page last-page">
+        <div th:utext="${llm != null ? llm : ''}"></div>
     </section>
 </body>
 </html>

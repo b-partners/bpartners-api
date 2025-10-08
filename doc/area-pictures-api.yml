@@ -644,6 +644,13 @@ components:
         humidityLevel:
           type: number
           format: double
+        height:
+          type: number
+          format: double
+        revetement1:
+          type: string
+        revetement2:
+          type: string
     Wearness:
       type: string
       enum:
@@ -668,6 +675,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AreaPictureAnnotationInstance"
+        properties:
+          type: object
+          additionalProperties: true
     DraftAreaPictureAnnotation:
       type: object
       allOf:
@@ -730,6 +740,13 @@ components:
         address:
           type: string
         imageUrl:
+          type: string
+        globalRateValue:
+          type: number
+          format: double
+        globalRateType:
+          type: string
+        llm:
           type: string
         annotations:
           type: array

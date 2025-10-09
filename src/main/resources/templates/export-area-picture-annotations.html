@@ -171,8 +171,14 @@
 
         .emoj {
             display: inline-block;
-            vertical-align: middle; /* keeps it aligned with text */
-            line-height: 0;          /* removes extra space below the SVG */
+            line-height: 1;             /* size based on font-size */
+            vertical-align: -0.125em;   /* align baseline similar to text glyphs */
+        }
+        .emoj svg,
+        .emoj img {
+            width: 1em;                 /* match text height */
+            height: 1em;                /* ensure square emoji */
+            display: inline-block;
         }
 
     </style>

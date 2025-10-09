@@ -55,10 +55,10 @@
         }
 
         .annotation-item-image{
-            display: table-cell;
+            display: block;
             width: 300px;
-            text-align: right;
-            margin: 0 auto;
+            margin-left: auto; /* align to right */
+            height: auto;
         }
 
         .annotation-information-title{
@@ -192,7 +192,7 @@
             <br />
             <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
         </h1>
-        <img alt="annotation" class="main-image" th:src="'data:image/jpeg;base64,' + ${mainImage}"/>
+        <img alt="annotation" class="main-image" th:src="${mainImage}"/>
         <table class="degradation-container">
             <tr>
                 <td class="degradation-left">
@@ -234,7 +234,7 @@
             <img
                 class="annotation-item-image"
                 alt="annotation sub-image"
-                th:src="'data:image/png;base64,' + ${subImages[3 * pageStat.index + annotationStat.index]}"
+                th:src="${subImages[3 * pageStat.index + annotationStat.index]}"
             />
         </div>
     </section>

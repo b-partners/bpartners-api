@@ -35,16 +35,15 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     EmojReplacer replacer =
         new EmojReplacer(
             new ClassPathResource("fonts/twemoji/v/14.0.2/svg").getFile().toPath(),
-            "<span class=\"emoj\">",
-            "</span>");
+            "<span class=\"emoj\">", "</span>");
     html = replacer.replaceEmoji(html);
 
     try (var outputStream = new ByteArrayOutputStream()) {
       PdfRendererBuilder builder = new PdfRendererBuilder();
       builder.useFastMode();
       builder.withHtmlContent(html, null);
-      builder.toStream(outputStream);
       builder.useSVGDrawer(new BatikSVGDrawer());
+      builder.toStream(outputStream);
       loadCustomFonts(builder);
       builder.run();
 
@@ -69,9 +68,23 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       ExportAreaPictureAnnotation annotation) {
     var context = new Context();
 
-    context.setVariable("subImages", base64SubImages);
+    String mainDataUri =
+        base64MainImage != null && !base64MainImage.startsWith("data:")
+            ? "data:image/png;base64," + base64MainImage
+            : base64MainImage;
+
+    List<String> subDataUris =
+        base64SubImages == null
+            ? Collections.emptyList()
+            : base64SubImages.stream()
+            .map(b64 -> b64 != null && !b64.startsWith("data:")
+                ? "data:image/png;base64," + b64
+                : b64)
+            .toList();
+
+    context.setVariable("subImages", subDataUris);
+    context.setVariable("mainImage", mainDataUri);
     context.setVariable("llm", annotation.getLlm());
-    context.setVariable("mainImage", base64MainImage);
     context.setVariable("address", annotation.getAddress());
     context.setVariable("pages", groupByThree(annotation.getAnnotations()));
     context.setVariable("globalRateType", annotation.getGlobalRateType());
@@ -92,12 +105,9 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       List<ExportAreaPictureAnnotationInstance> list) {
     var pages = new ArrayList<List<ExportAreaPictureAnnotationInstance>>();
     var iterator = list.iterator();
-
     while (iterator.hasNext()) {
       var page = new ArrayList<ExportAreaPictureAnnotationInstance>();
-      for (int i = 0; i < 3 && iterator.hasNext(); i++) {
-        page.add(iterator.next());
-      }
+      for (int i = 0; i < 3 && iterator.hasNext(); i++) page.add(iterator.next());
       pages.add(page);
     }
     return pages;

@@ -208,6 +208,8 @@ dependencies {
     implementation 'com.google.api-client:google-api-client:2.2.0'
     implementation 'io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.31'
     implementation 'io.github.openhtmltopdf:openhtmltopdf-svg-support:1.1.31'
+    implementation 'org.xhtmlrenderer:flying-saucer-pdf-openpdf:9.1.22'
+    implementation 'com.github.librepdf:openpdf:1.3.32'
 implementation 'com.google.oauth-client:google-oauth-client-jetty:1.34.1'
 implementation 'com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0'
 implementation 'com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0'

@@ -35,7 +35,8 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     EmojReplacer replacer =
         new EmojReplacer(
             new ClassPathResource("fonts/twemoji/v/14.0.2/svg").getFile().toPath(),
-            "<span class=\"emoj\">", "</span>");
+            "<span class=\"emoj\">",
+            "</span>");
     html = replacer.replaceEmoji(html);
 
     try (var outputStream = new ByteArrayOutputStream()) {
@@ -77,10 +78,12 @@ public class ExportAreaPictureAnnotationPDFGenerator {
         base64SubImages == null
             ? Collections.emptyList()
             : base64SubImages.stream()
-            .map(b64 -> b64 != null && !b64.startsWith("data:")
-                ? "data:image/png;base64," + b64
-                : b64)
-            .toList();
+                .map(
+                    b64 ->
+                        b64 != null && !b64.startsWith("data:")
+                            ? "data:image/png;base64," + b64
+                            : b64)
+                .toList();
 
     context.setVariable("subImages", subDataUris);
     context.setVariable("mainImage", mainDataUri);

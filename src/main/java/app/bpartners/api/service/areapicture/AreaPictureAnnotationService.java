@@ -6,9 +6,8 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureAnnotationRepository;
-import java.util.List;
-
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.PageRequest;

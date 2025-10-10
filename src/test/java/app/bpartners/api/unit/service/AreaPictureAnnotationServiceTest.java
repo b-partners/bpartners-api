@@ -6,7 +6,6 @@ import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.repository.AreaPictureAnnotationRepository;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
-
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

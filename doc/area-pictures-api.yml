@@ -514,6 +514,8 @@ components:
           type: boolean
         shiftNb:
           type: integer
+        isOpaque:
+          type: boolean
 
     CrupdateAreaPictureDetails:
       type: object
@@ -522,6 +524,7 @@ components:
       properties:
         layerId:
           type: string
+
     AreaPictureDetails:
       allOf:
         - $ref: "#/components/schemas/AreaPictureDetailsTemplate"

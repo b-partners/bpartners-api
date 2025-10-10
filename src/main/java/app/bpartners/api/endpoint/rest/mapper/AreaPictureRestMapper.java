@@ -75,7 +75,8 @@ public class AreaPictureRestMapper {
         .shiftNb(domain.getShiftNb())
         .yOffset(yOffset)
         .xOffset(xOffset)
-        .isExtended(domain.isExtended());
+        .isExtended(domain.isExtended())
+        .isOpaque(domain.isOpaque());
   }
 
   public AreaPicture toDomain(CrupdateAreaPictureDetails rest, String id, String userId) {
@@ -103,6 +104,7 @@ public class AreaPictureRestMapper {
         .updatedAt(rest.getUpdatedAt())
         .isExtended(isExtended != null && isExtended)
         .shiftNb(rest.getShiftNb() == null ? null : rest.getShiftNb())
+        .isOpaque(Boolean.TRUE.equals(rest.getIsOpaque()))
         .build();
   }
 }

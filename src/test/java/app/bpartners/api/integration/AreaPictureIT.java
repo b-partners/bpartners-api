@@ -218,6 +218,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .filename("FLUX_IGN_2023_20CM_HOUSES_0_524720_374531")
         .xOffset(1234)
         .yOffset(123)
+        .isOpaque(false)
         .geoPositions(
             List.of(
                 new app.bpartners.api.endpoint.rest.model.GeoPosition()
@@ -290,6 +291,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
                     .score(60.0)
                     .longitude(0.148409)
                     .latitude(45.644018)))
+        .isOpaque(false)
         .xOffset(1234)
         .yOffset(123);
   }
@@ -351,6 +353,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .shiftNb(0)
         .xOffset(1234)
         .yOffset(123)
+        .isOpaque(false)
         .updatedAt(null);
   }
 
@@ -406,6 +409,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   void joe_doe_read_his_pictures_ok() throws ApiException {
     ApiClient joeDoeClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(joeDoeClient);
+
     List<AreaPictureDetails> allAreaPictures =
         api.getAllAreaPictures(JOE_DOE_ACCOUNT_ID, 1, 10, null, null);
     List<AreaPictureDetails> addressFilteredAreaPictures =
@@ -463,6 +467,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 .score(0.0));
     when(accountHolderRepository.findById(any()))
         .thenReturn(AccountHolder.builder().id("accountHolderId").build());
+
     var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
 
     log.info("AreaPictureDetails={}", actual);

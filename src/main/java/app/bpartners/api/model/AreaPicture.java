@@ -40,6 +40,7 @@ public class AreaPicture {
   private Boolean leftShift;
   private Integer shiftNb;
   private List<GeoPosition> geoPositions;
+  private boolean isOpaque;
 
   public String getFilename() {
     return isExtended

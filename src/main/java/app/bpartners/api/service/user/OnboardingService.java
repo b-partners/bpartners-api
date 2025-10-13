@@ -58,12 +58,17 @@ public class OnboardingService {
   private final SesService mailer;
 
   @Transactional(isolation = SERIALIZABLE)
-  public OnboardedUser onboardUser(User toSave, String companyName) {
+  public OnboardedUser onboardUser(OnboardUser onboardUser) {
+    User toSave = onboardUser.getUser();
+    String companyName = onboardUser.getCompanyName();
+    boolean usercreateCognitoUser = onboardUser.isCreateCognitoUser();
     String id = String.valueOf(randomUUID());
     String bridgePassword = encryptSequence(id);
     User savedUser = userRepository.create(userDefaultValues(toSave, id, bridgePassword));
 
-    eventProducer.accept(List.of(toTypedUser(savedUser)));
+    if (usercreateCognitoUser) {
+      eventProducer.accept(List.of(toTypedUser(savedUser)));
+    }
 
     AccountHolder accountHolderToSave = fromNewUser(companyName, savedUser);
     AccountHolder savedAccountHolder = accountHolderRepository.save(accountHolderToSave);
@@ -85,7 +90,7 @@ public class OnboardingService {
   @Transactional(isolation = SERIALIZABLE)
   public List<OnboardedUser> onboardUsers(List<OnboardUser> toSave) {
     return toSave.stream()
-        .map(onboardUser -> onboardUser(onboardUser.getUser(), onboardUser.getCompanyName()))
+        .map(onboardUser -> onboardUser(onboardUser))
         .collect(Collectors.toList());
   }
 

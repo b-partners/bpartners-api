@@ -1,13 +1,4 @@
-## [0.69.1](https://github.com/b-partners/bpartners-api/compare/v0.69.0...v0.69.1) (2025-10-06)
-
-
-### Bug Fixes
-
-* release version ([5be2edb](https://github.com/b-partners/bpartners-api/commit/5be2edb0dc2b0b370e88baf159ae0b73c5521386))
-
-
-
-# [0.69.0](https://github.com/b-partners/bpartners-api/compare/v0.68.0...v0.69.0) (2025-10-03)
+# [0.70.0](https://github.com/b-partners/bpartners-api/compare/v0.68.0...v0.70.0) (2025-10-13)
 
 
 ### Bug Fixes
@@ -18,12 +9,18 @@
 * http method should be post instead of put on landing file retrieval ([0ce09f4](https://github.com/b-partners/bpartners-api/commit/0ce09f4b53c7896657507bf819460e7bc501b487))
 * implement add 501 and 503 response on crupdateAreaPictureDetails ([7721a61](https://github.com/b-partners/bpartners-api/commit/7721a613225e3ced531d5b381afe79af5cafe29a))
 * **Invoice:** compute payment regulation event if invoiceStatus=CONFIRMED ([4fd5c82](https://github.com/b-partners/bpartners-api/commit/4fd5c82e375b0a919fd4041e7a470a2bdf58db43))
+* release version ([d45c90f](https://github.com/b-partners/bpartners-api/commit/d45c90f574406a09f458088c0909d919ae334c2b))
 * use url encoded comma format ([748b0d9](https://github.com/b-partners/bpartners-api/commit/748b0d9753de0a0c17f04c018f9242723c9fd85f))
 
 
 ### Features
 
 * use lambda-url ([305f8e2](https://github.com/b-partners/bpartners-api/commit/305f8e234a14724565406c1cc8719b36df3b808f))
+
+
+### Reverts
+
+* chore: remove bridge api ([d09a34c](https://github.com/b-partners/bpartners-api/commit/d09a34c7ceb884983c9fb2228aab8af4c6f0d380))
 
 
 
@@ -177,6 +174,37 @@
 ### Features
 
 * **api:** handle FREE_TRIAL subscription status for user ([c94954d](https://github.com/b-partners/bpartners-api/commit/c94954d7dfb0e20f2451a95d9401d66074985f12))
+
+
+
+# [0.60.0](https://github.com/b-partners/bpartners-api/compare/v0.59.0...v0.60.0) (2025-01-08)
+
+
+### Bug Fixes
+
+* add controller registerActiveUsersWithNullSubscription ([9301efe](https://github.com/b-partners/bpartners-api/commit/9301efec1bde5a1cb1f5aceaa22ec2f7edf57b59))
+* add incremental nb to invoice reference for subscription ([e82c46e](https://github.com/b-partners/bpartners-api/commit/e82c46e9fc678cd5949070168fcba378c5b45401))
+* allow not subscribed user to initiate subscription ([c89dc10](https://github.com/b-partners/bpartners-api/commit/c89dc101dc8e762a468e527813d7a52a333f672b))
+* begin offset from 0 when filtering users by criteria ([f377e4a](https://github.com/b-partners/bpartners-api/commit/f377e4a10c2362da406c1a17d74b3abd94f372cc))
+* comput vat and total price before generating subscription invoice ([b97f195](https://github.com/b-partners/bpartners-api/commit/b97f195614e537a360fb25dac6ac0e2288fca9bc))
+* create customer for userToCredit when not found ([158381d](https://github.com/b-partners/bpartners-api/commit/158381d1d2feb91dfd9d44b327a6db82e3ce6e38))
+* create or link user subscription when not existing ([928e62a](https://github.com/b-partners/bpartners-api/commit/928e62a3dfd9f8c0a98dd212578030e182dc8c72))
+* do not compute invoice for user without subscription active ([7c8e963](https://github.com/b-partners/bpartners-api/commit/7c8e9634b5668db1bed27aa7f7c7b1bb0ea7c24e))
+* do not override invoice.toPayAt in case of susbcription invoice ([b568756](https://github.com/b-partners/bpartners-api/commit/b568756323719a476fccc5784128c3e1a68bd69e))
+* filter db user with missing susbscription by e2Id ([c3ff526](https://github.com/b-partners/bpartners-api/commit/c3ff5267fd219ad63c5d318a81e7057c96e0d399))
+* generate reference for susbcription invoice triggered ([08d68dd](https://github.com/b-partners/bpartners-api/commit/08d68ddef7e44c6d917c7a14c062892f0f06ff2f))
+* hide paymentUrl caption in PDF invoice when null ([017ae5a](https://github.com/b-partners/bpartners-api/commit/017ae5a757772421441014d87669249e8a529342))
+* make onboarded user eligible to subscription check ([63fb469](https://github.com/b-partners/bpartners-api/commit/63fb4694c7be86748c731d257818e4984be3c1ec))
+* set customer names as user to debit in invoice monthly susbcription ([5288425](https://github.com/b-partners/bpartners-api/commit/5288425603a3b32309f26938d96c231a2e02cb32))
+* set user page as int attribute in MonthlySubscriptionInvoiceRequested ([901e1d6](https://github.com/b-partners/bpartners-api/commit/901e1d6773b737270f899f5ca5dc512261407edc))
+* trigger user registration requested for all null subscription ([6c435c9](https://github.com/b-partners/bpartners-api/commit/6c435c90142b04fb097e6cb0f97fd1b88f98793e))
+* update email infos for subscription invoice ([ed9f354](https://github.com/b-partners/bpartners-api/commit/ed9f3547e6bd91f4c5d53831e15b2d75c2a4c794))
+
+
+### Features
+
+* add direct-debit payment method for invoice ([7f4f9ad](https://github.com/b-partners/bpartners-api/commit/7f4f9adb2a3bd3f3c7eebeb3c3162443f05364e1))
+* trigger monthly subscription invoice ([6d2178e](https://github.com/b-partners/bpartners-api/commit/6d2178eec902e81fc3d4b0ae835e4e13943ad6da))
 
 
 

@@ -1,9 +1,11 @@
 package app.bpartners.api.service.annotation;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -23,6 +25,7 @@ import org.thymeleaf.context.Context;
 public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
+  public static final String KEY_LABEL = "key";
 
   @SneakyThrows
   public byte[] apply(
@@ -89,7 +92,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     context.setVariable("mainImage", mainDataUri);
     context.setVariable("llm", annotation.getLlm());
     context.setVariable("address", annotation.getAddress());
-    context.setVariable("pages", groupByThree(annotation.getAnnotations()));
+    context.setVariable("pages", groupByThree(GroupedByKey.from(annotation.getAnnotations())));
     context.setVariable("globalRateType", annotation.getGlobalRateType());
     context.setVariable("globalRateValue", annotation.getGlobalRateValue());
     context.setVariable(
@@ -104,15 +107,16 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     return context;
   }
 
-  public static List<List<ExportAreaPictureAnnotationInstance>> groupByThree(
-      List<ExportAreaPictureAnnotationInstance> list) {
-    var pages = new ArrayList<List<ExportAreaPictureAnnotationInstance>>();
+  public static List<List<GroupedByKey>> groupByThree(List<GroupedByKey> list) {
+    List<List<GroupedByKey>> pages = new ArrayList<>();
+
     var iterator = list.iterator();
     while (iterator.hasNext()) {
-      var page = new ArrayList<ExportAreaPictureAnnotationInstance>();
+      List<GroupedByKey> page = new ArrayList<>();
       for (int i = 0; i < 3 && iterator.hasNext(); i++) page.add(iterator.next());
       pages.add(page);
     }
+
     return pages;
   }
 
@@ -124,5 +128,50 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     } catch (IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  public record GroupedByKey(String key, List<ExportAreaPictureAnnotationInstance> instances) {
+    public ExportAreaPictureAnnotationInstance mergedInstance() {
+      assert !this.instances.isEmpty();
+      var instance = this.instances.getFirst();
+
+      return new ExportAreaPictureAnnotationInstance()
+          .labelName(instance.getLabelName())
+          .fillColor(instance.getFillColor())
+          .infos(infos())
+          .measurements(instance.getMeasurements())
+          .polygon(instance.getPolygon());
+    }
+
+    public List<ExportAreaPictureAnnotationInstanceInfo> infos() {
+      return this.instances.stream()
+          .map(ExportAreaPictureAnnotationInstance::getInfos)
+          .map(infos -> infos.stream().filter(info -> !KEY_LABEL.equals(info.getLabel())).toList())
+          .max(Comparator.comparing(List::size))
+          .orElse(List.of());
+    }
+
+    public static List<GroupedByKey> from(List<ExportAreaPictureAnnotationInstance> instances) {
+      Map<String, List<ExportAreaPictureAnnotationInstance>> grouped = new HashMap<>();
+
+      for (var instance : instances) {
+        grouped.computeIfAbsent(getKey(instance), k -> new ArrayList<>()).add(instance);
+      }
+
+      List<GroupedByKey> result = new ArrayList<>();
+      for (var entry : grouped.entrySet()) {
+        result.add(new GroupedByKey(entry.getKey(), entry.getValue()));
+      }
+
+      return result;
+    }
+  }
+
+  public static String getKey(ExportAreaPictureAnnotationInstance instance) {
+    var key =
+        instance.getInfos().stream().filter(info -> KEY_LABEL.equals(info.getLabel())).findFirst();
+
+    return key.map(ExportAreaPictureAnnotationInstanceInfo::getValue)
+        .orElse(randomUUID().toString());
   }
 }

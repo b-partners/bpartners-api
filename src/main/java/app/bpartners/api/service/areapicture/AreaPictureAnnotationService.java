@@ -10,10 +10,12 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProces
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class AreaPictureAnnotationService {
@@ -72,6 +74,8 @@ public class AreaPictureAnnotationService {
 
   @SneakyThrows
   public byte[] exportAreaPictureAnnotationToPdf(ExportAreaPictureAnnotation annotation) {
-    return exportAreaPictureAnnotationPDFProcessor.process(annotation);
+    var pdf = exportAreaPictureAnnotationPDFProcessor.process(annotation);
+    log.info("Pdf generated");
+    return pdf;
   }
 }

@@ -15,8 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExportAreaPictureAnnotationPDFProcessor {
@@ -41,6 +43,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
   public byte[] process(ExportAreaPictureAnnotation exportAnnotation) throws IOException {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
+    log.info("Image downloaded");
     var base64MainImage =
         generateAnnotationImageAsBase64(
             downloadedImage, mainConf, exportAnnotation.getAnnotations());
@@ -51,6 +54,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
           generateAnnotationImageAsBase64(downloadedImage, subImageConf, List.of(annotation)));
     }
 
+    log.info("Image created");
     return exportAreaPictureAnnotationPDFGenerator.apply(
         base64MainImage, base64SubImages, exportAnnotation);
   }

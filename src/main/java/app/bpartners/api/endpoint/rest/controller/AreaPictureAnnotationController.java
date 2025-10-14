@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.mapper.AreaPictureAnnotationRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.DraftAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
@@ -79,9 +80,10 @@ public class AreaPictureAnnotationController {
   }
 
   @PostMapping("/accounts/{aId}/annotations/exports")
-  public byte[] exportAreaPictureAnnotationToPdf(
-      @PathVariable(name = "aId") String aId,
+  public PreSignedURL exportAreaPictureAnnotationToPdf(
+      @PathVariable(name = "aId") String ignored,
       @RequestBody ExportAreaPictureAnnotation exportAreaPictureAnnotation) {
-    return service.exportAreaPictureAnnotationToPdf(exportAreaPictureAnnotation);
+    var userId = AuthProvider.getAuthenticatedUserId();
+    return service.exportAreaPictureAnnotationToPdf(userId, exportAreaPictureAnnotation);
   }
 }

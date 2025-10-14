@@ -41,11 +41,6 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
   public byte[] process(ExportAreaPictureAnnotation exportAnnotation) throws IOException {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
-    return process(exportAnnotation, downloadedImage);
-  }
-
-  public byte[] process(ExportAreaPictureAnnotation exportAnnotation, BufferedImage downloadedImage)
-      throws IOException {
     var base64MainImage =
         generateAnnotationImageAsBase64(
             downloadedImage, mainConf, exportAnnotation.getAnnotations());

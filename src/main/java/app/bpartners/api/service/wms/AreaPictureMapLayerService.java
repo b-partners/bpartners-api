@@ -49,7 +49,7 @@ public class AreaPictureMapLayerService {
     log.info("Features name: {}", matchingFeaturesName);
     var layers = getAllByDepartementNameInIgnoreCaseOrderByYearAndAddDefault(matchingFeaturesName);
     if (layers.isEmpty()) {
-      log.info("no layer found for longitude={} latitude={}", longitude, latitude);
+      log.info("Only default layers available for longitude={} latitude={}", longitude, latitude);
     }
     return layers;
   }

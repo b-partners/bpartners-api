@@ -5,7 +5,7 @@
         * {
             color: #2b2b2a;
             box-sizing: border-box;
-            font-family: Arial, Verdana;
+            font-family: 'Kumbh Sans', 'Noto Emoji', Arial, Verdana;
             padding: 0;
             margin: 0;
         }
@@ -55,10 +55,10 @@
         }
 
         .annotation-item-image{
-            display: table-cell;
+            display: block;
             width: 300px;
-            text-align: right;
-            margin: 0 auto;
+            margin-left: auto; /* align to right */
+            height: auto;
         }
 
         .annotation-information-title{
@@ -169,6 +169,18 @@
             text-align: justify;
         }
 
+        .emoj {
+            display: inline-block;
+            line-height: 1;             /* size based on font-size */
+            vertical-align: -0.125em;   /* align baseline similar to text glyphs */
+        }
+        .emoj svg,
+        .emoj img {
+            width: 1em;                 /* match text height */
+            height: 1em;                /* ensure square emoji */
+            display: inline-block;
+        }
+
     </style>
     <meta charset="UTF-8"/>
     <title>Rapport d'analyse</title>
@@ -180,7 +192,7 @@
             <br />
             <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
         </h1>
-        <img alt="annotation" class="main-image" th:src="'data:image/jpeg;base64,' + ${mainImage}"/>
+        <img alt="annotation" class="main-image" th:src="${mainImage}"/>
         <table class="degradation-container">
             <tr>
                 <td class="degradation-left">
@@ -222,7 +234,7 @@
             <img
                 class="annotation-item-image"
                 alt="annotation sub-image"
-                th:src="'data:image/png;base64,' + ${subImages[3 * pageStat.index + annotationStat.index]}"
+                th:src="${subImages[3 * pageStat.index + annotationStat.index]}"
             />
         </div>
     </section>

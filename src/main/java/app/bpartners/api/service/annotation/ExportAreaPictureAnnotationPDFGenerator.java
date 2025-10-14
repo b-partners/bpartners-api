@@ -6,17 +6,17 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
-import com.lowagie.text.DocumentException;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
 @Component
 @RequiredArgsConstructor
@@ -24,21 +24,34 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
+  @SneakyThrows
   public byte[] apply(
       String base64MainImage,
       List<String> base64SubImages,
       ExportAreaPictureAnnotation annotation) {
-    var renderer = new ITextRenderer();
-    renderer.setDocumentFromString(parseDataToString(base64MainImage, base64SubImages, annotation));
-    renderer.layout();
 
-    var outputStream = new ByteArrayOutputStream();
-    try {
-      renderer.createPDF(outputStream);
-    } catch (DocumentException e) {
+    String html = parseDataToString(base64MainImage, base64SubImages, annotation);
+
+    EmojReplacer replacer =
+        new EmojReplacer(
+            new ClassPathResource("fonts/twemoji/v/14.0.2/svg").getFile().toPath(),
+            "<span class=\"emoj\">",
+            "</span>");
+    html = replacer.replaceEmoji(html);
+
+    try (var outputStream = new ByteArrayOutputStream()) {
+      PdfRendererBuilder builder = new PdfRendererBuilder();
+      builder.useFastMode();
+      builder.withHtmlContent(html, null);
+      builder.useSVGDrawer(new BatikSVGDrawer());
+      builder.toStream(outputStream);
+      loadCustomFonts(builder);
+      builder.run();
+
+      return outputStream.toByteArray();
+    } catch (Exception e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
-    return outputStream.toByteArray();
   }
 
   private String parseDataToString(
@@ -56,9 +69,25 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       ExportAreaPictureAnnotation annotation) {
     var context = new Context();
 
-    context.setVariable("subImages", base64SubImages);
+    String mainDataUri =
+        base64MainImage != null && !base64MainImage.startsWith("data:")
+            ? "data:image/png;base64," + base64MainImage
+            : base64MainImage;
+
+    List<String> subDataUris =
+        base64SubImages == null
+            ? Collections.emptyList()
+            : base64SubImages.stream()
+                .map(
+                    b64 ->
+                        b64 != null && !b64.startsWith("data:")
+                            ? "data:image/png;base64," + b64
+                            : b64)
+                .toList();
+
+    context.setVariable("subImages", subDataUris);
+    context.setVariable("mainImage", mainDataUri);
     context.setVariable("llm", annotation.getLlm());
-    context.setVariable("mainImage", base64MainImage);
     context.setVariable("address", annotation.getAddress());
     context.setVariable("pages", groupByThree(annotation.getAnnotations()));
     context.setVariable("globalRateType", annotation.getGlobalRateType());
@@ -79,14 +108,21 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       List<ExportAreaPictureAnnotationInstance> list) {
     var pages = new ArrayList<List<ExportAreaPictureAnnotationInstance>>();
     var iterator = list.iterator();
-
     while (iterator.hasNext()) {
       var page = new ArrayList<ExportAreaPictureAnnotationInstance>();
-      for (int i = 0; i < 3 && iterator.hasNext(); i++) {
-        page.add(iterator.next());
-      }
+      for (int i = 0; i < 3 && iterator.hasNext(); i++) page.add(iterator.next());
       pages.add(page);
     }
     return pages;
+  }
+
+  private void loadCustomFonts(PdfRendererBuilder builder) {
+    try {
+      builder.useFont(
+          new ClassPathResource("fonts/KumbhSans-VariableFont_YOPQ,wght.ttf").getFile(),
+          "Kumbh Sans");
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
   }
 }

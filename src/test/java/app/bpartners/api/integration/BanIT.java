@@ -9,6 +9,7 @@ import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.service.transaction.TransactionService;
 import app.bpartners.api.service.utils.GeoUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -26,6 +27,7 @@ class BanIT extends MockedThirdParties {
   @Autowired private BanApi subject;
 
   @Test
+  @Disabled("Do not use BAN anymore")
   void search_address_ok() {
     var expected =
         GeoPosition.builder()

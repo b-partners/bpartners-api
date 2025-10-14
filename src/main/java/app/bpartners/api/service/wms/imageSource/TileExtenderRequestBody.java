@@ -30,6 +30,7 @@ public class TileExtenderRequestBody implements Serializable {
   private Double longitude;
   private boolean isCropped;
   private int shiftNb;
+  private boolean isOpaque;
 
   private static String getSource(AreaPictureMapLayer areaPictureMapLayer) {
     return switch (areaPictureMapLayer.getSource()) {
@@ -72,6 +73,7 @@ public class TileExtenderRequestBody implements Serializable {
         .longitude(areaPicture.getCurrentGeoPosition().getLongitude())
         .isCropped(isCropped)
         .shiftNb(areaPicture.getShiftNb())
+        .isOpaque(areaPicture.isOpaque())
         .build();
   }
 }

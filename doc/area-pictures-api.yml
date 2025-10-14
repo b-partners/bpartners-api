@@ -404,12 +404,11 @@ operations:
               $ref: '#/components/schemas/ExportAreaPictureAnnotation'
       responses:
         200:
-          description: The generated pdf
+          description: Presigned url to the generated pdf
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ExportAreaPictureAnnotation'
-
+                $ref: './api.yml#/components/schemas/PreSignedURL'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -514,6 +513,8 @@ components:
           type: boolean
         shiftNb:
           type: integer
+        isOpaque:
+          type: boolean
 
     CrupdateAreaPictureDetails:
       type: object
@@ -522,6 +523,7 @@ components:
       properties:
         layerId:
           type: string
+
     AreaPictureDetails:
       allOf:
         - $ref: "#/components/schemas/AreaPictureDetailsTemplate"

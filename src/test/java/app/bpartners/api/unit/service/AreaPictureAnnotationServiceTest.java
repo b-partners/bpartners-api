@@ -1,41 +1,41 @@
 package app.bpartners.api.unit.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
-import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.ExportAreaPictureAnnotationRequested;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.repository.AreaPictureAnnotationRepository;
+import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.file.FileWriter;
+import app.bpartners.api.integration.conf.MockedThirdParties;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
-import java.util.List;
+import app.bpartners.api.service.aws.S3Service;
+import java.io.IOException;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
-class AreaPictureAnnotationServiceTest {
-  EventProducer<ExportAreaPictureAnnotationRequested> eventProducerMock = mock();
-  AreaPictureAnnotationService subject =
-      new AreaPictureAnnotationService(
-          mock(AreaPictureAnnotationRepository.class), eventProducerMock);
+class AreaPictureAnnotationServiceTest extends MockedThirdParties {
+  @Autowired AreaPictureAnnotationService subject;
+  @MockBean FileWriter fileWriterMock;
+  @MockBean S3Service s3ServiceMock;
+  @MockBean ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessorMock;
 
   @Test
-  void export_area_picture_annotation_ok() {
-    var userId = "userId";
+  void export_area_picture_annotation_ok() throws IOException {
     var exportAreaPictureAnnotationMock = mock(ExportAreaPictureAnnotation.class);
-    var expected =
-        ExportAreaPictureAnnotationRequested.builder()
-            .annotation(exportAreaPictureAnnotationMock)
-            .userId(userId)
-            .build();
+    var expectedUrl = "https://s3.dummy.com";
 
-    doNothing().when(eventProducerMock).accept(any());
+    when(exportAreaPictureAnnotationPDFProcessorMock.process(any()))
+        .thenReturn(new byte[] {1, 2, 3, 4});
+    when(fileWriterMock.apply(any(), any())).thenReturn(mock());
+    when(s3ServiceMock.uploadFile(any(), any(), any(), any())).thenReturn(mock());
+    when(s3ServiceMock.presignURL(any(), any(), any(), any())).thenReturn(expectedUrl);
 
-    var actual = subject.exportAreaPictureAnnotationToPdf(userId, exportAreaPictureAnnotationMock);
+    var actual =
+        subject.exportAreaPictureAnnotationToPdf(
+            randomUUID().toString(), exportAreaPictureAnnotationMock);
 
-    assertEquals(expected.getAnnotation(), actual);
-    verify(eventProducerMock, times(1)).accept(List.of(expected));
+    assertEquals(expectedUrl, actual.getValue());
   }
 }

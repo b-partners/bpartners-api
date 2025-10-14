@@ -1,13 +1,14 @@
-## [0.69.1](https://github.com/b-partners/bpartners-api/compare/v0.69.0...v0.69.1) (2025-10-06)
+## [0.70.1](https://github.com/b-partners/bpartners-api/compare/v0.70.0...v0.70.1) (2025-10-14)
 
 
 ### Bug Fixes
 
-* release version ([5be2edb](https://github.com/b-partners/bpartners-api/commit/5be2edb0dc2b0b370e88baf159ae0b73c5521386))
+* export pdf ([51cfb42](https://github.com/b-partners/bpartners-api/commit/51cfb4238d81fb7560926e0a6be637f522b605c3))
+* **ExportAreaPictureAnnotation:** return presignedURL instead of byte directly ([ff1baa2](https://github.com/b-partners/bpartners-api/commit/ff1baa25ccb97a48570eadf2c7a1579a30212cf3))
 
 
 
-# [0.69.0](https://github.com/b-partners/bpartners-api/compare/v0.68.0...v0.69.0) (2025-10-03)
+# [0.70.0](https://github.com/b-partners/bpartners-api/compare/v0.68.0...v0.70.0) (2025-10-13)
 
 
 ### Bug Fixes
@@ -18,12 +19,18 @@
 * http method should be post instead of put on landing file retrieval ([0ce09f4](https://github.com/b-partners/bpartners-api/commit/0ce09f4b53c7896657507bf819460e7bc501b487))
 * implement add 501 and 503 response on crupdateAreaPictureDetails ([7721a61](https://github.com/b-partners/bpartners-api/commit/7721a613225e3ced531d5b381afe79af5cafe29a))
 * **Invoice:** compute payment regulation event if invoiceStatus=CONFIRMED ([4fd5c82](https://github.com/b-partners/bpartners-api/commit/4fd5c82e375b0a919fd4041e7a470a2bdf58db43))
+* release version ([d45c90f](https://github.com/b-partners/bpartners-api/commit/d45c90f574406a09f458088c0909d919ae334c2b))
 * use url encoded comma format ([748b0d9](https://github.com/b-partners/bpartners-api/commit/748b0d9753de0a0c17f04c018f9242723c9fd85f))
 
 
 ### Features
 
 * use lambda-url ([305f8e2](https://github.com/b-partners/bpartners-api/commit/305f8e234a14724565406c1cc8719b36df3b808f))
+
+
+### Reverts
+
+* chore: remove bridge api ([d09a34c](https://github.com/b-partners/bpartners-api/commit/d09a34c7ceb884983c9fb2228aab8af4c6f0d380))
 
 
 

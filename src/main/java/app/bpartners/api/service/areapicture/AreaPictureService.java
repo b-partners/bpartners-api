@@ -33,8 +33,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@AllArgsConstructor
 @Slf4j
+@AllArgsConstructor
 public class AreaPictureService {
   private final AreaPictureJpaRepository jpaRepository;
   private final AreaPictureMapper mapper;
@@ -157,11 +157,6 @@ public class AreaPictureService {
   private void refreshAreaPictureMapLayers(AreaPicture areaPicture) {
     var guessedMaps =
         new LinkedHashSet<>(mapLayerService.getAvailableLayersFrom(areaPicture.getCurrentTile()));
-    log.info(
-        "RhonePCRSLayer={}, PCRSLayer={}, IGNLayer={}",
-        mapLayerService.getRhonePCRSLayer(),
-        mapLayerService.getPCRSLayer(),
-        mapLayerService.getDefaultIGNLayer());
     var fallbackLayers =
         List.of(
             mapLayerService.getRhonePCRSLayer(),
@@ -185,6 +180,11 @@ public class AreaPictureService {
   public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude) {
     var guessedMaps = mapLayerService.getAvailableLayersFrom(longitude, latitude);
     Collections.sort(guessedMaps, Comparator.reverseOrder());
+    guessedMaps.addAll(
+        List.of(
+            mapLayerService.getPCRSLayer(),
+            mapLayerService.getRhonePCRSLayer(),
+            mapLayerService.getDefaultIGNLayer()));
     return guessedMaps;
   }
 

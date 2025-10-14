@@ -17,7 +17,7 @@ public class AreaPictureMapLayerRestMapper {
         new Zoom().level(domain.getMaximumZoomLevel()).number(maxArcgisZoom.getZoomLevel());
     int precision = domain.getPrecisionLevelInCm();
     int year = domain.getYear();
-    if (domain.getName().equals("cite:PCRS")) {
+    if (domain.getName().equals("cite:PCRS.LAMB93")) {
       precision = 5;
       year = 2024;
     }

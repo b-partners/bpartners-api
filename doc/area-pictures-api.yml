@@ -406,9 +406,10 @@ operations:
         200:
           description: The generated pdf
           content:
-            application/json:
+            application/pdf:
               schema:
-                $ref: '#/components/schemas/ExportAreaPictureAnnotation'
+                type: string
+                format: binary
 
         400:
           $ref: './api.yml#/components/responses/400'

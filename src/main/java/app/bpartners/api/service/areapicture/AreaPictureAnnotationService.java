@@ -1,15 +1,15 @@
 package app.bpartners.api.service.areapicture;
 
-import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.ExportAreaPictureAnnotationRequested;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.model.AreaPictureAnnotation;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureAnnotationRepository;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class AreaPictureAnnotationService {
   private final AreaPictureAnnotationRepository repository;
-  private final EventProducer<ExportAreaPictureAnnotationRequested> eventProducer;
+  private final ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessor;
 
   public AreaPictureAnnotation save(AreaPictureAnnotation areaPictureAnnotation) {
     return repository.save(areaPictureAnnotation);
@@ -70,16 +70,8 @@ public class AreaPictureAnnotationService {
             Sort.by(Sort.Order.desc("creationDatetime"))));
   }
 
-  public ExportAreaPictureAnnotation exportAreaPictureAnnotationToPdf(
-      String userId, ExportAreaPictureAnnotation annotation) {
-    var request =
-        ExportAreaPictureAnnotationRequested.builder()
-            .annotation(annotation)
-            .userId(userId)
-            .build();
-
-    eventProducer.accept(List.of(request));
-
-    return annotation;
+  @SneakyThrows
+  public byte[] exportAreaPictureAnnotationToPdf(ExportAreaPictureAnnotation annotation) {
+    return exportAreaPictureAnnotationPDFProcessor.process(annotation);
   }
 }

@@ -79,10 +79,9 @@ public class AreaPictureAnnotationController {
   }
 
   @PostMapping("/accounts/{aId}/annotations/exports")
-  public ExportAreaPictureAnnotation exportAreaPictureAnnotationToPdf(
+  public byte[] exportAreaPictureAnnotationToPdf(
       @PathVariable(name = "aId") String aId,
       @RequestBody ExportAreaPictureAnnotation exportAreaPictureAnnotation) {
-    var userId = AuthProvider.getAuthenticatedUserId();
-    return service.exportAreaPictureAnnotationToPdf(userId, exportAreaPictureAnnotation);
+    return service.exportAreaPictureAnnotationToPdf(exportAreaPictureAnnotation);
   }
 }

@@ -43,18 +43,24 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
   public byte[] process(ExportAreaPictureAnnotation exportAnnotation) throws IOException {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
-    log.info("Image downloaded");
+    return process(exportAnnotation, downloadedImage);
+  }
+
+  public byte[] process(ExportAreaPictureAnnotation exportAnnotation, BufferedImage downloadedImage)
+      throws IOException {
     var base64MainImage =
         generateAnnotationImageAsBase64(
             downloadedImage, mainConf, exportAnnotation.getAnnotations());
     List<String> base64SubImages = new ArrayList<>();
 
-    for (ExportAreaPictureAnnotationInstance annotation : exportAnnotation.getAnnotations()) {
+    var annotationsByKey =
+        ExportAreaPictureAnnotationPDFGenerator.GroupedByKey.from(
+            exportAnnotation.getAnnotations());
+    for (var annotation : annotationsByKey) {
       base64SubImages.add(
-          generateAnnotationImageAsBase64(downloadedImage, subImageConf, List.of(annotation)));
+          generateAnnotationImageAsBase64(downloadedImage, subImageConf, annotation.instances()));
     }
 
-    log.info("Image created");
     return exportAreaPictureAnnotationPDFGenerator.apply(
         base64MainImage, base64SubImages, exportAnnotation);
   }

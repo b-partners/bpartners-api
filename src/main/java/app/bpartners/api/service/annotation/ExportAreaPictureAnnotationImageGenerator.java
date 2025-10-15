@@ -104,7 +104,9 @@ public class ExportAreaPictureAnnotationImageGenerator
     var measurements = annotationInstance.getMeasurements();
     for (int i = 0; i < coordinates.size() - 1; i++) {
       var measurement = measurements.get(i);
-      if (measurement.getIsInvisible() && !conf.isDrawMeasurements()) continue;
+      if (measurement.getIsInvisible()) {
+        continue;
+      }
 
       String measurementText = measurement.getValue() + measurement.getUnit();
       FontMetrics fontMetrics = graphics2D.getFontMetrics(conf.getMeasurementFont());

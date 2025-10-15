@@ -5,7 +5,7 @@
         * {
             color: #2b2b2a;
             box-sizing: border-box;
-            font-family: 'Kumbh Sans', 'Noto Emoji', Arial, Verdana;
+            font-family: 'Kumbh Sans', Arial, Verdana;
             padding: 0;
             margin: 0;
         }
@@ -214,18 +214,15 @@
             </tr>
         </table>
     </section>
-    <section th:each="page, pageStat : ${pages}" class="page">
+    <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
         <h2 class="annotation-information-title"> Informations des annotations </h2>
         <div th:each="annotation, annotationStat : ${page}" class="annotation-item"
              th:classappend="${pageStat.last} ? 'last-page'">
             <div class="annotation-item-labels">
                 <h4 class="annotation-item-title">
-                    <span class="annotation-item-title-value" th:text="${annotation.labelName} ?: 'Non renseigné'"></span>
-                    <span class="annotation-item-title-color"
-                          th:style="'border-color:' + (${annotation.strokeColor} != null ? ${annotation.strokeColor} : '#00FF00') + ' !important'">
-                    </span>
+                    <span class="annotation-item-title-value" th:text="${annotation.mergedInstance().labelName} ?: 'Non renseigné'"></span>
                 </h4>
-                <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
+                <p class="annotation-item-info-item" th:each="info : ${annotation.infos()}">
                     <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
                     <span>:</span>
                     <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
@@ -238,8 +235,8 @@
             />
         </div>
     </section>
-    <section class="llm page last-page">
-        <div th:utext="${llm != null ? llm : ''}"></div>
+    <section class="llm page last-page" th:if="${llm}">
+        <div th:utext="${llm}"></div>
     </section>
 </body>
 </html>

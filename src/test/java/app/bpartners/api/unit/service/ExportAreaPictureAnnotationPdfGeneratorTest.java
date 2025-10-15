@@ -55,16 +55,17 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
         .address("Dummy Address")
         .annotations(
             List.of(
-                exportAreaPictureAnnotationInstance(),
-                exportAreaPictureAnnotationInstance(),
-                exportAreaPictureAnnotationInstance(),
-                exportAreaPictureAnnotationInstance()));
+                exportAreaPictureAnnotationInstance("key1"),
+                exportAreaPictureAnnotationInstance("key1"),
+                exportAreaPictureAnnotationInstance("key2"),
+                exportAreaPictureAnnotationInstance("key2")));
   }
 
-  static ExportAreaPictureAnnotationInstance exportAreaPictureAnnotationInstance() {
+  static ExportAreaPictureAnnotationInstance exportAreaPictureAnnotationInstance(String key) {
     return new ExportAreaPictureAnnotationInstance()
         .infos(
             List.of(
+                new ExportAreaPictureAnnotationInstanceInfo().label("key").value(key),
                 new ExportAreaPictureAnnotationInstanceInfo().label("Type").value("Non renseigné"),
                 new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value("305 m²")));
   }

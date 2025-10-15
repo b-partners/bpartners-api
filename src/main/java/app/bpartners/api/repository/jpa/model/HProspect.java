@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import static java.time.Instant.now;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import app.bpartners.api.endpoint.rest.model.ContactNature;
@@ -68,6 +69,14 @@ public class HProspect {
   @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private ContactNature contactNature;
+
+  @Column(nullable = true, updatable = false, name = "\"creation_datetime\"")
+  private Instant creationDatetime;
+
+  @PrePersist
+  public void onCreation() {
+    this.creationDatetime = now();
+  }
 
   public ProspectStatus getActualStatus() {
     return statusHistories.isEmpty()

@@ -123,21 +123,24 @@ public class ProspectRepositoryImpl implements ProspectRepository {
       List<HProspect> prospects;
       if (contactNature == null && prospectStatus == null) {
         prospects =
-            jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
-                idAccountHolder, name, pageable);
+            jpaRepository
+                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseOrderByCreationDatetimeDesc(
+                    idAccountHolder, name, pageable);
       } else if (prospectStatus != null && contactNature == null) {
         prospects =
-            jpaRepository.findAllByIdAccountHolderAndOldNameAndProspectStatus(
-                prospectStatus.toString(), idAccountHolder, name, pageSize, page);
+            jpaRepository
+                .findAllByIdAccountHolderAndOldNameAndProspectStatusOrderByCreationDatetimeDesc(
+                    prospectStatus.toString(), idAccountHolder, name, pageSize, page);
         prospects.removeIf(prospect -> !prospect.getActualStatus().equals(prospectStatus));
       } else if (prospectStatus == null && contactNature != null) {
         prospects =
-            jpaRepository.findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
-                idAccountHolder, name, contactNature, pageable);
+            jpaRepository
+                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureOrderByCreationDatetimeDesc(
+                    idAccountHolder, name, contactNature, pageable);
       } else {
         prospects =
             jpaRepository
-                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
+                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatusOrderByCreationDatetimeDesc(
                     idAccountHolder,
                     name,
                     contactNature.toString(),
@@ -203,7 +206,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     //    }
     // TODO: why do prospects must be filtered by town code
     // while it is already attached to account holder ?
-    return jpaRepository.findAllByIdAccountHolder(idAccountHolder, pageable).stream()
+    return jpaRepository
+        .findAllByIdAccountHolderOrderByCreationDatetimeDesc(idAccountHolder, pageable)
+        .stream()
         .map(prospect -> toDomain(isSogefiProspector, prospect))
         .sorted(Comparator.reverseOrder())
         .collect(Collectors.toList());

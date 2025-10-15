@@ -61,7 +61,8 @@ class UserServiceIT extends MockedThirdParties {
          .thenReturn(new Principal(userToOnboard, JOE_DOE_TOKEN));*/
     User userToOnboard = toOnboard();
 
-    OnboardedUser actual = onboardingService.onboardUser(new OnboardUser(userToOnboard, COMPANY_NAME, true));
+    OnboardedUser actual =
+        onboardingService.onboardUser(new OnboardUser(userToOnboard, COMPANY_NAME, true));
     User actualUser = actual.getOnboardedUser();
     List<Account> accounts = accountService.getAccountsByUserId(actualUser.getId());
     List<AccountHolder> accountHolders =

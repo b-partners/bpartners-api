@@ -606,6 +606,9 @@ components:
             $ref: '#/components/schemas/ProspectStatusHistory'
         contactNature:
           $ref: '#/components/schemas/ContactNature'
+        creationDatetime:
+          type: string
+          format: date-time
     ProspectStatusHistory:
       type: object
       properties:

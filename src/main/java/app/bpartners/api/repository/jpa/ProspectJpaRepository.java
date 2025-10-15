@@ -3,7 +3,6 @@ package app.bpartners.api.repository.jpa;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import java.util.List;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,13 +13,15 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
   List<HProspect> findAllByIdAccountHolderAndTownCodeIsIn(
       String idAccountHolder, List<Integer> townCode);
 
-  Page<HProspect> findAllByIdAccountHolder(String idAccountHolder, Pageable pageable);
+  List<HProspect> findAllByIdAccountHolderOrderByCreationDatetimeDesc(
+      String idAccountHolder, Pageable pageable);
 
-  List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCase(
+  List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCaseOrderByCreationDatetimeDesc(
       String idAccountHolder, String name, Pageable pageable);
 
-  List<HProspect> findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNature(
-      String idAccountHolder, String name, ContactNature contactNature, Pageable pageable);
+  List<HProspect>
+      findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureOrderByCreationDatetimeDesc(
+          String idAccountHolder, String name, ContactNature contactNature, Pageable pageable);
 
   @Query(
       nativeQuery = true,
@@ -31,12 +32,13 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + " pos_longitude,       new_name,       new_email,       new_phone,      "
               + " new_address,       comment,       contract_amount,       id_invoice,      "
               + " prospect_feedback,       id_job,       default_comment,       manager_name,      "
-              + " contact_nature,       latest_old_holder  from view_prospect_actual_status  where"
-              + " id_account_holder = ?1  and LOWER(old_name) LIKE LOWER(CONCAT('%', ?2, '%'))  and"
-              + " cast(contact_nature as varchar) = ?3  and cast(actual_status as varchar) = ?4"
-              + " ORDER BY status_updated_at DESC LIMIT ?5 OFFSET ?6")
+              + " contact_nature,       latest_old_holder, creation_datetime  from"
+              + " view_prospect_actual_status  where id_account_holder = ?1  and LOWER(old_name)"
+              + " LIKE LOWER(CONCAT('%', ?2, '%'))  and cast(contact_nature as varchar) = ?3  and"
+              + " cast(actual_status as varchar) = ?4 ORDER BY creation_datetime DESC,"
+              + " status_updated_at DESC LIMIT ?5 OFFSET ?6")
   List<HProspect>
-      findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
+      findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatusOrderByCreationDatetimeDesc(
           String idAccountHolder,
           String name,
           String contactNature,
@@ -53,11 +55,11 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + " pos_longitude,       new_name,       new_email,       new_phone,      "
               + " new_address,       comment,       contract_amount,       id_invoice,      "
               + " prospect_feedback,       id_job,       default_comment,       manager_name,      "
-              + " contact_nature,       latest_old_holder FROM view_prospect_actual_status WHERE"
-              + " CAST(actual_status AS VARCHAR)=?1 and id_account_holder=?2 and LOWER(old_name)"
-              + " LIKE LOWER(CONCAT('%', ?3, '%')) ORDER BY status_updated_at DESC LIMIT ?4 OFFSET"
-              + " ?5")
-  List<HProspect> findAllByIdAccountHolderAndOldNameAndProspectStatus(
+              + " contact_nature,       latest_old_holder, creation_datetime FROM"
+              + " view_prospect_actual_status WHERE CAST(actual_status AS VARCHAR)=?1 and"
+              + " id_account_holder=?2 and LOWER(old_name) LIKE LOWER(CONCAT('%', ?3, '%')) ORDER"
+              + " BY creation_datetime DESC, status_updated_at DESC LIMIT ?4 OFFSET ?5")
+  List<HProspect> findAllByIdAccountHolderAndOldNameAndProspectStatusOrderByCreationDatetimeDesc(
       String prospectStatus, String idAccountHolder, String name, int pageSize, int page);
 
   List<HProspect> findAllByIdJob(String idJob);
@@ -90,7 +92,8 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + "       default_comment,"
               + "       manager_name,"
               + "       contact_nature,"
-              + "       latest_old_holder"
+              + "       latest_old_holder,"
+              + "       creation_datetime "
               + " from view_prospect_actual_status"
               + " where cast(actual_status as varchar) = ?1")
   List<HProspect> findAllByStatus(String prospectStatus);

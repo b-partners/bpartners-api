@@ -122,7 +122,9 @@ public class ProspectRestMapper {
                 : domain.getContractAmount().getCentsRoundUp())
         .invoiceID(domain.getIdInvoice())
         .prospectFeedback(domain.getProspectFeedback())
-        .contactNature(domain.getContactNature());
+        .contactNature(domain.getContactNature())
+        .creationDatetime(domain.getCreationDatetime())
+        .updateDatetime(domain.getUpdateDatetime());
   }
 
   private app.bpartners.api.endpoint.rest.model.ProspectStatusHistory toRest(

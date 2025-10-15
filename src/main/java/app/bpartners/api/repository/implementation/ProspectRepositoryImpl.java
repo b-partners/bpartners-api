@@ -124,7 +124,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
       if (contactNature == null && prospectStatus == null) {
         prospects =
             jpaRepository
-                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseOrderByCreationDatetimeDesc(
+                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseOrderByCreationDatetimeDescUpdateDatetimeDesc(
                     idAccountHolder, name, pageable);
       } else if (prospectStatus != null && contactNature == null) {
         prospects =
@@ -135,7 +135,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
       } else if (prospectStatus == null && contactNature != null) {
         prospects =
             jpaRepository
-                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureOrderByCreationDatetimeDesc(
+                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureOrderByCreationDatetimeDescUpdateDatetimeDesc(
                     idAccountHolder, name, contactNature, pageable);
       } else {
         prospects =
@@ -207,7 +207,8 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     // TODO: why do prospects must be filtered by town code
     // while it is already attached to account holder ?
     return jpaRepository
-        .findAllByIdAccountHolderOrderByCreationDatetimeDesc(idAccountHolder, pageable)
+        .findAllByIdAccountHolderOrderByCreationDatetimeDescUpdateDatetimeDesc(
+            idAccountHolder, pageable)
         .stream()
         .map(prospect -> toDomain(isSogefiProspector, prospect))
         .sorted(Comparator.reverseOrder())

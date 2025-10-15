@@ -73,9 +73,18 @@ public class HProspect {
   @Column(nullable = true, updatable = false, name = "\"creation_datetime\"")
   private Instant creationDatetime;
 
+  @Column(name = "\"update_datetime\"")
+  private Instant updateDatetime;
+
   @PrePersist
   public void onCreation() {
     this.creationDatetime = now();
+    this.updateDatetime = creationDatetime;
+  }
+
+  @PreUpdate
+  public void onUpdate() {
+    this.updateDatetime = now();
   }
 
   public ProspectStatus getActualStatus() {

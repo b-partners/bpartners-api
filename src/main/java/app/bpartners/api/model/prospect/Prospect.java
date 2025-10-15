@@ -46,6 +46,7 @@ public class Prospect implements Comparable<Prospect> {
   private ProspectFeedback prospectFeedback;
   private ContactNature contactNature;
   private Instant creationDatetime;
+  private Instant updateDatetime;
 
   public ProspectStatus getActualStatus() {
     List<ProspectStatusHistory> orderedByStatusUpdateDesc =

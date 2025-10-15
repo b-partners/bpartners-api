@@ -136,7 +136,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       var instance = this.instances.getFirst();
 
       return new ExportAreaPictureAnnotationInstance()
-          .labelName(instance.getLabelName())
+          .labelName(key)
           .fillColor(instance.getFillColor())
           .infos(infos())
           .measurements(instance.getMeasurements())

@@ -214,7 +214,7 @@
             </tr>
         </table>
     </section>
-    <section th:each="page, pageStat : ${pages}" class="page">
+    <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
         <h2 class="annotation-information-title"> Informations des annotations </h2>
         <div th:each="annotation, annotationStat : ${page}" class="annotation-item"
              th:classappend="${pageStat.last} ? 'last-page'">
@@ -235,8 +235,8 @@
             />
         </div>
     </section>
-    <section class="llm page last-page">
-        <div th:utext="${llm != null ? llm : ''}"></div>
+    <section class="llm page last-page" th:if="${llm}">
+        <div th:utext="${llm}"></div>
     </section>
 </body>
 </html>

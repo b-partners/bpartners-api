@@ -28,7 +28,6 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       new ExportAreaPictureAnnotationImageConf();
   private static final String IMAGE_FORMAT = "png";
   private static final int SUB_IMAGE_SCALE = 2;
-  private static final boolean SUB_IMAGE_DRAW_MEASUREMENT = true;
   private final ExportAreaPictureAnnotationImageConf subImageConf =
       new ExportAreaPictureAnnotationImageConf(
           SUB_IMAGE_SCALE,
@@ -38,8 +37,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
           DEFAULT_MEASUREMENT_BG_COLOR,
           DEFAULT_MEASUREMENT_TEXT_COLOR,
           DEFAULT_MEASUREMENT_OFFSET,
-          DEFAULT_MEASUREMENT_FONT,
-          SUB_IMAGE_DRAW_MEASUREMENT);
+          DEFAULT_MEASUREMENT_FONT);
 
   public byte[] process(ExportAreaPictureAnnotation exportAnnotation) throws IOException {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());

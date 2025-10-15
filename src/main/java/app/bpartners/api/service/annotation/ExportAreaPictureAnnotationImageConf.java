@@ -20,7 +20,6 @@ public class ExportAreaPictureAnnotationImageConf {
   private Color measurementTextColor;
   private IntXY measurementOffset;
   private Font measurementFont;
-  private boolean drawMeasurements;
 
   public ExportAreaPictureAnnotationImageConf() {
     this.stroke = DEFAULT_STROKE;
@@ -31,7 +30,6 @@ public class ExportAreaPictureAnnotationImageConf {
     this.measurementTextColor = DEFAULT_MEASUREMENT_TEXT_COLOR;
     this.measurementOffset = DEFAULT_MEASUREMENT_OFFSET;
     this.measurementFont = DEFAULT_MEASUREMENT_FONT;
-    this.drawMeasurements = DRAW_MEASUREMENT;
   }
 
   public static final int DEFAULT_SCALE = 3;
@@ -42,5 +40,4 @@ public class ExportAreaPictureAnnotationImageConf {
   public static final Color DEFAULT_MEASUREMENT_TEXT_COLOR = WHITE;
   public static final IntXY DEFAULT_MEASUREMENT_OFFSET = new IntXY(20, 18);
   public static final Font DEFAULT_MEASUREMENT_FONT = new Font("Arial", PLAIN, 70);
-  public static final boolean DRAW_MEASUREMENT = false;
 }

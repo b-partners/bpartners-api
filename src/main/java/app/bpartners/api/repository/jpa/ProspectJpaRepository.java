@@ -34,10 +34,11 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + " new_address,       comment,       contract_amount,       id_invoice,      "
               + " prospect_feedback,       id_job,       default_comment,       manager_name,      "
               + " contact_nature,       latest_old_holder, creation_datetime, update_datetime  from"
-              + " view_prospect_actual_status  where id_account_holder = ?1  and LOWER(old_name)"
-              + " LIKE LOWER(CONCAT('%', ?2, '%'))  and cast(contact_nature as varchar) = ?3  and"
-              + " cast(actual_status as varchar) = ?4 ORDER BY creation_datetime DESC,"
-              + " update_datetime DESC, status_updated_at DESC LIMIT ?5 OFFSET ?6")
+              + " view_prospect_actual_status  where id_account_holder = ?1  and (old_name ILIKE"
+              + " concat('%', ?3, '%') or new_name ILIKE concat('%', ?3, '%'))  and"
+              + " cast(contact_nature as varchar) = ?3  and cast(actual_status as varchar) = ?4"
+              + " ORDER BY creation_datetime DESC, update_datetime DESC, status_updated_at DESC"
+              + " LIMIT ?5 OFFSET ?6")
   List<HProspect>
       findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatusOrderByCreationDatetimeDesc(
           String idAccountHolder,
@@ -58,9 +59,9 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + " prospect_feedback,       id_job,       default_comment,       manager_name,      "
               + " contact_nature,       latest_old_holder, creation_datetime, update_datetime FROM"
               + " view_prospect_actual_status WHERE CAST(actual_status AS VARCHAR)=?1 and"
-              + " id_account_holder=?2 and LOWER(old_name) LIKE LOWER(CONCAT('%', ?3, '%')) ORDER"
-              + " BY creation_datetime DESC, update_datetime DESC, status_updated_at DESC LIMIT ?4"
-              + " OFFSET ?5")
+              + " id_account_holder=?2 and (old_name ILIKE concat('%', ?3, '%') or new_name ILIKE"
+              + " concat('%', ?3, '%')) ORDER BY creation_datetime DESC, update_datetime DESC,"
+              + " status_updated_at DESC LIMIT ?4 OFFSET ?5")
   List<HProspect> findAllByIdAccountHolderAndOldNameAndProspectStatusOrderByCreationDatetimeDesc(
       String prospectStatus, String idAccountHolder, String name, int pageSize, int page);
 

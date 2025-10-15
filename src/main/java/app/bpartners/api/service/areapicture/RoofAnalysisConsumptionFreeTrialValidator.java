@@ -17,16 +17,23 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RoofAnalysisConsumptionFreeTrialValidator
     implements Consumer<UserSubscriptionEligible> {
-  private static final long MAX_FREE_ROOF_ANALYSIS_CONSUMPTION_ALLOWED = 20L;
+  private static final long DEFAULT_MAX_CONSUMPTION = 20L;
+  private static final long EXCLUDED_MAX_CONSUMPTION = 30L;
   private final SubscriptionService subscriptionService;
   private final UserApiKeyFullAuthorizationJpaRepository apiKeyFullAuthorizationRepository;
+  private String EXCLUDED_USER_ID="2ede5d19-fa49-4ad7-aa90-42c016a3f4f5";
 
   @Override
   public void accept(UserSubscriptionEligible userSubscriptionEligible) {
     if (!userSubscriptionEligible.hasFreeTrialPeriodActive()) {
       return;
     }
+
     var userId = userSubscriptionEligible.getUserId();
+    long maxConsumptionAllowed = userId.equals(EXCLUDED_USER_ID)
+            ? EXCLUDED_MAX_CONSUMPTION
+            : DEFAULT_MAX_CONSUMPTION;
+
     var trialPeriodStartDate = userSubscriptionEligible.getEligibleFrom();
     var trialPeriodStartInstant =
         trialPeriodStartDate.atStartOfDay().atZone(ZoneId.of("Europe/Paris")).toInstant();
@@ -41,8 +48,8 @@ public class RoofAnalysisConsumptionFreeTrialValidator
             .reduce(Long::sum)
             .orElse(0L);
 
-    if (actualRoofAnalysisConsumption >= MAX_FREE_ROOF_ANALYSIS_CONSUMPTION_ALLOWED
-        && apiKeyFullAuthorizationRepository.findByIdUser(userId).isEmpty()) {
+    if (actualRoofAnalysisConsumption >= maxConsumptionAllowed
+        &&  apiKeyFullAuthorizationRepository.findByIdUser(userId).isEmpty()) {
       throw new BadRequestException(
           "Roof analysis consumption "
               + actualRoofAnalysisConsumption

@@ -54,7 +54,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apfloat.Aprational;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,7 +117,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
     boolean isSogefiProspector = isSogefiProspector(businessActivity);
-    Pageable pageable = PageRequest.of(page, pageSize, Sort.by("lastEvaluationDate").descending());
+    Pageable pageable = PageRequest.of(page, pageSize);
     if (!isSogefiProspector) {
       List<HProspect> prospects;
       if (contactNature == null && prospectStatus == null) {

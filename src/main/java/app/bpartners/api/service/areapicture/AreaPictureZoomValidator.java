@@ -59,7 +59,7 @@ public class AreaPictureZoomValidator implements Consumer<AreaPicture> {
         "Thionville_2021_5cm",
         "Angouleme_2019",
         "Seine-Saint-Denis_2018_5cm",
-        "Haut-De-Seine_2018_5cm",
+        "Hauts-De-Seine_5cm",
         "Savoie-Enedis",
         "Auvergne_Rhone_Alpes_PCRS_5cm");
   }

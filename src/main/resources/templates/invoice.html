@@ -210,13 +210,13 @@
                 <p class="muted"><span
                         th:text="${invoice.customer.addressWithCityZipCode}"></span>
                 </p>
-                <p class="muted"><span
+                <p class="muted" th:if="${invoice.customer.phone != null}"><span
                         th:text="${invoice.customer.phone}"></span>
                 </p>
-                <p class="muted"><span
+                <p class="muted" th:if="${invoice.customer.email != null}"><span
                         th:text="${invoice.customer.email}"></span>
                 </p>
-                <p class="muted"><span
+                <p class="muted" th:if="${invoice.customer.website != null}"><span
                         th:text="${invoice.customer.website}"></span>
                 </p>
             </td>

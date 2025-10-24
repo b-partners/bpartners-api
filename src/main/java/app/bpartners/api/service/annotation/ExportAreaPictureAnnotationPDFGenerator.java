@@ -152,7 +152,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     }
 
     public static List<GroupedByKey> from(List<ExportAreaPictureAnnotationInstance> instances) {
-      Map<String, List<ExportAreaPictureAnnotationInstance>> grouped = new HashMap<>();
+      Map<String, List<ExportAreaPictureAnnotationInstance>> grouped = new LinkedHashMap<>();
 
       for (var instance : instances) {
         grouped.computeIfAbsent(getKey(instance), k -> new ArrayList<>()).add(instance);

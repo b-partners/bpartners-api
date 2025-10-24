@@ -229,6 +229,8 @@ public class ProspectMapper {
         .contactNature(
             entity.getContactNature() == null ? ContactNature.PROSPECT : entity.getContactNature())
         .latestOldHolder(entity.getLatestOldHolder())
+        .creationDatetime(entity.getCreationDatetime())
+        .updateDatetime(entity.getUpdateDatetime())
         .build();
   }
 

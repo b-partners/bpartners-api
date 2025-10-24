@@ -166,6 +166,10 @@ components:
         phoneNumber:
           type: string
           example: "+33 12 34 56 78"
+        createCognitoUser:
+          type: boolean
+          default: true
+          required: false
     OnboardedUser:
       type: object
       properties:

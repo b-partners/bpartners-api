@@ -118,7 +118,13 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);
     boolean isSogefiProspector = isSogefiProspector(businessActivity);
-    Pageable pageable = PageRequest.of(page, pageSize, Sort.by("lastEvaluationDate").descending());
+    Pageable pageable =
+        PageRequest.of(
+            page,
+            pageSize,
+            Sort.by(
+                Sort.Order.desc("creationDatetime").nullsLast(),
+                Sort.Order.desc("updateDatetime").nullsLast()));
     if (!isSogefiProspector) {
       List<HProspect> prospects;
       if (contactNature == null && prospectStatus == null) {
@@ -127,8 +133,9 @@ public class ProspectRepositoryImpl implements ProspectRepository {
                 idAccountHolder, name, pageable);
       } else if (prospectStatus != null && contactNature == null) {
         prospects =
-            jpaRepository.findAllByIdAccountHolderAndOldNameAndProspectStatus(
-                prospectStatus.toString(), idAccountHolder, name, pageSize, page);
+            jpaRepository
+                .findAllByIdAccountHolderAndOldNameAndProspectStatusOrderByCreationDatetimeDesc(
+                    prospectStatus.toString(), idAccountHolder, name, pageSize, page);
         prospects.removeIf(prospect -> !prospect.getActualStatus().equals(prospectStatus));
       } else if (prospectStatus == null && contactNature != null) {
         prospects =
@@ -137,7 +144,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
       } else {
         prospects =
             jpaRepository
-                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatus(
+                .findAllByIdAccountHolderAndOldNameContainingIgnoreCaseAndContactNatureAndPropsectStatusOrderByCreationDatetimeDesc(
                     idAccountHolder,
                     name,
                     contactNature.toString(),

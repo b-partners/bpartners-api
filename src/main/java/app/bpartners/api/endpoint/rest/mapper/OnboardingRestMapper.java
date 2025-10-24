@@ -23,6 +23,7 @@ public class OnboardingRestMapper {
     return app.bpartners.api.model.OnboardUser.builder()
         .user(userMapper.toDomain(rest))
         .companyName(rest.getCompanyName())
+        .createCognitoUser(rest.getCreateCognitoUser() != null ? rest.getCreateCognitoUser() : true)
         .build();
   }
 }

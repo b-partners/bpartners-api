@@ -14,10 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.model.Account;
-import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.OnboardedUser;
-import app.bpartners.api.model.User;
+import app.bpartners.api.model.*;
 import app.bpartners.api.service.account.AccountService;
 import app.bpartners.api.service.accountholder.AccountHolderService;
 import app.bpartners.api.service.user.OnboardingService;
@@ -64,7 +61,8 @@ class UserServiceIT extends MockedThirdParties {
          .thenReturn(new Principal(userToOnboard, JOE_DOE_TOKEN));*/
     User userToOnboard = toOnboard();
 
-    OnboardedUser actual = onboardingService.onboardUser(userToOnboard, COMPANY_NAME);
+    OnboardedUser actual =
+        onboardingService.onboardUser(new OnboardUser(userToOnboard, COMPANY_NAME, true));
     User actualUser = actual.getOnboardedUser();
     List<Account> accounts = accountService.getAccountsByUserId(actualUser.getId());
     List<AccountHolder> accountHolders =

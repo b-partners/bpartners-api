@@ -262,7 +262,10 @@ class ProspectIT extends MockedThirdParties {
 
     List<Prospect> actual = api.updateProspects(ACCOUNTHOLDER_ID, List.of(updateProspect()));
 
-    assertEquals(List.of(expectedProspect()), ignoreIdsAndHistoryUpdatedOf(actual));
+    assertEquals(
+        List.of(expectedProspect().updateDatetime(actual.getFirst().getUpdateDatetime())),
+        ignoreIdsAndHistoryUpdatedOf(actual));
+    assertNotNull(actual.getFirst().getUpdateDatetime());
   }
 
   @Test
@@ -305,9 +308,15 @@ class ProspectIT extends MockedThirdParties {
                         .flatMap(List::stream)
                         .toList()));
     assertEquals(
-        ignoreHistoryUpdatedOf(expectedInterestingProspect()),
+        ignoreHistoryUpdatedOf(
+            expectedInterestingProspect()
+                .updateDatetime(actualInterestingProspect.getUpdateDatetime())),
         ignoreHistoryUpdatedOf(actualInterestingProspect));
-    assertEquals(expected, ignoreHistoryUpdatedOf(actualNotInterstingProspect));
+    assertEquals(
+        expected.updateDatetime(actualNotInterstingProspect.getUpdateDatetime()),
+        ignoreHistoryUpdatedOf(actualNotInterstingProspect));
+    assertNotNull(actualInterestingProspect.getUpdateDatetime());
+    assertNotNull(actualNotInterstingProspect.getUpdateDatetime());
     /*
     TODO: check why it is not reset correctly
     assertEquals(ignoreHistoryUpdatedOf(

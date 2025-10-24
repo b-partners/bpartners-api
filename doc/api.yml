@@ -170,7 +170,7 @@ paths:
     $ref: './area-pictures-api.yml#/operations/draftAreaPictureAnnotationListOperationsByAccountId'
   /accounts/{aId}/annotations/exports:
     $ref: './area-pictures-api.yml#/operations/exportAreaPictureAnnotations'
-  /accounts/{aId}/annotations/conveter:
+  /accounts/{aId}/annotations/convert:
     $ref: './area-pictures-api.yml#/operations/convertLatLonPolygonToPixel'
 
   #############################################

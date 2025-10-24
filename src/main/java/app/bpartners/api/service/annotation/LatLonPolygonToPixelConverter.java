@@ -21,7 +21,8 @@ import static java.lang.Integer.parseInt;
 @Component
 @Slf4j
 public class LatLonPolygonToPixelConverter implements Function<Map<String, ConverterAnnotation>, Map<String, ConverterAnnotation>> {
-    private final static Pattern FILENAME_PATTERN = Pattern.compile("^[a-f0-9]+_(\\d+)_(\\d+)_(\\d+)$");
+    private static final Pattern FILENAME_PATTERN =
+            Pattern.compile("^[a-f0-9]+_(\\d+)_(\\d+)_(\\d+)(?:\\.[^.]+)?$");
     private static final GeometryFactory geometryFactory = new GeometryFactory();
 
     @Override

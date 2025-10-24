@@ -617,6 +617,23 @@ operations:
         500:
           $ref: './api.yml#/components/responses/500'
   keyOperations:
+    get:
+      summary: Get user api key
+      operationId: getUserApiKey
+      tags:
+        - User Accounts
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+      responses:
+        200:
+          description: User's actual API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiKey'
     put:
       summary: Update user api key
       tags:

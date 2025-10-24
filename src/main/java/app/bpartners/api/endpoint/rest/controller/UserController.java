@@ -54,6 +54,13 @@ public class UserController {
     return users.stream().map(mapper::toRest).toList();
   }
 
+  @GetMapping("/users/{id}/keys")
+  public UserApiKey getUserApiKey(@PathVariable String id) {
+    var user = service.getUserById(id);
+
+    return new UserApiKey().key(user.getApiKey());
+  }
+
   @PostMapping("/users/{uId}/keys")
   public UserApiKey updateApiKey(@PathVariable String uId, @RequestBody UserApiKey apiKey) {
     if (apiKey.getKey() == null) {

@@ -393,6 +393,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
+                            POST, "/accounts/*/annotations/convert", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountMatcher(
                             PUT, "/accounts/*/areaPictures/*/annotations/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(

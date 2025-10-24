@@ -385,6 +385,41 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  convertLatLonPolygonToPixel:
+    post:
+      tags:
+        - AreaPicture
+      summary: convert annotations coordinate to pixel
+      operationId: convertAreaPictureAnnotationsToPixel
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConverterData'
+      responses:
+        200:
+          description: Converted annotations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConverterData'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   exportAreaPictureAnnotations:
     post:
       tags:
@@ -758,3 +793,63 @@ components:
         - address
         - imageUrl
         - annotations
+    ConverterData:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/ConverterAnnotation'
+    ConverterAnnotation:
+      type: object
+      properties:
+        size:
+          type: integer
+          example: 1024
+        filename:
+          type: string
+          example: "4f0df528c51644f8a5050f1e3a4ee2b8_20_523561_370292.jpg"
+        zoom:
+          type: integer
+          example: 20
+        regions:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ConverterAnnotationRegion'
+        base64_img_data:
+          type: string
+      required:
+        - size
+        - filename
+        - zoom
+        - regions
+    ConverterAnnotationRegion:
+      properties:
+        shape_attributes:
+          $ref: '#/components/schemas/ConverterAnnotationShapeAttributes'
+        region_attributes:
+          $ref: '#/components/schemas/ConverterAnnotationShapeAttributes'
+      required:
+        - shape_attributes
+        - region_attributes
+    ConverterAnnotationShapeAttributes:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "polygon"
+        all_points_x:
+          type: array
+          items:
+            type: number
+        all_points_y:
+          type: array
+          items:
+            type: number
+      required:
+        - all_points_x
+        - all_points_y
+    ConverterRegionAttributes:
+      type: object
+      properties:
+        label:
+          type: string
+        confidence:
+          type: number

@@ -1,3 +1,25 @@
+# [0.71.0](https://github.com/b-partners/bpartners-api/compare/v0.70.1...v0.71.0) (2025-10-24)
+
+
+### Bug Fixes
+
+* get areaPictureMapLayers ([11b619a](https://github.com/b-partners/bpartners-api/commit/11b619a3e679a0dcf5c6fe492115efae5adabbe3))
+* **ProspectJpaRepository:** filter by old_name or new_name not only old_name ([a82203c](https://github.com/b-partners/bpartners-api/commit/a82203c6e86cd47eb9dbe371ce8a1c47697e26e6))
+* **Prospect:** persist creation datetime and order list by creation datetime DESC ([2fe4cdf](https://github.com/b-partners/bpartners-api/commit/2fe4cdfc7c0534e5aa86847bc2f120666b4e58ed))
+* **Prospect:** persist update datetime and order list by update datetime DESC ([24fdd94](https://github.com/b-partners/bpartners-api/commit/24fdd94d4962ca99d69da306963ef30e12175d56))
+* **Prospect:** remove sort by lastEvaluationDate ([69dba1a](https://github.com/b-partners/bpartners-api/commit/69dba1a3a7fd102db6c7ec4a95a3e2537757de1c))
+* **Prospect:** sort list with nulls last ([4615c94](https://github.com/b-partners/bpartners-api/commit/4615c944c41d519b384b4b8bab8837a021475a99))
+* remove year from hauts-de-seine departement name ([d64d5ed](https://github.com/b-partners/bpartners-api/commit/d64d5edf131243fb923d58f99581e4c423336ff8))
+* update metz layer and exclude an user from RoofAnalysisConsumptionFreeTrialValidator ([849ba7f](https://github.com/b-partners/bpartners-api/commit/849ba7f475cba8a7f2bb436f75423a0144acd5e9))
+
+
+### Features
+
+* area picture annotation converter ([0fb3f40](https://github.com/b-partners/bpartners-api/commit/0fb3f4020bd11c31514d0c845ba69129bb430f5a))
+* GET /users/{id}/keys for ADMIN_ROLE ([2051cad](https://github.com/b-partners/bpartners-api/commit/2051cad759984f32c72c2d4af0b3c54ed9ed8a9f))
+
+
+
 ## [0.70.1](https://github.com/b-partners/bpartners-api/compare/v0.70.0...v0.70.1) (2025-10-14)
 
 
@@ -169,21 +191,6 @@
 * add pcrs and aerial photography layer ([a792348](https://github.com/b-partners/bpartners-api/commit/a7923484bdb530891c67d6f3d268e3ee192f85c4))
 * get consumption logs ([83ff43b](https://github.com/b-partners/bpartners-api/commit/83ff43b59af5a39f94bcd54788672a9166559370))
 * monitor usage consumption and compute usage record ([0761dc7](https://github.com/b-partners/bpartners-api/commit/0761dc70adba0caa986977bb3c0fcb663f14b073))
-
-
-
-# [0.61.0](https://github.com/b-partners/bpartners-api/compare/v0.60.0...v0.61.0) (2025-01-10)
-
-
-### Bug Fixes
-
-* do not debit users before fifth of next months ([2c97d69](https://github.com/b-partners/bpartners-api/commit/2c97d69de68e135d94d272cdbb9b3fc2a9ac6461))
-* do not require subscription for 14 trial period days ([89d1710](https://github.com/b-partners/bpartners-api/commit/89d17101da3dfb4159d24874a4ab46416f87af2a))
-
-
-### Features
-
-* **api:** handle FREE_TRIAL subscription status for user ([c94954d](https://github.com/b-partners/bpartners-api/commit/c94954d7dfb0e20f2451a95d9401d66074985f12))
 
 
 

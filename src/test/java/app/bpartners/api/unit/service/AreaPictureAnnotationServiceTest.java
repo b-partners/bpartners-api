@@ -11,7 +11,6 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProces
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
 import app.bpartners.api.service.aws.S3Service;
 import java.io.IOException;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

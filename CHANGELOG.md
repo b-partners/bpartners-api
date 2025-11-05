@@ -1,3 +1,12 @@
+# [0.72.0](https://github.com/b-partners/bpartners-api/compare/v0.71.0...v0.72.0) (2025-11-05)
+
+
+### Features
+
+* implement captcha token verification ([f05ac18](https://github.com/b-partners/bpartners-api/commit/f05ac180dda4a8f47bec1d0c8472272b235335da))
+
+
+
 # [0.71.0](https://github.com/b-partners/bpartners-api/compare/v0.70.1...v0.71.0) (2025-10-24)
 
 
@@ -168,29 +177,6 @@
 * export area picture annotation pdf service ([e5214d9](https://github.com/b-partners/bpartners-api/commit/e5214d9b7f3e5ba5a2735ecc5ab6c5f621f65414))
 * get subordinates users of an user ([e0fad8b](https://github.com/b-partners/bpartners-api/commit/e0fad8b7dccd4921d4b7dda05a9b2cb3db11c566))
 * make area picture creation permit for unauthenticated user ([fe3c290](https://github.com/b-partners/bpartners-api/commit/fe3c2904ada1dcac6a7c14823e6630699c219896))
-
-
-
-# [0.62.0](https://github.com/b-partners/bpartners-api/compare/v0.61.0...v0.62.0) (2025-01-31)
-
-
-### Bug Fixes
-
-* add variable analysis product into monthly subscription according to consumption ([f9554e6](https://github.com/b-partners/bpartners-api/commit/f9554e6ce2956a57d37e8d047f0655ee906b7c27))
-* allow free_trial user to subscribe ([e9ce607](https://github.com/b-partners/bpartners-api/commit/e9ce607c866ce24463f5274f94d351c7d74e63c8))
-* get stripe susbcription product by specific request when retrieving from item ([6aad791](https://github.com/b-partners/bpartners-api/commit/6aad79132fd180cba50cee556f04b9befcd2e407))
-* rename subscription status CANCELLED to CANCELED ([6f5cb5c](https://github.com/b-partners/bpartners-api/commit/6f5cb5cb3a1d1bfd939d08711e32e9d48b39d731))
-* SecurityConf.subscriptionConsumptionLogs filter from SelfUserMatcher ([a2e45c3](https://github.com/b-partners/bpartners-api/commit/a2e45c352ba1ae41f76f90d17b54c7002caacdd8))
-* set active subscription event TRIALING status ([7975bf8](https://github.com/b-partners/bpartners-api/commit/7975bf8500e908db60f7e7238414a98f029f8137))
-* show zip code and city in PDF invoice ([1b9f8f9](https://github.com/b-partners/bpartners-api/commit/1b9f8f97fec50234bcc8e08181f48b59ed2dc74d))
-* subscription with variable consumption logs for active subscription ([6493838](https://github.com/b-partners/bpartners-api/commit/64938386211286ff6407848145981339d93a95eb))
-
-
-### Features
-
-* add pcrs and aerial photography layer ([a792348](https://github.com/b-partners/bpartners-api/commit/a7923484bdb530891c67d6f3d268e3ee192f85c4))
-* get consumption logs ([83ff43b](https://github.com/b-partners/bpartners-api/commit/83ff43b59af5a39f94bcd54788672a9166559370))
-* monitor usage consumption and compute usage record ([0761dc7](https://github.com/b-partners/bpartners-api/commit/0761dc70adba0caa986977bb3c0fcb663f14b073))
 
 
 

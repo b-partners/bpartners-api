@@ -98,7 +98,8 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/health/email", GET.name()),
                         new AntPathRequestMatcher("/health/event1", GET.name()),
                         new AntPathRequestMatcher("/health/event2", GET.name()),
-                        new AntPathRequestMatcher("/health/event/uuids", POST.name())))),
+                        new AntPathRequestMatcher("/health/event/uuids", POST.name()),
+                        new AntPathRequestMatcher("/captcha/token", GET.name())))),
             AnonymousAuthenticationFilter.class)
         // authorize
         .authorizeHttpRequests(

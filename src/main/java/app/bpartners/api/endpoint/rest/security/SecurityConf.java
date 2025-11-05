@@ -148,6 +148,8 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(DELETE, "/dummy-user")
                     .permitAll()
+                    .requestMatchers(GET, "/captcha/token")
+                    .permitAll()
                     .requestMatchers(GET, "/api/keys")
                     .authenticated()
                     .requestMatchers(GET, "/accountHolders")

@@ -45,5 +45,7 @@ public class EnvConf {
     registry.add("stripe.subscription.product.essential.id", () -> "dummy");
     registry.add("stripe.subscription.product.basic.id", () -> "dummy");
     registry.add("dashboard.url", () -> "dummy");
+    registry.add("google.captcha.secret", () -> "dummy");
+    registry.add("google.captcha.url", () -> "https://google.com");
   }
 }

@@ -41,6 +41,32 @@ operations:
           $ref: './api.yml#/components/responses/400'
         500:
           $ref: './api.yml#/components/responses/500'
+  verifyCaptchaToken:
+      get:
+        operationId: verifyCaptchaToken
+        summary: "Verify google captcha token"
+        description: "Verify google captcha token"
+        tags:
+          - Captcha
+        parameters:
+          - name: token
+            in: query
+            required: true
+            description: "token generated from client-side"
+            schema:
+              type: string
+        responses:
+          '200':
+            description: "Result of the verification"
+            content:
+              application/json:
+                schema:
+                  type: boolean
+          400:
+            $ref: './api.yml#/components/responses/400'
+          500:
+            $ref: './api.yml#/components/responses/500'
+
   createToken:
     post:
       tags:

@@ -23,7 +23,7 @@ jobs:
   deploy-api:
     if: ${{ github.ref_name == 'prod' || github.ref_name == 'preprod' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 120
 
     env:
       AWS_REGION: eu-west-3

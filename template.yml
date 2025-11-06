@@ -74,6 +74,8 @@ Globals:
         STRIPE_SUBSCRIPTION_PRODUCT_BASIC_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/stripe/product/basic/id}}'
         SUBSCRIPTION_USER_CREDIT_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/subscription/user/id}}'
         DASHBOARD_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/dashboard/url}}'
+        GOOGLE_CAPTCHA_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/google/captcha/secret}}'
+        GOOGLE_CAPTCHA_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/google/captcha/url}}'
 
 Parameters:
   Env:

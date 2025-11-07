@@ -34,10 +34,13 @@ import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.param.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -51,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class SubscriptionService {
+  private static final Pattern BOT_NAME_PATTERN = Pattern.compile("^(?:[A-Za-z]{8,}\\s*){1,3}$");
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
   private static final int DEFAULT_TRIAL_PERIOD_DAYS = 14;
   public static final long FREE_ROOF_ANALYSIS = 20L;
@@ -67,6 +71,116 @@ public class SubscriptionService {
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
     return consumptionLogJpaRepository.save(subscriptionConsumptionLog);
+  }
+
+  public void deleteSuspiciousCustomers() {
+    var stripeCustomers = fetchAllCustomers();
+    var suspiciousCustomers =
+        stripeCustomers.stream()
+            .filter(
+                customer ->
+                    isNameSuspicious(customer.getName())
+                        && countCharges(customer.getId()) == 0L
+                        && countSubscriptions(customer.getId()) == 0L)
+            .sorted(Comparator.comparing(Customer::getCreated).reversed())
+            .limit(49L)
+            .toList();
+    // If need to export suspicious customers
+    // exportCustomersToCsv(suspiciousCustomers, "suspects stripe customers - october 2025.csv");
+    suspiciousCustomers.forEach(
+        customer -> {
+          try {
+            stripeClient.customers().delete(customer.getId());
+            log.info("Customer {} deleted", customer.getId());
+          } catch (StripeException e) {
+            throw new RuntimeException(e);
+          }
+        });
+  }
+
+  private static void exportCustomersToCsv(List<Customer> customers, String filePath) {
+    try (FileWriter writer = new FileWriter(filePath)) {
+      writer.append("id,name,email\n");
+
+      for (Customer c : customers) {
+        String id = sanitize(c.getId());
+        String name = sanitize(c.getName());
+        String email = sanitize(c.getEmail());
+
+        writer.append(String.format("%s,%s,%s\n", id, name, email));
+      }
+
+      writer.flush();
+    } catch (IOException e) {
+      log.error("Error while exporting customers to csv", e);
+    }
+  }
+
+  private static String sanitize(String value) {
+    if (value == null) return "";
+    String cleaned = value.replace("\n", " ").replace("\r", " ").replace(",", " ");
+    if (cleaned.contains(" ")) {
+      cleaned = "\"" + cleaned + "\"";
+    }
+    return cleaned;
+  }
+
+  @SneakyThrows
+  private List<Customer> fetchAllCustomers() {
+    List<Customer> allCustomers = new ArrayList<>();
+    String lastCustomerId = null;
+    boolean hasMore = true;
+
+    while (hasMore) {
+      CustomerListParams.Builder paramsBuilder = CustomerListParams.builder().setLimit((long) 100);
+
+      if (lastCustomerId != null) {
+        paramsBuilder.setStartingAfter(lastCustomerId);
+      }
+
+      StripeCollection<Customer> customers = stripeClient.customers().list(paramsBuilder.build());
+      List<Customer> currentPage = customers.getData();
+      allCustomers.addAll(currentPage);
+
+      hasMore = customers.getHasMore();
+      if (hasMore && !currentPage.isEmpty()) {
+        lastCustomerId = currentPage.getLast().getId();
+      }
+    }
+
+    return allCustomers;
+  }
+
+  private static boolean isNameSuspicious(String name) {
+    if (name == null) return false;
+    String trimmed = name.trim();
+    // lettres + espaces uniquement
+    if (!trimmed.matches("[A-Za-z\\s]+")) return false;
+    // blocs de lettres longs
+    if (!BOT_NAME_PATTERN.matcher(trimmed).matches()) return false;
+
+    String[] words = trimmed.split("\\s+");
+    for (String w : words) {
+      if (w.length() < 8) return false;
+    }
+    return true;
+  }
+
+  @SneakyThrows
+  private long countCharges(String customerId) {
+    ChargeListParams params =
+        ChargeListParams.builder().setCustomer(customerId).setLimit(1L).build();
+    StripeCollection<Charge> charges = stripeClient.charges().list(params);
+    return charges.getData().size();
+  }
+
+  @SneakyThrows
+  private long countSubscriptions(String customerId) {
+    SubscriptionListParams params =
+        SubscriptionListParams.builder().setCustomer(customerId).setLimit(1L).build();
+    StripeCollection<com.stripe.model.Subscription> subs =
+        stripeClient.subscriptions().list(params);
+    return subs.getData().size();
   }
 
   public List<SubscriptionConsumptionLog> findConsumptionLogsByUserId(

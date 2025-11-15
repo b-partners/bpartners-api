@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
+import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
@@ -31,6 +32,7 @@ public class UserController {
   private final AccountRefreshService accountRefreshService;
   private final SubscriptionService subscriptionService;
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
+  private final UserService userService;
 
   @PostMapping("/users/{uId}/subscriptionInitiation")
   public Redirection initiateUserSubscription(
@@ -112,7 +114,11 @@ public class UserController {
 
   @GetMapping(value = "/users/{id}")
   public User getUserById(HttpServletRequest request, @PathVariable String id) {
-    return mapper.toRest(getAuthUser(request, id));
+    var authenticatedUSer = getAuthUser(request, id);
+    if (authenticatedUSer.getRoles().contains(ADMIN_ROLE)) {
+      return mapper.toRest(service.getUserById(id));
+    }
+    return mapper.toRest(authenticatedUSer);
   }
 
   @GetMapping("/users/{id}/subordinatesUsers")
@@ -131,11 +137,12 @@ public class UserController {
       if (email == null) {
         throw new ForbiddenException();
       }
-      app.bpartners.api.model.User user = service.getUserByEmail(email);
-      if (!userId.equals(user.getId())) {
+      app.bpartners.api.model.User authenticatedUserByToken = service.getUserByEmail(email);
+      if (!userId.equals(authenticatedUserByToken.getId())
+          && !authenticatedUserByToken.getRoles().contains(ADMIN_ROLE)) {
         throw new ForbiddenException();
       }
-      return user;
+      return authenticatedUserByToken;
     }
   }
 

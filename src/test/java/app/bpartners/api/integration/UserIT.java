@@ -256,8 +256,10 @@ class UserIT extends MockedThirdParties {
     ApiClient joeDoeClient = anApiClient();
     UserAccountsApi api = new UserAccountsApi(joeDoeClient);
 
-    assertThrowsForbiddenException(() -> api.getUserById(TestUtils.USER1_ID));
-    assertThrowsForbiddenException(() -> api.getUserById(TestUtils.BAD_USER_ID));
+    var exceptionUserOne = assertThrows(ApiException.class, () -> api.getUserById(USER1_ID));
+    var exceptionBadUser = assertThrows(ApiException.class, () -> api.getUserById(BAD_USER_ID));
+    assertTrue(exceptionUserOne.getMessage().contains("User(id=user1_id not found)"));
+    assertTrue(exceptionBadUser.getMessage().contains("User(id=bad_user_id not found)"));
   }
 
   public OnboardUser onboardUser() {

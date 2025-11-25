@@ -113,15 +113,6 @@ public class AreaPictureService {
     var address = areaPicture.getAddress();
     var comment = "Adresse : " + address;
 
-    try {
-      areaPictureZoomValidator.accept(areaPicture);
-    } catch (NotImplementedException e) {
-      throw new NotImplementedException("Address or zone " + address + " not yet supported");
-    } catch (ServiceUnavailableException e) {
-      throw new ServiceUnavailableException(
-          "Address or zone " + address + " temporarily unavailable");
-    }
-
     // TODO: Bad ! Only areaPicture must be returned done here
     if (idProspect != null) {
       var optionalProspect = prospectRepository.findById(idProspect);

@@ -99,6 +99,12 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
+  @Disabled("TODO: local use only")
+  void delete_suspicious_customers() {
+    subject.deleteSuspiciousCustomers();
+  }
+
+  @Test
   void create_list_delete_customers() {
     var user = userRepository.findByEmail("jane@email.com").orElseThrow();
 

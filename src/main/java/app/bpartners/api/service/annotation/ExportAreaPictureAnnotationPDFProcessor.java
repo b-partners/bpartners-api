@@ -46,26 +46,39 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
   public byte[] process(ExportAreaPictureAnnotation exportAnnotation, BufferedImage downloadedImage)
       throws IOException {
+    log.info("Processing ExportAreaPictureAnnotation image");
     var base64MainImage =
         generateAnnotationImageAsBase64(
             downloadedImage, mainConf, exportAnnotation.getAnnotations());
-    List<String> base64SubImages = new ArrayList<>();
+    log.info("Finished processing ExportAreaPictureAnnotation image");
 
+    List<String> base64SubImages = new ArrayList<>();
     var annotationsByKey =
         ExportAreaPictureAnnotationPDFGenerator.GroupedByKey.from(
             exportAnnotation.getAnnotations());
+
+    int i = 0;
     for (var annotation : annotationsByKey) {
+      log.info("Processing sub image i={}", ++i);
       base64SubImages.add(
           generateAnnotationImageAsBase64(downloadedImage, subImageConf, annotation.instances()));
+      log.info("Finished processing sub image i={}", ++i);
     }
 
-    return exportAreaPictureAnnotationPDFGenerator.apply(
-        base64MainImage, base64SubImages, exportAnnotation);
+    log.info("Assembling image and generate pdf");
+    var pdf =
+        exportAreaPictureAnnotationPDFGenerator.apply(
+            base64MainImage, base64SubImages, exportAnnotation);
+    log.info("Finished assembling image and generate pdf");
+    return pdf;
   }
 
   private static BufferedImage downloadImage(String imageUrl) {
+    log.info("Downloading image from {}", imageUrl);
     try {
-      return ImageIO.read(new URI(imageUrl).toURL());
+      var image = ImageIO.read(new URI(imageUrl).toURL());
+      log.info("Finished downloading image from {}", imageUrl);
+      return image;
     } catch (IOException | URISyntaxException e) {
       throw new BadRequestException("Cannot read the image from the url");
     }

@@ -12,9 +12,11 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 
 /** Emoji replaced for use with Twemoji files. By danfickle. MIT or Apache license. */
-public class EmojReplacer {
+@Slf4j
+public class EmojiReplacer {
   private static class Matcher {
     private Map<Integer, Matcher> next;
 
@@ -65,7 +67,7 @@ public class EmojReplacer {
     return root;
   }
 
-  public EmojReplacer(Path pathToSvgs, String prefix, String suffix) throws IOException {
+  public EmojiReplacer(Path pathToSvgs, String prefix, String suffix) throws IOException {
     this.svgDirectory = pathToSvgs;
     this.prefix = prefix;
     this.suffix = suffix;
@@ -96,8 +98,7 @@ public class EmojReplacer {
               .replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>", ""))
           + this.suffix;
     } catch (IOException e) {
-      System.err.println("Couldn't read emoji with filename: " + file);
-      e.printStackTrace();
+      log.error("Couldn't read emoji with filename: {}", file, e);
       return "";
     }
   }

@@ -434,9 +434,15 @@ operations:
           required: true
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ExportAreaPictureAnnotation'
+              type: object
+              properties:
+                globalImage3D:
+                  type: string
+                  format: binary
+                data:
+                  $ref: '#/components/schemas/ExportAreaPictureAnnotation'
       responses:
         200:
           description: Presigned url to the generated pdf
@@ -785,6 +791,8 @@ components:
           type: string
         llm:
           type: string
+        3d:
+          $ref: "#/components/schemas/ExportAreaPictureAnnotation3D"
         annotations:
           type: array
           items:
@@ -793,6 +801,35 @@ components:
         - address
         - imageUrl
         - annotations
+    ExportAreaPictureAnnotation3D:
+      type: object
+      properties:
+        pans:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotation3DPan"
+      required:
+        - pans
+    ExportAreaPictureAnnotation3DPan:
+      type: object
+      properties:
+        name:
+          type: string
+        polygon:
+          $ref: "#/components/schemas/Polygon"
+        measurements:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotationMeasurement"
+        infos:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotationInstanceInfo"
+      required:
+        - name
+        - polygon
+        - measurements
+        - infos
     ConverterData:
       type: object
       additionalProperties:

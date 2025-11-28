@@ -10,8 +10,6 @@ import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.exception.NotImplementedException;
-import app.bpartners.api.model.exception.ServiceUnavailableException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;

@@ -7,7 +7,7 @@ import static java.util.Objects.requireNonNull;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.annotation.IntXY;
-import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.service.annotation.factory.ColorFactory;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -21,8 +21,6 @@ public class ExportAreaPictureAnnotationImageGenerator
         ExportAreaPictureAnnotationImageConf,
         List<ExportAreaPictureAnnotationInstance>,
         BufferedImage> {
-  private static final int HEXADECIMAL_COLOR_LENGTH_WITH_OPACITY = 9;
-  private static final int HEXADECIMAL_COLOR_LENGTH_WITHOUT_OPACITY = 7;
 
   @Override
   public BufferedImage apply(
@@ -75,11 +73,11 @@ public class ExportAreaPictureAnnotationImageGenerator
     int[] yPoints = coordinates.stream().mapToInt(IntXY::y).toArray();
 
     // Draw polygon strokeLine
-    graphics2D.setColor(hexadecimalStringColorToAwtColor(annotationInstance.getStrokeColor()));
+    graphics2D.setColor(ColorFactory.make(annotationInstance.getStrokeColor()));
     graphics2D.drawPolygon(xPoints, yPoints, coordinates.size());
 
     // Fill the polygon
-    graphics2D.setColor(hexadecimalStringColorToAwtColor(annotationInstance.getFillColor()));
+    graphics2D.setColor(ColorFactory.make(annotationInstance.getFillColor()));
     graphics2D.fillPolygon(xPoints, yPoints, coordinates.size());
 
     // Draw all points
@@ -132,19 +130,5 @@ public class ExportAreaPictureAnnotationImageGenerator
           measurementCoordinate.x(),
           measurementCoordinate.y() + conf.getMeasurementOffset().y() + textHeight / 2);
     }
-  }
-
-  private static Color hexadecimalStringColorToAwtColor(String hexColor) {
-    if (!hexColor.startsWith("#")
-        || (hexColor.length() != HEXADECIMAL_COLOR_LENGTH_WITHOUT_OPACITY
-            && hexColor.length() != HEXADECIMAL_COLOR_LENGTH_WITH_OPACITY)) {
-      throw new BadRequestException("Wrong color format was received");
-    }
-    hexColor = hexColor.substring(1);
-    int red = Integer.valueOf(hexColor.substring(0, 2), 16);
-    int green = Integer.valueOf(hexColor.substring(2, 4), 16);
-    int blue = Integer.valueOf(hexColor.substring(4, 6), 16);
-    int alpha = hexColor.length() == 8 ? Integer.valueOf(hexColor.substring(6, 8), 16) : 255;
-    return new Color(red, green, blue, alpha);
   }
 }

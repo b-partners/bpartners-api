@@ -1,6 +1,6 @@
 package app.bpartners.api.unit.service;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.model.ExportAreaPictureAnnotationRequested;
@@ -54,7 +54,8 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
     var exportAreaPictureAnnotationRequested = createExportAreaPictureAnnotationRequested();
 
     doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any())).thenReturn("".getBytes());
+    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any()))
+        .thenReturn("".getBytes());
     when(templateResolverEngineMock.parseTemplateResolver(any(), any()))
         .thenReturn("<html><body>Rapport généré</body></html>");
 
@@ -72,7 +73,8 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
     var exportAreaPictureAnnotationRequested = createExportAreaPictureAnnotationRequested();
 
     doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any())).thenThrow(IOException.class);
+    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any()))
+        .thenThrow(IOException.class);
     when(templateResolverEngineMock.parseTemplateResolver(any(), any()))
         .thenReturn("<html><body>Rapport généré</body></html>");
 

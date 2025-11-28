@@ -438,6 +438,9 @@ operations:
             schema:
               type: object
               properties:
+                globalImage3D:
+                  type: string
+                  format: binary
                 data:
                   $ref: '#/components/schemas/ExportAreaPictureAnnotation'
       responses:
@@ -801,15 +804,11 @@ components:
     ExportAreaPictureAnnotation3D:
       type: object
       properties:
-        globalImage:
-          type: string
-          format: binary
         pans:
           type: array
           items:
             $ref: "#/components/schemas/ExportAreaPictureAnnotation3DPan"
       required:
-        - globalImage
         - pans
     ExportAreaPictureAnnotation3DPan:
       type: object

@@ -84,9 +84,9 @@ public class AreaPictureAnnotationService {
   }
 
   public PreSignedURL exportAreaPictureAnnotationToPdf(
-      String userId, ExportAreaPictureAnnotation annotation) {
+      String userId, ExportAreaPictureAnnotation annotation, byte[] globalImage3D) {
     try {
-      var generatedPDF = exportAreaPictureAnnotationPDFProcessor.process(annotation);
+      var generatedPDF = exportAreaPictureAnnotationPDFProcessor.process(annotation, globalImage3D);
 
       var fileToUpload = fileWriter.apply(generatedPDF, null);
       var fileId = "Rapport_d_analyse_" + randomUUID() + PDF_EXTENSION;

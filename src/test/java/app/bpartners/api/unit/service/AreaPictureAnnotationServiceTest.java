@@ -11,6 +11,7 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProces
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
 import app.bpartners.api.service.aws.S3Service;
 import java.io.IOException;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -20,11 +21,12 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
   @MockBean S3Service s3ServiceMock;
   @MockBean ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessorMock;
 
+  @Test
   void export_area_picture_annotation_ok() throws IOException {
     var exportAreaPictureAnnotationMock = mock(ExportAreaPictureAnnotation.class);
     var expectedUrl = "https://s3.dummy.com";
 
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any()))
+    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any()))
         .thenReturn(new byte[] {1, 2, 3, 4});
     when(fileWriterMock.apply(any(), any())).thenReturn(mock());
     when(s3ServiceMock.uploadFile(any(), any(), any(), any())).thenReturn(mock());
@@ -32,7 +34,7 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
 
     var actual =
         subject.exportAreaPictureAnnotationToPdf(
-            randomUUID().toString(), exportAreaPictureAnnotationMock);
+            randomUUID().toString(), exportAreaPictureAnnotationMock, new byte[] {1, 2, 3, 4});
 
     assertEquals(expectedUrl, actual.getValue());
   }

@@ -11,7 +11,6 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.Exception;
 import java.util.*;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
@@ -54,7 +53,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       builder.run();
 
       return outputStream.toByteArray();
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }

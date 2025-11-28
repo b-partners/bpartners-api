@@ -6,15 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.file.ExtensionGuesser;
-import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import app.bpartners.api.service.annotation.model.Pair;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -41,8 +38,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
       new ExportAreaPictureAnnotationPDFProcessor(
           exportAreaPictureAnnotationPDFGenerator,
           exportAreaPictureAnnotationImageGeneratorMock,
-          exportAreaPictureAnnotationImage3DGeneratorMock,
-          new FileWriter(new ObjectMapper(), new ExtensionGuesser()));
+          exportAreaPictureAnnotationImage3DGeneratorMock);
 
   @BeforeAll
   static void createMockImage() throws IOException {

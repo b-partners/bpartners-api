@@ -87,7 +87,6 @@ public class AreaPictureAnnotationService {
       String userId, ExportAreaPictureAnnotation annotation) {
     try {
       var generatedPDF = exportAreaPictureAnnotationPDFProcessor.process(annotation);
-      log.info("Pdf generated");
 
       var fileToUpload = fileWriter.apply(generatedPDF, null);
       var fileId = "Rapport_d_analyse_" + randomUUID() + PDF_EXTENSION;

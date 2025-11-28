@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /** Emoji replaced for use with Twemoji files. By danfickle. MIT or Apache license. */
-public class EmojReplacer {
+public class EmojiReplacer {
   private static class Matcher {
     private Map<Integer, Matcher> next;
 
@@ -65,7 +65,7 @@ public class EmojReplacer {
     return root;
   }
 
-  public EmojReplacer(Path pathToSvgs, String prefix, String suffix) throws IOException {
+  public EmojiReplacer(Path pathToSvgs, String prefix, String suffix) throws IOException {
     this.svgDirectory = pathToSvgs;
     this.prefix = prefix;
     this.suffix = suffix;

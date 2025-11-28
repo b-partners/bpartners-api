@@ -4,8 +4,12 @@ import static app.bpartners.api.file.FileWriter.base64Image;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator.GroupedByKey;
+import app.bpartners.api.service.annotation.model.Pair;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,13 +28,17 @@ import org.springframework.stereotype.Service;
 public class ExportAreaPictureAnnotationPDFProcessor {
   private final ExportAreaPictureAnnotationPDFGenerator exportAreaPictureAnnotationPDFGenerator;
   private final ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGenerator;
-  private final ExportAreaPictureAnnotationImageConf mainConf =
-      new ExportAreaPictureAnnotationImageConf();
+  private final ExportAreaPictureAnnotationImage3DGenerator
+      exportAreaPictureAnnotationImage3DGenerator;
+  private final FileWriter fileWriter;
+
   private static final String IMAGE_FORMAT = "png";
-  private static final int SUB_IMAGE_SCALE = 2;
-  private final ExportAreaPictureAnnotationImageConf subImageConf =
+
+  private static final ExportAreaPictureAnnotationImageConf ANNOTATION_MAIN_CONF =
+      new ExportAreaPictureAnnotationImageConf();
+  private static final ExportAreaPictureAnnotationImageConf ANNOTATION_SUB_IMAGE_CONF =
       new ExportAreaPictureAnnotationImageConf(
-          SUB_IMAGE_SCALE,
+          2,
           DEFAULT_POINT_SIZE,
           DEFAULT_STROKE,
           DEFAULT_POINT_COLOR,
@@ -46,42 +54,49 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
   public byte[] process(ExportAreaPictureAnnotation exportAnnotation, BufferedImage downloadedImage)
       throws IOException {
-    log.info("Processing ExportAreaPictureAnnotation image");
-    var base64MainImage =
-        generateAnnotationImageAsBase64(
-            downloadedImage, mainConf, exportAnnotation.getAnnotations());
-    log.info("Finished processing ExportAreaPictureAnnotation image");
+    Pair<String, List<String>> annotationImages =
+        generateAnnotationImages(exportAnnotation, downloadedImage);
+    Pair<String, List<String>> annotation3DImages = null;
 
-    List<String> base64SubImages = new ArrayList<>();
-    var annotationsByKey =
-        ExportAreaPictureAnnotationPDFGenerator.GroupedByKey.from(
-            exportAnnotation.getAnnotations());
-
-    int i = 0;
-    for (var annotation : annotationsByKey) {
-      log.info("Processing sub image i={}", ++i);
-      base64SubImages.add(
-          generateAnnotationImageAsBase64(downloadedImage, subImageConf, annotation.instances()));
-      log.info("Finished processing sub image i={}", ++i);
+    if (exportAnnotation.get3d() != null) {
+      annotation3DImages = generateAnnotation3DImages(exportAnnotation.get3d());
     }
 
-    log.info("Assembling image and generate pdf");
-    var pdf =
-        exportAreaPictureAnnotationPDFGenerator.apply(
-            base64MainImage, base64SubImages, exportAnnotation);
-    log.info("Finished assembling image and generate pdf");
-    return pdf;
+    return exportAreaPictureAnnotationPDFGenerator.apply(
+        exportAnnotation, annotationImages, annotation3DImages);
   }
 
-  private static BufferedImage downloadImage(String imageUrl) {
-    log.info("Downloading image from {}", imageUrl);
-    try {
-      var image = ImageIO.read(new URI(imageUrl).toURL());
-      log.info("Finished downloading image from {}", imageUrl);
-      return image;
-    } catch (IOException | URISyntaxException e) {
-      throw new BadRequestException("Cannot read the image from the url");
+  private Pair<String, List<String>> generateAnnotation3DImages(
+      ExportAreaPictureAnnotation3D annotation3D) throws IOException {
+    var mainImage3D = base64Image(fileWriter.writeAsByte(annotation3D.getGlobalImage()));
+    var baseImageData =
+        exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getPans());
+
+    var subImages3D = new ArrayList<String>();
+    for (var pan : annotation3D.getPans()) {
+      var panImage =
+          exportAreaPictureAnnotationImage3DGenerator.generatePanImage(
+              baseImageData.second(), baseImageData.first(), pan);
+      subImages3D.add(base64(panImage));
     }
+
+    return new Pair<>(mainImage3D, subImages3D);
+  }
+
+  private Pair<String, List<String>> generateAnnotationImages(
+      ExportAreaPictureAnnotation annotation, BufferedImage baseImage) throws IOException {
+    var mainImage =
+        generateAnnotationImageAsBase64(
+            baseImage, ANNOTATION_MAIN_CONF, annotation.getAnnotations());
+    var subImages = new ArrayList<String>();
+    var annotationsByKey = GroupedByKey.from(annotation.getAnnotations());
+
+    for (var item : annotationsByKey) {
+      subImages.add(
+          generateAnnotationImageAsBase64(baseImage, ANNOTATION_SUB_IMAGE_CONF, item.instances()));
+    }
+
+    return new Pair<>(mainImage, subImages);
   }
 
   private String generateAnnotationImageAsBase64(
@@ -89,10 +104,21 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       ExportAreaPictureAnnotationImageConf conf,
       List<ExportAreaPictureAnnotationInstance> annotations)
       throws IOException {
-    BufferedImage generateImage =
-        exportAreaPictureAnnotationImageGenerator.apply(image, conf, annotations);
+    var generatedImage = exportAreaPictureAnnotationImageGenerator.apply(image, conf, annotations);
+    return base64(generatedImage);
+  }
+
+  private static String base64(BufferedImage bufferedImage) throws IOException {
     var outputStream = new ByteArrayOutputStream();
-    ImageIO.write(generateImage, IMAGE_FORMAT, outputStream);
+    ImageIO.write(bufferedImage, IMAGE_FORMAT, outputStream);
     return base64Image(outputStream.toByteArray());
+  }
+
+  private static BufferedImage downloadImage(String imageUrl) {
+    try {
+      return ImageIO.read(new URI(imageUrl).toURL());
+    } catch (IOException | URISyntaxException e) {
+      throw new BadRequestException("Cannot read the image from the url");
+    }
   }
 }

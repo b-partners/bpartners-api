@@ -24,6 +24,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   private static final int POLYGON_POINTS_SIZE = 10;
   private static final Stroke POLYGON_STROKE = new BasicStroke(3f);
+  private static final Color SELECTED_PAN_COLOR = new Color(229, 142, 25);
   private static final MeasurementConf MEASUREMENT_CONF =
       MeasurementConf.builder()
           .offset(new IntXY(0, 6))
@@ -56,6 +57,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
           var mapped = transform.apply(rawData);
 
           drawFillPolygon(g2d, RED, mapped);
+          drawStrokePolygon(g2d, WHITE, POLYGON_STROKE, mapped);
         });
 
     g2d.dispose();
@@ -71,7 +73,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var polygon = Coordinates.from(requireNonNull(pan.getPolygon()));
     polygon = transform.apply(polygon);
 
-    drawFillPolygon(g2d, ORANGE, polygon);
+    drawFillPolygon(g2d, SELECTED_PAN_COLOR, polygon);
     drawStrokePolygon(g2d, BLACK, POLYGON_STROKE, polygon);
     drawPolygonPoints(g2d, BLACK, POLYGON_POINTS_SIZE, polygon);
     drawPolygonMeasurements(g2d, MEASUREMENT_CONF, polygon, pan.getMeasurements());

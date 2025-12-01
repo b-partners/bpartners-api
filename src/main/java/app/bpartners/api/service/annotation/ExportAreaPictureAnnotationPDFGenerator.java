@@ -41,7 +41,9 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       Pair<String, List<String>> annotation3DImages) {
 
     var html = parseDataToString(annotation, annotationImages, annotation3DImages);
-    html = emojiReplacer.replaceEmoji(html);
+    if (annotation.getLlm() != null) {
+      html = emojiReplacer.replaceEmoji(html);
+    }
 
     try (var outputStream = new ByteArrayOutputStream()) {
       var builder = new PdfRendererBuilder();
@@ -149,6 +151,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   }
 
   public record GroupedByKey(String key, List<ExportAreaPictureAnnotationInstance> instances) {
+    // Used by the template
     public ExportAreaPictureAnnotationInstance mergedInstance() {
       assert !this.instances.isEmpty();
       var instance = this.instances.getFirst();

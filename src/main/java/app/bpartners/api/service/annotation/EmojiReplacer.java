@@ -48,8 +48,8 @@ public class EmojiReplacer {
     String[] codePointStrings = svg.split(Pattern.quote("-"));
     Matcher current = root;
 
-    for (int i = 0; i < codePointStrings.length; i++) {
-      int cp = Integer.parseUnsignedInt(codePointStrings[i], 16);
+    for (var codePointString : codePointStrings) {
+      int cp = Integer.parseUnsignedInt(codePointString, 16);
       current = current.put(cp);
     }
   }
@@ -80,7 +80,7 @@ public class EmojiReplacer {
     StringBuilder sb = new StringBuilder(codePoints.size() * 8);
 
     if (codePoints.size() == 1) {
-      sb.append(Integer.toHexString(codePoints.get(0)));
+      sb.append(Integer.toHexString(codePoints.getFirst()));
     } else {
       String joined =
           codePoints.stream().map(Integer::toHexString).collect(Collectors.joining("-"));

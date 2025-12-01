@@ -441,8 +441,11 @@ operations:
                 globalImage3D:
                   type: string
                   format: binary
+                  description: "Image file (PNG or JPEG) for the 3D global view"
                 data:
-                  $ref: '#/components/schemas/ExportAreaPictureAnnotation'
+                  type: string
+                  format: binary
+                  description: "JSON file (application/json) matching ExportAreaPictureAnnotation"
       responses:
         200:
           description: Presigned url to the generated pdf
@@ -456,6 +459,12 @@ operations:
           $ref: './api.yml#/components/responses/403'
         404:
           $ref: './api.yml#/components/responses/404'
+        422:
+          description: ExportAreaPictureAnnotation could not be returned as JSON
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportAreaPictureAnnotation"
         429:
           $ref: './api.yml#/components/responses/429'
         500:

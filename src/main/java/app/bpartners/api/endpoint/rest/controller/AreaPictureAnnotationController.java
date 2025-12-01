@@ -15,9 +15,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 @AllArgsConstructor
 public class AreaPictureAnnotationController {
@@ -81,14 +83,13 @@ public class AreaPictureAnnotationController {
   @PostMapping(value = "/accounts/{aId}/annotations/exports", consumes = MULTIPART_FORM_DATA_VALUE)
   public PreSignedURL exportAreaPictureAnnotationToPdf(
       @PathVariable(name = "aId") String ignored,
-      @RequestPart(value = "data") ExportAreaPictureAnnotation exportAreaPictureAnnotation,
+      @RequestPart(value = "data") ExportAreaPictureAnnotation annotation,
       @RequestPart(value = "globalImage3D", required = false) MultipartFile globalImage3D)
       throws IOException {
     var userId = AuthProvider.getAuthenticatedUserId();
     byte[] globalImageBytes = globalImage3D != null ? globalImage3D.getBytes() : null;
 
-    return service.exportAreaPictureAnnotationToPdf(
-        userId, exportAreaPictureAnnotation, globalImageBytes);
+    return service.exportAreaPictureAnnotationToPdf(userId, annotation, globalImageBytes);
   }
 
   @PostMapping("/accounts/{aId}/annotations/convert")

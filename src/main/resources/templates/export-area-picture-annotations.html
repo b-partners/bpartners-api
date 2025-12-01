@@ -222,8 +222,7 @@
     </section>
     <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null} ? ' last-page' : ''">
         <h2 class="annotation-information-title"> Informations des annotations </h2>
-        <div th:each="annotation, annotationStat : ${page}" class="annotation-item"
-             th:classappend="${pageStat.last} ? 'last-page'">
+        <div th:each="annotation, annotationStat : ${page}" class="annotation-item">
             <div class="annotation-item-labels">
                 <h4 class="annotation-item-title">
                     <span class="annotation-item-title-value" th:text="${annotation.mergedInstance().labelName} ?: 'Non renseigné'"></span>
@@ -237,15 +236,14 @@
             <img
                 class="annotation-item-image"
                 alt="annotation sub-image"
-                th:src="${subImages[3 * pageStat.index + annotationStat.index]}"
+                th:src="${subImages[page.size() * pageStat.index + annotationStat.index]}"
             />
         </div>
     </section>
     <section th:if="${pages3D}" th:each="page, pageStat : ${pages3D}" class="page" th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
         <h2 class="annotation-information-title"> Représentation générale du bâtiment 3D </h2>
         <img alt="annotation-3d" class="main-image-3d" th:src="${mainImage3D}" th:if="${pageStat.first}" />
-        <div th:each="pan, panStat: ${page}" class="annotation-item"
-             th:classappend="${pageStat.last} ? 'last-page'">
+        <div th:each="pan, panStat: ${page}" class="annotation-item">
             <div class="annotation-item-labels">
                 <h4 class="annotation-item-title">
                     <span class="annotation-item-title-value" th:text="${pan.name} ?: 'Non renseigné'"></span>
@@ -259,7 +257,7 @@
             <img
                 class="annotation-item-image"
                 alt="annotation sub-image"
-                th:src="${subImages3D[3 * pageStat.index + panStat.index]}"
+                th:src="${subImages3D[page.size() * pageStat.index + panStat.index]}"
             />
         </div>
     </section>

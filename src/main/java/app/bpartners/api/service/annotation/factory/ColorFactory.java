@@ -10,6 +10,10 @@ public class ColorFactory {
   private static final int HEXADECIMAL_COLOR_LENGTH_WITHOUT_OPACITY = 7;
 
   public static Color make(String hexColor) {
+    if (hexColor == null) {
+      throw new BadRequestException("Wrong color format was received");
+    }
+
     if (!hexColor.startsWith("#")
         || (hexColor.length() != HEXADECIMAL_COLOR_LENGTH_WITHOUT_OPACITY
             && hexColor.length() != HEXADECIMAL_COLOR_LENGTH_WITH_OPACITY)) {

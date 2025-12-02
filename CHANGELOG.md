@@ -1,8 +1,16 @@
-# [0.72.0](https://github.com/b-partners/bpartners-api/compare/v0.71.0...v0.72.0) (2025-11-05)
+# [0.73.0](https://github.com/b-partners/bpartners-api/compare/v0.71.0...v0.73.0) (2025-12-02)
+
+
+### Bug Fixes
+
+* /catpcha/token SecurityConf ([6149939](https://github.com/b-partners/bpartners-api/commit/6149939c49cbd25361eb46269e0f9293c9f4c8db))
+* allow GET users by ID for ADMIN_ROLE ([9843f27](https://github.com/b-partners/bpartners-api/commit/9843f27c15980e0e9c3b219f5dad54741c1e349d))
+* fix export area picture annotation data ([49bbf22](https://github.com/b-partners/bpartners-api/commit/49bbf22195fc51a23a2ab588343b38721f185514))
 
 
 ### Features
 
+* expot area picture annotation with annotator 3d ([a627df3](https://github.com/b-partners/bpartners-api/commit/a627df37f635edf843d646a65f53335a5acb79a3))
 * implement captcha token verification ([f05ac18](https://github.com/b-partners/bpartners-api/commit/f05ac180dda4a8f47bec1d0c8472272b235335da))
 
 

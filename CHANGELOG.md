@@ -1,3 +1,12 @@
+## [0.73.1](https://github.com/b-partners/bpartners-api/compare/v0.73.0...v0.73.1) (2025-12-02)
+
+
+### Bug Fixes
+
+* sync release version & publish client ([883dbc9](https://github.com/b-partners/bpartners-api/commit/883dbc9339dddceb73c372ae2df83327f74af22d))
+
+
+
 # [0.73.0](https://github.com/b-partners/bpartners-api/compare/v0.71.0...v0.73.0) (2025-12-02)
 
 
@@ -163,28 +172,6 @@
 ### Reverts
 
 * Revert "feat: make area picture creation permit for unauthenticated user" ([1e4ca90](https://github.com/b-partners/bpartners-api/commit/1e4ca90fe4d6bf7460a5309a7709406e6d4d3495))
-
-
-
-# [0.63.0](https://github.com/b-partners/bpartners-api/compare/v0.62.0...v0.63.0) (2025-03-10)
-
-
-### Bug Fixes
-
-* add pcrs and aerial photography layer in default layers ([8b07aaa](https://github.com/b-partners/bpartners-api/commit/8b07aaaf84ee43665dcd82a4e70ce2840f577858))
-* export annotation image generator measurementCoordinate ([58e281b](https://github.com/b-partners/bpartners-api/commit/58e281b9b5b2ca68c4a2c8a169cba7f119f3b19b))
-* **MonthlySubscriptionInvoiceRequestedService:** compute invoice for actual month date not last month ([9fb3bd4](https://github.com/b-partners/bpartners-api/commit/9fb3bd494b7750c3921fcc7185fc266711d85fe4))
-* pcrs resolution ([e5290e0](https://github.com/b-partners/bpartners-api/commit/e5290e009a63eef50c0fe38be5899055c975dac4))
-* remove unnecessary log on GeoCodingApiTest ([1f00fe9](https://github.com/b-partners/bpartners-api/commit/1f00fe9dc69c644c78cb75aee09d3da1fb0a3876))
-
-
-### Features
-
-* export annotation generate image ([3b1ecb8](https://github.com/b-partners/bpartners-api/commit/3b1ecb8572f7861bf64052e498750f8beac03ccf))
-* export area picture annotation endpoint ([4076ad4](https://github.com/b-partners/bpartners-api/commit/4076ad4e30787a8ab7a8c5b56d6725f0b883354f))
-* export area picture annotation pdf service ([e5214d9](https://github.com/b-partners/bpartners-api/commit/e5214d9b7f3e5ba5a2735ecc5ab6c5f621f65414))
-* get subordinates users of an user ([e0fad8b](https://github.com/b-partners/bpartners-api/commit/e0fad8b7dccd4921d4b7dda05a9b2cb3db11c566))
-* make area picture creation permit for unauthenticated user ([fe3c290](https://github.com/b-partners/bpartners-api/commit/fe3c2904ada1dcac6a7c14823e6630699c219896))
 
 
 

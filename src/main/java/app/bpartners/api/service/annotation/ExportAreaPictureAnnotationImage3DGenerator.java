@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ExportAreaPictureAnnotationImage3DGenerator {
-  private static final int TARGET_SIZE = 600;
+  private static final int TARGET_SIZE = 550;
   private static final int CONTENT_SIZE = 500;
 
   private static final int POLYGON_POINTS_SIZE = 10;
@@ -48,7 +48,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform = Transform.from(new Coordinates(allX, allY), CONTENT_SIZE, TARGET_SIZE);
 
-    var baseImage = new BufferedImage(TARGET_SIZE, TARGET_SIZE, BufferedImage.TYPE_INT_ARGB);
+    var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
 
     pans.forEach(
@@ -75,10 +75,42 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
     drawFillPolygon(g2d, SELECTED_PAN_COLOR, polygon);
     drawStrokePolygon(g2d, BLACK, POLYGON_STROKE, polygon);
-    drawPolygonPoints(g2d, BLACK, POLYGON_POINTS_SIZE, polygon);
-    drawPolygonMeasurements(g2d, MEASUREMENT_CONF, polygon, pan.getMeasurements());
 
     g2d.dispose();
-    return panImage;
+
+    var panImageWithMeasurements = generatePanImageWithMeasurements(pan);
+    return mergePanImagesSideBySide(panImage, panImageWithMeasurements);
+  }
+
+  public BufferedImage generatePanImageWithMeasurements(ExportAreaPictureAnnotation3DPan pan) {
+    var panImageWithMeasurements = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
+    var g2d = Graphics2DFactory.make(panImageWithMeasurements);
+
+    var coordinates = Coordinates.from(pan.getPolygon());
+    var transform = Transform.from(coordinates, CONTENT_SIZE - 10, TARGET_SIZE);
+    var mapped = transform.apply(coordinates);
+
+    drawFillPolygon(g2d, SELECTED_PAN_COLOR, mapped);
+    drawStrokePolygon(g2d, BLACK, POLYGON_STROKE, mapped);
+    drawPolygonPoints(g2d, BLACK, POLYGON_POINTS_SIZE, mapped);
+    drawPolygonMeasurements(g2d, MEASUREMENT_CONF, mapped, pan.getMeasurements());
+
+    g2d.dispose();
+    return panImageWithMeasurements;
+  }
+
+  public BufferedImage mergePanImagesSideBySide(
+      BufferedImage panImage, BufferedImage panImageWithMeasurements) {
+    int width = panImage.getWidth() + panImageWithMeasurements.getWidth();
+    int height = Math.max(panImage.getHeight(), panImageWithMeasurements.getHeight());
+    var mergedImage = BufferedImageFactory.make(width, height);
+
+    var g2d = Graphics2DFactory.make(mergedImage);
+
+    g2d.drawImage(panImage, 0, 0, null);
+    g2d.drawImage(panImageWithMeasurements, panImage.getWidth(), 0, null);
+
+    g2d.dispose();
+    return mergedImage;
   }
 }

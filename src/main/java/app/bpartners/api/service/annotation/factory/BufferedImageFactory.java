@@ -14,4 +14,8 @@ public class BufferedImageFactory {
 
     return copy;
   }
+
+  public static BufferedImage make(int width, int height) {
+    return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+  }
 }

@@ -41,7 +41,7 @@
 
         .main-image-3d {
             display: block;
-            width: 500px;
+            width: 400px;
             margin: 50px auto 30px auto;
         }
 
@@ -64,6 +64,13 @@
             display: block;
             width: 300px;
             margin-left: auto; /* align to right */
+            height: auto;
+        }
+
+        .annotation-item-image-3d{
+            display: block;
+            width: 400px;
+            margin-left: auto;
             height: auto;
         }
 
@@ -255,7 +262,7 @@
                 </p>
             </div>
             <img
-                class="annotation-item-image"
+                class="annotation-item-image-3d"
                 alt="annotation sub-image"
                 th:src="${subImages3D[page.size() * pageStat.index + panStat.index]}"
             />

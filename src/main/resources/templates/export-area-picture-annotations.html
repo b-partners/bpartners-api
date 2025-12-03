@@ -248,7 +248,7 @@
         </div>
     </section>
     <section th:if="${pages3D}" th:each="page, pageStat : ${pages3D}" class="page" th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
-        <h2 class="annotation-information-title"> Représentation générale du bâtiment 3D </h2>
+        <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
         <img alt="annotation-3d" class="main-image-3d" th:src="${mainImage3D}" th:if="${pageStat.first}" />
         <div th:each="pan, panStat: ${page}" class="annotation-item">
             <div class="annotation-item-labels">

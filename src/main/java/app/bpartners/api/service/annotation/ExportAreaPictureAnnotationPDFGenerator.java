@@ -85,7 +85,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     context.setVariable("mainImage", mainImageUri);
     context.setVariable("subImages", subImagesUris);
     context.setVariable(
-        "pages", groupByFirstPage(GroupedByKey.from(annotation.getAnnotations()), 3));
+        "pages", groupByFirstPage(GroupedByKey.from(annotation.getAnnotations()), 3, 3));
 
     if (annotation.getLlm() != null) {
       configureLLMContext(context, annotation);
@@ -115,7 +115,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       Context context,
       ExportAreaPictureAnnotation3D annotation3D,
       Pair<String, List<String>> annotation3DImages) {
-    var pages = groupByFirstPage(annotation3D.getPans(), 2);
+    var pages = groupByFirstPage(annotation3D.getPans(), 3, 4);
     var mainImage3DUri = base64ToUri(annotation3DImages.first());
     var panImages3DUris =
         annotation3DImages.second().stream()
@@ -127,7 +127,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     context.setVariable("subImages3D", panImages3DUris);
   }
 
-  public static <T> List<List<T>> groupByFirstPage(List<T> list, int firstPageMax) {
+  public static <T> List<List<T>> groupByFirstPage(List<T> list, int firstPageMax, int limit) {
     List<List<T>> pages = new ArrayList<>();
     var iterator = list.iterator();
 
@@ -141,7 +141,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
 
     while (iterator.hasNext()) {
       List<T> page = new ArrayList<>();
-      for (int i = 0; i < 3 && iterator.hasNext(); i++) {
+      for (int i = 0; i < limit && iterator.hasNext(); i++) {
         page.add(iterator.next());
       }
       pages.add(page);

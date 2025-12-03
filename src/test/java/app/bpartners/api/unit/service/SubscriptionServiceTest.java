@@ -28,13 +28,11 @@ import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
-import com.stripe.param.CustomerListParams;
-import com.stripe.param.SubscriptionItemListParams;
-import com.stripe.param.SubscriptionListParams;
-import com.stripe.param.UsageRecordCreateOnSubscriptionItemParams;
+import com.stripe.param.*;
 import com.stripe.service.CustomerService;
 import com.stripe.service.ProductService;
 import com.stripe.service.SubscriptionItemService;
+import com.stripe.service.SubscriptionScheduleService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -178,6 +176,12 @@ class SubscriptionServiceTest {
   void cancel_subscription_ko() {
     var stripeCustomerWithEmptySubscriptionId = "stripeCustomerWithEmptySubscriptionId";
     var stripeSubscriptionServiceMock1 = mock(com.stripe.service.SubscriptionService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of());
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock1);
     var stripeCollectionMock = mock(StripeCollection.class);
     when(stripeSubscriptionServiceMock1.list(any(SubscriptionListParams.class)))
@@ -223,6 +227,12 @@ class SubscriptionServiceTest {
     var inactiveStripeSubscription = new com.stripe.model.Subscription();
     inactiveStripeSubscription.setStatus("unknown");
     var stripeSubscriptionServiceMock1 = mock(com.stripe.service.SubscriptionService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of());
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock1);
     var stripeCollectionMock = mock(StripeCollection.class);
     when(stripeSubscriptionServiceMock1.list(any(SubscriptionListParams.class)))
@@ -253,6 +263,8 @@ class SubscriptionServiceTest {
     var stripeCollectionMock = mock(StripeCollection.class);
     var stripeCustomerServiceMock = mock(CustomerService.class);
     var customerStripeCollectionMock = mock(StripeCollection.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(userMock.getId()))
         .thenReturn(Optional.empty());
     when(subscriptionEligibleJpaRepositoryMock.save(any()))
@@ -262,6 +274,11 @@ class SubscriptionServiceTest {
     when(stripeCollectionMock.getData()).thenReturn(List.of());
     when(stripeSubscriptionService.list(any(SubscriptionListParams.class)))
         .thenReturn(stripeCollectionMock);
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of());
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionService);
     when(customerStripeCollectionMock.getData()).thenReturn(List.of(new Customer()));
     when(stripeCustomerServiceMock.list(any(CustomerListParams.class)))

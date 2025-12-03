@@ -335,15 +335,20 @@ public class SubscriptionService {
     return UserSubscription.builder().user(user).subscriptions(defaultActiveSubscription()).build();
   }
 
-  private static @NotNull List<Subscription> defaultActiveSubscription() {
-    Instant now = now();
+  private static @NotNull List<Subscription> defaultActiveSubscription(
+      Subscription.SubscriptionStatus subscriptionStatus, Instant start, Instant end) {
     return List.of(
         Subscription.builder()
             .active(true)
-            .status(TRIALING)
-            .startDatetime(now)
-            .endDatetime(now)
+            .status(subscriptionStatus)
+            .startDatetime(start)
+            .endDatetime(end)
             .build());
+  }
+
+  private static @NotNull List<Subscription> defaultActiveSubscription() {
+    Instant now = now();
+    return defaultActiveSubscription(TRIALING, now, now);
   }
 
   @SneakyThrows
@@ -579,40 +584,67 @@ public class SubscriptionService {
 
   private @NotNull List<Subscription> getSubscriptionsFromStripeCustomer(String stripeCustomerId)
       throws StripeException {
+    var activeScheduledSubscriptions = getActiveSubscriptionSchedules(stripeCustomerId);
     var stripeSubscriptions =
         stripeClient
             .subscriptions()
-            .list(SubscriptionListParams.builder().setCustomer(stripeCustomerId).build())
+            .list(
+                SubscriptionListParams.builder()
+                    .setCustomer(stripeCustomerId)
+                    .setStatus(SubscriptionListParams.Status.ALL)
+                    .build())
             .getData();
-    return stripeSubscriptions.stream()
-        .map(
-            subscription -> {
-              var currentPeriodStartLongValue = subscription.getCurrentPeriodStart();
-              var startDatetime =
-                  currentPeriodStartLongValue == null
-                      ? null
-                      : Instant.ofEpochSecond(currentPeriodStartLongValue);
-              var currentPeriodEndLongValue = subscription.getCurrentPeriodEnd();
-              var endDatetime =
-                  currentPeriodEndLongValue == null
-                      ? null
-                      : Instant.ofEpochSecond(currentPeriodEndLongValue);
-              var status = computeUserSubscriptionStatus(subscription);
-              var paymentSettings = subscription.getPaymentSettings();
-              return Subscription.builder()
-                  .id(randomUUID().toString()) // TODO: update when subscription history persisted
-                  .e2Id(subscription.getId())
-                  .startDatetime(startDatetime)
-                  .endDatetime(endDatetime)
-                  .status(status)
-                  .active(!status.equals(UNKNOWN))
-                  .paymentMethods(
-                      paymentSettings == null
-                          ? new ArrayList<>()
-                          : paymentSettings.getPaymentMethodTypes())
-                  .build();
-            })
+    if (!activeScheduledSubscriptions.isEmpty()
+        && stripeSubscriptions.stream()
+            .noneMatch(
+                stripeSubscription -> stripeSubscription.getStatus().equalsIgnoreCase("active"))) {
+      var scheduledStripeSubscriptionStartDate =
+          activeScheduledSubscriptions.getFirst().getPhases().getFirst().getStartDate();
+      var domainSubscriptionStartDate =
+          Instant.ofEpochSecond(activeScheduledSubscriptions.getFirst().getCreated());
+      var domainSubscriptionEndDate = Instant.ofEpochSecond(scheduledStripeSubscriptionStartDate);
+      return defaultActiveSubscription(
+          ACTIVE, domainSubscriptionStartDate, domainSubscriptionEndDate);
+    }
+    return stripeSubscriptions.stream().map(this::mapToDomain).toList();
+  }
+
+  private List<SubscriptionSchedule> getActiveSubscriptionSchedules(String stripeCustomerId)
+      throws StripeException {
+    var scheduledSubscriptions =
+        stripeClient
+            .subscriptionSchedules()
+            .list(SubscriptionScheduleListParams.builder().setCustomer(stripeCustomerId).build())
+            .getData();
+    return scheduledSubscriptions.stream()
+        .filter(
+            subscriptionSchedule ->
+                subscriptionSchedule.getCanceledAt() == null
+                    && subscriptionSchedule.getStatus().equalsIgnoreCase("not_started"))
         .toList();
+  }
+
+  private Subscription mapToDomain(com.stripe.model.Subscription stripeSubscription) {
+    var currentPeriodStartLongValue = stripeSubscription.getCurrentPeriodStart();
+    var startDatetime =
+        currentPeriodStartLongValue == null
+            ? null
+            : Instant.ofEpochSecond(currentPeriodStartLongValue);
+    var currentPeriodEndLongValue = stripeSubscription.getCurrentPeriodEnd();
+    var endDatetime =
+        currentPeriodEndLongValue == null ? null : Instant.ofEpochSecond(currentPeriodEndLongValue);
+    var status = computeUserSubscriptionStatus(stripeSubscription);
+    var paymentSettings = stripeSubscription.getPaymentSettings();
+    return Subscription.builder()
+        .id(randomUUID().toString()) // TODO: update when subscription history persisted
+        .e2Id(stripeSubscription.getId())
+        .startDatetime(startDatetime)
+        .endDatetime(endDatetime)
+        .status(status)
+        .active(!status.equals(UNKNOWN))
+        .paymentMethods(
+            paymentSettings == null ? new ArrayList<>() : paymentSettings.getPaymentMethodTypes())
+        .build();
   }
 
   private static Subscription.SubscriptionStatus computeUserSubscriptionStatus(

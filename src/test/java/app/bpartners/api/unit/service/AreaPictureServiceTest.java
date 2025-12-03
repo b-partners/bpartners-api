@@ -32,7 +32,6 @@ import app.bpartners.api.service.wms.imageSource.WmsImageSource;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

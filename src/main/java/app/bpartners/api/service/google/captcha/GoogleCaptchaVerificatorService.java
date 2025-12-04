@@ -37,6 +37,6 @@ public class GoogleCaptchaVerificatorService {
     GoogleCaptchaResponse data = response.getBody();
     log.info("GoogleCaptchaResponse={}", data);
 
-    return data != null && data.isSuccess() && data.getScore() != null && data.getScore() > 0.5;
+    return data != null && data.isSuccess() && data.getScore() != null && data.getScore() > 0.7;
   }
 }

@@ -24,7 +24,7 @@ public class GoogleCaptchaVerificatorServiceTest {
   @Test
   void verifyCaptcha() {
     GoogleCaptchaResponse mockResponse =
-        GoogleCaptchaResponse.builder().success(true).score(0.6).build();
+        GoogleCaptchaResponse.builder().success(true).score(0.8).build();
 
     ResponseEntity<GoogleCaptchaResponse> responseEntity =
         new ResponseEntity<>(mockResponse, HttpStatus.OK);

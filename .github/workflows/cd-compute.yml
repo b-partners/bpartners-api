@@ -46,7 +46,7 @@ jobs:
       - name: Disable tests
         if: ${{ github.event.inputs.run_tests == 'no' }}
         run: |
-          printf "tasks.named('test').configure {\n    enabled = false\n}" >> build.gradle
+          echo "skipTests=true" >> gradle.properties
 
       - run: sam build
 

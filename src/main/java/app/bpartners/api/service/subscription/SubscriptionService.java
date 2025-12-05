@@ -5,6 +5,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 import static app.bpartners.api.model.subscription.SessionMode.SETUP;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static java.time.Instant.now;
@@ -25,10 +26,7 @@ import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
-import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
-import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
-import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
+import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
@@ -67,6 +65,7 @@ public class SubscriptionService {
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
   private final StripeFactory stripeFactory;
   private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
+  private final DetectionTrackingJpaRepository detectionTrackingJpaRepository;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -187,8 +186,30 @@ public class SubscriptionService {
       String userId, @Nullable Instant from, @Nullable Instant to) {
     var startOfMonth = temporalUtils.startOfMonth();
     var endOfMonth = temporalUtils.endOfMonth();
-    return consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-        userId, from == null ? startOfMonth : from, to == null ? endOfMonth : to);
+    return detectionTrackingJpaRepository
+        .findAllByIdUserAndCreationDatetimeBetween(
+            userId, from == null ? startOfMonth : from, to == null ? endOfMonth : to)
+        .stream()
+        .map(
+            tracking ->
+                SubscriptionConsumptionLog.builder()
+                    .id(tracking.getId())
+                    .userId(userId)
+                    .consumptionType(ROOF_ANALYSIS)
+                    .usageMetric(1L)
+                    .comment(
+                        "Adresse : "
+                            + tracking.getAddress()
+                            + " - Initiateur : "
+                            + tracking.getInitiatorName()
+                            + " - "
+                            + tracking.getInitiatorEmail()
+                            + " - "
+                            + tracking.getInitiatorPhoneNumber())
+                    .creationDatetime(tracking.getCreationDatetime())
+                    .consumptionUnit(UNIT)
+                    .build())
+        .toList();
   }
 
   public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {

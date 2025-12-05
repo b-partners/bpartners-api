@@ -385,6 +385,41 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  convertPixelToLonLat:
+    post:
+      tags:
+        - AreaPicture
+      summary: convert annotations pixel coordinates to LonLat
+      operationId: convertAreaPictureAnnotationsToLonLat
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConverterData'
+      responses:
+        200:
+          description: Converted annotations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConverterData'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   convertLatLonPolygonToPixel:
     post:
       tags:

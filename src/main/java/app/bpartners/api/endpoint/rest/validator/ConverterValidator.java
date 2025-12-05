@@ -7,11 +7,11 @@ import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LatLonDataToPixelValidator implements Consumer<Map<String, ConverterAnnotation>> {
+public class ConverterValidator implements Consumer<Map<String, ConverterAnnotation>> {
   @Override
   public void accept(Map<String, ConverterAnnotation> converterPolygonAnnotations) {
     if (converterPolygonAnnotations.size() != 1) {
-      throw new BadRequestException("Only one LatLongPolygonAnnotation is supported");
+      throw new BadRequestException("Only one PolygonAnnotation is supported");
     }
 
     var converterPolygonAnnotation = converterPolygonAnnotations.values().iterator().next();

@@ -6,14 +6,15 @@ import app.bpartners.api.endpoint.rest.model.ConverterAnnotation;
 import app.bpartners.api.endpoint.rest.model.ConverterAnnotationRegion;
 import app.bpartners.api.endpoint.rest.model.ConverterAnnotationShapeAttributes;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.service.annotation.LatLonPolygonToPixelConverter;
+import app.bpartners.api.service.annotation.AreaPictureAnnotationConverter;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class LatLonPolygonToPixelConverterTest {
-  private static final LatLonPolygonToPixelConverter subject = new LatLonPolygonToPixelConverter();
+class AreaPictureAnnotationConverterTest {
+  private static final AreaPictureAnnotationConverter subject =
+      new AreaPictureAnnotationConverter();
   private static final String FILE_NAME = "4f0df528c51644f8a5050f1e3a4ee2b8_20_523561_370292.jpg";
 
   private static ConverterAnnotation latLongConverterAnnotation() {
@@ -103,7 +104,7 @@ class LatLonPolygonToPixelConverterTest {
     var payload = latLongConverterAnnotation();
     var expected = pixelConverterAnnotation();
 
-    var actualMapOfConvertAnnotation = subject.apply(Map.of("id", payload));
+    var actualMapOfConvertAnnotation = subject.toPixel(Map.of("id", payload));
 
     assertEquals(1, actualMapOfConvertAnnotation.size());
 
@@ -112,12 +113,26 @@ class LatLonPolygonToPixelConverterTest {
   }
 
   @Test
+  void convert_to_lon_lat_ok() {
+    var payload = pixelConverterAnnotation();
+    var expected = latLongConverterAnnotation();
+
+    var actualMapOfConvertAnnotation = subject.toLatLong(Map.of("id", payload));
+
+    assertEquals(1, actualMapOfConvertAnnotation.size());
+
+    var actual = actualMapOfConvertAnnotation.get(FILE_NAME);
+    assertEquals(expected.getFilename(), actual.getFilename());
+    assertEquals(expected.getZoom(), actual.getZoom());
+  }
+
+  @Test
   void apply_withInvalidFilename_shouldThrowBadRequestException() {
     var latLongConverterAnnotation = latLongConverterAnnotation().filename("invalid_file_name");
 
     var input = Map.of("id", latLongConverterAnnotation);
 
-    var ex = assertThrows(BadRequestException.class, () -> subject.apply(input));
+    var ex = assertThrows(BadRequestException.class, () -> subject.toPixel(input));
     assertTrue(ex.getMessage().contains("Wrong filename received"));
   }
 }

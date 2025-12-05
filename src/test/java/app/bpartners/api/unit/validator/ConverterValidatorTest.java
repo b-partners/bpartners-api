@@ -5,15 +5,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import app.bpartners.api.endpoint.rest.model.ConverterAnnotation;
 import app.bpartners.api.endpoint.rest.model.ConverterAnnotationRegion;
 import app.bpartners.api.endpoint.rest.model.ConverterAnnotationShapeAttributes;
-import app.bpartners.api.endpoint.rest.validator.LatLonDataToPixelValidator;
+import app.bpartners.api.endpoint.rest.validator.ConverterValidator;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class LatLonDataToPixelValidatorTest {
-  private static final LatLonDataToPixelValidator subject = new LatLonDataToPixelValidator();
+class ConverterValidatorTest {
+  private static final ConverterValidator subject = new ConverterValidator();
 
   private static ConverterAnnotation validAnnotation() {
     var region =
@@ -44,7 +44,7 @@ class LatLonDataToPixelValidatorTest {
   void multiple_polygons_should_throw() {
     var input = Map.of("a1", validAnnotation(), "a2", validAnnotation());
     var ex = assertThrows(BadRequestException.class, () -> subject.accept(input));
-    assertTrue(ex.getMessage().contains("Only one LatLongPolygonAnnotation"));
+    assertTrue(ex.getMessage().contains("Only one PolygonAnnotation"));
   }
 
   @Test

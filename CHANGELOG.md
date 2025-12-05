@@ -1,3 +1,17 @@
+# [0.74.0](https://github.com/b-partners/bpartners-api/compare/v0.73.1...v0.74.0) (2025-12-05)
+
+
+### Bug Fixes
+
+* deployment without test ([5de528c](https://github.com/b-partners/bpartners-api/commit/5de528c2eb1723aadc309309e2f899a6220c360d))
+
+
+### Features
+
+* convert area picture annotation pixel to latlon ([36119d1](https://github.com/b-partners/bpartners-api/commit/36119d1f84cd1bb8ab4dde3e30addabeba2edd8c))
+
+
+
 ## [0.73.1](https://github.com/b-partners/bpartners-api/compare/v0.73.0...v0.73.1) (2025-12-02)
 
 
@@ -163,15 +177,6 @@
 * Revert "feat: make area picture creation permit for unauthenticated user" ([59f8827](https://github.com/b-partners/bpartners-api/commit/59f882722030fbb224d7e165b54b48bb21b1a5c0))
 * Revert "chore(to-revert): comment deactivate fintecture" ([0e21db6](https://github.com/b-partners/bpartners-api/commit/0e21db6df388fb9f4b5f913fb058a152a0c3c3ab))
 * chore(to-revert): get invoice for february 2025 ([e18abbf](https://github.com/b-partners/bpartners-api/commit/e18abbfd60b2a61c1664c65bccaecb3e6edab291))
-
-
-
-# [0.64.0](https://github.com/b-partners/bpartners-api/compare/v0.63.0...v0.64.0) (2025-03-11)
-
-
-### Reverts
-
-* Revert "feat: make area picture creation permit for unauthenticated user" ([1e4ca90](https://github.com/b-partners/bpartners-api/commit/1e4ca90fe4d6bf7460a5309a7709406e6d4d3495))
 
 
 

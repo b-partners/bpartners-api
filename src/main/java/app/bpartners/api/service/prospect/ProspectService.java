@@ -48,6 +48,7 @@ import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.service.SnsService;
@@ -103,6 +104,7 @@ public class ProspectService {
   private final CalendarApi calendarApi;
   private final TemplateResolverEngine templateResolverEngine;
   private final CustomDateFormatter customDateFormatter;
+  private final ProspectJpaRepository prospectJpaRepository;
 
   private static List<ProspectResult> ratedCustomers(
       List<ProspectResult> prospectResults, Double minRating) {
@@ -289,16 +291,40 @@ public class ProspectService {
 
   @Transactional
   public List<Prospect> saveAll(List<Prospect> toCreate) {
-    List<Prospect> savedProspects = repository.saveAll(toCreate);
+    var prospects =
+        toCreate.stream()
+            .map(
+                prospect -> {
+                  var prospectEmail = prospect.getEmail();
+                  if (prospectEmail == null) {
+                    return prospect;
+                  }
+                  var existingProspects =
+                      prospectJpaRepository.findByOldEmailOrNewEmail(prospectEmail, prospectEmail);
+                  if (existingProspects.isEmpty()) {
+                    return prospect;
+                  }
+                  return prospect.toBuilder().isNew(true).build();
+                })
+            .toList();
+    var savedProspects = repository.saveAll(toCreate);
 
     savedProspects.forEach(
-        savedProspect -> eventProducer.accept(List.of(toTypedEvent(savedProspect))));
+        savedProspect -> {
+          var optionalProspect =
+              prospects.stream()
+                  .filter(prospect -> savedProspect.getId().equals(prospect.getId()))
+                  .findFirst();
+          eventProducer.accept(
+              List.of(
+                  ProspectUpdated.builder()
+                      .prospect(savedProspect)
+                      .isNew(optionalProspect.map(Prospect::isNew).orElse(false))
+                      .updatedAt(Instant.now())
+                      .build()));
+        });
 
     return savedProspects;
-  }
-
-  private ProspectUpdated toTypedEvent(Prospect prospect) {
-    return ProspectUpdated.builder().prospect(prospect).updatedAt(Instant.now()).build();
   }
 
   @Transactional
@@ -311,7 +337,11 @@ public class ProspectService {
 
     eventProducer.accept(
         List.of(
-            ProspectUpdated.builder().prospect(savedProspect).updatedAt(Instant.now()).build()));
+            ProspectUpdated.builder()
+                .prospect(savedProspect)
+                .isNew(false)
+                .updatedAt(Instant.now())
+                .build()));
 
     return savedProspect;
   }

@@ -1,0 +1,37 @@
+<html>
+<head>
+    <title>Notification de nouveaux prospects</title>
+    <style>
+
+        body {
+            font-family: Helvetica, serif;
+        }
+    </style>
+</head>
+<body>
+<section>
+    <p>Bonjour,</p>
+    <p>Ce nouveau prospect vient de faire une analyse sur votre site, ne perdez plus de temps et passez lui un coup de
+        fil
+        ou partagez lui un rapport complet de sa toiture :
+    </p>
+    <ul>
+        <li>Nom(s) : <span th:text="${prospect.getName()}"></span></li>
+        <li>Prénom(s) : <span th:text="${prospect.getFirstName()}"></span></li>
+        <li>Email : <span th:text="${prospect.getEmail()}"></span></li>
+        <li>Numéro de téléphone : <span th:text="${prospect.getPhone()}"></span></li>
+        <li>Adresse : <span th:text="${prospect.getAddress()}"></span></li>
+        <li>Commentaire : <span th:text="${prospect.getComment()}"></span></li>
+    </ul>
+</section>
+<footer>
+    <p>
+        L'équipe BirdIA<br/>
+        BIRDIA (Ex-bpartnersIA) - Valorisation d'images aériennes par IA <br>
+        14 rue soleillet, 75020, Paris <br>
+        06 68 62 48 36 <br>
+        <a href="https://www.birdia.fr">https://www.birdia.fr</a><br>
+    </p>
+</footer>
+</body>
+</html>

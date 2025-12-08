@@ -34,12 +34,12 @@ import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
-import app.bpartners.api.service.event.ProspectUpdatedService;
 import app.bpartners.api.service.prospect.ProspectService;
 import app.bpartners.api.service.prospect.ProspectStatusService;
 import app.bpartners.api.service.user.UserService;
@@ -71,8 +71,8 @@ class ProspectServiceTest {
   ProspectStatusService prospectStatusService = mock(ProspectStatusService.class);
   UserService userServiceMock = mock(UserService.class);
   SnsService snsServiceMock = mock(SnsService.class);
-  ProspectUpdatedService prospectUpdatedService = mock(ProspectUpdatedService.class);
   CalendarApi calendarApiMock = mock(CalendarApi.class);
+  ProspectJpaRepository prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
   ProspectService subject =
       new ProspectService(
           repositoryMock,
@@ -90,7 +90,8 @@ class ProspectServiceTest {
           userServiceMock,
           calendarApiMock,
           mock(),
-          new CustomDateFormatter());
+          new CustomDateFormatter(),
+          prospectJpaRepositoryMock);
 
   @BeforeEach
   void setup() {

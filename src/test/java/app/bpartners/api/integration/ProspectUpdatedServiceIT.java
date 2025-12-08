@@ -40,12 +40,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-public class ProspectUpdatedServiceIT extends MockedThirdParties {
+class ProspectUpdatedServiceIT extends MockedThirdParties {
   private static final String PROSPECT_8_ID = "prospect8_id";
   private static final String PROSPECT_9_ID = "prospect9_id";
   private static final String PROSPECT_10_ID = "prospect10_id";
   private static final String PROSPECT_8_CUSTOMER_1_ID = "prospect_8_customer_1_id";
-  public static final Instant DEFAULT_INSTANT = Instant.parse("2023-02-01T00:00:00.00Z");
+  private static final Instant DEFAULT_INSTANT = Instant.parse("2023-02-01T00:00:00.00Z");
   @Autowired ProspectUpdatedService subject;
 
   @MockBean SesConf sesConf;
@@ -149,7 +149,7 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
     String prospectUpdatedHtmlSubject =
         "Le prospect intitulé Johnny\tPauline appartenant à l'artisan NUMER est passé en statut À"
             + " CONTACTER le 01/02/2023 01:00";
-    ProspectUpdated payload = new ProspectUpdated(prospect9(), DEFAULT_INSTANT);
+    ProspectUpdated payload = new ProspectUpdated(prospect9(), false, DEFAULT_INSTANT);
 
     subject.accept(payload);
 
@@ -173,7 +173,7 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
         "Le prospect intitulé Johnny\tPaulinette appartenant à l'artisan NUMER est passé en statut"
             + " À CONTACTER le 01/02/2023 01:00";
     Prospect payloadProspect = prospect10();
-    ProspectUpdated payload = new ProspectUpdated(payloadProspect, DEFAULT_INSTANT);
+    ProspectUpdated payload = new ProspectUpdated(payloadProspect, false, DEFAULT_INSTANT);
 
     subject.accept(payload);
 
@@ -197,7 +197,7 @@ public class ProspectUpdatedServiceIT extends MockedThirdParties {
         "Le prospect intitulé Johnny\tPaul appartenant à l'artisan NUMER est passé en statut À"
             + " CONTACTER le 01/02/2023 01:00";
     Prospect updatedProspect8 = setConverted(prospect8());
-    ProspectUpdated payload = new ProspectUpdated(updatedProspect8, DEFAULT_INSTANT);
+    ProspectUpdated payload = new ProspectUpdated(updatedProspect8, false, DEFAULT_INSTANT);
 
     subject.accept(payload);
 

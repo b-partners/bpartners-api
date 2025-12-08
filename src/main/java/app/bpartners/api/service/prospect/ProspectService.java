@@ -302,9 +302,9 @@ public class ProspectService {
                   var existingProspects =
                       prospectJpaRepository.findByOldEmailOrNewEmail(prospectEmail, prospectEmail);
                   if (existingProspects.isEmpty()) {
-                    return prospect;
+                    return prospect.toBuilder().isNew(true).build();
                   }
-                  return prospect.toBuilder().isNew(true).build();
+                  return prospect;
                 })
             .toList();
     var savedProspects = repository.saveAll(toCreate);
@@ -313,7 +313,8 @@ public class ProspectService {
         savedProspect -> {
           var optionalProspect =
               prospects.stream()
-                  .filter(prospect -> savedProspect.getId().equals(prospect.getId()))
+                  .filter(
+                      prospect -> savedProspect.getEmail().equalsIgnoreCase(prospect.getEmail()))
                   .findFirst();
           eventProducer.accept(
               List.of(

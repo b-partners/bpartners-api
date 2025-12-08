@@ -77,6 +77,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
       List<Attachment> attachments = List.of();
       String body = customHtmlBody(prospect);
 
+      log.info("Prospect notified for account holder {}", accountHolder.getEmail());
       sesService.sendEmail(recipient, cc, subject, body, attachments);
     }
   }

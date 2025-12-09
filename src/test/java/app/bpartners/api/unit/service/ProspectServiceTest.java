@@ -37,6 +37,7 @@ import app.bpartners.api.repository.google.calendar.drive.DriveApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
+import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.service.SnsService;
@@ -53,6 +54,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import javax.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,6 +81,7 @@ class ProspectServiceTest {
   SnsService snsServiceMock = mock(SnsService.class);
   CalendarApi calendarApiMock = mock(CalendarApi.class);
   ProspectJpaRepository prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
+  UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
   ProspectService subject =
       new ProspectService(
           repositoryMock,
@@ -97,7 +100,8 @@ class ProspectServiceTest {
           calendarApiMock,
           mock(),
           new CustomDateFormatter(),
-          prospectJpaRepositoryMock);
+          prospectJpaRepositoryMock,
+          userWhiteListedJpaRepositoryMock);
 
   @BeforeEach
   void setup() {
@@ -148,6 +152,8 @@ class ProspectServiceTest {
     when(prospectTwo.toBuilder()).thenReturn(prospectBuilderTwo);
     var toSave = List.of(prospectOne, prospectTwo);
 
+    when(userWhiteListedJpaRepositoryMock.findByIdAccountHolder(any()))
+        .thenReturn(Optional.empty());
     when(prospectJpaRepositoryMock.findByOldEmailOrNewEmailAndIdAccountHolder(any(), any(), any()))
         .thenReturn(List.of());
     when(repositoryMock.saveAll(anyList()))
@@ -191,8 +197,9 @@ class ProspectServiceTest {
     when(prospectOne.toBuilder()).thenReturn(prospectBuilderOne);
     when(prospectTwo.toBuilder()).thenReturn(prospectBuilderTwo);
     var toSave = List.of(prospectOne, prospectTwo);
-    log.info("Prospect one mail : {}", prospectOneEmail);
 
+    when(userWhiteListedJpaRepositoryMock.findByIdAccountHolder(any()))
+        .thenReturn(Optional.empty());
     when(prospectJpaRepositoryMock.findByOldEmailOrNewEmailAndIdAccountHolder(
             eq(prospectOneEmail), eq(prospectOneEmail), any()))
         .thenReturn(List.of(persistedProspect));
@@ -203,6 +210,54 @@ class ProspectServiceTest {
     assertEquals(
         "Prospect with mail " + prospectOneEmail + " already exists. ",
         actualException.getMessage());
+  }
+
+  @Test
+  void
+      do_not_produces_exception_when_attempting_save_existing_prospects_when_user_whitelisted_and_do_not_triggers_events() {
+    var prospectOne = mock(Prospect.class);
+    var prospectTwo = mock(Prospect.class);
+    var persistedProspect = mock(HProspect.class);
+    var prospectOneEmail = randomUUID().toString();
+    var prospectOneIdentifier = randomUUID().toString();
+    var prospectBuilderOne = mock(Prospect.ProspectBuilder.class);
+    var prospectBuilderTwo = mock(Prospect.ProspectBuilder.class);
+
+    when(prospectOne.getId()).thenReturn(prospectOneIdentifier);
+    when(persistedProspect.getId())
+        .thenReturn(randomUUID().toString()); // Another than prospect one
+    when(prospectOne.getEmail()).thenReturn(prospectOneEmail);
+    when(persistedProspect.getOldEmail()).thenReturn(prospectOneEmail);
+    when(persistedProspect.getNewEmail()).thenReturn(prospectOneEmail);
+    when(prospectTwo.getEmail()).thenReturn(randomUUID().toString());
+    when(prospectOne.isNew()).thenReturn(false);
+    when(prospectTwo.isNew()).thenReturn(true);
+    when(prospectBuilderOne.isNew(false)).thenReturn(prospectBuilderOne);
+    when(prospectBuilderTwo.isNew(true)).thenReturn(prospectBuilderTwo);
+    when(prospectBuilderOne.build()).thenReturn(prospectOne);
+    when(prospectBuilderTwo.build()).thenReturn(prospectTwo);
+    when(prospectOne.toBuilder()).thenReturn(prospectBuilderOne);
+    when(prospectTwo.toBuilder()).thenReturn(prospectBuilderTwo);
+    var toSave = List.of(prospectOne, prospectTwo);
+
+    when(userWhiteListedJpaRepositoryMock.findByIdAccountHolder(any()))
+        .thenReturn(Optional.of(mock()));
+    when(prospectJpaRepositoryMock.findByOldEmailOrNewEmailAndIdAccountHolder(
+            eq(prospectOneEmail), eq(prospectOneEmail), any()))
+        .thenReturn(List.of(persistedProspect));
+    when(repositoryMock.saveAll(anyList()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+
+    var actual = subject.saveAll(toSave);
+
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducerMock, times(2)).accept(eventCaptor.capture());
+    var eventCaptorValues = eventCaptor.getAllValues();
+    var firstEvent = (ProspectUpdated) eventCaptorValues.getFirst().getFirst();
+    var secondEvent = (ProspectUpdated) eventCaptorValues.getLast().getFirst();
+    assertEquals(toSave, actual);
+    assertEquals(new ProspectUpdated(prospectOne, false, firstEvent.getUpdatedAt()), firstEvent);
+    assertEquals(new ProspectUpdated(prospectTwo, true, secondEvent.getUpdatedAt()), secondEvent);
   }
 
   @Test

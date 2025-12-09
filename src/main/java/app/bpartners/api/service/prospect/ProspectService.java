@@ -64,13 +64,7 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
@@ -290,24 +284,13 @@ public class ProspectService {
   }
 
   @Transactional
-  public List<Prospect> saveAll(List<Prospect> toCreate) {
-    var prospects =
-        toCreate.stream()
-            .map(
-                prospect -> {
-                  var prospectEmail = prospect.getEmail();
-                  if (prospectEmail == null) {
-                    return prospect;
-                  }
-                  var existingProspects =
-                      prospectJpaRepository.findByOldEmailOrNewEmail(prospectEmail, prospectEmail);
-                  if (existingProspects.isEmpty()) {
-                    return prospect.toBuilder().isNew(true).build();
-                  }
-                  return prospect;
-                })
-            .toList();
-    var savedProspects = repository.saveAll(toCreate);
+  public List<Prospect> saveAll(List<Prospect> toSave) {
+    StringBuilder exceptionBuilder = new StringBuilder();
+    var prospects = handleProspectToSave(toSave, exceptionBuilder);
+    if (!exceptionBuilder.isEmpty()) {
+      throw new BadRequestException(exceptionBuilder.toString());
+    }
+    var savedProspects = repository.saveAll(toSave);
 
     savedProspects.forEach(
         savedProspect -> {
@@ -326,6 +309,38 @@ public class ProspectService {
         });
 
     return savedProspects;
+  }
+
+  private List<Prospect> handleProspectToSave(
+      List<Prospect> toSave, StringBuilder exceptionBuilder) {
+    return toSave.stream()
+        .map(
+            prospectToSave -> {
+              var prospectEmail = prospectToSave.getEmail();
+              if (prospectEmail == null) {
+                return prospectToSave;
+              }
+              var existingProspects =
+                  prospectJpaRepository.findByOldEmailOrNewEmailAndIdAccountHolder(
+                      prospectEmail, prospectEmail, prospectToSave.getIdHolderOwner());
+              if (existingProspects.isEmpty()) {
+                return prospectToSave.toBuilder().isNew(true).build();
+              }
+              var newProspectAlreadyPersistedButWithOtherIds =
+                  existingProspects.stream()
+                      .noneMatch(
+                          existingProspect ->
+                              existingProspect.getId().equals(prospectToSave.getId()));
+              if (newProspectAlreadyPersistedButWithOtherIds) {
+                exceptionBuilder
+                    .append("Prospect with mail ")
+                    .append(prospectEmail)
+                    .append(" already exists. ");
+                return null;
+              }
+              return prospectToSave;
+            })
+        .toList();
   }
 
   @Transactional

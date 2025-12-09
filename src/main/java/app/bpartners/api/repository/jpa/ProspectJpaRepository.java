@@ -10,7 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 public interface ProspectJpaRepository extends JpaRepository<HProspect, String> {
 
   // TODO must be optional (as each prospect must only have unique mail)
-  List<HProspect> findByOldEmailOrNewEmail(String oldEmail, String newEmail);
+  List<HProspect> findByOldEmailOrNewEmailAndIdAccountHolder(
+      String oldEmail, String newEmail, String idAccountHolder);
 
   List<HProspect> findAllByIdAccountHolder(String idAccountHolder, Pageable pageable);
 

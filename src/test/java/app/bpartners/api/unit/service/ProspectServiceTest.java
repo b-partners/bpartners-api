@@ -7,6 +7,7 @@ import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PR
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
 import static app.bpartners.api.service.prospect.ProspectService.removeDuplications;
 import static java.time.Instant.now;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,6 +16,7 @@ import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
+import app.bpartners.api.endpoint.event.model.ProspectUpdated;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Location;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -36,6 +38,7 @@ import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
+import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.CustomerService;
@@ -51,9 +54,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.mail.MessagingException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+@Slf4j
 class ProspectServiceTest {
   ProspectRepository repositoryMock = mock(ProspectRepository.class);
   ProspectDataProcesser dataProcesserMock = mock(ProspectDataProcesser.class);
@@ -121,6 +127,82 @@ class ProspectServiceTest {
     subject.prospect();
 
     verify(sesServiceMock, never()).sendEmail(any(), any(), any(), any(), any());
+  }
+
+  @Test
+  void save_not_existing_prospects_and_triggers_events() {
+    var prospectOne = mock(Prospect.class);
+    var prospectTwo = mock(Prospect.class);
+    var prospectBuilderOne = mock(Prospect.ProspectBuilder.class);
+    var prospectBuilderTwo = mock(Prospect.ProspectBuilder.class);
+
+    when(prospectOne.getEmail()).thenReturn(randomUUID().toString());
+    when(prospectTwo.getEmail()).thenReturn(randomUUID().toString());
+    when(prospectOne.isNew()).thenReturn(true);
+    when(prospectTwo.isNew()).thenReturn(true);
+    when(prospectBuilderOne.isNew(true)).thenReturn(prospectBuilderOne);
+    when(prospectBuilderTwo.isNew(true)).thenReturn(prospectBuilderTwo);
+    when(prospectBuilderOne.build()).thenReturn(prospectOne);
+    when(prospectBuilderTwo.build()).thenReturn(prospectTwo);
+    when(prospectOne.toBuilder()).thenReturn(prospectBuilderOne);
+    when(prospectTwo.toBuilder()).thenReturn(prospectBuilderTwo);
+    var toSave = List.of(prospectOne, prospectTwo);
+
+    when(prospectJpaRepositoryMock.findByOldEmailOrNewEmailAndIdAccountHolder(any(), any(), any()))
+        .thenReturn(List.of());
+    when(repositoryMock.saveAll(anyList()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+
+    var actual = subject.saveAll(toSave);
+
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducerMock, times(2)).accept(eventCaptor.capture());
+    var eventCaptorValues = eventCaptor.getAllValues();
+    var firstEvent = (ProspectUpdated) eventCaptorValues.getFirst().getFirst();
+    var secondEvent = (ProspectUpdated) eventCaptorValues.getLast().getFirst();
+    assertEquals(toSave, actual);
+    assertEquals(new ProspectUpdated(prospectOne, true, firstEvent.getUpdatedAt()), firstEvent);
+    assertEquals(new ProspectUpdated(prospectTwo, true, secondEvent.getUpdatedAt()), secondEvent);
+  }
+
+  @Test
+  void produces_exception_when_attempting_save_existing_prospects_and_do_not_triggers_events() {
+    var prospectOne = mock(Prospect.class);
+    var prospectTwo = mock(Prospect.class);
+    var persistedProspect = mock(HProspect.class);
+    var prospectOneEmail = randomUUID().toString();
+    var prospectOneIdentifier = randomUUID().toString();
+    var prospectBuilderOne = mock(Prospect.ProspectBuilder.class);
+    var prospectBuilderTwo = mock(Prospect.ProspectBuilder.class);
+
+    when(prospectOne.getId()).thenReturn(prospectOneIdentifier);
+    when(persistedProspect.getId())
+        .thenReturn(randomUUID().toString()); // Another than prospect one
+    when(prospectOne.getEmail()).thenReturn(prospectOneEmail);
+    when(persistedProspect.getOldEmail()).thenReturn(prospectOneEmail);
+    when(persistedProspect.getNewEmail()).thenReturn(prospectOneEmail);
+    when(prospectTwo.getEmail()).thenReturn(randomUUID().toString());
+    when(prospectOne.isNew()).thenReturn(true);
+    when(prospectTwo.isNew()).thenReturn(true);
+    when(prospectBuilderOne.isNew(true)).thenReturn(prospectBuilderOne);
+    when(prospectBuilderTwo.isNew(true)).thenReturn(prospectBuilderTwo);
+    when(prospectBuilderOne.build()).thenReturn(prospectOne);
+    when(prospectBuilderTwo.build()).thenReturn(prospectTwo);
+    when(prospectOne.toBuilder()).thenReturn(prospectBuilderOne);
+    when(prospectTwo.toBuilder()).thenReturn(prospectBuilderTwo);
+    var toSave = List.of(prospectOne, prospectTwo);
+    log.info("Prospect one mail : {}", prospectOneEmail);
+
+    when(prospectJpaRepositoryMock.findByOldEmailOrNewEmailAndIdAccountHolder(
+            eq(prospectOneEmail), eq(prospectOneEmail), any()))
+        .thenReturn(List.of(persistedProspect));
+
+    var actualException = assertThrows(BadRequestException.class, () -> subject.saveAll(toSave));
+
+    verify(eventProducerMock, never()).accept(any());
+    assertEquals(
+        "Prospect with mail " + prospectOneEmail + " already exists. ",
+        actualException.getMessage());
   }
 
   @Test

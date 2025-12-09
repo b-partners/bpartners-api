@@ -454,6 +454,10 @@ public class SubscriptionService {
           "User.id=" + user.getId() + " is not associated to a stripe customer yet");
     }
     var actualUserSubscription = getSubscriptionByUser(user);
+    if (actualUserSubscription.hasLateSubscriptionPayment()) {
+      throw new BadRequestException(
+          "Unable to initiate new subscription as you still have unpaid subscription");
+    }
     var latestSubscription = actualUserSubscription.getLatestSubscription();
     if (latestSubscription != null
         && latestSubscription.isActive()
@@ -679,6 +683,7 @@ public class SubscriptionService {
       case "active" -> ACTIVE;
       case "trialing" -> TRIALING;
       case "canceled" -> CANCELED;
+      case "past_due", "unpaid", "incomplete", "incomplete_expired" -> UNPAID;
       default -> {
         log.error("Unknown subscription status: {}", subscriptionStatus);
         yield UNKNOWN;

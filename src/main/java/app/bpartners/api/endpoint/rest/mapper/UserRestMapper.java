@@ -65,6 +65,9 @@ public class UserRestMapper {
     if (subscription.hasValidSubscription()) {
       return ACTIVE;
     }
+    if (subscription.hasLateSubscriptionPayment()) {
+      return UNPAID;
+    }
     return EMPTY;
   }
 

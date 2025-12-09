@@ -24,6 +24,7 @@ public class Subscription {
     ACTIVE,
     TRIALING,
     CANCELED,
+    UNPAID,
     UNKNOWN
   }
 }

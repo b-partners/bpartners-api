@@ -48,6 +48,19 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @MockBean SubscriptionProductRepository subscriptionProductRepositoryMock;
 
   @Test
+  @Disabled("Local use only for debug")
+  void debug_subscription() {
+    var stripeCustomerId = "";
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any())).thenReturn(Optional.of(mock()));
+
+    var actual =
+        subject.getSubscriptionByUser(User.builder().userSubscriptionId(stripeCustomerId).build());
+
+    assertNotNull(actual);
+    assertNotNull(actual.getLatestSubscription());
+  }
+
+  @Test
   @Disabled("TODO: fix test data and implementation")
   void get_subscription_log_by_user_id_without_date() {
     var userId = "ce0c0edb-7d45-4f4f-86d9-363cd5206969";

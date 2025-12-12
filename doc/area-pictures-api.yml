@@ -385,6 +385,41 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  convertPixelToLonLat:
+    post:
+      tags:
+        - AreaPicture
+      summary: convert annotations pixel coordinates to LonLat
+      operationId: convertAreaPictureAnnotationsToLonLat
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConverterData'
+      responses:
+        200:
+          description: Converted annotations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConverterData'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   convertLatLonPolygonToPixel:
     post:
       tags:
@@ -434,9 +469,18 @@ operations:
           required: true
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ExportAreaPictureAnnotation'
+              type: object
+              properties:
+                globalImage3D:
+                  type: string
+                  format: binary
+                  description: "Image file (PNG or JPEG) for the 3D global view"
+                data:
+                  type: string
+                  format: binary
+                  description: "JSON file (application/json) matching ExportAreaPictureAnnotation"
       responses:
         200:
           description: Presigned url to the generated pdf
@@ -450,6 +494,12 @@ operations:
           $ref: './api.yml#/components/responses/403'
         404:
           $ref: './api.yml#/components/responses/404'
+        422:
+          description: ExportAreaPictureAnnotation could not be returned as JSON
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportAreaPictureAnnotation"
         429:
           $ref: './api.yml#/components/responses/429'
         500:
@@ -785,6 +835,8 @@ components:
           type: string
         llm:
           type: string
+        3d:
+          $ref: "#/components/schemas/ExportAreaPictureAnnotation3D"
         annotations:
           type: array
           items:
@@ -793,6 +845,35 @@ components:
         - address
         - imageUrl
         - annotations
+    ExportAreaPictureAnnotation3D:
+      type: object
+      properties:
+        pans:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotation3DPan"
+      required:
+        - pans
+    ExportAreaPictureAnnotation3DPan:
+      type: object
+      properties:
+        name:
+          type: string
+        polygon:
+          $ref: "#/components/schemas/Polygon"
+        measurements:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotationMeasurement"
+        infos:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotationInstanceInfo"
+      required:
+        - name
+        - polygon
+        - measurements
+        - infos
     ConverterData:
       type: object
       additionalProperties:

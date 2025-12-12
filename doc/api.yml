@@ -174,6 +174,8 @@ paths:
     $ref: './area-pictures-api.yml#/operations/exportAreaPictureAnnotations'
   /accounts/{aId}/annotations/convert:
     $ref: './area-pictures-api.yml#/operations/convertLatLonPolygonToPixel'
+  /accounts/{aId}/annotations/lon-lat/convert:
+    $ref: './area-pictures-api.yml#/operations/convertPixelToLonLat'
 
   #############################################
   ############## Customers API ################

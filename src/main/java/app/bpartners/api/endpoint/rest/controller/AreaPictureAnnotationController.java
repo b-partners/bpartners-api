@@ -1,33 +1,31 @@
 package app.bpartners.api.endpoint.rest.controller;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import app.bpartners.api.endpoint.rest.mapper.AreaPictureAnnotationRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
-import app.bpartners.api.endpoint.rest.validator.LatLonDataToPixelValidator;
+import app.bpartners.api.endpoint.rest.validator.ConverterValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.service.annotation.LatLonPolygonToPixelConverter;
+import app.bpartners.api.service.annotation.AreaPictureAnnotationConverter;
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @RestController
 @AllArgsConstructor
 public class AreaPictureAnnotationController {
   private final AreaPictureAnnotationService service;
   private final AreaPictureAnnotationRestMapper mapper;
-  private final LatLonPolygonToPixelConverter latLonPolygonToPixelConverter;
-  private final LatLonDataToPixelValidator latLonDataToPixelValidator;
+  private final AreaPictureAnnotationConverter areaPictureAnnotationConverter;
+  private final ConverterValidator converterValidator;
 
   @GetMapping("/accounts/{aId}/areaPictures/{areaPictureId}/annotations")
   public List<AreaPictureAnnotation> getAreaPictureAnnotations(
@@ -38,7 +36,7 @@ public class AreaPictureAnnotationController {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return service.findAllCompleted(authenticatedUserId, areaPictureId, page, pageSize).stream()
         .map(mapper::toRest)
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   @GetMapping("/accounts/{aId}/areaPictures/{areaPictureId}/annotations/{annotationId}")
@@ -81,12 +79,16 @@ public class AreaPictureAnnotationController {
         .toList();
   }
 
-  @PostMapping("/accounts/{aId}/annotations/exports")
+  @PostMapping(value = "/accounts/{aId}/annotations/exports", consumes = MULTIPART_FORM_DATA_VALUE)
   public PreSignedURL exportAreaPictureAnnotationToPdf(
       @PathVariable(name = "aId") String ignored,
-      @RequestBody ExportAreaPictureAnnotation exportAreaPictureAnnotation) {
+      @RequestPart(value = "data") ExportAreaPictureAnnotation annotation,
+      @RequestPart(value = "globalImage3D", required = false) MultipartFile globalImage3D)
+      throws IOException {
     var userId = AuthProvider.getAuthenticatedUserId();
-    return service.exportAreaPictureAnnotationToPdf(userId, exportAreaPictureAnnotation);
+    byte[] globalImageBytes = globalImage3D != null ? globalImage3D.getBytes() : null;
+
+    return service.exportAreaPictureAnnotationToPdf(userId, annotation, globalImageBytes);
   }
 
   @PostMapping("/accounts/{aId}/annotations/convert")
@@ -94,7 +96,16 @@ public class AreaPictureAnnotationController {
       @PathVariable(name = "aId") String ignored,
       @RequestBody Map<String, ConverterAnnotation> converterAnnotationMap) {
 
-    latLonDataToPixelValidator.accept(converterAnnotationMap);
-    return latLonPolygonToPixelConverter.apply(converterAnnotationMap);
+    converterValidator.accept(converterAnnotationMap);
+    return areaPictureAnnotationConverter.toPixel(converterAnnotationMap);
+  }
+
+  @PostMapping("/accounts/{aId}/annotations/lon-lat/convert")
+  public Map<String, ConverterAnnotation> convertPixelToLatLon(
+      @PathVariable(name = "aId") String ignored,
+      @RequestBody Map<String, ConverterAnnotation> converterAnnotationMap) {
+
+    converterValidator.accept(converterAnnotationMap);
+    return areaPictureAnnotationConverter.toLatLong(converterAnnotationMap);
   }
 }

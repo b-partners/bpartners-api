@@ -102,6 +102,12 @@ test {
     finalizedBy jacocoTestCoverageVerification
 }
 
+if (project.hasProperty("skipTests") && project.getProperty("skipTests") == "true") {
+    tasks.named("test").configure {
+        enabled = false
+    }
+}
+
 jacocoTestCoverageVerification {
     dependsOn test
     afterEvaluate {

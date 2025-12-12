@@ -24,7 +24,7 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
     var exportAreaPictureAnnotationMock = mock(ExportAreaPictureAnnotation.class);
     var expectedUrl = "https://s3.dummy.com";
 
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any()))
+    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any()))
         .thenReturn(new byte[] {1, 2, 3, 4});
     when(fileWriterMock.apply(any(), any())).thenReturn(mock());
     when(s3ServiceMock.uploadFile(any(), any(), any(), any())).thenReturn(mock());
@@ -32,7 +32,7 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
 
     var actual =
         subject.exportAreaPictureAnnotationToPdf(
-            randomUUID().toString(), exportAreaPictureAnnotationMock);
+            randomUUID().toString(), exportAreaPictureAnnotationMock, new byte[] {1, 2, 3, 4});
 
     assertEquals(expectedUrl, actual.getValue());
   }

@@ -12,9 +12,11 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 
 /** Emoji replaced for use with Twemoji files. By danfickle. MIT or Apache license. */
-public class EmojReplacer {
+@Slf4j
+public class EmojiReplacer {
   private static class Matcher {
     private Map<Integer, Matcher> next;
 
@@ -46,8 +48,8 @@ public class EmojReplacer {
     String[] codePointStrings = svg.split(Pattern.quote("-"));
     Matcher current = root;
 
-    for (int i = 0; i < codePointStrings.length; i++) {
-      int cp = Integer.parseUnsignedInt(codePointStrings[i], 16);
+    for (var codePointString : codePointStrings) {
+      int cp = Integer.parseUnsignedInt(codePointString, 16);
       current = current.put(cp);
     }
   }
@@ -65,7 +67,7 @@ public class EmojReplacer {
     return root;
   }
 
-  public EmojReplacer(Path pathToSvgs, String prefix, String suffix) throws IOException {
+  public EmojiReplacer(Path pathToSvgs, String prefix, String suffix) throws IOException {
     this.svgDirectory = pathToSvgs;
     this.prefix = prefix;
     this.suffix = suffix;
@@ -78,7 +80,7 @@ public class EmojReplacer {
     StringBuilder sb = new StringBuilder(codePoints.size() * 8);
 
     if (codePoints.size() == 1) {
-      sb.append(Integer.toHexString(codePoints.get(0)));
+      sb.append(Integer.toHexString(codePoints.getFirst()));
     } else {
       String joined =
           codePoints.stream().map(Integer::toHexString).collect(Collectors.joining("-"));
@@ -96,8 +98,7 @@ public class EmojReplacer {
               .replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>", ""))
           + this.suffix;
     } catch (IOException e) {
-      System.err.println("Couldn't read emoji with filename: " + file);
-      e.printStackTrace();
+      log.error("Couldn't read emoji with filename: {}", file, e);
       return "";
     }
   }

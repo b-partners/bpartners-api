@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
+import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -39,7 +40,9 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
 
     var file =
         assertDoesNotThrow(
-            () -> subject.apply(annotationImage, subImages, exportAreaPictureAnnotation));
+            () ->
+                subject.apply(
+                    exportAreaPictureAnnotation, new Pair<>(annotationImage, subImages), null));
     assertNotNull(file);
   }
 

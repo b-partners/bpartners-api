@@ -1,8 +1,39 @@
-# [0.72.0](https://github.com/b-partners/bpartners-api/compare/v0.71.0...v0.72.0) (2025-11-05)
+# [0.74.0](https://github.com/b-partners/bpartners-api/compare/v0.73.1...v0.74.0) (2025-12-05)
+
+
+### Bug Fixes
+
+* deployment without test ([5de528c](https://github.com/b-partners/bpartners-api/commit/5de528c2eb1723aadc309309e2f899a6220c360d))
 
 
 ### Features
 
+* convert area picture annotation pixel to latlon ([36119d1](https://github.com/b-partners/bpartners-api/commit/36119d1f84cd1bb8ab4dde3e30addabeba2edd8c))
+
+
+
+## [0.73.1](https://github.com/b-partners/bpartners-api/compare/v0.73.0...v0.73.1) (2025-12-02)
+
+
+### Bug Fixes
+
+* sync release version & publish client ([883dbc9](https://github.com/b-partners/bpartners-api/commit/883dbc9339dddceb73c372ae2df83327f74af22d))
+
+
+
+# [0.73.0](https://github.com/b-partners/bpartners-api/compare/v0.71.0...v0.73.0) (2025-12-02)
+
+
+### Bug Fixes
+
+* /catpcha/token SecurityConf ([6149939](https://github.com/b-partners/bpartners-api/commit/6149939c49cbd25361eb46269e0f9293c9f4c8db))
+* allow GET users by ID for ADMIN_ROLE ([9843f27](https://github.com/b-partners/bpartners-api/commit/9843f27c15980e0e9c3b219f5dad54741c1e349d))
+* fix export area picture annotation data ([49bbf22](https://github.com/b-partners/bpartners-api/commit/49bbf22195fc51a23a2ab588343b38721f185514))
+
+
+### Features
+
+* expot area picture annotation with annotator 3d ([a627df3](https://github.com/b-partners/bpartners-api/commit/a627df37f635edf843d646a65f53335a5acb79a3))
 * implement captcha token verification ([f05ac18](https://github.com/b-partners/bpartners-api/commit/f05ac180dda4a8f47bec1d0c8472272b235335da))
 
 
@@ -146,37 +177,6 @@
 * Revert "feat: make area picture creation permit for unauthenticated user" ([59f8827](https://github.com/b-partners/bpartners-api/commit/59f882722030fbb224d7e165b54b48bb21b1a5c0))
 * Revert "chore(to-revert): comment deactivate fintecture" ([0e21db6](https://github.com/b-partners/bpartners-api/commit/0e21db6df388fb9f4b5f913fb058a152a0c3c3ab))
 * chore(to-revert): get invoice for february 2025 ([e18abbf](https://github.com/b-partners/bpartners-api/commit/e18abbfd60b2a61c1664c65bccaecb3e6edab291))
-
-
-
-# [0.64.0](https://github.com/b-partners/bpartners-api/compare/v0.63.0...v0.64.0) (2025-03-11)
-
-
-### Reverts
-
-* Revert "feat: make area picture creation permit for unauthenticated user" ([1e4ca90](https://github.com/b-partners/bpartners-api/commit/1e4ca90fe4d6bf7460a5309a7709406e6d4d3495))
-
-
-
-# [0.63.0](https://github.com/b-partners/bpartners-api/compare/v0.62.0...v0.63.0) (2025-03-10)
-
-
-### Bug Fixes
-
-* add pcrs and aerial photography layer in default layers ([8b07aaa](https://github.com/b-partners/bpartners-api/commit/8b07aaaf84ee43665dcd82a4e70ce2840f577858))
-* export annotation image generator measurementCoordinate ([58e281b](https://github.com/b-partners/bpartners-api/commit/58e281b9b5b2ca68c4a2c8a169cba7f119f3b19b))
-* **MonthlySubscriptionInvoiceRequestedService:** compute invoice for actual month date not last month ([9fb3bd4](https://github.com/b-partners/bpartners-api/commit/9fb3bd494b7750c3921fcc7185fc266711d85fe4))
-* pcrs resolution ([e5290e0](https://github.com/b-partners/bpartners-api/commit/e5290e009a63eef50c0fe38be5899055c975dac4))
-* remove unnecessary log on GeoCodingApiTest ([1f00fe9](https://github.com/b-partners/bpartners-api/commit/1f00fe9dc69c644c78cb75aee09d3da1fb0a3876))
-
-
-### Features
-
-* export annotation generate image ([3b1ecb8](https://github.com/b-partners/bpartners-api/commit/3b1ecb8572f7861bf64052e498750f8beac03ccf))
-* export area picture annotation endpoint ([4076ad4](https://github.com/b-partners/bpartners-api/commit/4076ad4e30787a8ab7a8c5b56d6725f0b883354f))
-* export area picture annotation pdf service ([e5214d9](https://github.com/b-partners/bpartners-api/commit/e5214d9b7f3e5ba5a2735ecc5ab6c5f621f65414))
-* get subordinates users of an user ([e0fad8b](https://github.com/b-partners/bpartners-api/commit/e0fad8b7dccd4921d4b7dda05a9b2cb3db11c566))
-* make area picture creation permit for unauthenticated user ([fe3c290](https://github.com/b-partners/bpartners-api/commit/fe3c2904ada1dcac6a7c14823e6630699c219896))
 
 
 

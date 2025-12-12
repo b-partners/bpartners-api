@@ -39,6 +39,12 @@
             margin: 20px auto 0px auto;
         }
 
+        .main-image-3d {
+            display: block;
+            width: 400px;
+            margin: 50px auto 30px auto;
+        }
+
         .annotation-item{
             display: table;
             width: 100%;
@@ -58,6 +64,13 @@
             display: block;
             width: 300px;
             margin-left: auto; /* align to right */
+            height: auto;
+        }
+
+        .annotation-item-image-3d{
+            display: block;
+            width: 400px;
+            margin-left: auto;
             height: auto;
         }
 
@@ -169,13 +182,13 @@
             text-align: justify;
         }
 
-        .emoj {
+        .emoji {
             display: inline-block;
             line-height: 1;             /* size based on font-size */
             vertical-align: -0.125em;   /* align baseline similar to text glyphs */
         }
-        .emoj svg,
-        .emoj img {
+        .emoji svg,
+        .emoji img {
             width: 1em;                 /* match text height */
             height: 1em;                /* ensure square emoji */
             display: inline-block;
@@ -193,7 +206,7 @@
             <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
         </h1>
         <img alt="annotation" class="main-image" th:src="${mainImage}"/>
-        <table class="degradation-container">
+        <table class="degradation-container" th:if="${globalRateType != null}">
             <tr>
                 <td class="degradation-left">
                     <table class="degradation-levels">
@@ -214,15 +227,14 @@
             </tr>
         </table>
     </section>
-    <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
+    <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null} ? ' last-page' : ''">
         <h2 class="annotation-information-title"> Informations des annotations </h2>
-        <div th:each="annotation, annotationStat : ${page}" class="annotation-item"
-             th:classappend="${pageStat.last} ? 'last-page'">
+        <div th:each="annotation, annotationStat : ${page}" class="annotation-item">
             <div class="annotation-item-labels">
                 <h4 class="annotation-item-title">
                     <span class="annotation-item-title-value" th:text="${annotation.mergedInstance().labelName} ?: 'Non renseigné'"></span>
                 </h4>
-                <p class="annotation-item-info-item" th:each="info : ${annotation.infos()}">
+                <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
                     <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
                     <span>:</span>
                     <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
@@ -231,7 +243,28 @@
             <img
                 class="annotation-item-image"
                 alt="annotation sub-image"
-                th:src="${subImages[3 * pageStat.index + annotationStat.index]}"
+                th:src="${subImages[page.size() * pageStat.index + annotationStat.index]}"
+            />
+        </div>
+    </section>
+    <section th:if="${pages3D}" th:each="page, pageStat : ${pages3D}" class="page" th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
+        <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
+        <img alt="annotation-3d" class="main-image-3d" th:src="${mainImage3D}" th:if="${pageStat.first}" />
+        <div th:each="pan, panStat: ${page}" class="annotation-item">
+            <div class="annotation-item-labels">
+                <h4 class="annotation-item-title">
+                    <span class="annotation-item-title-value" th:text="${pan.name} ?: 'Non renseigné'"></span>
+                </h4>
+                <p class="annotation-item-info-item" th:each="info : ${pan.infos}">
+                    <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
+                    <span>:</span>
+                    <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
+                </p>
+            </div>
+            <img
+                class="annotation-item-image-3d"
+                alt="annotation sub-image"
+                th:src="${subImages3D[page.size() * pageStat.index + panStat.index]}"
             />
         </div>
     </section>

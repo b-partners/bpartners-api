@@ -619,6 +619,8 @@ public class SubscriptionService {
                     .setStatus(SubscriptionListParams.Status.ALL)
                     .build())
             .getData();
+    var initialSubscription =
+        new ArrayList<>(stripeSubscriptions.stream().map(this::mapToDomain).toList());
     if (!activeScheduledSubscriptions.isEmpty()
         && stripeSubscriptions.stream()
             .noneMatch(
@@ -628,10 +630,12 @@ public class SubscriptionService {
       var domainSubscriptionStartDate =
           Instant.ofEpochSecond(activeScheduledSubscriptions.getFirst().getCreated());
       var domainSubscriptionEndDate = Instant.ofEpochSecond(scheduledStripeSubscriptionStartDate);
-      return defaultActiveSubscription(
-          ACTIVE, domainSubscriptionStartDate, domainSubscriptionEndDate);
+      var subscriptionsFromSchedule =
+          defaultActiveSubscription(ACTIVE, domainSubscriptionStartDate, domainSubscriptionEndDate);
+      initialSubscription.addAll(subscriptionsFromSchedule);
+      return initialSubscription;
     }
-    return stripeSubscriptions.stream().map(this::mapToDomain).toList();
+    return initialSubscription;
   }
 
   private List<SubscriptionSchedule> getActiveSubscriptionSchedules(String stripeCustomerId)

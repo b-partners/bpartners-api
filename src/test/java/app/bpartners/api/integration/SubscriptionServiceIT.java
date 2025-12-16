@@ -56,6 +56,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     var actual =
         subject.getSubscriptionByUser(User.builder().userSubscriptionId(stripeCustomerId).build());
 
+    log.info("actual {}", actual);
+    log.info("actual latest {}", actual.getLatestSubscription());
     assertNotNull(actual);
     assertNotNull(actual.getLatestSubscription());
   }

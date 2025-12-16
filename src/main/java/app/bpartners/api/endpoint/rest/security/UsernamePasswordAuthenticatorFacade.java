@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpire
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.jpa.UserApiKeyFullAuthorizationJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.LegalFileService;
@@ -46,6 +47,10 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
         && userApiKeyFullAuthorizationJpaRepository.findByIdUser(user.getId()).isEmpty()) {
       throw new UserSubscriptionExpiredException(
           "User.id=" + user.getId() + " does not have a valid subscription or free trial expired");
+    }
+    if (userSubscription.hasLateSubscriptionPayment()) {
+      throw new ForbiddenException(
+          "User.id=" + user.getId() + " has a late subscription payment. Please contact support.");
     }
 
     return principal;

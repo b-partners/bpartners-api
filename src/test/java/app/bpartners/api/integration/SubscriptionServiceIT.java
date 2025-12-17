@@ -305,7 +305,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
-  void initiate_subscription_without_stripe_customer_associated_ko() {
+  void initiate_subscription_with_remaining_unpaid_invoice_ko() {
     var user = userRepository.findByEmail("kris@email.com").orElseThrow();
 
     var defaultSubscription = getDefaultSubscription();
@@ -319,7 +319,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                     user, defaultSubscription, defaultRedirectionStatusUrls));
 
     assertEquals(
-        "User.id=" + user.getId() + " is not associated to a stripe customer yet",
+        "Unable to initiate new subscription as you still have unpaid invoices totaling amount :"
+            + " 588.0 €",
         actual.getMessage());
   }
 

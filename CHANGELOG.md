@@ -1,3 +1,24 @@
+# [0.75.0](https://github.com/b-partners/bpartners-api/compare/v0.74.0...v0.75.0) (2025-12-17)
+
+
+### Bug Fixes
+
+* handle UNPAID status on stripe ([a622f13](https://github.com/b-partners/bpartners-api/commit/a622f138236cbfc25c59cb614dc69e639d637427))
+* handle user whitelisted for prospect update ([a292a53](https://github.com/b-partners/bpartners-api/commit/a292a535c633ce615b343b516de2c69946aa0284))
+* notify account holder new prospects ([c81011c](https://github.com/b-partners/bpartners-api/commit/c81011c2a1b3e03af39864ba2ea081cf77c2c382))
+* prospect must have unique mail ([4624f3d](https://github.com/b-partners/bpartners-api/commit/4624f3ded56ba5fe6341d9fc9f5ef216fdb3dcae))
+* **ProspectService:** reverse condition when prospect is new ([bb8fddb](https://github.com/b-partners/bpartners-api/commit/bb8fddb4bf55b23ea7e79ed9cb219d90309c3932))
+* retrieve roof analysis subscription from detection tracking ([30f6314](https://github.com/b-partners/bpartners-api/commit/30f6314fc3bfba25b786fe832ab30e56aa2a322e))
+* **Subscription:** handle Exception when UNPAID subscription found ([176a533](https://github.com/b-partners/bpartners-api/commit/176a533d62efdf989f8ba158a84c266283b92140))
+* **SubscriptionService:** handle active scheduled subscription as domain active subscription ([c4ad0cc](https://github.com/b-partners/bpartners-api/commit/c4ad0ccd1a030a23a3fd311e1adbd3fd5b2cc9f6))
+
+
+### Features
+
+* access to user billing portal ([8b2da38](https://github.com/b-partners/bpartners-api/commit/8b2da383504a1ac2230b9ade95f496f35fdb2c27))
+
+
+
 # [0.74.0](https://github.com/b-partners/bpartners-api/compare/v0.73.1...v0.74.0) (2025-12-05)
 
 
@@ -147,36 +168,6 @@
 
 * POST /users/id/detectionTracking without consumption log computed ([dfb6b0c](https://github.com/b-partners/bpartners-api/commit/dfb6b0cde56ca7e339c881867cead7fac85698b0))
 * provide autocompletion when user typing address ([ba2ca76](https://github.com/b-partners/bpartners-api/commit/ba2ca763a1c898ad5f95744d4cf07d036d9c8ef1))
-
-
-
-# [0.65.0](https://github.com/b-partners/bpartners-api/compare/v0.64.0...v0.65.0) (2025-04-07)
-
-
-### Bug Fixes
-
-* **InvoicePDFProcessor:** allow processing without logo ([c413899](https://github.com/b-partners/bpartners-api/commit/c4138996fd761b2c114cc505d8a9a7fc59c8cab1))
-* **MonthlySubscriptionInvoiceRequestedService:** compute invoice for actual month date not last month ([1930d4b](https://github.com/b-partners/bpartners-api/commit/1930d4b530db6c607773fb77d4e9c0a74c3d39be))
-* pcrs resolution ([9596184](https://github.com/b-partners/bpartners-api/commit/95961844a2fb73a2f28a34a12d175cbdcde0d61a))
-* remove unnecessary log on GeoCodingApiTest ([264e09d](https://github.com/b-partners/bpartners-api/commit/264e09d62628b394eaf0f31ccfbd51283f67798e))
-* set AreaPictureConsumptionValidator with max free roof analysis consumption ([78c2742](https://github.com/b-partners/bpartners-api/commit/78c2742a8d099742ef3031b2d418b4ae46ec2d5d))
-* whoami with api key ([8d4ddec](https://github.com/b-partners/bpartners-api/commit/8d4ddec11bfd88d8028af9f6dc4575f0799bed76))
-
-
-### Features
-
-* add susbscriptionConsumptionLog endpoint ([5769426](https://github.com/b-partners/bpartners-api/commit/576942662d25c568fc50583c4406da12f27a4fc1))
-* get subordinates users of an user ([1ba3b10](https://github.com/b-partners/bpartners-api/commit/1ba3b101ed3bcb6c168cae44c736837deb7e03f7))
-* make area picture creation permit for unauthenticated user ([59fae2d](https://github.com/b-partners/bpartners-api/commit/59fae2dc1d6e72cb3f82f0f458f2616e1e0a7f18))
-
-
-### Reverts
-
-* Revert "refactor: add price if trial is use" ([e0e5b2a](https://github.com/b-partners/bpartners-api/commit/e0e5b2aa42f04a9a6a08c0cac60b83b1b4125098))
-* Revert "chore(to-fix): WhoamiIT use TestUtils::restJoeDoeUser" ([defca1d](https://github.com/b-partners/bpartners-api/commit/defca1d375d63813ec5ddb4d552f7f614c10374a))
-* Revert "feat: make area picture creation permit for unauthenticated user" ([59f8827](https://github.com/b-partners/bpartners-api/commit/59f882722030fbb224d7e165b54b48bb21b1a5c0))
-* Revert "chore(to-revert): comment deactivate fintecture" ([0e21db6](https://github.com/b-partners/bpartners-api/commit/0e21db6df388fb9f4b5f913fb058a152a0c3c3ab))
-* chore(to-revert): get invoice for february 2025 ([e18abbf](https://github.com/b-partners/bpartners-api/commit/e18abbfd60b2a61c1664c65bccaecb3e6edab291))
 
 
 

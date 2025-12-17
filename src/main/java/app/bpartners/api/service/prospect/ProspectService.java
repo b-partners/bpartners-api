@@ -24,11 +24,7 @@ import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
-import app.bpartners.api.model.Attachment;
-import app.bpartners.api.model.BoundedPageSize;
-import app.bpartners.api.model.Customer;
-import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.model.User;
+import app.bpartners.api.model.*;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -48,6 +44,8 @@ import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.google.calendar.CalendarApi;
 import app.bpartners.api.repository.google.sheets.SheetApi;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
+import app.bpartners.api.repository.jpa.ProspectJpaRepository;
+import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.service.SnsService;
@@ -63,13 +61,7 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
@@ -103,6 +95,8 @@ public class ProspectService {
   private final CalendarApi calendarApi;
   private final TemplateResolverEngine templateResolverEngine;
   private final CustomDateFormatter customDateFormatter;
+  private final ProspectJpaRepository prospectJpaRepository;
+  private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
 
   private static List<ProspectResult> ratedCustomers(
       List<ProspectResult> prospectResults, Double minRating) {
@@ -288,17 +282,68 @@ public class ProspectService {
   }
 
   @Transactional
-  public List<Prospect> saveAll(List<Prospect> toCreate) {
-    List<Prospect> savedProspects = repository.saveAll(toCreate);
+  public List<Prospect> saveAll(List<Prospect> toSave) {
+    StringBuilder exceptionBuilder = new StringBuilder();
+    var prospects = handleProspectToSave(toSave, exceptionBuilder);
+    if (!exceptionBuilder.isEmpty()) {
+      throw new BadRequestException(exceptionBuilder.toString());
+    }
+    var savedProspects = repository.saveAll(toSave);
 
     savedProspects.forEach(
-        savedProspect -> eventProducer.accept(List.of(toTypedEvent(savedProspect))));
+        savedProspect -> {
+          var optionalProspect =
+              prospects.stream()
+                  .filter(
+                      prospect -> savedProspect.getEmail().equalsIgnoreCase(prospect.getEmail()))
+                  .findFirst();
+          eventProducer.accept(
+              List.of(
+                  ProspectUpdated.builder()
+                      .prospect(savedProspect)
+                      .isNew(optionalProspect.map(Prospect::isNew).orElse(false))
+                      .updatedAt(Instant.now())
+                      .build()));
+        });
 
     return savedProspects;
   }
 
-  private ProspectUpdated toTypedEvent(Prospect prospect) {
-    return ProspectUpdated.builder().prospect(prospect).updatedAt(Instant.now()).build();
+  private List<Prospect> handleProspectToSave(
+      List<Prospect> toSave, StringBuilder exceptionBuilder) {
+    return toSave.stream()
+        .map(
+            prospectToSave -> {
+              var prospectEmail = prospectToSave.getEmail();
+              if (prospectEmail == null) {
+                return prospectToSave;
+              }
+              var accountHolderOwner = prospectToSave.getIdHolderOwner();
+              var userIsWhitelisted =
+                  userWhiteListedJpaRepository
+                      .findByIdAccountHolder(accountHolderOwner)
+                      .isPresent();
+              var existingProspects =
+                  prospectJpaRepository.findByOldEmailOrNewEmailAndIdAccountHolder(
+                      prospectEmail, prospectEmail, accountHolderOwner);
+              if (existingProspects.isEmpty()) {
+                return prospectToSave.toBuilder().isNew(true).build();
+              }
+              var newProspectAlreadyPersistedButWithOtherIds =
+                  existingProspects.stream()
+                      .noneMatch(
+                          existingProspect ->
+                              existingProspect.getId().equals(prospectToSave.getId()));
+              if (newProspectAlreadyPersistedButWithOtherIds && !userIsWhitelisted) {
+                exceptionBuilder
+                    .append("Prospect with mail ")
+                    .append(prospectEmail)
+                    .append(" already exists. ");
+                return null;
+              }
+              return prospectToSave;
+            })
+        .toList();
   }
 
   @Transactional
@@ -311,7 +356,11 @@ public class ProspectService {
 
     eventProducer.accept(
         List.of(
-            ProspectUpdated.builder().prospect(savedProspect).updatedAt(Instant.now()).build()));
+            ProspectUpdated.builder()
+                .prospect(savedProspect)
+                .isNew(false)
+                .updatedAt(Instant.now())
+                .build()));
 
     return savedProspect;
   }

@@ -17,6 +17,7 @@ import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -31,9 +32,13 @@ class UserRestMapperTest {
   AccountRestMapper accountRestMapperMock = mock();
   SubscriptionService subscriptionServiceMock = mock();
   UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock = mock();
+  StripeInvoiceService stripeInvoiceServiceMock = mock();
   UserRestMapper subject =
       new UserRestMapper(
-          accountRestMapperMock, subscriptionServiceMock, subscriptionEligibleJpaRepositoryMock);
+          accountRestMapperMock,
+          subscriptionServiceMock,
+          stripeInvoiceServiceMock,
+          subscriptionEligibleJpaRepositoryMock);
 
   @BeforeEach
   void setUp() {

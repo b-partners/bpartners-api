@@ -755,6 +755,7 @@ components:
         - CANCELLED
         - ACTIVE
         - FREE_TRIAL
+        - UNPAID
     UserSubscription:
       type: object
       properties:

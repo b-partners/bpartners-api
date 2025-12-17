@@ -5,6 +5,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 import static app.bpartners.api.model.subscription.SessionMode.SETUP;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static java.time.Instant.now;
@@ -25,10 +26,7 @@ import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
-import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
-import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
-import app.bpartners.api.repository.jpa.UserSubscriptionSessionRepository;
+import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
@@ -67,6 +65,8 @@ public class SubscriptionService {
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
   private final StripeFactory stripeFactory;
   private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
+  private final DetectionTrackingJpaRepository detectionTrackingJpaRepository;
+  private final StripeInvoiceService stripeInvoiceService;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -187,8 +187,30 @@ public class SubscriptionService {
       String userId, @Nullable Instant from, @Nullable Instant to) {
     var startOfMonth = temporalUtils.startOfMonth();
     var endOfMonth = temporalUtils.endOfMonth();
-    return consumptionLogJpaRepository.findAllByUserIdAndCreationDatetimeBetween(
-        userId, from == null ? startOfMonth : from, to == null ? endOfMonth : to);
+    return detectionTrackingJpaRepository
+        .findAllByIdUserAndCreationDatetimeBetween(
+            userId, from == null ? startOfMonth : from, to == null ? endOfMonth : to)
+        .stream()
+        .map(
+            tracking ->
+                SubscriptionConsumptionLog.builder()
+                    .id(tracking.getId())
+                    .userId(userId)
+                    .consumptionType(ROOF_ANALYSIS)
+                    .usageMetric(1L)
+                    .comment(
+                        "Adresse : "
+                            + tracking.getAddress()
+                            + " - Initiateur : "
+                            + tracking.getInitiatorName()
+                            + " - "
+                            + tracking.getInitiatorEmail()
+                            + " - "
+                            + tracking.getInitiatorPhoneNumber())
+                    .creationDatetime(tracking.getCreationDatetime())
+                    .consumptionUnit(UNIT)
+                    .build())
+        .toList();
   }
 
   public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {
@@ -335,15 +357,20 @@ public class SubscriptionService {
     return UserSubscription.builder().user(user).subscriptions(defaultActiveSubscription()).build();
   }
 
-  private static @NotNull List<Subscription> defaultActiveSubscription() {
-    Instant now = now();
+  private static @NotNull List<Subscription> defaultActiveSubscription(
+      Subscription.SubscriptionStatus subscriptionStatus, Instant start, Instant end) {
     return List.of(
         Subscription.builder()
             .active(true)
-            .status(TRIALING)
-            .startDatetime(now)
-            .endDatetime(now)
+            .status(subscriptionStatus)
+            .startDatetime(start)
+            .endDatetime(end)
             .build());
+  }
+
+  private static @NotNull List<Subscription> defaultActiveSubscription() {
+    Instant now = now();
+    return defaultActiveSubscription(TRIALING, now, now);
   }
 
   @SneakyThrows
@@ -420,6 +447,18 @@ public class SubscriptionService {
   @SneakyThrows
   public Redirection initiateSubscription(
       User user, Subscription subscription, RedirectionStatusUrls redirectionUrls) {
+    var unpaidStripeInvoices =
+        stripeInvoiceService.getUnpaidStripeInvoices(user.getUserSubscriptionId());
+    if (!unpaidStripeInvoices.isEmpty()) {
+      var totalAmountDue =
+          unpaidStripeInvoices.stream()
+              .mapToDouble(invoice -> invoice.getAmountRemaining() / 100.0)
+              .sum();
+      throw new BadRequestException(
+          "Unable to initiate new subscription as you still have unpaid invoices totaling amount : "
+              + totalAmountDue
+              + " €");
+    }
     @NotNull Customer stripeCustomer;
     try {
       stripeCustomer = getStripeCustomerByE2Id(user.getUserSubscriptionId());
@@ -579,40 +618,71 @@ public class SubscriptionService {
 
   private @NotNull List<Subscription> getSubscriptionsFromStripeCustomer(String stripeCustomerId)
       throws StripeException {
+    var activeScheduledSubscriptions = getActiveSubscriptionSchedules(stripeCustomerId);
     var stripeSubscriptions =
         stripeClient
             .subscriptions()
-            .list(SubscriptionListParams.builder().setCustomer(stripeCustomerId).build())
+            .list(
+                SubscriptionListParams.builder()
+                    .setCustomer(stripeCustomerId)
+                    .setStatus(SubscriptionListParams.Status.ALL)
+                    .build())
             .getData();
-    return stripeSubscriptions.stream()
-        .map(
-            subscription -> {
-              var currentPeriodStartLongValue = subscription.getCurrentPeriodStart();
-              var startDatetime =
-                  currentPeriodStartLongValue == null
-                      ? null
-                      : Instant.ofEpochSecond(currentPeriodStartLongValue);
-              var currentPeriodEndLongValue = subscription.getCurrentPeriodEnd();
-              var endDatetime =
-                  currentPeriodEndLongValue == null
-                      ? null
-                      : Instant.ofEpochSecond(currentPeriodEndLongValue);
-              var status = computeUserSubscriptionStatus(subscription);
-              var paymentSettings = subscription.getPaymentSettings();
-              return Subscription.builder()
-                  .id(randomUUID().toString()) // TODO: update when subscription history persisted
-                  .e2Id(subscription.getId())
-                  .startDatetime(startDatetime)
-                  .endDatetime(endDatetime)
-                  .status(status)
-                  .active(!status.equals(UNKNOWN))
-                  .paymentMethods(
-                      paymentSettings == null
-                          ? new ArrayList<>()
-                          : paymentSettings.getPaymentMethodTypes())
-                  .build();
-            })
+    var initialSubscription =
+        new ArrayList<>(stripeSubscriptions.stream().map(this::mapToDomain).toList());
+    if (!activeScheduledSubscriptions.isEmpty()
+        && stripeSubscriptions.stream()
+            .noneMatch(
+                stripeSubscription -> stripeSubscription.getStatus().equalsIgnoreCase("active"))) {
+      var scheduledStripeSubscriptionStartDate =
+          activeScheduledSubscriptions.getFirst().getPhases().getFirst().getStartDate();
+      var domainSubscriptionStartDate =
+          Instant.ofEpochSecond(activeScheduledSubscriptions.getFirst().getCreated());
+      var domainSubscriptionEndDate = Instant.ofEpochSecond(scheduledStripeSubscriptionStartDate);
+      var subscriptionsFromSchedule =
+          defaultActiveSubscription(ACTIVE, domainSubscriptionStartDate, domainSubscriptionEndDate);
+      initialSubscription.addAll(subscriptionsFromSchedule);
+      return initialSubscription;
+    }
+    return initialSubscription;
+  }
+
+  private List<SubscriptionSchedule> getActiveSubscriptionSchedules(String stripeCustomerId)
+      throws StripeException {
+    var scheduledSubscriptions =
+        stripeClient
+            .subscriptionSchedules()
+            .list(SubscriptionScheduleListParams.builder().setCustomer(stripeCustomerId).build())
+            .getData();
+    return scheduledSubscriptions.stream()
+        .filter(
+            subscriptionSchedule ->
+                subscriptionSchedule.getCanceledAt() == null
+                    && subscriptionSchedule.getStatus().equalsIgnoreCase("not_started"))
         .toList();
+  }
+
+  private Subscription mapToDomain(com.stripe.model.Subscription stripeSubscription) {
+    var currentPeriodStartLongValue = stripeSubscription.getCurrentPeriodStart();
+    var startDatetime =
+        currentPeriodStartLongValue == null
+            ? null
+            : Instant.ofEpochSecond(currentPeriodStartLongValue);
+    var currentPeriodEndLongValue = stripeSubscription.getCurrentPeriodEnd();
+    var endDatetime =
+        currentPeriodEndLongValue == null ? null : Instant.ofEpochSecond(currentPeriodEndLongValue);
+    var status = computeUserSubscriptionStatus(stripeSubscription);
+    var paymentSettings = stripeSubscription.getPaymentSettings();
+    return Subscription.builder()
+        .id(randomUUID().toString()) // TODO: update when subscription history persisted
+        .e2Id(stripeSubscription.getId())
+        .startDatetime(startDatetime)
+        .endDatetime(endDatetime)
+        .status(status)
+        .active(!status.equals(UNKNOWN))
+        .paymentMethods(
+            paymentSettings == null ? new ArrayList<>() : paymentSettings.getPaymentMethodTypes())
+        .build();
   }
 
   private static Subscription.SubscriptionStatus computeUserSubscriptionStatus(
@@ -626,6 +696,7 @@ public class SubscriptionService {
       case "active" -> ACTIVE;
       case "trialing" -> TRIALING;
       case "canceled" -> CANCELED;
+      case "past_due", "unpaid", "incomplete", "incomplete_expired" -> UNPAID;
       default -> {
         log.error("Unknown subscription status: {}", subscriptionStatus);
         yield UNKNOWN;

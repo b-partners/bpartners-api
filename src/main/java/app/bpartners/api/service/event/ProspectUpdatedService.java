@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -50,6 +51,7 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
   private final TemplateResolverEngine templateResolverEngine;
   private final CustomDateFormatter customDateFormatter;
 
+  @SneakyThrows
   @Override
   public void accept(ProspectUpdated prospectUpdated) {
     Prospect prospect = prospectUpdated.getProspect();
@@ -62,6 +64,29 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     ProspectUpdateType updateType =
         prospect.isGivenUp() ? ProspectUpdateType.GIVE_UP : ProspectUpdateType.CONTINUE_PROCESS;
     Instant updatedAt = prospectUpdated.getUpdatedAt();
+
+    triggerInternalMail(updatedAt, prospect, accountHolder, updateType);
+
+    if (prospectUpdated.isNew()) {
+      String recipient = accountHolder.getEmail();
+      String cc = "contact@birdia.fr";
+      String subject =
+          "[BIRDIA] Notification - Un nouveau prospect \""
+              + prospect.getName()
+              + " \" a besoin de vos services\n";
+      List<Attachment> attachments = List.of();
+      String body = customHtmlBody(prospect);
+
+      log.info("Prospect notified for account holder {}", accountHolder.getEmail());
+      sesService.sendEmail(recipient, cc, subject, body, attachments);
+    }
+  }
+
+  private void triggerInternalMail(
+      Instant updatedAt,
+      Prospect prospect,
+      AccountHolder accountHolder,
+      ProspectUpdateType updateType) {
     try {
       String recipient = sesConf.getAdminEmail();
       String concerned = null;
@@ -120,6 +145,13 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
           case INVOICE_SENT -> "Facture envoyée";
         };
     return translatedFeedback.toUpperCase();
+  }
+
+  private String customHtmlBody(Prospect prospect) {
+    Context context = new Context();
+    context.setVariable("prospect", prospect);
+    return templateResolverEngine.parseTemplateResolver(
+        "prospect_account_holder_notification", context);
   }
 
   private String htmlBody(

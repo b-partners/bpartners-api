@@ -1,6 +1,7 @@
 package app.bpartners.api.model.subscription;
 
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELED;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.UNPAID;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 
@@ -20,6 +21,11 @@ public class UserSubscription {
 
   public boolean hasValidSubscription() {
     return getLatestSubscription() != null && getLatestSubscription().isActive();
+  }
+
+  public boolean hasLateSubscriptionPayment() {
+    return getSubscriptions().stream()
+        .anyMatch(subscription -> UNPAID.equals(subscription.getStatus()));
   }
 
   public boolean hasSubscriptionCancelled() {

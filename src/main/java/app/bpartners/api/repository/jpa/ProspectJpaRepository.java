@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 public interface ProspectJpaRepository extends JpaRepository<HProspect, String> {
-  // TODO: why do prospects must be filtered by town code
-  // while it is already attached to account holder ?
-  List<HProspect> findAllByIdAccountHolderAndTownCodeIsIn(
-      String idAccountHolder, List<Integer> townCode);
+
+  // TODO must be optional (as each prospect must only have unique mail)
+  List<HProspect> findByOldEmailOrNewEmailAndIdAccountHolder(
+      String oldEmail, String newEmail, String idAccountHolder);
 
   List<HProspect> findAllByIdAccountHolder(String idAccountHolder, Pageable pageable);
 

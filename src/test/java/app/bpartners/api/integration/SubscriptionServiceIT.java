@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.LogCaptor;
+import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.integration.conf.StripeMockedThirdParties;
@@ -22,6 +23,8 @@ import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.service.subscription.StripeInvoiceService;
+import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.stripe.exception.StripeException;
@@ -46,6 +49,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired UserRepository userRepository;
   @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
   @MockBean SubscriptionProductRepository subscriptionProductRepositoryMock;
+  @Autowired StripeInvoiceService stripeInvoiceService;
+  @Autowired StripePortalService stripePortalService;
 
   @Test
   @Disabled("Local use only for debug")
@@ -60,6 +65,26 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     log.info("actual latest {}", actual.getLatestSubscription());
     assertNotNull(actual);
     assertNotNull(actual.getLatestSubscription());
+  }
+
+  @Test
+  @Disabled("local use only")
+  void debug_unpaid_portal() {
+    var stripeCustomerId = "";
+
+    var unpaidStripeInvoices = stripeInvoiceService.getUnpaidStripeInvoices(stripeCustomerId);
+    if (!unpaidStripeInvoices.isEmpty()) {
+      log.info("unpaid {}", unpaidStripeInvoices);
+      Redirection redirection =
+          stripePortalService.initiateBillingPortalSession(
+              stripeCustomerId,
+              new RedirectionStatusUrls()
+                  .successUrl("https://dashboard.birdia.fr/success")
+                  .failureUrl("https://dashboard.birdia.fr/failure"));
+
+      assertNotNull(redirection);
+      log.info("redirection {}", redirection);
+    }
   }
 
   @Test

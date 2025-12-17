@@ -42,6 +42,41 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  billingPortalOperation:
+    post:
+      tags:
+        - User Subscription
+      summary: Initiate billing portal
+      operationId: initiateBillingPortal
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './api.yml/#/components/schemas/RedirectionStatusUrls'
+      responses:
+        200:
+          description: Redirection URL to access to billing portal
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml/#/components/schemas/Redirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   registerUserSubscription:
     post:
       tags:

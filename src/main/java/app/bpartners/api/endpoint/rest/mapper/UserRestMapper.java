@@ -9,13 +9,13 @@ import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -24,14 +24,19 @@ import org.springframework.stereotype.Component;
 public class UserRestMapper {
   private final AccountRestMapper accountRestMapper;
   private final SubscriptionService subscriptionService;
+  private final StripeInvoiceService stripeInvoiceService;
   private final UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
 
   public User toRest(app.bpartners.api.model.User domain) {
     // TODO: associate user subscription to User directly
     var subscription = subscriptionService.getSubscriptionByUser(domain);
+    var unpaidStripeInvoices =
+        stripeInvoiceService.getUnpaidStripeInvoices(domain.getUserSubscriptionId());
     var subscriptionEligibility =
         userSubscriptionEligibleRepository.findByUserId(domain.getId()).orElse(null);
-    var subscriptionStatus = getSubscriptionStatus(subscription, subscriptionEligibility);
+    var subscriptionStatus =
+        getSubscriptionStatus(
+            subscription, subscriptionEligibility, !unpaidStripeInvoices.isEmpty());
     return new User()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -53,9 +58,13 @@ public class UserRestMapper {
                 .end(getSubscriptionEnd(subscription, subscriptionEligibility)));
   }
 
-  private static @NotNull UserSubscriptionStatus getSubscriptionStatus(
+  private UserSubscriptionStatus getSubscriptionStatus(
       app.bpartners.api.model.subscription.UserSubscription subscription,
-      UserSubscriptionEligible userSubscriptionEligible) {
+      UserSubscriptionEligible userSubscriptionEligible,
+      boolean userHasUnpaidStripeInvoices) {
+    if (userHasUnpaidStripeInvoices) {
+      return UNPAID;
+    }
     if (userSubscriptionEligible != null && userSubscriptionEligible.hasFreeTrialPeriodActive()) {
       return FREE_TRIAL;
     }
@@ -64,9 +73,6 @@ public class UserRestMapper {
     }
     if (subscription.hasValidSubscription()) {
       return ACTIVE;
-    }
-    if (subscription.hasLateSubscriptionPayment()) {
-      return UNPAID;
     }
     return EMPTY;
   }

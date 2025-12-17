@@ -25,6 +25,7 @@ import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
+import app.bpartners.api.service.subscription.StripeInvoiceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -60,6 +61,7 @@ class UserIT extends MockedThirdParties {
   @MockBean private EventBridgeClient eventBridgeClientMock;
   @Autowired private UserJpaRepository userJpaRepository;
   @Autowired private UserRepository userRepository;
+  @MockBean private StripeInvoiceService stripeInvoiceServiceMock;
 
   public static User restJaneDoeUser() {
     return new User()

@@ -66,6 +66,7 @@ public class SubscriptionService {
   private final StripeFactory stripeFactory;
   private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
   private final DetectionTrackingJpaRepository detectionTrackingJpaRepository;
+  private final StripeInvoiceService stripeInvoiceService;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -446,6 +447,18 @@ public class SubscriptionService {
   @SneakyThrows
   public Redirection initiateSubscription(
       User user, Subscription subscription, RedirectionStatusUrls redirectionUrls) {
+    var unpaidStripeInvoices =
+        stripeInvoiceService.getUnpaidStripeInvoices(user.getUserSubscriptionId());
+    if (!unpaidStripeInvoices.isEmpty()) {
+      var totalAmountDue =
+          unpaidStripeInvoices.stream()
+              .mapToDouble(invoice -> invoice.getAmountRemaining() / 100.0)
+              .sum();
+      throw new BadRequestException(
+          "Unable to initiate new subscription as you still have unpaid invoices totaling amount : "
+              + totalAmountDue
+              + " €");
+    }
     @NotNull Customer stripeCustomer;
     try {
       stripeCustomer = getStripeCustomerByE2Id(user.getUserSubscriptionId());
@@ -454,10 +467,6 @@ public class SubscriptionService {
           "User.id=" + user.getId() + " is not associated to a stripe customer yet");
     }
     var actualUserSubscription = getSubscriptionByUser(user);
-    if (actualUserSubscription.hasLateSubscriptionPayment()) {
-      throw new BadRequestException(
-          "Unable to initiate new subscription as you still have unpaid subscription");
-    }
     var latestSubscription = actualUserSubscription.getLatestSubscription();
     if (latestSubscription != null
         && latestSubscription.isActive()

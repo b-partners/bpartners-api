@@ -15,6 +15,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.account.AccountRefreshService;
+import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,7 +33,19 @@ public class UserController {
   private final AccountRefreshService accountRefreshService;
   private final SubscriptionService subscriptionService;
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
-  private final UserService userService;
+  private final StripePortalService stripePortalService;
+
+  @PostMapping("/users/{uId}/billingPortal")
+  public Redirection initiateBillingPortal(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      RedirectionStatusUrls redirectionStatusUrls) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
+
+    return stripePortalService.initiateBillingPortalSession(
+        userSubscriptionId, redirectionStatusUrls);
+  }
 
   @PostMapping("/users/{uId}/subscriptionInitiation")
   public Redirection initiateUserSubscription(

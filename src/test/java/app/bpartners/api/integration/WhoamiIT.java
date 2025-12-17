@@ -16,17 +16,21 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.service.subscription.StripeInvoiceService;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @AutoConfigureMockMvc
 @Slf4j
 class WhoamiIT extends MockedThirdParties {
+  @MockBean StripeInvoiceService stripeInvoiceServiceMock;
+
   private ApiClient anApiClientWithBearer() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
   }

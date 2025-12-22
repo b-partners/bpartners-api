@@ -82,6 +82,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     } else if (iteration == 3) {
       alternativeSource = ignGeoserverImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
+      areaPicture.setZoomLevel(BUILDING);
     } else {
       throw new ApiException(
           SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());

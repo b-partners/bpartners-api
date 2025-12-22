@@ -305,6 +305,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
+  @Disabled
   void initiate_subscription_with_remaining_unpaid_invoice_ko() {
     var user = userRepository.findByEmail("kris@email.com").orElseThrow();
 

@@ -282,18 +282,24 @@ public class ProspectService {
   }
 
   @Transactional
-  public List<Prospect> saveAll(List<Prospect> toSave) {
+  public List<Prospect> saveAllWithEmailCheck(List<Prospect> toSave) {
     StringBuilder exceptionBuilder = new StringBuilder();
     var prospects = handleProspectToSave(toSave, exceptionBuilder);
     if (!exceptionBuilder.isEmpty()) {
       throw new BadRequestException(exceptionBuilder.toString());
     }
+
+    return saveAll(prospects);
+  }
+
+  @Transactional
+  public List<Prospect> saveAll(List<Prospect> toSave) {
     var savedProspects = repository.saveAll(toSave);
 
     savedProspects.forEach(
         savedProspect -> {
           var optionalProspect =
-              prospects.stream()
+              toSave.stream()
                   .filter(
                       prospect -> savedProspect.getEmail().equalsIgnoreCase(prospect.getEmail()))
                   .findFirst();

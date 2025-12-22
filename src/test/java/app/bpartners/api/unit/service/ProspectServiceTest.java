@@ -159,7 +159,7 @@ class ProspectServiceTest {
     when(repositoryMock.saveAll(anyList()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
 
-    var actual = subject.saveAll(toSave);
+    var actual = subject.saveAllWithEmailCheck(toSave);
 
     var eventCaptor = ArgumentCaptor.forClass(List.class);
     verify(eventProducerMock, times(2)).accept(eventCaptor.capture());
@@ -204,7 +204,8 @@ class ProspectServiceTest {
             eq(prospectOneEmail), eq(prospectOneEmail), any()))
         .thenReturn(List.of(persistedProspect));
 
-    var actualException = assertThrows(BadRequestException.class, () -> subject.saveAll(toSave));
+    var actualException =
+        assertThrows(BadRequestException.class, () -> subject.saveAllWithEmailCheck(toSave));
 
     verify(eventProducerMock, never()).accept(any());
     assertEquals(
@@ -248,7 +249,7 @@ class ProspectServiceTest {
     when(repositoryMock.saveAll(anyList()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
 
-    var actual = subject.saveAll(toSave);
+    var actual = subject.saveAllWithEmailCheck(toSave);
 
     var eventCaptor = ArgumentCaptor.forClass(List.class);
     verify(eventProducerMock, times(2)).accept(eventCaptor.capture());

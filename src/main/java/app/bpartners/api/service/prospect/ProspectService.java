@@ -97,6 +97,7 @@ public class ProspectService {
   private final CustomDateFormatter customDateFormatter;
   private final ProspectJpaRepository prospectJpaRepository;
   private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
+  private final ProspectRepositoryService prospectRepositoryService;
 
   private static List<ProspectResult> ratedCustomers(
       List<ProspectResult> prospectResults, Double minRating) {
@@ -289,30 +290,12 @@ public class ProspectService {
       throw new BadRequestException(exceptionBuilder.toString());
     }
 
-    return saveAll(prospects);
+    return prospectRepositoryService.saveAll(prospects);
   }
 
   @Transactional
   public List<Prospect> saveAll(List<Prospect> toSave) {
-    var savedProspects = repository.saveAll(toSave);
-
-    savedProspects.forEach(
-        savedProspect -> {
-          var optionalProspect =
-              toSave.stream()
-                  .filter(
-                      prospect -> savedProspect.getEmail().equalsIgnoreCase(prospect.getEmail()))
-                  .findFirst();
-          eventProducer.accept(
-              List.of(
-                  ProspectUpdated.builder()
-                      .prospect(savedProspect)
-                      .isNew(optionalProspect.map(Prospect::isNew).orElse(false))
-                      .updatedAt(Instant.now())
-                      .build()));
-        });
-
-    return savedProspects;
+    return prospectRepositoryService.saveAll(toSave);
   }
 
   private List<Prospect> handleProspectToSave(

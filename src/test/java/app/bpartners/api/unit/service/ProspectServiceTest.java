@@ -44,6 +44,7 @@ import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
+import app.bpartners.api.service.prospect.ProspectRepositoryService;
 import app.bpartners.api.service.prospect.ProspectService;
 import app.bpartners.api.service.prospect.ProspectStatusService;
 import app.bpartners.api.service.user.UserService;
@@ -82,6 +83,9 @@ class ProspectServiceTest {
   CalendarApi calendarApiMock = mock(CalendarApi.class);
   ProspectJpaRepository prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
   UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
+
+  ProspectRepositoryService prospectRepositoryService =
+      new ProspectRepositoryService(repositoryMock, eventProducerMock);
   ProspectService subject =
       new ProspectService(
           repositoryMock,
@@ -101,7 +105,8 @@ class ProspectServiceTest {
           mock(),
           new CustomDateFormatter(),
           prospectJpaRepositoryMock,
-          userWhiteListedJpaRepositoryMock);
+          userWhiteListedJpaRepositoryMock,
+          prospectRepositoryService);
 
   @BeforeEach
   void setup() {

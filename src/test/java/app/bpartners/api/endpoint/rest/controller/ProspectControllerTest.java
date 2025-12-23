@@ -29,6 +29,7 @@ import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
+import app.bpartners.api.service.prospect.ProspectRepositoryService;
 import app.bpartners.api.service.prospect.ProspectService;
 import app.bpartners.api.service.prospect.ProspectStatusService;
 import app.bpartners.api.service.user.UserService;
@@ -66,6 +67,8 @@ class ProspectControllerTest {
       new ExtendedProspectUpdateValidator();
   ProspectRestMapper prospectRestMapper =
       new ProspectRestMapper(prospectRestValidator, extendedProspectUpdateValidator);
+  ProspectRepositoryService prospectRepositoryService =
+      new ProspectRepositoryService(prospectRepository, eventProducerMock);
 
   ProspectService prospectService =
       new ProspectService(
@@ -86,7 +89,8 @@ class ProspectControllerTest {
           templateResolverEngine,
           customDateFormatter,
           prospectJpaRepositoryMock,
-          userWhiteListedJpaRepositoryMock);
+          userWhiteListedJpaRepositoryMock,
+          prospectRepositoryService);
 
   ProspectController subject =
       new ProspectController(

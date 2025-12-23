@@ -162,6 +162,14 @@ public class ProspectController {
         .toList();
   }
 
+  @PostMapping("/accountHolders/{ahId}/prospects")
+  public List<Prospect> crupdateProspectsWithEmailCheck(
+      @PathVariable("ahId") String accountHolderId, @RequestBody List<UpdateProspect> prospects) {
+    List<app.bpartners.api.model.prospect.Prospect> prospectList =
+        prospects.stream().map(prospect -> mapper.toDomain(accountHolderId, prospect)).toList();
+    return service.saveAllWithEmailCheck(prospectList).stream().map(mapper::toRest).toList();
+  }
+
   @PutMapping("/accountHolders/{ahId}/prospects")
   public List<Prospect> crupdateProspects(
       @PathVariable("ahId") String accountHolderId, @RequestBody List<UpdateProspect> prospects) {

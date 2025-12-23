@@ -97,6 +97,7 @@ public class ProspectService {
   private final CustomDateFormatter customDateFormatter;
   private final ProspectJpaRepository prospectJpaRepository;
   private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
+  private final ProspectRepositoryService prospectRepositoryService;
 
   private static List<ProspectResult> ratedCustomers(
       List<ProspectResult> prospectResults, Double minRating) {
@@ -282,31 +283,19 @@ public class ProspectService {
   }
 
   @Transactional
-  public List<Prospect> saveAll(List<Prospect> toSave) {
+  public List<Prospect> saveAllWithEmailCheck(List<Prospect> toSave) {
     StringBuilder exceptionBuilder = new StringBuilder();
     var prospects = handleProspectToSave(toSave, exceptionBuilder);
     if (!exceptionBuilder.isEmpty()) {
       throw new BadRequestException(exceptionBuilder.toString());
     }
-    var savedProspects = repository.saveAll(toSave);
 
-    savedProspects.forEach(
-        savedProspect -> {
-          var optionalProspect =
-              prospects.stream()
-                  .filter(
-                      prospect -> savedProspect.getEmail().equalsIgnoreCase(prospect.getEmail()))
-                  .findFirst();
-          eventProducer.accept(
-              List.of(
-                  ProspectUpdated.builder()
-                      .prospect(savedProspect)
-                      .isNew(optionalProspect.map(Prospect::isNew).orElse(false))
-                      .updatedAt(Instant.now())
-                      .build()));
-        });
+    return prospectRepositoryService.saveAll(prospects);
+  }
 
-    return savedProspects;
+  @Transactional
+  public List<Prospect> saveAll(List<Prospect> toSave) {
+    return prospectRepositoryService.saveAll(toSave);
   }
 
   private List<Prospect> handleProspectToSave(

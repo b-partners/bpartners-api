@@ -120,8 +120,9 @@ public class MonthlySubscriptionInvoiceRequestedService
             */
           } else {
             log.info(
-                "User.id={} does not have subscription, skip computing invoice",
-                userToDebit.getId());
+                "User(id={}, email={}) does not have subscription, skip computing invoice",
+                userToDebit.getId(),
+                userToDebit.getEmail());
           }
         });
   }

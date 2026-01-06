@@ -282,15 +282,15 @@ public class ProspectService {
   }
 
   @Transactional
-  public List<Prospect> saveAll(List<Prospect> toSave) {
+  public List<Prospect> create(List<Prospect> toSave) {
     StringBuilder exceptionBuilder = new StringBuilder();
     var prospects = handleProspectToSave(toSave, exceptionBuilder);
     if (!exceptionBuilder.isEmpty()) {
       throw new BadRequestException(exceptionBuilder.toString());
     }
-    var savedProspects = repository.saveAll(toSave);
+    var createdProspect = repository.saveAll(toSave);
 
-    savedProspects.forEach(
+    createdProspect.forEach(
         savedProspect -> {
           var optionalProspect =
               prospects.stream()
@@ -306,7 +306,12 @@ public class ProspectService {
                       .build()));
         });
 
-    return savedProspects;
+    return createdProspect;
+  }
+
+  @Transactional
+  public List<Prospect> saveAll(List<Prospect> toSave) {
+    return repository.saveAll(toSave);
   }
 
   private List<Prospect> handleProspectToSave(

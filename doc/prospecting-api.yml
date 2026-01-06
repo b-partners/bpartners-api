@@ -171,6 +171,44 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - Prospecting
+      summary: Create new prospects for a specific accountHolder
+      operationId: createProspects
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateProspect'
+      responses:
+        200:
+          description: List of created prospects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   prospectsEvaluationOperations:
     post:
       tags:
@@ -563,6 +601,9 @@ components:
           $ref: '#/components/schemas/ProspectStatus'
         townCode:
           type: integer
+    CreateProspect:
+      allOf:
+        - $ref: '#/components/schemas/UpdateProspect'
     EvaluatedProspect:
       allOf:
         - $ref: '#/components/schemas/Prospect'

@@ -516,6 +516,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountHolderMatcher(
+                            POST, "/accountHolders/*/prospects", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
                             POST,
                             "/accountHolders/*/prospects/prospectsEvaluation",
                             authResourceProvider))

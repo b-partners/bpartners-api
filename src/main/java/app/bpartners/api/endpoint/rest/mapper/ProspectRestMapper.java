@@ -3,18 +3,8 @@ package app.bpartners.api.endpoint.rest.mapper;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.rest.model.Area;
-import app.bpartners.api.endpoint.rest.model.ContactNature;
-import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
-import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
-import app.bpartners.api.endpoint.rest.model.Geojson;
-import app.bpartners.api.endpoint.rest.model.InterventionResult;
-import app.bpartners.api.endpoint.rest.model.OldCustomerResult;
-import app.bpartners.api.endpoint.rest.model.Prospect;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
-import app.bpartners.api.endpoint.rest.model.ProspectRating;
-import app.bpartners.api.endpoint.rest.model.UpdateProspect;
+import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.validator.CreateProspectValidator;
 import app.bpartners.api.endpoint.rest.validator.ExtendedProspectUpdateValidator;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.Customer;
@@ -35,6 +25,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class ProspectRestMapper {
   private final ProspectRestValidator validator;
+  private final CreateProspectValidator createProspectValidator;
   private final ExtendedProspectUpdateValidator prospectUpdateValidator;
 
   public EvaluatedProspect toRest(ProspectResult prospectResult) {
@@ -157,6 +148,27 @@ public class ProspectRestMapper {
 
   public app.bpartners.api.model.prospect.Prospect toDomain(String ownerId, UpdateProspect rest) {
     validator.accept(rest);
+    return app.bpartners.api.model.prospect.Prospect.builder()
+        .id(rest.getId())
+        .firstName(rest.getFirstName())
+        .idHolderOwner(ownerId)
+        .email(rest.getEmail())
+        .name(rest.getName())
+        .managerName(rest.getManagerName())
+        .phone(rest.getPhone())
+        .address(rest.getAddress())
+        .statusHistories(
+            List.of(
+                ProspectStatusHistory.builder()
+                    .status(rest.getStatus())
+                    .updatedAt(Instant.now())
+                    .build()))
+        .townCode(rest.getTownCode())
+        .build();
+  }
+
+  public app.bpartners.api.model.prospect.Prospect toDomain(String ownerId, CreateProspect rest) {
+    createProspectValidator.accept(rest);
     return app.bpartners.api.model.prospect.Prospect.builder()
         .id(rest.getId())
         .firstName(rest.getFirstName())

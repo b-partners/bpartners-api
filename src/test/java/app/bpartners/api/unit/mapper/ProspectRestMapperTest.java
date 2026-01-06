@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.validator.CreateProspectValidator;
 import app.bpartners.api.endpoint.rest.validator.ExtendedProspectUpdateValidator;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
@@ -22,8 +23,10 @@ import org.junit.jupiter.api.Test;
 class ProspectRestMapperTest {
   ProspectRestValidator prospectRestValidator = new ProspectRestValidator();
   ExtendedProspectUpdateValidator extendedProspectUpdateValidatorMock = mock();
+  CreateProspectValidator createProspectValidatorMock = mock();
   ProspectRestMapper subject =
-      new ProspectRestMapper(prospectRestValidator, extendedProspectUpdateValidatorMock);
+      new ProspectRestMapper(
+          prospectRestValidator, createProspectValidatorMock, extendedProspectUpdateValidatorMock);
 
   @Test
   void to_rest() {

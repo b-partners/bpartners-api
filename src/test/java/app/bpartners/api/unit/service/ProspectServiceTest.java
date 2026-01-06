@@ -134,7 +134,7 @@ class ProspectServiceTest {
   }
 
   @Test
-  void save_not_existing_prospects_and_triggers_events() {
+  void create_not_existing_prospects_and_triggers_events() {
     var prospectOne = mock(Prospect.class);
     var prospectTwo = mock(Prospect.class);
     var prospectBuilderOne = mock(Prospect.ProspectBuilder.class);
@@ -159,7 +159,7 @@ class ProspectServiceTest {
     when(repositoryMock.saveAll(anyList()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
 
-    var actual = subject.saveAll(toSave);
+    var actual = subject.create(toSave);
 
     var eventCaptor = ArgumentCaptor.forClass(List.class);
     verify(eventProducerMock, times(2)).accept(eventCaptor.capture());
@@ -172,7 +172,7 @@ class ProspectServiceTest {
   }
 
   @Test
-  void produces_exception_when_attempting_save_existing_prospects_and_do_not_triggers_events() {
+  void produces_exception_when_attempting_create_existing_prospects_and_do_not_triggers_events() {
     var prospectOne = mock(Prospect.class);
     var prospectTwo = mock(Prospect.class);
     var persistedProspect = mock(HProspect.class);
@@ -204,7 +204,7 @@ class ProspectServiceTest {
             eq(prospectOneEmail), eq(prospectOneEmail), any()))
         .thenReturn(List.of(persistedProspect));
 
-    var actualException = assertThrows(BadRequestException.class, () -> subject.saveAll(toSave));
+    var actualException = assertThrows(BadRequestException.class, () -> subject.create(toSave));
 
     verify(eventProducerMock, never()).accept(any());
     assertEquals(
@@ -213,8 +213,19 @@ class ProspectServiceTest {
   }
 
   @Test
+  void invoke_repository_on_save() {
+    var prospects = List.of(mock(Prospect.class));
+    when(repositoryMock.saveAll(prospects)).thenReturn(prospects);
+
+    var actual = subject.saveAll(prospects);
+
+    verify(repositoryMock, times(1)).saveAll(prospects);
+    assertEquals(prospects, actual);
+  }
+
+  @Test
   void
-      do_not_produces_exception_when_attempting_save_existing_prospects_when_user_whitelisted_and_do_not_triggers_events() {
+      do_not_produces_exception_when_attempting_create_existing_prospects_when_user_whitelisted_and_do_not_triggers_events() {
     var prospectOne = mock(Prospect.class);
     var prospectTwo = mock(Prospect.class);
     var persistedProspect = mock(HProspect.class);
@@ -248,7 +259,7 @@ class ProspectServiceTest {
     when(repositoryMock.saveAll(anyList()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
 
-    var actual = subject.saveAll(toSave);
+    var actual = subject.create(toSave);
 
     var eventCaptor = ArgumentCaptor.forClass(List.class);
     verify(eventProducerMock, times(2)).accept(eventCaptor.capture());

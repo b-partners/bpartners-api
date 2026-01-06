@@ -8,18 +8,22 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_I
 import static app.bpartners.api.service.prospect.ProspectService.removeDuplications;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
+import app.bpartners.api.endpoint.event.model.ProspectCreated;
 import app.bpartners.api.endpoint.event.model.ProspectUpdated;
+import app.bpartners.api.file.FileWriter;
+import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Location;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.model.prospect.job.AntiHarmRules;
@@ -49,12 +53,10 @@ import app.bpartners.api.service.prospect.ProspectStatusService;
 import app.bpartners.api.service.user.UserService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.GeoUtils;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import javax.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,6 +84,8 @@ class ProspectServiceTest {
   CalendarApi calendarApiMock = mock(CalendarApi.class);
   ProspectJpaRepository prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
   UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
+  FileWriter fileWriterMock = mock(FileWriter.class);
+  BucketComponent bucketComponentMock = mock(BucketComponent.class);
   ProspectService subject =
       new ProspectService(
           repositoryMock,
@@ -101,7 +105,9 @@ class ProspectServiceTest {
           mock(),
           new CustomDateFormatter(),
           prospectJpaRepositoryMock,
-          userWhiteListedJpaRepositoryMock);
+          userWhiteListedJpaRepositoryMock,
+          bucketComponentMock,
+          fileWriterMock);
 
   @BeforeEach
   void setup() {
@@ -131,6 +137,84 @@ class ProspectServiceTest {
     subject.prospect();
 
     verify(sesServiceMock, never()).sendEmail(any(), any(), any(), any(), any());
+  }
+
+  @Test
+  void throw_not_found_exception_when_prospect_not_found() {
+    var prospectIdentifier = randomUUID().toString();
+    when(repositoryMock.getById(prospectIdentifier)).thenReturn(null);
+
+    var actualException =
+        assertThrows(
+            NotFoundException.class, () -> subject.notifyProspect(prospectIdentifier, null));
+
+    assertEquals("Prospect(id=" + prospectIdentifier + ") not found", actualException.getMessage());
+    verify(eventProducerMock, never()).accept(any());
+    verify(fileWriterMock, never()).apply(any(), any());
+    verify(bucketComponentMock, never()).upload(any(), any(), anyBoolean());
+  }
+
+  @Test
+  void notify_prospect_with_attachment() {
+    var prospectId = randomUUID().toString();
+    var attachmentMock = mock(Attachment.class);
+    var prospectMock = mock(Prospect.class);
+    var attachmentBytes = new byte[0];
+    var attachmentFileName = "attachment name " + randomUUID();
+    var fileAttachmentMock = mock(File.class);
+
+    when(prospectMock.getId()).thenReturn(prospectId);
+    when(repositoryMock.getById(prospectId)).thenReturn(prospectMock);
+    when(attachmentMock.getName()).thenReturn(attachmentFileName);
+    when(attachmentMock.getContent()).thenReturn(attachmentBytes);
+    when(fileWriterMock.apply(attachmentBytes, null)).thenReturn(fileAttachmentMock);
+
+    var actual = subject.notifyProspect(prospectId, attachmentMock);
+
+    assertEquals(prospectMock, actual);
+    var stringCapture = ArgumentCaptor.forClass(String.class);
+    verify(bucketComponentMock, times(1))
+        .upload(eq(fileAttachmentMock), stringCapture.capture(), eq(true));
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
+
+    verify(eventProducerMock, times(1)).accept(eventCaptor.capture());
+    var prospectCreated = (ProspectCreated) eventCaptor.getValue().getFirst();
+    assertNotNull(prospectCreated.getUpdatedAt());
+    var bucketKey = stringCapture.getValue();
+    var retrievedAttachmentFileKey = Arrays.stream(bucketKey.split("/")).toList().getLast();
+    assertEquals(
+        String.format(
+            "prospects/%s/notifications/attachments/%s", prospectId, retrievedAttachmentFileKey),
+        bucketKey);
+    assertEquals(
+        new ProspectCreated(
+            prospectMock,
+            attachmentFileName,
+            retrievedAttachmentFileKey,
+            prospectCreated.getUpdatedAt()),
+        prospectCreated);
+  }
+
+  @Test
+  void notify_prospect_without_attachment() {
+    var prospectId = randomUUID().toString();
+    var prospectMock = mock(Prospect.class);
+
+    when(prospectMock.getId()).thenReturn(prospectId);
+    when(repositoryMock.getById(prospectId)).thenReturn(prospectMock);
+
+    var actual = subject.notifyProspect(prospectId, null);
+
+    assertEquals(prospectMock, actual);
+    verify(fileWriterMock, never()).apply(any(), any());
+    verify(bucketComponentMock, never()).upload(any(), any(), anyBoolean());
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducerMock, times(1)).accept(eventCaptor.capture());
+    var prospectCreated = (ProspectCreated) eventCaptor.getValue().getFirst();
+    assertEquals(
+        new ProspectCreated(prospectMock, null, null, prospectCreated.getUpdatedAt()),
+        prospectCreated);
+    assertNotNull(prospectCreated.getUpdatedAt());
   }
 
   @Test
@@ -167,8 +251,8 @@ class ProspectServiceTest {
     var firstEvent = (ProspectUpdated) eventCaptorValues.getFirst().getFirst();
     var secondEvent = (ProspectUpdated) eventCaptorValues.getLast().getFirst();
     assertEquals(toSave, actual);
-    assertEquals(new ProspectUpdated(prospectOne, true, firstEvent.getUpdatedAt()), firstEvent);
-    assertEquals(new ProspectUpdated(prospectTwo, true, secondEvent.getUpdatedAt()), secondEvent);
+    assertEquals(new ProspectUpdated(prospectOne, false, firstEvent.getUpdatedAt()), firstEvent);
+    assertEquals(new ProspectUpdated(prospectTwo, false, secondEvent.getUpdatedAt()), secondEvent);
   }
 
   @Test
@@ -268,7 +352,7 @@ class ProspectServiceTest {
     var secondEvent = (ProspectUpdated) eventCaptorValues.getLast().getFirst();
     assertEquals(toSave, actual);
     assertEquals(new ProspectUpdated(prospectOne, false, firstEvent.getUpdatedAt()), firstEvent);
-    assertEquals(new ProspectUpdated(prospectTwo, true, secondEvent.getUpdatedAt()), secondEvent);
+    assertEquals(new ProspectUpdated(prospectTwo, false, secondEvent.getUpdatedAt()), secondEvent);
   }
 
   @Test

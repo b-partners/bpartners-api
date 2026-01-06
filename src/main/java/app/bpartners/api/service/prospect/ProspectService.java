@@ -15,6 +15,7 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
+import app.bpartners.api.endpoint.event.model.ProspectCreated;
 import app.bpartners.api.endpoint.event.model.ProspectEvaluationJobInitiated;
 import app.bpartners.api.endpoint.event.model.ProspectUpdated;
 import app.bpartners.api.endpoint.rest.model.ContactNature;
@@ -24,6 +25,8 @@ import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
+import app.bpartners.api.file.FileWriter;
+import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -97,6 +100,8 @@ public class ProspectService {
   private final CustomDateFormatter customDateFormatter;
   private final ProspectJpaRepository prospectJpaRepository;
   private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
+  private final BucketComponent bucketComponent;
+  private final FileWriter fileWriter;
 
   private static List<ProspectResult> ratedCustomers(
       List<ProspectResult> prospectResults, Double minRating) {
@@ -281,6 +286,33 @@ public class ProspectService {
             idAccountHolder, nameValue, contactNature, prospectStatus, pageValue, pageSizeValue));
   }
 
+  public Prospect notifyProspect(String idProspect, Attachment attachment) {
+    var prospect = repository.getById(idProspect);
+    if (prospect == null) {
+      throw new NotFoundException("Prospect(id=" + idProspect + ") not found");
+    }
+
+    ProspectCreated.ProspectCreatedBuilder prospectCreatedBuilder =
+        ProspectCreated.builder().prospect(prospect).updatedAt(Instant.now());
+    if (attachment != null) {
+      var prospectAttachmentFileKey = randomUUID().toString();
+      var bucketKey =
+          String.format(
+              "prospects/%s/notifications/attachments/%s",
+              prospect.getId(), prospectAttachmentFileKey);
+
+      bucketComponent.upload(fileWriter.apply(attachment.getContent(), null), bucketKey, true);
+
+      prospectCreatedBuilder
+          .attachmentFileKey(prospectAttachmentFileKey)
+          .attachmentFileName(attachment.getName());
+    }
+
+    eventProducer.accept(List.of(prospectCreatedBuilder.build()));
+
+    return prospect;
+  }
+
   @Transactional
   public List<Prospect> create(List<Prospect> toSave) {
     StringBuilder exceptionBuilder = new StringBuilder();
@@ -301,7 +333,7 @@ public class ProspectService {
               List.of(
                   ProspectUpdated.builder()
                       .prospect(savedProspect)
-                      .isNew(optionalProspect.map(Prospect::isNew).orElse(false))
+                      .isNew(false)
                       .updatedAt(Instant.now())
                       .build()));
         });

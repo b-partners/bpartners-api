@@ -5,6 +5,7 @@ import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XL
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered;
+import app.bpartners.api.endpoint.rest.mapper.AttachmentRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
@@ -49,6 +50,7 @@ public class ProspectController {
   private final ProspectRestValidator validator;
   private final ProspectJobRestMapper jobRestMapper;
   private final EventProducer eventProducer;
+  private final AttachmentRestMapper attachmentRestMapper;
 
   private static Double getMinCustomerRating(HttpHeaders headers) {
     try {
@@ -162,6 +164,16 @@ public class ProspectController {
     List<app.bpartners.api.model.prospect.Prospect> prospectList =
         prospects.stream().map(prospect -> mapper.toDomain(accountHolderId, prospect)).toList();
     return service.create(prospectList).stream().map(mapper::toRest).toList();
+  }
+
+  @PostMapping("/accountHolders/{ahId}/prospects/{prospectId}/notifications")
+  public Prospect notifyProspect(
+      @PathVariable("ahId") String accountHolderId,
+      @PathVariable("prospectId") String prospectId,
+      @RequestBody(required = false) CreateAttachment optionalAttachment) {
+    var attachment =
+        optionalAttachment == null ? null : attachmentRestMapper.toDomain(optionalAttachment);
+    return mapper.toRest(service.notifyProspect(prospectId, attachment));
   }
 
   @PostMapping("/accountHolders/{ahId}/prospects/evaluations")

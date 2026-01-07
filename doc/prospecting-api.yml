@@ -179,44 +179,6 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-    post:
-      tags:
-        - Prospecting
-      summary: update prospects of an accountHolder with existing email validation.
-      operationId: updateProspectsWithEmailCheck
-      parameters:
-        - in: path
-          name: ahId
-          schema:
-            type: string
-          required: true
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/UpdateProspect'
-      responses:
-        200:
-          description: List of updated prospects.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Prospect'
-        400:
-          $ref: './api.yml#/components/responses/400'
-        403:
-          $ref: './api.yml#/components/responses/403'
-        404:
-          $ref: './api.yml#/components/responses/404'
-        429:
-          $ref: './api.yml#/components/responses/429'
-        500:
-          $ref: './api.yml#/components/responses/500'
     put:
       tags:
         - Prospecting

@@ -15,12 +15,25 @@ import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 @Component
 @AllArgsConstructor
 public class FileWriter implements BiFunction<byte[], File, File> {
   private final ObjectMapper objectMapper;
   private final ExtensionGuesser extensionGuesser;
+
+  public File convert(MultipartFile multipartFile, @Nullable File directory) {
+    try {
+      String name = randomUUID().toString();
+      String suffix = "." + extensionGuesser.apply(multipartFile.getBytes());
+      File tempFile = File.createTempFile(name, suffix, directory);
+      multipartFile.transferTo(tempFile.toPath());
+      return tempFile;
+    } catch (IOException e) {
+      throw new ApiException(SERVER_EXCEPTION, e);
+    }
+  }
 
   @Override
   public File apply(byte[] bytes, @Nullable File directory) {

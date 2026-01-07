@@ -5,7 +5,6 @@ import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XL
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered;
-import app.bpartners.api.endpoint.rest.mapper.AttachmentRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
@@ -37,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @AllArgsConstructor
@@ -51,7 +51,6 @@ public class ProspectController {
   private final ProspectRestValidator validator;
   private final ProspectJobRestMapper jobRestMapper;
   private final EventProducer eventProducer;
-  private final AttachmentRestMapper attachmentRestMapper;
   private final FileWriter fileWriter;
 
   private static Double getMinCustomerRating(HttpHeaders headers) {
@@ -172,9 +171,9 @@ public class ProspectController {
   public Prospect notifyProspect(
       @PathVariable("ahId") String accountHolderId,
       @PathVariable("prospectId") String prospectId,
-      @RequestBody(required = false) byte[] optionalAttachment) {
+      @RequestParam(required = false) MultipartFile optionalAttachment) {
     var optionalAttachmentFile =
-        optionalAttachment == null ? null : fileWriter.apply(optionalAttachment, null);
+        optionalAttachment == null ? null : fileWriter.convert(optionalAttachment, null);
     return mapper.toRest(service.notifyProspect(prospectId, optionalAttachmentFile));
   }
 

@@ -160,16 +160,13 @@ class ProspectServiceTest {
     var attachmentMock = mock(Attachment.class);
     var prospectMock = mock(Prospect.class);
     var attachmentBytes = new byte[0];
-    var attachmentFileName = "attachment name " + randomUUID();
     var fileAttachmentMock = mock(File.class);
 
     when(prospectMock.getId()).thenReturn(prospectId);
     when(repositoryMock.getById(prospectId)).thenReturn(prospectMock);
-    when(attachmentMock.getName()).thenReturn(attachmentFileName);
     when(attachmentMock.getContent()).thenReturn(attachmentBytes);
-    when(fileWriterMock.apply(attachmentBytes, null)).thenReturn(fileAttachmentMock);
 
-    var actual = subject.notifyProspect(prospectId, attachmentMock);
+    var actual = subject.notifyProspect(prospectId, fileAttachmentMock);
 
     assertEquals(prospectMock, actual);
     var stringCapture = ArgumentCaptor.forClass(String.class);
@@ -188,10 +185,7 @@ class ProspectServiceTest {
         bucketKey);
     assertEquals(
         new ProspectCreated(
-            prospectMock,
-            attachmentFileName,
-            retrievedAttachmentFileKey,
-            prospectCreated.getUpdatedAt()),
+            prospectMock, retrievedAttachmentFileKey, prospectCreated.getUpdatedAt()),
         prospectCreated);
   }
 
@@ -212,8 +206,7 @@ class ProspectServiceTest {
     verify(eventProducerMock, times(1)).accept(eventCaptor.capture());
     var prospectCreated = (ProspectCreated) eventCaptor.getValue().getFirst();
     assertEquals(
-        new ProspectCreated(prospectMock, null, null, prospectCreated.getUpdatedAt()),
-        prospectCreated);
+        new ProspectCreated(prospectMock, null, prospectCreated.getUpdatedAt()), prospectCreated);
     assertNotNull(prospectCreated.getUpdatedAt());
   }
 

@@ -2,7 +2,7 @@ package app.bpartners.api.integration.event;
 
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -19,8 +19,10 @@ import app.bpartners.api.service.event.ProspectCreatedService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class ProspectCreatedServiceTest {
 
@@ -42,7 +44,6 @@ class ProspectCreatedServiceTest {
   @Test
   void trigger_mail_with_attachment() {
     var prospectMock = mock(Prospect.class);
-    var attachmentFileName = randomUUID().toString();
     var attachmentFileKey = randomUUID().toString();
     var accountHolderId = randomUUID().toString();
     var prospectId = randomUUID().toString();
@@ -53,9 +54,6 @@ class ProspectCreatedServiceTest {
     var accountHolderEmail = randomUUID() + "@bpartners.app";
     var prospectName = "name " + randomUUID();
     var emailBody = randomUUID().toString();
-    ArrayList<Attachment> attachments = new ArrayList<>();
-    attachments.add(
-        Attachment.builder().name(attachmentFileName).content(fileAttachmentMockContent).build());
 
     when(prospectMock.getIdHolderOwner()).thenReturn(accountHolderId);
     when(prospectMock.getId()).thenReturn(prospectId);
@@ -75,11 +73,9 @@ class ProspectCreatedServiceTest {
     doNothing().when(sesServiceMock).sendEmail(any(), any(), any(), any(), any());
 
     assertDoesNotThrow(
-        () ->
-            subject.accept(
-                new ProspectCreated(
-                    prospectMock, attachmentFileName, attachmentFileKey, updatedAt)));
+        () -> subject.accept(new ProspectCreated(prospectMock, attachmentFileKey, updatedAt)));
 
+    var attachmentCaptor = ArgumentCaptor.forClass(List.class);
     verify(sesServiceMock)
         .sendEmail(
             eq(accountHolderEmail),
@@ -89,11 +85,16 @@ class ProspectCreatedServiceTest {
                     + prospectName
                     + " \" a besoin de vos services"),
             eq(emailBody),
-            argThat(
-                list ->
-                    list.toString()
-                        .replaceAll("\\R", "")
-                        .equals(attachments.toString().replaceAll("\\R", ""))));
+            attachmentCaptor.capture(),
+            eq("tech@birdia.fr"));
+    var actualAttachment = (Attachment) attachmentCaptor.getValue().getFirst();
+    assertEquals(
+        Attachment.builder()
+            .name(actualAttachment.getName())
+            .content(fileAttachmentMockContent)
+            .build(),
+        actualAttachment);
+    assertNotNull(actualAttachment.getName());
   }
 
   @SneakyThrows
@@ -123,8 +124,7 @@ class ProspectCreatedServiceTest {
         .thenReturn(emailBody);
     doNothing().when(sesServiceMock).sendEmail(any(), any(), any(), any(), any());
 
-    assertDoesNotThrow(
-        () -> subject.accept(new ProspectCreated(prospectMock, null, null, updatedAt)));
+    assertDoesNotThrow(() -> subject.accept(new ProspectCreated(prospectMock, null, updatedAt)));
 
     verify(sesServiceMock)
         .sendEmail(
@@ -135,6 +135,7 @@ class ProspectCreatedServiceTest {
                     + prospectName
                     + " \" a besoin de vos services"),
             eq(emailBody),
-            eq(new ArrayList<>()));
+            eq(new ArrayList<>()),
+            eq("tech@birdia.fr"));
   }
 }

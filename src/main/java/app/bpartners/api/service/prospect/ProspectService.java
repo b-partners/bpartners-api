@@ -61,6 +61,7 @@ import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
+import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -286,7 +287,7 @@ public class ProspectService {
             idAccountHolder, nameValue, contactNature, prospectStatus, pageValue, pageSizeValue));
   }
 
-  public Prospect notifyProspect(String idProspect, Attachment attachment) {
+  public Prospect notifyProspect(String idProspect, File fileAttachment) {
     var prospect = repository.getById(idProspect);
     if (prospect == null) {
       throw new NotFoundException("Prospect(id=" + idProspect + ") not found");
@@ -294,18 +295,16 @@ public class ProspectService {
 
     ProspectCreated.ProspectCreatedBuilder prospectCreatedBuilder =
         ProspectCreated.builder().prospect(prospect).updatedAt(Instant.now());
-    if (attachment != null) {
+    if (fileAttachment != null) {
       var prospectAttachmentFileKey = randomUUID().toString();
       var bucketKey =
           String.format(
               "prospects/%s/notifications/attachments/%s",
               prospect.getId(), prospectAttachmentFileKey);
 
-      bucketComponent.upload(fileWriter.apply(attachment.getContent(), null), bucketKey, true);
+      bucketComponent.upload(fileAttachment, bucketKey, true);
 
-      prospectCreatedBuilder
-          .attachmentFileKey(prospectAttachmentFileKey)
-          .attachmentFileName(attachment.getName());
+      prospectCreatedBuilder.attachmentFileKey(prospectAttachmentFileKey);
     }
 
     eventProducer.accept(List.of(prospectCreatedBuilder.build()));

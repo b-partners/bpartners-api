@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -51,6 +52,7 @@ public class ProspectController {
   private final ProspectJobRestMapper jobRestMapper;
   private final EventProducer eventProducer;
   private final AttachmentRestMapper attachmentRestMapper;
+  private final FileWriter fileWriter;
 
   private static Double getMinCustomerRating(HttpHeaders headers) {
     try {
@@ -170,10 +172,10 @@ public class ProspectController {
   public Prospect notifyProspect(
       @PathVariable("ahId") String accountHolderId,
       @PathVariable("prospectId") String prospectId,
-      @RequestBody(required = false) CreateAttachment optionalAttachment) {
-    var attachment =
-        optionalAttachment == null ? null : attachmentRestMapper.toDomain(optionalAttachment);
-    return mapper.toRest(service.notifyProspect(prospectId, attachment));
+      @RequestBody(required = false) byte[] optionalAttachment) {
+    var optionalAttachmentFile =
+        optionalAttachment == null ? null : fileWriter.apply(optionalAttachment, null);
+    return mapper.toRest(service.notifyProspect(prospectId, optionalAttachmentFile));
   }
 
   @PostMapping("/accountHolders/{ahId}/prospects/evaluations")

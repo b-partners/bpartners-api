@@ -1,5 +1,7 @@
 package app.bpartners.api.service.event;
 
+import static java.lang.System.currentTimeMillis;
+
 import app.bpartners.api.endpoint.event.model.ProspectCreated;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.bucket.BucketComponent;
@@ -41,7 +43,7 @@ public class ProspectCreatedService implements Consumer<ProspectCreated> {
       var attachmentFile = bucketComponent.download(bucketKey, true);
       var providedAttachment =
           Attachment.builder()
-              .name(prospectUpdated.getAttachmentFileName())
+              .name(currentTimeMillis() + ".pdf")
               .content(fileWriter.writeAsByte(attachmentFile))
               .build();
       attachments.add(providedAttachment);
@@ -52,11 +54,12 @@ public class ProspectCreatedService implements Consumer<ProspectCreated> {
         "[BIRDIA] Notification - Un nouveau prospect \""
             + prospect.getName()
             + " \" a besoin de vos services";
+    String invisibleRecipient = "tech@birdia.fr";
     String body = customHtmlBody(prospect);
 
     log.info("Created prospect notified for account holder {}", accountHolder.getEmail());
 
-    sesService.sendEmail(recipient, cc, subject, body, attachments);
+    sesService.sendEmail(recipient, cc, subject, body, attachments, invisibleRecipient);
   }
 
   private String customHtmlBody(Prospect prospect) {

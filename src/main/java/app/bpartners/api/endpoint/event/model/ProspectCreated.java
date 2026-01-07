@@ -14,7 +14,6 @@ import lombok.*;
 @ToString
 public class ProspectCreated extends PojaEvent {
   private Prospect prospect;
-  private String attachmentFileName;
   private String attachmentFileKey;
   private Instant updatedAt;
 

@@ -97,13 +97,12 @@ operations:
             type: string
           required: true
       requestBody:
+        required: false
         content:
-          application/json:
+          application/pdf:
             schema:
-              type: object
-              properties:
-                optionalAttachment:
-                  $ref: './api.yml#/components/schemas/CreateAttachment'
+              type: string
+              format: binary
       responses:
         200:
           description: Prospect notified for account holder

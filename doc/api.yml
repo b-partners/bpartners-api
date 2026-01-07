@@ -200,6 +200,8 @@ paths:
     $ref: './prospecting-api.yml#/operations/getMarketplaces'
   /accountHolders/{ahId}/prospects:
     $ref: './prospecting-api.yml#/operations/prospectOperations'
+  /accountHolders/{ahId}/prospects/{prospectId}/notifications:
+    $ref: './prospecting-api.yml#/operations/prospectNotificationOperations'
   /accountHolders/{ahId}/prospects/import:
     $ref: './prospecting-api.yml#/operations/prospectImportOperations'
   /accountHolders/{ahId}/prospects/{id}/prospectConversion:

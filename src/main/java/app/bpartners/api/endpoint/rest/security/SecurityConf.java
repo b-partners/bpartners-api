@@ -517,6 +517,16 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfAccountHolderMatcher(
                             POST,
+                            "/accountHolders/*/prospects/*/notifications",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            POST, "/accountHolders/*/prospects", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            POST,
                             "/accountHolders/*/prospects/prospectsEvaluation",
                             authResourceProvider))
                     .hasAnyRole(EVAL_PROSPECT.getRole())

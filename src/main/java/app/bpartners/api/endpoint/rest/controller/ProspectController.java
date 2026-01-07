@@ -7,24 +7,10 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered;
 import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
-import app.bpartners.api.endpoint.rest.model.EvaluatedProspect;
-import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
-import app.bpartners.api.endpoint.rest.model.ImportProspect;
-import app.bpartners.api.endpoint.rest.model.JobStatusValue;
-import app.bpartners.api.endpoint.rest.model.NewInterventionOption;
-import app.bpartners.api.endpoint.rest.model.Prospect;
-import app.bpartners.api.endpoint.rest.model.ProspectConversion;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobDetails;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobInfo;
-import app.bpartners.api.endpoint.rest.model.ProspectEvaluationRules;
-import app.bpartners.api.endpoint.rest.model.PutProspectEvaluationJob;
-import app.bpartners.api.endpoint.rest.model.RatingProperties;
-import app.bpartners.api.endpoint.rest.model.SheetProperties;
-import app.bpartners.api.endpoint.rest.model.SheetProspectEvaluation;
-import app.bpartners.api.endpoint.rest.model.SheetRange;
-import app.bpartners.api.endpoint.rest.model.UpdateProspect;
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
+import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -34,6 +20,7 @@ import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.service.prospect.ProspectService;
 import java.io.ByteArrayInputStream;
+import java.lang.Exception;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -49,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @AllArgsConstructor
@@ -63,6 +51,7 @@ public class ProspectController {
   private final ProspectRestValidator validator;
   private final ProspectJobRestMapper jobRestMapper;
   private final EventProducer eventProducer;
+  private final FileWriter fileWriter;
 
   private static Double getMinCustomerRating(HttpHeaders headers) {
     try {
@@ -176,6 +165,24 @@ public class ProspectController {
     List<app.bpartners.api.model.prospect.Prospect> prospectList =
         prospects.stream().map(prospect -> mapper.toDomain(accountHolderId, prospect)).toList();
     return service.saveAll(prospectList).stream().map(mapper::toRest).toList();
+  }
+
+  @PostMapping("/accountHolders/{ahId}/prospects")
+  public List<Prospect> createProspects(
+      @PathVariable("ahId") String accountHolderId, @RequestBody List<CreateProspect> prospects) {
+    List<app.bpartners.api.model.prospect.Prospect> prospectList =
+        prospects.stream().map(prospect -> mapper.toDomain(accountHolderId, prospect)).toList();
+    return service.create(prospectList).stream().map(mapper::toRest).toList();
+  }
+
+  @PostMapping("/accountHolders/{ahId}/prospects/{prospectId}/notifications")
+  public Prospect notifyProspect(
+      @PathVariable("ahId") String accountHolderId,
+      @PathVariable("prospectId") String prospectId,
+      @RequestParam(required = false) MultipartFile optionalAttachment) {
+    var optionalAttachmentFile =
+        optionalAttachment == null ? null : fileWriter.convert(optionalAttachment, null);
+    return mapper.toRest(service.notifyProspect(prospectId, optionalAttachmentFile));
   }
 
   @PostMapping("/accountHolders/{ahId}/prospects/evaluations")

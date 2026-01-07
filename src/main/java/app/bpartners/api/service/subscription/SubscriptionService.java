@@ -29,6 +29,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
+import com.stripe.exception.InvalidRequestException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.param.*;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -216,7 +218,13 @@ public class SubscriptionService {
   public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {
     var consumptionLogs =
         findConsumptionLogsByUserId(
-            user.getId(), temporalUtils.startOfMonth(), temporalUtils.endOfMonth());
+            user.getId(),
+            temporalUtils.startOfLastMonth().atStartOfDay().toInstant(ZoneOffset.of("+01:00")),
+            temporalUtils
+                .endOfLastMonth()
+                .plusDays(1L)
+                .atStartOfDay()
+                .toInstant(ZoneOffset.of("+01:00")));
     return computeSubscriptionVariableConsumption(user, consumptionLogs);
   }
 
@@ -619,15 +627,25 @@ public class SubscriptionService {
   private @NotNull List<Subscription> getSubscriptionsFromStripeCustomer(String stripeCustomerId)
       throws StripeException {
     var activeScheduledSubscriptions = getActiveSubscriptionSchedules(stripeCustomerId);
-    var stripeSubscriptions =
-        stripeClient
-            .subscriptions()
-            .list(
-                SubscriptionListParams.builder()
-                    .setCustomer(stripeCustomerId)
-                    .setStatus(SubscriptionListParams.Status.ALL)
-                    .build())
-            .getData();
+    List<com.stripe.model.Subscription> stripeSubscriptions;
+    try {
+      stripeSubscriptions =
+          stripeClient
+              .subscriptions()
+              .list(
+                  SubscriptionListParams.builder()
+                      .setCustomer(stripeCustomerId)
+                      .setStatus(SubscriptionListParams.Status.ALL)
+                      .build())
+              .getData();
+    } catch (InvalidRequestException e) {
+      var exceptionMessage = e.getMessage();
+      if (exceptionMessage.contains("No such customer")) {
+        log.info(exceptionMessage);
+        return new ArrayList<>();
+      }
+      throw new RuntimeException(e);
+    }
     var initialSubscription =
         new ArrayList<>(stripeSubscriptions.stream().map(this::mapToDomain).toList());
     if (!activeScheduledSubscriptions.isEmpty()
@@ -649,11 +667,21 @@ public class SubscriptionService {
 
   private List<SubscriptionSchedule> getActiveSubscriptionSchedules(String stripeCustomerId)
       throws StripeException {
-    var scheduledSubscriptions =
-        stripeClient
-            .subscriptionSchedules()
-            .list(SubscriptionScheduleListParams.builder().setCustomer(stripeCustomerId).build())
-            .getData();
+    List<SubscriptionSchedule> scheduledSubscriptions;
+    try {
+      scheduledSubscriptions =
+          stripeClient
+              .subscriptionSchedules()
+              .list(SubscriptionScheduleListParams.builder().setCustomer(stripeCustomerId).build())
+              .getData();
+    } catch (InvalidRequestException e) {
+      var exceptionMessage = e.getMessage();
+      if (exceptionMessage.contains("No such customer")) {
+        log.info(exceptionMessage);
+        return new ArrayList<>();
+      }
+      throw new RuntimeException(e);
+    }
     return scheduledSubscriptions.stream()
         .filter(
             subscriptionSchedule ->

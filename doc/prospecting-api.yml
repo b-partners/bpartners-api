@@ -77,6 +77,52 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  prospectNotificationOperations:
+    post:
+      tags:
+        - Prospecting
+      summary: Notify a specific prospect creation to account holder
+      operationId: notifyProspects
+      description: |
+        Notify by email account holder and include attachment if provided.
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: prospectId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                optionalAttachment:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: Prospect notified for account holder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   prospectOperations:
     get:
       tags:
@@ -193,6 +239,44 @@ operations:
       responses:
         200:
           description: List of updated prospects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - Prospecting
+      summary: Create new prospects for a specific accountHolder
+      operationId: createProspects
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateProspect'
+      responses:
+        200:
+          description: List of created prospects.
           content:
             application/json:
               schema:
@@ -368,7 +452,7 @@ operations:
         $ref: './api.yml#/components/responses/429'
       500:
         $ref: './api.yml#/components/responses/500'
-  updateAndGetProspect :
+  updateAndGetProspect:
     get:
       tags:
         - Prospecting
@@ -601,6 +685,9 @@ components:
           $ref: '#/components/schemas/ProspectStatus'
         townCode:
           type: integer
+    CreateProspect:
+      allOf:
+        - $ref: '#/components/schemas/UpdateProspect'
     EvaluatedProspect:
       allOf:
         - $ref: '#/components/schemas/Prospect'

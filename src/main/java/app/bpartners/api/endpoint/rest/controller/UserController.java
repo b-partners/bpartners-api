@@ -39,7 +39,7 @@ public class UserController {
   public Redirection initiateBillingPortal(
       HttpServletRequest request,
       @PathVariable String uId,
-      RedirectionStatusUrls redirectionStatusUrls) {
+      @RequestBody RedirectionStatusUrls redirectionStatusUrls) {
     var authenticatedSelfUser = getAuthUser(request, uId);
     var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
 

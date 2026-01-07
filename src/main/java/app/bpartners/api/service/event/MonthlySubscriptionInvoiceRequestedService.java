@@ -95,7 +95,7 @@ public class MonthlySubscriptionInvoiceRequestedService
           var latestSubscription = userSubscription.getLatestSubscription();
           if (latestSubscription != null && !TRIALING.equals(latestSubscription.getStatus())) {
             int referenceNb = userIndex.getAndIncrement();
-            Invoice monthlySubscriptionInvoice = null;
+            Invoice monthlySubscriptionInvoice;
             try {
               monthlySubscriptionInvoice =
                   computeMonthlySusbcriptionInvoice(
@@ -120,8 +120,9 @@ public class MonthlySubscriptionInvoiceRequestedService
             */
           } else {
             log.info(
-                "User.id={} does not have subscription, skip computing invoice",
-                userToDebit.getId());
+                "User(id={}, email={}) does not have subscription, skip computing invoice",
+                userToDebit.getId(),
+                userToDebit.getEmail());
           }
         });
   }
@@ -135,9 +136,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
@@ -147,7 +148,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
-    var sendingDate = LocalDate.now();
+    var sendingDate = LocalDate.of(2025, 12, 31);
     LocalDateTime fixedDateTime = LocalDateTime.of(sendingDate, LocalTime.now());
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
@@ -159,7 +160,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfNextMonth())
+        .toPayAt(temporalUtils.fifthOfActualMonth())
         .sendingDate(sendingDate)
         .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)

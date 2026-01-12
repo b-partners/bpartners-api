@@ -5,10 +5,9 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.implementation.UserRepositoryImpl;
 import app.bpartners.api.service.user.UserAnalyseApiKeyService;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor

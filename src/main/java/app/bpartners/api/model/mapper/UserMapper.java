@@ -71,7 +71,8 @@ public class UserMapper {
         .deviceToken(entityUser.getDeviceToken())
         .parentUser(
             entityUser.getParentUser() == null ? null : toDomain(entityUser.getParentUser()))
-        .analysisApiKeys(entityUser.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toDomain).toList())
+        .analysisApiKeys(
+            entityUser.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toDomain).toList())
         .build();
   }
 
@@ -118,7 +119,8 @@ public class UserMapper {
         .snsArn(toSave.getSnsArn())
         .deviceToken(toSave.getDeviceToken())
         .parentUser(toSave.getParentUser() == null ? null : toEntity(toSave.getParentUser()))
-        .analysisApiKeys(toSave.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toEntity).toList())
+        .analysisApiKeys(
+            toSave.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toEntity).toList())
         .build();
   }
 

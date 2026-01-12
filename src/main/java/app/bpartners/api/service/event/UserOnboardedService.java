@@ -1,5 +1,7 @@
 package app.bpartners.api.service.event;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyRequested;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -28,6 +30,7 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
   private final TemplateResolverEngine templateResolverEngine;
   private final SubscriptionService subscriptionService;
   private final UserCustomerConverter userCustomerConverter;
+  private final EventProducer eventProducer;
 
   @Override
   public void accept(UserOnboarded event) {
@@ -35,6 +38,17 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
     subscriptionService.createOrLinkUserSubscription(onboardedUser);
     userCustomerConverter.apply(onboardedUser);
     notifyByEmail(event);
+    requestAnalyseApiKey(onboardedUser);
+  }
+
+  private void requestAnalyseApiKey(User user) {
+    try {
+      UserAnalysisApiKeyRequested userAnalysisApiKeyRequested =
+          new UserAnalysisApiKeyRequested(user);
+      eventProducer.accept(List.of(userAnalysisApiKeyRequested));
+    } catch (Exception e) {
+      log.error("Error while requesting analyse api key for user {}", user.getId(), e);
+    }
   }
 
   private void notifyByEmail(UserOnboarded userOnboarded) {

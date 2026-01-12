@@ -55,6 +55,7 @@ public class User implements Serializable {
   private User parentUser;
   private String apiKey;
   private boolean paymentMethodExists;
+  private List<UserAnalysisApiKey> analysisApiKeys;
 
   public String describe() {
     return "User(id" + id + ", name=" + getName() + ", email=" + email + ")";

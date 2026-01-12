@@ -29,6 +29,7 @@ public class UserMapper {
   public static final String UNINITIATED_STATUS = "Uninitiated";
   private final AccountMapper accountMapper;
   private final AccountHolderMapper accountHolderMapper;
+  private final UserAnalysisApiKeyMapper analysisApiKeyMapper;
 
   public User toDomain(HUser entityUser) {
     return User.builder()
@@ -70,6 +71,7 @@ public class UserMapper {
         .deviceToken(entityUser.getDeviceToken())
         .parentUser(
             entityUser.getParentUser() == null ? null : toDomain(entityUser.getParentUser()))
+        .analysisApiKeys(entityUser.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toDomain).toList())
         .build();
   }
 
@@ -116,6 +118,7 @@ public class UserMapper {
         .snsArn(toSave.getSnsArn())
         .deviceToken(toSave.getDeviceToken())
         .parentUser(toSave.getParentUser() == null ? null : toEntity(toSave.getParentUser()))
+        .analysisApiKeys(toSave.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toEntity).toList())
         .build();
   }
 

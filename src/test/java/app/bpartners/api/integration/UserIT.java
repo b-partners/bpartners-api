@@ -2,7 +2,7 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.PAYMENT_METHOD_REQUIRED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,6 +29,7 @@ import app.bpartners.api.service.subscription.StripeInvoiceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.stripe.model.PaymentMethod;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -76,10 +77,10 @@ class UserIT extends MockedThirdParties {
         .status(ENABLED)
         .activeAccount(restJaneAccount())
         .roles(List.of())
-        .subscriptionStatus(ACTIVE)
+        .subscriptionStatus(PAYMENT_METHOD_REQUIRED)
         .subscription(
             new app.bpartners.api.endpoint.rest.model.UserSubscription()
-                .status(ACTIVE)
+                .status(PAYMENT_METHOD_REQUIRED)
                 .start(null)
                 .end(null));
   }
@@ -102,6 +103,8 @@ class UserIT extends MockedThirdParties {
     var defaultUserSubscription = userSubscriptionMaker(true);
     when(subscriptionService.getSubscriptionByUser(any())).thenReturn(defaultUserSubscription);
     when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(defaultUserSubscription);
+    when(stripePaymentMethodServiceMock.getPaymentMethod(any()))
+        .thenReturn(List.of(mock(PaymentMethod.class)));
   }
 
   public static UserSubscription userSubscriptionMaker(boolean isActive) {

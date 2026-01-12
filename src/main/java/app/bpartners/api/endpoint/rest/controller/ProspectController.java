@@ -20,7 +20,6 @@ import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.service.prospect.ProspectService;
 import java.io.ByteArrayInputStream;
-import java.lang.Exception;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -103,7 +102,7 @@ public class ProspectController {
   public ResponseEntity<String> relaunchProspects() {
     try {
       eventProducer.accept(List.of(new RelaunchHoldersProspectTriggered()));
-    } catch (Exception e) {
+    } catch (java.lang.Exception e) {
       return new ResponseEntity<>(
           "Exception occurred : " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }

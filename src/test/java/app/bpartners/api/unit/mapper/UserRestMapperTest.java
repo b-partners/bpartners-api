@@ -47,7 +47,7 @@ class UserRestMapperTest {
 
   @Test
   void user_to_rest_check_subscription_start_end_and_status() {
-    var domain = User.builder().status(ENABLED).roles(List.of()).build();
+    var domain = User.builder().status(ENABLED).roles(List.of()).paymentMethodExists(true).build();
     when(subscriptionServiceMock.getSubscriptionByUser(any()))
         .thenReturn(UserSubscription.builder().build());
     var subscriptionEligible =
@@ -85,7 +85,7 @@ class UserRestMapperTest {
                             .build()))
                 .build());
 
-    var actual = subject.toRest(User.builder().roles(List.of()).build());
+    var actual = subject.toRest(User.builder().roles(List.of()).paymentMethodExists(true).build());
 
     var actualSubscription = actual.getSubscription();
     assertEquals(ACTIVE, actualSubscription.getStatus());
@@ -108,7 +108,7 @@ class UserRestMapperTest {
                             .build()))
                 .build());
 
-    var actual = subject.toRest(User.builder().roles(List.of()).build());
+    var actual = subject.toRest(User.builder().roles(List.of()).paymentMethodExists(true).build());
 
     var actualSubscription = actual.getSubscription();
     assertEquals(EMPTY, actualSubscription.getStatus());
@@ -132,7 +132,7 @@ class UserRestMapperTest {
                             .build()))
                 .build());
 
-    var actual = subject.toRest(User.builder().roles(List.of()).build());
+    var actual = subject.toRest(User.builder().roles(List.of()).paymentMethodExists(true).build());
 
     var actualSubscription = actual.getSubscription();
     assertEquals(ACTIVE, actualSubscription.getStatus());

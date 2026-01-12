@@ -4,6 +4,9 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.conf.FacadeIT;
 import app.bpartners.api.endpoint.SentryConf;
@@ -20,7 +23,9 @@ import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import com.stripe.model.PaymentMethod;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +48,7 @@ class LegalFileIT extends FacadeIT {
   @MockBean StripeConf stripeConf;
   @MockBean UserSubscriptionConf userSubscriptionConf;
   @MockBean SubscriptionService subscriptionService;
+  @MockBean StripePaymentMethodService stripePaymentMethodService;
 
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";
 
@@ -50,6 +56,9 @@ class LegalFileIT extends FacadeIT {
   public void setUp() {
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
+
+    when(stripePaymentMethodService.getPaymentMethod(any()))
+        .thenReturn(List.of(mock(PaymentMethod.class)));
   }
 
   private ApiClient anApiClient() {

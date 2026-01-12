@@ -19,6 +19,7 @@ import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,7 @@ class UserRepositoryTest {
   AccountJpaRepository accountJpaRepositoryMock;
   BankRepository bankRepositoryMock;
   EntityManager entityManagerMock;
+  StripePaymentMethodService stripePaymentMethodServiceMock = mock();
 
   @BeforeEach
   void setUp() {
@@ -52,7 +54,8 @@ class UserRepositoryTest {
             accountHolderJpaRepositoryMock,
             accountJpaRepositoryMock,
             bankRepositoryMock,
-            entityManagerMock);
+            entityManagerMock,
+            stripePaymentMethodServiceMock);
 
     when(userJpaRepositoryMock.save(any())).thenReturn(user());
     when(userJpaRepositoryMock.findByEmail(JOE_EMAIL)).thenReturn(Optional.ofNullable(user()));

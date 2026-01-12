@@ -756,6 +756,7 @@ components:
         - ACTIVE
         - FREE_TRIAL
         - UNPAID
+        - PAYMENT_METHOD_REQUIRED
     UserSubscription:
       type: object
       properties:

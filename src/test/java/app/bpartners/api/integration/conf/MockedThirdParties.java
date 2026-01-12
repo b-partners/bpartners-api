@@ -11,6 +11,7 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,5 +30,6 @@ public class MockedThirdParties extends FacadeIT {
   @MockBean protected StripeConf stripeConf;
   @MockBean protected UserSubscriptionConf userSubscriptionConf;
   @MockBean protected SubscriptionService subscriptionService;
+  @MockBean protected StripePaymentMethodService stripePaymentMethodServiceMock;
   @MockBean protected EventProducer eventProducer;
 }

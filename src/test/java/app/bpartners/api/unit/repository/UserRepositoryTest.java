@@ -5,10 +5,10 @@ import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_I
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_TOKEN;
 import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_EMAIL;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
@@ -20,6 +20,7 @@ import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
+import com.stripe.model.PaymentMethod;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
@@ -74,11 +75,44 @@ class UserRepositoryTest {
   }
 
   @Test
-  void read_user_by_token() {
-    User actual = subject.getUserByToken(JOE_DOE_TOKEN);
+  void read_user_by_token_with_computed_payment_method_attribute() {
+    var token = randomUUID().toString();
+    var email = "random-" + randomUUID() + "@email.com";
+    var userSubscriptionId = randomUUID().toString();
 
-    assertNotNull(actual);
-    assertEquals(expectedUser(), actual);
+    reset(userJpaRepositoryMock, cognitoComponentMock, userMapperMock);
+    when(userJpaRepositoryMock.findByAccessToken(token)).thenReturn(Optional.empty());
+    when(cognitoComponentMock.getEmailByToken(token)).thenReturn(email);
+    when(userJpaRepositoryMock.findByEmail(email)).thenReturn(Optional.of(mock(HUser.class)));
+    when(userMapperMock.toDomain(any(HUser.class)))
+        .thenReturn(User.builder().userSubscriptionId(userSubscriptionId).build());
+    when(stripePaymentMethodServiceMock.getPaymentMethod(userSubscriptionId))
+        .thenReturn(List.of(mock(PaymentMethod.class)));
+
+    var actual = subject.getUserByToken(token);
+
+    assertEquals(
+        User.builder().userSubscriptionId(userSubscriptionId).paymentMethodExists(true).build(),
+        actual);
+  }
+
+  @Test
+  void read_user_by_token_without_user_subscription_id() {
+    var token = randomUUID().toString();
+    var email = "random-" + randomUUID() + "@email.com";
+
+    reset(userJpaRepositoryMock, cognitoComponentMock, userMapperMock);
+    when(userJpaRepositoryMock.findByAccessToken(token)).thenReturn(Optional.empty());
+    when(cognitoComponentMock.getEmailByToken(token)).thenReturn(email);
+    when(userJpaRepositoryMock.findByEmail(email)).thenReturn(Optional.of(mock(HUser.class)));
+    when(userMapperMock.toDomain(any(HUser.class)))
+        .thenReturn(User.builder().userSubscriptionId(null).build());
+
+    var actual = subject.getUserByToken(token);
+
+    verify(stripePaymentMethodServiceMock, never()).getPaymentMethod(any());
+    assertEquals(
+        User.builder().userSubscriptionId(null).paymentMethodExists(false).build(), actual);
   }
 
   HUser user() {

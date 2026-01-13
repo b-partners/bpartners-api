@@ -28,8 +28,8 @@ Globals:
         AWS_EVENTBRIDGE_BUS: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-name}}'
         AWS_EVENT_STACK_1_SQS_QUEUE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/mailbox-queue-url}}'
         AWS_EVENT_STACK_2_SQS_QUEUE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/2/sqs/mailbox-queue-url}}'
-        
-        
+
+
         SENTRY_DSN: !Sub '{{resolve:ssm:/bpartners/sentry/dsn}}'
         SENTRY_ENVIRONMENT: !Ref Env
         AWS_COGNITO_USERPOOL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/cognito/userpool-id}}'
@@ -78,6 +78,9 @@ Globals:
         GOOGLE_CAPTCHA_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/google/captcha/url}}'
         GEO_JOBS_ADMIN_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/geo-jobs/admin/api-key}}'
         GEO_JOBS_BASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/geo-jobs/base-url}}'
+        AIRBUS_AUTHENTICATION_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/airbus/auth/url}}'
+        AIRBUS_SEARCHAPI_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/airbus/searchapi/url}}'
+        AIRBUS_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/airbus/api/key}}'
 
 Parameters:
   Env:

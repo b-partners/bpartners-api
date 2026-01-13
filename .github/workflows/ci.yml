@@ -23,6 +23,9 @@ jobs:
 
     env:
       AWS_REGION: eu-west-3
+      AIRBUS_SEARCHAPI_BASEURL: ${{ secrets.AIRBUS_SEARCHAPI_URL }}
+      AIRBUS_AUTHENTICATION_BASEURL : ${{ secrets.AIRBUS_AUTHENTICATION_BASEURL }}
+      AIRBUS_API_KEY : ${{ secrets.AIRBUS_API_KEY }}
 
     steps:
       - uses: actions/checkout@v4.1.6

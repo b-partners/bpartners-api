@@ -41,3 +41,8 @@ SUBSCRIPTION_USER_CREDIT_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/subscription/
 DASHBOARD_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/dashboard/url}}'
 GEO_JOBS_ADMIN_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/geo-jobs/admin/api-key}}'
 GEO_JOBS_BASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/geo-jobs/base-url}}'
+GOOGLE_CAPTCHA_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/google/captcha/secret}}'
+GOOGLE_CAPTCHA_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/google/captcha/url}}'
+AIRBUS_AUTHENTICATION_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/airbus/auth/url}}'
+AIRBUS_SEARCHAPI_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/airbus/searchapi/url}}'
+AIRBUS_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/airbus/api/key}}'

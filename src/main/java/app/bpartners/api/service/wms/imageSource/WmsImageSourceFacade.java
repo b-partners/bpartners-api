@@ -27,6 +27,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final GeoserverImageSource geoserverImageSource;
   private final IGNGeoserverImageSource ignGeoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
+  private final AirbusPNEOImageSource airbusPNEOImageSource;
   private final TileExtenderImageSource tileExtenderImageSource;
   private final ImageValidator imageValidator;
   private final Mailer mailer;
@@ -36,6 +37,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       GeoserverImageSource geoserverImageSource,
       IGNGeoserverImageSource ignGeoserverImageSource,
       AreaPictureMapLayerService areaPictureMapLayerService,
+      AirbusPNEOImageSource airbusPNEOImageSource,
       TileExtenderImageSource tileExtenderImageSource,
       ImageValidator imageValidator,
       Mailer mailer) {
@@ -43,6 +45,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     this.geoserverImageSource = geoserverImageSource;
     this.ignGeoserverImageSource = ignGeoserverImageSource;
     this.areaPictureMapLayerService = areaPictureMapLayerService;
+    this.airbusPNEOImageSource = airbusPNEOImageSource;
     this.tileExtenderImageSource = tileExtenderImageSource;
     this.imageValidator = imageValidator;
     this.mailer = mailer;

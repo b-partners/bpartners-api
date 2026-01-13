@@ -2,7 +2,7 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.PAYMENT_METHOD_REQUIRED;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.*;
@@ -77,10 +77,10 @@ class UserIT extends MockedThirdParties {
         .status(ENABLED)
         .activeAccount(restJaneAccount())
         .roles(List.of())
-        .subscriptionStatus(PAYMENT_METHOD_REQUIRED)
+        .subscriptionStatus(ACTIVE)
         .subscription(
             new app.bpartners.api.endpoint.rest.model.UserSubscription()
-                .status(PAYMENT_METHOD_REQUIRED)
+                .status(ACTIVE)
                 .start(null)
                 .end(null));
   }

@@ -5,10 +5,10 @@ import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.*;
 import static java.time.Instant.now;
 import static java.time.LocalTime.MAX;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.mapper.AccountRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
@@ -136,6 +136,39 @@ class UserRestMapperTest {
 
     var actualSubscription = actual.getSubscription();
     assertEquals(ACTIVE, actualSubscription.getStatus());
+    assertNull(actualSubscription.getStart());
+    assertNull(actualSubscription.getEnd());
+  }
+
+  @Test
+  void user_subscription_mapped_with_payment_required_method_status() {
+    var now = now();
+    var userId = randomUUID().toString();
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+
+    reset(subscriptionEligibleJpaRepositoryMock);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userId))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(
+            UserSubscription.builder()
+                .subscriptions(
+                    List.of(
+                        Subscription.builder()
+                            .status(Subscription.SubscriptionStatus.ACTIVE)
+                            .active(true)
+                            .startDatetime(now)
+                            .endDatetime(now)
+                            .build()))
+                .build());
+
+    var actual =
+        subject.toRest(
+            User.builder().id(userId).roles(List.of()).paymentMethodExists(false).build());
+
+    var actualSubscription = actual.getSubscription();
+    assertEquals(PAYMENT_METHOD_REQUIRED, actualSubscription.getStatus());
     assertNull(actualSubscription.getStart());
     assertNull(actualSubscription.getEnd());
   }

@@ -67,7 +67,10 @@ public class UserRestMapper {
       boolean userHasUnpaidStripeInvoices,
       boolean userHasPaymentMethods) {
     if (!userHasPaymentMethods) {
-      return PAYMENT_METHOD_REQUIRED;
+      if (userSubscriptionEligible != null
+          && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
+        return PAYMENT_METHOD_REQUIRED;
+      }
     }
     if (userHasUnpaidStripeInvoices) {
       return UNPAID;

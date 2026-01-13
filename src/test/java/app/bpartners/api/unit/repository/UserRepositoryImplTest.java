@@ -17,6 +17,7 @@ import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
@@ -33,6 +34,7 @@ class UserRepositoryImplTest {
   CognitoComponent cognitoComponentMock = mock();
   UserMapper userMapperMock = mock();
   UserJpaRepository userJpaRepositoryMock = mock();
+  StripePaymentMethodService stripePaymentMethodServiceMock = mock();
   UserRepositoryImpl subject =
       new UserRepositoryImpl(
           userJpaRepositoryMock,
@@ -41,7 +43,8 @@ class UserRepositoryImplTest {
           holderJpaRepositoryMock,
           accountJpaRepositoryMock,
           bankRepositoryMock,
-          entityManagerMock);
+          entityManagerMock,
+          stripePaymentMethodServiceMock);
 
   @Test
   void find_all_by_criteria_with_default_page_and_size_values() {

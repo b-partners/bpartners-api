@@ -29,6 +29,7 @@ import app.bpartners.api.service.subscription.StripeInvoiceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.stripe.model.PaymentMethod;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -102,6 +103,8 @@ class UserIT extends MockedThirdParties {
     var defaultUserSubscription = userSubscriptionMaker(true);
     when(subscriptionService.getSubscriptionByUser(any())).thenReturn(defaultUserSubscription);
     when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(defaultUserSubscription);
+    when(stripePaymentMethodServiceMock.getPaymentMethod(any()))
+        .thenReturn(List.of(mock(PaymentMethod.class)));
   }
 
   public static UserSubscription userSubscriptionMaker(boolean isActive) {

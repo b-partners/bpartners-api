@@ -79,6 +79,7 @@ class UserRepositoryTest {
     var token = randomUUID().toString();
     var email = "random-" + randomUUID() + "@email.com";
     var userSubscriptionId = randomUUID().toString();
+    var paymentMethodMockList = List.of(mock(PaymentMethod.class));
 
     reset(userJpaRepositoryMock, cognitoComponentMock, userMapperMock);
     when(userJpaRepositoryMock.findByAccessToken(token)).thenReturn(Optional.empty());
@@ -87,7 +88,10 @@ class UserRepositoryTest {
     when(userMapperMock.toDomain(any(HUser.class)))
         .thenReturn(User.builder().userSubscriptionId(userSubscriptionId).build());
     when(stripePaymentMethodServiceMock.getPaymentMethod(userSubscriptionId))
-        .thenReturn(List.of(mock(PaymentMethod.class)));
+        .thenReturn(paymentMethodMockList);
+    when(stripePaymentMethodServiceMock.customerHasValidPaymentMethods(
+            userSubscriptionId, paymentMethodMockList))
+        .thenReturn(true);
 
     var actual = subject.getUserByToken(token);
 

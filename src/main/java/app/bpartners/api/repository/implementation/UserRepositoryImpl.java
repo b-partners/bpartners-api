@@ -18,13 +18,9 @@ import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
-import com.stripe.model.PaymentMethod;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -253,17 +249,15 @@ public class UserRepositoryImpl implements UserRepository {
       return null;
     }
     if (fetchedUser.getUserSubscriptionId() != null) {
-      var paymentMethodList =
-          stripePaymentMethodService.getPaymentMethod(fetchedUser.getUserSubscriptionId());
+      var stripeCustomerIdentifier = fetchedUser.getUserSubscriptionId();
+      var paymentMethodList = stripePaymentMethodService.getPaymentMethod(stripeCustomerIdentifier);
       return fetchedUser.toBuilder()
-          .paymentMethodExists(paymentMethodExists(paymentMethodList))
+          .paymentMethodExists(
+              stripePaymentMethodService.customerHasValidPaymentMethods(
+                  stripeCustomerIdentifier, paymentMethodList))
           .build();
     }
     return fetchedUser;
-  }
-
-  private boolean paymentMethodExists(List<PaymentMethod> paymentMethodList) {
-    return !paymentMethodList.isEmpty();
   }
 
   @Override

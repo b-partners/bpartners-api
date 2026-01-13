@@ -36,7 +36,10 @@ public class UserRestMapper {
         userSubscriptionEligibleRepository.findByUserId(domain.getId()).orElse(null);
     var subscriptionStatus =
         getSubscriptionStatus(
-            subscription, subscriptionEligibility, !unpaidStripeInvoices.isEmpty());
+            subscription,
+            subscriptionEligibility,
+            !unpaidStripeInvoices.isEmpty(),
+            domain.isPaymentMethodExists());
     return new User()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -61,7 +64,14 @@ public class UserRestMapper {
   private UserSubscriptionStatus getSubscriptionStatus(
       app.bpartners.api.model.subscription.UserSubscription subscription,
       UserSubscriptionEligible userSubscriptionEligible,
-      boolean userHasUnpaidStripeInvoices) {
+      boolean userHasUnpaidStripeInvoices,
+      boolean userHasPaymentMethods) {
+    if (!userHasPaymentMethods) {
+      if (userSubscriptionEligible != null
+          && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
+        return PAYMENT_METHOD_REQUIRED;
+      }
+    }
     if (userHasUnpaidStripeInvoices) {
       return UNPAID;
     }

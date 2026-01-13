@@ -17,6 +17,7 @@ import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
@@ -24,9 +25,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Repository
 @AllArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
@@ -37,6 +40,7 @@ public class UserRepositoryImpl implements UserRepository {
   private final AccountJpaRepository accountJpaRepository;
   private final BankRepository bankRepository;
   private final EntityManager entityManager;
+  private final StripePaymentMethodService stripePaymentMethodService;
 
   @Override
   public User getByIdAccount(String idAccount) {
@@ -44,33 +48,54 @@ public class UserRepositoryImpl implements UserRepository {
         accountJpaRepository
             .findById(idAccount)
             .orElseThrow(() -> new NotFoundException("Account(id=" + idAccount + ") not found"));
-    return userMapper.toDomain(account.getUser());
+    var fetchedUser = userMapper.toDomain(account.getUser());
+    return retrievePaymentMethod(fetchedUser);
   }
 
   @Transactional
   @Override
   public List<User> getActiveUsersWithNullSubscription() {
     return jpaRepository.getEnabledUsersWithoutSubscription().stream()
-        .map(userMapper::toDomain)
+        .map(
+            userEntity -> {
+              var fetchedUser = userMapper.toDomain(userEntity);
+              return retrievePaymentMethod(fetchedUser);
+            })
         .toList();
   }
 
   @Transactional
   @Override
   public List<User> getUsersWithSubscription() {
-    return jpaRepository.getUsersWithSubscription().stream().map(userMapper::toDomain).toList();
+    return jpaRepository.getUsersWithSubscription().stream()
+        .map(
+            userEntity -> {
+              var fetchedUser = userMapper.toDomain(userEntity);
+              return retrievePaymentMethod(fetchedUser);
+            })
+        .toList();
   }
 
   @Override
   public List<User> findSubordinatesUsersByParentId(String parentId) {
     return jpaRepository.findSubordinatesUsersByParentId(parentId).stream()
-        .map(userMapper::toDomain)
+        .map(
+            userEntity -> {
+              var fetchedUser = userMapper.toDomain(userEntity);
+              return retrievePaymentMethod(fetchedUser);
+            })
         .toList();
   }
 
   @Override
   public List<User> findAll() {
-    return jpaRepository.findAll().stream().map(userMapper::toDomain).collect(toList());
+    return jpaRepository.findAll().stream()
+        .map(
+            userEntity -> {
+              var fetchedUser = userMapper.toDomain(userEntity);
+              return retrievePaymentMethod(fetchedUser);
+            })
+        .collect(toList());
   }
 
   @Override
@@ -109,7 +134,11 @@ public class UserRepositoryImpl implements UserRepository {
         .setMaxResults(pageSize)
         .getResultList()
         .stream()
-        .map(userMapper::toDomain)
+        .map(
+            userEntity -> {
+              var fetchedUser = userMapper.toDomain(userEntity);
+              return retrievePaymentMethod(fetchedUser);
+            })
         .toList();
   }
 
@@ -156,7 +185,8 @@ public class UserRepositoryImpl implements UserRepository {
               .orElseThrow(
                   () -> new NotFoundException("No user with the email " + email + " was found"));
     }
-    return userMapper.toDomain(entityUser);
+    var fetchedUser = userMapper.toDomain(entityUser);
+    return retrievePaymentMethod(fetchedUser);
   }
 
   @Override
@@ -166,32 +196,37 @@ public class UserRepositoryImpl implements UserRepository {
             .findByApiKey(apiKey)
             .orElseThrow(
                 () -> new NotFoundException("No user with the apiKey " + apiKey + " was found"));
-    return userMapper.toDomain(user);
+    var fetchedUser = userMapper.toDomain(user);
+    return retrievePaymentMethod(fetchedUser);
   }
 
   @Override
   public User getByEmail(String email) {
-    return userMapper.toDomain(
-        jpaRepository
-            .findByEmail(email)
-            .orElseThrow(
-                () -> new NotFoundException("No user with the email " + email + " was found")));
+    var fetchedUser =
+        userMapper.toDomain(
+            jpaRepository
+                .findByEmail(email)
+                .orElseThrow(
+                    () -> new NotFoundException("No user with the email " + email + " was found")));
+    return retrievePaymentMethod(fetchedUser);
   }
 
   @Override
   public Optional<User> findByEmail(String email) {
     var mail = jpaRepository.findByEmail(email);
     return jpaRepository.getByEmail(email) != null
-        ? Optional.of(userMapper.toDomain(jpaRepository.getByEmail(email)))
+        ? Optional.of(retrievePaymentMethod(userMapper.toDomain(jpaRepository.getByEmail(email))))
         : Optional.empty();
   }
 
   @Override
   public User getById(String id) {
-    return userMapper.toDomain(
-        jpaRepository
-            .findById(id)
-            .orElseThrow(() -> new NotFoundException("User(id=" + id + " not found)")));
+    var fetchedUser =
+        userMapper.toDomain(
+            jpaRepository
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException("User(id=" + id + " not found)")));
+    return retrievePaymentMethod(fetchedUser);
   }
 
   @Override
@@ -199,7 +234,8 @@ public class UserRepositoryImpl implements UserRepository {
     List<HAccountHolder> accountHolders = holderJpaRepository.findAllByIdUser(toSave.getId());
     List<HAccount> accounts = accountJpaRepository.findByUser_Id(toSave.getId());
     HUser savedUser = jpaRepository.save(userMapper.toEntity(toSave, accountHolders, accounts));
-    return userMapper.toDomain(savedUser);
+    var fetchedUser = userMapper.toDomain(savedUser);
+    return retrievePaymentMethod(fetchedUser);
   }
 
   @Override
@@ -207,7 +243,20 @@ public class UserRepositoryImpl implements UserRepository {
     BridgeUser bridgeUser = BridgeUser.builder().email(user.getEmail()).build();
     HUser entityToSave = userMapper.toEntity(user, bridgeUser);
     HUser savedUser = jpaRepository.save(entityToSave);
-    return userMapper.toDomain(savedUser);
+    var fetchedUser = userMapper.toDomain(savedUser);
+    return retrievePaymentMethod(fetchedUser);
+  }
+
+  private User retrievePaymentMethod(User fetchedUser) {
+    if (fetchedUser == null) {
+      return null;
+    }
+    if (fetchedUser.getUserSubscriptionId() != null) {
+      var paymentMethodList =
+          stripePaymentMethodService.getPaymentMethod(fetchedUser.getUserSubscriptionId());
+      return fetchedUser.toBuilder().paymentMethodExists(!paymentMethodList.isEmpty()).build();
+    }
+    return fetchedUser;
   }
 
   @Override

@@ -54,6 +54,7 @@ public class User implements Serializable {
   private String deviceToken;
   private User parentUser;
   private String apiKey;
+  private boolean paymentMethodExists;
 
   public String describe() {
     return "User(id" + id + ", name=" + getName() + ", email=" + email + ")";

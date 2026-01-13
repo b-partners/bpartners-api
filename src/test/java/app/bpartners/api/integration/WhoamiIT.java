@@ -8,6 +8,7 @@ import static app.bpartners.api.integration.UserIT.userSubscriptionMaker;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
@@ -17,6 +18,7 @@ import app.bpartners.api.endpoint.rest.model.User;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
+import com.stripe.model.PaymentMethod;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +49,8 @@ class WhoamiIT extends MockedThirdParties {
     var defaultUserSubscription = userSubscriptionMaker(false);
     when(subscriptionService.getSubscriptionByUser(any())).thenReturn(defaultUserSubscription);
     when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(defaultUserSubscription);
+    when(stripePaymentMethodServiceMock.getPaymentMethod(any()))
+        .thenReturn(List.of(mock(PaymentMethod.class)));
   }
 
   @Test

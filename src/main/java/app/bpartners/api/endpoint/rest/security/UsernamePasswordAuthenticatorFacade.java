@@ -5,7 +5,9 @@ import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpire
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.jpa.UserApiKeyFullAuthorizationJpaRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.LegalFileService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +28,7 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
   private final LegalFileService legalFileService;
   private final SubscriptionService subscriptionService;
   private final UserApiKeyFullAuthorizationJpaRepository userApiKeyFullAuthorizationJpaRepository;
+  private final UserSubscriptionEligibleJpaRepository userSubscriptionEligibleJpaRepository;
 
   @Override
   public UserDetails retrieveUser(
@@ -41,9 +44,24 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
     checkLegalFiles(legalFilesList, user);
+    var userNotWhiteListed =
+        userApiKeyFullAuthorizationJpaRepository.findByIdUser(user.getId()).isEmpty();
+    if (!user.isPaymentMethodExists() && userNotWhiteListed) {
+      userSubscriptionEligibleJpaRepository
+          .findByUserId(user.getId())
+          .ifPresent(
+              value -> {
+                if (!value.hasFreeTrialPeriodActive()) {
+                  throw new ForbiddenException(
+                      "User.id="
+                          + user.getId()
+                          + " does not have any payment method."
+                          + " Add a new one through billing portal redirection");
+                }
+              });
+    }
     var userSubscription = subscriptionService.getSubscriptionByUserId(user.getId());
-    if (!userSubscription.hasValidSubscription()
-        && userApiKeyFullAuthorizationJpaRepository.findByIdUser(user.getId()).isEmpty()) {
+    if (!userSubscription.hasValidSubscription() && userNotWhiteListed) {
       throw new UserSubscriptionExpiredException(
           "User.id=" + user.getId() + " does not have a valid subscription or free trial expired");
     }

@@ -20,6 +20,7 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.repository.jpa.model.detection.HDetectionTracking;
+import app.bpartners.api.service.subscription.StripeCustomerService;
 import app.bpartners.api.service.subscription.StripeFactory;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -62,6 +63,7 @@ class SubscriptionServiceTest {
   DetectionTrackingJpaRepository detectionTrackingJpaRepositoryMock =
       mock(DetectionTrackingJpaRepository.class);
   StripeInvoiceService stripeInvoiceServiceMock = mock();
+  StripeCustomerService stripeCustomerServiceMock = mock(StripeCustomerService.class);
   SubscriptionService subject =
       new SubscriptionService(
           stripeConfMock,
@@ -74,7 +76,8 @@ class SubscriptionServiceTest {
           sessionFactoryMock,
           sessionRepositoryMock,
           detectionTrackingJpaRepositoryMock,
-          stripeInvoiceServiceMock);
+          stripeInvoiceServiceMock,
+          stripeCustomerServiceMock);
 
   @Test
   void get_subscription_consumption_logs_ok() {

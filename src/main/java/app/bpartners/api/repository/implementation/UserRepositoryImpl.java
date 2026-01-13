@@ -18,6 +18,7 @@ import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
+import com.stripe.model.PaymentMethod;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
@@ -254,9 +255,15 @@ public class UserRepositoryImpl implements UserRepository {
     if (fetchedUser.getUserSubscriptionId() != null) {
       var paymentMethodList =
           stripePaymentMethodService.getPaymentMethod(fetchedUser.getUserSubscriptionId());
-      return fetchedUser.toBuilder().paymentMethodExists(!paymentMethodList.isEmpty()).build();
+      return fetchedUser.toBuilder()
+          .paymentMethodExists(paymentMethodExists(paymentMethodList))
+          .build();
     }
     return fetchedUser;
+  }
+
+  private boolean paymentMethodExists(List<PaymentMethod> paymentMethodList) {
+    return !paymentMethodList.isEmpty();
   }
 
   @Override

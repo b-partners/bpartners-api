@@ -39,7 +39,7 @@ public class UserAnalysisApiKeyService {
     HttpHeaders headers = new HttpHeaders();
     headers.add("x-api-key", GEOJOBS_API_KEY);
 
-    HttpEntity<ApiKeyCreationPayload> request = new HttpEntity<>(toCreationPayload(user), headers);
+    HttpEntity<AnalysisApiKeyCreation> request = new HttpEntity<>(toAnalysisApiKeyCreation(user), headers);
 
     CreatedAnalysisApiKey createdAnalysisApiKey =
         restTemplate.postForObject(uriBuilder.toUriString(), request, CreatedAnalysisApiKey.class);
@@ -53,8 +53,8 @@ public class UserAnalysisApiKeyService {
             .build();
   }
 
-  private ApiKeyCreationPayload toCreationPayload(User user) {
-    return new ApiKeyCreationPayload(
+  private AnalysisApiKeyCreation toAnalysisApiKeyCreation(User user) {
+    return new AnalysisApiKeyCreation(
         user.getName(),
         user.getEmail(),
         DEFAULT_CONSUMER_TYPE,
@@ -66,7 +66,7 @@ public class UserAnalysisApiKeyService {
 
   record CreatedAnalysisApiKey(String key, Instant creationDatetime) {}
 
-  record ApiKeyCreationPayload(
+  record AnalysisApiKeyCreation(
       String consumerName,
       String consumerEmail,
       ConsumerType consumerType,

@@ -76,6 +76,7 @@ Globals:
         DASHBOARD_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/dashboard/url}}'
         GOOGLE_CAPTCHA_SECRET: !Sub '{{resolve:ssm:/bpartners/${Env}/google/captcha/secret}}'
         GOOGLE_CAPTCHA_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/google/captcha/url}}'
+        GEOJOBS_ADMIN_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/geojobs/admin/api-key}}'
 
 Parameters:
   Env:

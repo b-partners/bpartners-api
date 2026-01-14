@@ -13,7 +13,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 class UserAnalysisApiKeyServiceTest {
 
   RestTemplate restTemplateMock = mock();
-  UserAnalysisApiKeyService subject = new UserAnalysisApiKeyService("https://dum.my", restTemplateMock);
+  UserAnalysisApiKeyService subject =
+      new UserAnalysisApiKeyService("https://dum.my", restTemplateMock);
 
   @Test
   void getAnalysisApiKey_ok() {

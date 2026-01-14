@@ -1,18 +1,17 @@
 package app.bpartners.api.service.user;
 
+import static app.bpartners.api.service.user.UserAnalysisApiKeyService.ConsumerType.INSURANCE;
+
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import java.time.Instant;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import static app.bpartners.api.service.user.UserAnalysisApiKeyService.ConsumerType.INSURANCE;
 
 @Service
 public class UserAnalysisApiKeyService {
@@ -29,7 +28,8 @@ public class UserAnalysisApiKeyService {
   private final String GEOJOBS_BASE_URL;
   private final RestTemplate restTemplate;
 
-  public UserAnalysisApiKeyService(@Value("geojobs.base.url") String GEOJOBS_BASE_URL, RestTemplate restTemplate) {
+  public UserAnalysisApiKeyService(
+      @Value("geojobs.base.url") String GEOJOBS_BASE_URL, RestTemplate restTemplate) {
     this.GEOJOBS_BASE_URL = GEOJOBS_BASE_URL;
     this.restTemplate = restTemplate;
   }
@@ -41,7 +41,8 @@ public class UserAnalysisApiKeyService {
     HttpHeaders headers = new HttpHeaders();
     headers.add("x-api-key", GEOJOBS_API_KEY);
 
-    HttpEntity<AnalysisApiKeyCreation> request = new HttpEntity<>(toAnalysisApiKeyCreation(user), headers);
+    HttpEntity<AnalysisApiKeyCreation> request =
+        new HttpEntity<>(toAnalysisApiKeyCreation(user), headers);
 
     CreatedAnalysisApiKey createdAnalysisApiKey =
         restTemplate.postForObject(uriBuilder.toUriString(), request, CreatedAnalysisApiKey.class);

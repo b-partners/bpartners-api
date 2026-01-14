@@ -21,7 +21,7 @@ public class HUserAnalysisApiKey {
   @Column(name = "user_id")
   private String userId;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
   private HUser user;
 

@@ -49,7 +49,7 @@ public class UserAnalysisApiKeyService {
 
     return new UserAnalysisApiKey()
         .toBuilder()
-            .userId(user.getId())
+            .user(user)
             .apiKey(createdAnalysisApiKey.key())
             .creationDatetime(createdAnalysisApiKey.creationDatetime())
             .expirationDatetime(null)

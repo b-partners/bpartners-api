@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.*;
@@ -20,6 +21,7 @@ public class HUserAnalysisApiKey {
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+  @JsonBackReference
   private HUser user;
 
   private Instant creationDatetime;

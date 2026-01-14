@@ -17,7 +17,7 @@ public class UserAnalysisApiKeyRequestedService implements Consumer<UserAnalysis
 
   @Override
   public void accept(UserAnalysisApiKeyRequested event) {
-    User user = event.getUser();
+    User user = event.getUser().toBuilder().build();
 
     UserAnalysisApiKey analysisApiKey = service.getAnalysisApiKey(user);
     user.getAnalysisApiKeys().add(analysisApiKey);

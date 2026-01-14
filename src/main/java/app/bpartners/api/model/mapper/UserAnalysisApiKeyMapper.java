@@ -10,23 +10,21 @@ import org.springframework.stereotype.Component;
 public class UserAnalysisApiKeyMapper {
 
   public UserAnalysisApiKey toDomain(HUserAnalysisApiKey entityHUserAnalysisApiKey) {
-    return new UserAnalysisApiKey()
-        .toBuilder()
-            .id(entityHUserAnalysisApiKey.getId())
-            .userId(entityHUserAnalysisApiKey.getUser().getId())
-            .apiKey(entityHUserAnalysisApiKey.getApiKey())
-            .creationDatetime(entityHUserAnalysisApiKey.getCreationDatetime())
-            .expirationDatetime(entityHUserAnalysisApiKey.getExpirationDatetime())
-            .build();
+    return UserAnalysisApiKey.builder()
+        .id(entityHUserAnalysisApiKey.getId())
+        .userId(entityHUserAnalysisApiKey.getUser().getId())
+        .apiKey(entityHUserAnalysisApiKey.getApiKey())
+        .creationDatetime(entityHUserAnalysisApiKey.getCreationDatetime())
+        .expirationDatetime(entityHUserAnalysisApiKey.getExpirationDatetime())
+        .build();
   }
 
   public HUserAnalysisApiKey toEntity(UserAnalysisApiKey userAnalysisApiKey) {
-    return new HUserAnalysisApiKey()
-        .toBuilder()
-            .id(userAnalysisApiKey.getId())
-            .apiKey(userAnalysisApiKey.getApiKey())
-            .creationDatetime(userAnalysisApiKey.getCreationDatetime())
-            .expirationDatetime(userAnalysisApiKey.getExpirationDatetime())
-            .build();
+    return HUserAnalysisApiKey.builder()
+        .id(userAnalysisApiKey.getId())
+        .apiKey(userAnalysisApiKey.getApiKey())
+        .creationDatetime(userAnalysisApiKey.getCreationDatetime())
+        .expirationDatetime(userAnalysisApiKey.getExpirationDatetime())
+        .build();
   }
 }

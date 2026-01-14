@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.security.model.Role;
 import com.nimbusds.jose.util.Base64;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -88,5 +89,12 @@ public class User implements Serializable {
       log.warn("Only unique account holder supported. Chosen by default " + first.describe());
     }
     return first;
+  }
+
+  public List<UserAnalysisApiKey> getAnalysisApiKeys() {
+    if (analysisApiKeys == null) {
+      analysisApiKeys = new ArrayList<>();
+    }
+    return analysisApiKeys;
   }
 }

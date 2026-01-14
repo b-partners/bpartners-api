@@ -5,6 +5,7 @@ import app.bpartners.api.model.UserAnalysisApiKey;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -12,10 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
-@RequiredArgsConstructor
 public class UserAnalysisApiKeyService {
-  public static final String GEOJOBS_BASE_URL =
-      "https://api.birdia.fr"; // TODO: get from environment variables
   private static final String GEOJOBS_API_KEY = System.getenv("GEOJOBS_ADMIN_API_KEY");
   private static final ConsumerType DEFAULT_CONSUMER_TYPE = ConsumerType.INSURANCE;
   private static final Double DEFAULT_MAX_SURFACE = 0.0;
@@ -26,7 +24,13 @@ public class UserAnalysisApiKeyService {
   private static final List<DetectableObjectType> DEFAULT_DETECTABLE_OBJECT_TYPES =
       List.of(); // deprecated
 
+  private final String GEOJOBS_BASE_URL;
   private final RestTemplate restTemplate;
+
+  public UserAnalysisApiKeyService(@Value("geojobs.base.url") String GEOJOBS_BASE_URL, RestTemplate restTemplate) {
+    this.GEOJOBS_BASE_URL = GEOJOBS_BASE_URL;
+    this.restTemplate = restTemplate;
+  }
 
   public UserAnalysisApiKey getAnalysisApiKey(User user) {
     UriComponentsBuilder uriBuilder =

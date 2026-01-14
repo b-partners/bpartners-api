@@ -40,3 +40,4 @@ STRIPE_SUBSCRIPTION_PRODUCT_ESSENTIAL_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/
 SUBSCRIPTION_USER_CREDIT_ID: !Sub '{{resolve:ssm:/bpartners/${Env}/subscription/user/id}}'
 DASHBOARD_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/dashboard/url}}'
 GEOJOBS_ADMIN_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/geojobs/admin/api-key}}'
+GEOJOBS_BASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/geojobs/base-url}}'

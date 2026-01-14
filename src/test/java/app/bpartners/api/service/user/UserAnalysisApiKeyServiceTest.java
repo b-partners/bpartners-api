@@ -1,6 +1,5 @@
 package app.bpartners.api.service.user;
 
-import static app.bpartners.api.service.user.UserAnalysisApiKeyService.GEOJOBS_BASE_URL;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -14,14 +13,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 class UserAnalysisApiKeyServiceTest {
 
   RestTemplate restTemplateMock = mock();
-  UserAnalysisApiKeyService subject = new UserAnalysisApiKeyService(restTemplateMock);
+  UserAnalysisApiKeyService subject = new UserAnalysisApiKeyService("https://dum.my", restTemplateMock);
 
   @Test
   void getAnalysisApiKey_ok() {
     UserAnalysisApiKeyService.CreatedAnalysisApiKey createdApiKey =
         new UserAnalysisApiKeyService.CreatedAnalysisApiKey("apikey", Instant.now());
     UriComponentsBuilder uriBuilder =
-        UriComponentsBuilder.fromHttpUrl(GEOJOBS_BASE_URL + "/api/keys");
+        UriComponentsBuilder.fromHttpUrl("https://dum.my" + "/api/keys");
 
     when(restTemplateMock.postForObject(eq(uriBuilder.toUriString()), any(), any()))
         .thenReturn(createdApiKey);

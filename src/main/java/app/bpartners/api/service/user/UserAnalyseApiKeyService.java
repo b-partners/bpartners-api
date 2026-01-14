@@ -14,8 +14,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 @RequiredArgsConstructor
 public class UserAnalyseApiKeyService {
-  private static final String GEOJOBS_BASE_URL =
-      "api.birdia.fr"; // TODO: get from environment variables
+  public static final String GEOJOBS_BASE_URL =
+      "https://api.birdia.fr"; // TODO: get from environment variables
   private static final String GEOJOBS_API_KEY = System.getenv("GEOJOBS_ADMIN_API_KEY");
   private static final ConsumerType DEFAULT_CONSUMER_TYPE = ConsumerType.INSURANCE;
   private static final Double DEFAULT_MAX_SURFACE = 0.0;

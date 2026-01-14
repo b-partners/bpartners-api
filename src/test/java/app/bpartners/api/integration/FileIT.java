@@ -209,6 +209,17 @@ class FileIT extends S3MockedThirdParties {
       responseBearerInBoth.body().length);*/
   }
 
+  @Test
+  void download_file_using_api_key_in_parameter_ok()
+      throws ApiException, IOException, InterruptedException {
+    String basePath = "http://localhost:" + localPort;
+
+    HttpResponse<byte[]> response =
+        downloadFromApiKeyInParameter(FileType.LOGO, basePath, JOE_DOE_API_KEY, TEST_FILE_ID);
+
+    assertEquals(HttpStatus.OK.value(), response.statusCode());
+  }
+
   public HttpResponse<byte[]> download(
       FileType fileType, String basePath, String token, String queryBearer, String fileId)
       throws ApiException, IOException, InterruptedException {
@@ -250,6 +261,30 @@ class FileIT extends S3MockedThirdParties {
                         + BEARER_QUERY_PARAMETER_NAME
                         + "="
                         + queryBearer
+                        + "&fileType="
+                        + fileType))
+            .header("Access-Control-Request-Method", "GET")
+            .GET()
+            .build();
+    return downloadBytes(request, "downloadFile");
+  }
+
+  public HttpResponse<byte[]> downloadFromApiKeyInParameter(
+      FileType fileType, String basePath, String apiKey, String fileId)
+      throws ApiException, IOException, InterruptedException {
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(
+                URI.create(
+                    basePath
+                        + "/accounts/"
+                        + JOE_DOE_ACCOUNT_ID
+                        + "/files/"
+                        + fileId
+                        + "/raw?"
+                        + API_KEY_QUERY_PARAMETER_NAME
+                        + "="
+                        + apiKey
                         + "&fileType="
                         + fileType))
             .header("Access-Control-Request-Method", "GET")

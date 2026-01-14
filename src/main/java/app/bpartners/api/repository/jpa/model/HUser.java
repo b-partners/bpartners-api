@@ -108,7 +108,7 @@ public class HUser implements Serializable {
   private String deviceToken;
   private String apiKey;
 
-  @OneToMany(fetch = EAGER)
+  @OneToMany(fetch = EAGER, mappedBy = "user")
   private List<HUserAnalysisApiKey> analysisApiKeys;
 
   public Instant getBridgeItemLastRefresh() {

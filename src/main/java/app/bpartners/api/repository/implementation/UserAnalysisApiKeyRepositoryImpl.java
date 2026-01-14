@@ -16,7 +16,7 @@ public class UserAnalysisApiKeyRepositoryImpl implements UserAnalysisApiKeyRepos
 
   @Override
   public List<UserAnalysisApiKey> getAllByUserId(String userId) {
-    return jpaRepository.findAllByUserId(userId);
+    return jpaRepository.findAllByUserId(userId).stream().map(mapper::toDomain).toList();
   }
 
   @Override

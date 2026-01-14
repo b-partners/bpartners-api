@@ -1,5 +1,6 @@
 package app.bpartners.api.service.event;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -30,7 +31,7 @@ class UserAnalysisApiKeyRequestedServiceTest {
     when(eventMock.getUser()).thenReturn(userMock);
     when(serviceMock.getAnalysisApiKey(userMock)).thenReturn(apiKeyMock);
 
-    subject.accept(eventMock);
+    assertDoesNotThrow(() -> subject.accept(eventMock));
 
     verify(userMock).getAnalysisApiKeys();
     verify(eventMock).getUser();

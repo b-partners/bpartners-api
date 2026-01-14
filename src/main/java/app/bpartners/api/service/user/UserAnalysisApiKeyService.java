@@ -13,7 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @RequiredArgsConstructor
-public class UserAnalyseApiKeyService {
+public class UserAnalysisApiKeyService {
   public static final String GEOJOBS_BASE_URL =
       "https://api.birdia.fr"; // TODO: get from environment variables
   private static final String GEOJOBS_API_KEY = System.getenv("GEOJOBS_ADMIN_API_KEY");

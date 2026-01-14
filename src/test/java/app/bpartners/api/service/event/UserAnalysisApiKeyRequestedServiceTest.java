@@ -7,13 +7,13 @@ import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyRequested;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.implementation.UserRepositoryImpl;
-import app.bpartners.api.service.user.UserAnalyseApiKeyService;
+import app.bpartners.api.service.user.UserAnalysisApiKeyService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class UserAnalysisApiKeyRequestedServiceTest {
   UserRepositoryImpl userRepositoryMock = mock();
-  UserAnalyseApiKeyService serviceMock = mock();
+  UserAnalysisApiKeyService serviceMock = mock();
   UserAnalysisApiKeyRequestedService subject =
       new UserAnalysisApiKeyRequestedService(userRepositoryMock, serviceMock);
 

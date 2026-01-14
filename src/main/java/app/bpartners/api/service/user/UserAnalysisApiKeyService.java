@@ -4,7 +4,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import java.time.Instant;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -39,7 +39,7 @@ public class UserAnalysisApiKeyService {
     HttpHeaders headers = new HttpHeaders();
     headers.add("x-api-key", GEOJOBS_API_KEY);
 
-    HttpEntity<ApiKeyCreationPayload> request = new HttpEntity<>(creationPayload(user), headers);
+    HttpEntity<ApiKeyCreationPayload> request = new HttpEntity<>(toCreationPayload(user), headers);
 
     CreatedAnalysisApiKey createdAnalysisApiKey =
         restTemplate.postForObject(uriBuilder.toUriString(), request, CreatedAnalysisApiKey.class);
@@ -53,7 +53,7 @@ public class UserAnalysisApiKeyService {
             .build();
   }
 
-  private ApiKeyCreationPayload creationPayload(User user) {
+  private ApiKeyCreationPayload toCreationPayload(User user) {
     return new ApiKeyCreationPayload(
         user.getName(),
         user.getEmail(),

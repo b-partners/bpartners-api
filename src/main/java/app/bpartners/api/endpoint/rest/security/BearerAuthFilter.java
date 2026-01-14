@@ -18,7 +18,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Slf4j
 public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
-
+  private static final String API_KEY_QUERY_PARAMETER_NAME = "apiKey";
   private static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   private final String authHeader;
 
@@ -31,17 +31,20 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) {
     String bearer = request.getHeader(authHeader);
-    if (bearer == null && verifyAntMatcher(request)) {
-      String accessToken = request.getParameterMap().get(BEARER_QUERY_PARAMETER_NAME)[0];
-      bearer = BEARER_PREFIX + accessToken;
-    }
     try {
+      if (bearer == null && verifyAntMatcher(request)) {
+        String accessToken = request.getParameterMap().get(BEARER_QUERY_PARAMETER_NAME)[0];
+        bearer = BEARER_PREFIX + accessToken;
+      }
       return getAuthenticationManager()
           .authenticate(new UsernamePasswordAuthenticationToken(bearer, bearer));
     } catch (Exception ignored) {
-      String apikey = request.getHeader(API_KEY_HEADER);
+      String apiKey = request.getHeader(API_KEY_HEADER);
+      if (apiKey == null && verifyAntMatcher(request)) {
+        apiKey = request.getParameterMap().get(API_KEY_QUERY_PARAMETER_NAME)[0];
+      }
       return getAuthenticationManager()
-          .authenticate(new UsernamePasswordAuthenticationToken(API_KEY_HEADER, apikey));
+          .authenticate(new UsernamePasswordAuthenticationToken(API_KEY_HEADER, apiKey));
     }
   }
 

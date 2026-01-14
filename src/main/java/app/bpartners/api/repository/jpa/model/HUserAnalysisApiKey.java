@@ -18,9 +18,6 @@ public class HUserAnalysisApiKey {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;
 
-  @Column(name = "user_id")
-  private String userId;
-
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
   private HUser user;

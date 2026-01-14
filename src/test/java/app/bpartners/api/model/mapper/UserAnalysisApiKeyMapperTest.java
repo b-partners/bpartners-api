@@ -44,7 +44,6 @@ class UserAnalysisApiKeyMapperTest {
     return new HUserAnalysisApiKey()
         .toBuilder()
             .id("<id>")
-            .userId("<userId>")
             .apiKey("<apiKey>")
             .creationDatetime(NOW)
             .expirationDatetime(null)

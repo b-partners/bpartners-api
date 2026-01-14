@@ -12,10 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import static app.bpartners.api.service.user.UserAnalysisApiKeyService.ConsumerType.INSURANCE;
+
 @Service
 public class UserAnalysisApiKeyService {
   private static final String GEOJOBS_API_KEY = System.getenv("GEOJOBS_ADMIN_API_KEY");
-  private static final ConsumerType DEFAULT_CONSUMER_TYPE = ConsumerType.INSURANCE;
+  private static final ConsumerType DEFAULT_CONSUMER_TYPE = INSURANCE;
   private static final Double DEFAULT_MAX_SURFACE = 0.0;
   private static final List<DetectableObjectModel> DEFAULT_ALLOWED_MODELS =
       List.of(DetectableObjectModel.ofName("BP_TOITURE"));

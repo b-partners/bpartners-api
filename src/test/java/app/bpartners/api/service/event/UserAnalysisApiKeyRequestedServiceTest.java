@@ -23,12 +23,15 @@ class UserAnalysisApiKeyRequestedServiceTest {
     List<UserAnalysisApiKey> userAnalysisApiKeysMock = mock();
     UserAnalysisApiKey apiKeyMock = mock();
     User userMock = mock();
+    User.UserBuilder userMockBuilder = mock();
     UserAnalysisApiKeyRequested eventMock = mock();
 
     when(userRepositoryMock.save(any())).thenReturn(userMock);
     when(userAnalysisApiKeysMock.add(any())).thenReturn(true);
     when(userMock.getAnalysisApiKeys()).thenReturn(userAnalysisApiKeysMock);
     when(eventMock.getUser()).thenReturn(userMock);
+    when(userMock.toBuilder()).thenReturn(userMockBuilder);
+    when(userMockBuilder.build()).thenReturn(userMock);
     when(serviceMock.getAnalysisApiKey(userMock)).thenReturn(apiKeyMock);
 
     assertDoesNotThrow(() -> subject.accept(eventMock));

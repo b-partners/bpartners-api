@@ -1,7 +1,6 @@
 package app.bpartners.api.service.event;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyRequested;
@@ -26,8 +25,8 @@ class UserAnalysisApiKeyRequestedServiceTest {
     User.UserBuilder userMockBuilder = mock();
     UserAnalysisApiKeyRequested eventMock = mock();
 
-    when(userRepositoryMock.save(any())).thenReturn(userMock);
-    when(userAnalysisApiKeysMock.add(any())).thenReturn(true);
+    when(userRepositoryMock.save(userMock)).thenReturn(userMock);
+    when(userAnalysisApiKeysMock.add(apiKeyMock)).thenReturn(true);
     when(userMock.getAnalysisApiKeys()).thenReturn(userAnalysisApiKeysMock);
     when(eventMock.getUser()).thenReturn(userMock);
     when(userMock.toBuilder()).thenReturn(userMockBuilder);

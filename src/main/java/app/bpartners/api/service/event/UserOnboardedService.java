@@ -42,13 +42,8 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
   }
 
   private void requestAnalysisApiKey(User user) {
-    try {
-      UserAnalysisApiKeyRequested userAnalysisApiKeyRequested =
-          new UserAnalysisApiKeyRequested(user);
-      eventProducer.accept(List.of(userAnalysisApiKeyRequested));
-    } catch (Exception e) {
-      log.error("Error while requesting analyse api key for user {}", user.getId(), e);
-    }
+    UserAnalysisApiKeyRequested userAnalysisApiKeyRequested = new UserAnalysisApiKeyRequested(user);
+    eventProducer.accept(List.of(userAnalysisApiKeyRequested));
   }
 
   private void notifyByEmail(UserOnboarded userOnboarded) {

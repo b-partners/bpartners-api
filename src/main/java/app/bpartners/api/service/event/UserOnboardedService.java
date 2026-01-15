@@ -38,10 +38,10 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
     subscriptionService.createOrLinkUserSubscription(onboardedUser);
     userCustomerConverter.apply(onboardedUser);
     notifyByEmail(event);
-    requestAnalyseApiKey(onboardedUser);
+    requestAnalysisApiKey(onboardedUser);
   }
 
-  private void requestAnalyseApiKey(User user) {
+  private void requestAnalysisApiKey(User user) {
     try {
       UserAnalysisApiKeyRequested userAnalysisApiKeyRequested =
           new UserAnalysisApiKeyRequested(user);

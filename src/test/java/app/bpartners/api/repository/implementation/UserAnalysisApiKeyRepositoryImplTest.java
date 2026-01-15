@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,9 +19,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class UserAnalysisApiKeyRepositoryImplTest {
-  private static final String ID = "keyId";
-  private static final String USER_ID = "userId";
-  private static final String API_KEY = "stringApiKey";
+  private static final String ID = randomUUID().toString();
+  private static final String USER_ID = randomUUID().toString();
+  private static final String API_KEY = randomUUID().toString();
   private static final Instant CREATION_DATETIME = Instant.now();
 
   UserAnalysisApiKeyJpaRepository jpaRepositoryMock = mock();
@@ -39,7 +40,7 @@ class UserAnalysisApiKeyRepositoryImplTest {
     when(jpaRepositoryMock.findAllByUserId(any(String.class)))
         .thenReturn(List.of(hUserAnalysisApiKey()));
 
-    List<UserAnalysisApiKey> actual = subject.getAllByUserId("id");
+    List<UserAnalysisApiKey> actual = subject.getAllByUserId(USER_ID);
 
     assertTrue(actual.contains(userAnalysisApiKey()));
   }

@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 import app.bpartners.api.model.UserAnalysisApiKey;
@@ -8,6 +9,8 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 class UserAnalysisApiKeyMapperTest {
+  private static final String API_KEY_ID = randomUUID().toString();
+  private static final String API_KEY = randomUUID().toString();
   private static final Instant NOW = Instant.now();
   UserAnalysisApiKeyMapper subject = new UserAnalysisApiKeyMapper();
 
@@ -31,8 +34,8 @@ class UserAnalysisApiKeyMapperTest {
 
   private UserAnalysisApiKey domainApiKey() {
     return UserAnalysisApiKey.builder()
-        .id("<id>")
-        .apiKey("<apiKey>")
+        .id(API_KEY_ID)
+        .apiKey(API_KEY)
         .creationDatetime(NOW)
         .expirationDatetime(null)
         .build();
@@ -40,8 +43,8 @@ class UserAnalysisApiKeyMapperTest {
 
   private HUserAnalysisApiKey entityApiKey() {
     return HUserAnalysisApiKey.builder()
-        .id("<id>")
-        .apiKey("<apiKey>")
+        .id(API_KEY_ID)
+        .apiKey(API_KEY)
         .creationDatetime(NOW)
         .expirationDatetime(null)
         .build();

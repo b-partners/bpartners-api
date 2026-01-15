@@ -15,7 +15,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class UserAnalysisApiKeyService {
-  private static final String GEO_JOBS_API_KEY = System.getenv("GEOJOBS_ADMIN_API_KEY");
   private static final ConsumerType DEFAULT_CONSUMER_TYPE = INSURANCE;
   private static final Double DEFAULT_MAX_SURFACE = 0.0;
   private static final List<DetectableObjectModel> DEFAULT_ALLOWED_MODELS =
@@ -26,11 +25,15 @@ public class UserAnalysisApiKeyService {
       List.of(); // deprecated
 
   private final String geo_jobs_base_url;
+  private final String geo_jobs_admin_api_key;
   private final RestTemplate restTemplate;
 
   public UserAnalysisApiKeyService(
-      @Value("geojobs.base.url") String geo_jobs_base_url, RestTemplate restTemplate) {
+      @Value("geo.jobs.base.url") String geo_jobs_base_url,
+      @Value("geo.jobs.admin.api.key") String geo_jobs_admin_api_key,
+      RestTemplate restTemplate) {
     this.geo_jobs_base_url = geo_jobs_base_url;
+    this.geo_jobs_admin_api_key = geo_jobs_admin_api_key;
     this.restTemplate = restTemplate;
   }
 
@@ -39,7 +42,7 @@ public class UserAnalysisApiKeyService {
         UriComponentsBuilder.fromHttpUrl(geo_jobs_base_url + "/api/keys");
 
     HttpHeaders headers = new HttpHeaders();
-    headers.add("x-api-key", GEO_JOBS_API_KEY);
+    headers.add("x-api-key", geo_jobs_admin_api_key);
 
     HttpEntity<AnalysisApiKeyCreation> request =
         new HttpEntity<>(toAnalysisApiKeyCreation(user), headers);

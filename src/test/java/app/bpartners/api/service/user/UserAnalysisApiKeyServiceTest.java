@@ -14,7 +14,7 @@ class UserAnalysisApiKeyServiceTest {
 
   RestTemplate restTemplateMock = mock();
   UserAnalysisApiKeyService subject =
-      new UserAnalysisApiKeyService("https://dum.my", restTemplateMock);
+      new UserAnalysisApiKeyService("https://dum.my", "dummy", restTemplateMock);
 
   @Test
   void getAnalysisApiKey_ok() {

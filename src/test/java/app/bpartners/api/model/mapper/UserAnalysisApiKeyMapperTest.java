@@ -38,6 +38,7 @@ class UserAnalysisApiKeyMapperTest {
         .apiKey(API_KEY)
         .creationDatetime(NOW)
         .expirationDatetime(null)
+        .enabled(true)
         .build();
   }
 
@@ -47,6 +48,7 @@ class UserAnalysisApiKeyMapperTest {
         .apiKey(API_KEY)
         .creationDatetime(NOW)
         .expirationDatetime(null)
+        .enabled(true)
         .build();
   }
 }

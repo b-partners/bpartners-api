@@ -27,4 +27,5 @@ public class HUserAnalysisApiKey {
   private Instant creationDatetime;
   private Instant expirationDatetime;
   private String apiKey;
+  private boolean enabled;
 }

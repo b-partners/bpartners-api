@@ -8,6 +8,7 @@ CREATE table IF NOT EXISTS "user_analysis_api_key"
         DEFAULT current_timestamp,
     expiration_datetime timestamp without time zone,
     api_key varchar,
+    enabled boolean NOT NULL DEFAULT true,
 
     CONSTRAINT user_analysis_api_key_user_id_fk
         FOREIGN KEY (user_id)

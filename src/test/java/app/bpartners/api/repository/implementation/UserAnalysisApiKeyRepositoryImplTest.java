@@ -61,6 +61,7 @@ class UserAnalysisApiKeyRepositoryImplTest {
         .user(user)
         .creationDatetime(CREATION_DATETIME)
         .apiKey(API_KEY)
+        .enabled(true)
         .build();
   }
 
@@ -71,6 +72,7 @@ class UserAnalysisApiKeyRepositoryImplTest {
         .user(user)
         .creationDatetime(CREATION_DATETIME)
         .apiKey(API_KEY)
+        .enabled(true)
         .build();
   }
 }

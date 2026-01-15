@@ -15,6 +15,7 @@ public class UserAnalysisApiKeyMapper {
         .apiKey(entityHUserAnalysisApiKey.getApiKey())
         .creationDatetime(entityHUserAnalysisApiKey.getCreationDatetime())
         .expirationDatetime(entityHUserAnalysisApiKey.getExpirationDatetime())
+        .enabled(entityHUserAnalysisApiKey.isEnabled())
         .build();
   }
 
@@ -24,6 +25,7 @@ public class UserAnalysisApiKeyMapper {
         .apiKey(userAnalysisApiKey.getApiKey())
         .creationDatetime(userAnalysisApiKey.getCreationDatetime())
         .expirationDatetime(userAnalysisApiKey.getExpirationDatetime())
+        .enabled(userAnalysisApiKey.isEnabled())
         .build();
   }
 }

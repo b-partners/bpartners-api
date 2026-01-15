@@ -55,7 +55,7 @@ public class UserAnalysisApiKeyService {
         restTemplate.postForObject(
             uriBuilder.toUriString(), request, CreatedAnalysisApiKey[].class);
 
-    CreatedAnalysisApiKey createdAnalysisApiKey = List.of(createdAnalysisApiKeys).getFirst();
+    CreatedAnalysisApiKey createdAnalysisApiKey = createdAnalysisApiKeys[0];
 
     return new UserAnalysisApiKey()
         .toBuilder()

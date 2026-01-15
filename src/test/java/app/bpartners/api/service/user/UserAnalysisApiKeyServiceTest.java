@@ -24,7 +24,7 @@ class UserAnalysisApiKeyServiceTest {
         UriComponentsBuilder.fromHttpUrl("https://dum.my" + "/api/keys");
 
     when(restTemplateMock.postForObject(eq(uriBuilder.toUriString()), any(), any()))
-        .thenReturn(createdApiKey);
+        .thenReturn(new UserAnalysisApiKeyService.CreatedAnalysisApiKey[] {createdApiKey});
 
     UserAnalysisApiKey actual = subject.getAnalysisApiKey(mock());
 

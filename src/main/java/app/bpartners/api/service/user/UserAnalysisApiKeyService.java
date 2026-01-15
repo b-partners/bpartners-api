@@ -6,6 +6,10 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import java.time.Instant;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -44,18 +48,22 @@ public class UserAnalysisApiKeyService {
     HttpHeaders headers = new HttpHeaders();
     headers.add("x-api-key", geo_jobs_admin_api_key);
 
-    HttpEntity<AnalysisApiKeyCreation> request =
-        new HttpEntity<>(toAnalysisApiKeyCreation(user), headers);
+    HttpEntity<List<AnalysisApiKeyCreation>> request =
+        new HttpEntity<>(List.of(toAnalysisApiKeyCreation(user)), headers);
 
-    CreatedAnalysisApiKey createdAnalysisApiKey =
-        restTemplate.postForObject(uriBuilder.toUriString(), request, CreatedAnalysisApiKey.class);
+    CreatedAnalysisApiKey[] createdAnalysisApiKeys =
+        restTemplate.postForObject(
+            uriBuilder.toUriString(), request, CreatedAnalysisApiKey[].class);
+
+    CreatedAnalysisApiKey createdAnalysisApiKey = List.of(createdAnalysisApiKeys).getFirst();
 
     return new UserAnalysisApiKey()
         .toBuilder()
             .user(user)
-            .apiKey(createdAnalysisApiKey.key())
-            .creationDatetime(createdAnalysisApiKey.creationDatetime())
+            .apiKey(createdAnalysisApiKey.getKey())
+            .creationDatetime(createdAnalysisApiKey.getCreationDatetime())
             .expirationDatetime(null)
+            .enabled(true)
             .build();
   }
 
@@ -70,7 +78,14 @@ public class UserAnalysisApiKeyService {
         DEFAULT_DETECTABLE_OBJECT_TYPES);
   }
 
-  record CreatedAnalysisApiKey(String key, Instant creationDatetime) {}
+  @Getter
+  @Setter
+  @AllArgsConstructor
+  @NoArgsConstructor
+  static class CreatedAnalysisApiKey {
+    private String key;
+    private Instant creationDatetime;
+  }
 
   record AnalysisApiKeyCreation(
       String consumerName,

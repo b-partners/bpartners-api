@@ -28,7 +28,7 @@ class UserAnalysisApiKeyServiceTest {
 
     UserAnalysisApiKey actual = subject.getAnalysisApiKey(mock());
 
-    assertEquals(createdApiKey.key(), actual.getApiKey());
+    assertEquals(createdApiKey.getKey(), actual.getApiKey());
     verify(restTemplateMock).postForObject(eq(uriBuilder.toUriString()), any(), any());
   }
 }

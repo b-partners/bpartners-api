@@ -15,7 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class UserAnalysisApiKeyService {
-  private static final String GEOJOBS_API_KEY = System.getenv("GEOJOBS_ADMIN_API_KEY");
+  private static final String GEO_JOBS_API_KEY = System.getenv("GEOJOBS_ADMIN_API_KEY");
   private static final ConsumerType DEFAULT_CONSUMER_TYPE = INSURANCE;
   private static final Double DEFAULT_MAX_SURFACE = 0.0;
   private static final List<DetectableObjectModel> DEFAULT_ALLOWED_MODELS =
@@ -25,21 +25,21 @@ public class UserAnalysisApiKeyService {
   private static final List<DetectableObjectType> DEFAULT_DETECTABLE_OBJECT_TYPES =
       List.of(); // deprecated
 
-  private final String GEOJOBS_BASE_URL;
+  private final String geo_jobs_base_url;
   private final RestTemplate restTemplate;
 
   public UserAnalysisApiKeyService(
-      @Value("geojobs.base.url") String GEOJOBS_BASE_URL, RestTemplate restTemplate) {
-    this.GEOJOBS_BASE_URL = GEOJOBS_BASE_URL;
+      @Value("geojobs.base.url") String geo_jobs_base_url, RestTemplate restTemplate) {
+    this.geo_jobs_base_url = geo_jobs_base_url;
     this.restTemplate = restTemplate;
   }
 
   public UserAnalysisApiKey getAnalysisApiKey(User user) {
     UriComponentsBuilder uriBuilder =
-        UriComponentsBuilder.fromHttpUrl(GEOJOBS_BASE_URL + "/api/keys");
+        UriComponentsBuilder.fromHttpUrl(geo_jobs_base_url + "/api/keys");
 
     HttpHeaders headers = new HttpHeaders();
-    headers.add("x-api-key", GEOJOBS_API_KEY);
+    headers.add("x-api-key", GEO_JOBS_API_KEY);
 
     HttpEntity<AnalysisApiKeyCreation> request =
         new HttpEntity<>(toAnalysisApiKeyCreation(user), headers);

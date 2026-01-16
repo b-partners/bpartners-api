@@ -47,5 +47,7 @@ public class EnvConf {
     registry.add("dashboard.url", () -> "dummy");
     registry.add("google.captcha.secret", () -> "dummy");
     registry.add("google.captcha.url", () -> "https://google.com");
+    registry.add("geo.jobs.admin.api.key", () -> "dummy");
+    registry.add("geo.jobs.base.url", () -> "https://dum.my");
   }
 }

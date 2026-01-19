@@ -1,13 +1,8 @@
 package app.bpartners.api.model.mapper;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
-import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
-import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -22,11 +17,6 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 public class UserMapper {
-  public static final String VALID_IDENTITY_STATUS = "ValidIdentity";
-  public static final String INSUFFICIENT_DOCUMENT_QUALITY_STATUS = "InsufficientDocumentQuality";
-  public static final String INVALID_IDENTITY_STATUS = "InvalidIdentity";
-  public static final String PROCESSING_STATUS = "Processing";
-  public static final String UNINITIATED_STATUS = "Uninitiated";
   private final AccountMapper accountMapper;
   private final AccountHolderMapper accountHolderMapper;
   private final UserAnalysisApiKeyMapper analysisApiKeyMapper;
@@ -82,23 +72,6 @@ public class UserMapper {
     return user;
   }
 
-  public IdentificationStatus getIdentificationStatus(String value) {
-    switch (value) {
-      case VALID_IDENTITY_STATUS:
-        return IdentificationStatus.VALID_IDENTITY;
-      case INSUFFICIENT_DOCUMENT_QUALITY_STATUS:
-        return IdentificationStatus.INSUFFICIENT_DOCUMENT_QUALITY;
-      case INVALID_IDENTITY_STATUS:
-        return IdentificationStatus.INVALID_IDENTITY;
-      case PROCESSING_STATUS:
-        return IdentificationStatus.PROCESSING;
-      case UNINITIATED_STATUS:
-        return IdentificationStatus.UNINITIATED;
-      default:
-        throw new ApiException(SERVER_EXCEPTION, "Unknown identification status : " + value);
-    }
-  }
-
   public HUser toEntity(User toSave) {
     return HUser.builder()
         .id(toSave.getId())
@@ -138,13 +111,6 @@ public class UserMapper {
     return toEntity(toSave).toBuilder()
         .bridgeUserId(bridgeUser.getUuid())
         .email(bridgeUser.getEmail())
-        .build();
-  }
-
-  public CreateBridgeUser toBridgeUser(User user) {
-    return CreateBridgeUser.builder()
-        .email(user.getEmail())
-        .password(user.getBridgePassword())
         .build();
   }
 }

@@ -31,25 +31,25 @@ public class UserAnalysisApiKeyService {
   private static final List<DetectableObjectType> DEFAULT_DETECTABLE_OBJECT_TYPES =
       List.of(); // deprecated
 
-  private final String geo_jobs_base_url;
-  private final String geo_jobs_admin_api_key;
+  private final String geoJobsBaseUrl;
+  private final String geoJobsAdminApiKey;
   private final RestTemplate restTemplate;
 
   public UserAnalysisApiKeyService(
-      @Value("geo.jobs.base.url") String geo_jobs_base_url,
-      @Value("geo.jobs.admin.api.key") String geo_jobs_admin_api_key,
+      @Value("${geo.jobs.base.url}") String geoJobsBaseUrl,
+      @Value("${geo.jobs.admin.api.key}") String geoJobsAdminApiKey,
       RestTemplate restTemplate) {
-    this.geo_jobs_base_url = geo_jobs_base_url;
-    this.geo_jobs_admin_api_key = geo_jobs_admin_api_key;
+    this.geoJobsBaseUrl = geoJobsBaseUrl;
+    this.geoJobsAdminApiKey = geoJobsAdminApiKey;
     this.restTemplate = restTemplate;
   }
 
   public UserAnalysisApiKey getAnalysisApiKey(User user) {
     UriComponentsBuilder uriBuilder =
-        UriComponentsBuilder.fromHttpUrl(geo_jobs_base_url + "/api/keys");
+        UriComponentsBuilder.fromHttpUrl(geoJobsBaseUrl + "/api/keys");
 
     HttpHeaders headers = new HttpHeaders();
-    headers.add("x-api-key", geo_jobs_admin_api_key);
+    headers.add("x-api-key", geoJobsAdminApiKey);
 
     HttpEntity<List<AnalysisApiKeyCreation>> request =
         new HttpEntity<>(List.of(toAnalysisApiKeyCreation(user)), headers);

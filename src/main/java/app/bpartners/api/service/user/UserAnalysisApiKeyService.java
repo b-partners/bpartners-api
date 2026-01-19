@@ -5,12 +5,12 @@ import static org.springframework.http.HttpMethod.POST;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+@Slf4j
 @Service
 public class UserAnalysisApiKeyService {
   private static final ConsumerType DEFAULT_CONSUMER_TYPE = INSURANCE;
@@ -44,22 +45,22 @@ public class UserAnalysisApiKeyService {
     this.restTemplate = restTemplate;
   }
 
+  @SneakyThrows
   public UserAnalysisApiKey getAnalysisApiKey(User user) {
-    UriComponentsBuilder uriBuilder =
-        UriComponentsBuilder.fromHttpUrl(geoJobsBaseUrl + "/api/keys");
+    var uriBuilder = UriComponentsBuilder.fromUri(new URI(geoJobsBaseUrl + "/api/keys"));
+    var uriString = uriBuilder.toUriString();
 
-    HttpHeaders headers = new HttpHeaders();
+    var headers = new HttpHeaders();
     headers.add("x-api-key", geoJobsAdminApiKey);
 
-    HttpEntity<List<AnalysisApiKeyCreation>> request =
-        new HttpEntity<>(List.of(toAnalysisApiKeyCreation(user)), headers);
+    var request = new HttpEntity<>(List.of(toAnalysisApiKeyCreation(user)), headers);
+
+    log.info("URI {}", uriString);
+    log.info("Request headers {}", request.getHeaders());
+    log.info("Request body {}", request.getBody());
 
     ResponseEntity<List<CreatedAnalysisApiKey>> response =
-        restTemplate.exchange(
-            uriBuilder.toUriString(),
-            POST,
-            new HttpEntity<>(request),
-            new ParameterizedTypeReference<>() {});
+        restTemplate.exchange(uriString, POST, request, new ParameterizedTypeReference<>() {});
 
     if (!response.getStatusCode().is2xxSuccessful()) {
       throw new RuntimeException(
@@ -109,9 +110,8 @@ public class UserAnalysisApiKeyService {
       ConsumerType consumerType,
       Double maxSurface,
       List<DetectableObjectModel> allowedModels,
-      List<AuthorizedZone> authorizedZones, // deprecated
-      List<DetectableObjectType> detectableObjectTypes // deprecated
-      ) {}
+      @JsonIgnore List<AuthorizedZone> authorizedZones,
+      @JsonIgnore List<DetectableObjectType> detectableObjectTypes) {}
 
   enum ConsumerType {
     INSURANCE,

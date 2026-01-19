@@ -12,8 +12,8 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Disabled("Local use only")
 class UserAnalysisApiKeyServiceIT {
-  private static final String GEO_JOBS_API_KEY = "<todo>";
-  private static final String GEO_JOBS_BASE_URL = "https://api.birdia.fr";
+  private static final String GEO_JOBS_API_KEY = System.getenv("GEO_JOBS_API_KEY");
+  private static final String GEO_JOBS_BASE_URL = System.getenv("GEO_JOBS_BASE_URL");
   private static final String USER_ID = randomUUID().toString();
   private static final String USER_EMAIL = "joe@tester.com"; // create a user with this email before
   private static final String USER_FIRST_NAME = "Joe";

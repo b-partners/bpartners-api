@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.jpa.model.HUserAnalysisApiKey;
 import lombok.AllArgsConstructor;
@@ -9,9 +10,10 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserAnalysisApiKeyMapper {
 
-  public UserAnalysisApiKey toDomain(HUserAnalysisApiKey entityHUserAnalysisApiKey) {
+  public UserAnalysisApiKey toDomain(HUserAnalysisApiKey entityHUserAnalysisApiKey, User user) {
     return UserAnalysisApiKey.builder()
         .id(entityHUserAnalysisApiKey.getId())
+        .user(user)
         .apiKey(entityHUserAnalysisApiKey.getApiKey())
         .creationDatetime(entityHUserAnalysisApiKey.getCreationDatetime())
         .expirationDatetime(entityHUserAnalysisApiKey.getExpirationDatetime())
@@ -22,6 +24,7 @@ public class UserAnalysisApiKeyMapper {
   public HUserAnalysisApiKey toEntity(UserAnalysisApiKey userAnalysisApiKey) {
     return HUserAnalysisApiKey.builder()
         .id(userAnalysisApiKey.getId())
+        .userId(userAnalysisApiKey.getUser().getId())
         .apiKey(userAnalysisApiKey.getApiKey())
         .creationDatetime(userAnalysisApiKey.getCreationDatetime())
         .expirationDatetime(userAnalysisApiKey.getExpirationDatetime())

@@ -10,7 +10,6 @@ import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.BankConnection;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import jakarta.persistence.*;
 import java.io.Serializable;
@@ -109,8 +108,8 @@ public class HUser implements Serializable {
   private String deviceToken;
   private String apiKey;
 
-  @OneToMany(fetch = EAGER, mappedBy = "user", cascade = ALL)
-  @JsonManagedReference
+  @OneToMany(fetch = EAGER, cascade = ALL)
+  @JoinColumn(name = "user_id")
   private List<HUserAnalysisApiKey> analysisApiKeys;
 
   public Instant getBridgeItemLastRefresh() {

@@ -3,6 +3,7 @@ package app.bpartners.api.model.mapper;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.jpa.model.HUserAnalysisApiKey;
 import java.time.Instant;
@@ -18,16 +19,17 @@ class UserAnalysisApiKeyMapperTest {
   void toDomain_ok() {
     var expected = domainApiKey();
 
-    var actual = subject.toDomain(entityApiKey());
+    var actual = subject.toDomain(entityApiKey(expected.getUser().getId()), expected.getUser());
 
     assertEquals(expected, actual);
   }
 
   @Test
   void toEntity_ok() {
-    var expected = entityApiKey();
+    var userAnalysisApiKey = domainApiKey();
+    var expected = entityApiKey(userAnalysisApiKey.getUser().getId());
 
-    var actual = subject.toEntity(domainApiKey());
+    var actual = subject.toEntity(userAnalysisApiKey);
 
     assertEquals(expected, actual);
   }
@@ -35,6 +37,7 @@ class UserAnalysisApiKeyMapperTest {
   private UserAnalysisApiKey domainApiKey() {
     return UserAnalysisApiKey.builder()
         .id(API_KEY_ID)
+        .user(User.builder().id(randomUUID().toString()).build())
         .apiKey(API_KEY)
         .creationDatetime(NOW)
         .expirationDatetime(null)
@@ -42,9 +45,10 @@ class UserAnalysisApiKeyMapperTest {
         .build();
   }
 
-  private HUserAnalysisApiKey entityApiKey() {
+  private HUserAnalysisApiKey entityApiKey(String userId) {
     return HUserAnalysisApiKey.builder()
         .id(API_KEY_ID)
+        .userId(userId)
         .apiKey(API_KEY)
         .creationDatetime(NOW)
         .expirationDatetime(null)

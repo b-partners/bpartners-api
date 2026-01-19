@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.model.mapper.UserAnalysisApiKeyMapper;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserAnalysisApiKeyJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.jpa.model.HUserAnalysisApiKey;
@@ -26,13 +27,18 @@ class UserAnalysisApiKeyRepositoryImplTest {
 
   UserAnalysisApiKeyJpaRepository jpaRepositoryMock = mock();
   UserAnalysisApiKeyMapper mapper = mock();
+  UserRepository userRepositoryMock = mock();
   UserAnalysisApiKeyRepositoryImpl subject =
-      new UserAnalysisApiKeyRepositoryImpl(jpaRepositoryMock, mapper);
+      new UserAnalysisApiKeyRepositoryImpl(jpaRepositoryMock, userRepositoryMock, mapper);
 
   @BeforeEach
   void setUp() {
-    when(mapper.toEntity(userAnalysisApiKey())).thenReturn(hUserAnalysisApiKey());
-    when(mapper.toDomain(hUserAnalysisApiKey())).thenReturn(userAnalysisApiKey());
+    var userAnalysisApiKey = userAnalysisApiKey();
+    var user = userAnalysisApiKey.getUser();
+    var userId = user.getId();
+    when(userRepositoryMock.getById(userId)).thenReturn(user);
+    when(mapper.toEntity(userAnalysisApiKey)).thenReturn(hUserAnalysisApiKey());
+    when(mapper.toDomain(hUserAnalysisApiKey(), user)).thenReturn(userAnalysisApiKey);
   }
 
   @Test
@@ -58,7 +64,7 @@ class UserAnalysisApiKeyRepositoryImplTest {
     var user = HUser.builder().id(USER_ID).build();
     return HUserAnalysisApiKey.builder()
         .id(ID)
-        .user(user)
+        .userId(USER_ID)
         .creationDatetime(CREATION_DATETIME)
         .apiKey(API_KEY)
         .enabled(true)

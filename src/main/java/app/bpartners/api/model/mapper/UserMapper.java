@@ -32,48 +32,54 @@ public class UserMapper {
   private final UserAnalysisApiKeyMapper analysisApiKeyMapper;
 
   public User toDomain(HUser entityUser) {
-    return User.builder()
-        .id(entityUser.getId())
-        .userSubscriptionId(entityUser.getUserSubscriptionE2Id())
-        .firstName(entityUser.getFirstName())
-        .lastName(entityUser.getLastName())
-        .mobilePhoneNumber(entityUser.getPhoneNumber())
-        .email(entityUser.getEmail())
-        .apiKey(entityUser.getApiKey())
-        .accessToken(entityUser.getAccessToken())
-        .bridgePassword(entityUser.getBridgePassword())
-        .bankConnectionId(entityUser.getBridgeItemId())
-        .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
-        .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
-        .monthlySubscription(entityUser.getMonthlySubscription())
-        .status(entityUser.getStatus())
-        .logoFileId(entityUser.getLogoFileId())
-        .idVerified(entityUser.getIdVerified())
-        .identificationStatus(entityUser.getIdentificationStatus())
-        .oldS3key(entityUser.getOldS3AccountKey())
-        .accounts(
-            entityUser.getAccounts() == null
-                ? null
-                : entityUser.getAccounts().stream()
-                    .map(account -> accountMapper.toDomain(account, null))
-                    .collect(Collectors.toList()))
-        .accountHolders(
-            entityUser.getAccountHolders() == null
-                ? null
-                : entityUser.getAccountHolders().stream()
-                    .map(accountHolderMapper::toDomain)
-                    .collect(Collectors.toList()))
-        .preferredAccountId(entityUser.getPreferredAccountId())
-        .externalUserId(entityUser.getBridgeUserId())
-        .connectionStatus(entityUser.getBankConnectionStatus())
-        .roles(entityUser.getRoles() == null ? List.of() : Arrays.asList(entityUser.getRoles()))
-        .snsArn(entityUser.getSnsArn())
-        .deviceToken(entityUser.getDeviceToken())
-        .parentUser(
-            entityUser.getParentUser() == null ? null : toDomain(entityUser.getParentUser()))
-        .analysisApiKeys(
-            entityUser.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toDomain).toList())
-        .build();
+    var userAnalysisApiKeys =
+        entityUser.getAnalysisApiKeys().stream()
+            .map(entity -> analysisApiKeyMapper.toDomain(entity, null))
+            .toList();
+    var user =
+        User.builder()
+            .id(entityUser.getId())
+            .userSubscriptionId(entityUser.getUserSubscriptionE2Id())
+            .firstName(entityUser.getFirstName())
+            .lastName(entityUser.getLastName())
+            .mobilePhoneNumber(entityUser.getPhoneNumber())
+            .email(entityUser.getEmail())
+            .apiKey(entityUser.getApiKey())
+            .accessToken(entityUser.getAccessToken())
+            .bridgePassword(entityUser.getBridgePassword())
+            .bankConnectionId(entityUser.getBridgeItemId())
+            .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
+            .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
+            .monthlySubscription(entityUser.getMonthlySubscription())
+            .status(entityUser.getStatus())
+            .logoFileId(entityUser.getLogoFileId())
+            .idVerified(entityUser.getIdVerified())
+            .identificationStatus(entityUser.getIdentificationStatus())
+            .oldS3key(entityUser.getOldS3AccountKey())
+            .accounts(
+                entityUser.getAccounts() == null
+                    ? null
+                    : entityUser.getAccounts().stream()
+                        .map(account -> accountMapper.toDomain(account, null))
+                        .collect(Collectors.toList()))
+            .accountHolders(
+                entityUser.getAccountHolders() == null
+                    ? null
+                    : entityUser.getAccountHolders().stream()
+                        .map(accountHolderMapper::toDomain)
+                        .collect(Collectors.toList()))
+            .preferredAccountId(entityUser.getPreferredAccountId())
+            .externalUserId(entityUser.getBridgeUserId())
+            .connectionStatus(entityUser.getBankConnectionStatus())
+            .roles(entityUser.getRoles() == null ? List.of() : Arrays.asList(entityUser.getRoles()))
+            .snsArn(entityUser.getSnsArn())
+            .deviceToken(entityUser.getDeviceToken())
+            .parentUser(
+                entityUser.getParentUser() == null ? null : toDomain(entityUser.getParentUser()))
+            .analysisApiKeys(userAnalysisApiKeys)
+            .build();
+    user.addUserAnalysisApiKey(userAnalysisApiKeys);
+    return user;
   }
 
   public IdentificationStatus getIdentificationStatus(String value) {

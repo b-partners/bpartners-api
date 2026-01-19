@@ -97,4 +97,21 @@ public class User implements Serializable {
     }
     return analysisApiKeys;
   }
+
+  public List<UserAnalysisApiKey> addUserAnalysisApiKey(UserAnalysisApiKey userAnalysisApiKey) {
+    if (userAnalysisApiKey == null) {
+      return new ArrayList<>();
+    }
+    userAnalysisApiKey.setUser(this);
+    getAnalysisApiKeys().add(userAnalysisApiKey);
+    return getAnalysisApiKeys();
+  }
+
+  public List<UserAnalysisApiKey> addUserAnalysisApiKey(
+      List<UserAnalysisApiKey> userAnalysisApiKeyList) {
+    return userAnalysisApiKeyList.stream()
+        .map(this::addUserAnalysisApiKey)
+        .flatMap(List<UserAnalysisApiKey>::stream)
+        .toList();
+  }
 }

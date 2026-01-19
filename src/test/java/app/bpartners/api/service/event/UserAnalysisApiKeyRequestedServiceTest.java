@@ -18,7 +18,7 @@ class UserAnalysisApiKeyRequestedServiceTest {
       new UserAnalysisApiKeyRequestedService(userRepositoryMock, serviceMock);
 
   @Test
-  void accept_ok() {
+  void does_not_throws_exception_and_persist_analysis_key_through_user_repository() {
     List<UserAnalysisApiKey> userAnalysisApiKeysMock = mock();
     UserAnalysisApiKey apiKeyMock = mock();
     User userMock = mock();
@@ -35,10 +35,9 @@ class UserAnalysisApiKeyRequestedServiceTest {
 
     assertDoesNotThrow(() -> subject.accept(eventMock));
 
-    verify(userMock).getAnalysisApiKeys();
     verify(eventMock).getUser();
     verify(serviceMock).getAnalysisApiKey(userMock);
     verify(userRepositoryMock).save(userMock);
-    verify(userAnalysisApiKeysMock).add(apiKeyMock);
+    verify(userMock).addUserAnalysisApiKey(apiKeyMock);
   }
 }

@@ -691,8 +691,52 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  userAnalysisApiKey:
+    get:
+      summary: Returns analysis api keys of an user
+      tags:
+        - User Accounts
+      operationId: getAnalysisApiKey
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+      responses:
+        200:
+          description: User's analysis api keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserAnalysisApiKey"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
 components:
   schemas:
+    UserAnalysisApiKey:
+      type: object
+      properties:
+        creationDatetime:
+          type: string
+          format: date-time
+        expirationDatetime:
+          type: string
+          format: date-time
+        apiKey:
+          type: string
+        enabled:
+          type: boolean
     LegalFile:
       type: object
       properties:

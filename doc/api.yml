@@ -78,6 +78,8 @@ paths:
     $ref: './userAccounts-api.yml#/operations/approveLegalFile'
   /users/{uId}/keys:
     $ref: './userAccounts-api.yml#/operations/keyOperations'
+  /users/{uId}/analysis/api-keys:
+    $ref: './userAccounts-api.yml#/operations/userAnalysisApiKey'
 
   #############################################
   ############## User Subscription API #############

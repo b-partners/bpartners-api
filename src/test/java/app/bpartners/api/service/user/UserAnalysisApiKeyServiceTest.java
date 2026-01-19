@@ -10,6 +10,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
+import app.bpartners.api.service.user.analysis.CreatedAnalysisApiKey;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -27,8 +28,7 @@ class UserAnalysisApiKeyServiceTest {
 
   @Test
   void getAnalysisApiKey_ok() {
-    var createdApiKey =
-        new UserAnalysisApiKeyService.CreatedAnalysisApiKey("apikey", Instant.now());
+    var createdApiKey = new CreatedAnalysisApiKey("apikey", Instant.now());
     var uriBuilder = UriComponentsBuilder.fromHttpUrl("https://dum.my" + "/api/keys");
     var responseEntityMock = mock(ResponseEntity.class);
 

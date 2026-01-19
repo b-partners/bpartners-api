@@ -1,13 +1,12 @@
 package app.bpartners.api.service.user;
 
-import static app.bpartners.api.service.user.UserAnalysisApiKeyService.ConsumerType.INSURANCE;
+import static app.bpartners.api.service.user.analysis.ConsumerType.INSURANCE;
 import static org.springframework.http.HttpMethod.POST;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import app.bpartners.api.service.user.analysis.*;
 import java.net.URI;
-import java.time.Instant;
 import java.util.List;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -55,10 +54,6 @@ public class UserAnalysisApiKeyService {
 
     var request = new HttpEntity<>(List.of(toAnalysisApiKeyCreation(user)), headers);
 
-    log.info("URI {}", uriString);
-    log.info("Request headers {}", request.getHeaders());
-    log.info("Request body {}", request.getBody());
-
     ResponseEntity<List<CreatedAnalysisApiKey>> response =
         restTemplate.exchange(uriString, POST, request, new ParameterizedTypeReference<>() {});
 
@@ -94,40 +89,4 @@ public class UserAnalysisApiKeyService {
         DEFAULT_AUTHORIZED_ZONES,
         DEFAULT_DETECTABLE_OBJECT_TYPES);
   }
-
-  @Getter
-  @Setter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  static class CreatedAnalysisApiKey {
-    private String key;
-    private Instant creationDatetime;
-  }
-
-  record AnalysisApiKeyCreation(
-      String consumerName,
-      String consumerEmail,
-      ConsumerType consumerType,
-      Double maxSurface,
-      List<DetectableObjectModel> allowedModels,
-      @JsonIgnore List<AuthorizedZone> authorizedZones,
-      @JsonIgnore List<DetectableObjectType> detectableObjectTypes) {}
-
-  enum ConsumerType {
-    INSURANCE,
-    COMMUNITY,
-    ADMIN
-  }
-
-  record DetectableObjectModel(String modelName) {
-    static DetectableObjectModel ofName(String modelName) {
-      return new DetectableObjectModel(modelName);
-    }
-  }
-
-  @Deprecated
-  record AuthorizedZone() {}
-
-  @Deprecated
-  record DetectableObjectType() {}
 }

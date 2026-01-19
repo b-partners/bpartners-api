@@ -1,6 +1,7 @@
 package app.bpartners.api.service.user;
 
 import static app.bpartners.api.service.user.UserAnalysisApiKeyService.ConsumerType.INSURANCE;
+import static org.springframework.http.HttpMethod.POST;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
@@ -11,8 +12,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -51,11 +54,24 @@ public class UserAnalysisApiKeyService {
     HttpEntity<List<AnalysisApiKeyCreation>> request =
         new HttpEntity<>(List.of(toAnalysisApiKeyCreation(user)), headers);
 
-    CreatedAnalysisApiKey[] createdAnalysisApiKeys =
-        restTemplate.postForObject(
-            uriBuilder.toUriString(), request, CreatedAnalysisApiKey[].class);
+    ResponseEntity<List<CreatedAnalysisApiKey>> response =
+        restTemplate.exchange(
+            uriBuilder.toUriString(),
+            POST,
+            new HttpEntity<>(request),
+            new ParameterizedTypeReference<>() {});
 
-    CreatedAnalysisApiKey createdAnalysisApiKey = createdAnalysisApiKeys[0];
+    if (!response.getStatusCode().is2xxSuccessful()) {
+      throw new RuntimeException(
+          "API exception occurred while attempting to create user.email="
+              + user.getEmail()
+              + " analysis api key");
+    }
+    if (response.getBody() != null && response.getBody().isEmpty()) {
+      throw new RuntimeException(
+          "API failed to create user.email=" + user.getEmail() + " analysis api key");
+    }
+    var createdAnalysisApiKey = response.getBody().getFirst();
 
     return new UserAnalysisApiKey()
         .toBuilder()

@@ -94,6 +94,8 @@ public class User implements Serializable {
   public List<UserAnalysisApiKey> getAnalysisApiKeys() {
     if (analysisApiKeys == null) {
       analysisApiKeys = new ArrayList<>();
+    } else if (!(analysisApiKeys instanceof ArrayList)) {
+      analysisApiKeys = new ArrayList<>(analysisApiKeys);
     }
     return analysisApiKeys;
   }

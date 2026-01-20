@@ -14,6 +14,7 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.model.mapper.UserAnalysisApiKeyMapper;
 import app.bpartners.api.service.account.AccountRefreshService;
 import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -34,6 +35,7 @@ public class UserController {
   private final SubscriptionService subscriptionService;
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
   private final StripePortalService stripePortalService;
+  private final UserAnalysisApiKeyMapper analysisApiKeyMapper;
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
@@ -168,6 +170,6 @@ public class UserController {
 
   @GetMapping("/users/{userId}/analysis/api-key")
   public List<UserAnalysisApiKey> getAnalysisApiKey(@PathVariable String userId) {
-    return service.getAnalysisApiKeys(userId);
+    return service.getAnalysisApiKeys(userId).stream().map(analysisApiKeyMapper::toDTO).toList();
   }
 }

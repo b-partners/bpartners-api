@@ -2,11 +2,10 @@ package app.bpartners.api.service.user;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserRegistrationRequested;
-import app.bpartners.api.endpoint.rest.model.UserAnalysisApiKey;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.mapper.UserAnalysisApiKeyMapper;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -35,7 +34,6 @@ public class UserService {
   private final InvoiceSummaryJpaRepository invoiceSummaryJpaRepository;
   private final EventProducer<UserRegistrationRequested> eventProducer;
   private final UserAnalysisApiKeyRepository analysisApiKeyRepository;
-  private final UserAnalysisApiKeyMapper analysisApiKeyMapper;
 
   @Transactional
   public User getByIdAccount(String idAccount) {
@@ -145,8 +143,6 @@ public class UserService {
   }
 
   public List<UserAnalysisApiKey> getAnalysisApiKeys(String userId) {
-    return analysisApiKeyRepository.getAllByUserId(userId).stream()
-        .map(analysisApiKeyMapper::toDTO)
-        .toList();
+    return analysisApiKeyRepository.getAllByUserId(userId);
   }
 }

@@ -44,7 +44,6 @@ class UserServiceTest {
   SesService mailerMock;
   SubscriptionService subscriptionServiceMock;
   UserAnalysisApiKeyRepository analysisApiKeyRepositoryMock;
-  UserAnalysisApiKeyMapper analysisApiKeyMapperMock;
 
   @BeforeEach
   void setUp() {
@@ -54,7 +53,6 @@ class UserServiceTest {
     mailerMock = mock(SesService.class);
     eventProducerMock = mock(EventProducer.class);
     analysisApiKeyRepositoryMock = mock(UserAnalysisApiKeyRepository.class);
-    analysisApiKeyMapperMock = mock(UserAnalysisApiKeyMapper.class);
     subject =
         new UserService(
             userRepositoryMock,
@@ -65,8 +63,7 @@ class UserServiceTest {
             accountHolderJpaRepositoryMock,
             invoiceSummaryJpaRepositoryMock,
             eventProducerMock,
-            analysisApiKeyRepositoryMock,
-            analysisApiKeyMapperMock);
+            analysisApiKeyRepositoryMock);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());

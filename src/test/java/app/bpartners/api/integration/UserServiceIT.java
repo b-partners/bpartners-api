@@ -22,6 +22,8 @@ import app.bpartners.api.service.account.AccountService;
 import app.bpartners.api.service.accountholder.AccountHolderService;
 import app.bpartners.api.service.user.OnboardingService;
 import app.bpartners.api.service.user.UserService;
+
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,34 +88,26 @@ class UserServiceIT extends MockedThirdParties {
 
   @Test
   public void get_analysis_api_keys_ok() {
-    String userId = String.valueOf(randomUUID());
-    User user =
-        User.builder().id(userId).email("dummy").firstName("dummy").lastName("dummy").build();
-
-    user = userRepository.save(user);
-    userId = user.getId();
     UserAnalysisApiKey userAnalysisApiKey =
         UserAnalysisApiKey.builder()
-            .user(user)
             .apiKey(randomUUID().toString())
-            .creationDatetime(now())
+            .creationDatetime(now().truncatedTo(ChronoUnit.MICROS))
             .enabled(true)
             .build();
 
-    userAnalysisApiKeyRepository.save(userAnalysisApiKey);
+    User user =
+        User.builder().email("dummy").firstName("dummy").lastName("dummy").build();
+    user = userRepository.save(user);
+    user.addUserAnalysisApiKey(userAnalysisApiKey);
 
-    List<app.bpartners.api.endpoint.rest.model.UserAnalysisApiKey> actual =
+    var retrievedUser = userRepository.save(user);
+    String userId = retrievedUser.getId();
+
+    List<UserAnalysisApiKey> actual =
         userService.getAnalysisApiKeys(userId);
-    var retrievedUser = userRepository.getById(userId);
 
     assertEquals(userAnalysisApiKey.getApiKey(), actual.getFirst().getApiKey());
-    assertEquals(
-        userAnalysisApiKey.getApiKey(), retrievedUser.getAnalysisApiKeys().getFirst().getApiKey());
-    assertEquals(userAnalysisApiKey.getCreationDatetime(), actual.getFirst().getCreationDatetime());
-    assertEquals(
-        userAnalysisApiKey.getCreationDatetime(),
-        retrievedUser.getAnalysisApiKeys().getFirst().getCreationDatetime());
-    assertEquals(retrievedUser.getAnalysisApiKeys().size(), actual.size());
+    assertEquals(retrievedUser.getAnalysisApiKeys(), actual);
   }
 
   private static void verifyUserValues(User userToOnboard, User actual) {

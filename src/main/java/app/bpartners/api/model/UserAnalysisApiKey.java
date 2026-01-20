@@ -12,7 +12,9 @@ import lombok.*;
 @ToString
 public class UserAnalysisApiKey {
   private String id;
-  @ToString.Exclude private User user;
+  @ToString.Exclude
+  @EqualsAndHashCode.Exclude
+  private User user;
   private Instant creationDatetime;
   private Instant expirationDatetime;
   private String apiKey;

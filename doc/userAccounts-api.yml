@@ -627,13 +627,19 @@ operations:
           name: uId
           schema:
             type: string
+        - in: query
+          name: type
+          schema:
+            $ref: "#/components/schemas/UserApiKeyType"
       responses:
         200:
           description: User's actual API key
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserApiKey'
+                oneOf:
+                  - $ref: '#/components/schemas/UserApiKey'
+                  - $ref: '#/components/schemas/UserAnalysisApiKey'
     put:
       summary: Update user api key
       tags:
@@ -724,19 +730,6 @@ operations:
 
 components:
   schemas:
-    UserAnalysisApiKey:
-      type: object
-      properties:
-        creationDatetime:
-          type: string
-          format: date-time
-        expirationDatetime:
-          type: string
-          format: date-time
-        apiKey:
-          type: string
-        enabled:
-          type: boolean
     LegalFile:
       type: object
       properties:
@@ -1032,8 +1025,27 @@ components:
       properties:
         token:
           type: string
+    UserAnalysisApiKey:
+      allOf:
+        - $ref: "#/components/schemas/UserApiKey"
+        - type: object
+          properties:
+            creationDatetime:
+              type: string
+              format: date-time
+            expirationDatetime:
+              type: string
+              format: date-time
+            enabled:
+              type: boolean
     UserApiKey:
       type: object
       properties:
         key:
           type: string
+    UserApiKeyType:
+      type: string
+      enum:
+        - DASHBOARD
+        - ANALYSIS
+      default: DASHBOARD

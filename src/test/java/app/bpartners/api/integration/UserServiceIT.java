@@ -22,7 +22,6 @@ import app.bpartners.api.service.account.AccountService;
 import app.bpartners.api.service.accountholder.AccountHolderService;
 import app.bpartners.api.service.user.OnboardingService;
 import app.bpartners.api.service.user.UserService;
-
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,16 +94,14 @@ class UserServiceIT extends MockedThirdParties {
             .enabled(true)
             .build();
 
-    User user =
-        User.builder().email("dummy").firstName("dummy").lastName("dummy").build();
+    User user = User.builder().email("dummy").firstName("dummy").lastName("dummy").build();
     user = userRepository.save(user);
     user.addUserAnalysisApiKey(userAnalysisApiKey);
 
     var retrievedUser = userRepository.save(user);
     String userId = retrievedUser.getId();
 
-    List<UserAnalysisApiKey> actual =
-        userService.getAnalysisApiKeys(userId);
+    List<UserAnalysisApiKey> actual = userService.getAnalysisApiKeys(userId);
 
     assertEquals(userAnalysisApiKey.getApiKey(), actual.getFirst().getApiKey());
     assertEquals(retrievedUser.getAnalysisApiKeys(), actual);

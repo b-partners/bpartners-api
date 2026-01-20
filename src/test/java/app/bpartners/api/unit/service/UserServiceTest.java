@@ -14,7 +14,6 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.mapper.UserAnalysisApiKeyMapper;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;

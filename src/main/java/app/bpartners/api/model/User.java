@@ -107,8 +107,8 @@ public class User implements Serializable {
     userAnalysisApiKey.setUser(this);
     List<UserAnalysisApiKey> keys = getAnalysisApiKeys();
 
-    boolean alreadyExists = keys.stream()
-        .anyMatch(k -> k.getApiKey().equals(userAnalysisApiKey.getApiKey()));
+    boolean alreadyExists =
+        keys.stream().anyMatch(k -> k.getApiKey().equals(userAnalysisApiKey.getApiKey()));
 
     if (!alreadyExists) {
       keys.add(userAnalysisApiKey);

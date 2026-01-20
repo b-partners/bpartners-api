@@ -78,7 +78,7 @@ paths:
     $ref: './userAccounts-api.yml#/operations/approveLegalFile'
   /users/{uId}/keys:
     $ref: './userAccounts-api.yml#/operations/keyOperations'
-  /users/{uId}/analysis/api-keys:
+  /users/{userId}/analysis/api-keys:
     $ref: './userAccounts-api.yml#/operations/userAnalysisApiKey'
 
   #############################################

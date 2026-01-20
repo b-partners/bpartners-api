@@ -696,10 +696,10 @@ operations:
       summary: Returns analysis api keys of an user
       tags:
         - User Accounts
-      operationId: getAnalysisApiKey
+      operationId: getAnalysisApiKeys
       parameters:
         - in: path
-          name: uId
+          name: userId
           schema:
             type: string
       responses:

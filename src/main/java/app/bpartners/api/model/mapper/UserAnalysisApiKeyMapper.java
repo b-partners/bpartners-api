@@ -10,6 +10,15 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class UserAnalysisApiKeyMapper {
 
+  public app.bpartners.api.endpoint.rest.model.UserAnalysisApiKey toDTO(
+      UserAnalysisApiKey userAnalysisApiKey) {
+    return new app.bpartners.api.endpoint.rest.model.UserAnalysisApiKey()
+        .enabled(userAnalysisApiKey.isEnabled())
+        .creationDatetime(userAnalysisApiKey.getCreationDatetime())
+        .expirationDatetime(userAnalysisApiKey.getExpirationDatetime())
+        .apiKey(userAnalysisApiKey.getApiKey());
+  }
+
   public UserAnalysisApiKey toDomain(HUserAnalysisApiKey entityHUserAnalysisApiKey, User user) {
     return UserAnalysisApiKey.builder()
         .id(entityHUserAnalysisApiKey.getId())

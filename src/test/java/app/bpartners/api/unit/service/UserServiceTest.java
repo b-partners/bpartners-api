@@ -14,8 +14,10 @@ import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.mapper.UserAnalysisApiKeyMapper;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
@@ -41,6 +43,8 @@ class UserServiceTest {
   EventProducer<UserRegistrationRequested> eventProducerMock;
   SesService mailerMock;
   SubscriptionService subscriptionServiceMock;
+  UserAnalysisApiKeyRepository analysisApiKeyRepositoryMock;
+  UserAnalysisApiKeyMapper analysisApiKeyMapperMock;
 
   @BeforeEach
   void setUp() {
@@ -49,6 +53,8 @@ class UserServiceTest {
     subscriptionServiceMock = mock(SubscriptionService.class);
     mailerMock = mock(SesService.class);
     eventProducerMock = mock(EventProducer.class);
+    analysisApiKeyRepositoryMock = mock(UserAnalysisApiKeyRepository.class);
+    analysisApiKeyMapperMock = mock(UserAnalysisApiKeyMapper.class);
     subject =
         new UserService(
             userRepositoryMock,
@@ -58,7 +64,9 @@ class UserServiceTest {
             accountJpaRepositoryMock,
             accountHolderJpaRepositoryMock,
             invoiceSummaryJpaRepositoryMock,
-            eventProducerMock);
+            eventProducerMock,
+            analysisApiKeyRepositoryMock,
+            analysisApiKeyMapperMock);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());

@@ -165,4 +165,9 @@ public class UserController {
     service.deleteUserByEmail(email);
     return String.format("The user with email %s has been deleted", email);
   }
+
+  @GetMapping("/users/{userId}/analysis/api-key")
+  public List<UserAnalysisApiKey> getAnalysisApiKey(@PathVariable String userId) {
+    return service.getAnalysisApiKeys(userId);
+  }
 }

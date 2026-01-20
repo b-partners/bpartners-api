@@ -22,6 +22,7 @@ import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,7 @@ public class UserController {
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
   private final StripePortalService stripePortalService;
   private final UserAnalysisApiKeyMapper analysisApiKeyMapper;
+  private static final String API_KEY_HEADER = "x-api-key";
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
@@ -169,7 +171,14 @@ public class UserController {
   }
 
   @GetMapping("/users/{userId}/analysis/api-key")
-  public List<UserAnalysisApiKey> getAnalysisApiKey(@PathVariable String userId) {
+  public List<UserAnalysisApiKey> getAnalysisApiKey(
+      @PathVariable String userId, @RequestHeader(API_KEY_HEADER) String apiKey) {
+    app.bpartners.api.model.User user = service.getUserByApiKey(apiKey);
+
+    if (user == null || !Objects.equals(user.getId(), userId)) {
+      throw new ForbiddenException();
+    }
+
     return service.getAnalysisApiKeys(userId).stream().map(analysisApiKeyMapper::toDTO).toList();
   }
 }

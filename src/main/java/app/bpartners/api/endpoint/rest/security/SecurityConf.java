@@ -591,6 +591,9 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             POST, "/users/*/detectionTracking", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/analysis/api-key", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/address/autocomplete")
                     .authenticated()
                     .requestMatchers("/**")

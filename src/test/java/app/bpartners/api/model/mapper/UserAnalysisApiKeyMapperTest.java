@@ -16,6 +16,18 @@ class UserAnalysisApiKeyMapperTest {
   UserAnalysisApiKeyMapper subject = new UserAnalysisApiKeyMapper();
 
   @Test
+  void toDTO_ok() {
+    var expected = new app.bpartners.api.endpoint.rest.model.UserAnalysisApiKey()
+        .apiKey(API_KEY)
+        .creationDatetime(NOW)
+        .enabled(true);
+
+    var actual = subject.toDTO(domainApiKey());
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
   void toDomain_ok() {
     var expected = domainApiKey();
 

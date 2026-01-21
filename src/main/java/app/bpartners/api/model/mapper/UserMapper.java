@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
   private final AccountMapper accountMapper;
   private final AccountHolderMapper accountHolderMapper;
-  private final UserAnalysisApiKeyMapper analysisApiKeyMapper;
+  private final UserApiKeyMapper analysisApiKeyMapper;
 
   public User toDomain(HUser entityUser) {
     var userAnalysisApiKeys =

@@ -618,8 +618,8 @@ operations:
           $ref: './api.yml#/components/responses/500'
   keyOperations:
     get:
-      summary: Get user api key
-      operationId: getUserApiKey
+      summary: Get user api keys
+      operationId: getUserApiKeys
       tags:
         - User Accounts
       parameters:
@@ -627,9 +627,17 @@ operations:
           name: uId
           schema:
             type: string
+        - in: query
+          name: type
+          required: false
+          description: Default key type is DASHBOARD
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/UserApiKeyType"
       responses:
         200:
-          description: User's actual API key
+          description: List of user's API keys
           content:
             application/json:
               schema:
@@ -993,3 +1001,19 @@ components:
       properties:
         key:
           type: string
+        type:
+          $ref: '#/components/schemas/UserApiKeyType'
+        creationDatetime:
+          type: string
+          format: date-time
+        expirationDatetime:
+          type: string
+          format: date-time
+        enabled:
+          type: boolean
+    UserApiKeyType:
+      type: string
+      enum:
+        - DASHBOARD
+        - ANALYSIS
+      default: DASHBOARD

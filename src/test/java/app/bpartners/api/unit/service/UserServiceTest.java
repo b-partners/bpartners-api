@@ -1,7 +1,11 @@
 package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.ANALYSIS;
+import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
+import static java.time.Instant.now;
+import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -9,13 +13,17 @@ import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserRegistrationRequested;
+import app.bpartners.api.endpoint.rest.model.UserApiKey;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.mapper.UserApiKeyMapper;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
@@ -41,6 +49,8 @@ class UserServiceTest {
   EventProducer<UserRegistrationRequested> eventProducerMock;
   SesService mailerMock;
   SubscriptionService subscriptionServiceMock;
+  UserAnalysisApiKeyRepository analysisApiKeyRepositoryMock;
+  UserApiKeyMapper userApiKeyMapper = new UserApiKeyMapper();
 
   @BeforeEach
   void setUp() {
@@ -49,6 +59,7 @@ class UserServiceTest {
     subscriptionServiceMock = mock(SubscriptionService.class);
     mailerMock = mock(SesService.class);
     eventProducerMock = mock(EventProducer.class);
+    analysisApiKeyRepositoryMock = mock(UserAnalysisApiKeyRepository.class);
     subject =
         new UserService(
             userRepositoryMock,
@@ -58,7 +69,9 @@ class UserServiceTest {
             accountJpaRepositoryMock,
             accountHolderJpaRepositoryMock,
             invoiceSummaryJpaRepositoryMock,
-            eventProducerMock);
+            eventProducerMock,
+            analysisApiKeyRepositoryMock,
+            userApiKeyMapper);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
@@ -175,5 +188,101 @@ class UserServiceTest {
         .accessToken(JOE_DOE_TOKEN)
         .deviceToken("DEVICE_TOKEN")
         .build();
+  }
+
+  @Test
+  void get_api_keys_where_provided_key_types_is_empty_or_is_null() {
+    var apiKey = randomUUID().toString();
+    var userMock = mock(User.class);
+    when(userMock.getApiKey()).thenReturn(apiKey);
+
+    var actualEmptyTypes = subject.getApiKeys(userMock, List.of());
+    var actualNullProvidedTypes = subject.getApiKeys(userMock, null);
+
+    assertEquals(
+        List.of(new UserApiKey().key(apiKey).type(DASHBOARD).enabled(true)),
+        actualNullProvidedTypes);
+    assertEquals(
+        List.of(new UserApiKey().key(apiKey).type(DASHBOARD).enabled(true)), actualEmptyTypes);
+  }
+
+  @Test
+  void get_api_keys_where_provided_key_types_is_only_dashboard() {
+    var apiKey = randomUUID().toString();
+    var userMock = mock(User.class);
+    when(userMock.getApiKey()).thenReturn(apiKey);
+
+    var actual = subject.getApiKeys(userMock, List.of(DASHBOARD));
+
+    assertEquals(List.of(new UserApiKey().key(apiKey).type(DASHBOARD).enabled(true)), actual);
+    verify(analysisApiKeyRepositoryMock, never()).getAllByUserId(anyString());
+  }
+
+  @Test
+  void get_api_keys_where_provided_key_types_is_only_analysis() {
+    var userId = randomUUID().toString();
+    var analysisApiKey = randomUUID().toString();
+    var creationDatetime = now();
+    var userMock = mock(User.class);
+
+    when(userMock.getId()).thenReturn(userId);
+    when(analysisApiKeyRepositoryMock.getAllByUserId(userId))
+        .thenReturn(
+            List.of(
+                UserAnalysisApiKey.builder()
+                    .id(randomUUID().toString())
+                    .user(userMock)
+                    .apiKey(analysisApiKey)
+                    .creationDatetime(creationDatetime)
+                    .enabled(true)
+                    .build()));
+
+    var actual = subject.getApiKeys(userMock, List.of(ANALYSIS));
+
+    assertEquals(
+        List.of(
+            new UserApiKey()
+                .key(userId)
+                .type(ANALYSIS)
+                .key(analysisApiKey)
+                .creationDatetime(creationDatetime)
+                .enabled(true)),
+        actual);
+    verify(userMock, never()).getApiKey();
+  }
+
+  @Test
+  void get_api_keys_where_provided_key_types_both_dashboard_and_analysis() {
+    var userId = randomUUID().toString();
+    var analysisApiKey = randomUUID().toString();
+    var dashboardApiKey = randomUUID().toString();
+    var creationDatetime = now();
+    var userMock = mock(User.class);
+
+    when(userMock.getId()).thenReturn(userId);
+    when(userMock.getApiKey()).thenReturn(dashboardApiKey);
+    when(analysisApiKeyRepositoryMock.getAllByUserId(userId))
+        .thenReturn(
+            List.of(
+                UserAnalysisApiKey.builder()
+                    .id(randomUUID().toString())
+                    .user(userMock)
+                    .apiKey(analysisApiKey)
+                    .creationDatetime(creationDatetime)
+                    .enabled(true)
+                    .build()));
+
+    var actual = subject.getApiKeys(userMock, List.of(DASHBOARD, ANALYSIS));
+
+    assertEquals(
+        List.of(
+            new UserApiKey().key(dashboardApiKey).type(DASHBOARD).enabled(true),
+            new UserApiKey()
+                .key(userId)
+                .type(ANALYSIS)
+                .key(analysisApiKey)
+                .creationDatetime(creationDatetime)
+                .enabled(true)),
+        actual);
   }
 }

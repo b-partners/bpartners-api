@@ -1,11 +1,17 @@
 package app.bpartners.api.service.user;
 
+import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.ANALYSIS;
+import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
+
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserRegistrationRequested;
+import app.bpartners.api.endpoint.rest.model.UserApiKey;
+import app.bpartners.api.endpoint.rest.model.UserApiKeyType;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.mapper.UserApiKeyMapper;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
@@ -34,6 +40,7 @@ public class UserService {
   private final InvoiceSummaryJpaRepository invoiceSummaryJpaRepository;
   private final EventProducer<UserRegistrationRequested> eventProducer;
   private final UserAnalysisApiKeyRepository analysisApiKeyRepository;
+  private final UserApiKeyMapper userApiKeyMapper;
 
   @Transactional
   public User getByIdAccount(String idAccount) {
@@ -142,7 +149,35 @@ public class UserService {
     return userRepository.getUserByApiKey(apikey);
   }
 
+  // TODO : delete and replace test with getApiKeys method
   public List<UserAnalysisApiKey> getAnalysisApiKeys(String userId) {
     return analysisApiKeyRepository.getAllByUserId(userId);
+  }
+
+  // TODO: create (if not exists) internal UserApiKey component
+  public List<UserApiKey> getApiKeys(User user, List<UserApiKeyType> keyTypes) {
+    List<UserApiKeyType> types;
+    if (keyTypes == null || keyTypes.isEmpty()) {
+      types = List.of(DASHBOARD);
+    } else {
+      types = keyTypes;
+    }
+    var userId = user.getId();
+    return types.stream()
+        .map(
+            userApiKeyType -> {
+              if (DASHBOARD.equals(userApiKeyType)) {
+                return List.of(
+                    new UserApiKey().key(user.getApiKey()).type(DASHBOARD).enabled(true));
+              }
+              if (ANALYSIS.equals(userApiKeyType)) {
+                return analysisApiKeyRepository.getAllByUserId(userId).stream()
+                    .map(userApiKeyMapper::toRest)
+                    .toList();
+              }
+              throw new UnsupportedOperationException("Unexpected key type: " + userApiKeyType);
+            })
+        .flatMap(List::stream)
+        .toList();
   }
 }

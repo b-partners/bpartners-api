@@ -172,8 +172,9 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(POST, "/users/*/keys")
                     .hasAnyRole(ADMIN_ROLE.getRole())
-                    .requestMatchers(GET, "/users/*/keys")
-                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/keys", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(
                             POST, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
@@ -590,9 +591,6 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfUserMatcher(
                             POST, "/users/*/detectionTracking", authResourceProvider))
-                    .authenticated()
-                    .requestMatchers(
-                        new SelfUserMatcher(GET, "/users/*/analysis/api-key", authResourceProvider))
                     .authenticated()
                     .requestMatchers(POST, "/address/autocomplete")
                     .authenticated()

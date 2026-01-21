@@ -5,6 +5,4 @@ import java.util.List;
 
 public interface UserAnalysisApiKeyRepository {
   List<UserAnalysisApiKey> getAllByUserId(String userId);
-
-  UserAnalysisApiKey save(UserAnalysisApiKey userAnalysisApiKey);
 }

@@ -8,13 +8,13 @@ import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
-import app.bpartners.api.model.mapper.UserAnalysisApiKeyMapper;
 import app.bpartners.api.service.account.AccountRefreshService;
 import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -22,7 +22,6 @@ import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,8 +35,6 @@ public class UserController {
   private final SubscriptionService subscriptionService;
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
   private final StripePortalService stripePortalService;
-  private final UserAnalysisApiKeyMapper analysisApiKeyMapper;
-  private static final String API_KEY_HEADER = "x-api-key";
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
@@ -73,11 +70,10 @@ public class UserController {
     return users.stream().map(mapper::toRest).toList();
   }
 
-  @GetMapping("/users/{id}/keys")
-  public UserApiKey getUserApiKey(@PathVariable String id) {
-    var user = service.getUserById(id);
-
-    return new UserApiKey().key(user.getApiKey());
+  @GetMapping("/users/{uId}/keys")
+  public List<UserApiKey> getUserApiKeys(
+      @PathVariable String uId, @RequestParam(required = false) List<UserApiKeyType> keyTypes) {
+    return service.getApiKeys(AuthProvider.getAuthenticatedUser(), keyTypes);
   }
 
   @PostMapping("/users/{uId}/keys")
@@ -168,17 +164,5 @@ public class UserController {
     String email = "bpartners@mail.hei.school";
     service.deleteUserByEmail(email);
     return String.format("The user with email %s has been deleted", email);
-  }
-
-  @GetMapping("/users/{userId}/analysis/api-key")
-  public List<UserAnalysisApiKey> getAnalysisApiKey(
-      @PathVariable String userId, @RequestHeader(API_KEY_HEADER) String apiKey) {
-    app.bpartners.api.model.User user = service.getUserByApiKey(apiKey);
-
-    if (user == null || !Objects.equals(user.getId(), userId)) {
-      throw new ForbiddenException();
-    }
-
-    return service.getAnalysisApiKeys(userId).stream().map(analysisApiKeyMapper::toDTO).toList();
   }
 }

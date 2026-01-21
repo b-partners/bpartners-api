@@ -1,7 +1,6 @@
 package app.bpartners.api.repository.implementation;
 
 import static java.util.UUID.randomUUID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -9,10 +8,9 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
-import app.bpartners.api.model.mapper.UserAnalysisApiKeyMapper;
+import app.bpartners.api.model.mapper.UserApiKeyMapper;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserAnalysisApiKeyJpaRepository;
-import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.repository.jpa.model.HUserAnalysisApiKey;
 import java.time.Instant;
 import java.util.List;
@@ -26,7 +24,7 @@ class UserAnalysisApiKeyRepositoryImplTest {
   private static final Instant CREATION_DATETIME = Instant.now();
 
   UserAnalysisApiKeyJpaRepository jpaRepositoryMock = mock();
-  UserAnalysisApiKeyMapper mapper = mock();
+  UserApiKeyMapper mapper = mock();
   UserRepository userRepositoryMock = mock();
   UserAnalysisApiKeyRepositoryImpl subject =
       new UserAnalysisApiKeyRepositoryImpl(jpaRepositoryMock, userRepositoryMock, mapper);
@@ -51,17 +49,7 @@ class UserAnalysisApiKeyRepositoryImplTest {
     assertTrue(actual.contains(userAnalysisApiKey()));
   }
 
-  @Test
-  void save_ok() {
-    when(jpaRepositoryMock.save(any())).thenReturn(hUserAnalysisApiKey());
-
-    UserAnalysisApiKey actual = subject.save(userAnalysisApiKey());
-
-    assertEquals(userAnalysisApiKey(), actual);
-  }
-
   private HUserAnalysisApiKey hUserAnalysisApiKey() {
-    var user = HUser.builder().id(USER_ID).build();
     return HUserAnalysisApiKey.builder()
         .id(ID)
         .userId(USER_ID)

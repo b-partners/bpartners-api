@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.ANALYSIS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,22 +14,24 @@ class UserAnalysisApiKeyMapperTest {
   private static final String API_KEY_ID = randomUUID().toString();
   private static final String API_KEY = randomUUID().toString();
   private static final Instant NOW = Instant.now();
-  UserAnalysisApiKeyMapper subject = new UserAnalysisApiKeyMapper();
+  UserApiKeyMapper subject = new UserApiKeyMapper();
 
   @Test
-  void toDTO_ok() {
-    var expected = new app.bpartners.api.endpoint.rest.model.UserAnalysisApiKey()
-        .apiKey(API_KEY)
-        .creationDatetime(NOW)
-        .enabled(true);
+  void to_rest_ok() {
+    var expected =
+        new app.bpartners.api.endpoint.rest.model.UserApiKey()
+            .key(API_KEY)
+            .type(ANALYSIS)
+            .creationDatetime(NOW)
+            .enabled(true);
 
-    var actual = subject.toDTO(domainApiKey());
+    var actual = subject.toRest(domainApiKey());
 
     assertEquals(expected, actual);
   }
 
   @Test
-  void toDomain_ok() {
+  void to_domain_ok() {
     var expected = domainApiKey();
 
     var actual = subject.toDomain(entityApiKey(expected.getUser().getId()), expected.getUser());
@@ -37,7 +40,7 @@ class UserAnalysisApiKeyMapperTest {
   }
 
   @Test
-  void toEntity_ok() {
+  void to_entity_ok() {
     var userAnalysisApiKey = domainApiKey();
     var expected = entityApiKey(userAnalysisApiKey.getUser().getId());
 

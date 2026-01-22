@@ -76,7 +76,7 @@ public class TileCreator implements Function<AreaPicture, Tile> {
               AREA_PICTURE_NOT_FOUND_EMAIL_TEMPLATE, context);
       assert user != null;
       sesService.sendEmail(
-          "sofiane@bpartners.app", user.getEmail(), "Bpartners - Adresse introuvable", emailBody);
+          "sofiane@birdia.fr", user.getEmail(), "Bpartners - Adresse introuvable", emailBody);
       throw notFoundException;
     }
     areaPicture.setCurrentGeoPosition(geoPosition);

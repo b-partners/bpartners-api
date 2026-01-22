@@ -47,7 +47,7 @@ class MonthlySubscriptionInvoiceCreatedServiceTest {
             + " "
             + Year.now().getValue()
             + " est disponible";
-    var ccExpected = "tech@bpartners.app";
+    var ccExpected = "tech@birdia.fr";
     var htmlBodyExpected = "";
     when(userMock.getId()).thenReturn(userId);
     when(customerMock.getEmail()).thenReturn(customerEmail);

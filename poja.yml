@@ -19,7 +19,7 @@ database:
   prod_db_cluster_timeout: '300'
   with_database: non-poja-managed-postgres
 emailing:
-  ses_source: contact@bpartners.app
+  ses_source: contact@birdia.fr
 gen_api_client:
   aws_account_id: '688605879718'
   codeartifact_domain_name: npm-bpartners-app

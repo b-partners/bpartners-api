@@ -41,7 +41,7 @@ public class MonthlySubscriptionInvoiceCreatedService
                 .content(fileWriter.writeAsByte(invoiceFile))
                 .build());
 
-    var cc = "tech@bpartners.app"; // TODO: get contact address from env variable
+    var cc = "tech@birdia.fr"; // TODO: get contact address from env variable
     var recipient = invoice.getCustomer().getEmail();
     var emailSubject =
         "[BPartners] Votre facture du mois de "

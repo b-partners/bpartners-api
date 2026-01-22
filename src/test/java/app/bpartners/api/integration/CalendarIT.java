@@ -77,8 +77,8 @@ public class CalendarIT extends MockedThirdParties {
     long endMillis = startMillis + 3_600_000;
     return new Event()
         .setSummary("Event1 with location")
-        .setOrganizer(new Event.Organizer().setEmail("tech@bpartners.app"))
-        .setCreator(new Event.Creator().setEmail("tech@bpartners.app"))
+        .setOrganizer(new Event.Organizer().setEmail("tech@birdia.fr"))
+        .setCreator(new Event.Creator().setEmail("tech@birdia.fr"))
         .setStart(
             new EventDateTime().setDateTime(new DateTime(startMillis)).setTimeZone("Europe/Paris"))
         .setEnd(
@@ -86,8 +86,8 @@ public class CalendarIT extends MockedThirdParties {
         .setLocation("70 Rue Duhesme, 75018 Paris, France")
         .setAttendees(
             List.of(
-                new EventAttendee().setEmail("tech@bpartners.app"),
-                new EventAttendee().setEmail("sofiane@bpartners.app")))
+                new EventAttendee().setEmail("tech@birdia.fr"),
+                new EventAttendee().setEmail("sofiane@birdia.fr")))
         .setUpdated(dateTimeFrom(Instant.now()));
   }
 

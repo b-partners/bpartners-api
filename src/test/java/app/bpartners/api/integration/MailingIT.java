@@ -48,7 +48,7 @@ class MailingIT extends MockedThirdParties {
                 new CreateEmail()
                     .id("email1_id")
                     .emailObject("Object 1")
-                    .recipients(List.of("tech@bpartners.app"))
+                    .recipients(List.of("tech@birdia.fr"))
                     .emailBody("<p>Hello</p>")
                     .status(EmailStatus.DRAFT)
                     .attachments(List.of())));

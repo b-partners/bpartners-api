@@ -51,7 +51,7 @@ class ProspectCreatedServiceTest {
     var accountHolderMock = mock(AccountHolder.class);
     var downloadedFileMock = mock(File.class);
     var fileAttachmentMockContent = new byte[0];
-    var accountHolderEmail = randomUUID() + "@bpartners.app";
+    var accountHolderEmail = randomUUID() + "@birdia.fr";
     var prospectName = "name " + randomUUID();
     var emailBody = randomUUID().toString();
 
@@ -107,7 +107,7 @@ class ProspectCreatedServiceTest {
     var accountHolderMock = mock(AccountHolder.class);
     var downloadedFileMock = mock(File.class);
     var fileAttachmentMockContent = new byte[0];
-    var accountHolderEmail = randomUUID() + "@bpartners.app";
+    var accountHolderEmail = randomUUID() + "@birdia.fr";
     var prospectName = "name " + randomUUID();
     var emailBody = randomUUID().toString();
 

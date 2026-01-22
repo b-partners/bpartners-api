@@ -144,7 +144,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  findApiKey:
+  apiKeyOperations:
     get:
       tags:
         - Security
@@ -170,7 +170,6 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  revokeApiKeys:
     delete:
       tags:
         - Security

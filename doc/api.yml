@@ -23,7 +23,7 @@ paths:
   /whois/{id}:
     $ref: './security-api.yml#/operations/whois'
   /api/keys:
-    $ref: './security-api.yml#/operations/findApiKey'
+    $ref: './security-api.yml#/operations/apiKeyOperations'
   /captcha/token:
     $ref: './security-api.yml#/operations/verifyCaptchaToken'
 

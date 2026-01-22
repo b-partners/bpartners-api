@@ -25,6 +25,8 @@ public class AreaPictureMapLayerService {
   public static final String DEFAULT_IGN_LAYER_UUID = "1cccfc17-cbef-4320-bdfa-0d1920b91f11";
   public static final String DEFAULT_PCRS_LAYER_UUID = "726f5b3b-d23b-40c3-b38e-68a43d7ae155";
   public static final String DEFAULT_RHONE_PCRS_LAYER_UUID = "2f343dba-dd5f-4895-9006-49472f576c02";
+  public static final String DEFAULT_AIRBUS_PNEO_LAYER_UUID =
+      "532ea7da-918e-4bb7-bc34-e167a3829e19";
   private final AreaPictureMapLayerRepository repository;
 
   public List<AreaPictureMapLayer> getAvailableLayersFrom(Tile tile) {
@@ -74,6 +76,10 @@ public class AreaPictureMapLayerService {
 
   public AreaPictureMapLayer getRhonePCRSLayer() {
     return getById(DEFAULT_RHONE_PCRS_LAYER_UUID);
+  }
+
+  public AreaPictureMapLayer getAirbusLayer() {
+    return getById(DEFAULT_AIRBUS_PNEO_LAYER_UUID);
   }
 
   public AreaPictureMapLayer getById(String id) {

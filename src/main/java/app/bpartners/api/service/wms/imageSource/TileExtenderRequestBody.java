@@ -20,6 +20,7 @@ public class TileExtenderRequestBody implements Serializable {
   public static final String OPENSTREETMAP_SERVER_NAME = "openstreetmap";
   public static final String GEOSERVER_SERVER_NAME = "geoserver";
   public static final String GEOSERVER_IGN_NAME = "geoserver_ign";
+  public static final String AIRBUS = "airbus";
   public static final int DEFAULT_MAX_IGN_ZOOM = 19;
   private int x;
   private int y;
@@ -37,6 +38,7 @@ public class TileExtenderRequestBody implements Serializable {
       case OPENSTREETMAP -> OPENSTREETMAP_SERVER_NAME;
       case GEOSERVER -> GEOSERVER_SERVER_NAME;
       case GEOSERVER_IGN -> GEOSERVER_IGN_NAME;
+      case AIRBUS -> AIRBUS;
     };
   }
 

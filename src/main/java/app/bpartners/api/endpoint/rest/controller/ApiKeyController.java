@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+
 import app.bpartners.api.endpoint.rest.model.ApiKey;
 import app.bpartners.api.endpoint.rest.model.RevokeApiKey;
 import app.bpartners.api.endpoint.rest.model.RevokedApiKey;

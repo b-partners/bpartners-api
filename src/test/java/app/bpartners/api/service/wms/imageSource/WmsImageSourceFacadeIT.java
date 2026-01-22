@@ -27,6 +27,7 @@ import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.FileSystemResource;
 
+@Slf4j
 public class WmsImageSourceFacadeIT extends MockedThirdParties {
   private static final AreaPicture GEOSERVER_LAYER_AREA_PICTURE =
       AreaPicture.builder()
@@ -50,6 +52,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
   @MockBean IGNGeoserverImageSource ignGeoserverImageSource;
   @MockBean Mailer mailer;
   @MockBean TileExtenderImageSource tileExtenderImageSource;
+  @MockBean AirbusPNEOImageSource airbusPNEOImageSource;
   @MockBean AreaPictureMapLayerService areaPictureMapLayerServiceMock;
 
   public static AreaPictureMapLayer rhonePCRSLayer() {
@@ -127,6 +130,22 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
   }
 
   @Test
+  void download_airbus_image_on_cascade_ok() {
+    when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
+        .thenThrow(new BlankImageException("Blank image"));
+    when(airbusPNEOImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
+    when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
+
+    subject.downloadImage(anAreaPicture(dijon()));
+
+    verify(airbusPNEOImageSource, times(1)).downloadImage(any());
+    verify(tileExtenderImageSource, times(3)).downloadImage(any());
+    verify(areaPictureMapLayerServiceMock, times(1)).getPCRSLayer();
+    verify(areaPictureMapLayerServiceMock, times(1)).getRhonePCRSLayer();
+  }
+
+  @Test
   void download_image_with_pcrs_layer_on_cascade_ok() {
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
@@ -170,6 +189,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
 
     subject.downloadImage(anAreaPicture(dijon()));
 
+    verify(airbusPNEOImageSource, times(1)).downloadImage(any());
     verify(tileExtenderImageSource, times(4)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getDefaultIGNLayer();
   }

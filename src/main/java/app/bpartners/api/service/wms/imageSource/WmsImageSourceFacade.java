@@ -65,27 +65,28 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 4) int iteration)
+      @Range(from = 0, to = 5) int iteration)
       throws AddressException {
     WmsImageSource alternativeSource;
-    AreaPictureMapLayer alternativeAreaPictureMapLayer;
+    AreaPictureMapLayer alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
     if (iteration == 0) {
-      alternativeSource = wmsImageSource;
+      alternativeSource = tileExtenderImageSource;
       AreaPictureMapLayer layer = areaPicture.getCurrentLayer();
       if ("IGN_PHOTO_AERIENNE".equals(layer.getName())) {
         areaPicture.setZoomLevel(BUILDING);
       }
-      alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
     } else if (iteration == 1) {
-      alternativeSource = wmsImageSource;
+      alternativeSource = tileExtenderImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getPCRSLayer();
     } else if (iteration == 2) {
-      alternativeSource = wmsImageSource;
+      alternativeSource = tileExtenderImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getRhonePCRSLayer();
     } else if (iteration == 3) {
-      alternativeSource = ignGeoserverImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
+      alternativeSource = airbusPNEOImageSource;
       areaPicture.setZoomLevel(BUILDING);
+    } else if (iteration == 4) {
+      alternativeSource = tileExtenderImageSource;
+      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
     } else {
       throw new ApiException(
           SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
@@ -93,7 +94,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     try {
       areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       log.info("Process image download from layer = {}", areaPicture.getCurrentLayer());
-      var image = tileExtenderImageSource.downloadImage(areaPicture);
+      var image = alternativeSource.downloadImage(areaPicture);
       imageValidator.accept(image);
       return image;
     } catch (ApiException | BlankImageException e) {

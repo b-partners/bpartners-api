@@ -7,6 +7,7 @@ import lombok.Data;
 public class AirbusFeature {
   @JsonProperty("_links")
   private FeatureLinks links;
+
   private Geometry geometry;
   private Properties properties;
   private Rights rights;

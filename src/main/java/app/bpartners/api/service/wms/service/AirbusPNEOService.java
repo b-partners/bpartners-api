@@ -93,5 +93,4 @@ public class AirbusPNEOService {
   private static List<BigDecimal> point(double lon, double lat) {
     return List.of(BigDecimal.valueOf(lon), BigDecimal.valueOf(lat));
   }
-
 }

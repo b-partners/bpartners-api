@@ -95,6 +95,8 @@ public final class AirbusPNEOImageSource extends AbstractWmsImageSource {
     ResponseEntity<AirbusPNEOResponse> response =
         restTemplate.exchange(baseUrl.toUri(), HttpMethod.POST, entity, AirbusPNEOResponse.class);
     log.info("Searched image successfully");
+
+    log.info("Search results = {}", mapper.writeValueAsString(response.getBody()));
     AirbusFeature feature = Objects.requireNonNull(response.getBody()).getFeatures().getFirst();
     String wmtsLink =
         String.format(
@@ -105,7 +107,6 @@ public final class AirbusPNEOImageSource extends AbstractWmsImageSource {
             tile.getY());
 
     HttpEntity<Void> wmtsEntityHeaders = new HttpEntity<>(customizeHeaders(bearerToken));
-    log.info("wmts link = {}", wmtsLink);
     ResponseEntity<byte[]> pneoImage =
         restTemplate.exchange(wmtsLink, HttpMethod.GET, wmtsEntityHeaders, byte[].class);
 

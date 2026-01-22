@@ -61,7 +61,7 @@ class InvoiceRelaunchSavedServiceTest {
 
   @Test
   void sendEmail_triggers() throws MessagingException, IOException {
-    String recipient = "test" + randomUUID() + "@bpartners.app";
+    String recipient = "test" + randomUUID() + "@birdia.fr";
     String subject = "Objet du mail";
     String htmlBody = "<html><body>Corps du mail</body></html>";
 

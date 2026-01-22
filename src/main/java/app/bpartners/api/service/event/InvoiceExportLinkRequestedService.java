@@ -74,7 +74,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
             "Ensemble des factures de l'utilisateur: %s - Partie %s / %s",
             user.getDefaultHolder().getName(), page + 1, totalPage);
     var recipient = user.getDefaultHolder().getEmail();
-    var adminRecipient = "tech@bpartners.app";
+    var adminRecipient = "tech@birdia.fr";
     try {
       mailer.sendEmail(recipient, adminRecipient, mailSubject, htmlBody);
       if (page < totalPage) {

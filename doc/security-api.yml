@@ -170,6 +170,35 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  revokeApiKeys:
+    delete:
+      tags:
+        - Security
+      summary: revoke api keys
+      security: []
+      operationId: revokeApiKeys
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/RevokeApiKey'
+      responses:
+        200:
+          description: api key revoked successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RevokedApiKey'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 
 components:
   securitySchemes:
@@ -213,6 +242,17 @@ components:
       properties:
         user:
           $ref: './userAccounts-api.yml#/components/schemas/User'
+    RevokeApiKey:
+      type: object
+      properties:
+        key:
+          type: string
+    RevokedApiKey:
+      allOf:
+        - $ref: '#/components/schemas/apiKey'
+      properties:
+        type:
+          $ref: "./userAccounts-api.yml#/components/schemas/UserApiKeyType"
     apiKey:
       type: object
       properties:

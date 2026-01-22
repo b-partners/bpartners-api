@@ -9,15 +9,20 @@ import static app.bpartners.api.service.user.OnboardingService.DEFAULT_USER_IDEN
 import static app.bpartners.api.service.user.OnboardingService.DEFAULT_USER_STATUS;
 import static app.bpartners.api.service.user.OnboardingService.DEFAULT_VERIFICATION_STATUS;
 import static app.bpartners.api.service.user.OnboardingService.DEFAULT_VERIFIED;
+import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.*;
+import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.account.AccountService;
 import app.bpartners.api.service.accountholder.AccountHolderService;
 import app.bpartners.api.service.user.OnboardingService;
+import app.bpartners.api.service.user.UserService;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +38,9 @@ class UserServiceIT extends MockedThirdParties {
   @Autowired private OnboardingService onboardingService;
   @Autowired private AccountService accountService;
   @Autowired private AccountHolderService accountHolderService;
+  @Autowired private UserRepository userRepository;
+  @Autowired private UserAnalysisApiKeyRepository userAnalysisApiKeyRepository;
+  @Autowired private UserService userService;
 
   @BeforeEach
   public void setUp() {
@@ -75,6 +83,28 @@ class UserServiceIT extends MockedThirdParties {
     verifyUserValues(userToOnboard, actualUser);
     verifyAccountValues(actualUser, accounts);
     verifyAccountHolderValues(actualUser, accountHolders);
+  }
+
+  @Test
+  public void get_analysis_api_keys_ok() {
+    UserAnalysisApiKey userAnalysisApiKey =
+        UserAnalysisApiKey.builder()
+            .apiKey(randomUUID().toString())
+            .creationDatetime(now().truncatedTo(ChronoUnit.MICROS))
+            .enabled(true)
+            .build();
+
+    User user = User.builder().email("dummy").firstName("dummy").lastName("dummy").build();
+    user = userRepository.save(user);
+    user.addUserAnalysisApiKey(userAnalysisApiKey);
+
+    var retrievedUser = userRepository.save(user);
+    String userId = retrievedUser.getId();
+
+    List<UserAnalysisApiKey> actual = userService.getAnalysisApiKeys(userId);
+
+    assertEquals(userAnalysisApiKey.getApiKey(), actual.getFirst().getApiKey());
+    assertEquals(retrievedUser.getAnalysisApiKeys(), actual);
   }
 
   private static void verifyUserValues(User userToOnboard, User actual) {

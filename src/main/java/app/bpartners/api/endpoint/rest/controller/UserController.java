@@ -8,6 +8,7 @@ import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
 import app.bpartners.api.model.BoundedPageSize;
@@ -69,11 +70,10 @@ public class UserController {
     return users.stream().map(mapper::toRest).toList();
   }
 
-  @GetMapping("/users/{id}/keys")
-  public UserApiKey getUserApiKey(@PathVariable String id) {
-    var user = service.getUserById(id);
-
-    return new UserApiKey().key(user.getApiKey());
+  @GetMapping("/users/{uId}/keys")
+  public List<UserApiKey> getUserApiKeys(
+      @PathVariable String uId, @RequestParam(required = false) List<UserApiKeyType> keyTypes) {
+    return service.getApiKeys(AuthProvider.getAuthenticatedUser(), keyTypes);
   }
 
   @PostMapping("/users/{uId}/keys")

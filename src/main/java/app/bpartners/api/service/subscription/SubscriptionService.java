@@ -69,6 +69,7 @@ public class SubscriptionService {
   private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
   private final DetectionTrackingJpaRepository detectionTrackingJpaRepository;
   private final StripeInvoiceService stripeInvoiceService;
+  private final StripeCustomerService stripeCustomerService;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -438,10 +439,7 @@ public class SubscriptionService {
         && !createdStripeProduct.getImages().getFirst().isBlank()) {
       subscriptionProductToPersistBuilder.imageUrl(createdStripeProduct.getImages().getFirst());
     }
-
-    var productPersist =
-        subscriptionProductRepository.save(subscriptionProductToPersistBuilder.build());
-    return productPersist;
+    return subscriptionProductRepository.save(subscriptionProductToPersistBuilder.build());
   }
 
   private ProductCreateParams.DefaultPriceData.Recurring.Interval intervalFromSubscriptionType(
@@ -467,13 +465,7 @@ public class SubscriptionService {
               + totalAmountDue
               + " €");
     }
-    @NotNull Customer stripeCustomer;
-    try {
-      stripeCustomer = getStripeCustomerByE2Id(user.getUserSubscriptionId());
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestException(
-          "User.id=" + user.getId() + " is not associated to a stripe customer yet");
-    }
+    var stripeCustomer = stripeCustomerService.getCustomer(user);
     var actualUserSubscription = getSubscriptionByUser(user);
     var latestSubscription = actualUserSubscription.getLatestSubscription();
     if (latestSubscription != null
@@ -730,14 +722,6 @@ public class SubscriptionService {
         yield UNKNOWN;
       }
     };
-  }
-
-  @SneakyThrows
-  private @NotNull Customer getStripeCustomerByE2Id(String stripeCustomerId) {
-    if (stripeCustomerId == null) {
-      throw new IllegalArgumentException("Stripe customer id is mandatory and can not be null");
-    }
-    return stripeClient.customers().retrieve(stripeCustomerId);
   }
 
   @SneakyThrows

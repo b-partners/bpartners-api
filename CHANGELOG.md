@@ -1,3 +1,27 @@
+# [0.76.0](https://github.com/b-partners/bpartners-api/compare/v0.75.0...v0.76.0) (2026-01-09)
+
+
+### Bug Fixes
+
+* **area-picture:** set zoom level to BUILDING(19) when ign the image source ([a750542](https://github.com/b-partners/bpartners-api/commit/a7505421d82d23cdb26572a5dd608ca3eaa074f1))
+* handle attachment on prospect notification as binary file ([f4da301](https://github.com/b-partners/bpartners-api/commit/f4da3015216b3a9d1f5880ad7e6ec03be5a95e41))
+* **SubscriptionService:** handle not_found stripe customer when retrieving stripe subscriptions ([8ebc681](https://github.com/b-partners/bpartners-api/commit/8ebc68137f64fbe9bb127dad22e58d302f06c718))
+* use multipart-file instead of binary on prospect notification ([f7a8298](https://github.com/b-partners/bpartners-api/commit/f7a82981ba8981e3f22785c4c7331826b64faf46))
+* **UserController:** add missing @RequestBody annotation on redirectionStatusUrls ([e66d704](https://github.com/b-partners/bpartners-api/commit/e66d704d36e7067e36d102bdf351dd98fbc8eb26))
+
+
+### Features
+
+* notify prospects creation with attachment ([18ac453](https://github.com/b-partners/bpartners-api/commit/18ac453c7aedc19ec668afad63a116937ec31fa2))
+* use POST /prospects/*/accountHolders for creation and PUT for save ([08c03f5](https://github.com/b-partners/bpartners-api/commit/08c03f584d6ecee07a35f8cdcc34503a89eca513))
+
+
+### Reverts
+
+* Revert "test(debug): commment WhoamiIT and SubscriptionServiceIT" ([d9519e7](https://github.com/b-partners/bpartners-api/commit/d9519e7dd6a2e0c281ebfbb17c3d5a3ba1fdd83d))
+
+
+
 # [0.75.0](https://github.com/b-partners/bpartners-api/compare/v0.74.0...v0.75.0) (2025-12-17)
 
 
@@ -148,26 +172,6 @@
 ### Features
 
 * allow client provide autocompletion sessionId ([da8390e](https://github.com/b-partners/bpartners-api/commit/da8390e2e15fe12f534bb7f0ad93c3a49267e305))
-
-
-
-# [0.66.0](https://github.com/b-partners/bpartners-api/compare/v0.65.0...v0.66.0) (2025-04-24)
-
-
-### Bug Fixes
-
-* add onboarded user to admin customers ([3e16cd8](https://github.com/b-partners/bpartners-api/commit/3e16cd8fe80267467f2a0c86798ba3f789c639e2))
-* do not filter by date users to compute invoice ([7fdad2c](https://github.com/b-partners/bpartners-api/commit/7fdad2cf46f48d55f1eaf8e32c2d4ffc6996fa39))
-* **MonhtlySubscriptionInvoiceRequestedService:** toPayAt = fifthOfNextMonth ([e890b53](https://github.com/b-partners/bpartners-api/commit/e890b53637b0beb99675d30c6b7bb35282d701c8))
-* **MonthlySubscriptionInvoiceRequestedService:** set default subscription period and sendingDate ([a1bcff5](https://github.com/b-partners/bpartners-api/commit/a1bcff5d888b8924c685e9db2fe75b084e704848))
-* PUT /accounts/*/areaPictures/* handles null prospectId ([c2db0ac](https://github.com/b-partners/bpartners-api/commit/c2db0ac6aa805a69ae76a452b137f4494bac03fa))
-* **SubscriptionController:** remove POST /users/id/subscriptionConsumptionLogs implementation ([82df2ff](https://github.com/b-partners/bpartners-api/commit/82df2ffbf245fa1de0c578a18628c23ab623442c))
-
-
-### Features
-
-* POST /users/id/detectionTracking without consumption log computed ([dfb6b0c](https://github.com/b-partners/bpartners-api/commit/dfb6b0cde56ca7e339c881867cead7fac85698b0))
-* provide autocompletion when user typing address ([ba2ca76](https://github.com/b-partners/bpartners-api/commit/ba2ca763a1c898ad5f95744d4cf07d036d9c8ef1))
 
 
 

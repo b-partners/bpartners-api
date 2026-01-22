@@ -1,13 +1,8 @@
 package app.bpartners.api.model.mapper;
 
-import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-
-import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.bridge.model.User.BridgeUser;
-import app.bpartners.api.repository.bridge.model.User.CreateBridgeUser;
 import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -22,72 +17,59 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Slf4j
 public class UserMapper {
-  public static final String VALID_IDENTITY_STATUS = "ValidIdentity";
-  public static final String INSUFFICIENT_DOCUMENT_QUALITY_STATUS = "InsufficientDocumentQuality";
-  public static final String INVALID_IDENTITY_STATUS = "InvalidIdentity";
-  public static final String PROCESSING_STATUS = "Processing";
-  public static final String UNINITIATED_STATUS = "Uninitiated";
   private final AccountMapper accountMapper;
   private final AccountHolderMapper accountHolderMapper;
+  private final UserApiKeyMapper analysisApiKeyMapper;
 
   public User toDomain(HUser entityUser) {
-    return User.builder()
-        .id(entityUser.getId())
-        .userSubscriptionId(entityUser.getUserSubscriptionE2Id())
-        .firstName(entityUser.getFirstName())
-        .lastName(entityUser.getLastName())
-        .mobilePhoneNumber(entityUser.getPhoneNumber())
-        .email(entityUser.getEmail())
-        .apiKey(entityUser.getApiKey())
-        .accessToken(entityUser.getAccessToken())
-        .bridgePassword(entityUser.getBridgePassword())
-        .bankConnectionId(entityUser.getBridgeItemId())
-        .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
-        .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
-        .monthlySubscription(entityUser.getMonthlySubscription())
-        .status(entityUser.getStatus())
-        .logoFileId(entityUser.getLogoFileId())
-        .idVerified(entityUser.getIdVerified())
-        .identificationStatus(entityUser.getIdentificationStatus())
-        .oldS3key(entityUser.getOldS3AccountKey())
-        .accounts(
-            entityUser.getAccounts() == null
-                ? null
-                : entityUser.getAccounts().stream()
-                    .map(account -> accountMapper.toDomain(account, null))
-                    .collect(Collectors.toList()))
-        .accountHolders(
-            entityUser.getAccountHolders() == null
-                ? null
-                : entityUser.getAccountHolders().stream()
-                    .map(accountHolderMapper::toDomain)
-                    .collect(Collectors.toList()))
-        .preferredAccountId(entityUser.getPreferredAccountId())
-        .externalUserId(entityUser.getBridgeUserId())
-        .connectionStatus(entityUser.getBankConnectionStatus())
-        .roles(entityUser.getRoles() == null ? List.of() : Arrays.asList(entityUser.getRoles()))
-        .snsArn(entityUser.getSnsArn())
-        .deviceToken(entityUser.getDeviceToken())
-        .parentUser(
-            entityUser.getParentUser() == null ? null : toDomain(entityUser.getParentUser()))
-        .build();
-  }
-
-  public IdentificationStatus getIdentificationStatus(String value) {
-    switch (value) {
-      case VALID_IDENTITY_STATUS:
-        return IdentificationStatus.VALID_IDENTITY;
-      case INSUFFICIENT_DOCUMENT_QUALITY_STATUS:
-        return IdentificationStatus.INSUFFICIENT_DOCUMENT_QUALITY;
-      case INVALID_IDENTITY_STATUS:
-        return IdentificationStatus.INVALID_IDENTITY;
-      case PROCESSING_STATUS:
-        return IdentificationStatus.PROCESSING;
-      case UNINITIATED_STATUS:
-        return IdentificationStatus.UNINITIATED;
-      default:
-        throw new ApiException(SERVER_EXCEPTION, "Unknown identification status : " + value);
-    }
+    var userAnalysisApiKeys =
+        entityUser.getAnalysisApiKeys().stream()
+            .map(entity -> analysisApiKeyMapper.toDomain(entity, null))
+            .toList();
+    var user =
+        User.builder()
+            .id(entityUser.getId())
+            .userSubscriptionId(entityUser.getUserSubscriptionE2Id())
+            .firstName(entityUser.getFirstName())
+            .lastName(entityUser.getLastName())
+            .mobilePhoneNumber(entityUser.getPhoneNumber())
+            .email(entityUser.getEmail())
+            .apiKey(entityUser.getApiKey())
+            .accessToken(entityUser.getAccessToken())
+            .bridgePassword(entityUser.getBridgePassword())
+            .bankConnectionId(entityUser.getBridgeItemId())
+            .bridgeItemUpdatedAt(entityUser.getBridgeItemUpdatedAt())
+            .bridgeItemLastRefresh(entityUser.getBridgeItemLastRefresh())
+            .monthlySubscription(entityUser.getMonthlySubscription())
+            .status(entityUser.getStatus())
+            .logoFileId(entityUser.getLogoFileId())
+            .idVerified(entityUser.getIdVerified())
+            .identificationStatus(entityUser.getIdentificationStatus())
+            .oldS3key(entityUser.getOldS3AccountKey())
+            .accounts(
+                entityUser.getAccounts() == null
+                    ? null
+                    : entityUser.getAccounts().stream()
+                        .map(account -> accountMapper.toDomain(account, null))
+                        .collect(Collectors.toList()))
+            .accountHolders(
+                entityUser.getAccountHolders() == null
+                    ? null
+                    : entityUser.getAccountHolders().stream()
+                        .map(accountHolderMapper::toDomain)
+                        .collect(Collectors.toList()))
+            .preferredAccountId(entityUser.getPreferredAccountId())
+            .externalUserId(entityUser.getBridgeUserId())
+            .connectionStatus(entityUser.getBankConnectionStatus())
+            .roles(entityUser.getRoles() == null ? List.of() : Arrays.asList(entityUser.getRoles()))
+            .snsArn(entityUser.getSnsArn())
+            .deviceToken(entityUser.getDeviceToken())
+            .parentUser(
+                entityUser.getParentUser() == null ? null : toDomain(entityUser.getParentUser()))
+            .analysisApiKeys(userAnalysisApiKeys)
+            .build();
+    user.addUserAnalysisApiKey(userAnalysisApiKeys);
+    return user;
   }
 
   public HUser toEntity(User toSave) {
@@ -116,6 +98,8 @@ public class UserMapper {
         .snsArn(toSave.getSnsArn())
         .deviceToken(toSave.getDeviceToken())
         .parentUser(toSave.getParentUser() == null ? null : toEntity(toSave.getParentUser()))
+        .analysisApiKeys(
+            toSave.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toEntity).toList())
         .build();
   }
 
@@ -127,13 +111,6 @@ public class UserMapper {
     return toEntity(toSave).toBuilder()
         .bridgeUserId(bridgeUser.getUuid())
         .email(bridgeUser.getEmail())
-        .build();
-  }
-
-  public CreateBridgeUser toBridgeUser(User user) {
-    return CreateBridgeUser.builder()
-        .email(user.getEmail())
-        .password(user.getBridgePassword())
         .build();
   }
 }

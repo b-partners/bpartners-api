@@ -20,7 +20,8 @@ public class TileExtenderRequestBody implements Serializable {
   public static final String OPENSTREETMAP_SERVER_NAME = "openstreetmap";
   public static final String GEOSERVER_SERVER_NAME = "geoserver";
   public static final String GEOSERVER_IGN_NAME = "geoserver_ign";
-  public static final int DEFAULT_MAX_IGN_ZOOM = 19;
+  public static final String AIRBUS = "airbus";
+  public static final int DEFAULT_MAX_IGN_AND_AIRBUS_ZOOM = 19;
   private int x;
   private int y;
   private int z;
@@ -37,6 +38,7 @@ public class TileExtenderRequestBody implements Serializable {
       case OPENSTREETMAP -> OPENSTREETMAP_SERVER_NAME;
       case GEOSERVER -> GEOSERVER_SERVER_NAME;
       case GEOSERVER_IGN -> GEOSERVER_IGN_NAME;
+      case AIRBUS -> AIRBUS;
     };
   }
 
@@ -53,14 +55,13 @@ public class TileExtenderRequestBody implements Serializable {
     var currentLayer = areaPicture.getCurrentLayer();
     String layer = currentLayer.getName();
     String server = getSource(currentLayer);
-    boolean isCropped = true;
     log.info("Extended current layer={}", areaPicture.getCurrentLayer());
-    if (GEOSERVER_IGN_NAME.equals(server) && areaPicture.getArcgisZoom().getZoomLevel() >= 20) {
-      zoom = DEFAULT_MAX_IGN_ZOOM;
+    int zoomLevel = areaPicture.getArcgisZoom().getZoomLevel();
+    if (GEOSERVER_IGN_NAME.equals(server) || (AIRBUS.equals(server) && zoomLevel >= 20)) {
+      zoom = DEFAULT_MAX_IGN_AND_AIRBUS_ZOOM;
     }
-    if (areaPicture.isExtended()) {
-      isCropped = false;
-    }
+    boolean isCropped = !areaPicture.isExtended();
+
     var tile = from(currentGeoPositionLongitude, currentGeoPositionLatitude, ArcgisZoom.from(zoom));
 
     return TileExtenderRequestBody.builder()

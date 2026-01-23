@@ -1,8 +1,10 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.AIRBUS;
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
+import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.lang.Boolean.TRUE;
@@ -120,6 +122,18 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .source(GEOSERVER_IGN);
   }
 
+  static AreaPictureMapLayer airbusDefaultServerLayer() {
+    return new AreaPictureMapLayer()
+        .id("532ea7da-918e-4bb7-bc34-e167a3829e19")
+        .name("AIRBUS.PNEO")
+        .year(2025)
+        .precisionLevelInCm(30)
+        .maximumZoomLevel(BUILDING)
+        .departementName("ALL")
+        .maximumZoom(new Zoom().level(BUILDING).number(19))
+        .source(AIRBUS);
+  }
+
   static AreaPictureMapLayer geoserverPCRSLayer() {
     return new AreaPictureMapLayer()
         .id("726f5b3b-d23b-40c3-b38e-68a43d7ae155")
@@ -203,7 +217,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 geoserverCharenteLayer(),
                 geoserverRhonePCRSLayer(),
                 geoserverPCRSLayer(),
-                geoserverIGNPrimaryDefaultServerLayer()))
+                geoserverIGNPrimaryDefaultServerLayer(),
+                airbusDefaultServerLayer()))
         .layer(DEFAULT_OSM_LAYER)
         .zoom(zoom)
         .availableLayers(List.of(DEFAULT_OSM_LAYER))
@@ -263,7 +278,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 geoserverCharenteLayer(),
                 geoserverRhonePCRSLayer(),
                 geoserverPCRSLayer(),
-                geoserverIGNPrimaryDefaultServerLayer()))
+                geoserverIGNPrimaryDefaultServerLayer(),
+                airbusDefaultServerLayer()))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
         .updatedAt(Instant.parse("2022-01-08T01:00:00Z"))
         .address("Cannes Address")

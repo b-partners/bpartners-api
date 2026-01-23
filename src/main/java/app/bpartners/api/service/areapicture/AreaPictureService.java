@@ -86,6 +86,9 @@ public class AreaPictureService {
     if (areaPicture.getFilename().contains("ORTHOIMAGERY")) {
       areaPicture.setZoomLevel(ZoomLevel.BUILDING);
       areaPicture.setCurrentLayer(mapLayerService.getDefaultIGNLayer());
+    } else if (areaPicture.getFilename().contains("AIRBUS_PNEO")) {
+      areaPicture.setZoomLevel(ZoomLevel.BUILDING);
+      areaPicture.setCurrentLayer(mapLayerService.getAirbusLayer());
     }
 
     long startUpload = System.currentTimeMillis();
@@ -150,7 +153,8 @@ public class AreaPictureService {
         List.of(
             mapLayerService.getRhonePCRSLayer(),
             mapLayerService.getPCRSLayer(),
-            mapLayerService.getDefaultIGNLayer());
+            mapLayerService.getDefaultIGNLayer(),
+            mapLayerService.getAirbusLayer());
 
     if (areaPicture.getCurrentLayer() == null) {
       if (guessedMaps.isEmpty()) {
@@ -173,7 +177,8 @@ public class AreaPictureService {
         List.of(
             mapLayerService.getPCRSLayer(),
             mapLayerService.getRhonePCRSLayer(),
-            mapLayerService.getDefaultIGNLayer()));
+            mapLayerService.getDefaultIGNLayer(),
+            mapLayerService.getAirbusLayer()));
     return guessedMaps;
   }
 

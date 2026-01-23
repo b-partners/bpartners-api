@@ -1,5 +1,6 @@
 package app.bpartners.api.service.wms.imageSource;
 
+import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.AIRBUS;
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
@@ -83,6 +84,10 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
         .build();
   }
 
+  public static AreaPictureMapLayer airbusPneoLayer() {
+    return AreaPictureMapLayer.builder().name("AIRBUS").source(AIRBUS).build();
+  }
+
   private AreaPictureMapLayer dijon() {
     return AreaPictureMapLayer.builder().name("cite:Dijon").source(GEOSERVER).build();
   }
@@ -124,6 +129,24 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(geoserverImageSourceMock.getURI(any(), any()))
         .thenReturn(URI.create("http://localhost:" + localPort + "/ping"));
     when(tileExtenderImageSource.downloadImage(any())).thenReturn(getMockJpegFile());
+  }
+
+  @Test
+  void download_image_with_airbus_layer_on_cascade_ok() {
+    when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
+    when(areaPictureMapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
+    when(areaPictureMapLayerServiceMock.getAirbusLayer()).thenReturn(airbusPneoLayer());
+    when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
+        .thenThrow(new BlankImageException("Blank image"));
+    when(tileExtenderImageSource.downloadImage(
+            argThat(area -> area.getCurrentLayer().equals(airbusPneoLayer()))))
+        .thenReturn(getMockJpegFile());
+
+    subject.downloadImage(anAreaPicture(dijon()));
+
+    verify(tileExtenderImageSource, times(5)).downloadImage(any(AreaPicture.class));
+    verify(areaPictureMapLayerServiceMock, times(1)).getAirbusLayer();
   }
 
   @Test

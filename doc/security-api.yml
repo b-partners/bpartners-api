@@ -177,7 +177,7 @@ operations:
       security: []
       operationId: revokeApiKeys
       requestBody:
-        description: As an api key is only linked to one user, we can identify the owner from the key.
+        description: As an api key is unique and only linked to one user, we can identify the owner from the key.
         content:
           application/json:
             schema:

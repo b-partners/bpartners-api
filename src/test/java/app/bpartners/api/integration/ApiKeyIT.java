@@ -6,10 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.ApiKey;
-import app.bpartners.api.endpoint.rest.model.RevokeApiKey;
-import app.bpartners.api.endpoint.rest.model.RevokedApiKey;
-import app.bpartners.api.endpoint.rest.model.UserApiKeyType;
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import java.util.List;
@@ -50,13 +47,10 @@ class ApiKeyIT extends MockedThirdParties {
     SecurityApi api = new SecurityApi(client);
 
     RevokeApiKey revokeApiKey = new RevokeApiKey().key(JOE_DOE_API_KEY);
-    List<RevokedApiKey> actual = api.revokeApiKeys(List.of(revokeApiKey));
+    List<UserApiKey> actual = api.revokeApiKeys(List.of(revokeApiKey));
 
-    RevokedApiKey expected =
-        new RevokedApiKey()
-            .type(UserApiKeyType.DASHBOARD)
-            .apiKey(JOE_DOE_API_KEY)
-            .userId(JOE_DOE_ID);
+    UserApiKey expected =
+        new UserApiKey().type(UserApiKeyType.DASHBOARD).key(JOE_DOE_API_KEY).enabled(false);
     assertEquals(List.of(expected), actual);
   }
 

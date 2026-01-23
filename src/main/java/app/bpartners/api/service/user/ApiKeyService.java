@@ -4,8 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.ANALYSIS;
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
 
 import app.bpartners.api.endpoint.rest.model.RevokeApiKey;
-import app.bpartners.api.endpoint.rest.model.RevokedApiKey;
-import app.bpartners.api.endpoint.rest.model.UserApiKeyType;
+import app.bpartners.api.endpoint.rest.model.UserApiKey;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
@@ -19,28 +18,32 @@ public class ApiKeyService {
   private final UserService userService;
   private final UserAnalysisApiKeyRepository userAnalysisApiKeyRepository;
 
-  public List<RevokedApiKey> revokeApiKeys(List<RevokeApiKey> revokeApiKeys) {
+  public List<UserApiKey> revokeApiKeys(List<RevokeApiKey> revokeApiKeys) {
     return revokeApiKeys.stream().map(this::revokeApiKey).toList();
   }
 
-  private RevokedApiKey revokeApiKey(RevokeApiKey revokeApiKey) {
+  private UserApiKey revokeApiKey(RevokeApiKey revokeApiKey) {
     String key = revokeApiKey.getKey();
 
     User user;
-    UserApiKeyType apiKeyType = DASHBOARD;
     UserAnalysisApiKey analysisApiKey = userAnalysisApiKeyRepository.getByApiKey(key);
+    UserApiKey revokedApiKey = new UserApiKey();
 
     if (analysisApiKey != null) {
       UserAnalysisApiKey revokedAnalysisApiKey = analysisApiKey.toBuilder().enabled(false).build();
       userAnalysisApiKeyRepository.save(revokedAnalysisApiKey);
 
       user = analysisApiKey.getUser();
-      apiKeyType = ANALYSIS;
+      revokedApiKey.setType(ANALYSIS);
+      revokedApiKey.setCreationDatetime(revokedAnalysisApiKey.getCreationDatetime());
+      revokedApiKey.setExpirationDatetime(revokedAnalysisApiKey.getExpirationDatetime());
     } else {
       user = userService.getUserByApiKey(key);
 
       if (user != null) {
         userService.save(user.toBuilder().apiKey(null).build());
+
+        revokedApiKey.setType(DASHBOARD);
       }
     }
 
@@ -48,6 +51,9 @@ public class ApiKeyService {
       return null;
     }
 
-    return new RevokedApiKey().apiKey(key).userId(user.getId()).type(apiKeyType);
+    revokedApiKey.setKey(key);
+    revokedApiKey.setEnabled(false);
+
+    return revokedApiKey;
   }
 }

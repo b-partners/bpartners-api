@@ -173,10 +173,11 @@ operations:
     delete:
       tags:
         - Security
-      summary: revoke api keys
+      summary: Revoke api keys
       security: []
       operationId: revokeApiKeys
       requestBody:
+        description: As an api key is only linked to one user, we can identify the owner from the key.
         content:
           application/json:
             schema:
@@ -185,13 +186,13 @@ operations:
                 $ref: '#/components/schemas/RevokeApiKey'
       responses:
         200:
-          description: api key revoked successfully
+          description: List of revoked user api key
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RevokedApiKey'
+                  $ref: "./userAccounts-api.yml#/components/schemas/UserApiKey"
         400:
           $ref: './api.yml#/components/responses/400'
         429:
@@ -246,12 +247,6 @@ components:
       properties:
         key:
           type: string
-    RevokedApiKey:
-      allOf:
-        - $ref: '#/components/schemas/apiKey'
-      properties:
-        type:
-          $ref: "./userAccounts-api.yml#/components/schemas/UserApiKeyType"
     apiKey:
       type: object
       properties:

@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.RevokeApiKey;
-import app.bpartners.api.endpoint.rest.model.RevokedApiKey;
+import app.bpartners.api.endpoint.rest.model.UserApiKey;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
@@ -39,7 +39,8 @@ class ApiKeyServiceTest {
     when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
     when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
 
-    var mixedRevokeApiKeys = List.of(dashboardRevokeApiKey(), analysisRevokeApiKey());
+    List<RevokeApiKey> mixedRevokeApiKeys =
+        List.of(dashboardRevokeApiKey(), analysisRevokeApiKey());
     var expected = List.of(revokedDashboardApiKey(), revokedAnalysisApiKey());
 
     var actual = subject.revokeApiKeys(mixedRevokeApiKeys);
@@ -47,12 +48,16 @@ class ApiKeyServiceTest {
     assertEquals(expected, actual);
   }
 
-  private RevokedApiKey revokedDashboardApiKey() {
-    return new RevokedApiKey().type(DASHBOARD).userId(user2().getId()).apiKey(DASHBOARD_KEY);
+  private UserApiKey revokedDashboardApiKey() {
+    return new UserApiKey().type(DASHBOARD).enabled(false).key(DASHBOARD_KEY);
   }
 
-  private RevokedApiKey revokedAnalysisApiKey() {
-    return new RevokedApiKey().type(ANALYSIS).userId(user1().getId()).apiKey(ANALYSIS_KEY);
+  private UserApiKey revokedAnalysisApiKey() {
+    return new UserApiKey()
+        .type(ANALYSIS)
+        .enabled(false)
+        .key(ANALYSIS_KEY)
+        .creationDatetime(CREATION_DATETIME);
   }
 
   private RevokeApiKey dashboardRevokeApiKey() {

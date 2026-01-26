@@ -48,7 +48,8 @@ public class AreaPictureRestMapper {
         Arrays.asList(
             areaPictureMapLayerService.getRhonePCRSLayer(),
             areaPictureMapLayerService.getPCRSLayer(),
-            areaPictureMapLayerService.getDefaultIGNLayer()));
+            areaPictureMapLayerService.getDefaultIGNLayer(),
+            areaPictureMapLayerService.getAirbusLayer()));
     domain.setLayers(layers);
     log.info("Layers={}", domain.getLayers());
 

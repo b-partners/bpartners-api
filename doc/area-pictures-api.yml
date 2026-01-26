@@ -546,6 +546,7 @@ components:
         - OPENSTREETMAP
         - GEOSERVER
         - GEOSERVER_IGN
+        - AIRBUS
     AreaPictureMapLayer:
       type: object
       properties:

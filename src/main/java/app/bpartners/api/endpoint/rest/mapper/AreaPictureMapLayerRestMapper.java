@@ -1,7 +1,10 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.AIRBUS;
+
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.Zoom;
+import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class AreaPictureMapLayerRestMapper {
   private final AreaPictureMapLayerService mapLayerService;
+  private final MetaDataComponent metaDataComponent;
 
   public AreaPictureMapLayer toRest(app.bpartners.api.model.AreaPictureMapLayer domain) {
     var maxArcgisZoom = domain.getMaxZoomLevelAsArcgisZoom();
@@ -17,9 +21,8 @@ public class AreaPictureMapLayerRestMapper {
         new Zoom().level(domain.getMaximumZoomLevel()).number(maxArcgisZoom.getZoomLevel());
     int precision = domain.getPrecisionLevelInCm();
     int year = domain.getYear();
-    if (domain.getName().equals("cite:PCRS.LAMB93")) {
-      precision = 5;
-      year = 2024;
+    if (domain.getSource().equals(AIRBUS)) {
+      year = metaDataComponent.getAirbusYear();
     }
     return new AreaPictureMapLayer()
         .id(domain.getId())

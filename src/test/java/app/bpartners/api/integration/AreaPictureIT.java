@@ -95,7 +95,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @Autowired AccountRepository accountRepository;
   @MockBean AccountHolderRepository accountHolderRepository;
   @MockBean GeoCodeApi geoCodeApiMock;
-  @MockBean MetaDataComponent metaDataComponent;
+  @MockBean MetaDataComponent metaDataComponentMock;
   @MockBean AreaPictureZoomValidator areaPictureZoomValidatorMock;
 
   static AreaPictureMapLayer geoserverCharenteLayer() {
@@ -384,8 +384,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
     setUpBanApiMock(banApiMock);
     setUpWmsImageSourceMock(wmsImageSourceMock);
     setUpUserSubscription(subscriptionService);
-    when(metaDataComponent.getXOffset()).thenReturn(1234);
-    when(metaDataComponent.getYOffset()).thenReturn(123);
+    when(metaDataComponentMock.getXOffset()).thenReturn(1234);
+    when(metaDataComponentMock.getYOffset()).thenReturn(123);
+    when(metaDataComponentMock.getAirbusYear()).thenReturn(2025);
     doNothing().when(areaPictureZoomValidatorMock).accept(any());
   }
 

@@ -1,10 +1,13 @@
 package app.bpartners.api.service.areapicture;
 
+import lombok.Data;
 import org.springframework.stereotype.Component;
 
 @Component
+@Data
 public class MetaDataComponent {
   private IntXY xyOffset = new IntXY(0, 0);
+  private int airbusYear = 2025;
 
   public void setOffsets(int xOffset, int yOffset) {
     this.xyOffset = new IntXY(xOffset, yOffset);

@@ -21,6 +21,8 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -156,6 +158,14 @@ public final class FileDownloaderImpl implements FileDownloader {
                 Optional.ofNullable(responseHeaders.getFirst("y_offset"))
                     .map(Double::parseDouble)
                     .orElse(0.0));
+
+    if (filename.contains("AIRBUS_PNEO")) {
+      String lastUpdatedAt = responseHeaders.getFirst("airbusLastUpdatedAt");
+      if (lastUpdatedAt != null && !lastUpdatedAt.isBlank()) {
+        int year = Instant.parse(lastUpdatedAt).atZone(ZoneOffset.UTC).getYear();
+        metaDataComponent.setAirbusYear(year);
+      }
+    }
 
     metaDataComponent.setOffsets(xOffset, yOffset);
     return createFileFrom(filename, bytes);

@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.Instant;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import lombok.*;
 @ToString
 public class UserAnalysisApiKey {
   private String id;
-  @ToString.Exclude @EqualsAndHashCode.Exclude private User user;
+  @JsonIgnore @ToString.Exclude @EqualsAndHashCode.Exclude private User user;
   private Instant creationDatetime;
   private Instant expirationDatetime;
   private String apiKey;

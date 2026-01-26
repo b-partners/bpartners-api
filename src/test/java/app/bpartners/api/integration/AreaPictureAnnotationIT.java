@@ -28,7 +28,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   private static final String DRAFT_AREA_PICTURE_ANNOTATION_1_ID = "area_picture_annotation_4_id";
   private static final String DRAFT_AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_5_id";
 
-  @MockBean MetaDataComponent metaDataComponent;
+  @MockBean MetaDataComponent metaDataComponentMock;
 
   static AreaPictureAnnotation createAreaPictureAnnotation(String payloadId, String areaPictureId) {
     return new AreaPictureAnnotation()
@@ -249,7 +249,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
-    when(metaDataComponent.getXOffset()).thenReturn(1234);
-    when(metaDataComponent.getYOffset()).thenReturn(123);
+    when(metaDataComponentMock.getXOffset()).thenReturn(1234);
+    when(metaDataComponentMock.getYOffset()).thenReturn(123);
+    when(metaDataComponentMock.getAirbusYear()).thenReturn(2025);
   }
 }

@@ -67,6 +67,7 @@ class CustomerCrupdatedServiceTest {
     verify(banApiMock, times(1)).fSearch(anyString());
     verify(customerRepositoryMock, times(1)).save(any());
     verify(templateResolverEngineMock, times(1)).parseTemplateResolver(anyString(), any());
-    verify(sesServiceMock, times(1)).sendEmail(anyString(), any(), any(), any(), anyList());
+    verify(sesServiceMock, times(1))
+        .sendEmail(anyString(), any(), any(), any(), anyList(), anyString());
   }
 }

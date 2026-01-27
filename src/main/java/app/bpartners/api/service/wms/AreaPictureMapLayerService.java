@@ -1,6 +1,6 @@
 package app.bpartners.api.service.wms;
 
-import static app.bpartners.api.service.wms.GeojsonFeatureCollection.getFranceDepartementsSimpleFeaturesMatchingPredicate;
+import static app.bpartners.api.service.wms.GeojsonFeatureCollection.getFranceAndQuebecDepartementsSimpleFeaturesMatchingPredicate;
 
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -38,7 +38,7 @@ public class AreaPictureMapLayerService {
     var areaPictureCoordinatesAsPoint =
         geometryFactory.createPoint(new Coordinate(longitude, latitude));
     List<SimpleFeature> features =
-        getFranceDepartementsSimpleFeaturesMatchingPredicate(
+        getFranceAndQuebecDepartementsSimpleFeaturesMatchingPredicate(
             feature -> {
               var geometry = (Geometry) feature.getDefaultGeometry();
               return geometry.contains(areaPictureCoordinatesAsPoint);

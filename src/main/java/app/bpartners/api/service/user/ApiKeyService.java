@@ -18,7 +18,7 @@ public class ApiKeyService {
   private final UserAnalysisApiKeyRepository userAnalysisApiKeyRepository;
 
   public List<UserApiKey> revokeApiKeys(List<String> keys) {
-    if (keys.stream().anyMatch(value -> value == null || value.isEmpty())) {
+    if (keys.stream().anyMatch(String::isEmpty)) {
       throw new BadRequestException("Api keys can not be null or empty");
     }
     return keys.stream().map(this::revokeApiKey).toList();

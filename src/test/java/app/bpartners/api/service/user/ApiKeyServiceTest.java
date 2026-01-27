@@ -5,12 +5,14 @@ import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.RevokeApiKey;
 import app.bpartners.api.endpoint.rest.model.UserApiKey;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import java.time.Instant;
 import java.util.List;
@@ -31,11 +33,21 @@ class ApiKeyServiceTest {
   ApiKeyService subject = new ApiKeyService(userServiceMock, userAnalysisApiKeyRepositoryMock);
 
   @Test
+  void throw_bad_request_on_empty_keys() {
+    var actualException =
+        assertThrows(BadRequestException.class, () -> subject.revokeApiKeys(List.of("")));
+
+    assertEquals("Api keys can not be null or empty", actualException.getMessage());
+  }
+
+  @Test
   void revoke_mixed_api_keys() {
     when(userAnalysisApiKeyRepositoryMock.getByApiKey(DASHBOARD_KEY)).thenReturn(null);
     when(userAnalysisApiKeyRepositoryMock.getByApiKey(ANALYSIS_KEY))
         .thenReturn(analysisApiKeyToRevoke());
-    doNothing().when(userAnalysisApiKeyRepositoryMock).save(any());
+    when(userAnalysisApiKeyRepositoryMock.save(any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
     when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
 

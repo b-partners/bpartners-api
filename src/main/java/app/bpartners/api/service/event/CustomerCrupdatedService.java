@@ -65,7 +65,7 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
             CUSTOMER_CRUPDATED_MAIL,
             configureCustomerContext(customerCrupdated.getUser(), updatedCustomer, type));
     try {
-      service.sendEmail(recipient, null, subject, htmlBody, attachments, "tech@birdia.fr");
+      service.sendEmail(recipient, null, subject, htmlBody, attachments);
       log.info("Email sent to {} to notify {} update", recipient, updatedCustomer.describe());
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());

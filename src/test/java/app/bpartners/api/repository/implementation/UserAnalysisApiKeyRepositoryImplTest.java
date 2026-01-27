@@ -1,10 +1,10 @@
 package app.bpartners.api.repository.implementation;
 
 import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
@@ -14,6 +14,7 @@ import app.bpartners.api.repository.jpa.UserAnalysisApiKeyJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUserAnalysisApiKey;
 import java.time.Instant;
 import java.util.List;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -47,6 +48,30 @@ class UserAnalysisApiKeyRepositoryImplTest {
     List<UserAnalysisApiKey> actual = subject.getAllByUserId(USER_ID);
 
     assertTrue(actual.contains(userAnalysisApiKey()));
+  }
+
+  @Test
+  void get_by_api_key_ok() {
+    when(jpaRepositoryMock.getByApiKey(API_KEY)).thenReturn(hUserAnalysisApiKey());
+    String randomKey = randomUUID().toString();
+
+    var existingActual = subject.getByApiKey(API_KEY);
+    var nullActual = subject.getByApiKey(randomKey);
+
+    assertEquals(userAnalysisApiKey(), existingActual);
+    Assertions.assertNull(nullActual);
+    verify(jpaRepositoryMock, times(1)).getByApiKey(API_KEY);
+    verify(jpaRepositoryMock, times(1)).getByApiKey(randomKey);
+    verify(userRepositoryMock, times(1)).getById(USER_ID);
+  }
+
+  @Test
+  void save_api_key_ok() {
+
+    subject.save(userAnalysisApiKey());
+
+    verify(jpaRepositoryMock, times(1)).save(hUserAnalysisApiKey());
+    verify(mapper, times(1)).toEntity(userAnalysisApiKey());
   }
 
   private HUserAnalysisApiKey hUserAnalysisApiKey() {

@@ -8,5 +8,5 @@ public interface UserAnalysisApiKeyRepository {
 
   UserAnalysisApiKey getByApiKey(String apiKey);
 
-  void save(UserAnalysisApiKey revokedAnalysisApiKey);
+  UserAnalysisApiKey save(UserAnalysisApiKey revokedAnalysisApiKey);
 }

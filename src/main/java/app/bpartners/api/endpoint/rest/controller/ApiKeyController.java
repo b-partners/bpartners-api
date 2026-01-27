@@ -24,6 +24,6 @@ public class ApiKeyController {
 
   @DeleteMapping("/api/keys")
   public List<UserApiKey> revokeApiKeys(@RequestBody List<RevokeApiKey> revokeApiKeys) {
-    return service.revokeApiKeys(revokeApiKeys);
+    return service.revokeApiKeys(revokeApiKeys.stream().map(RevokeApiKey::getKey).toList());
   }
 }

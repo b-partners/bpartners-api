@@ -39,11 +39,11 @@ class ApiKeyServiceTest {
     when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
     when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
 
-    List<RevokeApiKey> mixedRevokeApiKeys =
-        List.of(dashboardRevokeApiKey(), analysisRevokeApiKey());
     var expected = List.of(revokedDashboardApiKey(), revokedAnalysisApiKey());
 
-    var actual = subject.revokeApiKeys(mixedRevokeApiKeys);
+    var actual =
+        subject.revokeApiKeys(
+            List.of(dashboardRevokeApiKey().getKey(), analysisRevokeApiKey().getKey()));
 
     assertEquals(expected, actual);
   }

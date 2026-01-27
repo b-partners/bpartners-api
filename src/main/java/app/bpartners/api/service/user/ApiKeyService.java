@@ -3,10 +3,9 @@ package app.bpartners.api.service.user;
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.ANALYSIS;
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
 
-import app.bpartners.api.endpoint.rest.model.RevokeApiKey;
 import app.bpartners.api.endpoint.rest.model.UserApiKey;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,42 +17,32 @@ public class ApiKeyService {
   private final UserService userService;
   private final UserAnalysisApiKeyRepository userAnalysisApiKeyRepository;
 
-  public List<UserApiKey> revokeApiKeys(List<RevokeApiKey> revokeApiKeys) {
-    return revokeApiKeys.stream().map(this::revokeApiKey).toList();
+  public List<UserApiKey> revokeApiKeys(List<String> keys) {
+    if (keys.stream().anyMatch(value -> value == null || value.isEmpty())) {
+      throw new BadRequestException("Api keys can not be null or empty");
+    }
+    return keys.stream().map(this::revokeApiKey).toList();
   }
 
-  private UserApiKey revokeApiKey(RevokeApiKey revokeApiKey) {
-    String key = revokeApiKey.getKey();
-
-    User user;
-    UserAnalysisApiKey analysisApiKey = userAnalysisApiKeyRepository.getByApiKey(key);
-    UserApiKey revokedApiKey = new UserApiKey();
-
-    if (analysisApiKey != null) {
-      UserAnalysisApiKey revokedAnalysisApiKey = analysisApiKey.toBuilder().enabled(false).build();
-      userAnalysisApiKeyRepository.save(revokedAnalysisApiKey);
-
-      user = analysisApiKey.getUser();
-      revokedApiKey.setType(ANALYSIS);
-      revokedApiKey.setCreationDatetime(revokedAnalysisApiKey.getCreationDatetime());
-      revokedApiKey.setExpirationDatetime(revokedAnalysisApiKey.getExpirationDatetime());
-    } else {
-      user = userService.getUserByApiKey(key);
-
-      if (user != null) {
-        userService.save(user.toBuilder().apiKey(null).build());
-
-        revokedApiKey.setType(DASHBOARD);
-      }
+  private UserApiKey revokeApiKey(String key) {
+    UserAnalysisApiKey userAnalysisApiKey = userAnalysisApiKeyRepository.getByApiKey(key);
+    if (userAnalysisApiKey != null) {
+      UserAnalysisApiKey revokedAnalysisApiKey =
+          userAnalysisApiKeyRepository.save(userAnalysisApiKey.toBuilder().enabled(false).build());
+      return new UserApiKey()
+          .key(revokedAnalysisApiKey.getApiKey())
+          .enabled(revokedAnalysisApiKey.isEnabled())
+          .type(ANALYSIS)
+          .expirationDatetime(revokedAnalysisApiKey.getExpirationDatetime())
+          .creationDatetime(revokedAnalysisApiKey.getCreationDatetime());
     }
-
-    if (user == null) {
-      return null;
-    }
-
-    revokedApiKey.setKey(key);
-    revokedApiKey.setEnabled(false);
-
-    return revokedApiKey;
+    var user = userService.getUserByApiKey(key);
+    var savedUserWithRevokedApiKey = userService.save(user.toBuilder().apiKey(null).build());
+    return new UserApiKey()
+        .key(user.getApiKey())
+        .enabled(savedUserWithRevokedApiKey.getApiKey() != null)
+        .type(DASHBOARD)
+        .expirationDatetime(null)
+        .creationDatetime(null); // TODO
   }
 }

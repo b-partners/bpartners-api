@@ -37,7 +37,7 @@ public class UserAnalysisApiKeyRepositoryImpl implements UserAnalysisApiKeyRepos
   }
 
   @Override
-  public void save(UserAnalysisApiKey revokedAnalysisApiKey) {
-    jpaRepository.save(mapper.toEntity(revokedAnalysisApiKey));
+  public UserAnalysisApiKey save(UserAnalysisApiKey toSave) {
+    return mapper.toDomain(jpaRepository.save(mapper.toEntity(toSave)), toSave.getUser());
   }
 }

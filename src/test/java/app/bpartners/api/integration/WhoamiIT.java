@@ -75,7 +75,9 @@ class WhoamiIT extends MockedThirdParties {
 
     assertNotNull(actual.getUser());
     assertNotNull(actual.getUser().getId());
-    assertEquals(restJoeDoeUser().id(actual.getUser().getId()), actual.getUser().roles(List.of()));
+    assertEquals(
+        restJoeDoeUser().activeAccount(actual.getUser().getActiveAccount()),
+        actual.getUser().roles(List.of()));
   }
 
   private static User restJoeDoeUser() {

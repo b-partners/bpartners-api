@@ -37,14 +37,16 @@ public final class GeojsonFeatureCollection {
       readFranceDepartementsFeatureCollectionAsList(9);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_10_SFS =
       readFranceDepartementsFeatureCollectionAsList(10);
+  private static final List<SimpleFeature> QUEBEC_1_SFS =
+      readFranceDepartementsFeatureCollectionAsList(11);
 
   @SneakyThrows
   private static List<SimpleFeature> readFranceDepartementsFeatureCollectionAsList(
-      @Range(from = 0, to = 10) int number) {
+      @Range(from = 0, to = 11) int number) {
     return getSimpleFeatures("departements_%s.json".formatted(number));
   }
 
-  public static List<SimpleFeature> getFranceDepartementsSimpleFeaturesMatchingPredicate(
+  public static List<SimpleFeature> getFranceAndQuebecDepartementsSimpleFeaturesMatchingPredicate(
       Predicate<SimpleFeature> predicate) {
     var result = new ArrayList<SimpleFeature>();
     var allLists =
@@ -58,7 +60,8 @@ public final class GeojsonFeatureCollection {
             FRANCE_DEPARTEMENTS_7_SFS,
             FRANCE_DEPARTEMENTS_8_SFS,
             FRANCE_DEPARTEMENTS_9_SFS,
-            FRANCE_DEPARTEMENTS_10_SFS);
+            FRANCE_DEPARTEMENTS_10_SFS,
+            QUEBEC_1_SFS);
     var matcherFunction = matchPredicate(predicate);
     allLists.forEach(list -> result.addAll(matcherFunction.apply(list)));
     return result;

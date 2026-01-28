@@ -2,12 +2,14 @@ package app.bpartners.api.integration.conf;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.findAvailableTcpPort;
 
+import java.time.Duration;
 import java.util.List;
 import lombok.Getter;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 public class DbContextInitializer
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -25,7 +27,8 @@ public class DbContextInitializer
             .withDatabaseName("it-db")
             .withUsername("sa")
             .withPassword("sa")
-            .withExposedPorts(containerPort);
+            .withExposedPorts(containerPort)
+            .waitingFor(Wait.forListeningPort().withStartupTimeout(Duration.ofSeconds(60)));
     postgresContainer.setPortBindings(List.of(String.format("%d:%d", containerPort, localPort)));
 
     postgresContainer.start();

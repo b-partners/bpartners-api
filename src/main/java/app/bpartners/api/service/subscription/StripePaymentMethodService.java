@@ -7,7 +7,6 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,8 +14,8 @@ import org.springframework.stereotype.Service;
 public class StripePaymentMethodService {
   private final StripeCustomerService stripeCustomerService;
 
-  @SneakyThrows
-  public List<PaymentMethod> getPaymentMethod(String stripeCustomerIdentifier) {
+  public List<PaymentMethod> getPaymentMethod(String stripeCustomerIdentifier)
+      throws StripeException {
     List<PaymentMethod> paymentMethods = new ArrayList<>();
     for (PaymentMethodListParams.Type type :
         List.of(

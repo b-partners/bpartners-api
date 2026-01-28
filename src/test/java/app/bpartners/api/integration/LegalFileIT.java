@@ -28,6 +28,7 @@ import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import com.stripe.model.PaymentMethod;
 import java.util.List;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -54,6 +55,7 @@ class LegalFileIT extends FacadeIT {
 
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";
 
+  @SneakyThrows
   @BeforeEach
   public void setUp() {
     setUpCognito(cognitoComponentMock);

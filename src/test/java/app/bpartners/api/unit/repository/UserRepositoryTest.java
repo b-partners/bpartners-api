@@ -24,6 +24,7 @@ import com.stripe.model.PaymentMethod;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -74,6 +75,7 @@ class UserRepositoryTest {
     assertTrue(actual.contains(expectedUser()));
   }
 
+  @SneakyThrows
   @Test
   void read_user_by_token_with_computed_payment_method_attribute() {
     var token = randomUUID().toString();
@@ -100,6 +102,7 @@ class UserRepositoryTest {
         actual);
   }
 
+  @SneakyThrows
   @Test
   void read_user_by_token_without_user_subscription_id() {
     var token = randomUUID().toString();

@@ -37,6 +37,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -93,6 +94,7 @@ class UserIT extends MockedThirdParties {
     return TestUtils.anApiClient(token, null, localPort);
   }
 
+  @SneakyThrows
   @BeforeEach
   public void setUp() {
     setUpEventBridge(eventBridgeClientMock);

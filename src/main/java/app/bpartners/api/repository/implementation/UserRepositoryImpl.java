@@ -18,6 +18,7 @@ import app.bpartners.api.repository.jpa.model.HAccount;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
+import com.stripe.exception.StripeException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
 import java.util.*;
@@ -249,13 +250,23 @@ public class UserRepositoryImpl implements UserRepository {
       return null;
     }
     if (fetchedUser.getUserSubscriptionId() != null) {
-      var stripeCustomerIdentifier = fetchedUser.getUserSubscriptionId();
-      var paymentMethodList = stripePaymentMethodService.getPaymentMethod(stripeCustomerIdentifier);
-      return fetchedUser.toBuilder()
-          .paymentMethodExists(
-              stripePaymentMethodService.customerHasValidPaymentMethods(
-                  stripeCustomerIdentifier, paymentMethodList))
-          .build();
+      try {
+        var stripeCustomerIdentifier = fetchedUser.getUserSubscriptionId();
+        var paymentMethodList =
+            stripePaymentMethodService.getPaymentMethod(stripeCustomerIdentifier);
+        return fetchedUser.toBuilder()
+            .paymentMethodExists(
+                stripePaymentMethodService.customerHasValidPaymentMethods(
+                    stripeCustomerIdentifier, paymentMethodList))
+            .build();
+      } catch (StripeException e) {
+        log.error(
+            "Unable to retrieve user(id={}, email={}) payment method due to stripe exception {}",
+            fetchedUser.getId(),
+            fetchedUser.getEmail(),
+            e.getMessage());
+        return fetchedUser;
+      }
     }
     return fetchedUser;
   }

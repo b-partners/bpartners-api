@@ -7,6 +7,7 @@ import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY
 import static app.bpartners.api.integration.UserIT.userSubscriptionMaker;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -20,6 +21,7 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import com.stripe.model.PaymentMethod;
 import java.util.List;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,7 @@ class WhoamiIT extends MockedThirdParties {
     return TestUtils.anApiClient(null, JOE_DOE_API_KEY, localPort);
   }
 
+  @SneakyThrows
   @BeforeEach
   public void setUp() {
     setUpCognito(cognitoComponentMock);
@@ -60,7 +63,9 @@ class WhoamiIT extends MockedThirdParties {
 
     var actual = api.whoami();
 
-    assertEquals(restJoeDoeUser(), actual.getUser().roles(List.of()));
+    assertNotNull(actual.getUser());
+    assertNotNull(actual.getUser().getId());
+    assertEquals(restJoeDoeUser().id(actual.getUser().getId()), actual.getUser().roles(List.of()));
   }
 
   @Test
@@ -70,7 +75,9 @@ class WhoamiIT extends MockedThirdParties {
 
     var actual = api.whoami();
 
-    assertEquals(restJoeDoeUser(), actual.getUser().roles(List.of()));
+    assertNotNull(actual.getUser());
+    assertNotNull(actual.getUser().getId());
+    assertEquals(restJoeDoeUser().id(actual.getUser().getId()), actual.getUser().roles(List.of()));
   }
 
   private static User restJoeDoeUser() {

@@ -21,7 +21,6 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import com.stripe.model.PaymentMethod;
 import java.util.List;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;

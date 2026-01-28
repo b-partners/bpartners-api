@@ -24,7 +24,6 @@ import com.stripe.model.PaymentMethod;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
-
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

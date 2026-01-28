@@ -28,7 +28,6 @@ import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import com.stripe.model.PaymentMethod;
 import java.util.List;
-
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

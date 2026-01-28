@@ -24,12 +24,15 @@ public class RefreshInvoiceSummaryTriggeredService
 
   private void sendRefreshInvoiceSummaryByUserEvents() {
     userService.findAll().stream()
-        .filter(user -> user.getStatus() == EnableStatus.ENABLED)
-        .forEach(user -> sendEvent(user.getId()));
-  }
-
-  private void sendEvent(String userId) {
-    eventProducer.accept(
-        List.of(RefreshUserInvoiceSummaryTriggered.builder().userId(userId).build()));
+        .filter(
+            user ->
+                user.getStatus() == EnableStatus.ENABLED && user.getUserSubscriptionId() != null)
+        .forEach(
+            user ->
+                eventProducer.accept(
+                    List.of(
+                        RefreshUserInvoiceSummaryTriggered.builder()
+                            .userId(user.getId())
+                            .build())));
   }
 }

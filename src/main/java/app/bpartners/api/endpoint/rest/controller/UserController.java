@@ -90,8 +90,12 @@ public class UserController {
 
   @DeleteMapping("/users/{uId}/keys")
   public List<UserApiKey> revokeUserApiKeys(
-      @PathVariable String uId, @RequestBody List<RevokeApiKey> apiKeysToRevoke) {
-    return apiKeyService.revokeApiKeys(apiKeysToRevoke.stream().map(RevokeApiKey::getKey).toList());
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestBody List<RevokeApiKey> apiKeysToRevoke) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    return apiKeyService.revokeApiKeys(
+        apiKeysToRevoke.stream().map(RevokeApiKey::getKey).toList(), authenticatedSelfUser);
   }
 
   @PostMapping("/users/{uId}/subscriptionCancel")

@@ -1,8 +1,7 @@
 package app.bpartners.api.repository.implementation;
 
 import static java.util.UUID.randomUUID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -14,7 +13,6 @@ import app.bpartners.api.repository.jpa.UserAnalysisApiKeyJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUserAnalysisApiKey;
 import java.time.Instant;
 import java.util.List;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -59,7 +57,7 @@ class UserAnalysisApiKeyRepositoryImplTest {
     var nullActual = subject.getByApiKey(randomKey);
 
     assertEquals(userAnalysisApiKey(), existingActual);
-    Assertions.assertNull(nullActual);
+    assertNull(nullActual);
     verify(jpaRepositoryMock, times(1)).getByApiKey(API_KEY);
     verify(jpaRepositoryMock, times(1)).getByApiKey(randomKey);
     verify(userRepositoryMock, times(1)).getById(USER_ID);

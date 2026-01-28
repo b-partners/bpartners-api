@@ -23,7 +23,10 @@ public class ApiKeyController {
   }
 
   @DeleteMapping("/api/keys")
-  public List<UserApiKey> revokeApiKeys(@RequestBody List<RevokeApiKey> revokeApiKeys) {
-    return service.revokeApiKeys(revokeApiKeys.stream().map(RevokeApiKey::getKey).toList());
+  public List<UserApiKey> revokeApiKeys(
+      HttpServletRequest request, @RequestBody List<RevokeApiKey> revokeApiKeys) {
+    var authUser = authenticator.retrieveUserWithoutLegalFileCheck(request);
+    return service.revokeApiKeys(
+        revokeApiKeys.stream().map(RevokeApiKey::getKey).toList(), authUser);
   }
 }

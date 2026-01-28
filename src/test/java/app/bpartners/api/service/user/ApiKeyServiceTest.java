@@ -2,6 +2,7 @@ package app.bpartners.api.service.user;
 
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.ANALYSIS;
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
+import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +36,8 @@ class ApiKeyServiceTest {
   @Test
   void throw_bad_request_on_empty_keys() {
     var actualException =
-        assertThrows(BadRequestException.class, () -> subject.revokeApiKeys(List.of("")));
+        assertThrows(
+            BadRequestException.class, () -> subject.revokeApiKeys(List.of(""), adminUser()));
 
     assertEquals("Api keys can not be null or empty", actualException.getMessage());
   }
@@ -55,9 +57,14 @@ class ApiKeyServiceTest {
 
     var actual =
         subject.revokeApiKeys(
-            List.of(dashboardRevokeApiKey().getKey(), analysisRevokeApiKey().getKey()));
+            List.of(dashboardRevokeApiKey().getKey(), analysisRevokeApiKey().getKey()),
+            adminUser());
 
     assertEquals(expected, actual);
+  }
+
+  private User adminUser() {
+    return User.builder().roles(List.of(ADMIN_ROLE)).build();
   }
 
   private UserApiKey revokedDashboardApiKey() {

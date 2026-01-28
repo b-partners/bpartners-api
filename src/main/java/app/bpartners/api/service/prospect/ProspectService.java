@@ -362,7 +362,7 @@ public class ProspectService {
               var existingProspects =
                   prospectJpaRepository
                       .findByIdAccountHolderAndOldEmailOrIdAccountHolderAndNewEmail(
-                          prospectEmail, prospectEmail, accountHolderOwner);
+                          accountHolderOwner, prospectEmail, prospectEmail, accountHolderOwner);
               if (existingProspects.isEmpty()) {
                 return prospectToSave.toBuilder().isNew(true).build();
               }

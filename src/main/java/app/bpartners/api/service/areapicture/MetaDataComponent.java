@@ -1,5 +1,6 @@
 package app.bpartners.api.service.areapicture;
 
+import java.time.LocalDate;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
 public class MetaDataComponent {
   private IntXY xyOffset = new IntXY(0, 0);
   private int airbusYear = 2025;
+  private LocalDate lastUpdatedAt;
 
   public void setOffsets(int xOffset, int yOffset) {
     this.xyOffset = new IntXY(xOffset, yOffset);

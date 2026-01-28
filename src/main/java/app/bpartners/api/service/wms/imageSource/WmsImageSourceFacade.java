@@ -102,8 +102,7 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
       if (AIRBUS.equals(areaPicture.getCurrentLayer().getSource())) {
-        throw new ApiException(
-            SERVER_EXCEPTION, "PNEO data is not available yet on this area");
+        throw new ApiException(SERVER_EXCEPTION, "PNEO data is not available yet on this area");
       }
       return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
     }

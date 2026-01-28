@@ -46,6 +46,7 @@ import app.bpartners.api.service.wms.imageSource.WmsImageSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,6 +107,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("charente")
+        .lastUpdatedAt(LocalDate.of(2023, 1, 1))
         .maximumZoom(new Zoom().level(HOUSES_0).number(20))
         .source(GEOSERVER);
   }
@@ -115,6 +117,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("1cccfc17-cbef-4320-bdfa-0d1920b91f11")
         .name("ORTHOIMAGERY.ORTHOPHOTOS")
         .year(2023)
+        .lastUpdatedAt(LocalDate.of(2023, 1, 1))
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -127,6 +130,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("532ea7da-918e-4bb7-bc34-e167a3829e19")
         .name("AIRBUS.PNEO")
         .year(2025)
+        .lastUpdatedAt(LocalDate.of(2025, 1, 1))
         .precisionLevelInCm(30)
         .maximumZoomLevel(BUILDING)
         .departementName("ALL")
@@ -139,6 +143,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("726f5b3b-d23b-40c3-b38e-68a43d7ae155")
         .name("cite:PCRS.LAMB93")
         .year(2024)
+        .lastUpdatedAt(LocalDate.of(2024, 1, 1))
         .precisionLevelInCm(5)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -151,6 +156,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("2f343dba-dd5f-4895-9006-49472f576c02")
         .name("cite:PHOTO_AERIENNE")
         .year(2024)
+        .lastUpdatedAt(LocalDate.of(2024, 1, 1))
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -163,6 +169,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
         .name("FLUX_IGN_2023_20CM")
         .year(2023)
+        .lastUpdatedAt(LocalDate.of(2023, 1, 1))
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -187,6 +194,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("1cccfc17-cbef-4320-bdfa-0d1920b91f11")
         .name("ORTHOIMAGERY.ORTHOPHOTOS")
         .year(2023)
+        .lastUpdatedAt(LocalDate.of(2023, 1, 1))
         .departementName("ALL")
         .source(GEOSERVER_IGN)
         .maximumZoomLevel(HOUSES_0)
@@ -387,6 +395,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     when(metaDataComponentMock.getXOffset()).thenReturn(1234);
     when(metaDataComponentMock.getYOffset()).thenReturn(123);
     when(metaDataComponentMock.getAirbusYear()).thenReturn(2025);
+    when(metaDataComponentMock.getLastUpdatedAt()).thenReturn(LocalDate.of(2025, 1, 1));
     doNothing().when(areaPictureZoomValidatorMock).accept(any());
   }
 

@@ -144,7 +144,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  findApiKey:
+  apiKeyOperations:
     get:
       tags:
         - Security
@@ -166,6 +166,35 @@ operations:
           $ref: './api.yml#/components/responses/403'
         404:
           $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    delete:
+      tags:
+        - Security
+      summary: Revoke api keys
+      security: []
+      operationId: revokeApiKeys
+      requestBody:
+        description: As an api key is unique and only linked to one user, we can identify the owner from the key.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/RevokeApiKey'
+      responses:
+        200:
+          description: List of revoked user api key
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "./userAccounts-api.yml#/components/schemas/UserApiKey"
+        400:
+          $ref: './api.yml#/components/responses/400'
         429:
           $ref: './api.yml#/components/responses/429'
         500:
@@ -213,6 +242,11 @@ components:
       properties:
         user:
           $ref: './userAccounts-api.yml#/components/schemas/User'
+    RevokeApiKey:
+      type: object
+      properties:
+        key:
+          type: string
     apiKey:
       type: object
       properties:

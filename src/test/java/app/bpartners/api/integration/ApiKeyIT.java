@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.ApiKey;
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import java.util.List;
@@ -39,6 +39,29 @@ class ApiKeyIT extends MockedThirdParties {
     var actual = api.findApiKey();
 
     assertEquals(List.of(expected()), actual);
+  }
+
+  @Test
+  void non_admin_user_cannot_revoke_other_s_api_key() {
+    ApiClient client = TestUtils.anApiClient(JANE_DOE_TOKEN, null, localPort);
+    SecurityApi api = new SecurityApi(client);
+
+    RevokeApiKey revokeApiKey = new RevokeApiKey().key(JOE_DOE_API_KEY);
+
+    assertThrowsForbiddenException(() -> api.revokeApiKeys(List.of(revokeApiKey)));
+  }
+
+  @Test
+  void user_can_revoke_its_own_api_key() throws ApiException {
+    ApiClient client = TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
+    SecurityApi api = new SecurityApi(client);
+
+    RevokeApiKey revokeApiKey = new RevokeApiKey().key(JOE_DOE_API_KEY);
+
+    var actual = api.revokeApiKeys(List.of(revokeApiKey));
+
+    assertEquals(false, actual.getFirst().getEnabled());
+    assertEquals(revokeApiKey.getKey(), actual.getFirst().getKey());
   }
 
   ApiKey expected() {

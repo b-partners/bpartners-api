@@ -156,6 +156,8 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(GET, "/api/keys")
                     .authenticated()
+                    .requestMatchers(DELETE, "/api/keys")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(GET, "/accountHolders")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(GET, "/users")
@@ -174,6 +176,9 @@ public class SecurityConf {
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
                         new SelfUserMatcher(GET, "/users/*/keys", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(DELETE, "/users/*/keys", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(

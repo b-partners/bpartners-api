@@ -1,5 +1,6 @@
 package app.bpartners.api.service.wms.imageSource;
 
+import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.AIRBUS;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
@@ -100,6 +101,9 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     } catch (ApiException | BlankImageException e) {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
+      if (AIRBUS.equals(areaPicture.getCurrentLayer().getSource())) {
+        throw new ApiException(SERVER_EXCEPTION, "PNEO data is not available yet on this area");
+      }
       return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
     }
   }

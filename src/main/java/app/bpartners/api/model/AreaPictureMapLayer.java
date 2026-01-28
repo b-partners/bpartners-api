@@ -3,6 +3,7 @@ package app.bpartners.api.model;
 import app.bpartners.api.endpoint.rest.model.AreaPictureImageSource;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.service.wms.ArcgisZoom;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class AreaPictureMapLayer implements Comparable<AreaPictureMapLayer> {
   private String departementName;
   private ZoomLevel maximumZoomLevel;
   private int precisionLevelInCm;
+  private LocalDate lastUpdatedAt;
 
   @Override
   public int compareTo(AreaPictureMapLayer o2) {

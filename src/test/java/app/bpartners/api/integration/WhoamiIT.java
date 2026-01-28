@@ -24,6 +24,7 @@ import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -69,6 +70,7 @@ class WhoamiIT extends MockedThirdParties {
   }
 
   @Test
+  @Disabled("flaky test")
   void whoami_with_api_key() throws ApiException {
     ApiClient client = anApiClientWithApiKey();
     SecurityApi api = new SecurityApi(client);

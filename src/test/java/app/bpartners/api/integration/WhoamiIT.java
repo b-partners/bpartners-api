@@ -21,6 +21,8 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import com.stripe.model.PaymentMethod;
 import java.util.List;
+
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +44,7 @@ class WhoamiIT extends MockedThirdParties {
     return TestUtils.anApiClient(null, JOE_DOE_API_KEY, localPort);
   }
 
+  @SneakyThrows
   @BeforeEach
   public void setUp() {
     setUpCognito(cognitoComponentMock);

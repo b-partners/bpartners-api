@@ -48,12 +48,15 @@ class UserRestMapperTest {
   @Test
   void user_to_rest_check_subscription_start_end_and_status() {
     var domain = User.builder().status(ENABLED).roles(List.of()).paymentMethodExists(true).build();
-    when(subscriptionServiceMock.getSubscriptionByUser(any()))
-        .thenReturn(UserSubscription.builder().build());
+    var userSubscriptionMock = mock(UserSubscription.class);
     var subscriptionEligible =
         UserSubscriptionEligible.builder().eligibleFrom(LocalDate.now()).build();
+    when(userSubscriptionMock.getSubscriptions()).thenReturn(List.of());
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(UserSubscription.builder().build());
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(Optional.ofNullable(subscriptionEligible));
+    when(subscriptionServiceMock.getSubscriptionByUser(domain)).thenReturn(userSubscriptionMock);
 
     var actual = subject.toRest(domain);
 

@@ -75,14 +75,14 @@ public class UserRestMapper {
     if (userHasUnpaidStripeInvoices) {
       return UNPAID;
     }
+    if (subscription.hasValidSubscription()) {
+      return ACTIVE;
+    }
     if (userSubscriptionEligible != null && userSubscriptionEligible.hasFreeTrialPeriodActive()) {
       return FREE_TRIAL;
     }
     if (subscription.hasSubscriptionCancelled()) {
       return CANCELLED;
-    }
-    if (subscription.hasValidSubscription()) {
-      return ACTIVE;
     }
     return EMPTY;
   }

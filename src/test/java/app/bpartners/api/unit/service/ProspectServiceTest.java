@@ -279,7 +279,7 @@ class ProspectServiceTest {
     when(userWhiteListedJpaRepositoryMock.findByIdAccountHolder(any()))
         .thenReturn(Optional.empty());
     when(prospectJpaRepositoryMock.findByIdAccountHolderAndOldEmailOrIdAccountHolderAndNewEmail(
-            any(), eq(prospectOneEmail), eq(prospectOneEmail), any()))
+            any(), eq(prospectOneEmail), any(), eq(prospectOneEmail)))
         .thenReturn(List.of(persistedProspect));
 
     var actualException = assertThrows(BadRequestException.class, () -> subject.create(toSave));
@@ -332,7 +332,7 @@ class ProspectServiceTest {
     when(userWhiteListedJpaRepositoryMock.findByIdAccountHolder(any()))
         .thenReturn(Optional.of(mock()));
     when(prospectJpaRepositoryMock.findByIdAccountHolderAndOldEmailOrIdAccountHolderAndNewEmail(
-            any(), eq(prospectOneEmail), eq(prospectOneEmail), any()))
+            any(), eq(prospectOneEmail), any(), eq(prospectOneEmail)))
         .thenReturn(List.of(persistedProspect));
     when(repositoryMock.saveAll(anyList()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));

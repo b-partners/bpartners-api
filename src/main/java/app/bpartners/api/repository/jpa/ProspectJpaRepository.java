@@ -11,7 +11,7 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
 
   // TODO must be optional (as each prospect must only have unique mail)
   List<HProspect> findByIdAccountHolderAndOldEmailOrIdAccountHolderAndNewEmail(
-      String idAccountHolder1, String oldEmail, String newEmail, String idAccountHolder2);
+      String idAccountHolder1, String oldEmail, String idAccountHolder2, String newEmail);
 
   List<HProspect> findAllByIdAccountHolder(String idAccountHolder, Pageable pageable);
 

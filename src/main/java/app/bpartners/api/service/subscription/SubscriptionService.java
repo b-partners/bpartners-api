@@ -70,6 +70,7 @@ public class SubscriptionService {
   private final DetectionTrackingJpaRepository detectionTrackingJpaRepository;
   private final StripeInvoiceService stripeInvoiceService;
   private final StripeCustomerService stripeCustomerService;
+  private final StripeSubscriptionService stripeSubscriptionService;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -622,14 +623,7 @@ public class SubscriptionService {
     List<com.stripe.model.Subscription> stripeSubscriptions;
     try {
       stripeSubscriptions =
-          stripeClient
-              .subscriptions()
-              .list(
-                  SubscriptionListParams.builder()
-                      .setCustomer(stripeCustomerId)
-                      .setStatus(SubscriptionListParams.Status.ALL)
-                      .build())
-              .getData();
+          stripeSubscriptionService.getStripeSubscriptionsFromStripeCustomerId(stripeCustomerId);
     } catch (InvalidRequestException e) {
       var exceptionMessage = e.getMessage();
       if (exceptionMessage.contains("No such customer")) {

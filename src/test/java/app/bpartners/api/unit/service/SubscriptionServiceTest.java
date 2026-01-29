@@ -20,10 +20,7 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.repository.jpa.model.detection.HDetectionTracking;
-import app.bpartners.api.service.subscription.StripeCustomerService;
-import app.bpartners.api.service.subscription.StripeFactory;
-import app.bpartners.api.service.subscription.StripeInvoiceService;
-import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.subscription.*;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
@@ -64,6 +61,7 @@ class SubscriptionServiceTest {
       mock(DetectionTrackingJpaRepository.class);
   StripeInvoiceService stripeInvoiceServiceMock = mock();
   StripeCustomerService stripeCustomerServiceMock = mock(StripeCustomerService.class);
+  StripeSubscriptionService stripeSubscriptionServiceMock = mock();
   SubscriptionService subject =
       new SubscriptionService(
           stripeConfMock,
@@ -77,7 +75,8 @@ class SubscriptionServiceTest {
           sessionRepositoryMock,
           detectionTrackingJpaRepositoryMock,
           stripeInvoiceServiceMock,
-          stripeCustomerServiceMock);
+          stripeCustomerServiceMock,
+          stripeSubscriptionServiceMock);
 
   @Test
   void get_subscription_consumption_logs_ok() {
@@ -264,18 +263,14 @@ class SubscriptionServiceTest {
     var stripeCustomerWithNonActiveSubscriptionId = "stripeCustomerWithNonActiveSubscriptionId";
     var inactiveStripeSubscription = new com.stripe.model.Subscription();
     inactiveStripeSubscription.setStatus("unknown");
-    var stripeSubscriptionServiceMock1 = mock(com.stripe.service.SubscriptionService.class);
     StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
     var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
     when(scheduleStripeCollectionMock.getData()).thenReturn(List.of());
     when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
         .thenReturn(scheduleStripeCollectionMock);
     when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
-    when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock1);
-    var stripeCollectionMock = mock(StripeCollection.class);
-    when(stripeSubscriptionServiceMock1.list(any(SubscriptionListParams.class)))
-        .thenReturn(stripeCollectionMock);
-    when(stripeCollectionMock.getData()).thenReturn(List.of(inactiveStripeSubscription));
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId(any()))
+        .thenReturn(List.of(inactiveStripeSubscription));
 
     var actualInactiveSubscriptionException =
         assertThrows(

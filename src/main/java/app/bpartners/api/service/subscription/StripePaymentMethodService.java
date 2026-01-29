@@ -78,30 +78,14 @@ public class StripePaymentMethodService {
     return PaymentMethod.list(params).getData();
   }
 
-  public boolean customerHasValidPaymentMethods(
-      String stripeCustomerIdentifier, List<PaymentMethod> paymentMethodList) {
-    if (paymentMethodList == null || paymentMethodList.isEmpty()) {
-      return false;
-    }
-    var stripeCustomer =
-        stripeCustomerService.getCustomerByStripeCustomerIdentifier(stripeCustomerIdentifier);
-    var defaultPaymentMethodId = stripeCustomer.getInvoiceSettings().getDefaultPaymentMethod();
-    if (defaultPaymentMethodId == null) {
-      return false;
-    }
-    return paymentMethodList.stream()
-        .filter(pm -> defaultPaymentMethodId.equals(pm.getId()))
-        .anyMatch(this::isPaymentMethodValid);
-  }
-
-  private boolean isPaymentMethodValid(PaymentMethod pm) {
+  public static boolean isPaymentMethodValid(PaymentMethod pm) {
     if ("card".equalsIgnoreCase(pm.getType())) {
       return pm.getCard() != null && isNotExpired(pm.getCard());
     }
     return true;
   }
 
-  private boolean isNotExpired(PaymentMethod.Card card) {
+  private static boolean isNotExpired(PaymentMethod.Card card) {
     YearMonth expiration =
         YearMonth.of(card.getExpYear().intValue(), card.getExpMonth().intValue());
     return !expiration.isBefore(YearMonth.now());

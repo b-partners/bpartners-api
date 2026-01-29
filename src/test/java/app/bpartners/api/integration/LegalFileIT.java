@@ -25,6 +25,7 @@ import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
 import app.bpartners.api.service.subscription.StripeCustomerService;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
+import app.bpartners.api.service.subscription.StripeSubscriptionService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import com.stripe.model.PaymentMethod;
 import java.util.List;
@@ -52,6 +53,7 @@ class LegalFileIT extends FacadeIT {
   @MockBean SubscriptionService subscriptionService;
   @MockBean StripePaymentMethodService stripePaymentMethodService;
   @MockBean StripeCustomerService stripeCustomerService;
+  @MockBean protected StripeSubscriptionService stripeSubscriptionServiceMock;
 
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";
 

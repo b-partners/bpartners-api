@@ -2,6 +2,7 @@ package app.bpartners.api.service.event;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static app.bpartners.api.model.mapper.InvoiceMapper.*;
@@ -94,13 +95,39 @@ public class MonthlySubscriptionInvoiceRequestedService
           var latestSubscription = userSubscription.getLatestSubscription();
           if (latestSubscription != null && !TRIALING.equals(latestSubscription.getStatus())) {
             int referenceNb = userIndex.getAndIncrement();
-            Invoice monthlySubscriptionInvoice = null;
+            Invoice monthlySubscriptionInvoice;
             try {
               monthlySubscriptionInvoice =
                   computeMonthlySusbcriptionInvoice(
                       userToCredit, userToDebit, referenceNb, userSubscription);
             } catch (StripeException e) {
               throw new RuntimeException(e);
+            }
+            var existingComputedInvoices =
+                invoiceService.getInvoices(
+                    userToDebit.getId(),
+                    new PageFromOne(MIN_PAGE),
+                    new BoundedPageSize(MAX_SIZE),
+                    List.of(CONFIRMED, PAID),
+                    ArchiveStatus.ENABLED,
+                    monthlySubscriptionInvoice.getTitle(),
+                    List.of());
+            if (existingComputedInvoices.stream()
+                .anyMatch(
+                    existingInvoice ->
+                        existingInvoice
+                                .getTotalPriceWithVat()
+                                .equals(monthlySubscriptionInvoice.getTotalPriceWithVat())
+                            && temporalUtils
+                                .getLastDayOfInstant(existingInvoice.getCreatedAt())
+                                .equals(
+                                    temporalUtils.getLastDayOfInstant(
+                                        monthlySubscriptionInvoice.getCreatedAt())))) {
+              log.info(
+                  "Subscription Invoice already computed for user(id={}, email={})",
+                  userToDebit.getId(),
+                  userToDebit.getEmail());
+              return;
             }
             var createdInvoice =
                 invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);

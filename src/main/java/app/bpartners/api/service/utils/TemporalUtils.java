@@ -81,6 +81,13 @@ public class TemporalUtils {
     };
   }
 
+  public LocalDate getLastDayOfInstant(Instant t) {
+    ZoneId zone = ZoneId.of("Europe/Paris");
+    return t.atZone(zone)
+        .toLocalDate()
+        .withDayOfMonth(t.atZone(zone).toLocalDate().lengthOfMonth());
+  }
+
   public Instant endOfMonth() {
     return LocalDate.now()
         .withDayOfMonth(LocalDate.now().lengthOfMonth())

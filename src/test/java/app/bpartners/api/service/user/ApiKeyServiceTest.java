@@ -13,6 +13,7 @@ import app.bpartners.api.endpoint.rest.model.UserApiKey;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import java.time.Instant;
@@ -71,6 +72,41 @@ class ApiKeyServiceTest {
             });
 
     assertEquals("Revoking analysis api key is not supported yet", actual.getMessage());
+  }
+
+  @Test
+  void revoke_inexistant_api_key_ko() {
+    String INVALID_API_KEY = randomUUID().toString();
+
+    when(userAnalysisApiKeyRepositoryMock.getByApiKey(INVALID_API_KEY)).thenReturn(null);
+    when(userServiceMock.getUserByApiKey(INVALID_API_KEY)).thenReturn(null);
+
+    var actual =
+        assertThrows(
+            BadRequestException.class,
+            () -> subject.revokeApiKeys(List.of(INVALID_API_KEY), adminUser()));
+
+    assertEquals("No users found with api key " + INVALID_API_KEY, actual.getMessage());
+  }
+
+  @Test
+  void revoke_others_key_as_non_admin_ko() {
+    User keyOwnerUser = mock();
+    User nonAdminUser = mock();
+
+    when(keyOwnerUser.getId()).thenReturn(randomUUID().toString());
+    when(nonAdminUser.getId()).thenReturn(randomUUID().toString());
+    when(nonAdminUser.getRoles()).thenReturn(List.of());
+
+    when(userAnalysisApiKeyRepositoryMock.getByApiKey(DASHBOARD_KEY)).thenReturn(null);
+    when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
+
+    var actual =
+        assertThrows(
+            ForbiddenException.class,
+            () -> subject.revokeApiKeys(List.of(DASHBOARD_KEY), nonAdminUser));
+
+    assertEquals("Users can only revoke it's own api key", actual.getMessage());
   }
 
   private User adminUser() {

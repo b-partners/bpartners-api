@@ -376,7 +376,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth());
     var endOfCurrentMonthFormatted =
         customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
-    var sendingDate = LocalDate.now();
+    var sendingDate = temporalUtils.endOfActualMonth();
     return Invoice.builder()
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)

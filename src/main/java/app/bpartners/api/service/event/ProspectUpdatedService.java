@@ -66,20 +66,6 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
     Instant updatedAt = prospectUpdated.getUpdatedAt();
 
     triggerInternalMail(updatedAt, prospect, accountHolder, updateType);
-
-    if (prospectUpdated.isNew()) {
-      String recipient = accountHolder.getEmail();
-      String cc = "contact@birdia.fr";
-      String subject =
-          "[BIRDIA] Notification - Un nouveau prospect \""
-              + prospect.getName()
-              + " \" a besoin de vos services\n";
-      List<Attachment> attachments = List.of();
-      String body = customHtmlBody(prospect);
-
-      log.info("Prospect notified for account holder {}", accountHolder.getEmail());
-      sesService.sendEmail(recipient, cc, subject, body, attachments);
-    }
   }
 
   private void triggerInternalMail(
@@ -145,13 +131,6 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
           case INVOICE_SENT -> "Facture envoyée";
         };
     return translatedFeedback.toUpperCase();
-  }
-
-  private String customHtmlBody(Prospect prospect) {
-    Context context = new Context();
-    context.setVariable("prospect", prospect);
-    return templateResolverEngine.parseTemplateResolver(
-        "prospect_account_holder_notification", context);
   }
 
   private String htmlBody(

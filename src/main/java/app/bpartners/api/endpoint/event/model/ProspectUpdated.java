@@ -19,7 +19,6 @@ import lombok.ToString;
 @ToString
 public class ProspectUpdated extends PojaEvent {
   private Prospect prospect;
-  private boolean isNew = false;
   private Instant updatedAt;
 
   @Override

@@ -315,34 +315,34 @@ public class ProspectService {
   @Transactional
   public List<Prospect> create(List<Prospect> toSave) {
     StringBuilder exceptionBuilder = new StringBuilder();
-    var prospects = handleProspectToSave(toSave, exceptionBuilder);
+    List<Prospect> prospectsFiltered = handleProspectToSave(toSave, exceptionBuilder);
     if (!exceptionBuilder.isEmpty()) {
       throw new BadRequestException(exceptionBuilder.toString());
     }
-    var createdProspect = repository.saveAll(toSave);
-
+    var createdProspect = repository.saveAll(prospectsFiltered);
     createdProspect.forEach(
-        savedProspect -> {
-          var optionalProspect =
-              prospects.stream()
-                  .filter(
-                      prospect -> savedProspect.getEmail().equalsIgnoreCase(prospect.getEmail()))
-                  .findFirst();
-          eventProducer.accept(
-              List.of(
-                  ProspectUpdated.builder()
-                      .prospect(savedProspect)
-                      .isNew(false)
-                      .updatedAt(Instant.now())
-                      .build()));
-        });
-
+        savedProspect ->
+            eventProducer.accept(
+                List.of(
+                    ProspectUpdated.builder()
+                        .prospect(savedProspect)
+                        .updatedAt(Instant.now())
+                        .build())));
     return createdProspect;
   }
 
   @Transactional
   public List<Prospect> saveAll(List<Prospect> toSave) {
-    return repository.saveAll(toSave);
+    List<Prospect> savedProspects = repository.saveAll(toSave);
+    savedProspects.forEach(
+        prospect ->
+            eventProducer.accept(
+                List.of(
+                    ProspectUpdated.builder()
+                        .prospect(prospect)
+                        .updatedAt(Instant.now())
+                        .build())));
+    return savedProspects;
   }
 
   private List<Prospect> handleProspectToSave(
@@ -393,11 +393,7 @@ public class ProspectService {
 
     eventProducer.accept(
         List.of(
-            ProspectUpdated.builder()
-                .prospect(savedProspect)
-                .isNew(false)
-                .updatedAt(Instant.now())
-                .build()));
+            ProspectUpdated.builder().prospect(savedProspect).updatedAt(Instant.now()).build()));
 
     return savedProspect;
   }

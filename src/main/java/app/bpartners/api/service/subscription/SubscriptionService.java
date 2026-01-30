@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -220,13 +219,7 @@ public class SubscriptionService {
   public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {
     var consumptionLogs =
         findConsumptionLogsByUserId(
-            user.getId(),
-            temporalUtils.startOfLastMonth().atStartOfDay().toInstant(ZoneOffset.of("+01:00")),
-            temporalUtils
-                .endOfLastMonth()
-                .plusDays(1L)
-                .atStartOfDay()
-                .toInstant(ZoneOffset.of("+01:00")));
+            user.getId(), temporalUtils.startOfMonth(), temporalUtils.endOfMonth());
     return computeSubscriptionVariableConsumption(user, consumptionLogs);
   }
 

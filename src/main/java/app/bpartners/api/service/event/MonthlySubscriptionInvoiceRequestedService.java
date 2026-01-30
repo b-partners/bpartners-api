@@ -95,7 +95,7 @@ public class MonthlySubscriptionInvoiceRequestedService
           var latestSubscription = userSubscription.getLatestSubscription();
           if (latestSubscription != null && !TRIALING.equals(latestSubscription.getStatus())) {
             int referenceNb = userIndex.getAndIncrement();
-            Invoice monthlySubscriptionInvoice;
+            Invoice monthlySubscriptionInvoice = null;
             try {
               monthlySubscriptionInvoice =
                   computeMonthlySusbcriptionInvoice(
@@ -136,9 +136,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
@@ -148,7 +148,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
-    var sendingDate = LocalDate.of(2025, 12, 31);
+    var sendingDate = LocalDate.now();
     LocalDateTime fixedDateTime = LocalDateTime.of(sendingDate, LocalTime.now());
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
@@ -160,7 +160,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfActualMonth())
+        .toPayAt(temporalUtils.fifthOfNextMonth())
         .sendingDate(sendingDate)
         .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)

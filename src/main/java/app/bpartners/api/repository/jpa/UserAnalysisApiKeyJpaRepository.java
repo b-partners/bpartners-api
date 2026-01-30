@@ -8,5 +8,5 @@ public interface UserAnalysisApiKeyJpaRepository
     extends JpaRepository<HUserAnalysisApiKey, String> {
   List<HUserAnalysisApiKey> findAllByUserId(String userId);
 
-  HUserAnalysisApiKey getByApiKey(String apiKey);
+  List<HUserAnalysisApiKey> getByApiKey(String apiKey);
 }

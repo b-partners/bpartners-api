@@ -50,7 +50,7 @@ class UserAnalysisApiKeyRepositoryImplTest {
 
   @Test
   void get_by_api_key_ok() {
-    when(jpaRepositoryMock.getByApiKey(API_KEY)).thenReturn(hUserAnalysisApiKey());
+    when(jpaRepositoryMock.getByApiKey(API_KEY)).thenReturn(List.of(hUserAnalysisApiKey()));
     String randomKey = randomUUID().toString();
 
     var existingActual = subject.getByApiKey(API_KEY);

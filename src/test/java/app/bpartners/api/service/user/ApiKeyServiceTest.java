@@ -1,6 +1,5 @@
 package app.bpartners.api.service.user;
 
-import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.ANALYSIS;
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
 import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static java.time.Instant.now;
@@ -14,6 +13,7 @@ import app.bpartners.api.endpoint.rest.model.UserApiKey;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import java.time.Instant;
 import java.util.List;
@@ -43,24 +43,34 @@ class ApiKeyServiceTest {
   }
 
   @Test
-  void revoke_mixed_api_keys() {
+  void revoke_dashboard_api_keys() {
     when(userAnalysisApiKeyRepositoryMock.getByApiKey(DASHBOARD_KEY)).thenReturn(null);
-    when(userAnalysisApiKeyRepositoryMock.getByApiKey(ANALYSIS_KEY))
-        .thenReturn(analysisApiKeyToRevoke());
     when(userAnalysisApiKeyRepositoryMock.save(any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
     when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
 
-    var expected = List.of(revokedDashboardApiKey(), revokedAnalysisApiKey());
+    var expected = List.of(revokedDashboardApiKey());
 
-    var actual =
-        subject.revokeApiKeys(
-            List.of(dashboardRevokeApiKey().getKey(), analysisRevokeApiKey().getKey()),
-            adminUser());
+    var actual = subject.revokeApiKeys(List.of(dashboardRevokeApiKey().getKey()), adminUser());
 
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void revoke_analysis_api_key_ko() {
+    when(userAnalysisApiKeyRepositoryMock.getByApiKey(ANALYSIS_KEY))
+        .thenReturn(analysisApiKeyToRevoke());
+
+    var actual =
+        assertThrows(
+            NotImplementedException.class,
+            () -> {
+              subject.revokeApiKeys(List.of(analysisApiKeyToRevoke().getApiKey()), adminUser());
+            });
+
+    assertEquals("Revoking analysis api key is not supported yet", actual.getMessage());
   }
 
   private User adminUser() {
@@ -71,20 +81,8 @@ class ApiKeyServiceTest {
     return new UserApiKey().type(DASHBOARD).enabled(false).key(DASHBOARD_KEY);
   }
 
-  private UserApiKey revokedAnalysisApiKey() {
-    return new UserApiKey()
-        .type(ANALYSIS)
-        .enabled(false)
-        .key(ANALYSIS_KEY)
-        .creationDatetime(CREATION_DATETIME);
-  }
-
   private RevokeApiKey dashboardRevokeApiKey() {
     return new RevokeApiKey().key(DASHBOARD_KEY);
-  }
-
-  private RevokeApiKey analysisRevokeApiKey() {
-    return new RevokeApiKey().key(ANALYSIS_KEY);
   }
 
   private UserAnalysisApiKey analysisApiKeyToRevoke() {

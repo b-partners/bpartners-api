@@ -2,6 +2,8 @@ package app.bpartners.api.integration.event;
 
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentCaptor.forClass;
@@ -80,6 +82,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(userRepositoryMock.getById(anyString())).thenReturn(userToCredit);
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
+    when(subscriptionEligibilityMock.hasFreeTrialPeriodActive()).thenReturn(false);
     var accountHolder = AccountHolder.builder().build();
     var subscribedUser =
         User.builder()
@@ -90,8 +93,14 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var users = List.of(subscribedUser);
     when(userRepositoryMock.findAllByCriteria(any())).thenReturn(users);
     var subscriptionProduct = SubscriptionProduct.builder().priceInCents(5L).build();
+
     var latestSubscription =
-        Subscription.builder().subscriptionProduct(subscriptionProduct).status(ACTIVE).build();
+        Subscription.builder()
+            .subscriptionProduct(subscriptionProduct)
+            .active(true)
+            .status(ACTIVE)
+            .endDatetime(new TemporalUtils().getSixthOfNextMonthAt2359(now()).minus(1L, DAYS))
+            .build();
     var user = User.builder().id(userToDebitId).userSubscriptionId("subscriptionId").build();
     when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
     var subscription = mock(com.stripe.model.Subscription.class);
@@ -182,6 +191,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
+    when(subscriptionMock.getEndDatetime())
+        .thenReturn(new TemporalUtils().getSixthOfNextMonthAt2359(now()).minus(1L, DAYS));
+    when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(customerRepositoryMock.findByIdUserAndCriteria(
             any(),
             any(),
@@ -268,6 +280,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
+    when(subscriptionMock.getEndDatetime())
+        .thenReturn(new TemporalUtils().getSixthOfNextMonthAt2359(now()).minus(1L, DAYS));
+    when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(adminUserMock.getId()).thenReturn(adminUserId);
     when(userRepositoryMock.findByEmail(System.getenv("ADMIN_EMAIL")))

@@ -100,7 +100,7 @@ public class MonthlySubscriptionInvoiceRequestedService
                           && !subscription
                               .getLatestSubscription()
                               .getEndDatetime()
-                              .isAfter(temporalUtils.getFifthOfNextMonthAt2359(now())));
+                              .isAfter(temporalUtils.getSixthOfNextMonthAt2359(now())));
                 })
             .toList();
     var userIndex = new AtomicInteger(1);

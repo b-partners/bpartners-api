@@ -4,7 +4,6 @@ import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
 import static app.bpartners.api.integration.UserIT.userSubscriptionMaker;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;

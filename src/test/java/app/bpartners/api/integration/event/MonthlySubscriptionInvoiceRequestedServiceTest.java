@@ -28,6 +28,7 @@ import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.subscription.StripeFactory;
+import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -40,6 +41,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -56,6 +58,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   UserCustomerConverter userCustomerConverter =
       new UserCustomerConverter(userRepositoryMock, customerRepositoryMock);
   StripeFactory stripeFactoryMock = mock();
+  StripeInvoiceService stripeInvoiceServiceMock = mock();
   MonthlySubscriptionInvoiceRequestedService subject =
       new MonthlySubscriptionInvoiceRequestedService(
           invoiceServiceMock,
@@ -68,7 +71,17 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           subscriptionEligibleJpaRepositoryMock,
           userCustomerConverter,
           stripeConfMock,
-          stripeFactoryMock);
+          stripeFactoryMock,
+          stripeInvoiceServiceMock);
+
+  @BeforeEach
+  void setUp() {
+    var stripeInvoiceMock = mock(com.stripe.model.Invoice.class);
+    when(stripeInvoiceMock.getNextPaymentAttempt())
+        .thenReturn(
+            temporalUtils.getSixthOfNextMonthAt2359(now()).minus(2L, DAYS).getEpochSecond());
+    when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(any())).thenReturn(stripeInvoiceMock);
+  }
 
   @Test
   void test_invoice_product_for_extra_analysis() throws StripeException {

@@ -6,7 +6,6 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static app.bpartners.api.model.mapper.InvoiceMapper.*;
-import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.TRIALING;
 import static app.bpartners.api.service.subscription.SubscriptionService.FREE_ROOF_ANALYSIS;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.time.Instant.now;
@@ -30,11 +29,13 @@ import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.ReferenceGenerator;
 import app.bpartners.api.service.subscription.StripeFactory;
+import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.exception.StripeException;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -65,6 +66,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   private final UserCustomerConverter userCustomerConverter;
   private final StripeConf stripeConf;
   private final StripeFactory stripeFactory;
+  private final StripeInvoiceService stripeInvoiceService;
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
@@ -90,25 +92,23 @@ public class MonthlySubscriptionInvoiceRequestedService
                     return false;
                   }
                   var userSubscriptionEligible = optionalUserSubscriptionEligible.get();
-                  return (subscription.hasValidSubscription()
-                          && !userSubscriptionEligible.hasFreeTrialPeriodActive())
-                      || (subscription.hasSubscriptionCancelled()
-                          && !subscription
-                              .getLatestSubscription()
-                              .getEndDatetime()
-                              .isBefore(temporalUtils.endOfMonth())
-                          && !subscription
-                              .getLatestSubscription()
-                              .getEndDatetime()
-                              .isAfter(temporalUtils.getSixthOfNextMonthAt2359(now())));
+                  return subscription.hasValidSubscription()
+                      && !userSubscriptionEligible.hasFreeTrialPeriodActive();
                 })
             .toList();
     var userIndex = new AtomicInteger(1);
     subscribedUsers.forEach(
         userToDebit -> {
           var userSubscription = subscriptionService.getSubscriptionByUser(userToDebit);
-          var latestSubscription = userSubscription.getLatestSubscription();
-          if (latestSubscription != null && !TRIALING.equals(latestSubscription.getStatus())) {
+          var upcomingStripeInvoice =
+              stripeInvoiceService.getUpcomingStripeInvoice(userToDebit.getUserSubscriptionId());
+          var nextInvoiceDate =
+              upcomingStripeInvoice == null
+                  ? null
+                  : Instant.ofEpochSecond(upcomingStripeInvoice.getNextPaymentAttempt());
+          if (upcomingStripeInvoice != null
+              && nextInvoiceDate != null
+              && nextInvoiceDate.isBefore(temporalUtils.getSixthOfNextMonthAt2359(now()))) {
             int referenceNb = userIndex.getAndIncrement();
             Invoice monthlySubscriptionInvoice;
             try {

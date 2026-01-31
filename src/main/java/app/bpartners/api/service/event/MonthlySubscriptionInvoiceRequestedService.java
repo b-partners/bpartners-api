@@ -9,6 +9,7 @@ import static app.bpartners.api.model.mapper.InvoiceMapper.*;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.TRIALING;
 import static app.bpartners.api.service.subscription.SubscriptionService.FREE_ROOF_ANALYSIS;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
@@ -34,7 +35,6 @@ import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.exception.StripeException;
 import java.math.BigInteger;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -85,7 +85,22 @@ public class MonthlySubscriptionInvoiceRequestedService
                   }
                   var optionalUserSubscriptionEligible =
                       subscriptionEligibleJpaRepository.findByUserId(user.getId());
-                  return optionalUserSubscriptionEligible.isPresent();
+                  var subscription = subscriptionService.getSubscriptionByUser(user);
+                  if (optionalUserSubscriptionEligible.isEmpty()) {
+                    return false;
+                  }
+                  var userSubscriptionEligible = optionalUserSubscriptionEligible.get();
+                  return (subscription.hasValidSubscription()
+                          && !userSubscriptionEligible.hasFreeTrialPeriodActive())
+                      || (subscription.hasSubscriptionCancelled()
+                          && !subscription
+                              .getLatestSubscription()
+                              .getEndDatetime()
+                              .isBefore(temporalUtils.endOfMonth())
+                          && !subscription
+                              .getLatestSubscription()
+                              .getEndDatetime()
+                              .isAfter(temporalUtils.getFifthOfNextMonthAt2359(now())));
                 })
             .toList();
     var userIndex = new AtomicInteger(1);
@@ -200,7 +215,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .totalPriceWithVat(computeTotalPriceWithVatAndDiscount(discountZero, invoiceProducts))
         .delayInPaymentAllowed(0)
         .discount(InvoiceDiscount.builder().percentValue(new Fraction(BigInteger.ZERO)).build())
-        .createdAt(Instant.now())
+        .createdAt(now())
         .delayPenaltyPercent(new Fraction(BigInteger.ZERO))
         .build();
   }
@@ -270,7 +285,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         InvoiceProduct.builder()
             .id(randomUUID().toString())
             .idInvoice(invoiceId)
-            .createdAt(Instant.now())
+            .createdAt(now())
             .description(subscriptionProduct == null ? invoiceTitle : subscriptionProduct.getName())
             .quantity(1)
             .unitPrice(parseFraction(getProductUnitPrice(subscriptions)))
@@ -284,7 +299,7 @@ public class MonthlySubscriptionInvoiceRequestedService
           InvoiceProduct.builder()
               .id(randomUUID().toString())
               .idInvoice(invoiceId)
-              .createdAt(Instant.now())
+              .createdAt(now())
               .description("Analyse de toîtures supplémentaire")
               .quantity((int) analysisPayableUsage)
               .unitPrice(parseFraction(200))

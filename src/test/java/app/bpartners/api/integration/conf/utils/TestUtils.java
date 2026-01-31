@@ -8,7 +8,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.PaymentMethod.UNKNOWN;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
 import static app.bpartners.api.endpoint.rest.model.TransactionTypeEnum.INCOME;
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
 import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
 import static app.bpartners.api.model.Money.fromMinor;
 import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
@@ -177,10 +177,10 @@ public class TestUtils {
         .status(ENABLED)
         .activeAccount(restJoeAccount())
         .roles(List.of())
-        .subscriptionStatus(EMPTY)
+        .subscriptionStatus(ACTIVE)
         .subscription(
             new app.bpartners.api.endpoint.rest.model.UserSubscription()
-                .status(EMPTY)
+                .status(ACTIVE)
                 .end(null)
                 .start(null));
   }

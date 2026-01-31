@@ -102,6 +102,8 @@ class UserRestMapperTest {
 
   @Test
   void user_subscription_mapped_with_null_values() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(mock(UserSubscriptionEligible.class)));
     when(subscriptionServiceMock.getSubscriptionByUser(any()))
         .thenReturn(
             UserSubscription.builder()

@@ -66,21 +66,20 @@ public class UserRestMapper {
       UserSubscriptionEligible userSubscriptionEligible,
       boolean userHasUnpaidStripeInvoices,
       boolean userHasPaymentMethods) {
-    if (!userHasPaymentMethods) {
-      if (userSubscriptionEligible != null
-          && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
-        return PAYMENT_METHOD_REQUIRED;
-      }
+    if (userSubscriptionEligible == null) {
+      return ACTIVE;
+    }
+    if (!userHasPaymentMethods && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
+      return PAYMENT_METHOD_REQUIRED;
     }
     if (userHasUnpaidStripeInvoices) {
       return UNPAID;
     }
     if (subscription.hasValidSubscription()
-        && userSubscriptionEligible != null
         && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
       return ACTIVE;
     }
-    if (userSubscriptionEligible != null && userSubscriptionEligible.hasFreeTrialPeriodActive()) {
+    if (userSubscriptionEligible.hasFreeTrialPeriodActive()) {
       return FREE_TRIAL;
     }
     if (subscription.hasSubscriptionCancelled()) {

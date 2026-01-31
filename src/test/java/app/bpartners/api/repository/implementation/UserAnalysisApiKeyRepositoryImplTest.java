@@ -5,12 +5,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.LogCaptor;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.model.mapper.UserApiKeyMapper;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserAnalysisApiKeyJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUserAnalysisApiKey;
+import ch.qos.logback.classic.Level;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +63,47 @@ class UserAnalysisApiKeyRepositoryImplTest {
     verify(jpaRepositoryMock, times(1)).getByApiKey(API_KEY);
     verify(jpaRepositoryMock, times(1)).getByApiKey(randomKey);
     verify(userRepositoryMock, times(1)).getById(USER_ID);
+  }
+
+  @Test
+  void warns_and_return_first_when_multiple_api_key_found_on_get_by_key() {
+    LogCaptor logCaptor = new LogCaptor();
+    logCaptor.configure(UserAnalysisApiKeyRepositoryImpl.class);
+
+    String otherUserId = randomUUID().toString();
+    HUserAnalysisApiKey firstEntity = hUserAnalysisApiKey();
+    HUserAnalysisApiKey secondEntity =
+        HUserAnalysisApiKey.builder()
+            .id(randomUUID().toString())
+            .userId(otherUserId)
+            .creationDatetime(Instant.now())
+            .apiKey(API_KEY)
+            .enabled(true)
+            .build();
+    User firstUser = User.builder().id(USER_ID).build();
+
+    when(jpaRepositoryMock.getByApiKey(API_KEY)).thenReturn(List.of(firstEntity, secondEntity));
+    when(userRepositoryMock.getById(USER_ID)).thenReturn(firstUser);
+    when(mapper.toDomain(firstEntity, firstUser)).thenReturn(userAnalysisApiKey());
+
+    UserAnalysisApiKey actual = subject.getByApiKey(API_KEY);
+
+    assertEquals(userAnalysisApiKey(), actual);
+    verify(jpaRepositoryMock, times(1)).getByApiKey(API_KEY);
+    verify(userRepositoryMock, times(1)).getById(USER_ID);
+    verify(mapper, times(1)).toDomain(firstEntity, firstUser);
+
+    var warnEvents =
+        logCaptor.getLogEvents().stream()
+            .filter(event -> event.getLevel().equals(Level.WARN))
+            .toList();
+    assertEquals(1, warnEvents.size());
+    assertTrue(
+        warnEvents
+            .getFirst()
+            .getFormattedMessage()
+            .contains("Multiple analysis belonging to users"));
+    assertTrue(warnEvents.getFirst().getFormattedMessage().contains(API_KEY));
   }
 
   @Test

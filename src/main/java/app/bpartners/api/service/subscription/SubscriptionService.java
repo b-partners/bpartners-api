@@ -55,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
   private static final Pattern BOT_NAME_PATTERN = Pattern.compile("^(?:[A-Za-z]{8,}\\s*){1,3}$");
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
-  private static final int DEFAULT_TRIAL_PERIOD_DAYS = 14;
+  private static final int DEFAULT_TRIAL_PERIOD_DAYS = 7;
   public static final long FREE_ROOF_ANALYSIS = 20L;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;

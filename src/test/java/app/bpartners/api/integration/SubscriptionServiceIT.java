@@ -192,15 +192,19 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
   @Test
   void update_user_subscription_ko() {
-    var user = userRepository.findByEmail("jane@email.com").orElseThrow();
+    var userIdentifier = randomUUID().toString();
+    var userMock = mock(User.class);
+    when(userMock.getUserSubscriptionId()).thenReturn(null);
+    when(userMock.getId()).thenReturn(userIdentifier);
 
     var actual =
-        assertThrows(IllegalArgumentException.class, () -> subject.updateUserSubscription(user));
+        assertThrows(
+            IllegalArgumentException.class, () -> subject.updateUserSubscription(userMock));
 
     assertEquals(
         "User.userSubscriptionId is required to update subscription, "
             + "otherwise User.id="
-            + user.getId()
+            + userIdentifier
             + " does not have userSubscriptionId",
         actual.getMessage());
   }

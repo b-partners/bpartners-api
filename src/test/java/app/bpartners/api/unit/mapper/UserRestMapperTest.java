@@ -87,6 +87,10 @@ class UserRestMapperTest {
                             .endDatetime(expectedEndDatetime)
                             .build()))
                 .build());
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
 
     var actual = subject.toRest(User.builder().roles(List.of()).paymentMethodExists(true).build());
 
@@ -134,6 +138,10 @@ class UserRestMapperTest {
                             .endDatetime(now)
                             .build()))
                 .build());
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
 
     var actual = subject.toRest(User.builder().roles(List.of()).paymentMethodExists(true).build());
 

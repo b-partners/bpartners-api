@@ -75,7 +75,9 @@ public class UserRestMapper {
     if (userHasUnpaidStripeInvoices) {
       return UNPAID;
     }
-    if (subscription.hasValidSubscription()) {
+    if (subscription.hasValidSubscription()
+        && userSubscriptionEligible != null
+        && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
       return ACTIVE;
     }
     if (userSubscriptionEligible != null && userSubscriptionEligible.hasFreeTrialPeriodActive()) {

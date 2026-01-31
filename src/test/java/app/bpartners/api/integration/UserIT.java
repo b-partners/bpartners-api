@@ -22,8 +22,10 @@ import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
+import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,6 +39,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +67,7 @@ class UserIT extends MockedThirdParties {
   @Autowired private UserJpaRepository userJpaRepository;
   @Autowired private UserRepository userRepository;
   @MockBean private StripeInvoiceService stripeInvoiceServiceMock;
+  @MockBean private UserSubscriptionEligibleJpaRepository userSubscriptionEligibleJpaRepositoryMock;
 
   public static User restJaneDoeUser() {
     return new User()
@@ -105,8 +109,15 @@ class UserIT extends MockedThirdParties {
     var defaultUserSubscription = userSubscriptionMaker(true);
     when(subscriptionService.getSubscriptionByUser(any())).thenReturn(defaultUserSubscription);
     when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(defaultUserSubscription);
+    var paymentMethodMock = mock(PaymentMethod.class);
+    when(paymentMethodMock.getType()).thenReturn("not card so always valid");
     when(stripePaymentMethodServiceMock.getPaymentMethod(any()))
-        .thenReturn(List.of(mock(PaymentMethod.class)));
+        .thenReturn(List.of(paymentMethodMock));
+
+    var userSusbcriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    when(userSusbcriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(userSubscriptionEligibleJpaRepositoryMock.findByUserId(JANE_DOE_ID))
+        .thenReturn(Optional.of(userSusbcriptionEligibleMock));
   }
 
   public static UserSubscription userSubscriptionMaker(boolean isActive) {

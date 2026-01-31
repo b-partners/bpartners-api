@@ -3,6 +3,7 @@ package app.bpartners.api.integration;
 import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.EMPTY;
 import static app.bpartners.api.integration.UserIT.userSubscriptionMaker;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
@@ -93,10 +94,10 @@ class WhoamiIT extends MockedThirdParties {
         .status(ENABLED)
         .activeAccount(restJoeAccount())
         .roles(List.of())
-        .subscriptionStatus(EMPTY)
+        .subscriptionStatus(ACTIVE)
         .subscription(
             new app.bpartners.api.endpoint.rest.model.UserSubscription()
-                .status(EMPTY)
+                .status(ACTIVE)
                 .end(null)
                 .start(null));
   }

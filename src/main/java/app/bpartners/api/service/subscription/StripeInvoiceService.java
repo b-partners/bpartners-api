@@ -40,7 +40,10 @@ public class StripeInvoiceService {
 
       return Invoice.upcoming(params);
     } catch (StripeException e) {
-      log.info("Unable to get upcoming invoice for identifier {}", stripeCustomerIdentifier);
+      log.info(
+          "Unable to get upcoming invoice for identifier {} for cause {}",
+          stripeCustomerIdentifier,
+          e.getMessage());
       return null;
     }
   }

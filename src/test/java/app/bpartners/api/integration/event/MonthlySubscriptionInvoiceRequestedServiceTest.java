@@ -79,7 +79,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var stripeInvoiceMock = mock(com.stripe.model.Invoice.class);
     when(stripeInvoiceMock.getNextPaymentAttempt())
         .thenReturn(
-            temporalUtils.getSixthOfNextMonthAt2359(now()).minus(2L, DAYS).getEpochSecond());
+            temporalUtils.getSixthOfActualMonthAt2359(now()).minus(2L, DAYS).getEpochSecond());
     when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(any())).thenReturn(stripeInvoiceMock);
   }
 
@@ -112,7 +112,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
             .subscriptionProduct(subscriptionProduct)
             .active(true)
             .status(ACTIVE)
-            .endDatetime(new TemporalUtils().getSixthOfNextMonthAt2359(now()).minus(1L, DAYS))
+            .endDatetime(new TemporalUtils().getSixthOfActualMonthAt2359(now()).minus(1L, DAYS))
             .build();
     var user = User.builder().id(userToDebitId).userSubscriptionId("subscriptionId").build();
     when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
@@ -205,7 +205,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfNextMonthAt2359(now()).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getSixthOfActualMonthAt2359(now()).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(customerRepositoryMock.findByIdUserAndCriteria(
             any(),
@@ -294,7 +294,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfNextMonthAt2359(now()).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getSixthOfActualMonthAt2359(now()).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(adminUserMock.getId()).thenReturn(adminUserId);

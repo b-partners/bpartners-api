@@ -108,7 +108,7 @@ public class MonthlySubscriptionInvoiceRequestedService
                   : Instant.ofEpochSecond(upcomingStripeInvoice.getNextPaymentAttempt());
           if (upcomingStripeInvoice != null
               && nextInvoiceDate != null
-              && nextInvoiceDate.isBefore(temporalUtils.getSixthOfNextMonthAt2359(now()))) {
+              && nextInvoiceDate.isBefore(temporalUtils.getSixthOfActualMonthAt2359(now()))) {
             int referenceNb = userIndex.getAndIncrement();
             Invoice monthlySubscriptionInvoice;
             try {
@@ -133,11 +133,9 @@ public class MonthlySubscriptionInvoiceRequestedService
                         existingInvoice
                                 .getTotalPriceWithVat()
                                 .equals(monthlySubscriptionInvoice.getTotalPriceWithVat())
-                            && temporalUtils
-                                .getLastDayOfInstant(existingInvoice.getCreatedAt())
-                                .equals(
-                                    temporalUtils.getLastDayOfInstant(
-                                        monthlySubscriptionInvoice.getCreatedAt())))) {
+                            && existingInvoice
+                                .getCreatedAt()
+                                .isBefore(temporalUtils.getSixthOfActualMonthAt2359(now())))) {
               log.info(
                   "Subscription Invoice already computed for user(id={}, email={})",
                   userToDebit.getId(),
@@ -177,9 +175,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
@@ -189,7 +187,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
-    var sendingDate = temporalUtils.endOfActualMonth();
+    var sendingDate = temporalUtils.endOfLastMonth();
     LocalDateTime fixedDateTime = LocalDateTime.of(sendingDate, LocalTime.now());
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
@@ -201,7 +199,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfNextMonth())
+        .toPayAt(temporalUtils.fifthOfActualMonth())
         .sendingDate(sendingDate)
         .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)

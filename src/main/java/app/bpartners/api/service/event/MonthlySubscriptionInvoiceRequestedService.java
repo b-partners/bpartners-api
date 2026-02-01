@@ -97,6 +97,8 @@ public class MonthlySubscriptionInvoiceRequestedService
                 })
             .toList();
     var userIndex = new AtomicInteger(1);
+    AtomicInteger usersWithStripeUpcomingInvoice = new AtomicInteger();
+    AtomicInteger totalInvoiceComputed = new AtomicInteger();
     subscribedUsers.forEach(
         userToDebit -> {
           var userSubscription = subscriptionService.getSubscriptionByUser(userToDebit);
@@ -106,8 +108,12 @@ public class MonthlySubscriptionInvoiceRequestedService
               upcomingStripeInvoice == null
                   ? null
                   : Instant.ofEpochSecond(upcomingStripeInvoice.getNextPaymentAttempt());
-          if (upcomingStripeInvoice != null
-              && nextInvoiceDate != null
+          if (nextInvoiceDate != null) {
+            usersWithStripeUpcomingInvoice.getAndIncrement();
+          }
+          log.info(
+              "Upcoming Stripe Invoice {} for user {}", nextInvoiceDate, userToDebit.getEmail());
+          if (nextInvoiceDate != null
               && nextInvoiceDate.isBefore(temporalUtils.getSixthOfActualMonthAt2359(now()))) {
             int referenceNb = userIndex.getAndIncrement();
             Invoice monthlySubscriptionInvoice;
@@ -144,7 +150,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             }
             var createdInvoice =
                 invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
-
+            totalInvoiceComputed.getAndIncrement();
             log.info(
                 "Invoice(ref={}, customer={}) created",
                 createdInvoice.getRef(),
@@ -164,6 +170,8 @@ public class MonthlySubscriptionInvoiceRequestedService
                 userToDebit.getEmail());
           }
         });
+    log.info("Total users with upcoming stripe invoice {}", usersWithStripeUpcomingInvoice.get());
+    log.info("Total invoices computed {}", totalInvoiceComputed.get());
   }
 
   private Invoice computeMonthlySusbcriptionInvoice(

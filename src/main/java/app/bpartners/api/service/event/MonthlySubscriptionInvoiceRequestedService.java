@@ -174,6 +174,10 @@ public class MonthlySubscriptionInvoiceRequestedService
         .anyMatch(
             existingInvoice ->
                 existingInvoice
+                        .getCustomer()
+                        .getName()
+                        .equalsIgnoreCase(monthlySubscriptionInvoice.getCustomer().getName())
+                    && existingInvoice
                         .getTotalPriceWithVat()
                         .equals(monthlySubscriptionInvoice.getTotalPriceWithVat())
                     && existingInvoice

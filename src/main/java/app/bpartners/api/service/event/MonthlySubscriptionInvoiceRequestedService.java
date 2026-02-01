@@ -38,6 +38,7 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -133,36 +134,29 @@ public class MonthlySubscriptionInvoiceRequestedService
                     ArchiveStatus.ENABLED,
                     monthlySubscriptionInvoice.getTitle(),
                     List.of(userToDebit.getName()));
-            if (existingComputedInvoices.stream()
-                .anyMatch(
-                    existingInvoice ->
-                        existingInvoice
-                                .getTotalPriceWithVat()
-                                .equals(monthlySubscriptionInvoice.getTotalPriceWithVat())
-                            && existingInvoice
-                                .getCreatedAt()
-                                .isBefore(temporalUtils.getSixthOfActualMonthAt2359(now())))) {
+            if (isCustomerToDebitAlreadyHasComputedInvoice(
+                existingComputedInvoices, monthlySubscriptionInvoice)) {
               log.info(
                   "Subscription Invoice already computed for user(id={}, email={})",
                   userToDebit.getId(),
                   userToDebit.getEmail());
-              return;
+            } else {
+              var createdInvoice =
+                  invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
+              totalInvoiceComputed.getAndIncrement();
+              log.info(
+                  "Invoice(ref={}, customer={}) created",
+                  createdInvoice.getRef(),
+                  createdInvoice.getCustomer().getName());
+              /*
+              TODO : uncomment to triggered mail sent
+              eventProducer.accept(
+                  List.of(
+                      MonthlySubscriptionInvoiceCreated.builder()
+                          .invoiceId(createdInvoice.getId())
+                          .build()));
+              */
             }
-            var createdInvoice =
-                invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
-            totalInvoiceComputed.getAndIncrement();
-            log.info(
-                "Invoice(ref={}, customer={}) created",
-                createdInvoice.getRef(),
-                createdInvoice.getCustomer().getName());
-            /*
-            TODO : uncomment to triggered mail sent
-            eventProducer.accept(
-                List.of(
-                    MonthlySubscriptionInvoiceCreated.builder()
-                        .invoiceId(createdInvoice.getId())
-                        .build()));
-            */
           } else {
             log.info(
                 "User(id={}, email={}) does not have subscription, skip computing invoice",
@@ -172,6 +166,26 @@ public class MonthlySubscriptionInvoiceRequestedService
         });
     log.info("Total users with upcoming stripe invoice {}", usersWithStripeUpcomingInvoice.get());
     log.info("Total invoices computed {}", totalInvoiceComputed.get());
+  }
+
+  private boolean isCustomerToDebitAlreadyHasComputedInvoice(
+      List<Invoice> existingComputedInvoices, Invoice monthlySubscriptionInvoice) {
+    return existingComputedInvoices.stream()
+        .anyMatch(
+            existingInvoice ->
+                existingInvoice
+                        .getTotalPriceWithVat()
+                        .equals(monthlySubscriptionInvoice.getTotalPriceWithVat())
+                    && existingInvoice
+                        .getCreatedAt()
+                        .isBefore(temporalUtils.getSixthOfActualMonthAt2359(now()))
+                    && existingInvoice
+                        .getCreatedAt()
+                        .isAfter(
+                            temporalUtils
+                                .startOfLastMonth()
+                                .atStartOfDay(ZoneId.of("Europe/Paris"))
+                                .toInstant()));
   }
 
   private Invoice computeMonthlySusbcriptionInvoice(

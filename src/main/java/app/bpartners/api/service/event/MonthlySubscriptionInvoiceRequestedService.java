@@ -120,13 +120,13 @@ public class MonthlySubscriptionInvoiceRequestedService
             }
             var existingComputedInvoices =
                 invoiceService.getInvoices(
-                    userToDebit.getId(),
+                    userToCredit.getId(),
                     new PageFromOne(MIN_PAGE),
                     new BoundedPageSize(MAX_SIZE),
                     List.of(CONFIRMED, PAID),
                     ArchiveStatus.ENABLED,
                     monthlySubscriptionInvoice.getTitle(),
-                    List.of());
+                    List.of(userToDebit.getName()));
             if (existingComputedInvoices.stream()
                 .anyMatch(
                     existingInvoice ->

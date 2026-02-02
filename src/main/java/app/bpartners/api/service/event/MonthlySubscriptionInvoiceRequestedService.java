@@ -1,6 +1,5 @@
 package app.bpartners.api.service.event;
 
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
@@ -21,9 +20,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.StripeConf;
-import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
-import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -40,9 +37,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -57,10 +52,8 @@ import org.springframework.stereotype.Service;
 public class MonthlySubscriptionInvoiceRequestedService
     implements Consumer<MonthlySubscriptionInvoiceRequested> {
   private final InvoiceService invoiceService;
-  private final UserRepository userRepository;
   private final CustomerRepository customerRepository;
   private final SubscriptionService subscriptionService;
-  private final UserSubscriptionConf userSubscriptionConf;
   private final CustomDateFormatter customDateFormatter;
   private final TemporalUtils temporalUtils;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
@@ -71,101 +64,83 @@ public class MonthlySubscriptionInvoiceRequestedService
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
-    var criteria = new HashMap<String, Object>();
-    criteria.put("status", ENABLED);
-    criteria.put("page", event.getUserPage());
-    criteria.put("pageSize", MAX_SIZE);
+    var userToCredit = event.getUserToCredit();
+    var userToDebit = event.getUserToAttemptDebit();
+    if (!isSubscribed(userToDebit)) {
+      return;
+    }
 
-    var userToCredit = userRepository.getById(userSubscriptionConf.getUserToCreditId());
-    var users = userRepository.findAllByCriteria(criteria);
-    var subscribedUsers =
-        users.stream()
-            .filter(
-                user -> {
-                  var userSubscriptionId = user.getUserSubscriptionId();
-                  if (userSubscriptionId == null) {
-                    return false;
-                  }
-                  var optionalUserSubscriptionEligible =
-                      subscriptionEligibleJpaRepository.findByUserId(user.getId());
-                  var subscription = subscriptionService.getSubscriptionByUser(user);
-                  if (optionalUserSubscriptionEligible.isEmpty()) {
-                    return false;
-                  }
-                  var userSubscriptionEligible = optionalUserSubscriptionEligible.get();
-                  return subscription.hasValidSubscription()
-                      && !userSubscriptionEligible.hasFreeTrialPeriodActive();
-                })
-            .toList();
-    var userIndex = new AtomicInteger(1);
-    AtomicInteger usersWithStripeUpcomingInvoice = new AtomicInteger();
-    AtomicInteger totalInvoiceComputed = new AtomicInteger();
-    subscribedUsers.forEach(
-        userToDebit -> {
-          var userSubscription = subscriptionService.getSubscriptionByUser(userToDebit);
-          var upcomingStripeInvoice =
-              stripeInvoiceService.getUpcomingStripeInvoice(userToDebit.getUserSubscriptionId());
-          var nextInvoiceDate =
-              upcomingStripeInvoice == null
-                  ? null
-                  : Instant.ofEpochSecond(upcomingStripeInvoice.getNextPaymentAttempt());
-          if (nextInvoiceDate != null) {
-            usersWithStripeUpcomingInvoice.getAndIncrement();
-          }
-          log.info(
-              "Upcoming Stripe Invoice {} for user {}", nextInvoiceDate, userToDebit.getEmail());
-          if (nextInvoiceDate != null
-              && nextInvoiceDate.isBefore(temporalUtils.getSixthOfActualMonthAt2359(now()))) {
-            int referenceNb = userIndex.getAndIncrement();
-            Invoice monthlySubscriptionInvoice;
-            try {
-              monthlySubscriptionInvoice =
-                  computeMonthlySusbcriptionInvoice(
-                      userToCredit, userToDebit, referenceNb, userSubscription);
-            } catch (StripeException e) {
-              throw new RuntimeException(e);
-            }
-            var existingComputedInvoices =
-                invoiceService.getInvoices(
-                    userToCredit.getId(),
-                    new PageFromOne(MIN_PAGE),
-                    new BoundedPageSize(MAX_SIZE),
-                    List.of(CONFIRMED, PAID),
-                    ArchiveStatus.ENABLED,
-                    monthlySubscriptionInvoice.getTitle(),
-                    List.of(userToDebit.getName()));
-            if (isCustomerToDebitAlreadyHasComputedInvoice(
-                existingComputedInvoices, monthlySubscriptionInvoice)) {
-              log.info(
-                  "Subscription Invoice already computed for user(id={}, email={})",
-                  userToDebit.getId(),
-                  userToDebit.getEmail());
-            } else {
-              var createdInvoice =
-                  invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
-              totalInvoiceComputed.getAndIncrement();
-              log.info(
-                  "Invoice(ref={}, customer={}) created",
-                  createdInvoice.getRef(),
-                  createdInvoice.getCustomer().getName());
-              /*
-              TODO : uncomment to triggered mail sent
-              eventProducer.accept(
-                  List.of(
-                      MonthlySubscriptionInvoiceCreated.builder()
-                          .invoiceId(createdInvoice.getId())
-                          .build()));
-              */
-            }
-          } else {
-            log.info(
-                "User(id={}, email={}) does not have subscription, skip computing invoice",
-                userToDebit.getId(),
-                userToDebit.getEmail());
-          }
-        });
-    log.info("Total users with upcoming stripe invoice {}", usersWithStripeUpcomingInvoice.get());
-    log.info("Total invoices computed {}", totalInvoiceComputed.get());
+    var userSubscription = subscriptionService.getSubscriptionByUser(userToDebit);
+    var upcomingStripeInvoice =
+        stripeInvoiceService.getUpcomingStripeInvoice(userToDebit.getUserSubscriptionId());
+    var nextInvoiceDate =
+        upcomingStripeInvoice == null
+            ? null
+            : Instant.ofEpochSecond(upcomingStripeInvoice.getNextPaymentAttempt());
+
+    log.info("Upcoming Stripe Invoice {} for user {}", nextInvoiceDate, userToDebit.getEmail());
+
+    if (nextInvoiceDate != null
+        && nextInvoiceDate.isBefore(temporalUtils.getSixthOfActualMonthAt2359(now()))) {
+      Invoice monthlySubscriptionInvoice;
+      try {
+        monthlySubscriptionInvoice =
+            computeMonthlySusbcriptionInvoice(userToCredit, userToDebit, userSubscription);
+      } catch (StripeException e) {
+        throw new RuntimeException(e);
+      }
+      var existingComputedInvoices =
+          invoiceService.getInvoices(
+              userToCredit.getId(),
+              new PageFromOne(MIN_PAGE),
+              new BoundedPageSize(MAX_SIZE),
+              List.of(CONFIRMED, PAID),
+              ArchiveStatus.ENABLED,
+              monthlySubscriptionInvoice.getTitle(),
+              List.of(userToDebit.getName()));
+      if (isCustomerToDebitAlreadyHasComputedInvoice(
+          existingComputedInvoices, monthlySubscriptionInvoice)) {
+        log.info(
+            "Subscription Invoice already computed for user(id={}, email={})",
+            userToDebit.getId(),
+            userToDebit.getEmail());
+      } else {
+        var createdInvoice = invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
+        log.info(
+            "Invoice(ref={}, customer={}) created",
+            createdInvoice.getRef(),
+            createdInvoice.getCustomer().getName());
+        /*
+        TODO : uncomment to triggered mail sent
+        eventProducer.accept(
+            List.of(
+                MonthlySubscriptionInvoiceCreated.builder()
+                    .invoiceId(createdInvoice.getId())
+                    .build()));
+        */
+      }
+    } else {
+      log.info(
+          "User(id={}, email={}) does not have upcoming stripe invoice, skip computing invoice",
+          userToDebit.getId(),
+          userToDebit.getEmail());
+    }
+  }
+
+  private boolean isSubscribed(User user) {
+    var userSubscriptionId = user.getUserSubscriptionId();
+    if (userSubscriptionId == null) {
+      return false;
+    }
+    var optionalUserSubscriptionEligible =
+        subscriptionEligibleJpaRepository.findByUserId(user.getId());
+    var subscription = subscriptionService.getSubscriptionByUser(user);
+    if (optionalUserSubscriptionEligible.isEmpty()) {
+      return false;
+    }
+    var userSubscriptionEligible = optionalUserSubscriptionEligible.get();
+    return subscription.hasValidSubscription()
+        && !userSubscriptionEligible.hasFreeTrialPeriodActive();
   }
 
   private boolean isCustomerToDebitAlreadyHasComputedInvoice(
@@ -193,7 +168,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private Invoice computeMonthlySusbcriptionInvoice(
-      User userToCredit, User userToDebit, int referenceNb, UserSubscription userSubscription)
+      User userToCredit, User userToDebit, UserSubscription userSubscription)
       throws StripeException {
     var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
     var variableAnalysisConsumptionUsage = getVariableAnalysisConsumptionUsage(userToDebit);
@@ -219,7 +194,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
     return Invoice.builder()
         .id(invoiceId)
-        .ref(referenceGenerator.get() + "-" + referenceNb)
+        .ref(referenceGenerator.get())
         .title(invoiceTitle)
         .subscriptionInvoice(true)
         .status(CONFIRMED)

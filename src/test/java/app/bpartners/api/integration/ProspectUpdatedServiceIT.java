@@ -149,7 +149,7 @@ class ProspectUpdatedServiceIT extends MockedThirdParties {
     String prospectUpdatedHtmlSubject =
         "Le prospect intitulé Johnny\tPauline appartenant à l'artisan NUMER est passé en statut À"
             + " CONTACTER le 01/02/2023 01:00";
-    ProspectUpdated payload = new ProspectUpdated(prospect9(), false, DEFAULT_INSTANT);
+    ProspectUpdated payload = new ProspectUpdated(prospect9(), DEFAULT_INSTANT);
 
     subject.accept(payload);
 
@@ -173,7 +173,7 @@ class ProspectUpdatedServiceIT extends MockedThirdParties {
         "Le prospect intitulé Johnny\tPaulinette appartenant à l'artisan NUMER est passé en statut"
             + " À CONTACTER le 01/02/2023 01:00";
     Prospect payloadProspect = prospect10();
-    ProspectUpdated payload = new ProspectUpdated(payloadProspect, false, DEFAULT_INSTANT);
+    ProspectUpdated payload = new ProspectUpdated(payloadProspect, DEFAULT_INSTANT);
 
     subject.accept(payload);
 
@@ -197,7 +197,7 @@ class ProspectUpdatedServiceIT extends MockedThirdParties {
         "Le prospect intitulé Johnny\tPaul appartenant à l'artisan NUMER est passé en statut À"
             + " CONTACTER le 01/02/2023 01:00";
     Prospect updatedProspect8 = setConverted(prospect8());
-    ProspectUpdated payload = new ProspectUpdated(updatedProspect8, false, DEFAULT_INSTANT);
+    ProspectUpdated payload = new ProspectUpdated(updatedProspect8, DEFAULT_INSTANT);
 
     subject.accept(payload);
 

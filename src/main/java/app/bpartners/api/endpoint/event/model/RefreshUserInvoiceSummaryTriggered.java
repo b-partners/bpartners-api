@@ -1,5 +1,8 @@
 package app.bpartners.api.endpoint.event.model;
 
+import static app.bpartners.api.endpoint.event.EventStack.EVENT_STACK_2;
+
+import app.bpartners.api.endpoint.event.EventStack;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Duration;
 import javax.annotation.processing.Generated;
@@ -27,5 +30,10 @@ public class RefreshUserInvoiceSummaryTriggered extends PojaEvent {
   @Override
   public Duration maxConsumerBackoffBetweenRetries() {
     return Duration.ofMinutes(1);
+  }
+
+  @Override
+  public EventStack getEventStack() {
+    return EVENT_STACK_2;
   }
 }

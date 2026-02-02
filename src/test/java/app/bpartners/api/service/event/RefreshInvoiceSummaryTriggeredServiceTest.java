@@ -1,5 +1,6 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.endpoint.event.EventStack.EVENT_STACK_2;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static java.util.UUID.randomUUID;
@@ -42,5 +43,6 @@ class RefreshInvoiceSummaryTriggeredServiceTest {
         (RefreshUserInvoiceSummaryTriggered) listCaptor.getValue().getFirst();
     assertEquals(
         new RefreshUserInvoiceSummaryTriggered(userId), capturedRefreshUserInvoiceSummaryTriggered);
+    assertEquals(EVENT_STACK_2, capturedRefreshUserInvoiceSummaryTriggered.getEventStack());
   }
 }

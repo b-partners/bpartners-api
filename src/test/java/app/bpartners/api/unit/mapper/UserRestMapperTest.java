@@ -87,6 +87,10 @@ class UserRestMapperTest {
                             .endDatetime(expectedEndDatetime)
                             .build()))
                 .build());
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
 
     var actual = subject.toRest(User.builder().roles(List.of()).paymentMethodExists(true).build());
 
@@ -98,6 +102,8 @@ class UserRestMapperTest {
 
   @Test
   void user_subscription_mapped_with_null_values() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(mock(UserSubscriptionEligible.class)));
     when(subscriptionServiceMock.getSubscriptionByUser(any()))
         .thenReturn(
             UserSubscription.builder()
@@ -121,7 +127,7 @@ class UserRestMapperTest {
 
   @Test
   void user_subscription_mapped_with_default_values() {
-    var now = now();
+    var now = now().plus(1L, DAYS);
     when(subscriptionServiceMock.getSubscriptionByUser(any()))
         .thenReturn(
             UserSubscription.builder()
@@ -134,6 +140,10 @@ class UserRestMapperTest {
                             .endDatetime(now)
                             .build()))
                 .build());
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
 
     var actual = subject.toRest(User.builder().roles(List.of()).paymentMethodExists(true).build());
 

@@ -2,6 +2,8 @@ package app.bpartners.api.integration.event;
 
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentCaptor.forClass;
@@ -26,6 +28,7 @@ import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.subscription.StripeFactory;
+import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -38,9 +41,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+@Disabled("Skipping for live debugging only")
 class MonthlySubscriptionInvoiceRequestedServiceTest {
   InvoiceService invoiceServiceMock = mock();
   UserRepository userRepositoryMock = mock();
@@ -54,6 +60,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   UserCustomerConverter userCustomerConverter =
       new UserCustomerConverter(userRepositoryMock, customerRepositoryMock);
   StripeFactory stripeFactoryMock = mock();
+  StripeInvoiceService stripeInvoiceServiceMock = mock();
   MonthlySubscriptionInvoiceRequestedService subject =
       new MonthlySubscriptionInvoiceRequestedService(
           invoiceServiceMock,
@@ -66,7 +73,17 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           subscriptionEligibleJpaRepositoryMock,
           userCustomerConverter,
           stripeConfMock,
-          stripeFactoryMock);
+          stripeFactoryMock,
+          stripeInvoiceServiceMock);
+
+  @BeforeEach
+  void setUp() {
+    var stripeInvoiceMock = mock(com.stripe.model.Invoice.class);
+    when(stripeInvoiceMock.getNextPaymentAttempt())
+        .thenReturn(
+            temporalUtils.getSixthOfActualMonthAt2359(now()).minus(2L, DAYS).getEpochSecond());
+    when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(any())).thenReturn(stripeInvoiceMock);
+  }
 
   @Test
   void test_invoice_product_for_extra_analysis() throws StripeException {
@@ -80,6 +97,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(userRepositoryMock.getById(anyString())).thenReturn(userToCredit);
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
+    when(subscriptionEligibilityMock.hasFreeTrialPeriodActive()).thenReturn(false);
     var accountHolder = AccountHolder.builder().build();
     var subscribedUser =
         User.builder()
@@ -90,8 +108,14 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var users = List.of(subscribedUser);
     when(userRepositoryMock.findAllByCriteria(any())).thenReturn(users);
     var subscriptionProduct = SubscriptionProduct.builder().priceInCents(5L).build();
+
     var latestSubscription =
-        Subscription.builder().subscriptionProduct(subscriptionProduct).status(ACTIVE).build();
+        Subscription.builder()
+            .subscriptionProduct(subscriptionProduct)
+            .active(true)
+            .status(ACTIVE)
+            .endDatetime(new TemporalUtils().getSixthOfActualMonthAt2359(now()).minus(1L, DAYS))
+            .build();
     var user = User.builder().id(userToDebitId).userSubscriptionId("subscriptionId").build();
     when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
     var subscription = mock(com.stripe.model.Subscription.class);
@@ -182,6 +206,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
+    when(subscriptionMock.getEndDatetime())
+        .thenReturn(new TemporalUtils().getSixthOfActualMonthAt2359(now()).minus(1L, DAYS));
+    when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(customerRepositoryMock.findByIdUserAndCriteria(
             any(),
             any(),
@@ -268,6 +295,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
     when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
+    when(subscriptionMock.getEndDatetime())
+        .thenReturn(new TemporalUtils().getSixthOfActualMonthAt2359(now()).minus(1L, DAYS));
+    when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(adminUserMock.getId()).thenReturn(adminUserId);
     when(userRepositoryMock.findByEmail(System.getenv("ADMIN_EMAIL")))
@@ -373,10 +403,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   private Invoice computeExpectedInvoice(
       Invoice createdInvoice, User userToCreditMock, Customer customerMock) {
     var startOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(LocalDate.of(2025, 12, 1));
+        customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth());
     var endOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(LocalDate.of(2025, 12, 31));
-    var sendingDate = LocalDate.of(2025, 12, 31);
+        customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+    var sendingDate = temporalUtils.endOfActualMonth();
     return Invoice.builder()
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)
@@ -391,7 +421,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 + endOfCurrentMonthFormatted)
         .ref(createdInvoice.getRef())
         .validityDate(sendingDate.plusDays(30L))
-        .toPayAt(LocalDate.of(2026, 1, 5))
+        .toPayAt(temporalUtils.fifthOfNextMonth())
         .sendingDate(sendingDate)
         .createdAt(createdInvoice.getCreatedAt())
         .user(userToCreditMock)

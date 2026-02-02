@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TemporalUtils {
+  private static final ZoneId ZONE_ID_OF_EUROPE_PARIS = ZoneId.of("Europe/Paris");
+
   public LocalDate fifthOfNextMonth() {
     return fifthOfMonthAfter(1);
   }
@@ -81,15 +83,34 @@ public class TemporalUtils {
     };
   }
 
+  public LocalDate getLastDayOfInstant(Instant t) {
+    ZoneId zone = ZONE_ID_OF_EUROPE_PARIS;
+    return t.atZone(zone)
+        .toLocalDate()
+        .withDayOfMonth(t.atZone(zone).toLocalDate().lengthOfMonth());
+  }
+
   public Instant endOfMonth() {
     return LocalDate.now()
         .withDayOfMonth(LocalDate.now().lengthOfMonth())
         .atTime(23, 59, 59, 999_999_999)
-        .atZone(ZoneId.of("Europe/Paris")) // Zone donnée
+        .atZone(ZONE_ID_OF_EUROPE_PARIS) // Zone donnée
         .toInstant();
   }
 
   public Instant startOfMonth() {
-    return LocalDate.now().withDayOfMonth(1).atStartOfDay(ZoneId.of("Europe/Paris")).toInstant();
+    return LocalDate.now().withDayOfMonth(1).atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
+  }
+
+  public Instant getSixthOfActualMonthAt2359(Instant instant) {
+    return instant
+        .atZone(ZONE_ID_OF_EUROPE_PARIS)
+        .plusMonths(0)
+        .withDayOfMonth(6)
+        .withHour(23)
+        .withMinute(59)
+        .withSecond(0)
+        .withNano(0)
+        .toInstant();
   }
 }

@@ -256,8 +256,9 @@ public class UserRepositoryImpl implements UserRepository {
             stripePaymentMethodService.getPaymentMethod(stripeCustomerIdentifier);
         return fetchedUser.toBuilder()
             .paymentMethodExists(
-                stripePaymentMethodService.customerHasValidPaymentMethods(
-                    stripeCustomerIdentifier, paymentMethodList))
+                !paymentMethodList.isEmpty()
+                    && paymentMethodList.stream()
+                        .anyMatch(StripePaymentMethodService::isPaymentMethodValid))
             .build();
       } catch (StripeException e) {
         log.error(

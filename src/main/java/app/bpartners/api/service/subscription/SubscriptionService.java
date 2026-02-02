@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -56,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
   private static final Pattern BOT_NAME_PATTERN = Pattern.compile("^(?:[A-Za-z]{8,}\\s*){1,3}$");
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
-  private static final int DEFAULT_TRIAL_PERIOD_DAYS = 14;
+  private static final int DEFAULT_TRIAL_PERIOD_DAYS = 7;
   public static final long FREE_ROOF_ANALYSIS = 20L;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
@@ -70,6 +69,7 @@ public class SubscriptionService {
   private final DetectionTrackingJpaRepository detectionTrackingJpaRepository;
   private final StripeInvoiceService stripeInvoiceService;
   private final StripeCustomerService stripeCustomerService;
+  private final StripeSubscriptionService stripeSubscriptionService;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -219,13 +219,7 @@ public class SubscriptionService {
   public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {
     var consumptionLogs =
         findConsumptionLogsByUserId(
-            user.getId(),
-            temporalUtils.startOfLastMonth().atStartOfDay().toInstant(ZoneOffset.of("+01:00")),
-            temporalUtils
-                .endOfLastMonth()
-                .plusDays(1L)
-                .atStartOfDay()
-                .toInstant(ZoneOffset.of("+01:00")));
+            user.getId(), temporalUtils.startOfMonth(), temporalUtils.endOfMonth());
     return computeSubscriptionVariableConsumption(user, consumptionLogs);
   }
 
@@ -379,7 +373,7 @@ public class SubscriptionService {
 
   private static @NotNull List<Subscription> defaultActiveSubscription() {
     Instant now = now();
-    return defaultActiveSubscription(TRIALING, now, now);
+    return defaultActiveSubscription(TRIALING, now, now.plus(7L, DAYS));
   }
 
   @SneakyThrows
@@ -622,14 +616,7 @@ public class SubscriptionService {
     List<com.stripe.model.Subscription> stripeSubscriptions;
     try {
       stripeSubscriptions =
-          stripeClient
-              .subscriptions()
-              .list(
-                  SubscriptionListParams.builder()
-                      .setCustomer(stripeCustomerId)
-                      .setStatus(SubscriptionListParams.Status.ALL)
-                      .build())
-              .getData();
+          stripeSubscriptionService.getStripeSubscriptionsFromStripeCustomerId(stripeCustomerId);
     } catch (InvalidRequestException e) {
       var exceptionMessage = e.getMessage();
       if (exceptionMessage.contains("No such customer")) {

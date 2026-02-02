@@ -91,9 +91,6 @@ class UserRepositoryTest {
         .thenReturn(User.builder().userSubscriptionId(userSubscriptionId).build());
     when(stripePaymentMethodServiceMock.getPaymentMethod(userSubscriptionId))
         .thenReturn(paymentMethodMockList);
-    when(stripePaymentMethodServiceMock.customerHasValidPaymentMethods(
-            userSubscriptionId, paymentMethodMockList))
-        .thenReturn(true);
 
     var actual = subject.getUserByToken(token);
 

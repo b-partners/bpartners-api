@@ -245,8 +245,8 @@ class ProspectServiceTest {
     var firstEvent = (ProspectUpdated) eventCaptorValues.getFirst().getFirst();
     var secondEvent = (ProspectUpdated) eventCaptorValues.getLast().getFirst();
     assertEquals(toSave, actual);
-    assertEquals(new ProspectUpdated(prospectOne, false, firstEvent.getUpdatedAt()), firstEvent);
-    assertEquals(new ProspectUpdated(prospectTwo, false, secondEvent.getUpdatedAt()), secondEvent);
+    assertEquals(new ProspectUpdated(prospectOne, firstEvent.getUpdatedAt()), firstEvent);
+    assertEquals(new ProspectUpdated(prospectTwo, secondEvent.getUpdatedAt()), secondEvent);
   }
 
   @Test
@@ -345,8 +345,8 @@ class ProspectServiceTest {
     var firstEvent = (ProspectUpdated) eventCaptorValues.getFirst().getFirst();
     var secondEvent = (ProspectUpdated) eventCaptorValues.getLast().getFirst();
     assertEquals(toSave, actual);
-    assertEquals(new ProspectUpdated(prospectOne, false, firstEvent.getUpdatedAt()), firstEvent);
-    assertEquals(new ProspectUpdated(prospectTwo, false, secondEvent.getUpdatedAt()), secondEvent);
+    assertEquals(new ProspectUpdated(prospectOne, firstEvent.getUpdatedAt()), firstEvent);
+    assertEquals(new ProspectUpdated(prospectTwo, secondEvent.getUpdatedAt()), secondEvent);
   }
 
   @Test

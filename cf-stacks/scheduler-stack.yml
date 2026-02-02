@@ -28,7 +28,7 @@ Resources:
       FlexibleTimeWindow:
         Mode: "OFF"
       Name: !Join ['', [!Ref Env, -RefreshInvoiceSummary]]
-      ScheduleExpression: "rate(1 hour)"
+      ScheduleExpression: "cron(0 8,12,16 * * ? *)"
       Target:
         Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
         RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
@@ -91,24 +91,6 @@ Resources:
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RefreshTransactionsSummariesTriggered'
           Source: 'app.bpartners.api.event1'
-
-  UpdatePaymentScheduler:
-    Type: AWS::Scheduler::Schedule
-    Properties:
-      Description: Scheduler that trigger the update of payments
-      FlexibleTimeWindow:
-        Mode: "OFF"
-      Name: !Join ['', [!Ref Env, -UpdatePayments]]
-      ScheduleExpression: "rate(12 hours)"
-      Target:
-        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
-        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
-        DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
-        EventBridgeParameters:
-          DetailType: 'app.bpartners.api.endpoint.event.model.UpdatePaymentTriggered'
-          Source: 'app.bpartners.api.event1'
-
   RelaunchProspectsScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:

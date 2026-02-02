@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserAnalysisApiKeyJpaRepository
     extends JpaRepository<HUserAnalysisApiKey, String> {
   List<HUserAnalysisApiKey> findAllByUserId(String userId);
+
+  List<HUserAnalysisApiKey> getByApiKey(String apiKey);
 }

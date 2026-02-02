@@ -1,3 +1,39 @@
+# [0.77.0](https://github.com/b-partners/bpartners-api/compare/v0.76.0...v0.77.0) (2026-01-29)
+
+
+### Bug Fixes
+
+* accept only not expired card as default payment method ([96ecc48](https://github.com/b-partners/bpartners-api/commit/96ecc48f0c3fbc8f49afe6d59cf65339d289c8ba))
+* **DbContextInitializer:** setup 60s startup timeout to prevent flyway launch before postgres ([bd076b8](https://github.com/b-partners/bpartners-api/commit/bd076b8adc3151a3963414765ba6b67f4f5d62cd))
+* handle User and UserAnalysisApiKey entities through unidirectionnal relation ([294691f](https://github.com/b-partners/bpartners-api/commit/294691f57abc4745759c5d1e80c9156d79436e55))
+* handle user payment method verification when trial period expired ([e072c6c](https://github.com/b-partners/bpartners-api/commit/e072c6cd3b309a3bfb2be9162af2c9d2a2a0c4b2))
+* **ProspectJpaRepository:** filter existing prospects by idAccountHolder and (old email or new email) ([c420fda](https://github.com/b-partners/bpartners-api/commit/c420fda75e8dec01f424dd1713f47e59f333db27))
+* **ProspectJpaRepository:** filter existing prospects by idAccountHolder and (old email or new email) ([0de03f0](https://github.com/b-partners/bpartners-api/commit/0de03f0e2813be459fc59af44107b6e4d05b7578))
+* **ProspectJpaRepository:** reverse args on filtering existing account holder prospects ([564d177](https://github.com/b-partners/bpartners-api/commit/564d177f6dc8511faf6c9fdab82974ff253a1312))
+* **ProspectJpaRepository:** reverse args on filtering existing account holder prospects ([ad009ed](https://github.com/b-partners/bpartners-api/commit/ad009ed70e46fae7058078b02b6e98d2a922129f))
+* **RefreshInvoiceSummaryTriggeredService:** filter users to compute invoice summary to those associated to stripe only ([5daf7d2](https://github.com/b-partners/bpartners-api/commit/5daf7d2b7325ffb3b723d530832563baf1bb0724))
+* **SecurityConf:** only ADMIN can view users keys ([73dd577](https://github.com/b-partners/bpartners-api/commit/73dd57715ff61a3aa1e6dc7178d560bb4881d6b8))
+* **UserAnalysisApiKey:** ignore User attribute to avoid infinite loop ([2009823](https://github.com/b-partners/bpartners-api/commit/2009823c738bbb67815eb6b3e09c0a4203534ef4))
+* **UserAnalysisApiKeyService:** do not instance new HttpEntity and ignore deprecated attributes ([0d42a4c](https://github.com/b-partners/bpartners-api/commit/0d42a4c968224fb1c0e8bfad169c4ea08e8de1e8))
+* **UserRepository:** handle StripException when retrieving user payment methods ([90584db](https://github.com/b-partners/bpartners-api/commit/90584db0e58b5a82da87b4e912ccf2131dd13d86))
+* **UserRestMapper:** check subscription validity before free trial ([7c5e1ae](https://github.com/b-partners/bpartners-api/commit/7c5e1aeb4b4c570b1578d7040eccc405dce4e69b))
+
+
+### Features
+
+* add airbus pneo source ([675463c](https://github.com/b-partners/bpartners-api/commit/675463c844184e727651356346c901c4dbacca81))
+* api key revocation ([090b988](https://github.com/b-partners/bpartners-api/commit/090b988015ce1b19eb62509c535867b9e7384ecc))
+* get user analysis api key through existing api keys endpoint ([ec5055e](https://github.com/b-partners/bpartners-api/commit/ec5055ed29cf92248e16f3e181b30bcf9b314efe))
+* request analysis api key after user onboarding ([4edc1af](https://github.com/b-partners/bpartners-api/commit/4edc1aff3de8d14125be8284a1df571a386bc6e9))
+* support quebec coordinates ([181a374](https://github.com/b-partners/bpartners-api/commit/181a374609783b3fa50216b6d20057831e2a7150))
+
+
+### Reverts
+
+* Revert "chore: add tech email as bcc on customer crupdate event triggered" ([732b2c4](https://github.com/b-partners/bpartners-api/commit/732b2c4124790af830248ea750ebc0b00ddd493a))
+
+
+
 # [0.76.0](https://github.com/b-partners/bpartners-api/compare/v0.75.0...v0.76.0) (2026-01-09)
 
 
@@ -163,15 +199,6 @@
 * retrieve user api key by token ([9c1c570](https://github.com/b-partners/bpartners-api/commit/9c1c5707c010721a317d77c2ac073a0f8db2784f))
 * update user api key by ADMIN_ROLE ([d95e03e](https://github.com/b-partners/bpartners-api/commit/d95e03e4cd6b3d07185167d14cdcdbf9a3f142b0))
 * upload and retrieve from landing bucket ([a49c962](https://github.com/b-partners/bpartners-api/commit/a49c96299b21a2062dc65272c10c93a3232f1da3))
-
-
-
-# [0.67.0](https://github.com/b-partners/bpartners-api/compare/v0.66.0...v0.67.0) (2025-04-24)
-
-
-### Features
-
-* allow client provide autocompletion sessionId ([da8390e](https://github.com/b-partners/bpartners-api/commit/da8390e2e15fe12f534bb7f0ad93c3a49267e305))
 
 
 

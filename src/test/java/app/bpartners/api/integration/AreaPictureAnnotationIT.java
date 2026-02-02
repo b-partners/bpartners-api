@@ -16,6 +16,7 @@ import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -252,5 +253,6 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
     when(metaDataComponentMock.getXOffset()).thenReturn(1234);
     when(metaDataComponentMock.getYOffset()).thenReturn(123);
     when(metaDataComponentMock.getAirbusYear()).thenReturn(2025);
+    when(metaDataComponentMock.getLastUpdatedAt()).thenReturn(LocalDate.of(2025, 1, 1));
   }
 }

@@ -18,6 +18,7 @@ import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.account.AccountRefreshService;
 import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.user.ApiKeyService;
 import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ public class UserController {
   private final SubscriptionService subscriptionService;
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
   private final StripePortalService stripePortalService;
+  private final ApiKeyService apiKeyService;
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
@@ -84,6 +86,16 @@ public class UserController {
     var updatedUser = service.getUserById(uId).toBuilder().apiKey(apiKey.getKey()).build();
 
     return new UserApiKey().key(service.save(updatedUser).getApiKey());
+  }
+
+  @DeleteMapping("/users/{uId}/keys")
+  public List<UserApiKey> revokeUserApiKeys(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestBody List<RevokeApiKey> apiKeysToRevoke) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    return apiKeyService.revokeApiKeys(
+        apiKeysToRevoke.stream().map(RevokeApiKey::getKey).toList(), authenticatedSelfUser);
   }
 
   @PostMapping("/users/{uId}/subscriptionCancel")

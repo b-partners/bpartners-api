@@ -663,6 +663,40 @@ operations:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserApiKey'
+    delete:
+      summary: Revoke user api keys
+      operationId: revokeUserApiKeys
+      tags:
+        - User Accounts
+      parameters:
+        - in: path
+          name: uId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: As an api key is unique and only linked to one user, we can identify the owner from the key.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: './security-api.yml#/components/schemas/RevokeApiKey'
+      responses:
+        200:
+          description: List of revoked user api key
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserApiKey"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   approveLegalFile:
     put:
       summary: Approve a user legal file

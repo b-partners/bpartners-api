@@ -127,7 +127,7 @@ class UserRestMapperTest {
 
   @Test
   void user_subscription_mapped_with_default_values() {
-    var now = now();
+    var now = now().plus(1L, DAYS);
     when(subscriptionServiceMock.getSubscriptionByUser(any()))
         .thenReturn(
             UserSubscription.builder()

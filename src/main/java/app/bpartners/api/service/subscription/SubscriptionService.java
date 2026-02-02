@@ -373,7 +373,7 @@ public class SubscriptionService {
 
   private static @NotNull List<Subscription> defaultActiveSubscription() {
     Instant now = now();
-    return defaultActiveSubscription(TRIALING, now, now);
+    return defaultActiveSubscription(TRIALING, now, now.plus(7L, DAYS));
   }
 
   @SneakyThrows

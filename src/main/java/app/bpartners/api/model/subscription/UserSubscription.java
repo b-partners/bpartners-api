@@ -6,6 +6,7 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 
 import app.bpartners.api.model.User;
+import java.time.Instant;
 import java.util.List;
 import lombok.*;
 
@@ -20,7 +21,9 @@ public class UserSubscription {
   private List<Subscription> subscriptions;
 
   public boolean hasValidSubscription() {
-    return getLatestSubscription() != null && getLatestSubscription().isActive();
+    return getLatestSubscription() != null
+        && getLatestSubscription().isActive()
+        && !getLatestSubscription().getEndDatetime().isBefore(Instant.now());
   }
 
   public boolean hasLateSubscriptionPayment() {

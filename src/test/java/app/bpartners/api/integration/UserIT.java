@@ -5,6 +5,7 @@ import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_I
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.time.Instant.now;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -121,7 +122,7 @@ class UserIT extends MockedThirdParties {
   }
 
   public static UserSubscription userSubscriptionMaker(boolean isActive) {
-    Instant now = now();
+    Instant now = now().plus(1L, DAYS);
     var status = isActive ? Subscription.SubscriptionStatus.ACTIVE : null;
     return UserSubscription.builder()
         .user(new app.bpartners.api.model.User())

@@ -1,8 +1,9 @@
 package app.bpartners.api.endpoint.event.model;
 
-import static app.bpartners.api.endpoint.event.EventStack.EVENT_STACK_2;
+import static app.bpartners.api.endpoint.event.EventStack.EVENT_STACK_1;
 
 import app.bpartners.api.endpoint.event.EventStack;
+import app.bpartners.api.model.User;
 import java.time.Duration;
 import lombok.*;
 
@@ -13,7 +14,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MonthlySubscriptionInvoiceRequested extends PojaEvent {
-  private int userPage;
+  private User userToAttemptDebit;
+  private User userToCredit;
 
   @Override
   public Duration maxConsumerDuration() {
@@ -27,6 +29,6 @@ public class MonthlySubscriptionInvoiceRequested extends PojaEvent {
 
   @Override
   public EventStack getEventStack() {
-    return EVENT_STACK_2;
+    return EVENT_STACK_1;
   }
 }

@@ -1,10 +1,12 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
 import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATION_HEADER;
 import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
+import static java.time.Instant.now;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
@@ -85,7 +87,10 @@ public class UserController {
     }
     var updatedUser = service.getUserById(uId).toBuilder().apiKey(apiKey.getKey()).build();
 
-    return new UserApiKey().key(service.save(updatedUser).getApiKey());
+    return new UserApiKey()
+        .key(service.save(updatedUser).getApiKey())
+        .creationDatetime(now())
+        .type(DASHBOARD);
   }
 
   @DeleteMapping("/users/{uId}/keys")

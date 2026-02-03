@@ -1,5 +1,7 @@
 package app.bpartners.api.service.event;
 
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyRequested;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
@@ -8,6 +10,7 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.OnboardedUser;
 import app.bpartners.api.model.User;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -31,14 +34,21 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
   private final SubscriptionService subscriptionService;
   private final UserCustomerConverter userCustomerConverter;
   private final EventProducer eventProducer;
+  private final UserRepository userRepository;
 
   @Override
   public void accept(UserOnboarded event) {
     var onboardedUser = event.getOnboardedUser().getOnboardedUser();
-    subscriptionService.createOrLinkUserSubscription(onboardedUser);
-    userCustomerConverter.apply(onboardedUser);
+    var apiKey = randomUUID().toString();
+    var savedUserWithApiKey = userRepository.save(onboardedUser.toBuilder().apiKey(apiKey).build());
+    log.info(
+        "User(email={}) api key generated : {}",
+        onboardedUser.getEmail(),
+        onboardedUser.getApiKey());
+    subscriptionService.createOrLinkUserSubscription(savedUserWithApiKey);
+    userCustomerConverter.apply(savedUserWithApiKey);
     notifyByEmail(event);
-    requestAnalysisApiKey(onboardedUser);
+    requestAnalysisApiKey(savedUserWithApiKey);
   }
 
   private void requestAnalysisApiKey(User user) {

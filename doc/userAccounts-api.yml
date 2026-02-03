@@ -642,7 +642,7 @@ operations:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserApiKey'
-    put:
+    post:
       summary: Update user api key
       tags:
         - User Accounts

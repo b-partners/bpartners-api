@@ -56,6 +56,8 @@ public class StripeFactory {
       long billingCycleAnchor,
       Subscription subscription)
       throws StripeException {
+    var today = LocalDate.now();
+    boolean isTodayBeforeFifthOfActualMonth = today.isBefore(temporalUtils.fifthOfActualMonth());
     boolean isTrialEndBetweenFirstAndFifthOfActualMonth =
         (trialEnd.isAfter(temporalUtils.startOfActualMonth())
                 || trialEnd.isEqual(temporalUtils.startOfActualMonth()))
@@ -70,7 +72,8 @@ public class StripeFactory {
       return createSessionSetUp(
           stripeCustomer, redirectionUrls, subscription, price, billingCycleAnchor, user);
     } else if (trialEnd.isAfter(temporalUtils.fifthOfActualMonth())
-        && trialEnd.isBefore(temporalUtils.endOfActualMonth())) {
+        && trialEnd.isBefore(temporalUtils.endOfActualMonth())
+        && !isTodayBeforeFifthOfActualMonth) {
       return createSessionSubscription(
           stripeCustomer, subscriptionProduct, price, redirectionUrls, billingCycleAnchor);
     }

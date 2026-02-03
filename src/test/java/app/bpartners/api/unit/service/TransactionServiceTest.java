@@ -10,11 +10,9 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.hash.FileHash;
 import app.bpartners.api.model.*;
-import app.bpartners.api.repository.BridgeTransactionRepository;
 import app.bpartners.api.repository.DbTransactionRepository;
 import app.bpartners.api.repository.TransactionsSummaryRepository;
 import app.bpartners.api.repository.jpa.TransactionSupportingDocsJpaRepository;
-import app.bpartners.api.service.account.AccountService;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -30,10 +28,8 @@ import org.junit.jupiter.api.Test;
 
 class TransactionServiceTest {
   DbTransactionRepository dbTransactionRepositoryMock = mock();
-  BridgeTransactionRepository bridgeTransactionRepositoryMock = mock();
   TransactionSupportingDocsJpaRepository docsJpaRepositoryMock = mock();
   TransactionsSummaryRepository summaryRepositoryMock = mock();
-  AccountService accountServiceMock = mock();
   InvoiceService invoiceServiceMock = mock();
   S3Service s3ServiceMock = mock();
   UserService userServiceMock = mock();
@@ -43,10 +39,8 @@ class TransactionServiceTest {
   TransactionService subject =
       new TransactionService(
           dbTransactionRepositoryMock,
-          bridgeTransactionRepositoryMock,
           docsJpaRepositoryMock,
           summaryRepositoryMock,
-          accountServiceMock,
           invoiceServiceMock,
           s3ServiceMock,
           userServiceMock,

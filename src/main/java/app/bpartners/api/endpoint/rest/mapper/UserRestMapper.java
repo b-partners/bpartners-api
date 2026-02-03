@@ -30,15 +30,18 @@ public class UserRestMapper {
   public User toRest(app.bpartners.api.model.User domain) {
     // TODO: associate user subscription to User directly
     var subscription = subscriptionService.getSubscriptionByUser(domain);
-    var unpaidStripeInvoices =
-        stripeInvoiceService.getUnpaidStripeInvoices(domain.getUserSubscriptionId());
+    var userSubscriptionId =
+        domain
+            .getUserSubscriptionId(); // TODO: look why unpaidStripeInvoices could not be empty
+                                      // whenever userSubscriptionId null
+    var unpaidStripeInvoices = stripeInvoiceService.getUnpaidStripeInvoices(userSubscriptionId);
     var subscriptionEligibility =
         userSubscriptionEligibleRepository.findByUserId(domain.getId()).orElse(null);
     var subscriptionStatus =
         getSubscriptionStatus(
             subscription,
             subscriptionEligibility,
-            !unpaidStripeInvoices.isEmpty(),
+            userSubscriptionId != null && !unpaidStripeInvoices.isEmpty(),
             domain.isPaymentMethodExists());
     return new User()
         .id(domain.getId())

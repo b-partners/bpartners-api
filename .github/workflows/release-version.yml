@@ -33,6 +33,20 @@ jobs:
           sed -i 's/=/: /g' version.yml
           git status
 
+      - name: Commit version.yml if it is untracked
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git stash
+
+          if [ -n "$(git status --porcelain version.yml)" ]; then
+            echo "version.yml changed or untracked → amending commit"
+            git add version.yml
+            git commit --amend --no-edit
+          else
+            echo "version.yml unchanged → skipping commit"
+          fi
+
       # conventional-ch increments the patch version even when
       # it skipped commiting due to empty changelog. In such a case,
       # we have to retrieve the old (unchanged) version using our own means.

@@ -68,7 +68,7 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
                 onboardedUser.getOnboardedAccount(),
                 onboardedUser.getOnboardedAccountHolder()));
     try {
-      service.sendEmail(recipient, null, subject, htmlBody, attachments);
+      service.sendEmail(recipient, null, subject, htmlBody, attachments, "tech@birdia.fr");
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());
     }

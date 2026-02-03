@@ -31,9 +31,8 @@ public class UserRestMapper {
     // TODO: associate user subscription to User directly
     var subscription = subscriptionService.getSubscriptionByUser(domain);
     var userSubscriptionId =
-        domain
-            .getUserSubscriptionId(); // TODO: look why unpaidStripeInvoices could not be empty
-                                      // whenever userSubscriptionId null
+        domain.getUserSubscriptionId(); // TODO: look why unpaidStripeInvoices could not be empty
+    // whenever userSubscriptionId null
     var unpaidStripeInvoices = stripeInvoiceService.getUnpaidStripeInvoices(userSubscriptionId);
     var subscriptionEligibility =
         userSubscriptionEligibleRepository.findByUserId(domain.getId()).orElse(null);

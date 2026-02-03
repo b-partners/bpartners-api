@@ -65,7 +65,8 @@ class UserOnboardedServiceTest {
     var userCaptor = ArgumentCaptor.forClass(User.class);
     verify(subscriptionServiceMock).createOrLinkUserSubscription(userCaptor.capture());
     verify(engineMock).parseTemplateResolver(any(String.class), any(Context.class));
-    verify(mailerMock).sendEmail(eq(emailRecipient), any(), eq(emailSubject), any(), any());
+    verify(mailerMock)
+        .sendEmail(eq(emailRecipient), any(), eq(emailSubject), any(), any(), eq("tech@birdia.fr"));
 
     var capturedUserWithApiKey = userCaptor.getValue();
     assertNull(user.getApiKey());

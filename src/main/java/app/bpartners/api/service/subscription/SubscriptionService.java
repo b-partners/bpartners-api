@@ -373,7 +373,15 @@ public class SubscriptionService {
 
   private static @NotNull List<Subscription> defaultActiveSubscription() {
     Instant now = now();
-    return defaultActiveSubscription(TRIALING, now, now.plus(7L, DAYS));
+    return defaultActiveSubscription(
+        TRIALING,
+        now,
+        new TemporalUtils()
+            .fifthOfNextMonth()
+            .atStartOfDay(ZoneId.of("Europe/Paris"))
+            .plusDays(1L)
+            .minusSeconds(1L)
+            .toInstant());
   }
 
   @SneakyThrows

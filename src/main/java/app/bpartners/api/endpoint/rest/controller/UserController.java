@@ -10,7 +10,6 @@ import static java.time.Instant.now;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
-import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
 import app.bpartners.api.model.BoundedPageSize;
@@ -77,7 +76,8 @@ public class UserController {
   @GetMapping("/users/{uId}/keys")
   public List<UserApiKey> getUserApiKeys(
       @PathVariable String uId, @RequestParam(required = false) List<UserApiKeyType> keyTypes) {
-    return service.getApiKeys(AuthProvider.getAuthenticatedUser(), keyTypes);
+    var user = service.getUserById(uId);
+    return service.getApiKeys(user, keyTypes);
   }
 
   @PostMapping("/users/{uId}/keys")

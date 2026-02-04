@@ -82,8 +82,9 @@ public class UserRestMapper {
         && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
       return UserSubscriptionStatus.ACTIVE;
     }
-    if (subscription.getLatestSubscription() != null
-        && subscription.getLatestSubscription().getStatus().equals(ACTIVE)) {
+    if (subscription.hasValidSubscription()
+        && userSubscriptionEligible.hasFreeTrialPeriodActive()
+        && ACTIVE.equals(subscription.getLatestSubscription().getStatus())) {
       return UserSubscriptionStatus.ACTIVE;
     }
     if (userSubscriptionEligible.hasFreeTrialPeriodActive()) {

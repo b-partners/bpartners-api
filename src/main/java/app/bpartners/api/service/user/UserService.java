@@ -154,6 +154,11 @@ public class UserService {
     return analysisApiKeyRepository.getAllByUserId(userId);
   }
 
+  public List<UserApiKey> getApiKeys(String userId, List<UserApiKeyType> keyTypes) {
+    User user = userRepository.getById(userId);
+    return getApiKeys(user, keyTypes);
+  }
+
   // TODO: create (if not exists) internal UserApiKey component
   public List<UserApiKey> getApiKeys(User user, List<UserApiKeyType> keyTypes) {
     List<UserApiKeyType> types;

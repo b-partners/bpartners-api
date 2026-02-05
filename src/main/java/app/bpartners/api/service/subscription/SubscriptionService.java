@@ -373,7 +373,15 @@ public class SubscriptionService {
 
   private static @NotNull List<Subscription> defaultActiveSubscription() {
     Instant now = now();
-    return defaultActiveSubscription(TRIALING, now, now.plus(7L, DAYS));
+    return defaultActiveSubscription(
+        TRIALING,
+        now,
+        new TemporalUtils()
+            .fifthOfNextMonth()
+            .atStartOfDay(ZoneId.of("Europe/Paris"))
+            .plusDays(1L)
+            .minusSeconds(1L)
+            .toInstant());
   }
 
   @SneakyThrows
@@ -613,10 +621,19 @@ public class SubscriptionService {
   private @NotNull List<Subscription> getSubscriptionsFromStripeCustomer(String stripeCustomerId)
       throws StripeException {
     var activeScheduledSubscriptions = getActiveSubscriptionSchedules(stripeCustomerId);
+    log.info(
+        "Active scheduled subscriptions: {}",
+        activeScheduledSubscriptions.stream()
+            .map(SubscriptionSchedule::getCreated)
+            .map(Instant::ofEpochSecond)
+            .toList());
     List<com.stripe.model.Subscription> stripeSubscriptions;
     try {
       stripeSubscriptions =
           stripeSubscriptionService.getStripeSubscriptionsFromStripeCustomerId(stripeCustomerId);
+      log.info(
+          "Stripe subscriptions for stripeCustomerId: {}",
+          stripeSubscriptions.stream().map(com.stripe.model.Subscription::getId).toList());
     } catch (InvalidRequestException e) {
       var exceptionMessage = e.getMessage();
       if (exceptionMessage.contains("No such customer")) {
@@ -639,8 +656,10 @@ public class SubscriptionService {
       var subscriptionsFromSchedule =
           defaultActiveSubscription(ACTIVE, domainSubscriptionStartDate, domainSubscriptionEndDate);
       initialSubscription.addAll(subscriptionsFromSchedule);
+      log.info("Return subscriptions {}", initialSubscription);
       return initialSubscription;
     }
+    log.info("Return subscriptions {}", initialSubscription);
     return initialSubscription;
   }
 

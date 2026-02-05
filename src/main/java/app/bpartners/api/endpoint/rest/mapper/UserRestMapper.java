@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.mapper;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.*;
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
 import static java.time.LocalTime.MAX;
 
 import app.bpartners.api.endpoint.rest.model.*;
@@ -30,15 +31,17 @@ public class UserRestMapper {
   public User toRest(app.bpartners.api.model.User domain) {
     // TODO: associate user subscription to User directly
     var subscription = subscriptionService.getSubscriptionByUser(domain);
-    var unpaidStripeInvoices =
-        stripeInvoiceService.getUnpaidStripeInvoices(domain.getUserSubscriptionId());
+    var userSubscriptionId =
+        domain.getUserSubscriptionId(); // TODO: look why unpaidStripeInvoices could not be empty
+    // whenever userSubscriptionId null
+    var unpaidStripeInvoices = stripeInvoiceService.getUnpaidStripeInvoices(userSubscriptionId);
     var subscriptionEligibility =
         userSubscriptionEligibleRepository.findByUserId(domain.getId()).orElse(null);
     var subscriptionStatus =
         getSubscriptionStatus(
             subscription,
             subscriptionEligibility,
-            !unpaidStripeInvoices.isEmpty(),
+            userSubscriptionId != null && !unpaidStripeInvoices.isEmpty(),
             domain.isPaymentMethodExists());
     return new User()
         .id(domain.getId())
@@ -67,7 +70,7 @@ public class UserRestMapper {
       boolean userHasUnpaidStripeInvoices,
       boolean userHasPaymentMethods) {
     if (userSubscriptionEligible == null) {
-      return ACTIVE;
+      return UserSubscriptionStatus.ACTIVE;
     }
     if (!userHasPaymentMethods && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
       return PAYMENT_METHOD_REQUIRED;
@@ -77,7 +80,12 @@ public class UserRestMapper {
     }
     if (subscription.hasValidSubscription()
         && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
-      return ACTIVE;
+      return UserSubscriptionStatus.ACTIVE;
+    }
+    if (subscription.hasValidSubscription()
+        && userSubscriptionEligible.hasFreeTrialPeriodActive()
+        && ACTIVE.equals(subscription.getLatestSubscription().getStatus())) {
+      return UserSubscriptionStatus.ACTIVE;
     }
     if (userSubscriptionEligible.hasFreeTrialPeriodActive()) {
       return FREE_TRIAL;

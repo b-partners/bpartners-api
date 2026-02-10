@@ -1,6 +1,9 @@
 package app.bpartners.api.model.subscription;
 
+import static java.time.Instant.now;
+
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.time.LocalDate;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -35,4 +38,12 @@ public class UserSubscriptionSession {
 
   @Column(name = "is_cancelled")
   private boolean isCancelled;
+
+  @Column(name = "creation_datetime", updatable = false)
+  private Instant creationDatetime;
+
+  @PrePersist
+  public void onCreation() {
+    this.creationDatetime = now();
+  }
 }

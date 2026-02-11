@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.FileInfo;
@@ -66,6 +67,7 @@ class AreaPictureServiceTest {
   void save_area_picture_and_add_log() {
     doNothing().when(areaPictureZoomValidatorMock).accept(any());
     var areaPictureMock = mock(AreaPicture.class);
+    var geoPositionMock = mock(GeoPosition.class);
     var tileMock = mock(Tile.class);
     var areaPictureMapLayerMock = mock(AreaPictureMapLayer.class);
     var fileMock = mock(File.class);
@@ -83,7 +85,7 @@ class AreaPictureServiceTest {
     when(prospectMock.getOldName()).thenReturn(prospectName);
     when(prospectJpaRepositoryMock.findById(prospectId)).thenReturn(Optional.of(prospectMock));
     when(tileCreatorMock.apply(areaPictureMock)).thenReturn(tileMock);
-    when(mapLayerServiceMock.getAvailableLayersFrom(tileMock))
+    when(mapLayerServiceMock.getAvailableLayersFrom(geoPositionMock))
         .thenReturn(List.of(areaPictureMapLayerMock));
     when(wmsImageSourceMock.downloadImage(areaPictureMock)).thenReturn(fileMock);
     when(fileServiceMock.upload(any(), any(), any(), any())).thenReturn(mock(FileInfo.class));

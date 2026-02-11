@@ -20,6 +20,29 @@ import org.locationtech.jts.geom.PrecisionModel;
 public class FeatureCollectionTest {
 
   @Test
+  void haut_de_france_is_valid() {
+    var geometryFactory = new GeometryFactory(new PrecisionModel(), WGS_84_SRID);
+    //    double longitude = 2.3929595947265625;
+    //    double latitude = 51.05045943309267;
+    double longitude = 2.3935203;
+    double latitude = 51.05007060000001;
+    var areaPictureCoordinatesAsPoint =
+        geometryFactory.createPoint(new Coordinate(longitude, latitude));
+
+    List<SimpleFeature> features =
+        getFranceAndQuebecDepartementsSimpleFeaturesMatchingPredicate(
+            feature -> {
+              var geometry = (Geometry) feature.getDefaultGeometry();
+              return geometry.contains(areaPictureCoordinatesAsPoint);
+            });
+
+    List<String> matchingFeaturesName =
+        features.stream().map(f -> (String) f.getAttribute("nom")).toList();
+
+    assertTrue(matchingFeaturesName.contains("Nord"));
+  }
+
+  @Test
   void quebec_zone_is_valid() {
     var geometryFactory = new GeometryFactory(new PrecisionModel(), WGS_84_SRID);
     double longitude = -71.29137376844952;

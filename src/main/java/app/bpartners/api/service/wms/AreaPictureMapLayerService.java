@@ -2,6 +2,7 @@ package app.bpartners.api.service.wms;
 
 import static app.bpartners.api.service.wms.GeojsonFeatureCollection.getFranceAndQuebecDepartementsSimpleFeaturesMatchingPredicate;
 
+import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureMapLayerRepository;
@@ -29,8 +30,8 @@ public class AreaPictureMapLayerService {
       "532ea7da-918e-4bb7-bc34-e167a3829e19";
   private final AreaPictureMapLayerRepository repository;
 
-  public List<AreaPictureMapLayer> getAvailableLayersFrom(Tile tile) {
-    return getAvailableLayersFrom(tile.getLongitude(), tile.getLatitude());
+  public List<AreaPictureMapLayer> getAvailableLayersFrom(GeoPosition geoPosition) {
+    return getAvailableLayersFrom(geoPosition.getLongitude(), geoPosition.getLatitude());
   }
 
   public List<AreaPictureMapLayer> getAvailableLayersFrom(Double longitude, Double latitude) {

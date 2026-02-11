@@ -148,7 +148,8 @@ public class AreaPictureService {
 
   private void refreshAreaPictureMapLayers(AreaPicture areaPicture) {
     var guessedMaps =
-        new LinkedHashSet<>(mapLayerService.getAvailableLayersFrom(areaPicture.getCurrentTile()));
+        new LinkedHashSet<>(
+            mapLayerService.getAvailableLayersFrom(areaPicture.getCurrentGeoPosition()));
     var fallbackLayers =
         List.of(
             mapLayerService.getRhonePCRSLayer(),

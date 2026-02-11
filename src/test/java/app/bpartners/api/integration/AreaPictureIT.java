@@ -511,8 +511,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
     var guessedLayers =
         mapLayerService.getAvailableLayersFrom(
-            app.bpartners.api.service.wms.Tile.from(
-                coordinates.getLongitude(), coordinates.getLatitude(), ArcgisZoom.HOUSES_0));
+            new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                .longitude(coordinates.getLongitude())
+                .latitude(coordinates.getLatitude()));
 
     assertEquals(List.of(domainGeoserverCharenteLayer()), guessedLayers);
   }

@@ -37,7 +37,8 @@ public class AreaPictureMapper {
             .build();
     Tile tile = Tile.from(domain);
     domain.setCurrentTile(tile);
-    domain.setLayers(areaPictureMapLayerService.getAvailableLayersFrom(tile));
+    domain.setLayers(
+        areaPictureMapLayerService.getAvailableLayersFrom(entity.getCurrentGeoPosition()));
     return domain;
   }
 

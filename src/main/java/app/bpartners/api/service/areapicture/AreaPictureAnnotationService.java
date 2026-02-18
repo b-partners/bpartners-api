@@ -11,6 +11,7 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureAnnotationRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import app.bpartners.api.service.aws.S3Service;
 import java.time.Instant;
@@ -32,6 +33,7 @@ public class AreaPictureAnnotationService {
   private final S3Service s3Service;
   private final AreaPictureAnnotationRepository repository;
   private final ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessor;
+  private final UserRepository userRepository;
 
   public AreaPictureAnnotation save(AreaPictureAnnotation areaPictureAnnotation) {
     return repository.save(areaPictureAnnotation);
@@ -86,7 +88,9 @@ public class AreaPictureAnnotationService {
   public PreSignedURL exportAreaPictureAnnotationToPdf(
       String userId, ExportAreaPictureAnnotation annotation, byte[] globalImage3D) {
     try {
-      var generatedPDF = exportAreaPictureAnnotationPDFProcessor.process(annotation, globalImage3D);
+      var user = userRepository.getById(userId);
+      var generatedPDF =
+          exportAreaPictureAnnotationPDFProcessor.process(user, annotation, globalImage3D);
 
       var fileToUpload = fileWriter.apply(generatedPDF, null);
       var fileId = "Rapport_d_analyse_" + randomUUID() + PDF_EXTENSION;

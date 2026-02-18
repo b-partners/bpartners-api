@@ -1,15 +1,22 @@
 package app.bpartners.api.service.annotation;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import lombok.SneakyThrows;
@@ -21,6 +28,7 @@ import org.thymeleaf.context.Context;
 public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private final EmojiReplacer emojiReplacer;
+  private final FileService fileService;
 
   public static final String KEY_LABEL = "key";
   public static final String FONT_NAME = "Kumbh Sans";
@@ -29,18 +37,21 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private static final String FONT_PATH = "fonts/KumbhSans-VariableFont_YOPQ,wght.ttf";
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
-  public ExportAreaPictureAnnotationPDFGenerator(TemplateResolverEngine templateResolverEngine) {
+  public ExportAreaPictureAnnotationPDFGenerator(
+      TemplateResolverEngine templateResolverEngine, FileService fileService) {
     this.templateResolverEngine = templateResolverEngine;
     this.emojiReplacer = getEmojiReplacer();
+    this.fileService = fileService;
   }
 
   @SneakyThrows
   public byte[] apply(
+      User user,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
 
-    var html = parseDataToString(annotation, annotationImages, annotation3DImages);
+    var html = parseDataToString(user, annotation, annotationImages, annotation3DImages);
     if (annotation.getLlm() != null) {
       html = emojiReplacer.replaceEmoji(html);
     }
@@ -61,15 +72,23 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   }
 
   private String parseDataToString(
+      User user,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
     var templateEngine = templateResolverEngine.getTemplateEngine();
-    var context = createContext(annotation, annotationImages, annotation3DImages);
+
+    var idUser = user.getId();
+    var logoFileId = user.getLogoFileId();
+    var logoFile = logoFileId == null ? null : fileService.downloadFile(LOGO, idUser, logoFileId);
+
+    var context = createContext(user, logoFile, annotation, annotationImages, annotation3DImages);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 
   private Context createContext(
+      User user,
+      File logoFile,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
@@ -81,6 +100,8 @@ public class ExportAreaPictureAnnotationPDFGenerator {
             .map(ExportAreaPictureAnnotationPDFGenerator::base64ToUri)
             .toList();
 
+    context.setVariable("user", user);
+    context.setVariable("logo", logoFile);
     context.setVariable("address", annotation.getAddress());
     context.setVariable("mainImage", mainImageUri);
     context.setVariable("subImages", subImagesUris);

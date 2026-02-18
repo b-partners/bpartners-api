@@ -6,6 +6,7 @@ import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationIm
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator.GroupedByKey;
 import app.bpartners.api.service.annotation.model.Pair;
@@ -45,17 +46,20 @@ public class ExportAreaPictureAnnotationPDFProcessor {
           DEFAULT_MEASUREMENT_OFFSET,
           DEFAULT_MEASUREMENT_FONT);
 
-  public byte[] process(ExportAreaPictureAnnotation exportAnnotation) throws IOException {
-    return process(exportAnnotation, null);
-  }
-
-  public byte[] process(ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
+  public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation)
       throws IOException {
-    BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
-    return process(exportAnnotation, downloadedImage, globalImage3D);
+    return process(user, exportAnnotation, null);
   }
 
   public byte[] process(
+      User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
+      throws IOException {
+    BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
+    return process(user, exportAnnotation, downloadedImage, globalImage3D);
+  }
+
+  public byte[] process(
+      User user,
       ExportAreaPictureAnnotation exportAnnotation,
       BufferedImage downloadedImage,
       byte[] globalImage3D)
@@ -69,7 +73,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     }
 
     return exportAreaPictureAnnotationPDFGenerator.apply(
-        exportAnnotation, annotationImages, annotation3DImages);
+        user, exportAnnotation, annotationImages, annotation3DImages);
   }
 
   private Pair<String, List<String>> generateAnnotation3DImages(

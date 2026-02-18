@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;
@@ -56,7 +57,8 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     when(exportAreaPictureAnnotationImage3DGeneratorMock.generatePanImage(any(), any(), any()))
         .thenReturn(mockImage);
 
-    when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any())).thenReturn(fileMock);
+    when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any()))
+        .thenReturn(fileMock);
     when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("https://dummy.com");
 
     mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenReturn(mockImage);
@@ -71,7 +73,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   void process_pdf_ok() throws IOException {
     var expected = fileMock;
 
-    var actual = subject.process(exportAreaPictureAnnotationMock);
+    var actual = subject.process(user(), exportAreaPictureAnnotationMock);
 
     assertEquals(expected, actual);
   }
@@ -82,8 +84,18 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
 
     var error =
         assertThrows(
-            BadRequestException.class, () -> subject.process(exportAreaPictureAnnotationMock));
+            BadRequestException.class,
+            () -> subject.process(user(), exportAreaPictureAnnotationMock));
 
     assertEquals("Cannot read the image from the url", error.getMessage());
+  }
+
+  User user() {
+    return User.builder()
+        .firstName("User")
+        .lastName("Name")
+        .mobilePhoneNumber("0000000000")
+        .email("user@mail.com")
+        .build();
   }
 }

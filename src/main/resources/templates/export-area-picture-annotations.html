@@ -194,6 +194,27 @@
             display: inline-block;
         }
 
+        .footer-info {
+            width: 100%;
+            padding: 80px;
+        }
+
+        .footer-info table {
+            width: 100%;
+        }
+
+        .footer-info td {
+            padding-left: 200px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .footer-logo {
+            max-width: 150px;
+            margin: 10px auto 0 auto;
+            display: block;
+        }
+
     </style>
     <meta charset="UTF-8"/>
     <title>Rapport d'analyse</title>
@@ -226,6 +247,27 @@
                 </td>
             </tr>
         </table>
+        <div class="footer-info">
+            <table>
+                <tr>
+                    <td th:text="${user.getName()}"></td>
+                </tr>
+                <tr>
+                    <td th:text="${address}"></td>
+                </tr>
+                <tr>
+                    <td th:text="${user.getMobilePhoneNumber()}"></td>
+                </tr>
+                <tr>
+                    <td th:text="${user.getEmail()}"></td>
+                </tr>
+                <tr th:if="${logo!=null}">
+                    <td>
+                        <img class="footer-logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </section>
     <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null} ? ' last-page' : ''">
         <h2 class="annotation-information-title"> Informations des annotations </h2>

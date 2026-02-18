@@ -1,7 +1,7 @@
 package app.bpartners.api.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.integration.conf.MockedThirdParties;

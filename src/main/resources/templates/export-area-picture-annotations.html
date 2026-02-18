@@ -270,7 +270,7 @@
         </div>
     </section>
     <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null} ? ' last-page' : ''">
-        <h2 class="annotation-information-title"> Informations des annotations </h2>
+        <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
         <div th:each="annotation, annotationStat : ${page}" class="annotation-item">
             <div class="annotation-item-labels">
                 <h4 class="annotation-item-title">

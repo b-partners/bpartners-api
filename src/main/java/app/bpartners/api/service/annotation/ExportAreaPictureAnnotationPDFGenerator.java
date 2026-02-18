@@ -16,6 +16,7 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.Exception;
 import java.util.*;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
@@ -32,7 +33,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   public static final String FONT_NAME = "Kumbh Sans";
   private static final String EMOJI_PATH = "fonts/twemoji/v/14.0.2/svg";
   private static final String BASE_64_URI_PREFIX = "data:image/png;base64,";
-  private static final String FONT_PATH = "fonts/KumbhSans-VariableFont_YOPQ,wght.ttf";
+  private static final String FONT_PATH = "fonts/KumbhSans-Regular.ttf";
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
   public ExportAreaPictureAnnotationPDFGenerator(
@@ -61,12 +62,20 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       builder.useFastMode();
       builder.withHtmlContent(html, null);
       builder.useSVGDrawer(new BatikSVGDrawer());
+      builder.useFont(() -> {
+            try {
+              return new ClassPathResource(FONT_PATH).getInputStream();
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
+      , FONT_NAME);
+
       builder.toStream(outputStream);
-      builder.useFont(new ClassPathResource(FONT_PATH).getFile(), FONT_NAME);
       builder.run();
 
       return outputStream.toByteArray();
-    } catch (RuntimeException e) {
+    } catch (RuntimeException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
   }

@@ -23,6 +23,7 @@ jobs:
 
     env:
       AWS_REGION: eu-west-3
+      IMAGE_VALIDATOR_API: ${{secrets.IMAGE_VALIDATOR_API_URL}}
 
     steps:
       - uses: actions/checkout@v4.1.6

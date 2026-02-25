@@ -120,9 +120,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
   private Pair<String, List<String>> generateAnnotationImages(
       ExportAreaPictureAnnotation annotation, BufferedImage baseImage) throws IOException {
-    var mainImage =
-        generateAnnotationImageAsBase64(
-            baseImage, ANNOTATION_MAIN_CONF, annotation.getAnnotations());
+    var mainImage = generateAnnotationImageAsBase64(baseImage, ANNOTATION_MAIN_CONF, List.of());
     var subImages = new ArrayList<String>();
     var annotationsByKey = GroupedByKey.from(annotation.getAnnotations());
 

@@ -195,7 +195,8 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       Map<String, List<ExportAreaPictureAnnotationInstance>> grouped = new LinkedHashMap<>();
 
       for (var instance : instances) {
-        grouped.computeIfAbsent(getKey(instance), k -> new ArrayList<>()).add(instance);
+        String key = getKey(instance);
+        grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(instance);
       }
 
       List<GroupedByKey> result = new ArrayList<>();
@@ -208,11 +209,11 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   }
 
   public static String getKey(ExportAreaPictureAnnotationInstance instance) {
-    var key =
-        instance.getInfos().stream().filter(info -> KEY_LABEL.equals(info.getLabel())).findFirst();
-
-    return key.map(ExportAreaPictureAnnotationInstanceInfo::getValue)
-        .orElse(randomUUID().toString());
+    return instance.getInfos().stream()
+        .filter(info -> KEY_LABEL.equals(info.getLabel()))
+        .map(ExportAreaPictureAnnotationInstanceInfo::getValue)
+        .findFirst()
+        .orElse("generated_key_" + randomUUID());
   }
 
   private static String base64ToUri(String base64Image) {

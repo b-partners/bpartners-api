@@ -351,9 +351,10 @@ public class SubscriptionService {
         subscriptionEligibleJpaRepository.findByUserId(user.getId());
     if (optionalUserSubscriptionEligible.isPresent()) {
       var subscriptionEligible = optionalUserSubscriptionEligible.get();
-      if (!subscriptionEligible.hasFreeTrialPeriodActive()) {
-        var stripeCustomerId = user.getUserSubscriptionId();
-        var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
+      var stripeCustomerId = user.getUserSubscriptionId();
+      var subscriptions = getSubscriptionsFromStripeCustomer(stripeCustomerId);
+      if (!subscriptionEligible.hasFreeTrialPeriodActive()
+          || (subscriptionEligible.hasFreeTrialPeriodActive() && !subscriptions.isEmpty())) {
         return UserSubscription.builder().user(user).subscriptions(subscriptions).build();
       }
     }

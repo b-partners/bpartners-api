@@ -39,6 +39,8 @@ public final class GeojsonFeatureCollection {
       readFranceDepartementsFeatureCollectionAsList(10);
   private static final List<SimpleFeature> QUEBEC_1_SFS =
       readFranceDepartementsFeatureCollectionAsList(11);
+  private static final List<SimpleFeature> LUXEMEBOURG =
+      readFranceDepartementsFeatureCollectionAsList(12);
 
   @SneakyThrows
   private static List<SimpleFeature> readFranceDepartementsFeatureCollectionAsList(
@@ -61,7 +63,8 @@ public final class GeojsonFeatureCollection {
             FRANCE_DEPARTEMENTS_8_SFS,
             FRANCE_DEPARTEMENTS_9_SFS,
             FRANCE_DEPARTEMENTS_10_SFS,
-            QUEBEC_1_SFS);
+            QUEBEC_1_SFS,
+            LUXEMEBOURG);
     var matcherFunction = matchPredicate(predicate);
     allLists.forEach(list -> result.addAll(matcherFunction.apply(list)));
     return result;

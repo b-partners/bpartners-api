@@ -14,12 +14,9 @@ import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import javax.imageio.ImageIO;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -84,14 +81,6 @@ public class ExportAreaPictureAnnotationPDFGenerator {
 
     var context = createContext(user, logoBase64, annotation, annotationImages, annotation3DImages);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
-  }
-
-  private BufferedImage bufferImage(File imageFile) {
-    try {
-      return ImageIO.read(new File(imageFile.getAbsoluteFile().toURI()));
-    } catch (IOException e) {
-      throw new RuntimeException("Error while buffering image : " + e);
-    }
   }
 
   private Context createContext(

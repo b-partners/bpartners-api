@@ -71,7 +71,10 @@ public class ExportAreaPictureAnnotationPDFProcessor {
         generateAnnotationImages(exportAnnotation, downloadedImage);
     Pair<String, List<String>> annotation3DImages = null;
     BufferedImage logo = getUserLogo(user);
-    String logoBase64 = logo == null ? null : base64(logo);
+    String logoBase64 =
+        logo == null
+            ? null
+            : generateAnnotationImageAsBase64(logo, ANNOTATION_SUB_IMAGE_CONF, List.of());
 
     if (exportAnnotation.get3d() != null && globalImage3D != null) {
       annotation3DImages = generateAnnotation3DImages(exportAnnotation.get3d(), globalImage3D);

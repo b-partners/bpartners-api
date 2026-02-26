@@ -196,7 +196,7 @@
 
         .footer-info {
             width: 100%;
-            padding: 80px;
+            padding-top: 40px;
         }
 
         .footer-info table {
@@ -210,8 +210,9 @@
         }
 
         .footer-logo {
-            max-width: 150px;
-            margin: 10px auto 0 auto;
+            /*max-width: 150px;*/
+            max-height: 120px;
+            margin-top: 20px;
             display: block;
         }
 
@@ -263,7 +264,7 @@
                 </tr>
                 <tr th:if="${logo!=null}">
                     <td>
-                        <img class="footer-logo" th:src="${'data:image/jpeg;base64,' + logo}" alt="logo"/>
+                        <img class="footer-logo" th:src="${logo}" alt="logo"/>
                     </td>
                 </tr>
             </table>

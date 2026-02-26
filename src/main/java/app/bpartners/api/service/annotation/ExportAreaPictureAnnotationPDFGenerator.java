@@ -1,6 +1,5 @@
 package app.bpartners.api.service.annotation;
 
-import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.UUID.randomUUID;
 
@@ -15,10 +14,12 @@ import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import javax.imageio.ImageIO;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -47,11 +48,13 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   @SneakyThrows
   public byte[] apply(
       User user,
+      String logoBase64,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
 
-    var html = parseDataToString(user, annotation, annotationImages, annotation3DImages);
+    var html =
+        parseDataToString(user, logoBase64, annotation, annotationImages, annotation3DImages);
     if (annotation.getLlm() != null) {
       html = emojiReplacer.replaceEmoji(html);
     }
@@ -73,27 +76,33 @@ public class ExportAreaPictureAnnotationPDFGenerator {
 
   private String parseDataToString(
       User user,
+      String logoBase64,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
     var templateEngine = templateResolverEngine.getTemplateEngine();
 
-    var idUser = user.getId();
-    var logoFileId = user.getLogoFileId();
-    var logoFile = logoFileId == null ? null : fileService.downloadFile(LOGO, idUser, logoFileId);
-
-    var context = createContext(user, logoFile, annotation, annotationImages, annotation3DImages);
+    var context = createContext(user, logoBase64, annotation, annotationImages, annotation3DImages);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
+  }
+
+  private BufferedImage bufferImage(File imageFile) {
+    try {
+      return ImageIO.read(new File(imageFile.getAbsoluteFile().toURI()));
+    } catch (IOException e) {
+      throw new RuntimeException("Error while buffering image : " + e);
+    }
   }
 
   private Context createContext(
       User user,
-      File logoFile,
+      String logoBase64,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
     var context = new Context();
 
+    var logoUri = base64ToUri(logoBase64);
     var mainImageUri = base64ToUri(annotationImages.first());
     var subImagesUris =
         annotationImages.second().stream()
@@ -101,7 +110,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
             .toList();
 
     context.setVariable("user", user);
-    context.setVariable("logo", logoFile);
+    context.setVariable("logo", logoUri);
     context.setVariable("address", annotation.getAddress());
     context.setVariable("mainImage", mainImageUri);
     context.setVariable("subImages", subImagesUris);

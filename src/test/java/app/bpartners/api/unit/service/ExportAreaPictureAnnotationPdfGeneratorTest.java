@@ -45,6 +45,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
   @Test
   void generate_pdf_ok() throws IOException {
     var annotationImage = bufferedImageToBase64(mockImage);
+    var logoImage = bufferedImageToBase64(mockImage);
     var exportAreaPictureAnnotation = exportAreaPictureAnnotation();
     var subImages =
         exportAreaPictureAnnotation.getAnnotations().stream()
@@ -56,6 +57,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
             () ->
                 subject.apply(
                     user(),
+                    logoImage,
                     exportAreaPictureAnnotation,
                     new Pair<>(annotationImage, subImages),
                     null));

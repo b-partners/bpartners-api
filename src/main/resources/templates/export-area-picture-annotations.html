@@ -194,6 +194,28 @@
             display: inline-block;
         }
 
+        .footer-info {
+            width: 100%;
+            padding-top: 40px;
+        }
+
+        .footer-info table {
+            width: 100%;
+        }
+
+        .footer-info td {
+            padding-left: 40px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .footer-logo {
+            /*max-width: 150px;*/
+            max-height: 120px;
+            margin-top: 20px;
+            display: block;
+        }
+
     </style>
     <meta charset="UTF-8"/>
     <title>Rapport d'analyse</title>
@@ -226,9 +248,25 @@
                 </td>
             </tr>
         </table>
+        <div class="footer-info">
+            <table>
+                <tr>
+                    <td>
+                        <div th:text="${user.getName()}"></div>
+                        <div th:text="${address}"></div>
+                        <div th:text="${user.getMobilePhoneNumber()}"></div>
+                        <div th:text="${user.getEmail()}"></div>
+                    </td>
+
+                    <td th:if="${logo!=null}">
+                        <img class="footer-logo" th:src="${logo}" alt="logo"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </section>
     <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null} ? ' last-page' : ''">
-        <h2 class="annotation-information-title"> Informations des annotations </h2>
+        <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
         <div th:each="annotation, annotationStat : ${page}" class="annotation-item">
             <div class="annotation-item-labels">
                 <h4 class="annotation-item-title">

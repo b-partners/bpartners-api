@@ -6,12 +6,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -33,12 +35,14 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGeneratorMock = mock();
   ExportAreaPictureAnnotationImage3DGenerator exportAreaPictureAnnotationImage3DGeneratorMock =
       mock();
+  FileService fileServiceMock = mock();
 
   ExportAreaPictureAnnotationPDFProcessor subject =
       new ExportAreaPictureAnnotationPDFProcessor(
           exportAreaPictureAnnotationPDFGenerator,
           exportAreaPictureAnnotationImageGeneratorMock,
-          exportAreaPictureAnnotationImage3DGeneratorMock);
+          exportAreaPictureAnnotationImage3DGeneratorMock,
+          fileServiceMock);
 
   @BeforeAll
   static void createMockImage() throws IOException {
@@ -48,7 +52,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   }
 
   @BeforeEach
-  void setup() {
+  void setup() throws IOException {
     when(exportAreaPictureAnnotationImageGeneratorMock.apply(any(), any(), any()))
         .thenReturn(mockImage);
     when(exportAreaPictureAnnotationImage3DGeneratorMock.generateBaseImage(any()))
@@ -56,8 +60,11 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     when(exportAreaPictureAnnotationImage3DGeneratorMock.generatePanImage(any(), any(), any()))
         .thenReturn(mockImage);
 
-    when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any())).thenReturn(fileMock);
+    when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any(), any()))
+        .thenReturn(fileMock);
     when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("https://dummy.com");
+    when(fileServiceMock.downloadFile(any(), any(), any()))
+        .thenReturn(new ClassPathResource("files/downloaded-annotation-image.jpeg").getFile());
 
     mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenReturn(mockImage);
   }
@@ -69,9 +76,15 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
 
   @Test
   void process_pdf_ok() throws IOException {
+    subject =
+        new ExportAreaPictureAnnotationPDFProcessor(
+            exportAreaPictureAnnotationPDFGenerator,
+            exportAreaPictureAnnotationImageGeneratorMock,
+            exportAreaPictureAnnotationImage3DGeneratorMock,
+            fileServiceMock);
     var expected = fileMock;
 
-    var actual = subject.process(exportAreaPictureAnnotationMock);
+    var actual = subject.process(user(), exportAreaPictureAnnotationMock);
 
     assertEquals(expected, actual);
   }
@@ -82,8 +95,19 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
 
     var error =
         assertThrows(
-            BadRequestException.class, () -> subject.process(exportAreaPictureAnnotationMock));
+            BadRequestException.class,
+            () -> subject.process(user(), exportAreaPictureAnnotationMock));
 
     assertEquals("Cannot read the image from the url", error.getMessage());
+  }
+
+  User user() {
+    return User.builder()
+        .id("userId")
+        .firstName("User")
+        .lastName("Name")
+        .mobilePhoneNumber("0000000000")
+        .email("user@mail.com")
+        .build();
   }
 }

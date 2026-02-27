@@ -1,14 +1,17 @@
 package app.bpartners.api.service.annotation;
 
+import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.file.FileWriter.base64Image;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator.GroupedByKey;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,18 +47,22 @@ public class ExportAreaPictureAnnotationPDFProcessor {
           DEFAULT_MEASUREMENT_TEXT_COLOR,
           DEFAULT_MEASUREMENT_OFFSET,
           DEFAULT_MEASUREMENT_FONT);
+  private final FileService fileService;
 
-  public byte[] process(ExportAreaPictureAnnotation exportAnnotation) throws IOException {
-    return process(exportAnnotation, null);
-  }
-
-  public byte[] process(ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
+  public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation)
       throws IOException {
-    BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
-    return process(exportAnnotation, downloadedImage, globalImage3D);
+    return process(user, exportAnnotation, null);
   }
 
   public byte[] process(
+      User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
+      throws IOException {
+    BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
+    return process(user, exportAnnotation, downloadedImage, globalImage3D);
+  }
+
+  public byte[] process(
+      User user,
       ExportAreaPictureAnnotation exportAnnotation,
       BufferedImage downloadedImage,
       byte[] globalImage3D)
@@ -63,13 +70,35 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     Pair<String, List<String>> annotationImages =
         generateAnnotationImages(exportAnnotation, downloadedImage);
     Pair<String, List<String>> annotation3DImages = null;
+    BufferedImage logo = getUserLogo(user);
+    String logoBase64 =
+        logo == null
+            ? null
+            : generateAnnotationImageAsBase64(logo, ANNOTATION_SUB_IMAGE_CONF, List.of());
 
     if (exportAnnotation.get3d() != null && globalImage3D != null) {
       annotation3DImages = generateAnnotation3DImages(exportAnnotation.get3d(), globalImage3D);
     }
 
     return exportAreaPictureAnnotationPDFGenerator.apply(
-        exportAnnotation, annotationImages, annotation3DImages);
+        user, logoBase64, exportAnnotation, annotationImages, annotation3DImages);
+  }
+
+  private BufferedImage getUserLogo(User user) {
+    var idUser = user.getId();
+    var logoFileId = user.getLogoFileId();
+
+    var logoFile = logoFileId == null ? null : fileService.downloadFile(LOGO, idUser, logoFileId);
+
+    if (logoFile == null) {
+      log.info("User {}({}) has no logo", user.getEmail(), idUser);
+      return null;
+    }
+    try {
+      return ImageIO.read(logoFile.toURI().toURL());
+    } catch (IOException e) {
+      throw new BadRequestException("Cannot read the logo file");
+    }
   }
 
   private Pair<String, List<String>> generateAnnotation3DImages(

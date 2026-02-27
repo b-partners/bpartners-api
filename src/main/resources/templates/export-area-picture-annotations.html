@@ -204,7 +204,7 @@
         }
 
         .footer-info td {
-            padding-left: 200px;
+            padding-left: 40px;
             text-align: left;
             vertical-align: middle;
         }
@@ -251,19 +251,14 @@
         <div class="footer-info">
             <table>
                 <tr>
-                    <td th:text="${user.getName()}"></td>
-                </tr>
-                <tr>
-                    <td th:text="${address}"></td>
-                </tr>
-                <tr>
-                    <td th:text="${user.getMobilePhoneNumber()}"></td>
-                </tr>
-                <tr>
-                    <td th:text="${user.getEmail()}"></td>
-                </tr>
-                <tr th:if="${logo!=null}">
                     <td>
+                        <div th:text="${user.getName()}"></div>
+                        <div th:text="${address}"></div>
+                        <div th:text="${user.getMobilePhoneNumber()}"></div>
+                        <div th:text="${user.getEmail()}"></div>
+                    </td>
+
+                    <td th:if="${logo!=null}">
                         <img class="footer-logo" th:src="${logo}" alt="logo"/>
                     </td>
                 </tr>

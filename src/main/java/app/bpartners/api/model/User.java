@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -126,10 +127,11 @@ public class User implements Serializable {
   }
 
   public String getDefaultWebsite() {
-    AccountHolder defaultAccountHolder =
-        accountHolders.stream().filter(ac -> ac.getWebsite() != null).findFirst().orElse(null);
+    Optional<AccountHolder> optionalDefaultAccountHolder =
+        accountHolders.stream().filter(ac -> ac.getWebsite() != null).findFirst();
 
-    if (defaultAccountHolder != null) {
+    if (optionalDefaultAccountHolder.isPresent()) {
+      AccountHolder defaultAccountHolder = optionalDefaultAccountHolder.get();
       var website = defaultAccountHolder.getWebsite();
       return website == null || website.isEmpty() ? null : website;
     }

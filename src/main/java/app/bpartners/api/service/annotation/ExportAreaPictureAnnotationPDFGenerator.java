@@ -99,6 +99,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
             .toList();
 
     context.setVariable("user", user);
+    context.setVariable("userWebsite", user.getDefaultWebsite());
     context.setVariable("logo", logoUri);
     context.setVariable("address", annotation.getAddress());
     context.setVariable("mainImage", mainImageUri);

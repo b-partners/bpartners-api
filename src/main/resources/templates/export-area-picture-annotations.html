@@ -260,6 +260,9 @@
                         <div th:text="${address}"></div>
                         <div th:text="${user.getMobilePhoneNumber()}"></div>
                         <div th:text="${user.getEmail()}"></div>
+                        <div th:if="${userWebsite}">
+                            <a th:href="${userWebsite}" th:text="${userWebsite}"></a>
+                        </div>
                     </td>
 
                     <td th:if="${logo!=null}">

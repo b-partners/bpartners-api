@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
 import app.bpartners.api.service.file.FileService;
@@ -69,8 +70,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
     assertNotNull(pdfBytes);
     String now = now().format(DateTimeFormatter.ISO_DATE_TIME).replace(":", "-");
-    Files.write(
-        Paths.get(String.format("build/little-fonted-annotation-export-%s.pdf", now)), pdfBytes);
+    Files.write(Paths.get(String.format("build/annotation-export-%s.pdf", now)), pdfBytes);
   }
 
   private ExportAreaPictureAnnotation fullExportAreaPictureAnnotation() {
@@ -178,6 +178,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         .mobilePhoneNumber("0000000000")
         .email("user@mail.com")
         .logoFileId("logoFileId")
+        .accountHolders(
+            List.of(AccountHolder.builder().website("https://fancywebsite.com").build()))
         .build();
   }
 

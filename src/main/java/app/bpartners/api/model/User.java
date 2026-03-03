@@ -129,15 +129,10 @@ public class User implements Serializable {
   public String getDefaultWebsite() {
     if (accountHolders == null) return null;
 
-    Optional<AccountHolder> optionalDefaultAccountHolder =
-        accountHolders.stream().filter(ac -> ac.getWebsite() != null).findFirst();
-
-    if (optionalDefaultAccountHolder.isPresent()) {
-      AccountHolder defaultAccountHolder = optionalDefaultAccountHolder.get();
-      var website = defaultAccountHolder.getWebsite();
-      return website == null || website.isEmpty() ? null : website;
-    }
-
-    return null;
+    return accountHolders.stream()
+        .map(AccountHolder::getWebsite)
+        .filter(w -> w != null && !w.isEmpty())
+        .findFirst()
+        .orElse(null);
   }
 }

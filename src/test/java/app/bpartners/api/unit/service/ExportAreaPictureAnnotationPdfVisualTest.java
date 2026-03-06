@@ -22,11 +22,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-@Disabled("This is a visual test to generate a PDF file for manual inspection.")
+// @Disabled("This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
@@ -79,14 +78,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         .address("123 Rue de la Test, 75000 Paris")
         .globalRateValue(75.5)
         .globalRateType("C")
-        .llm(
-            "<h2>Analyse LLM</h2><p>L'état général du bâtiment est satisfaisant. "
-                + "Cependant, quelques points d'attention ont été relevés :</p>"
-                + "<ul>"
-                + "<li>Présence de fissures sur la façade nord 🛠️</li>"
-                + "<li>Traces d'humidité près de la gouttière 📸</li>"
-                + "<li>Besoin d'un nettoyage approfondi de la toiture 🔍</li>"
-                + "</ul>")
+        .llm(null)
         .annotations(
             List.of(
                 exportInstance("Façade", "Fissure", "Légère", "2m", 50, 50, 150, 150),

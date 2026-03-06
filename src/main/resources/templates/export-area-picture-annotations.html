@@ -245,7 +245,7 @@
                         </tr>
                     </table>
                 </td>
-                <td class="degradation-right">
+                <td class="degradation-right" th:if="${globalRateValue}">
                     <div class="degradation-score">
                         <span th:text="'NOTE DE DÉGRADATION GLOBALE : ' + ${globalRateValue} + '%'"></span>
                     </div>

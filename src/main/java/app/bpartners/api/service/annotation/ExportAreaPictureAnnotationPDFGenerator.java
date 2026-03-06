@@ -110,6 +110,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     if (annotation.getLlm() != null) {
       configureLLMContext(context, annotation);
     }
+
+    if (annotation.getGlobalRateValue() != null || annotation.getGlobalRateType() != null) {
+      configureGlobalRateContext(context, annotation);
+    }
     if (annotation.get3d() != null) {
       configureAnnotation3DContext(context, annotation.get3d(), annotation3DImages);
     }
@@ -119,6 +123,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
 
   private static void configureLLMContext(Context context, ExportAreaPictureAnnotation annotation) {
     context.setVariable("llm", annotation.getLlm());
+  }
+
+  private static void configureGlobalRateContext(
+      Context context, ExportAreaPictureAnnotation annotation) {
     context.setVariable("globalRateType", annotation.getGlobalRateType());
     context.setVariable("globalRateValue", annotation.getGlobalRateValue());
     context.setVariable(

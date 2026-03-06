@@ -16,7 +16,6 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.Exception;
 import java.util.*;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;

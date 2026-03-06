@@ -3,6 +3,7 @@ package app.bpartners.api.service.annotation;
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.file.FileWriter.base64Image;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
+import static app.bpartners.api.service.annotation.ImageCompresser.compressImage;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
@@ -22,6 +23,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -58,7 +60,8 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
       throws IOException {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
-    return process(user, exportAnnotation, downloadedImage, globalImage3D);
+    BufferedImage compressedImage = compressImage(downloadedImage);
+    return process(user, exportAnnotation, compressedImage, globalImage3D);
   }
 
   public byte[] process(

@@ -158,6 +158,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(DELETE, "/api/keys")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(DELETE, "/prospect/*")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(GET, "/accountHolders")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(GET, "/users")

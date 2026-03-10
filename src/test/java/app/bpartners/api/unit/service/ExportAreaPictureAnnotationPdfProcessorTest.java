@@ -15,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import javax.imageio.ImageIO;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,6 @@ import org.springframework.core.io.ClassPathResource;
 class ExportAreaPictureAnnotationPdfProcessorTest {
   byte[] fileMock = new byte[] {1, 2, 3, 4};
   private static BufferedImage mockImage;
-  MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class);
 
   ExportAreaPictureAnnotation exportAreaPictureAnnotationMock = mock();
   ExportAreaPictureAnnotationPDFGenerator exportAreaPictureAnnotationPDFGenerator = mock();
@@ -64,13 +62,6 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("https://dummy.com");
     when(fileServiceMock.downloadFile(any(), any(), any()))
         .thenReturn(new ClassPathResource("files/downloaded-annotation-image.jpeg").getFile());
-
-    mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenReturn(mockImage);
-  }
-
-  @AfterEach
-  void cleanup() {
-    mockedImageIo.close();
   }
 
   @Test
@@ -91,6 +82,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
 
   @Test
   void should_throw_if_cannot_read_the_image() {
+    MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class);
     mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenThrow(new IOException());
 
     var error =
@@ -99,6 +91,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
             () -> subject.process(user(), exportAreaPictureAnnotationMock));
 
     assertEquals("Cannot read the image from the url", error.getMessage());
+    mockedImageIo.close();
   }
 
   User user() {

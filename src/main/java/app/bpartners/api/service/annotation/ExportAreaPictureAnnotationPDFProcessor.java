@@ -15,9 +15,12 @@ import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
@@ -148,10 +151,14 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     return base64(generatedImage);
   }
 
-  private static String base64(BufferedImage bufferedImage) throws IOException {
-    var outputStream = new ByteArrayOutputStream();
-    ImageIO.write(bufferedImage, IMAGE_FORMAT, outputStream);
-    return base64Image(outputStream.toByteArray());
+  private static String base64(BufferedImage image) throws IOException {
+    try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+        OutputStream b64 = Base64.getEncoder().wrap(out)) {
+
+      ImageIO.write(image, IMAGE_FORMAT, b64);
+      b64.flush();
+      return out.toString(StandardCharsets.ISO_8859_1);
+    }
   }
 
   private static BufferedImage downloadImage(String imageUrl) {

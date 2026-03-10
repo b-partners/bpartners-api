@@ -1,8 +1,10 @@
 package app.bpartners.api.service.annotation;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -12,6 +14,21 @@ import org.springframework.core.io.ClassPathResource;
 class ImageCompressorTest {
 
   ImageCompressor subject = new ImageCompressor();
+
+  @Test
+  void compressByteArray_should_produce_valid_image_under_target_size() throws IOException {
+    byte[] originalBytes =
+        new ClassPathResource("files/image-with-vegetation.jpg").getInputStream().readAllBytes();
+
+    byte[] actual = subject.compressImage(originalBytes);
+
+    long targetSize = 200 * 1024; // 200 KB
+    assertTrue(actual.length <= targetSize);
+    BufferedImage actualBuffered = ImageIO.read(new ByteArrayInputStream(actual));
+    assertNotNull(actualBuffered);
+    assertTrue(actualBuffered.getWidth() <= 500);
+    assertTrue(actualBuffered.getHeight() <= 500);
+  }
 
   @Test
   void compress_image_should_respect_target_size_and_max_dimensions() throws IOException {

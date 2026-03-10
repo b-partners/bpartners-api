@@ -538,4 +538,11 @@ class ProspectServiceTest {
     assertEquals(List.of(prospectResult), actual);
     verify(customerServiceMock, times(1)).findByAccountHolderId(any());
   }
+
+  @Test
+  void delete_prospect_by_id_ok() {
+    String prospectId = "prospectId";
+    var deletedProspect = subject.deleteProspectById(prospectId);
+    assertEquals("Prospect has been successfully deleted", deletedProspect);
+  }
 }

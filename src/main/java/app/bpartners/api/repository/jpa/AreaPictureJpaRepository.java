@@ -10,4 +10,6 @@ public interface AreaPictureJpaRepository extends JpaRepository<HAreaPicture, St
 
   List<HAreaPicture> findAllByIdUserAndAddressContainingIgnoreCaseAndFilenameContainingIgnoreCase(
       String idUser, String address, String filename);
+
+  void deleteByIdProspect(String id);
 }

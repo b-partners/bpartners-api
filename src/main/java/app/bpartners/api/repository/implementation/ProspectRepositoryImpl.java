@@ -29,6 +29,8 @@ import app.bpartners.api.repository.expressif.fact.Robbery;
 import app.bpartners.api.repository.expressif.model.InputForm;
 import app.bpartners.api.repository.expressif.model.InputValue;
 import app.bpartners.api.repository.expressif.model.OutputValue;
+import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
+import app.bpartners.api.repository.jpa.HasCustomerJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectEvalInfoJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
@@ -77,6 +79,8 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   private final ProspectEvalInfoJpaRepository evalRepository;
   private final EntityManager em;
   private final SogefiBuildingPermitRepository sogefiRepository;
+  private final AreaPictureJpaRepository areaPictureJpaRepository;
+  private final HasCustomerJpaRepository hasCustomerJpaRepository;
 
   @Override
   public Prospect getById(String id) {
@@ -286,6 +290,14 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     return evalRepository.saveAll(prospectEvalEntities).stream()
         .map(evalMapper::toResultDomain)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional
+  public void deleteProspectById(String id) {
+    areaPictureJpaRepository.deleteByIdProspect(id);
+    hasCustomerJpaRepository.deleteByIdProspect(id);
+    jpaRepository.deleteById(id);
   }
 
   private HProspectEvalInfo getInfoEntity(ProspectEval prospectEval, HProspectEval lastEval) {

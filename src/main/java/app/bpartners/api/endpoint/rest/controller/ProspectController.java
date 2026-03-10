@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.endpoint.rest.security.UsernamePasswordAuthenticator;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.BoundedPageSize;
@@ -19,6 +20,7 @@ import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
 import app.bpartners.api.service.prospect.ProspectService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,6 +54,7 @@ public class ProspectController {
   private final ProspectJobRestMapper jobRestMapper;
   private final EventProducer eventProducer;
   private final FileWriter fileWriter;
+  private UsernamePasswordAuthenticator authenticator;
 
   private static Double getMinCustomerRating(HttpHeaders headers) {
     try {
@@ -295,5 +299,11 @@ public class ProspectController {
   public Prospect getProspectById(
       @PathVariable("ahId") String accountHolderId, @PathVariable("id") String prospectId) {
     return mapper.toRest(service.getById(prospectId));
+  }
+
+  @DeleteMapping("/prospect/{id}")
+  public String deleteProspectById(HttpServletRequest request, @PathVariable String id) {
+    authenticator.retrieveUserWithoutLegalFileCheck(request);
+    return service.deleteProspectById(id);
   }
 }

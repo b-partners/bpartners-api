@@ -949,4 +949,9 @@ public class ProspectService {
     }
     return prospectsByHolder;
   }
+
+  public String deleteProspectById(String id) {
+    repository.deleteProspectById(id);
+    return "Prospect has been successfully deleted";
+  }
 }

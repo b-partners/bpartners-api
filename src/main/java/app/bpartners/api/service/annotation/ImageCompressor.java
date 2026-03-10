@@ -35,24 +35,26 @@ public class ImageCompressor {
       long targetSize = 200 * 1024; // 200 KB
       float quality = computeImageQuality(currentSize, targetSize);
 
-      // Resize using Thumbnailator
       BufferedImage temp =
           Thumbnails.of(originalImage)
               .size(500, 500)
-              .outputFormat(IMAGE_FORMAT) // always use "jpeg"
+              .outputFormat(IMAGE_FORMAT)
               .outputQuality(quality)
               .asBufferedImage();
 
-      // Ensure JPEG-compatible type
-      BufferedImage compatible =
-          new BufferedImage(temp.getWidth(), temp.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-      compatible.getGraphics().drawImage(temp, 0, 0, null);
-
-      return compatible;
+      return convertToJPEGCompatibleType(temp);
 
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private BufferedImage convertToJPEGCompatibleType(BufferedImage image) {
+    BufferedImage compatible =
+        new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+    compatible.getGraphics().drawImage(image, 0, 0, null);
+
+    return compatible;
   }
 
   private long getImageSizeBytes(BufferedImage image) throws IOException {

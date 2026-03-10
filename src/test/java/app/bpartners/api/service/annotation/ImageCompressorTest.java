@@ -1,7 +1,6 @@
 package app.bpartners.api.service.annotation;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -46,5 +45,19 @@ class ImageCompressorTest {
 
     long targetSize = 200 * 1024; // 200 KB
     assertTrue(actualSize <= targetSize);
+  }
+
+  @Test
+  void compressImage_should_throw_when_image_format_invalid() {
+    BufferedImage img = null;
+
+    assertThrows(RuntimeException.class, () -> subject.compressImage(img));
+  }
+
+  @Test
+  void compressImage_should_throw_when_invalid_image_bytes() {
+    byte[] invalid = "invalid".getBytes();
+
+    assertThrows(RuntimeException.class, () -> subject.compressImage(invalid));
   }
 }

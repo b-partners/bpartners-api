@@ -8,10 +8,7 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.*;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
@@ -36,13 +33,15 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   ExportAreaPictureAnnotationImage3DGenerator exportAreaPictureAnnotationImage3DGeneratorMock =
       mock();
   FileService fileServiceMock = mock();
+  ImageCompressor imageCompressor = new ImageCompressor();
 
   ExportAreaPictureAnnotationPDFProcessor subject =
       new ExportAreaPictureAnnotationPDFProcessor(
           exportAreaPictureAnnotationPDFGenerator,
           exportAreaPictureAnnotationImageGeneratorMock,
           exportAreaPictureAnnotationImage3DGeneratorMock,
-          fileServiceMock);
+          fileServiceMock,
+          imageCompressor);
 
   @BeforeAll
   static void createMockImage() throws IOException {
@@ -81,7 +80,8 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
             exportAreaPictureAnnotationPDFGenerator,
             exportAreaPictureAnnotationImageGeneratorMock,
             exportAreaPictureAnnotationImage3DGeneratorMock,
-            fileServiceMock);
+            fileServiceMock,
+            imageCompressor);
     var expected = fileMock;
 
     var actual = subject.process(user(), exportAreaPictureAnnotationMock);

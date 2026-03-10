@@ -61,14 +61,15 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       builder.useFastMode();
       builder.withHtmlContent(html, null);
       builder.useSVGDrawer(new BatikSVGDrawer());
-      builder.useFont(() -> {
+      builder.useFont(
+          () -> {
             try {
               return new ClassPathResource(FONT_PATH).getInputStream();
             } catch (IOException e) {
               throw new RuntimeException(e);
             }
-          }
-      , FONT_NAME);
+          },
+          FONT_NAME);
 
       builder.toStream(outputStream);
       builder.run();

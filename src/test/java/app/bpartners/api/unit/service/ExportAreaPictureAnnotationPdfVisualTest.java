@@ -22,15 +22,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-// @Disabled("This is a visual test to generate a PDF file for manual inspection.")
+@Disabled("TODO: This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
   private static final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
       new ExportAreaPictureAnnotationImage3DGenerator();
+  private static final ImageCompressor imageCompressor = new ImageCompressor();
 
   private static FileService fileService = mock();
 
@@ -42,10 +44,9 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   @BeforeAll
   static void setup() throws IOException {
     mockImage =
-        ImageIO.read(
-            new ClassPathResource("files/downloaded-annotation-image.jpeg").getInputStream());
+        ImageIO.read(new ClassPathResource("files/image-with-vegetation.jpg").getInputStream());
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    ImageIO.write(mockImage, "png", outputStream);
+    ImageIO.write(mockImage, "jpg", outputStream);
     mockImageBytes = outputStream.toByteArray();
 
     when(fileService.downloadFile(any(), any(), any()))
@@ -56,7 +57,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(
-            pdfGenerator, imageGenerator, image3DGenerator, fileService);
+            pdfGenerator, imageGenerator, image3DGenerator, fileService, imageCompressor);
   }
 
   @Test
@@ -78,7 +79,14 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         .address("123 Rue de la Test, 75000 Paris")
         .globalRateValue(75.5)
         .globalRateType("C")
-        .llm(null)
+        .llm(
+            "<h2>Analyse LLM</h2><p>L'état général du bâtiment est satisfaisant. "
+                + "Cependant, quelques points d'attention ont été relevés :</p>"
+                + "<ul>"
+                + "<li>Présence de fissures sur la façade nord 🛠️</li>"
+                + "<li>Traces d'humidité près de la gouttière 📸</li>"
+                + "<li>Besoin d'un nettoyage approfondi de la toiture 🔍</li>"
+                + "</ul>")
         .annotations(
             List.of(
                 exportInstance("Façade", "Fissure", "Légère", "2m", 50, 50, 150, 150),

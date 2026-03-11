@@ -1,5 +1,7 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactoryTest.dummyPolygon;
+import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactoryTest.export3DPan;
 import static java.time.LocalDateTime.now;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -139,37 +141,6 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 new ExportAreaPictureAnnotationInstanceInfo().label("Mesure").value(mesure)));
   }
 
-  private ExportAreaPictureAnnotation3DPan export3DPan(
-      String name, String surface, String observation, int x1, int y1, int x2, int y2) {
-    return new ExportAreaPictureAnnotation3DPan()
-        .name(name)
-        .polygon(dummyPolygon(x1, y1, x2, y2))
-        .measurements(
-            List.of(
-                new ExportAreaPictureAnnotationMeasurement()
-                    .value(5.0)
-                    .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
-                    .value(5.0)
-                    .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
-                    .value(5.0)
-                    .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
-                    .value(5.0)
-                    .unit("m")
-                    .isInvisible(false)))
-        .infos(
-            List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value(surface),
-                new ExportAreaPictureAnnotationInstanceInfo()
-                    .label("Observation")
-                    .value(observation)));
-  }
-
   app.bpartners.api.model.User user() {
     return User.builder()
         .id("userId")
@@ -181,17 +152,5 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         .accountHolders(
             List.of(AccountHolder.builder().website("https://fancywebsite.com").build()))
         .build();
-  }
-
-  private Polygon dummyPolygon(int x1, int y1, int x2, int y2) {
-    return new Polygon()
-        .points(
-            List.of(
-                new Point().x((double) x1).y((double) y1),
-                new Point().x((double) x2).y((double) y1),
-                new Point().x((double) x2).y((double) y2),
-                new Point().x((double) x1).y((double) y2),
-                new Point().x((double) x1).y((double) y1) // Close the polygon
-                ));
   }
 }

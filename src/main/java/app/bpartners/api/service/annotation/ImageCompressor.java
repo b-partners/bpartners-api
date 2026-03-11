@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ImageCompressor {
-  private static final long IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
+  private static final int IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
   private static final int MAX_IMAGE_WIDTH = 500;
   private static final int MAX_IMAGE_HEIGHT = 500;
 

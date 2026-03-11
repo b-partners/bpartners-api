@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ImageCompressor {
+  private static final long IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
+  private static final int MAX_IMAGE_WIDTH = 500;
+  private static final int MAX_IMAGE_HEIGHT = 500;
 
   byte[] compressImage(byte[] originalImage) {
     try {
@@ -32,12 +35,11 @@ public class ImageCompressor {
   BufferedImage compressImage(BufferedImage originalImage) {
     try {
       long currentSize = getImageSizeBytes(originalImage);
-      long targetSize = 200 * 1024; // 200 KB
-      float quality = computeImageQuality(currentSize, targetSize);
+      float quality = computeImageQuality(currentSize, IMAGE_TARGET_SIZE);
 
       BufferedImage temp =
           Thumbnails.of(originalImage)
-              .size(500, 500)
+              .size(MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT)
               .outputFormat(IMAGE_FORMAT)
               .outputQuality(quality)
               .asBufferedImage();
@@ -72,6 +74,6 @@ public class ImageCompressor {
     double ratio = (double) targetSize / currentSize;
     double quality = Math.sqrt(ratio);
 
-    return (float) Math.max(0.1, Math.min(quality, 1.0));
+    return (float) Math.clamp(quality, 0.1, 1.0);
   }
 }

@@ -9,14 +9,22 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class ImageCompressor {
-  private static final int IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
-  private static final int MAX_IMAGE_WIDTH = 500;
-  private static final int MAX_IMAGE_HEIGHT = 500;
+  private static final int DEFAULT_IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
+  private static final int DEFAULT_MAX_IMAGE_WIDTH = 500;
+  private static final int DEFAULT_MAX_IMAGE_HEIGHT = 500;
+
+  private final int imageTargetSize;
+  private final int maxImageWidth;
+  private final int maxImageHeight;
+
+  public ImageCompressor() {
+    this(DEFAULT_IMAGE_TARGET_SIZE, DEFAULT_MAX_IMAGE_WIDTH, DEFAULT_MAX_IMAGE_HEIGHT);
+  }
 
   byte[] compressImage(byte[] originalImage) {
     try {
@@ -35,11 +43,11 @@ public class ImageCompressor {
   BufferedImage compressImage(BufferedImage originalImage) {
     try {
       long currentSize = getImageSizeBytes(originalImage);
-      float quality = computeImageQuality(currentSize, IMAGE_TARGET_SIZE);
+      float quality = computeImageQuality(currentSize, imageTargetSize);
 
       BufferedImage temp =
           Thumbnails.of(originalImage)
-              .size(MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT)
+              .size(maxImageWidth, maxImageHeight)
               .outputFormat(IMAGE_FORMAT)
               .outputQuality(quality)
               .asBufferedImage();
@@ -66,7 +74,6 @@ public class ImageCompressor {
   }
 
   private float computeImageQuality(long currentSize, long targetSize) {
-
     if (currentSize <= targetSize) {
       return 1.0f;
     }

@@ -10,6 +10,10 @@
             margin: 0;
         }
 
+        html {
+            font-size: 12px;
+        }
+
         @page { size: A4; }
 
         .page {
@@ -22,7 +26,7 @@
         .last-page { page-break-after: avoid; }
 
         .title {
-            font-size: 30px;
+            font-size: 1.7rem; /* ~ 20px */
             text-align: center;
             font-weight: bold !important;
             margin: 50px auto 50px auto;
@@ -75,14 +79,14 @@
         }
 
         .annotation-information-title{
-            font-size: 30px;
+            font-size: 1.5rem; /* 18px */
             margin-bottom: 10px;
             font-weight: bold;
             color: #FF521B;
             text-align: center;
         }
 
-        .annotation-item-title{ font-size: 16px; }
+        .annotation-item-title{ font-size: 1.1rem; } /* 13.2 */
         .annotation-item-title-value{ margin-right: 15px; }
         .annotation-item-info-label{ font-weight: bold; }
         .annotation-item-info-value{ font-weight: normal; }
@@ -95,7 +99,7 @@
             margin-left: 5px;
         }
         .annotation-item-info-item {
-            font-size: 16px;
+            font-size: 1rem; /* 12px */
             margin: 5px 0;
         }
 
@@ -152,7 +156,7 @@
 
         /* LLM */
         .llm h2 {
-            font-size: 30px !important;
+            font-size: 1.5rem !important; /* 18px */
             color: #FF521B;
             text-align: center;
             font-weight: bold;
@@ -162,7 +166,7 @@
 
         .llm h3 {
             color: #000000;
-            font-size: 25px !important;
+            font-size: 1.25rem !important; /* 15 */
             text-align: center;
             font-weight: bold;
             margin-top: 15px;
@@ -194,6 +198,28 @@
             display: inline-block;
         }
 
+        .footer-info {
+            width: 100%;
+            padding-top: 40px;
+        }
+
+        .footer-info table {
+            width: 100%;
+        }
+
+        .footer-info td {
+            padding-left: 40px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .footer-logo {
+            /*max-width: 150px;*/
+            max-height: 120px;
+            margin-top: 20px;
+            display: block;
+        }
+
     </style>
     <meta charset="UTF-8"/>
     <title>Rapport d'analyse</title>
@@ -219,16 +245,35 @@
                         </tr>
                     </table>
                 </td>
-                <td class="degradation-right">
+                <td class="degradation-right" th:if="${globalRateValue}">
                     <div class="degradation-score">
                         <span th:text="'NOTE DE DÉGRADATION GLOBALE : ' + ${globalRateValue} + '%'"></span>
                     </div>
                 </td>
             </tr>
         </table>
+        <div class="footer-info">
+            <table>
+                <tr>
+                    <td>
+                        <div th:text="${user.getName()}"></div>
+                        <div th:text="${address}"></div>
+                        <div th:text="${user.getMobilePhoneNumber()}"></div>
+                        <div th:text="${user.getEmail()}"></div>
+                        <div th:if="${userWebsite}">
+                            <a th:href="${userWebsite}" th:text="${userWebsite}"></a>
+                        </div>
+                    </td>
+
+                    <td th:if="${logo!=null}">
+                        <img class="footer-logo" th:src="${logo}" alt="logo"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </section>
     <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null} ? ' last-page' : ''">
-        <h2 class="annotation-information-title"> Informations des annotations </h2>
+        <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
         <div th:each="annotation, annotationStat : ${page}" class="annotation-item">
             <div class="annotation-item-labels">
                 <h4 class="annotation-item-title">

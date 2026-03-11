@@ -3,9 +3,14 @@ package app.bpartners.api.service.annotation;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -21,6 +26,7 @@ import org.thymeleaf.context.Context;
 public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private final EmojiReplacer emojiReplacer;
+  private final FileService fileService;
 
   public static final String KEY_LABEL = "key";
   public static final String FONT_NAME = "Kumbh Sans";
@@ -29,18 +35,23 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private static final String FONT_PATH = "fonts/KumbhSans-VariableFont_YOPQ,wght.ttf";
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
-  public ExportAreaPictureAnnotationPDFGenerator(TemplateResolverEngine templateResolverEngine) {
+  public ExportAreaPictureAnnotationPDFGenerator(
+      TemplateResolverEngine templateResolverEngine, FileService fileService) {
     this.templateResolverEngine = templateResolverEngine;
     this.emojiReplacer = getEmojiReplacer();
+    this.fileService = fileService;
   }
 
   @SneakyThrows
   public byte[] apply(
+      User user,
+      String logoBase64,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
 
-    var html = parseDataToString(annotation, annotationImages, annotation3DImages);
+    var html =
+        parseDataToString(user, logoBase64, annotation, annotationImages, annotation3DImages);
     if (annotation.getLlm() != null) {
       html = emojiReplacer.replaceEmoji(html);
     }
@@ -61,26 +72,35 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   }
 
   private String parseDataToString(
+      User user,
+      String logoBase64,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
     var templateEngine = templateResolverEngine.getTemplateEngine();
-    var context = createContext(annotation, annotationImages, annotation3DImages);
+
+    var context = createContext(user, logoBase64, annotation, annotationImages, annotation3DImages);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 
   private Context createContext(
+      User user,
+      String logoBase64,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
     var context = new Context();
 
+    var logoUri = base64ToUri(logoBase64);
     var mainImageUri = base64ToUri(annotationImages.first());
     var subImagesUris =
         annotationImages.second().stream()
             .map(ExportAreaPictureAnnotationPDFGenerator::base64ToUri)
             .toList();
 
+    context.setVariable("user", user);
+    context.setVariable("userWebsite", user.getDefaultWebsite());
+    context.setVariable("logo", logoUri);
     context.setVariable("address", annotation.getAddress());
     context.setVariable("mainImage", mainImageUri);
     context.setVariable("subImages", subImagesUris);
@@ -89,6 +109,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
 
     if (annotation.getLlm() != null) {
       configureLLMContext(context, annotation);
+    }
+
+    if (annotation.getGlobalRateValue() != null || annotation.getGlobalRateType() != null) {
+      configureGlobalRateContext(context, annotation);
     }
     if (annotation.get3d() != null) {
       configureAnnotation3DContext(context, annotation.get3d(), annotation3DImages);
@@ -99,6 +123,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
 
   private static void configureLLMContext(Context context, ExportAreaPictureAnnotation annotation) {
     context.setVariable("llm", annotation.getLlm());
+  }
+
+  private static void configureGlobalRateContext(
+      Context context, ExportAreaPictureAnnotation annotation) {
     context.setVariable("globalRateType", annotation.getGlobalRateType());
     context.setVariable("globalRateValue", annotation.getGlobalRateValue());
     context.setVariable(
@@ -176,7 +204,8 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       Map<String, List<ExportAreaPictureAnnotationInstance>> grouped = new LinkedHashMap<>();
 
       for (var instance : instances) {
-        grouped.computeIfAbsent(getKey(instance), k -> new ArrayList<>()).add(instance);
+        String key = getKey(instance);
+        grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(instance);
       }
 
       List<GroupedByKey> result = new ArrayList<>();
@@ -189,11 +218,11 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   }
 
   public static String getKey(ExportAreaPictureAnnotationInstance instance) {
-    var key =
-        instance.getInfos().stream().filter(info -> KEY_LABEL.equals(info.getLabel())).findFirst();
-
-    return key.map(ExportAreaPictureAnnotationInstanceInfo::getValue)
-        .orElse(randomUUID().toString());
+    return instance.getInfos().stream()
+        .filter(info -> KEY_LABEL.equals(info.getLabel()))
+        .map(ExportAreaPictureAnnotationInstanceInfo::getValue)
+        .findFirst()
+        .orElse("generated_key_" + randomUUID());
   }
 
   private static String base64ToUri(String base64Image) {

@@ -32,4 +32,6 @@ public interface ProspectRepository {
   boolean isSogefiProspector(String idAccountHolder);
 
   List<ProspectResult> evaluate(List<ProspectEval> prospectEvals);
+
+  void deleteProspectById(String id);
 }

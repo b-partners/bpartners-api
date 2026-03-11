@@ -25,6 +25,8 @@ import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
 import app.bpartners.api.repository.expressif.model.OutputValue;
 import app.bpartners.api.repository.implementation.ProspectRepositoryImpl;
+import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
+import app.bpartners.api.repository.jpa.HasCustomerJpaRepository;
 import app.bpartners.api.repository.jpa.MunicipalityJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectEvalInfoJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
@@ -42,9 +44,11 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@Slf4j
 class ProspectRepositoryImplTest {
 
   ProspectRepositoryImpl subject;
@@ -62,6 +66,8 @@ class ProspectRepositoryImplTest {
   ProspectEvalInfoJpaRepository evalRepositoryMock;
   BanApi banApiMock;
   EntityManager em;
+  AreaPictureJpaRepository areaPictureJPARepositoryMock;
+  HasCustomerJpaRepository hasCustomerJpaRepositoryMock;
 
   @BeforeEach
   void setUp() {
@@ -79,6 +85,8 @@ class ProspectRepositoryImplTest {
     evalMapperMock = mock(ProspectEvalMapper.class);
     evalRepositoryMock = mock(ProspectEvalInfoJpaRepository.class);
     em = mock(EntityManager.class);
+    areaPictureJPARepositoryMock = mock(AreaPictureJpaRepository.class);
+    hasCustomerJpaRepositoryMock = mock(HasCustomerJpaRepository.class);
 
     subject =
         new ProspectRepositoryImpl(
@@ -92,7 +100,9 @@ class ProspectRepositoryImplTest {
             evalMapperMock,
             evalRepositoryMock,
             em,
-            sogefiBuildingPermitRepositoryMock);
+            sogefiBuildingPermitRepositoryMock,
+            areaPictureJPARepositoryMock,
+            hasCustomerJpaRepositoryMock);
     when(revenueTargetServiceMock.getByYear(JOE_DOE_ACCOUNT_ID, Year.now().getValue()))
         .thenReturn(
             Optional.ofNullable(
@@ -214,5 +224,16 @@ class ProspectRepositoryImplTest {
             OTHER_ACCOUNT_ID, LocalDate.of(Year.now().getValue(), MARCH.getValue(), 15));
 
     assertTrue(needProspect);
+  }
+
+  @Test
+  void deleteProspect_ok() {
+    String prospectId = "prospect_id_test";
+
+    subject.deleteProspectById(prospectId);
+
+    verify(jpaRepositoryMock).deleteById(prospectId);
+    verify(areaPictureJPARepositoryMock).deleteByIdProspect(prospectId);
+    verify(hasCustomerJpaRepositoryMock).deleteByIdProspect(prospectId);
   }
 }

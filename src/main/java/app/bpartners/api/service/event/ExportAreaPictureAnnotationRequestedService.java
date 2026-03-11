@@ -45,7 +45,7 @@ public class ExportAreaPictureAnnotationRequestedService
 
     try {
       log.info("Export rapport d'analyse de l'adresse: {}", address);
-      var generatedPDF = this.processor.process(requested.getAnnotation());
+      var generatedPDF = this.processor.process(user, requested.getAnnotation());
 
       var fileToUpload = fileWriter.apply(generatedPDF, null);
 

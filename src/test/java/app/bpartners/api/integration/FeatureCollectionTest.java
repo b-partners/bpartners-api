@@ -43,6 +43,27 @@ public class FeatureCollectionTest {
   }
 
   @Test
+  void luxembourg_supported_ok() {
+    var geometryFactory = new GeometryFactory(new PrecisionModel(), WGS_84_SRID);
+    double longitude = 6.111297178735165;
+    double latitude = 49.744293262381476;
+    var areaPictureCoordinatesAsPoint =
+        geometryFactory.createPoint(new Coordinate(longitude, latitude));
+
+    List<SimpleFeature> features =
+        getFranceAndQuebecDepartementsSimpleFeaturesMatchingPredicate(
+            feature -> {
+              var geometry = (Geometry) feature.getDefaultGeometry();
+              return geometry.contains(areaPictureCoordinatesAsPoint);
+            });
+
+    List<String> matchingFeaturesName =
+        features.stream().map(f -> (String) f.getAttribute("nom")).toList();
+
+    assertTrue(matchingFeaturesName.contains("Luxembourg"));
+  }
+
+  @Test
   void quebec_zone_is_valid() {
     var geometryFactory = new GeometryFactory(new PrecisionModel(), WGS_84_SRID);
     double longitude = -71.29137376844952;

@@ -124,4 +124,14 @@ public class User implements Serializable {
         .flatMap(List<UserAnalysisApiKey>::stream)
         .toList();
   }
+
+  public String getDefaultWebsite() {
+    if (accountHolders == null) return null;
+
+    return accountHolders.stream()
+        .map(AccountHolder::getWebsite)
+        .filter(w -> w != null && !w.isEmpty())
+        .findFirst()
+        .orElse(null);
+  }
 }

@@ -25,8 +25,6 @@ class ImageCompressorTest {
     assertTrue(actual.length <= targetSize);
     BufferedImage actualBuffered = ImageIO.read(new ByteArrayInputStream(actual));
     assertNotNull(actualBuffered);
-    assertTrue(actualBuffered.getWidth() <= 500);
-    assertTrue(actualBuffered.getHeight() <= 500);
   }
 
   @Test
@@ -36,8 +34,8 @@ class ImageCompressorTest {
 
     BufferedImage actual = subject.compressImage(original);
 
-    assertTrue(actual.getWidth() <= 500);
-    assertTrue(actual.getHeight() <= 500);
+    assertEquals(actual.getWidth(), original.getWidth());
+    assertEquals(actual.getHeight(), original.getHeight());
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     ImageIO.write(actual, "jpg", baos);

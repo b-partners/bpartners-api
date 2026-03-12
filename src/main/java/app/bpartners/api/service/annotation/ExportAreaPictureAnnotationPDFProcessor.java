@@ -62,11 +62,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
       throws IOException {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
-    BufferedImage compressedImage =
-        downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage);
-    byte[] compressedGlobalImage3D =
-        globalImage3D == null ? null : imageCompressor.compressImage(globalImage3D);
-    return process(user, exportAnnotation, compressedImage, compressedGlobalImage3D);
+    return process(user, exportAnnotation, downloadedImage, globalImage3D);
   }
 
   public byte[] process(
@@ -75,6 +71,11 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       BufferedImage downloadedImage,
       byte[] globalImage3D)
       throws IOException {
+    BufferedImage compressedImage =
+        downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage);
+    byte[] compressedGlobalImage3D =
+        globalImage3D == null ? null : imageCompressor.compressImage(globalImage3D);
+
     Pair<String, List<String>> annotationImages =
         generateAnnotationImages(exportAnnotation, downloadedImage);
     Pair<String, List<String>> annotation3DImages = null;

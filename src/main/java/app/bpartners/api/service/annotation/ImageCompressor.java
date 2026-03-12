@@ -47,7 +47,7 @@ public class ImageCompressor {
 
       BufferedImage temp =
           Thumbnails.of(originalImage)
-              .size(maxImageWidth, maxImageHeight)
+              .size(originalImage.getWidth(), originalImage.getHeight())
               .outputFormat(IMAGE_FORMAT)
               .outputQuality(quality)
               .asBufferedImage();

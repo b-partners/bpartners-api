@@ -40,7 +40,7 @@ class ImageCompressorTest {
 
     long actualSize = getImageSizeBytes(actual);
 
-    assertTrue(originalSize <= actualSize);
+    assertTrue(originalSize >= actualSize);
   }
 
   private long getImageSizeBytes(BufferedImage image) throws IOException {

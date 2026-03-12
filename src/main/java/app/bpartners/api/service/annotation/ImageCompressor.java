@@ -47,12 +47,17 @@ public class ImageCompressor {
 
       BufferedImage temp =
           Thumbnails.of(originalImage)
-              .size(originalImage.getWidth(), originalImage.getHeight())
+              .size(maxImageWidth, maxImageHeight)
               .outputFormat(IMAGE_FORMAT)
               .outputQuality(quality)
               .asBufferedImage();
 
-      return convertToJPEGCompatibleType(temp);
+      BufferedImage originalSizedImage =
+          Thumbnails.of(temp)
+              .size(originalImage.getWidth(), originalImage.getHeight())
+              .asBufferedImage();
+
+      return convertToJPEGCompatibleType(originalSizedImage);
 
     } catch (IOException e) {
       throw new RuntimeException(e);

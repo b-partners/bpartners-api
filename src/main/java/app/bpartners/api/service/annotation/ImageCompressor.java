@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ImageCompressor {
   private static final int DEFAULT_IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
-  private static final int DEFAULT_MAX_IMAGE_WIDTH = 500;
-  private static final int DEFAULT_MAX_IMAGE_HEIGHT = 500;
+  private static final int DEFAULT_MAX_IMAGE_WIDTH = 800;
+  private static final int DEFAULT_MAX_IMAGE_HEIGHT = 800;
 
   private final int imageTargetSize;
   private final int maxImageWidth;
@@ -49,21 +49,23 @@ public class ImageCompressor {
       // Step 2: Compute scale factors to fit within max width/height
       double scaleX = (double) maxImageWidth / originalImage.getWidth();
       double scaleY = (double) maxImageHeight / originalImage.getHeight();
-      double scale = Math.min(1.0, Math.min(scaleX, scaleY)); // do not upscale
 
-      int targetWidth = (int) Math.min(Math.round(originalImage.getWidth() * scale), originalImage.getWidth());
-      int targetHeight = (int) Math.min(Math.round(originalImage.getHeight() * scale), originalImage.getHeight());
+      int targetWidth =
+          (int) Math.min(Math.round(originalImage.getWidth() * scaleX), originalImage.getWidth());
+      int targetHeight =
+          (int) Math.min(Math.round(originalImage.getHeight() * scaleY), originalImage.getHeight());
 
       BufferedImage temp = originalImage;
 
       // Step 3: Iteratively compress until target size is reached or minimal quality
       int attempts = 0;
       while (getImageSizeBytes(temp) > imageTargetSize && quality > 0.1f && attempts++ < 10) {
-        temp = Thumbnails.of(originalImage)
-            .size(targetWidth, targetHeight)
-            .outputFormat(IMAGE_FORMAT)
-            .outputQuality(quality)
-            .asBufferedImage();
+        temp =
+            Thumbnails.of(originalImage)
+                .size(targetWidth, targetHeight)
+                .outputFormat(IMAGE_FORMAT)
+                .outputQuality(quality)
+                .asBufferedImage();
 
         long newSize = getImageSizeBytes(temp);
         if (newSize >= currentSize) break;

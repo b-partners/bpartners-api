@@ -39,14 +39,14 @@ public class ExportAreaPictureAnnotationAdjustment {
     }
   }
 
-  public static double adjustAnnotation(
+  public static RescaleValue adjustAnnotation(
       ExportAreaPictureAnnotation exportAnnotation,
       BufferedImage originalImage,
       BufferedImage compressedImage) {
     if (originalImage == null
         || compressedImage == null
         || exportAnnotation.getAnnotations() == null) {
-      return 1.0;
+      return new RescaleValue(1.0, 1.0);
     }
 
     double scaleX = (double) compressedImage.getWidth() / originalImage.getWidth();
@@ -61,6 +61,8 @@ public class ExportAreaPictureAnnotationAdjustment {
       }
     }
 
-    return (scaleX + scaleY) / 2.0;
+    return new RescaleValue(scaleX, scaleY);
   }
+
+  record RescaleValue(double x, double y) {}
 }

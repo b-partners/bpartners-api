@@ -42,18 +42,21 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
   static final String IMAGE_FORMAT = "jpg";
 
-  private static final ExportAreaPictureAnnotationImageConf ANNOTATION_MAIN_CONF =
-      new ExportAreaPictureAnnotationImageConf();
-  private static final ExportAreaPictureAnnotationImageConf ANNOTATION_SUB_IMAGE_CONF =
-      new ExportAreaPictureAnnotationImageConf(
-          2,
-          DEFAULT_POINT_SIZE,
-          DEFAULT_STROKE,
-          DEFAULT_POINT_COLOR,
-          DEFAULT_MEASUREMENT_BG_COLOR,
-          DEFAULT_MEASUREMENT_TEXT_COLOR,
-          DEFAULT_MEASUREMENT_OFFSET,
-          DEFAULT_MEASUREMENT_FONT);
+  private static ExportAreaPictureAnnotationImageConf mainConf() {
+    return new ExportAreaPictureAnnotationImageConf();
+  }
+
+  private static ExportAreaPictureAnnotationImageConf subImageConf() {
+    return new ExportAreaPictureAnnotationImageConf(
+        2,
+        DEFAULT_POINT_SIZE,
+        DEFAULT_STROKE,
+        DEFAULT_POINT_COLOR,
+        DEFAULT_MEASUREMENT_BG_COLOR,
+        DEFAULT_MEASUREMENT_TEXT_COLOR,
+        DEFAULT_MEASUREMENT_OFFSET,
+        DEFAULT_MEASUREMENT_FONT);
+  }
 
   public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation)
       throws IOException {
@@ -78,17 +81,21 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     byte[] compressedGlobalImage3D =
         globalImage3D == null ? null : imageCompressor.compressImage(globalImage3D);
 
-    double annotationRescale = adjustAnnotation(exportAnnotation, downloadedImage, compressedImage);
+    var annotationRescale = new ExportAreaPictureAnnotationAdjustment.RescaleValue(1.0, 1.0);
+    annotationRescale = adjustAnnotation(exportAnnotation, downloadedImage, compressedImage);
     adjust3DAnnotation(exportAnnotation, globalImage3D, compressedGlobalImage3D);
     Pair<String, List<String>> annotationImages =
-        generateAnnotationImages(exportAnnotation, compressedImage, annotationRescale);
+        generateAnnotationImages(
+            exportAnnotation, compressedImage, annotationRescale.x(), annotationRescale.y());
     Pair<String, List<String>> annotation3DImages = null;
     BufferedImage logo = getUserLogo(user);
     String logoBase64 =
         logo == null
             ? null
             : generateAnnotationImageAsBase64(
-                logo, ANNOTATION_SUB_IMAGE_CONF.rescale(annotationRescale), List.of());
+                logo,
+                subImageConf().rescale(annotationRescale.x(), annotationRescale.y()),
+                List.of());
 
     if (exportAnnotation.get3d() != null && compressedGlobalImage3D != null) {
       annotation3DImages =
@@ -134,18 +141,23 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   }
 
   private Pair<String, List<String>> generateAnnotationImages(
-      ExportAreaPictureAnnotation annotation, BufferedImage baseImage, double rescaleValue)
+      ExportAreaPictureAnnotation annotation,
+      BufferedImage baseImage,
+      double rescaleXValue,
+      double rescaleYValue)
       throws IOException {
     var mainImage =
         generateAnnotationImageAsBase64(
-            baseImage, ANNOTATION_MAIN_CONF.rescale(rescaleValue), annotation.getAnnotations());
+            baseImage,
+            mainConf().rescale(rescaleXValue, rescaleYValue),
+            annotation.getAnnotations());
     var subImages = new ArrayList<String>();
     var annotationsByKey = GroupedByKey.from(annotation.getAnnotations());
 
     for (var item : annotationsByKey) {
       subImages.add(
           generateAnnotationImageAsBase64(
-              baseImage, ANNOTATION_SUB_IMAGE_CONF.rescale(rescaleValue), item.instances()));
+              baseImage, subImageConf().rescale(rescaleXValue, rescaleYValue), item.instances()));
     }
 
     return new Pair<>(mainImage, subImages);

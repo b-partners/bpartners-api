@@ -33,17 +33,23 @@ public class ExportAreaPictureAnnotationImageConf {
     this.measurementFont = DEFAULT_MEASUREMENT_FONT;
   }
 
-  public ExportAreaPictureAnnotationImageConf rescale(double factor) {
-    System.out.println("factor : " + factor);
-    this.stroke = new BasicStroke((float) (((BasicStroke) this.stroke).getLineWidth() * factor));
-    this.scale = (int) round(this.scale * factor);
-    this.pointSize = (int) round(this.pointSize * factor);
-    this.measurementFont =
+  public ExportAreaPictureAnnotationImageConf rescale(double xFactor, double yFactor) {
+    var currentStroke = (BasicStroke) this.stroke;
+    var factor = (xFactor + yFactor) / 2;
+    return new ExportAreaPictureAnnotationImageConf(
+        this.scale,
+        Math.max(1, (int) round(this.pointSize * factor)),
+        new BasicStroke(Math.max(1f, currentStroke.getLineWidth() * (float) factor)),
+        this.pointColor,
+        this.measurementBgColor,
+        this.measurementTextColor,
+        new IntXY(
+            Math.max(1, (int) round(this.measurementOffset.x() * xFactor)),
+            Math.max(1, (int) round(this.measurementOffset.y() * yFactor))),
         new Font(
             this.measurementFont.getName(),
             this.measurementFont.getStyle(),
-            (int) Math.round(this.measurementFont.getSize() * factor));
-    return this;
+            Math.max(1, (int) round(this.measurementFont.getSize() * factor))));
   }
 
   public static final int DEFAULT_SCALE = 3;

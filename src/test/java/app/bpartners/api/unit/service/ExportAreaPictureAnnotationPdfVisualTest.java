@@ -48,7 +48,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     mockImage =
         ImageIO.read(new ClassPathResource("files/image-with-vegetation.jpg").getInputStream());
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    ImageIO.write(mockImage, "jpg", outputStream);
+    ImageIO.write(mockImage, "png", outputStream);
     mockImageBytes = outputStream.toByteArray();
 
     when(fileService.downloadFile(any(), any(), any()))
@@ -91,21 +91,20 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 + "</ul>")
         .annotations(
             List.of(
-                exportInstance("Façade", "Fissure", "Légère", "2m", 50, 50, 150, 150),
-                exportInstance("Façade", "Fissure", "Moyenne", "1.5m", 200, 50, 300, 150),
-                exportInstance("Toiture", "Mousse", "Abondante", "50m²", 50, 200, 150, 300),
+                exportInstance("Top Left", "Corner", "Target", "0,0", 0, 0, 100, 100),
+                exportInstance("Top Right", "Corner", "Target", "4096,0", 3996, 0, 4096, 100),
+                exportInstance("Bottom Left", "Corner", "Target", "0,5120", 0, 5020, 100, 5120),
                 exportInstance(
-                    "Fenêtre RDC", "Vitrage", "Double", "1.2m x 1.5m", 200, 200, 300, 300),
-                exportInstance("Porte Entrée", "Matériau", "Bois", "Neuf", 350, 50, 450, 150)))
+                    "Bottom Right", "Corner", "Target", "4096,5120", 3996, 5020, 4096, 5120)))
         ._3d(
             new ExportAreaPictureAnnotation3D()
                 .pans(
                     List.of(
-                        export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
-                        export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150),
-                        export3DPan("Pan Sud", "30m²", "Excellent", 50, 200, 150, 300),
-                        export3DPan("Pan Nord", "28m²", "Moyen", 200, 200, 300, 300),
-                        export3DPan("Garage", "15m²", "Neuf", 350, 50, 450, 150))));
+                        export3DPan("Top Left Pan", "25m²", "Target", 0, 0, 100, 100),
+                        export3DPan("Top Right Pan", "22m²", "Target", 3996, 0, 4096, 100),
+                        export3DPan("Bottom Left Pan", "30m²", "Target", 0, 5020, 100, 5120),
+                        export3DPan(
+                            "Bottom Right Pan", "28m²", "Target", 3996, 5020, 4096, 5120))));
   }
 
   private ExportAreaPictureAnnotationInstance exportInstance(

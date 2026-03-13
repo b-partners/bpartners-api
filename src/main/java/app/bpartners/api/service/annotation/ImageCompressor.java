@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ImageCompressor {
   private static final int DEFAULT_IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
-  private static final int DEFAULT_MAX_IMAGE_WIDTH = 500;
-  private static final int DEFAULT_MAX_IMAGE_HEIGHT = 500;
+  private static final int DEFAULT_MAX_IMAGE_WIDTH = 1180;
+  private static final int DEFAULT_MAX_IMAGE_HEIGHT = 1180;
 
   private final int imageTargetSize;
   private final int maxImageWidth;
@@ -42,15 +42,38 @@ public class ImageCompressor {
 
   BufferedImage compressImage(BufferedImage originalImage) {
     try {
+      // Step 1: Determine initial quality
       long currentSize = getImageSizeBytes(originalImage);
       float quality = computeImageQuality(currentSize, imageTargetSize);
 
-      BufferedImage temp =
-          Thumbnails.of(originalImage)
-              .size(maxImageWidth, maxImageHeight)
-              .outputFormat(IMAGE_FORMAT)
-              .outputQuality(quality)
-              .asBufferedImage();
+      // Step 2: Compute scale factors to fit within max width/height
+      double scaleX = (double) maxImageWidth / originalImage.getWidth();
+      double scaleY = (double) maxImageHeight / originalImage.getHeight();
+
+      int targetWidth =
+          (int) Math.min(Math.round(originalImage.getWidth() * scaleX), originalImage.getWidth());
+      int targetHeight =
+          (int) Math.min(Math.round(originalImage.getHeight() * scaleY), originalImage.getHeight());
+
+      BufferedImage temp = originalImage;
+
+      // Step 3: Iteratively compress until target size is reached or minimal quality
+      int attempts = 0;
+      while (getImageSizeBytes(temp) > imageTargetSize && quality > 0.1f && attempts++ < 10) {
+        temp =
+            Thumbnails.of(originalImage)
+                .size(targetWidth, targetHeight)
+                .outputFormat(IMAGE_FORMAT)
+                .outputQuality(quality)
+                .asBufferedImage();
+
+        long newSize = getImageSizeBytes(temp);
+        if (newSize >= currentSize) break;
+        currentSize = newSize;
+
+        // reduce quality slightly for next iteration
+        quality *= 0.85f;
+      }
 
       return convertToJPEGCompatibleType(temp);
 

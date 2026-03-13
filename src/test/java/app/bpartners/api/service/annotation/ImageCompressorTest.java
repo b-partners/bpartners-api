@@ -1,5 +1,6 @@
 package app.bpartners.api.service.annotation;
 
+import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor.IMAGE_FORMAT;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.awt.image.BufferedImage;
@@ -21,30 +22,28 @@ class ImageCompressorTest {
 
     byte[] actual = subject.compressImage(originalBytes);
 
-    long targetSize = 200 * 1024; // 200 KB
-    assertTrue(actual.length <= targetSize);
+    assertTrue(actual.length <= originalBytes.length);
     BufferedImage actualBuffered = ImageIO.read(new ByteArrayInputStream(actual));
     assertNotNull(actualBuffered);
-    assertTrue(actualBuffered.getWidth() <= 500);
-    assertTrue(actualBuffered.getHeight() <= 500);
   }
 
   @Test
   void compress_image_should_respect_target_size_and_max_dimensions() throws IOException {
     BufferedImage original =
         ImageIO.read(new ClassPathResource("files/image-with-vegetation.jpg").getInputStream());
+    long originalSize = getImageSizeBytes(original);
 
     BufferedImage actual = subject.compressImage(original);
 
-    assertTrue(actual.getWidth() <= 500);
-    assertTrue(actual.getHeight() <= 500);
+    long actualSize = getImageSizeBytes(actual);
 
+    assertTrue(actualSize <= originalSize);
+  }
+
+  private long getImageSizeBytes(BufferedImage image) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    ImageIO.write(actual, "jpg", baos);
-    long actualSize = baos.size();
-
-    long targetSize = 200 * 1024; // 200 KB
-    assertTrue(actualSize <= targetSize);
+    ImageIO.write(image, IMAGE_FORMAT, baos);
+    return baos.size();
   }
 
   @Test

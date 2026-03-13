@@ -53,7 +53,8 @@ public class ExportAreaPictureAnnotationImageGenerator
 
     annotations.forEach(
         annotationInstance ->
-            drawAnnotationInstance(graphics2D, image.getWidth(), image.getHeight(), conf, annotationInstance));
+            drawAnnotationInstance(
+                graphics2D, image.getWidth(), image.getHeight(), conf, annotationInstance));
     graphics2D.dispose();
     return image;
   }

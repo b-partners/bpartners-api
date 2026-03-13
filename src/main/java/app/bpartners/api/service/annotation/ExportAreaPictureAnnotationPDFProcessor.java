@@ -2,7 +2,6 @@ package app.bpartners.api.service.annotation;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.file.FileWriter.base64Image;
-import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.adjust3DAnnotation;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.adjustAnnotation;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
 
@@ -40,7 +39,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private final FileService fileService;
   private final ImageCompressor imageCompressor;
 
-  static final String IMAGE_FORMAT = "jpg";
+  static final String IMAGE_FORMAT = "png";
 
   private static ExportAreaPictureAnnotationImageConf mainConf() {
     return new ExportAreaPictureAnnotationImageConf();
@@ -78,11 +77,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       throws IOException {
     BufferedImage compressedImage =
         downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage);
-    byte[] compressedGlobalImage3D =
-        globalImage3D == null ? null : imageCompressor.compressImage(globalImage3D);
-
     var annotationRescale = adjustAnnotation(exportAnnotation, downloadedImage, compressedImage);
-    adjust3DAnnotation(exportAnnotation, globalImage3D, compressedGlobalImage3D);
     Pair<String, List<String>> annotationImages =
         generateAnnotationImages(
             exportAnnotation, compressedImage, annotationRescale.x(), annotationRescale.y());
@@ -96,9 +91,8 @@ public class ExportAreaPictureAnnotationPDFProcessor {
                 subImageConf().rescale(annotationRescale.x(), annotationRescale.y()),
                 List.of());
 
-    if (exportAnnotation.get3d() != null && compressedGlobalImage3D != null) {
-      annotation3DImages =
-          generateAnnotation3DImages(exportAnnotation.get3d(), compressedGlobalImage3D);
+    if (exportAnnotation.get3d() != null && globalImage3D != null) {
+      annotation3DImages = generateAnnotation3DImages(exportAnnotation.get3d(), globalImage3D);
     }
 
     return exportAreaPictureAnnotationPDFGenerator.apply(

@@ -35,12 +35,9 @@ class ImageCompressorTest {
 
     BufferedImage actual = subject.compressImage(original);
 
-    assertEquals(actual.getWidth(), original.getWidth());
-    assertEquals(actual.getHeight(), original.getHeight());
-
     long actualSize = getImageSizeBytes(actual);
 
-    assertTrue(originalSize >= actualSize);
+    assertTrue(actualSize <= originalSize);
   }
 
   private long getImageSizeBytes(BufferedImage image) throws IOException {

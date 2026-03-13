@@ -52,17 +52,12 @@ public class ExportAreaPictureAnnotationImageGenerator
     graphics2D.setStroke(conf.getStroke());
 
     annotations.forEach(
-        annotationInstance ->
-            drawAnnotationInstance(
-                graphics2D, image.getWidth(), image.getHeight(), conf, annotationInstance));
-    graphics2D.dispose();
+        annotationInstance -> drawAnnotationInstance(graphics2D, conf, annotationInstance));
     return image;
   }
 
   private void drawAnnotationInstance(
       Graphics2D graphics2D,
-      int imageWidth,
-      int imageHeight,
       ExportAreaPictureAnnotationImageConf conf,
       ExportAreaPictureAnnotationInstance annotationInstance) {
     var points = annotationInstance.getPolygon().getPoints();
@@ -96,13 +91,11 @@ public class ExportAreaPictureAnnotationImageGenerator
               conf.getPointSize());
         });
 
-    drawMeasurements(graphics2D, imageWidth, imageHeight, conf, annotationInstance, coordinates);
+    drawMeasurements(graphics2D, conf, annotationInstance, coordinates);
   }
 
   private void drawMeasurements(
       Graphics2D graphics2D,
-      int imageWidth,
-      int imageHeight,
       ExportAreaPictureAnnotationImageConf conf,
       ExportAreaPictureAnnotationInstance annotationInstance,
       List<IntXY> coordinates) {
@@ -117,27 +110,25 @@ public class ExportAreaPictureAnnotationImageGenerator
       FontMetrics fontMetrics = graphics2D.getFontMetrics(conf.getMeasurementFont());
       int textWidth = fontMetrics.stringWidth(measurementText);
       int textHeight = fontMetrics.getHeight();
-
-      int boxWidth = textWidth + conf.getMeasurementOffset().x();
-      int boxHeight = textHeight + conf.getMeasurementOffset().y();
-
       IntXY point1 = coordinates.get(i);
       IntXY point2 = coordinates.get(i + 1);
-
-      int rectX = (point1.x() + point2.x()) / 2 - boxWidth / 2;
-      int rectY = (point1.y() + point2.y()) / 2 - boxHeight / 2;
-
-      // Clamp to image boundaries
-      rectX = Math.clamp(rectX, 0, imageWidth - boxWidth);
-      rectY = Math.clamp(rectY, 0, imageHeight - boxHeight);
+      IntXY measurementCoordinate =
+          new IntXY(
+              (point1.x() + point2.x()) / 2 - (textWidth / 2),
+              (point1.y() + point2.y()) / 2 - (textHeight / 2));
 
       graphics2D.setColor(conf.getMeasurementBgColor());
-      graphics2D.fillRect(rectX, rectY, boxWidth, boxHeight);
+      graphics2D.fillRect(
+          measurementCoordinate.x() - conf.getMeasurementOffset().x() / 2,
+          measurementCoordinate.y() - conf.getMeasurementOffset().y() / 2,
+          textWidth + conf.getMeasurementOffset().x(),
+          textHeight + conf.getMeasurementOffset().y());
 
       graphics2D.setColor(conf.getMeasurementTextColor());
-      int textX = rectX + conf.getMeasurementOffset().x() / 2;
-      int textY = rectY + conf.getMeasurementOffset().y() / 2 + fontMetrics.getAscent();
-      graphics2D.drawString(measurementText, textX, textY);
+      graphics2D.drawString(
+          measurementText,
+          measurementCoordinate.x(),
+          measurementCoordinate.y() + conf.getMeasurementOffset().y() + textHeight / 2);
     }
   }
 }

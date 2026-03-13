@@ -1,5 +1,7 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactoryTest.dummyPolygon;
+import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactoryTest.export3DPan;
 import static java.time.LocalDateTime.now;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,15 +24,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-// @Disabled("This is a visual test to generate a PDF file for manual inspection.")
+@Disabled("This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
   private static final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
       new ExportAreaPictureAnnotationImage3DGenerator();
+  private static final ImageCompressor imageCompressor = new ImageCompressor();
 
   private static FileService fileService = mock();
 
@@ -42,8 +46,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   @BeforeAll
   static void setup() throws IOException {
     mockImage =
-        ImageIO.read(
-            new ClassPathResource("files/downloaded-annotation-image.jpeg").getInputStream());
+        ImageIO.read(new ClassPathResource("files/image-with-vegetation.jpg").getInputStream());
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ImageIO.write(mockImage, "png", outputStream);
     mockImageBytes = outputStream.toByteArray();
@@ -56,7 +59,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(
-            pdfGenerator, imageGenerator, image3DGenerator, fileService);
+            pdfGenerator, imageGenerator, image3DGenerator, fileService, imageCompressor);
   }
 
   @Test
@@ -78,24 +81,30 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         .address("123 Rue de la Test, 75000 Paris")
         .globalRateValue(75.5)
         .globalRateType("C")
-        .llm(null)
+        .llm(
+            "<h2>Analyse LLM</h2><p>L'état général du bâtiment est satisfaisant. "
+                + "Cependant, quelques points d'attention ont été relevés :</p>"
+                + "<ul>"
+                + "<li>Présence de fissures sur la façade nord 🛠️</li>"
+                + "<li>Traces d'humidité près de la gouttière 📸</li>"
+                + "<li>Besoin d'un nettoyage approfondi de la toiture 🔍</li>"
+                + "</ul>")
         .annotations(
             List.of(
-                exportInstance("Façade", "Fissure", "Légère", "2m", 50, 50, 150, 150),
-                exportInstance("Façade", "Fissure", "Moyenne", "1.5m", 200, 50, 300, 150),
-                exportInstance("Toiture", "Mousse", "Abondante", "50m²", 50, 200, 150, 300),
+                exportInstance("Top Left", "Corner", "Target", "0,0", 0, 0, 100, 100),
+                exportInstance("Top Right", "Corner", "Target", "4096,0", 3996, 0, 4096, 100),
+                exportInstance("Bottom Left", "Corner", "Target", "0,5120", 0, 5020, 100, 5120),
                 exportInstance(
-                    "Fenêtre RDC", "Vitrage", "Double", "1.2m x 1.5m", 200, 200, 300, 300),
-                exportInstance("Porte Entrée", "Matériau", "Bois", "Neuf", 350, 50, 450, 150)))
+                    "Bottom Right", "Corner", "Target", "4096,5120", 3996, 5020, 4096, 5120)))
         ._3d(
             new ExportAreaPictureAnnotation3D()
                 .pans(
                     List.of(
-                        export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
-                        export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150),
-                        export3DPan("Pan Sud", "30m²", "Excellent", 50, 200, 150, 300),
-                        export3DPan("Pan Nord", "28m²", "Moyen", 200, 200, 300, 300),
-                        export3DPan("Garage", "15m²", "Neuf", 350, 50, 450, 150))));
+                        export3DPan("Top Left Pan", "25m²", "Target", 0, 0, 100, 100),
+                        export3DPan("Top Right Pan", "22m²", "Target", 3996, 0, 4096, 100),
+                        export3DPan("Bottom Left Pan", "30m²", "Target", 0, 5020, 100, 5120),
+                        export3DPan(
+                            "Bottom Right Pan", "28m²", "Target", 3996, 5020, 4096, 5120))));
   }
 
   private ExportAreaPictureAnnotationInstance exportInstance(
@@ -131,37 +140,6 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 new ExportAreaPictureAnnotationInstanceInfo().label("Mesure").value(mesure)));
   }
 
-  private ExportAreaPictureAnnotation3DPan export3DPan(
-      String name, String surface, String observation, int x1, int y1, int x2, int y2) {
-    return new ExportAreaPictureAnnotation3DPan()
-        .name(name)
-        .polygon(dummyPolygon(x1, y1, x2, y2))
-        .measurements(
-            List.of(
-                new ExportAreaPictureAnnotationMeasurement()
-                    .value(5.0)
-                    .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
-                    .value(5.0)
-                    .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
-                    .value(5.0)
-                    .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
-                    .value(5.0)
-                    .unit("m")
-                    .isInvisible(false)))
-        .infos(
-            List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value(surface),
-                new ExportAreaPictureAnnotationInstanceInfo()
-                    .label("Observation")
-                    .value(observation)));
-  }
-
   app.bpartners.api.model.User user() {
     return User.builder()
         .id("userId")
@@ -173,17 +151,5 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         .accountHolders(
             List.of(AccountHolder.builder().website("https://fancywebsite.com").build()))
         .build();
-  }
-
-  private Polygon dummyPolygon(int x1, int y1, int x2, int y2) {
-    return new Polygon()
-        .points(
-            List.of(
-                new Point().x((double) x1).y((double) y1),
-                new Point().x((double) x2).y((double) y1),
-                new Point().x((double) x2).y((double) y2),
-                new Point().x((double) x1).y((double) y2),
-                new Point().x((double) x1).y((double) y1) // Close the polygon
-                ));
   }
 }

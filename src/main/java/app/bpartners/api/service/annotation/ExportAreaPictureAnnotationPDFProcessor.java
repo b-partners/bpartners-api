@@ -2,6 +2,8 @@ package app.bpartners.api.service.annotation;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.file.FileWriter.base64Image;
+import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.adjust3DAnnotation;
+import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.adjustAnnotation;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
@@ -15,9 +17,12 @@ import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
@@ -32,22 +37,26 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private final ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGenerator;
   private final ExportAreaPictureAnnotationImage3DGenerator
       exportAreaPictureAnnotationImage3DGenerator;
-
-  private static final String IMAGE_FORMAT = "png";
-
-  private static final ExportAreaPictureAnnotationImageConf ANNOTATION_MAIN_CONF =
-      new ExportAreaPictureAnnotationImageConf();
-  private static final ExportAreaPictureAnnotationImageConf ANNOTATION_SUB_IMAGE_CONF =
-      new ExportAreaPictureAnnotationImageConf(
-          2,
-          DEFAULT_POINT_SIZE,
-          DEFAULT_STROKE,
-          DEFAULT_POINT_COLOR,
-          DEFAULT_MEASUREMENT_BG_COLOR,
-          DEFAULT_MEASUREMENT_TEXT_COLOR,
-          DEFAULT_MEASUREMENT_OFFSET,
-          DEFAULT_MEASUREMENT_FONT);
   private final FileService fileService;
+  private final ImageCompressor imageCompressor;
+
+  static final String IMAGE_FORMAT = "jpg";
+
+  private static ExportAreaPictureAnnotationImageConf mainConf() {
+    return new ExportAreaPictureAnnotationImageConf();
+  }
+
+  private static ExportAreaPictureAnnotationImageConf subImageConf() {
+    return new ExportAreaPictureAnnotationImageConf(
+        2,
+        DEFAULT_POINT_SIZE,
+        DEFAULT_STROKE,
+        DEFAULT_POINT_COLOR,
+        DEFAULT_MEASUREMENT_BG_COLOR,
+        DEFAULT_MEASUREMENT_TEXT_COLOR,
+        DEFAULT_MEASUREMENT_OFFSET,
+        DEFAULT_MEASUREMENT_FONT);
+  }
 
   public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation)
       throws IOException {
@@ -67,17 +76,29 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       BufferedImage downloadedImage,
       byte[] globalImage3D)
       throws IOException {
+    BufferedImage compressedImage =
+        downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage);
+    byte[] compressedGlobalImage3D =
+        globalImage3D == null ? null : imageCompressor.compressImage(globalImage3D);
+
+    var annotationRescale = adjustAnnotation(exportAnnotation, downloadedImage, compressedImage);
+    adjust3DAnnotation(exportAnnotation, globalImage3D, compressedGlobalImage3D);
     Pair<String, List<String>> annotationImages =
-        generateAnnotationImages(exportAnnotation, downloadedImage);
+        generateAnnotationImages(
+            exportAnnotation, compressedImage, annotationRescale.x(), annotationRescale.y());
     Pair<String, List<String>> annotation3DImages = null;
     BufferedImage logo = getUserLogo(user);
     String logoBase64 =
         logo == null
             ? null
-            : generateAnnotationImageAsBase64(logo, ANNOTATION_SUB_IMAGE_CONF, List.of());
+            : generateAnnotationImageAsBase64(
+                logo,
+                subImageConf().rescale(annotationRescale.x(), annotationRescale.y()),
+                List.of());
 
-    if (exportAnnotation.get3d() != null && globalImage3D != null) {
-      annotation3DImages = generateAnnotation3DImages(exportAnnotation.get3d(), globalImage3D);
+    if (exportAnnotation.get3d() != null && compressedGlobalImage3D != null) {
+      annotation3DImages =
+          generateAnnotation3DImages(exportAnnotation.get3d(), compressedGlobalImage3D);
     }
 
     return exportAreaPictureAnnotationPDFGenerator.apply(
@@ -119,16 +140,23 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   }
 
   private Pair<String, List<String>> generateAnnotationImages(
-      ExportAreaPictureAnnotation annotation, BufferedImage baseImage) throws IOException {
+      ExportAreaPictureAnnotation annotation,
+      BufferedImage baseImage,
+      double rescaleXValue,
+      double rescaleYValue)
+      throws IOException {
     var mainImage =
         generateAnnotationImageAsBase64(
-            baseImage, ANNOTATION_MAIN_CONF, annotation.getAnnotations());
+            baseImage,
+            mainConf().rescale(rescaleXValue, rescaleYValue),
+            annotation.getAnnotations());
     var subImages = new ArrayList<String>();
     var annotationsByKey = GroupedByKey.from(annotation.getAnnotations());
 
     for (var item : annotationsByKey) {
       subImages.add(
-          generateAnnotationImageAsBase64(baseImage, ANNOTATION_SUB_IMAGE_CONF, item.instances()));
+          generateAnnotationImageAsBase64(
+              baseImage, subImageConf().rescale(rescaleXValue, rescaleYValue), item.instances()));
     }
 
     return new Pair<>(mainImage, subImages);
@@ -143,10 +171,14 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     return base64(generatedImage);
   }
 
-  private static String base64(BufferedImage bufferedImage) throws IOException {
-    var outputStream = new ByteArrayOutputStream();
-    ImageIO.write(bufferedImage, IMAGE_FORMAT, outputStream);
-    return base64Image(outputStream.toByteArray());
+  private static String base64(BufferedImage image) throws IOException {
+    try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+        OutputStream b64 = Base64.getEncoder().wrap(out)) {
+
+      ImageIO.write(image, IMAGE_FORMAT, b64);
+      b64.flush();
+      return out.toString(StandardCharsets.ISO_8859_1);
+    }
   }
 
   private static BufferedImage downloadImage(String imageUrl) {

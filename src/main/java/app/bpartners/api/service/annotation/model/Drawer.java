@@ -35,9 +35,6 @@ public class Drawer {
       MeasurementConf conf,
       Coordinates polygon,
       List<ExportAreaPictureAnnotationMeasurement> measurements) {
-    Shape clip = g2d.getClip();
-    Rectangle bounds = clip != null ? clip.getBounds() : null;
-
     g2d.setFont(conf.font());
 
     for (int i = 0; i < polygon.allX().length - 1; i++) {
@@ -50,30 +47,29 @@ public class Drawer {
         continue;
       }
 
-      String measurementText = measurement.getValue() + measurement.getUnit();
-      FontMetrics fontMetrics = g2d.getFontMetrics();
+      var measurementText = measurement.getValue() + measurement.getUnit();
+      var fontMetrics = g2d.getFontMetrics();
       int textWidth = fontMetrics.stringWidth(measurementText);
       int textHeight = fontMetrics.getHeight();
-
-      int boxWidth = textWidth + conf.offset().x();
-      int boxHeight = textHeight + conf.offset().y();
-
-      int rectX = (polygon.allX()[i] + polygon.allX()[i + 1]) / 2 - boxWidth / 2;
-      int rectY = (polygon.allY()[i] + polygon.allY()[i + 1]) / 2 - boxHeight / 2;
-
-      // Clamp to clip boundaries if available
-      if (bounds != null) {
-        rectX = Math.clamp(rectX, bounds.x, bounds.x + bounds.width - boxWidth);
-        rectY = Math.clamp(rectY, bounds.y, bounds.y + bounds.height - boxHeight);
-      }
+      var point1 = new IntXY(polygon.allX()[i], polygon.allY()[i]);
+      var point2 = new IntXY(polygon.allX()[i + 1], polygon.allY()[i + 1]);
+      var measurementCoordinate =
+          new IntXY(
+              (point1.x() + point2.x()) / 2 - (textWidth / 2),
+              (point1.y() + point2.y()) / 2 - (textHeight / 2));
 
       g2d.setColor(conf.bgColor());
-      g2d.fillRect(rectX, rectY, boxWidth, boxHeight);
+      g2d.fillRect(
+          measurementCoordinate.x() - conf.offset.x() / 2,
+          measurementCoordinate.y() - conf.offset.y() / 2,
+          textWidth + conf.offset.x(),
+          textHeight + conf.offset.y());
 
       g2d.setColor(conf.textColor);
-      int textX = rectX + conf.offset().x() / 2;
-      int textY = rectY + conf.offset().y() / 2 + fontMetrics.getAscent();
-      g2d.drawString(measurementText, textX, textY);
+      g2d.drawString(
+          measurementText,
+          measurementCoordinate.x(),
+          measurementCoordinate.y() + conf.offset.y() + textHeight / 2);
     }
   }
 

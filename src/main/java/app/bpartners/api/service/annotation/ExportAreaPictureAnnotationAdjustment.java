@@ -26,7 +26,7 @@ public class ExportAreaPictureAnnotationAdjustment {
         double scaleY = (double) compressed.getHeight() / original.getHeight();
 
         for (var pan : exportAnnotation.get3d().getPans()) {
-          if (pan.getPolygon() != null && pan.getPolygon().getPoints() != null) {
+          if (pan.getPolygon().getPoints() != null) {
             for (var point : pan.getPolygon().getPoints()) {
               point.setX(point.getX() * scaleX);
               point.setY(point.getY() * scaleY);
@@ -43,9 +43,7 @@ public class ExportAreaPictureAnnotationAdjustment {
       ExportAreaPictureAnnotation exportAnnotation,
       BufferedImage originalImage,
       BufferedImage compressedImage) {
-    if (originalImage == null
-        || compressedImage == null
-        || exportAnnotation.getAnnotations() == null) {
+    if (originalImage == null || compressedImage == null) {
       return new RescaleValue(1.0, 1.0);
     }
 
@@ -53,7 +51,7 @@ public class ExportAreaPictureAnnotationAdjustment {
     double scaleY = (double) compressedImage.getHeight() / originalImage.getHeight();
 
     for (var annotation : exportAnnotation.getAnnotations()) {
-      if (annotation.getPolygon() != null && annotation.getPolygon().getPoints() != null) {
+      if (annotation.getPolygon().getPoints() != null) {
         for (var point : annotation.getPolygon().getPoints()) {
           point.setX(point.getX() * scaleX);
           point.setY(point.getY() * scaleY);
@@ -64,5 +62,5 @@ public class ExportAreaPictureAnnotationAdjustment {
     return new RescaleValue(scaleX, scaleY);
   }
 
-  record RescaleValue(double x, double y) {}
+  public record RescaleValue(double x, double y) {}
 }

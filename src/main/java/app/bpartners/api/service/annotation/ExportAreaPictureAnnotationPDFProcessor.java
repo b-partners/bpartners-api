@@ -81,8 +81,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     byte[] compressedGlobalImage3D =
         globalImage3D == null ? null : imageCompressor.compressImage(globalImage3D);
 
-    var annotationRescale = new ExportAreaPictureAnnotationAdjustment.RescaleValue(1.0, 1.0);
-    annotationRescale = adjustAnnotation(exportAnnotation, downloadedImage, compressedImage);
+    var annotationRescale = adjustAnnotation(exportAnnotation, downloadedImage, compressedImage);
     adjust3DAnnotation(exportAnnotation, globalImage3D, compressedGlobalImage3D);
     Pair<String, List<String>> annotationImages =
         generateAnnotationImages(

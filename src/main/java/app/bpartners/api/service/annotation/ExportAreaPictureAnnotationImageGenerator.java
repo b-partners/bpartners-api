@@ -128,8 +128,8 @@ public class ExportAreaPictureAnnotationImageGenerator
       int rectY = (point1.y() + point2.y()) / 2 - boxHeight / 2;
 
       // Clamp to image boundaries
-      rectX = Math.max(0, Math.min(rectX, imageWidth - boxWidth));
-      rectY = Math.max(0, Math.min(rectY, imageHeight - boxHeight));
+      rectX = Math.clamp(rectX, 0, imageWidth - boxWidth);
+      rectY = Math.clamp(rectY, 0, imageHeight - boxHeight);
 
       graphics2D.setColor(conf.getMeasurementBgColor());
       graphics2D.fillRect(rectX, rectY, boxWidth, boxHeight);

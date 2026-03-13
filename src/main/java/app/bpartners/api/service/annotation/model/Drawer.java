@@ -63,8 +63,8 @@ public class Drawer {
 
       // Clamp to clip boundaries if available
       if (bounds != null) {
-        rectX = Math.max(bounds.x, Math.min(rectX, bounds.x + bounds.width - boxWidth));
-        rectY = Math.max(bounds.y, Math.min(rectY, bounds.y + bounds.height - boxHeight));
+        rectX = Math.clamp(rectX, bounds.x, bounds.x + bounds.width - boxWidth);
+        rectY = Math.clamp(rectY, bounds.y, bounds.y + bounds.height - boxHeight);
       }
 
       g2d.setColor(conf.bgColor());

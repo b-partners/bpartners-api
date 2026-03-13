@@ -34,6 +34,7 @@ public class ExportAreaPictureAnnotationImageGenerator
   private BufferedImage scaleImage(BufferedImage image, ExportAreaPictureAnnotationImageConf conf) {
     int newWidth = image.getWidth() * conf.getScale();
     int newHeight = image.getHeight() * conf.getScale();
+    System.out.println(image.getWidth() + " " + image.getHeight() + " " + conf.getScale());
     var resizedImage = new BufferedImage(newWidth, newHeight, image.getType());
 
     Graphics2D graphics2D = resizedImage.createGraphics();

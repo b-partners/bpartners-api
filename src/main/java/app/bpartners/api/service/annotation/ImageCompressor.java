@@ -42,22 +42,38 @@ public class ImageCompressor {
 
   BufferedImage compressImage(BufferedImage originalImage) {
     try {
+      // Step 1: Determine initial quality
       long currentSize = getImageSizeBytes(originalImage);
       float quality = computeImageQuality(currentSize, imageTargetSize);
 
-      BufferedImage temp =
-          Thumbnails.of(originalImage)
-              .size(maxImageWidth, maxImageHeight)
-              .outputFormat(IMAGE_FORMAT)
-              .outputQuality(quality)
-              .asBufferedImage();
+      // Step 2: Compute scale factors to fit within max width/height
+      double scaleX = (double) maxImageWidth / originalImage.getWidth();
+      double scaleY = (double) maxImageHeight / originalImage.getHeight();
+      double scale = Math.min(1.0, Math.min(scaleX, scaleY)); // do not upscale
 
-      BufferedImage originalSizedImage =
-          Thumbnails.of(temp)
-              .size(originalImage.getWidth(), originalImage.getHeight())
-              .asBufferedImage();
+      int targetWidth = (int) Math.min(Math.round(originalImage.getWidth() * scale), originalImage.getWidth());
+      int targetHeight = (int) Math.min(Math.round(originalImage.getHeight() * scale), originalImage.getHeight());
 
-      return convertToJPEGCompatibleType(originalSizedImage);
+      BufferedImage temp = originalImage;
+
+      // Step 3: Iteratively compress until target size is reached or minimal quality
+      int attempts = 0;
+      while (getImageSizeBytes(temp) > imageTargetSize && quality > 0.1f && attempts++ < 10) {
+        temp = Thumbnails.of(originalImage)
+            .size(targetWidth, targetHeight)
+            .outputFormat(IMAGE_FORMAT)
+            .outputQuality(quality)
+            .asBufferedImage();
+
+        long newSize = getImageSizeBytes(temp);
+        if (newSize >= currentSize) break;
+        currentSize = newSize;
+
+        // reduce quality slightly for next iteration
+        quality *= 0.85f;
+      }
+
+      return convertToJPEGCompatibleType(temp);
 
     } catch (IOException e) {
       throw new RuntimeException(e);

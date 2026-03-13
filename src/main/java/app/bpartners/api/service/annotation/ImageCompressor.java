@@ -1,7 +1,5 @@
 package app.bpartners.api.service.annotation;
 
-import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor.IMAGE_FORMAT;
-
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -17,6 +15,7 @@ public class ImageCompressor {
   private static final int DEFAULT_IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
   private static final int DEFAULT_MAX_IMAGE_WIDTH = 1180;
   private static final int DEFAULT_MAX_IMAGE_HEIGHT = 1180;
+  private static final String IMAGE_COMPRESSION_FORMAT = "jpg";
 
   private final int imageTargetSize;
   private final int maxImageWidth;
@@ -32,7 +31,7 @@ public class ImageCompressor {
       BufferedImage compressedImage = compressImage(image);
 
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      ImageIO.write(compressedImage, IMAGE_FORMAT, baos);
+      ImageIO.write(compressedImage, IMAGE_COMPRESSION_FORMAT, baos);
 
       return baos.toByteArray();
     } catch (IOException e) {
@@ -63,7 +62,7 @@ public class ImageCompressor {
         temp =
             Thumbnails.of(originalImage)
                 .size(targetWidth, targetHeight)
-                .outputFormat(IMAGE_FORMAT)
+                .outputFormat(IMAGE_COMPRESSION_FORMAT)
                 .outputQuality(quality)
                 .asBufferedImage();
 
@@ -92,7 +91,7 @@ public class ImageCompressor {
 
   private long getImageSizeBytes(BufferedImage image) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    ImageIO.write(image, IMAGE_FORMAT, baos);
+    ImageIO.write(image, IMAGE_COMPRESSION_FORMAT, baos);
     return baos.size();
   }
 

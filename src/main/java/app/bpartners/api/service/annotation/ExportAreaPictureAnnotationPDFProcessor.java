@@ -39,7 +39,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private final FileService fileService;
   private final ImageCompressor imageCompressor;
 
-  static final String IMAGE_FORMAT = "jpg";
+  static final String IMAGE_FORMAT = "png";
 
   private static ExportAreaPictureAnnotationImageConf mainConf() {
     return new ExportAreaPictureAnnotationImageConf();

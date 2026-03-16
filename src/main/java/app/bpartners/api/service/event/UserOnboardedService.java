@@ -5,31 +5,18 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyRequested;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
-import app.bpartners.api.model.Account;
-import app.bpartners.api.model.AccountHolder;
-import app.bpartners.api.model.Attachment;
-import app.bpartners.api.model.OnboardedUser;
-import app.bpartners.api.model.User;
-import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.subscription.SubscriptionService;
-import app.bpartners.api.service.utils.TemplateResolverEngine;
-import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.context.Context;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class UserOnboardedService implements Consumer<UserOnboarded> {
-  public static final String USER_ONBOARDED_MAIL = "user_onboarded_mail";
-  private final SesService service;
-  private final TemplateResolverEngine templateResolverEngine;
   private final SubscriptionService subscriptionService;
   private final UserCustomerConverter userCustomerConverter;
   private final EventProducer eventProducer;
@@ -46,39 +33,8 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
     var linkedUserSubscription = subscriptionService.createOrLinkUserSubscription(userWithApiKey);
     var userWithUpdatedKeyAndSubscriptionE2Id = linkedUserSubscription.getUser();
     userCustomerConverter.apply(userWithUpdatedKeyAndSubscriptionE2Id);
-    notifyByEmail(event);
-    requestAnalysisApiKey(userWithUpdatedKeyAndSubscriptionE2Id);
-  }
 
-  private void requestAnalysisApiKey(User user) {
-    UserAnalysisApiKeyRequested userAnalysisApiKeyRequested = new UserAnalysisApiKeyRequested(user);
-    eventProducer.accept(List.of(userAnalysisApiKeyRequested));
-  }
-
-  private void notifyByEmail(UserOnboarded userOnboarded) {
-    String subject = userOnboarded.getSubject();
-    String recipient = userOnboarded.getRecipientEmail();
-    OnboardedUser onboardedUser = userOnboarded.getOnboardedUser();
-    List<Attachment> attachments = List.of();
-    String htmlBody =
-        templateResolverEngine.parseTemplateResolver(
-            USER_ONBOARDED_MAIL,
-            configureUserContext(
-                onboardedUser.getOnboardedUser(),
-                onboardedUser.getOnboardedAccount(),
-                onboardedUser.getOnboardedAccountHolder()));
-    try {
-      service.sendEmail(recipient, null, subject, htmlBody, attachments, "tech@birdia.fr");
-    } catch (MessagingException | IOException e) {
-      log.error("Email not sent : " + e.getMessage());
-    }
-  }
-
-  private Context configureUserContext(User user, Account account, AccountHolder accountHolder) {
-    Context context = new Context();
-    context.setVariable("user", user);
-    context.setVariable("account", account);
-    context.setVariable("accountHolder", accountHolder);
-    return context;
+    eventProducer.accept(
+        List.of(new UserAnalysisApiKeyRequested(userWithUpdatedKeyAndSubscriptionE2Id)));
   }
 }

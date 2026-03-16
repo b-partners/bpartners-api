@@ -99,13 +99,7 @@ public class OnboardingService {
   }
 
   private UserOnboarded toTypedEvent(OnboardedUser onboardedUser) {
-    String subject =
-        "Inscription d'un nouvel artisan : " + onboardedUser.getOnboardedUser().getName();
-    String recipient = sesConf.getAdminEmail();
-    return new UserOnboarded()
-        .subject(subject)
-        .recipientEmail(recipient)
-        .onboardedUser(onboardedUser);
+    return new UserOnboarded().onboardedUser(onboardedUser);
   }
 
   private User userDefaultValues(User user, String id, String bridgePassword) {

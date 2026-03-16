@@ -169,7 +169,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.flywaydb:flyway-core'
-    testImplementation 'org.testcontainers:postgresql:1.19.4'
+    testImplementation 'org.testcontainers:testcontainers:2.0.2'
+    testImplementation 'org.testcontainers:testcontainers-postgresql:2.0.2'
     implementation 'org.postgresql:postgresql'
     implementation 'org.xerial:sqlite-jdbc:3.45.1.0'
     implementation 'org.hibernate.orm:hibernate-community-dialects:6.4.3.Final'
@@ -191,10 +192,11 @@ dependencies {
 
     implementation 'jakarta.mail:jakarta.mail-api:2.1.2'
     implementation 'jakarta.activation:jakarta.activation-api:2.1.2'
-    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+    implementation 'com.sun.mail:jakarta.mail:2.0.2'
     implementation 'com.sun.activation:jakarta.activation:2.0.1'
 
-    implementation 'org.apache.tika:tika-core:2.9.1'
+    implementation 'org.apache.tika:tika-core:3.2.2'
+    implementation('org.apache.commons:commons-lang3:3.18.0')
 
     implementation 'org.reflections:reflections:0.10.2'
 
@@ -207,7 +209,7 @@ dependencies {
     implementation 'io.swagger:swagger-annotations:1.6.12'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.testcontainers:junit-jupiter:1.19.1'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter:2.0.2'
     testImplementation 'org.junit-pioneer:junit-pioneer:2.2.0'
 
 
@@ -222,14 +224,14 @@ implementation 'app.bpartners:bpartners-gen:latest'
 implementation 'org.springframework.boot:spring-boot-starter-security'
 implementation 'org.springframework.boot:spring-boot-starter-validation'
 implementation 'com.sendinblue:sib-api-v3-sdk:6.0.0'
-implementation 'com.nimbusds:nimbus-jose-jwt:9.37'
+implementation 'com.nimbusds:nimbus-jose-jwt:10.0.2'
 implementation 'software.amazon.awssdk:cognitoidentityprovider:2.17.109'
 implementation 'software.amazon.awssdk:ssm:2.17.109'
 implementation 'software.amazon.awssdk:transfer:2.17.271'
 implementation 'software.amazon.awssdk:protocol-core:2.17.292'
 implementation 'software.amazon.awssdk:sns:2.20.153'
 implementation 'org.springframework.retry:spring-retry:1.3.1'
-implementation 'org.apache.tika:tika-core:1.18'
+implementation 'org.apache.tika:tika-core:3.2.2'
 implementation 'org.thymeleaf:thymeleaf:3.0.15.RELEASE'
 implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.22'
 implementation 'com.google.zxing:core:3.5.0'

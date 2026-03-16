@@ -1,9 +1,7 @@
 package app.bpartners.api.endpoint.rest.security;
 
 import static java.util.UUID.randomUUID;
-import static org.junit.Assert.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.security.model.Principal;

@@ -10,34 +10,25 @@ import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyRequested;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.subscription.UserSubscription;
-import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.UserOnboardedService;
 import app.bpartners.api.service.subscription.SubscriptionService;
-import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.thymeleaf.context.Context;
 
 class UserOnboardedServiceTest {
-  SesService mailerMock = mock();
-  TemplateResolverEngine engineMock = mock();
   SubscriptionService subscriptionServiceMock = mock();
   UserCustomerConverter userCustomerConverterMock = mock();
   EventProducer eventProducerMock = mock();
   UserOnboardedService subject =
       new UserOnboardedService(
-          mailerMock,
-          engineMock,
-          subscriptionServiceMock,
-          userCustomerConverterMock,
-          eventProducerMock);
+          subscriptionServiceMock, userCustomerConverterMock, eventProducerMock);
 
   @SneakyThrows
   @Test
-  void notify_email_and_register_user_subscription() {
+  void notify_register_user_subscription() {
     var user = User.builder().email("random" + randomUUID() + "@mail.com").build();
     var accountMock = mock(Account.class);
     var accountHolderMock = mock(AccountHolder.class);
@@ -64,9 +55,6 @@ class UserOnboardedServiceTest {
 
     var userCaptor = ArgumentCaptor.forClass(User.class);
     verify(subscriptionServiceMock).createOrLinkUserSubscription(userCaptor.capture());
-    verify(engineMock).parseTemplateResolver(any(String.class), any(Context.class));
-    verify(mailerMock)
-        .sendEmail(eq(emailRecipient), any(), eq(emailSubject), any(), any(), eq("tech@birdia.fr"));
 
     var capturedUserWithApiKey = userCaptor.getValue();
     assertNull(user.getApiKey());

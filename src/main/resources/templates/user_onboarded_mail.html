@@ -26,13 +26,17 @@
 <p><strong><u>Nom de la société</u> :</strong> <span th:text="${accountHolder.name}"></span></p>
 <p><strong><u>Informations concernant le compte</u> :</strong></p>
 <ul>
-    <li>Id Account Holder : <span th:text="${accountHolder.getId()}"></span></li>
+    <li>ID User : <span th:text="${user.getId()}"></span></li>
+    <li>ID Account Holder : <span th:text="${accountHolder.getId()}"></span></li>
     <li>Nom(s) : <span th:text="${user.getFirstName()}"></span></li>
     <li>Prénom(s) : <span th:text="${user.getLastName()}"></span></li>
     <li>Email : <span th:text="${user.getEmail()}"></span></li>
     <li>Numéro de téléphone : <span th:text="${user.getMobilePhoneNumber()}"></span></li>
+    <li>Clés API pour Birdia API (bouton couvreur) :
+        <span th:text="${#lists.isEmpty(analysisApiKeys) ? 'Aucun' : analysisApiKeys}"></span>
+    </li>
 </ul>
-<p>BPartners, l'assistant intelligent Tout-en-Un, qui accélère la croissance des artisans &
-    indépendants français.</p>
+<p>Cordialement,</p>
+<p>L'équipe Birdia.</p>
 </body>
 </html>

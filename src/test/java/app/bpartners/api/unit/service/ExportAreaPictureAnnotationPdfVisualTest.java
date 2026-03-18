@@ -15,6 +15,8 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,6 +37,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
       new ExportAreaPictureAnnotationImage3DGenerator();
   private static final ImageCompressor imageCompressor = new ImageCompressor();
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   private static FileService fileService = mock();
 
@@ -63,6 +66,18 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
+  void generate_from_payload() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromPayload();
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes);
+  }
+
+  @Test
   void generate_visual_pdf() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = fullExportAreaPictureAnnotation();
 
@@ -71,8 +86,19 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
 
     assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes);
+  }
+
+  private static void savePdfFile(byte[] pdfBytes) throws IOException {
     String now = now().format(DateTimeFormatter.ISO_DATE_TIME).replace(":", "-");
     Files.write(Paths.get(String.format("build/annotation-export-%s.pdf", now)), pdfBytes);
+  }
+
+  private ExportAreaPictureAnnotation annotationFromPayload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return objectMapper.readValue(
+        new ClassPathResource("payload/export-pdf-payload.json").getFile(),
+        ExportAreaPictureAnnotation.class);
   }
 
   private ExportAreaPictureAnnotation fullExportAreaPictureAnnotation() {

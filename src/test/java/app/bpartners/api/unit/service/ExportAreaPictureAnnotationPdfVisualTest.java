@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-//@Disabled("This is a visual test to generate a PDF file for manual inspection.")
+@Disabled("This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
@@ -49,10 +49,9 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   @BeforeAll
   static void setup() throws IOException {
     mockImage =
-        ImageIO.read(new ClassPathResource("files/image-with-vegetation.jpg").getInputStream());
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    ImageIO.write(mockImage, "png", outputStream);
-    mockImageBytes = outputStream.toByteArray();
+        ImageIO.read(
+            new ClassPathResource("files/downloaded-annotation-image.jpeg").getInputStream());
+    mockImageBytes = toByteStream(mockImage);
 
     when(fileService.downloadFile(any(), any(), any()))
         .thenReturn(new ClassPathResource("files/logo_company.jpeg").getFile());
@@ -65,9 +64,17 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             pdfGenerator, imageGenerator, image3DGenerator, fileService, imageCompressor);
   }
 
+  private static byte[] toByteStream(BufferedImage bufferedImage) throws IOException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ImageIO.write(bufferedImage, "png", outputStream);
+    return outputStream.toByteArray();
+  }
+
   @Test
   void generate_from_payload() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromPayload();
+    mockImage = ImageIO.read(new ClassPathResource("files/rue_de_la_vau.png").getInputStream());
+    mockImageBytes = toByteStream(mockImage);
 
     byte[] pdfBytes =
         assertDoesNotThrow(

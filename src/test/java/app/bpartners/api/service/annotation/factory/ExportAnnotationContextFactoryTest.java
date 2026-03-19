@@ -79,7 +79,8 @@ public class ExportAnnotationContextFactoryTest {
     ExportAnnotationContextFactory.configureAnnotation3DContext(context, annotation3D, images);
 
     assertEquals("data:image/png;base64,main3d", context.getVariable("mainImage3D"));
-    List<List<String>> subImagesPages = (List<List<String>>) context.getVariable("subImagesPages3D");
+    List<List<String>> subImagesPages =
+        (List<List<String>>) context.getVariable("subImagesPages3D");
     assertEquals(1, subImagesPages.size());
     assertEquals(2, subImagesPages.get(0).size());
     assertEquals("data:image/png;base64,a", subImagesPages.get(0).get(0));

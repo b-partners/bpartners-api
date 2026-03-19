@@ -274,7 +274,8 @@
             <img
                 class="annotation-item-image"
                 alt="annotation sub-image"
-                th:src="${subImages[page.size() * pageStat.index + annotationStat.index]}"
+                th:if="${subImagesPages[pageStat.index] != null and subImagesPages[pageStat.index].size() > annotationStat.index}"
+                th:src="${subImagesPages[pageStat.index][annotationStat.index]}"
             />
         </div>
     </section>
@@ -295,7 +296,8 @@
             <img
                 class="annotation-item-image-3d"
                 alt="annotation sub-image"
-                th:src="${subImages3D[page.size() * pageStat.index + panStat.index]}"
+                th:if="${subImagesPages3D[pageStat.index] != null and subImagesPages3D[pageStat.index].size() > panStat.index}"
+                th:src="${subImagesPages3D[pageStat.index][panStat.index]}"
             />
         </div>
     </section>

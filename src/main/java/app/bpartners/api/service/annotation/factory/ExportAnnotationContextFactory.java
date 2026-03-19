@@ -33,13 +33,13 @@ public class ExportAnnotationContextFactory {
     context.setVariable("logo", logoUri);
     context.setVariable("address", annotation.getAddress());
     context.setVariable("mainImage", mainImageUri);
-    context.setVariable("subImages", subImagesUris);
     context.setVariable(
         "pages",
         groupByFirstPage(
             ExportAreaPictureAnnotationPDFGenerator.GroupedByKey.from(annotation.getAnnotations()),
             3,
             3));
+    context.setVariable("subImagesPages", groupByFirstPage(subImagesUris, 3, 3));
 
     if (annotation.getLlm() != null) {
       configureLLMContext(context, annotation);
@@ -76,16 +76,16 @@ public class ExportAnnotationContextFactory {
       Context context,
       ExportAreaPictureAnnotation3D annotation3D,
       Pair<String, List<String>> annotation3DImages) {
-    var pages = groupByFirstPage(annotation3D.getPans(), 3, 4);
+    var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
     var mainImage3DUri = base64ToUri(annotation3DImages.first());
     var panImages3DUris =
         annotation3DImages.second().stream()
             .map(ExportAnnotationContextFactory::base64ToUri)
             .toList();
 
-    context.setVariable("pages3D", pages);
+    context.setVariable("pages3D", pages3D);
     context.setVariable("mainImage3D", mainImage3DUri);
-    context.setVariable("subImages3D", panImages3DUris);
+    context.setVariable("subImagesPages3D", groupByFirstPage(panImages3DUris, 3, 4));
   }
 
   static <T> List<List<T>> groupByFirstPage(List<T> list, int firstPageMax, int limit) {

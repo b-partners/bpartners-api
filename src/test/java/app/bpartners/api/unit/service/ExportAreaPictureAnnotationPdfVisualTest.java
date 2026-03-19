@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-@Disabled("This is a visual test to generate a PDF file for manual inspection.")
+//@Disabled("This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
@@ -74,7 +74,19 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
 
     assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes);
+    savePdfFile(pdfBytes, "payload");
+  }
+
+  @Test
+  void generate_from_heavy_payload() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "heavy-payload");
   }
 
   @Test
@@ -86,19 +98,54 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
 
     assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes);
+    savePdfFile(pdfBytes, "visual");
   }
 
-  private static void savePdfFile(byte[] pdfBytes) throws IOException {
+  @Test
+  void generate_uneven_annotations_pdf() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = unevenExportAreaPictureAnnotation();
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "uneven");
+  }
+
+  private static void savePdfFile(byte[] pdfBytes, String suffix) throws IOException {
     String now = now().format(DateTimeFormatter.ISO_DATE_TIME).replace(":", "-");
-    Files.write(Paths.get(String.format("build/annotation-export-%s.pdf", now)), pdfBytes);
+    Files.write(
+        Paths.get(String.format("build/annotation-export-%s-%s.pdf", now, suffix)), pdfBytes);
   }
 
   private ExportAreaPictureAnnotation annotationFromPayload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     return objectMapper.readValue(
-        new ClassPathResource("payload/export-pdf-payload.json").getFile(),
+        new ClassPathResource("payload/export-pdf-payload.json").getInputStream(),
         ExportAreaPictureAnnotation.class);
+  }
+
+  private ExportAreaPictureAnnotation heavyAnnotationFromPayload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return objectMapper.readValue(
+        new ClassPathResource("payload/heavy-export-pdf-payload.json").getInputStream(),
+        ExportAreaPictureAnnotation.class);
+  }
+
+  private ExportAreaPictureAnnotation unevenExportAreaPictureAnnotation() {
+    return new ExportAreaPictureAnnotation()
+        .imageUrl("https://dummy.com")
+        .address("Uneven Annotation Test")
+        .annotations(
+            List.of(
+                exportInstance("Group A", "Type 1", "Good", "10m", 0, 0, 100, 100),
+                exportInstance("Group A", "Type 1", "Good", "10m", 100, 0, 200, 100),
+                exportInstance("Group B", "Type 2", "Bad", "5m", 0, 100, 100, 200),
+                exportInstance("Group C", "Type 3", "Moyen", "2m", 100, 100, 200, 200),
+                exportInstance("Group C", "Type 3", "Moyen", "2m", 200, 100, 300, 200),
+                exportInstance("Group C", "Type 3", "Moyen", "2m", 300, 100, 400, 200),
+                exportInstance("Group D", "Type 4", "N/A", "0m", 0, 200, 100, 300)));
   }
 
   private ExportAreaPictureAnnotation fullExportAreaPictureAnnotation() {

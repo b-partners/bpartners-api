@@ -15,6 +15,8 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,6 +37,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
       new ExportAreaPictureAnnotationImage3DGenerator();
   private static final ImageCompressor imageCompressor = new ImageCompressor();
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   private static FileService fileService = mock();
 
@@ -46,10 +49,9 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   @BeforeAll
   static void setup() throws IOException {
     mockImage =
-        ImageIO.read(new ClassPathResource("files/image-with-vegetation.jpg").getInputStream());
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    ImageIO.write(mockImage, "png", outputStream);
-    mockImageBytes = outputStream.toByteArray();
+        ImageIO.read(
+            new ClassPathResource("files/downloaded-annotation-image.jpeg").getInputStream());
+    mockImageBytes = toByteStream(mockImage);
 
     when(fileService.downloadFile(any(), any(), any()))
         .thenReturn(new ClassPathResource("files/logo_company.jpeg").getFile());
@@ -62,6 +64,38 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             pdfGenerator, imageGenerator, image3DGenerator, fileService, imageCompressor);
   }
 
+  private static byte[] toByteStream(BufferedImage bufferedImage) throws IOException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ImageIO.write(bufferedImage, "png", outputStream);
+    return outputStream.toByteArray();
+  }
+
+  @Test
+  void generate_from_payload() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromPayload();
+    mockImage = ImageIO.read(new ClassPathResource("files/rue_de_la_vau.png").getInputStream());
+    mockImageBytes = toByteStream(mockImage);
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "payload");
+  }
+
+  @Test
+  void generate_from_heavy_payload() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "heavy-payload");
+  }
+
   @Test
   void generate_visual_pdf() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = fullExportAreaPictureAnnotation();
@@ -71,8 +105,54 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
 
     assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "visual");
+  }
+
+  @Test
+  void generate_uneven_annotations_pdf() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = unevenExportAreaPictureAnnotation();
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "uneven");
+  }
+
+  private static void savePdfFile(byte[] pdfBytes, String suffix) throws IOException {
     String now = now().format(DateTimeFormatter.ISO_DATE_TIME).replace(":", "-");
-    Files.write(Paths.get(String.format("build/annotation-export-%s.pdf", now)), pdfBytes);
+    Files.write(
+        Paths.get(String.format("build/annotation-export-%s-%s.pdf", now, suffix)), pdfBytes);
+  }
+
+  private ExportAreaPictureAnnotation annotationFromPayload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return objectMapper.readValue(
+        new ClassPathResource("payload/export-pdf-payload.json").getInputStream(),
+        ExportAreaPictureAnnotation.class);
+  }
+
+  private ExportAreaPictureAnnotation heavyAnnotationFromPayload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return objectMapper.readValue(
+        new ClassPathResource("payload/heavy-export-pdf-payload.json").getInputStream(),
+        ExportAreaPictureAnnotation.class);
+  }
+
+  private ExportAreaPictureAnnotation unevenExportAreaPictureAnnotation() {
+    return new ExportAreaPictureAnnotation()
+        .imageUrl("https://dummy.com")
+        .address("Uneven Annotation Test")
+        .annotations(
+            List.of(
+                exportInstance("Group A", "Type 1", "Good", "10m", 0, 0, 100, 100),
+                exportInstance("Group A", "Type 1", "Good", "10m", 100, 0, 200, 100),
+                exportInstance("Group B", "Type 2", "Bad", "5m", 0, 100, 100, 200),
+                exportInstance("Group C", "Type 3", "Moyen", "2m", 100, 100, 200, 200),
+                exportInstance("Group C", "Type 3", "Moyen", "2m", 200, 100, 300, 200),
+                exportInstance("Group C", "Type 3", "Moyen", "2m", 300, 100, 400, 200),
+                exportInstance("Group D", "Type 4", "N/A", "0m", 0, 200, 100, 300)));
   }
 
   private ExportAreaPictureAnnotation fullExportAreaPictureAnnotation() {

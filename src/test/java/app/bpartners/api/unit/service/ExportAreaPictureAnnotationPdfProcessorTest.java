@@ -68,6 +68,8 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   @Test
   @Disabled("TODO: Exception: cannot read the image from the url")
   void process_pdf_ok() throws IOException {
+    MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class);
+    mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenReturn(mockImage);
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(
             exportAreaPictureAnnotationPDFGenerator,
@@ -80,6 +82,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     var actual = subject.process(user(), exportAreaPictureAnnotationMock);
 
     assertEquals(expected, actual);
+    mockedImageIo.close();
   }
 
   @Test

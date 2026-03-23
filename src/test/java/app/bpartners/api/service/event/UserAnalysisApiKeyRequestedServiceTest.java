@@ -27,24 +27,31 @@ class UserAnalysisApiKeyRequestedServiceTest {
     String userIdentifier = randomUUID().toString();
     List<UserAnalysisApiKey> userAnalysisApiKeysMock = mock();
     UserAnalysisApiKey apiKeyMock = mock();
-    User userMock = mock();
-    User.UserBuilder userMockBuilder = mock();
-    UserAnalysisApiKeyRequested eventMock = mock();
+    var generatedAnalysisApiKey = randomUUID().toString();
+    var userMockWithApiKey = mock(User.class);
+    var userMock = mock(User.class);
+    var userMockBuilder = mock(User.UserBuilder.class);
+    var userMockBuilderWithApiKey = mock(User.UserBuilder.class);
+    var eventMock = mock(UserAnalysisApiKeyRequested.class);
     when(userMock.getId()).thenReturn(userIdentifier);
+    when(userMock.toBuilder()).thenReturn(userMockBuilder);
+    when(userMockBuilder.apiKey(generatedAnalysisApiKey)).thenReturn(userMockBuilderWithApiKey);
 
     when(userRepositoryMock.save(userMock)).thenReturn(userMock);
     when(userAnalysisApiKeysMock.add(apiKeyMock)).thenReturn(true);
+    when(apiKeyMock.getApiKey()).thenReturn(generatedAnalysisApiKey);
     when(userMock.getAnalysisApiKeys()).thenReturn(userAnalysisApiKeysMock);
     when(eventMock.getUser()).thenReturn(userMock);
     when(userMock.toBuilder()).thenReturn(userMockBuilder);
     when(userMockBuilder.build()).thenReturn(userMock);
+    when(userMockBuilderWithApiKey.build()).thenReturn(userMockWithApiKey);
     when(serviceMock.getAnalysisApiKey(userMock)).thenReturn(apiKeyMock);
 
     assertDoesNotThrow(() -> subject.accept(eventMock));
 
     verify(eventMock).getUser();
     verify(serviceMock).getAnalysisApiKey(userMock);
-    verify(userRepositoryMock).save(userMock);
+    verify(userRepositoryMock).save(userMockWithApiKey);
     verify(userMock).addUserAnalysisApiKey(apiKeyMock);
     var listCaptor = ArgumentCaptor.forClass(List.class);
     verify(eventProducerMock).accept(listCaptor.capture());

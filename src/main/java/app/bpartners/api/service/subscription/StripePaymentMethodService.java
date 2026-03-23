@@ -53,7 +53,10 @@ public class StripePaymentMethodService {
             stripeCustomerIdentifier);
     var paymentMethodIdsFromSubscriptions =
         stripeSubscriptions.stream()
-            .filter(subscription -> subscription.getCancelAt() != null)
+            .filter(
+                subscription ->
+                    subscription.getCancelAt() != null
+                        && subscription.getDefaultPaymentMethod() != null)
             .collect(Collectors.groupingBy(Subscription::getDefaultPaymentMethod))
             .keySet();
     return paymentMethodIdsFromSubscriptions.stream()

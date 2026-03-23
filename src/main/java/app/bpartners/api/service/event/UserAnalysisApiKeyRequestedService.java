@@ -24,8 +24,11 @@ public class UserAnalysisApiKeyRequestedService implements Consumer<UserAnalysis
     User user = event.getUser().toBuilder().build();
     try {
       UserAnalysisApiKey analysisApiKey = service.getAnalysisApiKey(user);
+
       user.addUserAnalysisApiKey(analysisApiKey);
-      var savedUserWithAnalysisKey = userRepository.save(user);
+
+      var savedUserWithAnalysisKey =
+          userRepository.save(user.toBuilder().apiKey(analysisApiKey.getApiKey()).build());
 
       eventProducer.accept(
           List.of(new UserOnboardedNotificationRequested(savedUserWithAnalysisKey.getId())));

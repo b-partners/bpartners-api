@@ -2,6 +2,7 @@ package app.bpartners.api.service.wms.imageSource;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.AIRBUS;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
+import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
@@ -12,7 +13,6 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
-import jakarta.mail.internet.AddressException;
 import java.io.File;
 import java.net.URI;
 import lombok.SneakyThrows;
@@ -63,14 +63,14 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 5) int iteration)
-      throws AddressException {
+      @Range(from = 0, to = 5) int iteration) {
     WmsImageSource alternativeSource;
     AreaPictureMapLayer alternativeAreaPictureMapLayer;
     if (iteration == 0) {
       alternativeSource = tileExtenderImageSource;
       AreaPictureMapLayer layer = areaPicture.getCurrentLayer();
-      if ("IGN_PHOTO_AERIENNE".equals(layer.getName())) {
+      if ("IGN_PHOTO_AERIENNE".equals(layer.getName())
+          && areaPicture.getZoomLevel().equals(HOUSES_0)) {
         areaPicture.setZoomLevel(BUILDING);
       }
       alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
@@ -81,13 +81,17 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       alternativeSource = tileExtenderImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getRhonePCRSLayer();
     } else if (iteration == 3) {
-      alternativeSource = ignGeoserverImageSource;
+      alternativeSource = tileExtenderImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
-      areaPicture.setZoomLevel(BUILDING);
+      if (areaPicture.getZoomLevel().equals(HOUSES_0)) {
+        areaPicture.setZoomLevel(BUILDING);
+      }
     } else if (iteration == 4) {
       alternativeSource = tileExtenderImageSource;
       alternativeAreaPictureMapLayer = areaPictureMapLayerService.getAirbusLayer();
-      areaPicture.setZoomLevel(BUILDING);
+      if (areaPicture.getZoomLevel().equals(HOUSES_0)) {
+        areaPicture.setZoomLevel(BUILDING);
+      }
     } else {
       throw new ApiException(
           SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());

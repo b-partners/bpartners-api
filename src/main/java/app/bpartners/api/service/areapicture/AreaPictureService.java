@@ -1,6 +1,7 @@
 package app.bpartners.api.service.areapicture;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
+import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.time.Instant.now;
@@ -83,10 +84,12 @@ public class AreaPictureService {
     long endDownload = System.currentTimeMillis();
     log.info("Elapsed time for downloadImage: {} ms", endDownload - startDownload);
 
-    if (areaPicture.getFilename().contains("ORTHOIMAGERY")) {
+    if (areaPicture.getFilename().contains("ORTHOIMAGERY")
+        && areaPicture.getZoomLevel().equals(HOUSES_0)) {
       areaPicture.setZoomLevel(ZoomLevel.BUILDING);
       areaPicture.setCurrentLayer(mapLayerService.getDefaultIGNLayer());
-    } else if (areaPicture.getFilename().contains("AIRBUS_PNEO")) {
+    } else if (areaPicture.getFilename().contains("AIRBUS_PNEO")
+        && areaPicture.getZoomLevel().equals(HOUSES_0)) {
       areaPicture.setZoomLevel(ZoomLevel.BUILDING);
       areaPicture.setCurrentLayer(mapLayerService.getAirbusLayer());
     }

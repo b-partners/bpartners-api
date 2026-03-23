@@ -18,33 +18,32 @@ public final class GeojsonFeatureCollection {
   private GeojsonFeatureCollection() {}
 
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_1_SFS =
-      readFranceDepartementsFeatureCollectionAsList(1);
+      readEuropeFeatureCollectionAsList(1);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_2_SFS =
-      readFranceDepartementsFeatureCollectionAsList(2);
+      readEuropeFeatureCollectionAsList(2);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_3_SFS =
-      readFranceDepartementsFeatureCollectionAsList(3);
+      readEuropeFeatureCollectionAsList(3);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_4_SFS =
-      readFranceDepartementsFeatureCollectionAsList(4);
+      readEuropeFeatureCollectionAsList(4);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_5_SFS =
-      readFranceDepartementsFeatureCollectionAsList(5);
+      readEuropeFeatureCollectionAsList(5);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_6_SFS =
-      readFranceDepartementsFeatureCollectionAsList(6);
+      readEuropeFeatureCollectionAsList(6);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_7_SFS =
-      readFranceDepartementsFeatureCollectionAsList(7);
+      readEuropeFeatureCollectionAsList(7);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_8_SFS =
-      readFranceDepartementsFeatureCollectionAsList(8);
+      readEuropeFeatureCollectionAsList(8);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_9_SFS =
-      readFranceDepartementsFeatureCollectionAsList(9);
+      readEuropeFeatureCollectionAsList(9);
   private static final List<SimpleFeature> FRANCE_DEPARTEMENTS_10_SFS =
-      readFranceDepartementsFeatureCollectionAsList(10);
-  private static final List<SimpleFeature> QUEBEC_1_SFS =
-      readFranceDepartementsFeatureCollectionAsList(11);
-  private static final List<SimpleFeature> LUXEMEBOURG =
-      readFranceDepartementsFeatureCollectionAsList(12);
+      readEuropeFeatureCollectionAsList(10);
+  private static final List<SimpleFeature> QUEBEC_1_SFS = readEuropeFeatureCollectionAsList(11);
+  private static final List<SimpleFeature> LUXEMEBOURG = readEuropeFeatureCollectionAsList(12);
+  private static final List<SimpleFeature> SUISSE = readEuropeFeatureCollectionAsList(13);
 
   @SneakyThrows
-  private static List<SimpleFeature> readFranceDepartementsFeatureCollectionAsList(
-      @Range(from = 0, to = 11) int number) {
+  private static List<SimpleFeature> readEuropeFeatureCollectionAsList(
+      @Range(from = 0, to = 12) int number) {
     return getSimpleFeatures("departements_%s.json".formatted(number));
   }
 
@@ -64,7 +63,8 @@ public final class GeojsonFeatureCollection {
             FRANCE_DEPARTEMENTS_9_SFS,
             FRANCE_DEPARTEMENTS_10_SFS,
             QUEBEC_1_SFS,
-            LUXEMEBOURG);
+            LUXEMEBOURG,
+            SUISSE);
     var matcherFunction = matchPredicate(predicate);
     allLists.forEach(list -> result.addAll(matcherFunction.apply(list)));
     return result;

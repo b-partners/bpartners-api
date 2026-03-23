@@ -7,10 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -18,70 +22,21 @@ import org.locationtech.jts.geom.PrecisionModel;
 
 @Slf4j
 public class FeatureCollectionTest {
-
-  @Test
-  void haut_de_france_is_valid() {
+  @ParameterizedTest
+  @MethodSource("zoneTestCases")
+  void zone_is_valid(ZoneTestCase testCase) {
     var geometryFactory = new GeometryFactory(new PrecisionModel(), WGS_84_SRID);
-    //    double longitude = 2.3929595947265625;
-    //    double latitude = 51.05045943309267;
-    double longitude = 2.3935203;
-    double latitude = 51.05007060000001;
-    var areaPictureCoordinatesAsPoint =
-        geometryFactory.createPoint(new Coordinate(longitude, latitude));
-
-    List<SimpleFeature> features =
-        getFranceAndQuebecDepartementsSimpleFeaturesMatchingPredicate(
-            feature -> {
-              var geometry = (Geometry) feature.getDefaultGeometry();
-              return geometry.contains(areaPictureCoordinatesAsPoint);
-            });
+    var point =
+        geometryFactory.createPoint(new Coordinate(testCase.longitude(), testCase.latitude()));
 
     List<String> matchingFeaturesName =
-        features.stream().map(f -> (String) f.getAttribute("nom")).toList();
-
-    assertTrue(matchingFeaturesName.contains("Nord"));
-  }
-
-  @Test
-  void luxembourg_supported_ok() {
-    var geometryFactory = new GeometryFactory(new PrecisionModel(), WGS_84_SRID);
-    double longitude = 6.111297178735165;
-    double latitude = 49.744293262381476;
-    var areaPictureCoordinatesAsPoint =
-        geometryFactory.createPoint(new Coordinate(longitude, latitude));
-
-    List<SimpleFeature> features =
         getFranceAndQuebecDepartementsSimpleFeaturesMatchingPredicate(
-            feature -> {
-              var geometry = (Geometry) feature.getDefaultGeometry();
-              return geometry.contains(areaPictureCoordinatesAsPoint);
-            });
+                feature -> ((Geometry) feature.getDefaultGeometry()).contains(point))
+            .stream()
+            .map(f -> (String) f.getAttribute("nom"))
+            .toList();
 
-    List<String> matchingFeaturesName =
-        features.stream().map(f -> (String) f.getAttribute("nom")).toList();
-
-    assertTrue(matchingFeaturesName.contains("Luxembourg"));
-  }
-
-  @Test
-  void quebec_zone_is_valid() {
-    var geometryFactory = new GeometryFactory(new PrecisionModel(), WGS_84_SRID);
-    double longitude = -71.29137376844952;
-    double latitude = 46.82801901634743;
-    var areaPictureCoordinatesAsPoint =
-        geometryFactory.createPoint(new Coordinate(longitude, latitude));
-
-    List<SimpleFeature> features =
-        getFranceAndQuebecDepartementsSimpleFeaturesMatchingPredicate(
-            feature -> {
-              var geometry = (Geometry) feature.getDefaultGeometry();
-              return geometry.contains(areaPictureCoordinatesAsPoint);
-            });
-
-    List<String> matchingFeaturesName =
-        features.stream().map(f -> (String) f.getAttribute("nom")).toList();
-
-    assertTrue(matchingFeaturesName.contains("Quebec"));
+    assertTrue(matchingFeaturesName.contains(testCase.expectedName()));
   }
 
   @Test
@@ -113,5 +68,15 @@ public class FeatureCollectionTest {
         valids.add(fdName);
       }
     };
+  }
+
+  record ZoneTestCase(double longitude, double latitude, String expectedName) {}
+
+  static Stream<Arguments> zoneTestCases() {
+    return Stream.of(
+        Arguments.of(new ZoneTestCase(2.3935203, 51.05007060000001, "Nord")),
+        Arguments.of(new ZoneTestCase(6.111297178735165, 49.744293262381476, "Luxembourg")),
+        Arguments.of(new ZoneTestCase(-71.29137376844952, 46.82801901634743, "Quebec")),
+        Arguments.of(new ZoneTestCase(6.2242825, 46.2193426, "Suisse")));
   }
 }

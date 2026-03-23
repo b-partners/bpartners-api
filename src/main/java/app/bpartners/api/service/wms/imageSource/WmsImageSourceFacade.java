@@ -64,40 +64,31 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
       @Range(from = 0, to = 5) int iteration) {
-    WmsImageSource alternativeSource;
-    AreaPictureMapLayer alternativeAreaPictureMapLayer;
-    if (iteration == 0) {
-      alternativeSource = tileExtenderImageSource;
-      AreaPictureMapLayer layer = areaPicture.getCurrentLayer();
-      if ("IGN_PHOTO_AERIENNE".equals(layer.getName())
-          && areaPicture.getZoomLevel().equals(HOUSES_0)) {
-        areaPicture.setZoomLevel(BUILDING);
+
+    switch (iteration) {
+      case 0 -> {
+        if ("IGN_PHOTO_AERIENNE".equals(areaPicture.getCurrentLayer().getName())
+            && areaPicture.getZoomLevel().equals(HOUSES_0)) {
+          areaPicture.setZoomLevel(BUILDING);
+        }
+        areaPicture.setCurrentLayer(areaPicture.getCurrentLayer());
       }
-      alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
-    } else if (iteration == 1) {
-      alternativeSource = tileExtenderImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getPCRSLayer();
-    } else if (iteration == 2) {
-      alternativeSource = tileExtenderImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getRhonePCRSLayer();
-    } else if (iteration == 3) {
-      alternativeSource = tileExtenderImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
-      if (areaPicture.getZoomLevel().equals(HOUSES_0)) {
-        areaPicture.setZoomLevel(BUILDING);
+      case 1 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getPCRSLayer());
+      case 2 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getRhonePCRSLayer());
+      case 3 -> {
+        areaPicture.setCurrentLayer(areaPictureMapLayerService.getDefaultIGNLayer());
+        setMaxZoomLevel(areaPicture);
       }
-    } else if (iteration == 4) {
-      alternativeSource = tileExtenderImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getAirbusLayer();
-      if (areaPicture.getZoomLevel().equals(HOUSES_0)) {
-        areaPicture.setZoomLevel(BUILDING);
+      case 4 -> {
+        areaPicture.setCurrentLayer(areaPictureMapLayerService.getAirbusLayer());
+        setMaxZoomLevel(areaPicture);
       }
-    } else {
-      throw new ApiException(
-          SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
+      default ->
+          throw new ApiException(
+              SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
     }
+
     try {
-      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       log.info("Process image download from layer = {}", areaPicture.getCurrentLayer());
       var image = tileExtenderImageSource.downloadImage(areaPicture);
       imageValidator.accept(image);
@@ -105,10 +96,16 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     } catch (ApiException | BlankImageException e) {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
-      if (AIRBUS.equals(areaPicture.getCurrentLayer().getSource())) {
+      if (AIRBUS.equals(areaPicture.getCurrentLayer().getSource()) && iteration == 0) {
         throw new ApiException(SERVER_EXCEPTION, "PNEO data is not available yet on this area");
       }
-      return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
+      return cascadeRetryImageDownloadUntilValid(tileExtenderImageSource, areaPicture, ++iteration);
+    }
+  }
+
+  private void setMaxZoomLevel(AreaPicture areaPicture) {
+    if (areaPicture.getArcgisZoom().getZoomLevel() >= 20) {
+      areaPicture.setZoomLevel(BUILDING);
     }
   }
 

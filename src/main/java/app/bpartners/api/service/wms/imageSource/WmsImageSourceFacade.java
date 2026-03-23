@@ -2,6 +2,7 @@ package app.bpartners.api.service.wms.imageSource;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.AIRBUS;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
+import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.file.FileDownloader;
@@ -12,7 +13,6 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
-import jakarta.mail.internet.AddressException;
 import java.io.File;
 import java.net.URI;
 import lombok.SneakyThrows;
@@ -63,37 +63,32 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 5) int iteration)
-      throws AddressException {
-    WmsImageSource alternativeSource;
-    AreaPictureMapLayer alternativeAreaPictureMapLayer;
-    if (iteration == 0) {
-      alternativeSource = tileExtenderImageSource;
-      AreaPictureMapLayer layer = areaPicture.getCurrentLayer();
-      if ("IGN_PHOTO_AERIENNE".equals(layer.getName())) {
-        areaPicture.setZoomLevel(BUILDING);
+      @Range(from = 0, to = 5) int iteration) {
+
+    switch (iteration) {
+      case 0 -> {
+        if ("IGN_PHOTO_AERIENNE".equals(areaPicture.getCurrentLayer().getName())
+            && areaPicture.getZoomLevel().equals(HOUSES_0)) {
+          areaPicture.setZoomLevel(BUILDING);
+        }
+        areaPicture.setCurrentLayer(areaPicture.getCurrentLayer());
       }
-      alternativeAreaPictureMapLayer = areaPicture.getCurrentLayer();
-    } else if (iteration == 1) {
-      alternativeSource = tileExtenderImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getPCRSLayer();
-    } else if (iteration == 2) {
-      alternativeSource = tileExtenderImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getRhonePCRSLayer();
-    } else if (iteration == 3) {
-      alternativeSource = ignGeoserverImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getDefaultIGNLayer();
-      areaPicture.setZoomLevel(BUILDING);
-    } else if (iteration == 4) {
-      alternativeSource = tileExtenderImageSource;
-      alternativeAreaPictureMapLayer = areaPictureMapLayerService.getAirbusLayer();
-      areaPicture.setZoomLevel(BUILDING);
-    } else {
-      throw new ApiException(
-          SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
+      case 1 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getPCRSLayer());
+      case 2 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getRhonePCRSLayer());
+      case 3 -> {
+        areaPicture.setCurrentLayer(areaPictureMapLayerService.getDefaultIGNLayer());
+        setMaxZoomLevel(areaPicture);
+      }
+      case 4 -> {
+        areaPicture.setCurrentLayer(areaPictureMapLayerService.getAirbusLayer());
+        setMaxZoomLevel(areaPicture);
+      }
+      default ->
+          throw new ApiException(
+              SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
     }
+
     try {
-      areaPicture.setCurrentLayer(alternativeAreaPictureMapLayer);
       log.info("Process image download from layer = {}", areaPicture.getCurrentLayer());
       var image = tileExtenderImageSource.downloadImage(areaPicture);
       imageValidator.accept(image);
@@ -101,10 +96,16 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
     } catch (ApiException | BlankImageException e) {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
-      if (AIRBUS.equals(areaPicture.getCurrentLayer().getSource())) {
+      if (AIRBUS.equals(areaPicture.getCurrentLayer().getSource()) && iteration == 0) {
         throw new ApiException(SERVER_EXCEPTION, "PNEO data is not available yet on this area");
       }
-      return cascadeRetryImageDownloadUntilValid(alternativeSource, areaPicture, ++iteration);
+      return cascadeRetryImageDownloadUntilValid(tileExtenderImageSource, areaPicture, ++iteration);
+    }
+  }
+
+  private void setMaxZoomLevel(AreaPicture areaPicture) {
+    if (areaPicture.getArcgisZoom().getZoomLevel() >= 20) {
+      areaPicture.setZoomLevel(BUILDING);
     }
   }
 

@@ -17,7 +17,6 @@ import java.net.URL;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.core.io.ClassPathResource;
@@ -66,8 +65,9 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   }
 
   @Test
-  @Disabled("TODO: Exception: cannot read the image from the url")
   void process_pdf_ok() throws IOException {
+    MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class);
+    mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenReturn(mockImage);
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(
             exportAreaPictureAnnotationPDFGenerator,
@@ -80,6 +80,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     var actual = subject.process(user(), exportAreaPictureAnnotationMock);
 
     assertEquals(expected, actual);
+    mockedImageIo.close();
   }
 
   @Test

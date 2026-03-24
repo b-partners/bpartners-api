@@ -6,6 +6,7 @@ import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
+import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -59,6 +60,10 @@ public class HAreaPicture {
   private List<GeoPosition> geoPositions;
 
   private Integer shiftNb;
+
+  @Enumerated(STRING)
+  @JdbcTypeCode(NAMED_ENUM)
+  private TileExtenderRequestBody.ShiftDirection shiftDirection;
 
   @Override
   public final boolean equals(Object o) {

@@ -34,6 +34,7 @@ public class AreaPictureMapper {
             .isExtended(entity.isExtended())
             .geoPositions(entity.getGeoPositions())
             .shiftNb(entity.getShiftNb())
+            .shiftDirection(entity.getShiftDirection())
             .build();
     Tile tile = Tile.from(domain);
     domain.setCurrentTile(tile);
@@ -62,6 +63,7 @@ public class AreaPictureMapper {
         .isExtended(domain.isExtended())
         .geoPositions(domain.getGeoPositions())
         .shiftNb(domain.getShiftNb())
+        .shiftDirection(domain.getShiftDirection())
         .build();
   }
 }

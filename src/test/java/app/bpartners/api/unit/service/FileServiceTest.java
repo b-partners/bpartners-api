@@ -18,6 +18,7 @@ import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.file.FileService;
+import app.bpartners.api.service.file.LogoService;
 import java.io.File;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ class FileServiceTest {
   FileRepository fileRepository;
   FileMapper fileMapper;
   UserJpaRepository userJpaRepository;
+  LogoService logoService;
 
   @BeforeEach
   void setUp() {
@@ -36,7 +38,8 @@ class FileServiceTest {
     fileRepository = mock(FileRepository.class);
     fileMapper = mock(FileMapper.class);
     userJpaRepository = mock(UserJpaRepository.class);
-    fileService = new FileService(s3Service, fileRepository, fileMapper, userJpaRepository, mock());
+    logoService = mock(LogoService.class);
+    fileService = new FileService(s3Service, fileRepository, fileMapper, mock(), logoService);
   }
 
   @Test
@@ -52,6 +55,7 @@ class FileServiceTest {
     when(fileMapper.toDomain(any(String.class), any(), any(String.class), any(String.class)))
         .thenReturn(fileInfo());
     when(fileRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
+    when(logoService.isCompressedLogo(fileId)).thenReturn(true);
 
     FileInfo actual = fileService.upload(fileType, fileId, idUser, file);
 

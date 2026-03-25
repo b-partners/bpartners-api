@@ -1,9 +1,9 @@
 package app.bpartners.api.service.annotation;
 
-import static app.bpartners.api.endpoint.rest.model.FileType.LOGO;
 import static app.bpartners.api.file.FileWriter.base64Image;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.adjustAnnotation;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
+import static app.bpartners.api.service.utils.UserUtils.getUserLogo;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
@@ -82,7 +82,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
         generateAnnotationImages(
             exportAnnotation, compressedImage, annotationRescale.x(), annotationRescale.y());
     Pair<String, List<String>> annotation3DImages = null;
-    BufferedImage logo = getUserLogo(user);
+    BufferedImage logo = getUserLogo(user, fileService);
     String logoBase64 =
         logo == null
             ? null
@@ -97,23 +97,6 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
     return exportAreaPictureAnnotationPDFGenerator.apply(
         user, logoBase64, exportAnnotation, annotationImages, annotation3DImages);
-  }
-
-  private BufferedImage getUserLogo(User user) {
-    var idUser = user.getId();
-    var logoFileId = user.getLogoFileId();
-
-    var logoFile = logoFileId == null ? null : fileService.downloadFile(LOGO, idUser, logoFileId);
-
-    if (logoFile == null) {
-      log.info("User {}({}) has no logo", user.getEmail(), idUser);
-      return null;
-    }
-    try {
-      return ImageIO.read(logoFile.toURI().toURL());
-    } catch (IOException e) {
-      throw new BadRequestException("Cannot read the logo file");
-    }
   }
 
   private Pair<String, List<String>> generateAnnotation3DImages(

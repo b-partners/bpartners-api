@@ -52,7 +52,11 @@ public class CompressionParametersFactory {
   private static long computeImageSizeBytes(BufferedImage image, String imageFormat)
       throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    ImageIO.write(image, imageFormat, baos);
+    try {
+      ImageIO.write(image, imageFormat, baos);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Given file is unconvertible into " + imageFormat, e);
+    }
     return baos.size();
   }
 }

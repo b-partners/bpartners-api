@@ -29,7 +29,8 @@ public class UserUtils {
   public static BufferedImage getUserLogo(
       String userId, String userLogoFileId, FileService fileService) {
     try {
-      return ImageIO.read(getUserLogoFile(userId, userLogoFileId, fileService).toPath().toFile());
+      File logoFile = getUserLogoFile(userId, userLogoFileId, fileService);
+      return logoFile == null ? null : ImageIO.read(logoFile.toPath().toFile());
     } catch (IOException e) {
       throw new BadRequestException("User logo is not a valid image");
     }

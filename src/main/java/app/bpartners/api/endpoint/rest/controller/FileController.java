@@ -95,11 +95,10 @@ public class FileController {
       @PathVariable(name = "id") String fileId,
       @RequestParam(name = "fileType") FileType fileType,
       @RequestBody byte[] toUpload) {
+    MediaType parsedMediaType = FileInfoUtils.parseMediaTypeFromBytes(toUpload);
     File fileToUpload = fileWriter.apply(toUpload, null);
     service.upload(fileType, fileId, AuthProvider.getAuthenticatedUserId(), fileToUpload);
-    return ResponseEntity.ok()
-        .contentType(FileInfoUtils.parseMediaTypeFromBytes(toUpload))
-        .body(toUpload);
+    return ResponseEntity.ok().contentType(parsedMediaType).body(toUpload);
   }
 
   @PostMapping(

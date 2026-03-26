@@ -36,7 +36,7 @@ public class FileService {
     if (repository.findOptionalById(fileId).isEmpty()) {
       throw new NotFoundException("File." + fileId + " not found.");
     }
-    if (!logoService.isCompressedLogo(fileId)) {
+    if (LOGO.equals(fileType) && !logoService.isCompressedLogo(fileId)) {
       logoService.triggerLogoCompression(idUser);
     }
     return s3Service.downloadFile(fileType, fileId, idUser);

@@ -3,7 +3,6 @@ package app.bpartners.api.service.event;
 import static app.bpartners.api.service.utils.UserUtils.getUserLogoFile;
 
 import app.bpartners.api.endpoint.event.model.LogoCompressionTriggered;
-import app.bpartners.api.model.User;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.file.LogoService;
 import java.io.File;
@@ -19,18 +18,18 @@ public class LogoCompressionTriggeredService implements Consumer<LogoCompression
 
   @Override
   public void accept(LogoCompressionTriggered logoCompressionTriggered) {
-    User user = logoCompressionTriggered.getUser();
-    String userLogoId = user.getLogoFileId();
+    String userId = logoCompressionTriggered.getUserId();
+    String logoFileId = logoCompressionTriggered.getUserLogoFileId();
 
-    if (userLogoId == null) {
-      log.warn("User {} has no logo", user.getEmail());
+    if (logoFileId == null) {
+      log.warn("User.{} has no logo", userId);
       return;
-    } else if (logoService.isCompressedLogo(userLogoId)) {
-      log.info("User {} already has a compressed logo", user.getEmail());
+    } else if (logoService.isCompressedLogo(logoFileId)) {
+      log.info("User.{} already has a compressed logo", userId);
       return;
     }
 
-    File logoFile = getUserLogoFile(user, fileService);
-    logoService.compressUserLogo(user, logoFile, userLogoId);
+    File logoFile = getUserLogoFile(userId, logoFileId, fileService);
+    logoService.compressUserLogo(userId, logoFile, logoFileId);
   }
 }

@@ -82,7 +82,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
         generateAnnotationImages(
             exportAnnotation, compressedImage, annotationRescale.x(), annotationRescale.y());
     Pair<String, List<String>> annotation3DImages = null;
-    BufferedImage logo = getUserLogo(user, fileService);
+    BufferedImage logo = getUserLogo(user.getId(), user.getLogoFileId(), fileService);
     String logoBase64 =
         logo == null
             ? null

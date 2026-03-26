@@ -85,15 +85,15 @@ class FileServiceTest {
     File file = mock();
     String userId = JOE_DOE_ID;
     FileInfo fileInfo = fileInfo();
-    when(fileRepository.findOptionalById(userId)).thenReturn(Optional.of(fileInfo));
+    when(fileRepository.findOptionalById(fileId)).thenReturn(Optional.of(fileInfo));
     when(logoService.isCompressedLogo(fileId)).thenReturn(false);
-    doNothing().when(logoService).triggerLogoCompression(userId);
+    doNothing().when(logoService).triggerLogoCompression(userId, fileId);
     when(s3Service.downloadFile(fileType, fileId, userId)).thenReturn(file);
 
-    File actual = fileService.downloadFile(fileType, fileId, userId);
+    File actual = fileService.downloadFile(fileType, userId, fileId);
 
     assertEquals(file, actual);
-    verify(logoService, times(1)).triggerLogoCompression(userId);
+    verify(logoService, times(1)).triggerLogoCompression(userId, fileId);
   }
 
   FileInfo fileInfo() {

@@ -6,10 +6,8 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.LogoCompressionTriggered;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.FileInfo;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.repository.FileRepository;
-import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.annotation.ImageCompressor;
@@ -31,38 +29,25 @@ public class LogoService {
   private final ImageCompressor imageCompressor =
       new ImageCompressor(
           DEFAULT_LOGO_TARGET_SIZE, DEFAULT_MAX_LOGO_WIDTH, DEFAULT_MAX_LOGO_HEIGHT);
-  private final FileService fileService;
   private final FileRepository fileRepository;
   private final FileWriter fileWriter;
   private final FileMapper fileMapper;
   private final S3Service s3Service;
   private final UserJpaRepository userJpaRepository;
-  private final UserRepository userRepository;
   private final EventProducer eventProducer;
 
-  public void triggerLogoCompression(String userId) {
-    User user = userRepository.getById(userId);
-    eventProducer.accept(List.of(new LogoCompressionTriggered(user)));
+  public void triggerLogoCompression(String userId, String userLogoId) {
+    eventProducer.accept(List.of(new LogoCompressionTriggered(userId, userLogoId)));
   }
 
   public FileInfo compressUserLogo(String userId, File logoFile, String logoFileId) {
-    User user = userRepository.getById(userId);
-    return compressUserLogo(user, logoFile, logoFileId);
-  }
-
-  public FileInfo compressUserLogo(User user, File logoFile, String logoFileId) {
-    String userId = user.getId();
     File compressedLogo = imageCompressor.compressImage(logoFile);
     String compressedLogoFileId = COMPRESSED_LOGO_FILE_PREFIX + logoFileId;
 
     FileInfo savedLogoFileInfo = saveFile(userId, compressedLogoFileId, compressedLogo);
     updateUserFileId(userId, compressedLogoFileId);
     log.info(
-        "User {}({}) logo compressed : \nold : {}\nnew : {}",
-        user.getEmail(),
-        user.getId(),
-        logoFileId,
-        compressedLogoFileId);
+        "User.{} logo compressed : \nold : {}\nnew : {}", userId, logoFileId, compressedLogoFileId);
 
     return savedLogoFileInfo;
   }

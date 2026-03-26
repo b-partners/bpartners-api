@@ -22,24 +22,24 @@ public class FileService {
   private final FileWriter fileWriter;
   private final LogoService logoService;
 
-  public FileInfo upload(FileType fileType, String fileId, String idUser, File file) {
+  public FileInfo upload(FileType fileType, String fileId, String userId, File file) {
     if (fileType.equals(LOGO)) {
-      return logoService.compressUserLogo(idUser, file, fileId);
+      return logoService.compressUserLogo(userId, file, fileId);
     }
 
-    String sha256 = s3Service.uploadFile(fileType, fileId, idUser, file).value();
+    String sha256 = s3Service.uploadFile(fileType, fileId, userId, file).value();
     var filesAsBytes = fileWriter.writeAsByte(file);
-    return repository.save(mapper.toDomain(fileId, filesAsBytes, sha256, idUser));
+    return repository.save(mapper.toDomain(fileId, filesAsBytes, sha256, userId));
   }
 
-  public File downloadFile(FileType fileType, String idUser, String fileId) {
+  public File downloadFile(FileType fileType, String userId, String fileId) {
     if (repository.findOptionalById(fileId).isEmpty()) {
       throw new NotFoundException("File." + fileId + " not found.");
     }
     if (LOGO.equals(fileType) && !logoService.isCompressedLogo(fileId)) {
-      logoService.triggerLogoCompression(idUser);
+      logoService.triggerLogoCompression(userId, fileId);
     }
-    return s3Service.downloadFile(fileType, fileId, idUser);
+    return s3Service.downloadFile(fileType, fileId, userId);
   }
 
   public FileInfo findById(String fileId) {

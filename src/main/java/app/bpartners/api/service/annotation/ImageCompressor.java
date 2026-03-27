@@ -118,7 +118,7 @@ public class ImageCompressor {
   private File convertToJPEGCompatibleType(File image) throws IOException {
     BufferedImage bufferedImage = ImageIO.read(image);
     BufferedImage compatible = convertToJPEGCompatibleType(bufferedImage);
-    File outputFile = File.createTempFile("jpeg_compatible_", ".jpg");
+    File outputFile =  new File(image.getParent(), "converted_" + image.getName() + ".jpg");
     ImageIO.write(compatible, "jpg", outputFile);
 
     return outputFile;

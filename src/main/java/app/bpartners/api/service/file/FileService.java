@@ -8,8 +8,6 @@ import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.FileMapper;
 import app.bpartners.api.repository.FileRepository;
-import app.bpartners.api.repository.jpa.UserJpaRepository;
-import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.aws.S3Service;
 import java.io.File;
 import lombok.AllArgsConstructor;
@@ -21,32 +19,31 @@ public class FileService {
   private final S3Service s3Service;
   private final FileRepository repository;
   private final FileMapper mapper;
-  private final UserJpaRepository userJpaRepository;
   private final FileWriter fileWriter;
+  private final LogoService logoService;
 
-  public FileInfo upload(FileType fileType, String fileId, String idUser, File file) {
-    String sha256 = s3Service.uploadFile(fileType, fileId, idUser, file).value();
+  public FileInfo upload(FileType fileType, String fileId, String userId, File file) {
     if (fileType.equals(LOGO)) {
-      saveUserFileId(fileId, idUser);
+      return logoService.compressUserLogo(userId, file, fileId);
     }
+
+    String sha256 = s3Service.uploadFile(fileType, fileId, userId, file).value();
     var filesAsBytes = fileWriter.writeAsByte(file);
-    return repository.save(mapper.toDomain(fileId, filesAsBytes, sha256, idUser));
+    return repository.save(mapper.toDomain(fileId, filesAsBytes, sha256, userId));
   }
 
-  public File downloadFile(FileType fileType, String idUser, String fileId) {
+  public File downloadFile(FileType fileType, String userId, String fileId) {
     if (repository.findOptionalById(fileId).isEmpty()) {
       throw new NotFoundException("File." + fileId + " not found.");
     }
-    return s3Service.downloadFile(fileType, fileId, idUser);
+    if (LOGO.equals(fileType) && !logoService.isCompressedLogo(fileId)) {
+      logoService.triggerLogoCompression(userId, fileId);
+    }
+    return s3Service.downloadFile(fileType, fileId, userId);
   }
 
   public FileInfo findById(String fileId) {
     return repository.findById(fileId);
-  }
-
-  private void saveUserFileId(String fileId, String idUser) {
-    HUser entity = userJpaRepository.getById(idUser).toBuilder().logoFileId(fileId).build();
-    userJpaRepository.save(entity);
   }
 
   public File downloadLandingFile(String key) {

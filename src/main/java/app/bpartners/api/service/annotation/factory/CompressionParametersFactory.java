@@ -8,6 +8,9 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class CompressionParametersFactory {
+
+  private CompressionParametersFactory() {}
+
   public static float computeImageQuality(long currentSize, long targetSize) {
     if (currentSize <= targetSize) {
       return 1.0f;

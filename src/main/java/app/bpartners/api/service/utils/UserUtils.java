@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserUtils {
 
-  public UserUtils() {}
+  private UserUtils() {}
 
   public static File getUserLogoFile(String userId, String logoFileId, FileService fileService) {
 

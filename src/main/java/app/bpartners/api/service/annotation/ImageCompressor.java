@@ -42,25 +42,21 @@ public class ImageCompressor {
     }
   }
 
-  public File compressImage(File originalImage) {
+  public File compressPNGImage(File originalImage) {
     try {
       CompressionParameters params =
           CompressionParametersFactory.from(
-              originalImage,
-              IMAGE_COMPRESSION_FORMAT,
-              imageTargetSize,
-              maxImageWidth,
-              maxImageHeight);
+              originalImage, "png", imageTargetSize, maxImageWidth, maxImageHeight);
 
       int attempts = 0;
       long currentSize = params.originalSize();
       float currentQuality = params.quality();
       File temp = originalImage;
       while (temp.length() > imageTargetSize && currentQuality > 0.1f && attempts++ < 10) {
-        Thumbnails.of(originalImage)
+        Thumbnails.of(temp)
             .size(params.targetWidth(), params.targetHeight())
-            .outputFormat(IMAGE_COMPRESSION_FORMAT)
-            .outputQuality(currentQuality)
+            .imageType(BufferedImage.TYPE_INT_ARGB)
+            .outputFormat("png")
             .toFile(temp);
 
         long newSize = temp.length();
@@ -70,7 +66,7 @@ public class ImageCompressor {
         currentQuality *= QUALITY_DECREASE_RATE;
       }
 
-      return convertToJPEGCompatibleType(temp);
+      return temp;
 
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -95,7 +91,7 @@ public class ImageCompressor {
           && currentQuality > 0.1f
           && attempts++ < 10) {
         temp =
-            Thumbnails.of(originalImage)
+            Thumbnails.of(temp)
                 .size(params.targetWidth(), params.targetHeight())
                 .outputFormat(IMAGE_COMPRESSION_FORMAT)
                 .outputQuality(currentQuality)

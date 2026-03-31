@@ -41,7 +41,7 @@ public class LogoService {
   }
 
   public FileInfo compressUserLogo(String userId, File logoFile, String logoFileId) {
-    File compressedLogo = imageCompressor.compressImage(logoFile);
+    File compressedLogo = imageCompressor.compressPNGImage(logoFile);
     String compressedLogoFileId = COMPRESSED_LOGO_FILE_PREFIX + logoFileId;
 
     FileInfo savedLogoFileInfo = saveFile(userId, compressedLogoFileId, compressedLogo);

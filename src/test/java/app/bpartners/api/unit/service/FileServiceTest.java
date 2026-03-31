@@ -20,7 +20,6 @@ import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.file.LogoService;
 import java.io.File;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -76,24 +75,6 @@ class FileServiceTest {
 
     assertEquals(fileInfo, actual);
     verify(logoService, times(1)).compressUserLogo(userId, file, fileId);
-  }
-
-  @Test
-  void logo_download_trigger_compressor() {
-    String fileId = FILE_ID;
-    FileType fileType = LOGO;
-    File file = mock();
-    String userId = JOE_DOE_ID;
-    FileInfo fileInfo = fileInfo();
-    when(fileRepository.findOptionalById(fileId)).thenReturn(Optional.of(fileInfo));
-    when(logoService.isCompressedLogo(fileId)).thenReturn(false);
-    doNothing().when(logoService).triggerLogoCompression(userId, fileId);
-    when(s3Service.downloadFile(fileType, fileId, userId)).thenReturn(file);
-
-    File actual = fileService.downloadFile(fileType, userId, fileId);
-
-    assertEquals(file, actual);
-    verify(logoService, times(1)).triggerLogoCompression(userId, fileId);
   }
 
   FileInfo fileInfo() {

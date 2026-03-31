@@ -1,8 +1,10 @@
 package app.bpartners.api.service.annotation;
 
+import app.bpartners.api.service.annotation.factory.CompressionParametersFactory;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ public class ImageCompressor {
   private static final int DEFAULT_MAX_IMAGE_WIDTH = 1180;
   private static final int DEFAULT_MAX_IMAGE_HEIGHT = 1180;
   private static final String IMAGE_COMPRESSION_FORMAT = "jpg";
+  public static final float QUALITY_DECREASE_RATE = 0.85f;
 
   private final int imageTargetSize;
   private final int maxImageWidth;
@@ -39,39 +42,32 @@ public class ImageCompressor {
     }
   }
 
-  BufferedImage compressImage(BufferedImage originalImage) {
+  public File compressImage(File originalImage) {
     try {
-      // Step 1: Determine initial quality
-      long currentSize = getImageSizeBytes(originalImage);
-      float quality = computeImageQuality(currentSize, imageTargetSize);
+      CompressionParameters params =
+          CompressionParametersFactory.from(
+              originalImage,
+              IMAGE_COMPRESSION_FORMAT,
+              imageTargetSize,
+              maxImageWidth,
+              maxImageHeight);
 
-      // Step 2: Compute scale factors to fit within max width/height
-      double scaleX = (double) maxImageWidth / originalImage.getWidth();
-      double scaleY = (double) maxImageHeight / originalImage.getHeight();
-
-      int targetWidth =
-          (int) Math.min(Math.round(originalImage.getWidth() * scaleX), originalImage.getWidth());
-      int targetHeight =
-          (int) Math.min(Math.round(originalImage.getHeight() * scaleY), originalImage.getHeight());
-
-      BufferedImage temp = originalImage;
-
-      // Step 3: Iteratively compress until target size is reached or minimal quality
       int attempts = 0;
-      while (getImageSizeBytes(temp) > imageTargetSize && quality > 0.1f && attempts++ < 10) {
-        temp =
-            Thumbnails.of(originalImage)
-                .size(targetWidth, targetHeight)
-                .outputFormat(IMAGE_COMPRESSION_FORMAT)
-                .outputQuality(quality)
-                .asBufferedImage();
+      long currentSize = params.originalSize();
+      float currentQuality = params.quality();
+      File temp = originalImage;
+      while (temp.length() > imageTargetSize && currentQuality > 0.1f && attempts++ < 10) {
+        Thumbnails.of(originalImage)
+            .size(params.targetWidth(), params.targetHeight())
+            .outputFormat(IMAGE_COMPRESSION_FORMAT)
+            .outputQuality(currentQuality)
+            .toFile(temp);
 
-        long newSize = getImageSizeBytes(temp);
+        long newSize = temp.length();
         if (newSize >= currentSize) break;
-        currentSize = newSize;
 
-        // reduce quality slightly for next iteration
-        quality *= 0.85f;
+        currentSize = newSize;
+        currentQuality *= QUALITY_DECREASE_RATE;
       }
 
       return convertToJPEGCompatibleType(temp);
@@ -79,6 +75,53 @@ public class ImageCompressor {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public BufferedImage compressImage(BufferedImage originalImage) {
+    try {
+      CompressionParameters params =
+          CompressionParametersFactory.from(
+              originalImage,
+              IMAGE_COMPRESSION_FORMAT,
+              imageTargetSize,
+              maxImageWidth,
+              maxImageHeight);
+
+      int attempts = 0;
+      long currentSize = params.originalSize();
+      float currentQuality = params.quality();
+      BufferedImage temp = originalImage;
+      while (getImageSizeBytes(temp) > imageTargetSize
+          && currentQuality > 0.1f
+          && attempts++ < 10) {
+        temp =
+            Thumbnails.of(originalImage)
+                .size(params.targetWidth(), params.targetHeight())
+                .outputFormat(IMAGE_COMPRESSION_FORMAT)
+                .outputQuality(currentQuality)
+                .asBufferedImage();
+
+        long newSize = getImageSizeBytes(temp);
+        if (newSize >= currentSize) break;
+
+        currentSize = newSize;
+        currentQuality *= QUALITY_DECREASE_RATE;
+      }
+
+      return convertToJPEGCompatibleType(temp);
+
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private File convertToJPEGCompatibleType(File image) throws IOException {
+    BufferedImage bufferedImage = ImageIO.read(image);
+    BufferedImage compatible = convertToJPEGCompatibleType(bufferedImage);
+    File outputFile = new File(image.getParent(), "converted_" + image.getName() + ".jpg");
+    ImageIO.write(compatible, "jpg", outputFile);
+
+    return outputFile;
   }
 
   private BufferedImage convertToJPEGCompatibleType(BufferedImage image) {
@@ -93,16 +136,5 @@ public class ImageCompressor {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     ImageIO.write(image, IMAGE_COMPRESSION_FORMAT, baos);
     return baos.size();
-  }
-
-  private float computeImageQuality(long currentSize, long targetSize) {
-    if (currentSize <= targetSize) {
-      return 1.0f;
-    }
-
-    double ratio = (double) targetSize / currentSize;
-    double quality = Math.sqrt(ratio);
-
-    return (float) Math.clamp(quality, 0.1, 1.0);
   }
 }

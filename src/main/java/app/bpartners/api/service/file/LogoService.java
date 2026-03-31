@@ -45,7 +45,7 @@ public class LogoService {
     String compressedLogoFileId = COMPRESSED_LOGO_FILE_PREFIX + logoFileId;
 
     FileInfo savedLogoFileInfo = saveFile(userId, compressedLogoFileId, compressedLogo);
-    updateUserFileId(userId, compressedLogoFileId);
+    updateUserLogoFileId(userId, compressedLogoFileId);
     log.info(
         "User.{} logo compressed : \nold : {}\nnew : {}", userId, logoFileId, compressedLogoFileId);
 
@@ -62,7 +62,7 @@ public class LogoService {
     return fileRepository.save(fileMapper.toDomain(fileId, filesAsBytes, sha256, userId));
   }
 
-  private void updateUserFileId(String userId, String fileId) {
+  private void updateUserLogoFileId(String userId, String fileId) {
     HUser entity = userJpaRepository.getById(userId).toBuilder().logoFileId(fileId).build();
     userJpaRepository.save(entity);
   }

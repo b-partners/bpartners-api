@@ -19,6 +19,7 @@ public class ImageCompressor {
   private static final int DEFAULT_MAX_IMAGE_HEIGHT = 1180;
   private static final String IMAGE_COMPRESSION_FORMAT = "jpg";
   public static final float QUALITY_DECREASE_RATE = 0.85f;
+  public static final String LOGO_COMPRESSION_FORMAT = "png";
 
   private final int imageTargetSize;
   private final int maxImageWidth;
@@ -46,7 +47,11 @@ public class ImageCompressor {
     try {
       CompressionParameters params =
           CompressionParametersFactory.from(
-              originalImage, "png", imageTargetSize, maxImageWidth, maxImageHeight);
+              originalImage,
+              LOGO_COMPRESSION_FORMAT,
+              imageTargetSize,
+              maxImageWidth,
+              maxImageHeight);
 
       int attempts = 0;
       long currentSize = params.originalSize();
@@ -56,7 +61,7 @@ public class ImageCompressor {
         Thumbnails.of(temp)
             .size(params.targetWidth(), params.targetHeight())
             .imageType(BufferedImage.TYPE_INT_ARGB)
-            .outputFormat("png")
+            .outputFormat(LOGO_COMPRESSION_FORMAT)
             .toFile(temp);
 
         long newSize = temp.length();
@@ -109,15 +114,6 @@ public class ImageCompressor {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-  }
-
-  private File convertToJPEGCompatibleType(File image) throws IOException {
-    BufferedImage bufferedImage = ImageIO.read(image);
-    BufferedImage compatible = convertToJPEGCompatibleType(bufferedImage);
-    File outputFile = new File(image.getParent(), "converted_" + image.getName() + ".jpg");
-    ImageIO.write(compatible, "jpg", outputFile);
-
-    return outputFile;
   }
 
   private BufferedImage convertToJPEGCompatibleType(BufferedImage image) {

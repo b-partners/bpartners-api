@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.event.model;
 
 import java.time.Duration;
-
 import lombok.*;
 
 @AllArgsConstructor

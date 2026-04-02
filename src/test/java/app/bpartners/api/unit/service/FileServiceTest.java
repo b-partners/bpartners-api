@@ -69,12 +69,12 @@ class FileServiceTest {
     String userId = JOE_DOE_ID;
     FileInfo fileInfo = fileInfo();
     when(logoService.isCompressedLogo(fileId)).thenReturn(false);
-    when(logoService.compressUserLogo(userId, file, fileId)).thenReturn(fileInfo);
+    when(logoService.compressUserLogoWithoutIdChange(userId, file, fileId)).thenReturn(fileInfo);
 
     FileInfo actual = fileService.upload(LOGO, fileId, userId, file);
 
     assertEquals(fileInfo, actual);
-    verify(logoService, times(1)).compressUserLogo(userId, file, fileId);
+    verify(logoService, times(1)).compressUserLogoWithoutIdChange(userId, file, fileId);
   }
 
   FileInfo fileInfo() {

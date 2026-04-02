@@ -41,19 +41,28 @@ public class LogoService {
   }
 
   public FileInfo compressUserLogo(String userId, File logoFile, String logoFileId) {
-    File compressedLogo = imageCompressor.compressImage(logoFile);
     String compressedLogoFileId = COMPRESSED_LOGO_FILE_PREFIX + logoFileId;
+    return compressUserLogoWithoutIdChange(userId, logoFile, compressedLogoFileId);
+  }
 
-    FileInfo savedLogoFileInfo = saveFile(userId, compressedLogoFileId, compressedLogo);
-    updateUserFileId(userId, compressedLogoFileId);
-    log.info(
-        "User.{} logo compressed : \nold : {}\nnew : {}", userId, logoFileId, compressedLogoFileId);
+  public FileInfo compressUserLogoWithoutIdChange(String userId, File logoFile, String logoFileId) {
+    File compressedLogo = imageCompressor.compressImage(logoFile);
+
+    FileInfo savedLogoFileInfo = saveUserLogoFile(userId, logoFileId, compressedLogo);
+    log.info("User.{} logo compressed : \nold : {}\nnew : {}", userId, logoFileId, logoFileId);
 
     return savedLogoFileInfo;
   }
 
   public boolean isCompressedLogo(String fileId) {
     return fileId.startsWith(COMPRESSED_LOGO_FILE_PREFIX);
+  }
+
+  private FileInfo saveUserLogoFile(
+      String userId, String compressedLogoFileId, File compressedLogo) {
+    FileInfo savedLogoFileInfo = saveFile(userId, compressedLogoFileId, compressedLogo);
+    updateUserFileId(userId, compressedLogoFileId);
+    return savedLogoFileInfo;
   }
 
   private FileInfo saveFile(String userId, String fileId, File file) {

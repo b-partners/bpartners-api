@@ -24,7 +24,7 @@ public class FileService {
 
   public FileInfo upload(FileType fileType, String fileId, String userId, File file) {
     if (fileType.equals(LOGO)) {
-      return logoService.compressUserLogo(userId, file, fileId);
+      return logoService.compressUserLogoWithoutIdChange(userId, file, fileId);
     }
 
     String sha256 = s3Service.uploadFile(fileType, fileId, userId, file).value();

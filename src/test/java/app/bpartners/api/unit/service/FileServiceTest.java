@@ -64,17 +64,16 @@ class FileServiceTest {
 
   @Test
   void logo_upload_do_compressor() {
-    String fileId = FILE_ID;
     File file = mock();
     String userId = JOE_DOE_ID;
     FileInfo fileInfo = fileInfo();
-    when(logoService.isCompressedLogo(fileId)).thenReturn(false);
-    when(logoService.compressUserLogoWithoutIdChange(userId, file, fileId)).thenReturn(fileInfo);
+    when(logoService.isCompressedLogo(FILE_ID)).thenReturn(false);
+    when(logoService.compressUserLogoWithoutIdChange(userId, file, FILE_ID)).thenReturn(fileInfo);
 
-    FileInfo actual = fileService.upload(LOGO, fileId, userId, file);
+    FileInfo actual = fileService.upload(LOGO, FILE_ID, userId, file);
 
     assertEquals(fileInfo, actual);
-    verify(logoService, times(1)).compressUserLogoWithoutIdChange(userId, file, fileId);
+    verify(logoService, times(1)).compressUserLogoWithoutIdChange(userId, file, FILE_ID);
   }
 
   FileInfo fileInfo() {

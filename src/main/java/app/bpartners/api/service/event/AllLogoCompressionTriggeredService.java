@@ -8,7 +8,9 @@ import app.bpartners.api.repository.UserRepository;
 import java.util.List;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
+@Service
 @RequiredArgsConstructor
 public class AllLogoCompressionTriggeredService implements Consumer<AllLogoCompressionTriggered> {
   private final UserRepository userRepository;

@@ -3,14 +3,12 @@ package app.bpartners.api.endpoint.event.model;
 import java.time.Duration;
 import lombok.*;
 
-@AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@Builder
+@Data
 @EqualsAndHashCode(callSuper = false)
-@Getter
-public class LogoCompressionTriggered extends PojaEvent {
-  private String userId;
-  private String userLogoFileId;
+@ToString
+public class AllLogoCompressionTriggered extends PojaEvent {
 
   @Override
   public Duration maxConsumerDuration() {

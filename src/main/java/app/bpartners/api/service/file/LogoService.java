@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.event.model.LogoCompressionTriggered;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.mapper.FileMapper;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.FileRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
@@ -35,6 +36,7 @@ public class LogoService {
   private final S3Service s3Service;
   private final UserJpaRepository userJpaRepository;
   private final EventProducer eventProducer;
+  private final AccountRepository accountRepository;
 
   public void triggerLogoCompression(String userId, String userLogoId) {
     eventProducer.accept(List.of(new LogoCompressionTriggered(userId, userLogoId)));
@@ -68,7 +70,8 @@ public class LogoService {
   private FileInfo saveFile(String userId, String fileId, File file) {
     String sha256 = s3Service.uploadFile(LOGO, fileId, userId, file).value();
     var filesAsBytes = fileWriter.writeAsByte(file);
-    return fileRepository.save(fileMapper.toDomain(fileId, filesAsBytes, sha256, userId));
+    var account = accountRepository.findByUserId(userId).getFirst();
+    return fileRepository.save(fileMapper.toDomain(fileId, filesAsBytes, sha256, account.getId()));
   }
 
   private void updateUserFileId(String userId, String fileId) {

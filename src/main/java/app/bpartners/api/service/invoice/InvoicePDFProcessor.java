@@ -8,12 +8,15 @@ import static app.bpartners.api.service.invoice.InvoiceService.INVOICE_TEMPLATE;
 
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.service.file.FileService;
 import java.io.File;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @AllArgsConstructor
 public class InvoicePDFProcessor implements Consumer<Invoice> {
@@ -36,7 +39,7 @@ public class InvoicePDFProcessor implements Consumer<Invoice> {
     var invoiceStatus = invoice.getStatus();
     var idUser = invoice.getUser().getId();
     var logoFileId = invoice.getUser().getLogoFileId();
-    var logoFile = logoFileId == null ? null : fileService.downloadFile(LOGO, idUser, logoFileId);
+    var logoFile = downloadLogo(idUser, logoFileId);
     switch (invoiceStatus) {
       case CONFIRMED, PAID -> {
         return invoicePDFGenerator.apply(
@@ -46,6 +49,15 @@ public class InvoicePDFProcessor implements Consumer<Invoice> {
         return invoicePDFGenerator.apply(
             invoice, invoice.getActualHolder(), logoFile, DRAFT_TEMPLATE);
       }
+    }
+  }
+
+  private File downloadLogo(String idUser, String logoFileId) {
+    try {
+      return logoFileId == null ? null : fileService.downloadFile(LOGO, idUser, logoFileId);
+    } catch (NotFoundException e) {
+      log.warn("Logo not found for user {}. Proceeding without logo.", idUser);
+      return null;
     }
   }
 }

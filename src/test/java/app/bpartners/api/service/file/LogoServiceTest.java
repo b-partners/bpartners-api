@@ -9,14 +9,17 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.LogoCompressionTriggered;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.hash.FileHash;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.mapper.FileMapper;
+import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.FileRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.aws.S3Service;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
@@ -29,10 +32,17 @@ class LogoServiceTest {
   S3Service s3Service = mock();
   UserJpaRepository userJpaRepository = mock();
   EventProducer eventProducer = mock();
+  AccountRepository accountRepository = mock();
 
   LogoService subject =
       new LogoService(
-          fileRepository, fileWriter, fileMapper, s3Service, userJpaRepository, eventProducer);
+          fileRepository,
+          fileWriter,
+          fileMapper,
+          s3Service,
+          userJpaRepository,
+          eventProducer,
+          accountRepository);
 
   @Test
   void trigger_logo_compression_call_event_producer() {
@@ -68,6 +78,8 @@ class LogoServiceTest {
     when(fileInfo.getSha256()).thenReturn(hashValue);
     when(userJpaRepository.getById(userId)).thenReturn(hUser);
     when(userJpaRepository.save(any())).then(i -> i.getArgument(0));
+    when(accountRepository.findByUserId(userId))
+        .thenReturn(List.of(new Account().toBuilder().id(userId).build()));
 
     var actual = subject.compressUserLogo(userId, logoFile, fileId);
 

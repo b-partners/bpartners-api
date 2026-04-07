@@ -7,6 +7,7 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.NOT_STARTED;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.OLD_CUSTOMER;
 import static app.bpartners.api.endpoint.rest.model.ProspectStatus.TO_CONTACT;
+import static app.bpartners.api.model.WhiteListScope.PROSPECT_EXISTING_MAIL_CREATION_ALLOWED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.repository.expressif.fact.NewIntervention.OldCustomer.OldCustomerType.INDIVIDUAL;
 import static app.bpartners.api.repository.google.sheets.SheetConf.GRID_SHEET_TYPE;
@@ -355,9 +356,14 @@ public class ProspectService {
                 return prospectToSave;
               }
               var accountHolderOwner = prospectToSave.getIdHolderOwner();
-              var userIsWhitelisted =
+              var userIsWhiteListedWithProspectOverridingAuthorizationScope =
                   userWhiteListedJpaRepository
                       .findByIdAccountHolder(accountHolderOwner)
+                      .filter(
+                          userWhiteListed ->
+                              userWhiteListed
+                                  .getScopes()
+                                  .contains(PROSPECT_EXISTING_MAIL_CREATION_ALLOWED))
                       .isPresent();
               var existingProspects =
                   prospectJpaRepository
@@ -371,7 +377,8 @@ public class ProspectService {
                       .noneMatch(
                           existingProspect ->
                               existingProspect.getId().equals(prospectToSave.getId()));
-              if (newProspectAlreadyPersistedButWithOtherIds && !userIsWhitelisted) {
+              if (newProspectAlreadyPersistedButWithOtherIds
+                  && !userIsWhiteListedWithProspectOverridingAuthorizationScope) {
                 exceptionBuilder
                     .append("Prospect with mail ")
                     .append(prospectEmail)

@@ -1,12 +1,13 @@
 package app.bpartners.api.service.areapicture;
 
+import static app.bpartners.api.model.WhiteListScope.API_KEY_NOT_RESTRICTED_BY_TRIAL;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static java.time.Instant.now;
 
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
-import app.bpartners.api.repository.jpa.UserApiKeyFullAuthorizationJpaRepository;
+import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.ZoneId;
 import java.util.List;
@@ -20,7 +21,7 @@ public class RoofAnalysisConsumptionFreeTrialValidator
     implements Consumer<UserSubscriptionEligible> {
   private static final long DEFAULT_MAX_CONSUMPTION = 20L;
   private final SubscriptionService subscriptionService;
-  private final UserApiKeyFullAuthorizationJpaRepository apiKeyFullAuthorizationRepository;
+  private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
   private static final List<String> EXCLUDED_USER_IDS =
       List.of("6d394379-585e-4471-b42e-213dc7624a55", "2ede5d19-fa49-4ad7-aa90-42c016a3f4f5");
 
@@ -48,7 +49,12 @@ public class RoofAnalysisConsumptionFreeTrialValidator
             .orElse(0L);
 
     if (actualRoofAnalysisConsumption >= DEFAULT_MAX_CONSUMPTION
-        && apiKeyFullAuthorizationRepository.findByIdUser(userId).isEmpty()) {
+        && userWhiteListedJpaRepository
+            .findByUserId(userId)
+            .filter(
+                userWhiteListed ->
+                    userWhiteListed.getScopes().contains(API_KEY_NOT_RESTRICTED_BY_TRIAL))
+            .isEmpty()) {
       throw new BadRequestException(
           "Roof analysis consumption "
               + actualRoofAnalysisConsumption

@@ -5,6 +5,7 @@ import static app.bpartners.api.endpoint.rest.model.JobStatusValue.*;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.ALL;
 import static app.bpartners.api.endpoint.rest.model.NewInterventionOption.NEW_PROSPECT;
 import static app.bpartners.api.integration.conf.utils.TestUtils.ACCOUNTHOLDER_ID;
+import static app.bpartners.api.model.WhiteListScope.PROSPECT_EXISTING_MAIL_CREATION_ALLOWED;
 import static app.bpartners.api.service.prospect.ProspectService.removeDuplications;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
@@ -19,9 +20,7 @@ import app.bpartners.api.endpoint.event.model.ProspectCreated;
 import app.bpartners.api.endpoint.event.model.ProspectUpdated;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.bucket.BucketComponent;
-import app.bpartners.api.model.Attachment;
-import app.bpartners.api.model.Customer;
-import app.bpartners.api.model.Location;
+import app.bpartners.api.model.*;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.ProspectMapper;
@@ -329,8 +328,11 @@ class ProspectServiceTest {
     when(prospectTwo.toBuilder()).thenReturn(prospectBuilderTwo);
     var toSave = List.of(prospectOne, prospectTwo);
 
+    var userWhiteListedMock = mock(UserWhiteListed.class);
+    when(userWhiteListedMock.getScopes())
+        .thenReturn(List.of(PROSPECT_EXISTING_MAIL_CREATION_ALLOWED));
     when(userWhiteListedJpaRepositoryMock.findByIdAccountHolder(any()))
-        .thenReturn(Optional.of(mock()));
+        .thenReturn(Optional.of(userWhiteListedMock));
     when(prospectJpaRepositoryMock.findByIdAccountHolderAndOldEmailOrIdAccountHolderAndNewEmail(
             any(), eq(prospectOneEmail), any(), eq(prospectOneEmail)))
         .thenReturn(List.of(persistedProspect));

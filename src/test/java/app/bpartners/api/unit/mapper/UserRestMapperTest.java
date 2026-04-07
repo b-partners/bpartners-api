@@ -22,6 +22,7 @@ import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -37,13 +38,15 @@ class UserRestMapperTest {
   UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock = mock();
   StripeInvoiceService stripeInvoiceServiceMock = mock();
   UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
+  TemporalUtils temporalUtils = new TemporalUtils();
   UserRestMapper subject =
       new UserRestMapper(
           accountRestMapperMock,
           subscriptionServiceMock,
           stripeInvoiceServiceMock,
           subscriptionEligibleJpaRepositoryMock,
-          userWhiteListedJpaRepositoryMock);
+          userWhiteListedJpaRepositoryMock,
+          temporalUtils);
 
   @BeforeEach
   void setUp() {
@@ -265,8 +268,8 @@ class UserRestMapperTest {
 
     var actualSubscription = actual.getSubscription();
     assertEquals(ACTIVE, actualSubscription.getStatus());
-    assertNull(actualSubscription.getStart());
-    assertNull(actualSubscription.getEnd());
+    assertNotNull(actualSubscription.getStart());
+    assertNotNull(actualSubscription.getEnd());
   }
 
   @Test

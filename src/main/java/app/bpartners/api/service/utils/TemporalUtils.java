@@ -46,6 +46,12 @@ public class TemporalUtils {
     return currentMonth.atDay(5);
   }
 
+  public LocalDate fifthOfLastMonth() {
+    var today = now();
+    var lastMonth = YearMonth.from(today).minusMonths(1);
+    return lastMonth.atDay(5);
+  }
+
   public LocalDate startOfLastMonth() {
     var today = now();
     var lastMonth = YearMonth.from(today).minusMonths(1);

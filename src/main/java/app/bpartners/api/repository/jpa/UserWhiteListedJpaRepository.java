@@ -19,4 +19,6 @@ public interface UserWhiteListedJpaRepository extends JpaRepository<UserWhiteLis
           """,
       nativeQuery = true)
   Optional<UserWhiteListed> findByIdAccountHolder(@Param("accountHolderId") String accountHolderId);
+
+  Optional<UserWhiteListed> findByUserId(String userId);
 }

@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.validator;
 
+import static app.bpartners.api.model.WhiteListScope.API_KEY_NOT_RESTRICTED_BY_TRIAL;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
@@ -8,12 +9,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserWhiteListed;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
-import app.bpartners.api.repository.jpa.UserApiKeyFullAuthorizationJpaRepository;
-import app.bpartners.api.repository.jpa.model.UserApiKeyFullAuthorization;
+import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.service.areapicture.RoofAnalysisConsumptionFreeTrialValidator;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
@@ -25,10 +26,10 @@ import org.junit.jupiter.api.Test;
 
 class RoofAnalysisConsumptionFreeTrialValidatorTest {
   SubscriptionService subscriptionServiceMock = mock();
-  UserApiKeyFullAuthorizationJpaRepository apiKeyFullAuthorizationRepositoryMock = mock();
+  UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
   RoofAnalysisConsumptionFreeTrialValidator subject =
       new RoofAnalysisConsumptionFreeTrialValidator(
-          subscriptionServiceMock, apiKeyFullAuthorizationRepositoryMock);
+          subscriptionServiceMock, userWhiteListedJpaRepositoryMock);
 
   @Test
   void any_validation_for_user_without_free_trial_period() {
@@ -65,7 +66,7 @@ class RoofAnalysisConsumptionFreeTrialValidatorTest {
     var today = LocalDate.now();
     var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
 
-    when(apiKeyFullAuthorizationRepositoryMock.findByIdUser(userId)).thenReturn(Optional.empty());
+    when(userWhiteListedJpaRepositoryMock.findByUserId(userId)).thenReturn(Optional.empty());
     when(userSubscriptionEligibleMock.getUserId()).thenReturn(userId);
     when(userSubscriptionEligibleMock.getEligibleFrom()).thenReturn(today);
     when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(true);
@@ -89,10 +90,11 @@ class RoofAnalysisConsumptionFreeTrialValidatorTest {
     var today = LocalDate.now();
     var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
     var userMock = mock(User.class);
-
+    var userWhiteListedMock = mock(UserWhiteListed.class);
+    when(userWhiteListedMock.getScopes()).thenReturn(List.of(API_KEY_NOT_RESTRICTED_BY_TRIAL));
     when(userMock.getApiKey()).thenReturn(randomUUID().toString());
-    when(apiKeyFullAuthorizationRepositoryMock.findByIdUser(userId))
-        .thenReturn(Optional.of(mock(UserApiKeyFullAuthorization.class)));
+    when(userWhiteListedJpaRepositoryMock.findByUserId(userId))
+        .thenReturn(Optional.of(userWhiteListedMock));
     when(userSubscriptionEligibleMock.getUserId()).thenReturn(userId);
     when(userSubscriptionEligibleMock.getEligibleFrom()).thenReturn(today);
     when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(true);

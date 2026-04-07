@@ -1,13 +1,16 @@
 package app.bpartners.api.endpoint.rest.security;
 
+import static app.bpartners.api.model.WhiteListScope.PAYMENT_METHOD_NOT_REQUIRED;
+import static app.bpartners.api.model.WhiteListScope.SUBSCRIPTION_VALIDATION_NOT_REQUIRED;
+
 import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
 import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpiredException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ForbiddenException;
-import app.bpartners.api.repository.jpa.UserApiKeyFullAuthorizationJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.LegalFileService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +30,7 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
   private final ApiKeyAuthenticator apiKeyAuthenticator;
   private final LegalFileService legalFileService;
   private final SubscriptionService subscriptionService;
-  private final UserApiKeyFullAuthorizationJpaRepository userApiKeyFullAuthorizationJpaRepository;
+  private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
   private final UserSubscriptionEligibleJpaRepository userSubscriptionEligibleJpaRepository;
 
   @Override
@@ -44,9 +47,22 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
     checkLegalFiles(legalFilesList, user);
-    var userNotWhiteListed =
-        userApiKeyFullAuthorizationJpaRepository.findByIdUser(user.getId()).isEmpty();
-    if (!user.isPaymentMethodExists() && userNotWhiteListed) {
+    validateSubscriptionRequirements(user);
+
+    return principal;
+  }
+
+  private void validateSubscriptionRequirements(User user) {
+    var userNotRequiredPaymentMethod = false;
+    var userNotRestrictedBySubscriptionStatus = false;
+    var userWhiteListed = userWhiteListedJpaRepository.findByUserId(user.getId()).orElse(null);
+    if (userWhiteListed != null) {
+      userNotRequiredPaymentMethod =
+          userWhiteListed.getScopes().contains(PAYMENT_METHOD_NOT_REQUIRED);
+      userNotRestrictedBySubscriptionStatus =
+          userWhiteListed.getScopes().contains(SUBSCRIPTION_VALIDATION_NOT_REQUIRED);
+    }
+    if (!user.isPaymentMethodExists() && !userNotRequiredPaymentMethod) {
       userSubscriptionEligibleJpaRepository
           .findByUserId(user.getId())
           .ifPresent(
@@ -61,12 +77,10 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
               });
     }
     var userSubscription = subscriptionService.getSubscriptionByUserId(user.getId());
-    if (!userSubscription.hasValidSubscription() && userNotWhiteListed) {
+    if (!userSubscription.hasValidSubscription() && !userNotRestrictedBySubscriptionStatus) {
       throw new UserSubscriptionExpiredException(
           "User.id=" + user.getId() + " does not have a valid subscription or free trial expired");
     }
-
-    return principal;
   }
 
   @Override

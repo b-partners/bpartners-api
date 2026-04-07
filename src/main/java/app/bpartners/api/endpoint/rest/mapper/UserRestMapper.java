@@ -3,13 +3,16 @@ package app.bpartners.api.endpoint.rest.mapper;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.*;
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
+import static app.bpartners.api.model.WhiteListScope.*;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
 import static java.time.LocalTime.MAX;
 
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.model.Role;
+import app.bpartners.api.model.UserWhiteListed;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
@@ -27,6 +30,7 @@ public class UserRestMapper {
   private final SubscriptionService subscriptionService;
   private final StripeInvoiceService stripeInvoiceService;
   private final UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
+  private final UserWhiteListedJpaRepository userWhiteListedRepository;
 
   public User toRest(app.bpartners.api.model.User domain) {
     // TODO: associate user subscription to User directly
@@ -37,12 +41,14 @@ public class UserRestMapper {
     var unpaidStripeInvoices = stripeInvoiceService.getUnpaidStripeInvoices(userSubscriptionId);
     var subscriptionEligibility =
         userSubscriptionEligibleRepository.findByUserId(domain.getId()).orElse(null);
+    var userWhiteListed = userWhiteListedRepository.findByUserId(domain.getId()).orElse(null);
     var subscriptionStatus =
         getSubscriptionStatus(
             subscription,
             subscriptionEligibility,
             userSubscriptionId != null && !unpaidStripeInvoices.isEmpty(),
-            domain.isPaymentMethodExists());
+            domain.isPaymentMethodExists(),
+            userWhiteListed);
     return new User()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -68,12 +74,19 @@ public class UserRestMapper {
       app.bpartners.api.model.subscription.UserSubscription subscription,
       UserSubscriptionEligible userSubscriptionEligible,
       boolean userHasUnpaidStripeInvoices,
-      boolean userHasPaymentMethods) {
-    if (userSubscriptionEligible == null) {
+      boolean userHasPaymentMethods,
+      UserWhiteListed userWhiteListed) {
+    if (userSubscriptionEligible == null
+        || (userWhiteListed != null
+            && (userWhiteListed.getScopes().contains(SUBSCRIPTION_VALIDATION_NOT_REQUIRED)
+                || userWhiteListed.getScopes().contains(API_KEY_NOT_RESTRICTED_BY_TRIAL)))) {
       return UserSubscriptionStatus.ACTIVE;
     }
     if (!userHasPaymentMethods && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
-      return PAYMENT_METHOD_REQUIRED;
+      if (userWhiteListed == null
+          || !userWhiteListed.getScopes().contains(PAYMENT_METHOD_NOT_REQUIRED)) {
+        return PAYMENT_METHOD_REQUIRED;
+      }
     }
     if (userHasUnpaidStripeInvoices) {
       return UNPAID;

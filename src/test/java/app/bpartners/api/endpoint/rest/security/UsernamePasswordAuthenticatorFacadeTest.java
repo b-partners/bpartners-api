@@ -1,16 +1,18 @@
 package app.bpartners.api.endpoint.rest.security;
 
+import static app.bpartners.api.model.WhiteListScope.PAYMENT_METHOD_NOT_REQUIRED;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserWhiteListed;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
-import app.bpartners.api.repository.jpa.UserApiKeyFullAuthorizationJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.LegalFileService;
 import java.util.List;
@@ -23,15 +25,16 @@ class UsernamePasswordAuthenticatorFacadeTest {
   ApiKeyAuthenticator apiKeyAuthenticatorMock = mock();
   LegalFileService legalServiceMock = mock();
   SubscriptionService subscriptionServiceMock = mock();
-  UserApiKeyFullAuthorizationJpaRepository userApiKeyFullAuthorizationJpaRepositoryMock = mock();
   UserSubscriptionEligibleJpaRepository userSubscriptionEligibleJpaRepositoryMock = mock();
+  UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock =
+      mock(UserWhiteListedJpaRepository.class);
   UsernamePasswordAuthenticatorFacade subject =
       new UsernamePasswordAuthenticatorFacade(
           bearerAuthenticatorMock,
           apiKeyAuthenticatorMock,
           legalServiceMock,
           subscriptionServiceMock,
-          userApiKeyFullAuthorizationJpaRepositoryMock,
+          userWhiteListedJpaRepositoryMock,
           userSubscriptionEligibleJpaRepositoryMock);
 
   @Test
@@ -50,8 +53,7 @@ class UsernamePasswordAuthenticatorFacadeTest {
     when(bearerAuthenticatorMock.retrieveUser(username, authenticationTokenMock))
         .thenReturn(principalMock);
     when(legalServiceMock.getAllToBeApprovedLegalFilesByUserId(userId)).thenReturn(List.of());
-    when(userApiKeyFullAuthorizationJpaRepositoryMock.findByIdUser(userId))
-        .thenReturn(Optional.empty());
+    when(userWhiteListedJpaRepositoryMock.findByUserId(userId)).thenReturn(Optional.empty());
     when(userSubscriptionEligibleJpaRepositoryMock.findByUserId(userId))
         .thenReturn(Optional.of(userSubscriptionEligibleMock));
 
@@ -86,8 +88,7 @@ class UsernamePasswordAuthenticatorFacadeTest {
     when(bearerAuthenticatorMock.retrieveUser(username, authenticationTokenMock))
         .thenReturn(principalMock);
     when(legalServiceMock.getAllToBeApprovedLegalFilesByUserId(userId)).thenReturn(List.of());
-    when(userApiKeyFullAuthorizationJpaRepositoryMock.findByIdUser(userId))
-        .thenReturn(Optional.empty());
+    when(userWhiteListedJpaRepositoryMock.findByUserId(userId)).thenReturn(Optional.empty());
     when(userSubscriptionEligibleJpaRepositoryMock.findByUserId(userId))
         .thenReturn(Optional.of(userSubscriptionEligibleMock));
     when(subscriptionServiceMock.getSubscriptionByUserId(userId)).thenReturn(userSubscriptionMock);
@@ -104,6 +105,7 @@ class UsernamePasswordAuthenticatorFacadeTest {
     var userMock = mock(User.class);
     var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
     var userSubscriptionMock = mock(UserSubscription.class);
+    var userWhiteListedMock = mock(UserWhiteListed.class);
 
     when(userMock.getId()).thenReturn(userId);
     when(userMock.isPaymentMethodExists()).thenReturn(false);
@@ -113,8 +115,9 @@ class UsernamePasswordAuthenticatorFacadeTest {
     when(bearerAuthenticatorMock.retrieveUser(username, authenticationTokenMock))
         .thenReturn(principalMock);
     when(legalServiceMock.getAllToBeApprovedLegalFilesByUserId(userId)).thenReturn(List.of());
-    when(userApiKeyFullAuthorizationJpaRepositoryMock.findByIdUser(userId))
-        .thenReturn(Optional.of(mock()));
+    when(userWhiteListedMock.getScopes()).thenReturn(List.of(PAYMENT_METHOD_NOT_REQUIRED));
+    when(userWhiteListedJpaRepositoryMock.findByUserId(userId))
+        .thenReturn(Optional.of(userWhiteListedMock));
     when(userSubscriptionEligibleJpaRepositoryMock.findByUserId(userId))
         .thenReturn(Optional.of(userSubscriptionEligibleMock));
     when(subscriptionServiceMock.getSubscriptionByUserId(userId)).thenReturn(userSubscriptionMock);

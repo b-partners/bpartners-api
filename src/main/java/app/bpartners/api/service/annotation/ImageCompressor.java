@@ -42,39 +42,11 @@ public class ImageCompressor {
     }
   }
 
-  public File compressImage(File originalImage) {
-    try {
-      CompressionParameters params =
-          CompressionParametersFactory.from(
-              originalImage,
-              IMAGE_COMPRESSION_FORMAT,
-              imageTargetSize,
-              maxImageWidth,
-              maxImageHeight);
-
-      int attempts = 0;
-      long currentSize = params.originalSize();
-      float currentQuality = params.quality();
-      File temp = originalImage;
-      while (temp.length() > imageTargetSize && currentQuality > 0.1f && attempts++ < 10) {
-        Thumbnails.of(originalImage)
-            .size(params.targetWidth(), params.targetHeight())
-            .outputFormat(IMAGE_COMPRESSION_FORMAT)
-            .outputQuality(currentQuality)
-            .toFile(temp);
-
-        long newSize = temp.length();
-        if (newSize >= currentSize) break;
-
-        currentSize = newSize;
-        currentQuality *= QUALITY_DECREASE_RATE;
-      }
-
-      return convertToJPEGCompatibleType(temp);
-
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+  public File compressLogoFile(File logoFile) {
+    if (isPNGFile(logoFile)) {
+      return logoFile;
     }
+    return compressImage(logoFile);
   }
 
   public BufferedImage compressImage(BufferedImage originalImage) {
@@ -102,6 +74,45 @@ public class ImageCompressor {
                 .asBufferedImage();
 
         long newSize = getImageSizeBytes(temp);
+        if (newSize >= currentSize) break;
+
+        currentSize = newSize;
+        currentQuality *= QUALITY_DECREASE_RATE;
+      }
+
+      return convertToJPEGCompatibleType(temp);
+
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private boolean isPNGFile(File file) {
+    return file.getName().toLowerCase().endsWith(".png");
+  }
+
+  private File compressImage(File originalImage) {
+    try {
+      CompressionParameters params =
+          CompressionParametersFactory.from(
+              originalImage,
+              IMAGE_COMPRESSION_FORMAT,
+              imageTargetSize,
+              maxImageWidth,
+              maxImageHeight);
+
+      int attempts = 0;
+      long currentSize = params.originalSize();
+      float currentQuality = params.quality();
+      File temp = originalImage;
+      while (temp.length() > imageTargetSize && currentQuality > 0.1f && attempts++ < 10) {
+        Thumbnails.of(originalImage)
+            .size(params.targetWidth(), params.targetHeight())
+            .outputFormat(IMAGE_COMPRESSION_FORMAT)
+            .outputQuality(currentQuality)
+            .toFile(temp);
+
+        long newSize = temp.length();
         if (newSize >= currentSize) break;
 
         currentSize = newSize;

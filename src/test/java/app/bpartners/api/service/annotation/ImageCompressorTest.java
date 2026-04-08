@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,19 @@ import org.springframework.core.io.ClassPathResource;
 class ImageCompressorTest {
 
   ImageCompressor subject = new ImageCompressor();
+
+  @Test
+  void png_image_should_preserve_alpha_channel() throws IOException {
+    File original = new ClassPathResource("files/birdia_dashboard_logo.png").getFile();
+
+    File compressed = subject.compressLogoFile(original);
+
+    BufferedImage image = ImageIO.read(compressed);
+    int pixel = image.getRGB(0, 0);
+    int alpha = (pixel >> 24) & 0xff;
+
+    assertTrue(alpha < 255);
+  }
 
   @Test
   void compressByteArray_should_produce_valid_image_under_target_size() throws IOException {

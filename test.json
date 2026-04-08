@@ -1,0 +1,8 @@
+[
+  {
+    "Source": "app.bpartners.api.event1",
+    "DetailType": "app.bpartners.api.endpoint.event.model.AllLogoCompressionTriggered",
+    "Detail": "{}",
+    "EventBusName": "prod-bpartners"
+  }
+]

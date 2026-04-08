@@ -46,7 +46,7 @@ public class LogoService {
   }
 
   public FileInfo compressUserLogoWithoutIdChange(String userId, File logoFile, String logoFileId) {
-    File compressedLogo = imageCompressor.compressImage(logoFile);
+    File compressedLogo = imageCompressor.compressLogoFile(logoFile);
 
     FileInfo savedLogoFileInfo = saveUserLogoFile(userId, logoFileId, compressedLogo);
     log.info("User.{} logo compressed : \nold : {}\nnew : {}", userId, logoFileId, logoFileId);

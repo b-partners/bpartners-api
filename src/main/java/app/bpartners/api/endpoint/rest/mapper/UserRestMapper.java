@@ -15,7 +15,9 @@ import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,7 @@ public class UserRestMapper {
   private final StripeInvoiceService stripeInvoiceService;
   private final UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
   private final UserWhiteListedJpaRepository userWhiteListedRepository;
+  private final TemporalUtils temporalUtils;
 
   public User toRest(app.bpartners.api.model.User domain) {
     // TODO: associate user subscription to User directly
@@ -66,8 +69,8 @@ public class UserRestMapper {
         .subscription(
             new UserSubscription()
                 .status(subscriptionStatus)
-                .start(getSubscriptionStart(subscription, subscriptionEligibility))
-                .end(getSubscriptionEnd(subscription, subscriptionEligibility)));
+                .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
+                .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)));
   }
 
   private UserSubscriptionStatus getSubscriptionStatus(
@@ -109,15 +112,29 @@ public class UserRestMapper {
     return EMPTY;
   }
 
-  private static @Nullable Instant getSubscriptionEnd(
+  private @Nullable Instant getSubscriptionEnd(
       app.bpartners.api.model.subscription.UserSubscription subscription,
-      UserSubscriptionEligible userSubscriptionEligible) {
+      UserSubscriptionEligible userSubscriptionEligible,
+      UserWhiteListed userWhiteListed) {
+    var parisZoneId = ZoneId.of("Europe/Paris");
     if (userSubscriptionEligible != null && userSubscriptionEligible.hasFreeTrialPeriodActive()) {
-      var parisZoneId = ZoneId.of("Europe/Paris");
       return userSubscriptionEligible
           .getLatestTrialPeriodDate()
           .atTime(MAX)
           .atZone(parisZoneId)
+          .toInstant();
+    }
+    if (userWhiteListed != null
+        && userWhiteListed.getScopes().contains(SUBSCRIPTION_VALIDATION_NOT_REQUIRED)) {
+      var today = LocalDate.now();
+      var fifthOfActualMonth = temporalUtils.fifthOfActualMonth();
+      if (today.isBefore(fifthOfActualMonth)) {
+        return fifthOfActualMonth.atStartOfDay(parisZoneId).minusSeconds(1L).toInstant();
+      }
+      return temporalUtils
+          .fifthOfNextMonth()
+          .atStartOfDay(parisZoneId)
+          .minusSeconds(1L)
           .toInstant();
     }
     if (subscription.getLatestSubscription() != null) {
@@ -133,12 +150,22 @@ public class UserRestMapper {
     return null;
   }
 
-  private static @Nullable Instant getSubscriptionStart(
+  private @Nullable Instant getSubscriptionStart(
       app.bpartners.api.model.subscription.UserSubscription subscription,
-      UserSubscriptionEligible userSubscriptionEligible) {
+      UserSubscriptionEligible userSubscriptionEligible,
+      UserWhiteListed userWhiteListed) {
+    var parisZoneId = ZoneId.of("Europe/Paris");
     if (userSubscriptionEligible != null && userSubscriptionEligible.hasFreeTrialPeriodActive()) {
-      var parisZoneId = ZoneId.of("Europe/Paris");
       return userSubscriptionEligible.getEligibleFrom().atStartOfDay(parisZoneId).toInstant();
+    }
+    if (userWhiteListed != null
+        && userWhiteListed.getScopes().contains(SUBSCRIPTION_VALIDATION_NOT_REQUIRED)) {
+      var today = LocalDate.now();
+      var fifthOfActualMonth = temporalUtils.fifthOfActualMonth();
+      if (today.isBefore(fifthOfActualMonth)) {
+        return temporalUtils.fifthOfLastMonth().atStartOfDay(parisZoneId).toInstant();
+      }
+      return fifthOfActualMonth.atStartOfDay(parisZoneId).toInstant();
     }
     if (subscription.getLatestSubscription() != null) {
       if (subscription.getLatestSubscription().getStartDatetime() != null

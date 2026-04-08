@@ -71,7 +71,7 @@ class UsernamePasswordAuthenticatorFacadeTest {
   }
 
   @Test
-  void do_nothing_user_does_not_have_payment_method_and_not_whitelisted_but_still_trial_period() {
+  void throw_exception_user_without_payment_method_and_not_whitelisted_even_still_trial_period() {
     var username = randomUUID().toString();
     var userId = randomUUID().toString();
     var authenticationTokenMock = mock(UsernamePasswordAuthenticationToken.class);
@@ -93,7 +93,16 @@ class UsernamePasswordAuthenticatorFacadeTest {
         .thenReturn(Optional.of(userSubscriptionEligibleMock));
     when(subscriptionServiceMock.getSubscriptionByUserId(userId)).thenReturn(userSubscriptionMock);
 
-    assertDoesNotThrow(() -> subject.retrieveUser(username, authenticationTokenMock));
+    var actualException =
+        assertThrows(
+            ForbiddenException.class,
+            () -> subject.retrieveUser(username, authenticationTokenMock));
+
+    assertEquals(
+        "User.id="
+            + userId
+            + " does not have any payment method. Add a new one through billing portal redirection",
+        actualException.getMessage());
   }
 
   @Test

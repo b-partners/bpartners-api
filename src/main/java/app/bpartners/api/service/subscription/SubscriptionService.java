@@ -380,7 +380,6 @@ public class SubscriptionService {
         new TemporalUtils()
             .fifthOfNextMonth()
             .atStartOfDay(ZoneId.of("Europe/Paris"))
-            .plusDays(1L)
             .minusSeconds(1L)
             .toInstant());
   }

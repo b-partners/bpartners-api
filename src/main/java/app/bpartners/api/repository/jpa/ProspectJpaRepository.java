@@ -129,9 +129,9 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + "       contact_nature,"
               + "       latest_old_holder,"
               + "       creation_datetime,"
-              + "       update_datetime"
-              + "FROM view_prospect_actual_status vp"
-              + "join account_holder ah on ah.id = vp.id_account_holder"
+              + "       update_datetime "
+              + "FROM view_prospect_actual_status vp "
+              + "join account_holder ah on ah.id = vp.id_account_holder "
               + "where ah.id_user = ?1")
   List<HProspect> findAllByUserId(String userId);
 }

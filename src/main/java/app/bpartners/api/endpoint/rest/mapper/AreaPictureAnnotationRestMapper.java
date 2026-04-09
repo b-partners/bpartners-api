@@ -5,6 +5,9 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 import app.bpartners.api.endpoint.rest.model.AreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.DraftAreaPictureAnnotation;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.mapper.ProspectMapper;
+import app.bpartners.api.repository.AccountHolderRepository;
+import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.service.areapicture.AreaPictureService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,6 +18,8 @@ public class AreaPictureAnnotationRestMapper {
   private final AreaPictureAnnotationInstanceRestMapper instanceRestMapper;
   private final AreaPictureRestMapper areaPictureRestMapper;
   private final AreaPictureService areaPictureService;
+  private final ProspectRepository prospectRepository;
+  private final ProspectRestMapper prospectRestMapper;
 
   public AreaPictureAnnotation toRest(app.bpartners.api.model.AreaPictureAnnotation domain) {
     return new AreaPictureAnnotation()
@@ -52,6 +57,7 @@ public class AreaPictureAnnotationRestMapper {
       String userId, app.bpartners.api.model.AreaPictureAnnotation areaPictureAnnotation) {
     var restAnnotation = toRest(areaPictureAnnotation);
     var areaPicture = areaPictureService.findBy(userId, restAnnotation.getIdAreaPicture());
+    var prospects = prospectRepository.findAllByUserId(userId).stream().map(prospectRestMapper::toRest).toList();
 
     return new DraftAreaPictureAnnotation()
         .id(restAnnotation.getId())
@@ -60,6 +66,7 @@ public class AreaPictureAnnotationRestMapper {
         .idAreaPicture(restAnnotation.getIdAreaPicture())
         .properties(restAnnotation.getProperties())
         .creationDatetime(restAnnotation.getCreationDatetime())
-        .areaPicture(areaPictureRestMapper.toRest(areaPicture));
+        .areaPicture(areaPictureRestMapper.toRest(areaPicture))
+        .prospects(prospects);
   }
 }

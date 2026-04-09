@@ -14,6 +14,7 @@ import app.bpartners.api.model.BusinessActivity;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.ProspectEvalMapper;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.model.prospect.Prospect;
@@ -217,6 +218,13 @@ public class ProspectRepositoryImpl implements ProspectRepository {
     return jpaRepository.findAllByIdAccountHolder(idAccountHolder, pageable).stream()
         .map(prospect -> toDomain(isSogefiProspector, prospect))
         .sorted(Comparator.reverseOrder())
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Prospect> findAllByUserId(String userId) {
+    return jpaRepository.findAllByUserId(userId).stream()
+        .map(hProspect -> toDomain(isSogefiProspector(hProspect.getIdAccountHolder()), hProspect))
         .collect(Collectors.toList());
   }
 

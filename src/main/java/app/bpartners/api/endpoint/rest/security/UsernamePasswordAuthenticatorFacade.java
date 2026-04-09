@@ -67,13 +67,11 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
           .findByUserId(user.getId())
           .ifPresent(
               value -> {
-                if (!value.hasFreeTrialPeriodActive()) {
-                  throw new ForbiddenException(
-                      "User.id="
-                          + user.getId()
-                          + " does not have any payment method."
-                          + " Add a new one through billing portal redirection");
-                }
+                throw new ForbiddenException(
+                    "User.id="
+                        + user.getId()
+                        + " does not have any payment method."
+                        + " Add a new one through billing portal redirection");
               });
     }
     var userSubscription = subscriptionService.getSubscriptionByUserId(user.getId());

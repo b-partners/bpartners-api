@@ -85,7 +85,7 @@ public class UserRestMapper {
                 || userWhiteListed.getScopes().contains(API_KEY_NOT_RESTRICTED_BY_TRIAL)))) {
       return UserSubscriptionStatus.ACTIVE;
     }
-    if (!userHasPaymentMethods && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
+    if (!userHasPaymentMethods) {
       if (userWhiteListed == null
           || !userWhiteListed.getScopes().contains(PAYMENT_METHOD_NOT_REQUIRED)) {
         return PAYMENT_METHOD_REQUIRED;

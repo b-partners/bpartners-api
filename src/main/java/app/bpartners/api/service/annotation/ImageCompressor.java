@@ -44,9 +44,22 @@ public class ImageCompressor {
 
   public File compressLogoFile(File logoFile) {
     if (isPNGFile(logoFile)) {
-      return logoFile;
+      return compressPNGFile(logoFile);
     }
     return compressImage(logoFile);
+  }
+
+  private File compressPNGFile(File pngFile) {
+    CompressionParameters params = getCompressionParameters(pngFile);
+
+    try {
+      Thumbnails.of(pngFile).size(params.targetWidth(), params.targetHeight()).toFile(pngFile);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Unable to write compressed PNG file: " + e.getMessage(), e);
+    }
+
+    return pngFile;
   }
 
   public BufferedImage compressImage(BufferedImage originalImage) {
@@ -87,19 +100,9 @@ public class ImageCompressor {
     }
   }
 
-  private boolean isPNGFile(File file) {
-    return file.getName().toLowerCase().endsWith(".png");
-  }
-
   private File compressImage(File originalImage) {
     try {
-      CompressionParameters params =
-          CompressionParametersFactory.from(
-              originalImage,
-              IMAGE_COMPRESSION_FORMAT,
-              imageTargetSize,
-              maxImageWidth,
-              maxImageHeight);
+      CompressionParameters params = getCompressionParameters(originalImage);
 
       int attempts = 0;
       long currentSize = params.originalSize();
@@ -124,6 +127,15 @@ public class ImageCompressor {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private CompressionParameters getCompressionParameters(File originalImage) {
+    return CompressionParametersFactory.from(
+        originalImage, IMAGE_COMPRESSION_FORMAT, imageTargetSize, maxImageWidth, maxImageHeight);
+  }
+
+  private boolean isPNGFile(File file) {
+    return file.getName().toLowerCase().endsWith(".png");
   }
 
   private File convertToJPEGCompatibleType(File image) throws IOException {

@@ -27,10 +27,14 @@ public class CompressionParametersFactory {
       String imageFormat,
       int imageTargetSize,
       int maxImageWidth,
-      int maxImageHeight)
-      throws IOException {
-    BufferedImage bufferedImage = ImageIO.read(originalImage);
-    return from(bufferedImage, imageFormat, imageTargetSize, maxImageWidth, maxImageHeight);
+      int maxImageHeight) {
+    try {
+      BufferedImage bufferedImage = ImageIO.read(originalImage);
+      return from(bufferedImage, imageFormat, imageTargetSize, maxImageWidth, maxImageHeight);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Could not read image file: " + originalImage.getPath() + ". " + e.getMessage(), e);
+    }
   }
 
   public static CompressionParameters from(

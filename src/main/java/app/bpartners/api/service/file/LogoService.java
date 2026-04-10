@@ -23,8 +23,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LogoService {
   private static final int DEFAULT_LOGO_TARGET_SIZE = 250_000;
-  private static final int DEFAULT_MAX_LOGO_WIDTH = 1024;
-  private static final int DEFAULT_MAX_LOGO_HEIGHT = 1024;
+  private static final int DEFAULT_MAX_LOGO_WIDTH = 512;
+  private static final int DEFAULT_MAX_LOGO_HEIGHT = 512;
   private static final String COMPRESSED_LOGO_FILE_PREFIX = "compressed_logo_";
   private final ImageCompressor imageCompressor =
       new ImageCompressor(

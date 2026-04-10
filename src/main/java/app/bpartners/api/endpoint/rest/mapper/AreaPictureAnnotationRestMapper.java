@@ -55,10 +55,8 @@ public class AreaPictureAnnotationRestMapper {
       String userId, app.bpartners.api.model.AreaPictureAnnotation areaPictureAnnotation) {
     var restAnnotation = toRest(areaPictureAnnotation);
     var areaPicture = areaPictureService.findBy(userId, restAnnotation.getIdAreaPicture());
-    var prospects =
-        prospectRepository.findAllByUserId(userId).stream()
-            .map(prospectRestMapper::toRest)
-            .toList();
+    var prospect =
+        prospectRestMapper.toRest(prospectRepository.getById(areaPicture.getIdProspect()));
 
     return new DraftAreaPictureAnnotation()
         .id(restAnnotation.getId())
@@ -68,6 +66,6 @@ public class AreaPictureAnnotationRestMapper {
         .properties(restAnnotation.getProperties())
         .creationDatetime(restAnnotation.getCreationDatetime())
         .areaPicture(areaPictureRestMapper.toRest(areaPicture))
-        .prospects(prospects);
+        .prospect(prospect);
   }
 }

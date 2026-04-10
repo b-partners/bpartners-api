@@ -155,7 +155,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .areaPicture(areaPicture1())
         .properties(null)
         .annotations(List.of())
-        .creationDatetime(Instant.parse("2024-01-08T01:00:00.00Z"));
+        .creationDatetime(Instant.parse("2024-01-08T01:00:00.00Z"))
+        .prospect(prospect1());
   }
 
   static DraftAreaPictureAnnotation draftAreaPictureAnnotation2() {
@@ -166,7 +167,9 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .properties(null)
         .areaPicture(areaPicture1())
         .annotations(List.of())
-        .creationDatetime(Instant.parse("2024-01-08T01:05:00.00Z"));
+        .creationDatetime(Instant.parse("2024-01-08T01:05:00.00Z"))
+        .prospect(
+            prospect1()); // according to V99_35__Test_create_draft_area_picture_annotation.sql
   }
 
   private ApiClient joeDoeClient() {
@@ -229,6 +232,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
 
     var actualAnnotations = api.getDraftAnnotationsByAccountId(JOE_DOE_ACCOUNT_ID, null, null);
 
+    System.out.println(actualAnnotations);
     assertTrue(
         actualAnnotations.containsAll(
             List.of(draftAreaPictureAnnotation1(), draftAreaPictureAnnotation2())));

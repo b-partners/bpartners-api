@@ -21,8 +21,6 @@ public interface ProspectRepository {
       int page,
       int pageSize);
 
-  List<Prospect> findAllByUserId(String userId);
-
   List<Prospect> saveAll(List<Prospect> prospects);
 
   Prospect save(Prospect prospect);

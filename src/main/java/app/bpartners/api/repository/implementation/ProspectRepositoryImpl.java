@@ -220,13 +220,6 @@ public class ProspectRepositoryImpl implements ProspectRepository {
         .collect(Collectors.toList());
   }
 
-  @Override
-  public List<Prospect> findAllByUserId(String userId) {
-    return jpaRepository.findAllByUserId(userId).stream()
-        .map(hProspect -> toDomain(isSogefiProspector(hProspect.getIdAccountHolder()), hProspect))
-        .collect(Collectors.toList());
-  }
-
   public boolean isSogefiProspector(String idAccountHolder) {
     BusinessActivity businessActivity =
         businessActivityService.findByAccountHolderId(idAccountHolder);

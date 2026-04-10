@@ -98,40 +98,4 @@ public interface ProspectJpaRepository extends JpaRepository<HProspect, String> 
               + " from view_prospect_actual_status"
               + " where cast(actual_status as varchar) = ?1")
   List<HProspect> findAllByStatus(String prospectStatus);
-
-  @Query(
-      nativeQuery = true,
-      value =
-          "select id,"
-              + "       first_name,"
-              + "       old_name,"
-              + "       old_email,"
-              + "       old_phone,"
-              + "       old_address,"
-              + "       id_account_holder,"
-              + "       town_code,"
-              + "       rating,"
-              + "       last_evaluation_date,"
-              + "       id_prospect_eval,"
-              + "       pos_latitude,"
-              + "       pos_longitude,"
-              + "       new_name,"
-              + "       new_email,"
-              + "       new_phone,"
-              + "       new_address,"
-              + "       comment,"
-              + "       contract_amount,"
-              + "       id_invoice,"
-              + "       prospect_feedback,"
-              + "       id_job,"
-              + "       default_comment,"
-              + "       manager_name,"
-              + "       contact_nature,"
-              + "       latest_old_holder,"
-              + "       creation_datetime,"
-              + "       update_datetime "
-              + "FROM view_prospect_actual_status vp "
-              + "join account_holder ah on ah.id = vp.id_account_holder "
-              + "where ah.id_user = ?1")
-  List<HProspect> findAllByUserId(String userId);
 }

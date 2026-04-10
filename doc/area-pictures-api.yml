@@ -783,10 +783,8 @@ components:
       properties:
         areaPicture:
           $ref: "#/components/schemas/AreaPictureDetails"
-        prospects:
-          type: array
-          items:
-            $ref: "./prospecting-api.yml#/components/schemas/Prospect"
+        prospect:
+          $ref: "./prospecting-api.yml#/components/schemas/Prospect"
     ExportAreaPictureAnnotationMeasurement:
       type: object
       properties:

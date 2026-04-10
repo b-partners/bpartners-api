@@ -21,7 +21,7 @@ public class ExportAnnotationContextFactory {
       Pair<String, List<String>> annotation3DImages) {
     var context = new Context();
 
-    var logoUri = base64ToUri(logoBase64);
+    var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
     var mainImageUri = base64ToUri(annotationImages.first());
     var subImagesUris =
         annotationImages.second().stream()

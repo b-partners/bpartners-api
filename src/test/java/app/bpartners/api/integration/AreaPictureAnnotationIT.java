@@ -232,7 +232,6 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
 
     var actualAnnotations = api.getDraftAnnotationsByAccountId(JOE_DOE_ACCOUNT_ID, null, null);
 
-    System.out.println(actualAnnotations);
     assertTrue(
         actualAnnotations.containsAll(
             List.of(draftAreaPictureAnnotation1(), draftAreaPictureAnnotation2())));

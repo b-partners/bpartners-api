@@ -38,27 +38,29 @@ public class CompressionParametersFactory {
       String imageFormat,
       int imageTargetSize,
       int maxImageWidth,
-      int maxImageHeight)
-      throws IOException {
+      int maxImageHeight) {
     long originalSize = computeImageSizeBytes(image, imageFormat);
     float quality = computeImageQuality(originalSize, imageTargetSize);
 
-    double scaleX = (double) maxImageWidth / image.getWidth();
-    double scaleY = (double) maxImageHeight / image.getHeight();
+    double scale =
+        Math.min(
+            (double) maxImageWidth / image.getWidth(), (double) maxImageHeight / image.getHeight());
 
-    int targetWidth = (int) Math.min(Math.round(image.getWidth() * scaleX), image.getWidth());
-    int targetHeight = (int) Math.min(Math.round(image.getHeight() * scaleY), image.getHeight());
+    int targetWidth = (int) Math.round(image.getWidth() * scale);
+    int targetHeight = (int) Math.round(image.getHeight() * scale);
 
     return new CompressionParameters(originalSize, targetWidth, targetHeight, quality);
   }
 
-  private static long computeImageSizeBytes(BufferedImage image, String imageFormat)
-      throws IOException {
+  private static long computeImageSizeBytes(BufferedImage image, String imageFormat) {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
       ImageIO.write(image, imageFormat, baos);
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Given file is unconvertible into " + imageFormat, e);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Could not evaluate image byte size: " + e.getMessage(), e);
     }
     return baos.size();
   }

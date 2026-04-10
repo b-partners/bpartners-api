@@ -7,11 +7,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Component;
 
 @Component
+@Getter
 @RequiredArgsConstructor
 public class ImageCompressor {
   private static final int DEFAULT_IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB

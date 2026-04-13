@@ -783,6 +783,8 @@ components:
       properties:
         areaPicture:
           $ref: "#/components/schemas/AreaPictureDetails"
+        prospectName:
+          type: string
     ExportAreaPictureAnnotationMeasurement:
       type: object
       properties:

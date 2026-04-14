@@ -7,11 +7,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Component;
 
 @Component
+@Getter
 @RequiredArgsConstructor
 public class ImageCompressor {
   private static final int DEFAULT_IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
@@ -42,39 +44,24 @@ public class ImageCompressor {
     }
   }
 
-  public File compressImage(File originalImage) {
-    try {
-      CompressionParameters params =
-          CompressionParametersFactory.from(
-              originalImage,
-              IMAGE_COMPRESSION_FORMAT,
-              imageTargetSize,
-              maxImageWidth,
-              maxImageHeight);
-
-      int attempts = 0;
-      long currentSize = params.originalSize();
-      float currentQuality = params.quality();
-      File temp = originalImage;
-      while (temp.length() > imageTargetSize && currentQuality > 0.1f && attempts++ < 10) {
-        Thumbnails.of(originalImage)
-            .size(params.targetWidth(), params.targetHeight())
-            .outputFormat(IMAGE_COMPRESSION_FORMAT)
-            .outputQuality(currentQuality)
-            .toFile(temp);
-
-        long newSize = temp.length();
-        if (newSize >= currentSize) break;
-
-        currentSize = newSize;
-        currentQuality *= QUALITY_DECREASE_RATE;
-      }
-
-      return convertToJPEGCompatibleType(temp);
-
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+  public File compressLogoFile(File logoFile) {
+    if (isPNGFile(logoFile)) {
+      return compressPNGFile(logoFile);
     }
+    return compressImage(logoFile);
+  }
+
+  private File compressPNGFile(File pngFile) {
+    CompressionParameters params = getCompressionParameters(pngFile);
+
+    try {
+      Thumbnails.of(pngFile).size(params.targetWidth(), params.targetHeight()).toFile(pngFile);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(
+          "Unable to write compressed PNG file: " + e.getMessage(), e);
+    }
+
+    return pngFile;
   }
 
   public BufferedImage compressImage(BufferedImage originalImage) {
@@ -113,6 +100,44 @@ public class ImageCompressor {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private File compressImage(File originalImage) {
+    try {
+      CompressionParameters params = getCompressionParameters(originalImage);
+
+      int attempts = 0;
+      long currentSize = params.originalSize();
+      float currentQuality = params.quality();
+      File temp = originalImage;
+      while (temp.length() > imageTargetSize && currentQuality > 0.1f && attempts++ < 10) {
+        Thumbnails.of(originalImage)
+            .size(params.targetWidth(), params.targetHeight())
+            .outputFormat(IMAGE_COMPRESSION_FORMAT)
+            .outputQuality(currentQuality)
+            .toFile(temp);
+
+        long newSize = temp.length();
+        if (newSize >= currentSize) break;
+
+        currentSize = newSize;
+        currentQuality *= QUALITY_DECREASE_RATE;
+      }
+
+      return convertToJPEGCompatibleType(temp);
+
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private CompressionParameters getCompressionParameters(File originalImage) {
+    return CompressionParametersFactory.from(
+        originalImage, IMAGE_COMPRESSION_FORMAT, imageTargetSize, maxImageWidth, maxImageHeight);
+  }
+
+  private boolean isPNGFile(File file) {
+    return file.getName().toLowerCase().endsWith(".png");
   }
 
   private File convertToJPEGCompatibleType(File image) throws IOException {

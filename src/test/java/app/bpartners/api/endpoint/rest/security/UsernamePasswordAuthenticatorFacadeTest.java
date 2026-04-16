@@ -5,10 +5,10 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.rest.security.exception.NoPaymentMethodFoundException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserWhiteListed;
-import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
@@ -59,7 +59,7 @@ class UsernamePasswordAuthenticatorFacadeTest {
 
     var actualException =
         assertThrows(
-            ForbiddenException.class,
+            NoPaymentMethodFoundException.class,
             () -> subject.retrieveUser(username, authenticationTokenMock));
 
     assertEquals(
@@ -95,7 +95,7 @@ class UsernamePasswordAuthenticatorFacadeTest {
 
     var actualException =
         assertThrows(
-            ForbiddenException.class,
+            NoPaymentMethodFoundException.class,
             () -> subject.retrieveUser(username, authenticationTokenMock));
 
     assertEquals(

@@ -3,12 +3,12 @@ package app.bpartners.api.endpoint.rest.security;
 import static app.bpartners.api.model.WhiteListScope.PAYMENT_METHOD_NOT_REQUIRED;
 import static app.bpartners.api.model.WhiteListScope.SUBSCRIPTION_VALIDATION_NOT_REQUIRED;
 
+import app.bpartners.api.endpoint.rest.security.exception.NoPaymentMethodFoundException;
 import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
 import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpiredException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -67,7 +67,7 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
           .findByUserId(user.getId())
           .ifPresent(
               value -> {
-                throw new ForbiddenException(
+                throw new NoPaymentMethodFoundException(
                     "User.id="
                         + user.getId()
                         + " does not have any payment method."

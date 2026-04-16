@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest;
 
+import app.bpartners.api.endpoint.rest.security.exception.NoPaymentMethodFoundException;
 import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpiredException;
 import app.bpartners.api.model.exception.*;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +80,7 @@ public class InternalToRestExceptionHandler {
 
   @ExceptionHandler(
       value = {
+        NoPaymentMethodFoundException.class,
         AccessDeniedException.class,
         BadCredentialsException.class,
         ForbiddenException.class

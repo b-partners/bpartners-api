@@ -54,25 +54,22 @@ public class UserAnalysisApiKeyService {
 
   @SneakyThrows
   public UserAnalysisApiKey revokeAnalysisApiKey(UserAnalysisApiKey apiKeyToRevoke) {
-    User targetUser = apiKeyToRevoke.getUser();
-
     ResponseEntity<List<CreatedAnalysisApiKey>> response =
         requestAnalysisApiKeyRevocation(apiKeyToRevoke.getApiKey());
 
-    if (response.getStatusCode().is2xxSuccessful()) {
-      apiKeyToRevoke.setEnabled(false);
-      apiKeyToRevoke.setExpirationDatetime(now());
-
-      userAnalysisApiKeyRepositoryImpl.save(apiKeyToRevoke);
-
-      return apiKeyToRevoke;
+    if (!response.getStatusCode().is2xxSuccessful()) {
+      User targetUser = apiKeyToRevoke.getUser();
+      throw new RuntimeException(
+          "API exception occurred while attempting to revoke analysis api key "
+              + apiKeyToRevoke.getApiKey()
+              + " for user.email="
+              + targetUser.getEmail());
     }
 
-    throw new RuntimeException(
-        "API exception occurred while attempting to revoke analysis api key "
-            + apiKeyToRevoke.getApiKey()
-            + " for user.email="
-            + targetUser.getEmail());
+    apiKeyToRevoke.setEnabled(false);
+    apiKeyToRevoke.setExpirationDatetime(now());
+
+    return userAnalysisApiKeyRepositoryImpl.save(apiKeyToRevoke);
   }
 
   @SneakyThrows

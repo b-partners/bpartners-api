@@ -55,6 +55,8 @@ class ApiKeyServiceTest {
     when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
     when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
+    when(userAnalysisApiKeyServiceMock.revokeAnalysisApiKey(analysisApiKeyToRevoke()))
+        .thenReturn(analysisApiKeyToRevoke().toBuilder().enabled(false).build());
 
     var expected = List.of(revokedDashboardApiKey(), revokedAnalysisApiKey());
 

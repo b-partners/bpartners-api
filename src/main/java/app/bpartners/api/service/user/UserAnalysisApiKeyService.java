@@ -1,15 +1,19 @@
 package app.bpartners.api.service.user;
 
 import static app.bpartners.api.service.user.analysis.ConsumerType.INSURANCE;
+import static java.time.Instant.now;
 import static org.springframework.http.HttpMethod.POST;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
+import app.bpartners.api.repository.implementation.UserAnalysisApiKeyRepositoryImpl;
 import app.bpartners.api.service.user.analysis.*;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -30,18 +34,45 @@ public class UserAnalysisApiKeyService {
   private static final List<AuthorizedZone> DEFAULT_AUTHORIZED_ZONES = List.of(); // deprecated
   private static final List<DetectableObjectType> DEFAULT_DETECTABLE_OBJECT_TYPES =
       List.of(); // deprecated
+  public static final String AUTHORIZATION_HEADER = "x-api-key";
 
   private final String geoJobsBaseUrl;
   private final String geoJobsAdminApiKey;
   private final RestTemplate restTemplate;
+  private final UserAnalysisApiKeyRepositoryImpl userAnalysisApiKeyRepositoryImpl;
 
   public UserAnalysisApiKeyService(
       @Value("${geo.jobs.base.url}") String geoJobsBaseUrl,
       @Value("${geo.jobs.admin.api.key}") String geoJobsAdminApiKey,
-      RestTemplate restTemplate) {
+      RestTemplate restTemplate,
+      UserAnalysisApiKeyRepositoryImpl userAnalysisApiKeyRepositoryImpl) {
     this.geoJobsBaseUrl = geoJobsBaseUrl;
     this.geoJobsAdminApiKey = geoJobsAdminApiKey;
     this.restTemplate = restTemplate;
+    this.userAnalysisApiKeyRepositoryImpl = userAnalysisApiKeyRepositoryImpl;
+  }
+
+  @SneakyThrows
+  public UserAnalysisApiKey revokeAnalysisApiKey(UserAnalysisApiKey apiKeyToRevoke) {
+    User targetUser = apiKeyToRevoke.getUser();
+
+    ResponseEntity<List<CreatedAnalysisApiKey>> response =
+        requestAnalysisApiKeyRevocation(apiKeyToRevoke.getApiKey());
+
+    if (response.getStatusCode().is2xxSuccessful()) {
+      apiKeyToRevoke.setEnabled(false);
+      apiKeyToRevoke.setExpirationDatetime(now());
+
+      userAnalysisApiKeyRepositoryImpl.save(apiKeyToRevoke);
+
+      return apiKeyToRevoke;
+    }
+
+    throw new RuntimeException(
+        "API exception occurred while attempting to revoke analysis api key "
+            + apiKeyToRevoke.getApiKey()
+            + " for user.email="
+            + targetUser.getEmail());
   }
 
   @SneakyThrows
@@ -50,7 +81,7 @@ public class UserAnalysisApiKeyService {
     var uriString = uriBuilder.toUriString();
 
     var headers = new HttpHeaders();
-    headers.add("x-api-key", geoJobsAdminApiKey);
+    headers.add(AUTHORIZATION_HEADER, geoJobsAdminApiKey);
 
     var request = new HttpEntity<>(List.of(toAnalysisApiKeyCreation(user)), headers);
 
@@ -77,6 +108,19 @@ public class UserAnalysisApiKeyService {
             .expirationDatetime(null)
             .enabled(true)
             .build();
+  }
+
+  private @NotNull ResponseEntity<List<CreatedAnalysisApiKey>> requestAnalysisApiKeyRevocation(
+      String apiKeyValue) throws URISyntaxException {
+    var uriBuilder = UriComponentsBuilder.fromUri(new URI(geoJobsBaseUrl + "/api/keys"));
+    var uriString = uriBuilder.toUriString();
+
+    var headers = new HttpHeaders();
+    headers.add(AUTHORIZATION_HEADER, apiKeyValue);
+
+    var request = new HttpEntity<>(new AnalysisApiKeyRevocation(apiKeyValue), headers);
+
+    return restTemplate.exchange(uriString, POST, request, new ParameterizedTypeReference<>() {});
   }
 
   private AnalysisApiKeyCreation toAnalysisApiKeyCreation(User user) {

@@ -10,6 +10,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
+import app.bpartners.api.repository.implementation.UserAnalysisApiKeyRepositoryImpl;
 import app.bpartners.api.service.user.analysis.CreatedAnalysisApiKey;
 import java.time.Instant;
 import java.util.List;
@@ -23,8 +24,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 class UserAnalysisApiKeyServiceTest {
 
   RestTemplate restTemplateMock = mock();
+  UserAnalysisApiKeyRepositoryImpl userAnalysisApiKeyRepositoryMock = mock();
   UserAnalysisApiKeyService subject =
-      new UserAnalysisApiKeyService("https://dum.my", "dummy", restTemplateMock);
+      new UserAnalysisApiKeyService(
+          "https://dum.my", "dummy", restTemplateMock, userAnalysisApiKeyRepositoryMock);
 
   @Test
   void getAnalysisApiKey_ok() {

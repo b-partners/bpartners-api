@@ -30,8 +30,11 @@ class ApiKeyServiceTest {
   UserService userServiceMock = mock(UserService.class);
   UserAnalysisApiKeyRepository userAnalysisApiKeyRepositoryMock =
       mock(UserAnalysisApiKeyRepository.class);
+  UserAnalysisApiKeyService userAnalysisApiKeyServiceMock = mock(UserAnalysisApiKeyService.class);
 
-  ApiKeyService subject = new ApiKeyService(userServiceMock, userAnalysisApiKeyRepositoryMock);
+  ApiKeyService subject =
+      new ApiKeyService(
+          userServiceMock, userAnalysisApiKeyRepositoryMock, userAnalysisApiKeyServiceMock);
 
   @Test
   void throw_bad_request_on_empty_keys() {

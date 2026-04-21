@@ -91,6 +91,13 @@ public class User implements Serializable {
     return first;
   }
 
+  public UserAnalysisApiKey getLatestActiveAnalysisApiKey() {
+    return getAnalysisApiKeys().stream()
+        .filter(UserAnalysisApiKey::isEnabled)
+        .findFirst()
+        .orElse(null);
+  }
+
   public List<UserAnalysisApiKey> getAnalysisApiKeys() {
     if (analysisApiKeys == null) {
       analysisApiKeys = new ArrayList<>();

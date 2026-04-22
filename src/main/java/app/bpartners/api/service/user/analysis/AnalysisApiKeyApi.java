@@ -56,12 +56,12 @@ public class AnalysisApiKeyApi {
     return restTemplate.exchange(uriString, POST, request, new ParameterizedTypeReference<>() {});
   }
 
-  public @NotNull ResponseEntity<List<CreatedAnalysisApiKey>> requestAnalysisApiKeyRevocation(
-      String authenticationApiKeyValue, String apiKeyToRevoke) throws URISyntaxException {
+  public @NotNull ResponseEntity<RevokedAnalysisApiKey> requestAnalysisApiKeyRevocation(
+      String apiKeyToRevoke) throws URISyntaxException {
     var uriString = getAnalysisApiKeyApiUri();
 
     var headers = new HttpHeaders();
-    headers.add(AUTHORIZATION_HEADER, authenticationApiKeyValue);
+    headers.add(AUTHORIZATION_HEADER, geoJobsAdminApiKey);
 
     var request = new HttpEntity<>(new AnalysisApiKeyRevocation(apiKeyToRevoke), headers);
 

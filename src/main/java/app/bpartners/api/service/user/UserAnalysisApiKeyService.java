@@ -28,16 +28,13 @@ public class UserAnalysisApiKeyService {
   @SneakyThrows
   public UserAnalysisApiKey revokeAnalysisApiKey(UserAnalysisApiKey apiKeyToRevoke) {
     String apiKeyToRevokeValue = apiKeyToRevoke.getApiKey();
-    ResponseEntity<List<CreatedAnalysisApiKey>> response =
-        analysisApiKeyApi.requestAnalysisApiKeyRevocation(apiKeyToRevokeValue, apiKeyToRevokeValue);
+    ResponseEntity<RevokedAnalysisApiKey> response =
+        analysisApiKeyApi.requestAnalysisApiKeyRevocation(apiKeyToRevokeValue);
 
     if (!response.getStatusCode().is2xxSuccessful()) {
-      User targetUser = apiKeyToRevoke.getUser();
       throw new RuntimeException(
           "API exception occurred while attempting to revoke analysis api key "
-              + apiKeyToRevoke.getApiKey()
-              + " for user.email="
-              + targetUser.getEmail());
+              + hide(apiKeyToRevokeValue));
     }
 
     apiKeyToRevoke.setEnabled(false);
@@ -71,5 +68,14 @@ public class UserAnalysisApiKeyService {
             .expirationDatetime(null)
             .enabled(true)
             .build();
+  }
+
+  static String hide(String apiKey) {
+    int keyLength = apiKey.length();
+    int hideRange = keyLength / (keyLength / 6);
+    String shownPart = apiKey.substring(hideRange, (keyLength - hideRange));
+    String hider = "*".repeat(hideRange);
+
+    return hider + shownPart + hider;
   }
 }

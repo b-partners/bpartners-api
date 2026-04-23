@@ -26,8 +26,6 @@ class AnalysisApiKeyApiTest {
 
   @Test
   void requestAnalysisApiKeys_sends_post_request_with_expected_body() throws Exception {
-    var restTemplate = mock(RestTemplate.class);
-    subject = new AnalysisApiKeyApi(ANALYSIS_API_BASE_URL, ANALYSIS_ADMIN_KEY, restTemplate);
     var user = User.builder().email("john@doe.com").build();
     when(restTemplate.exchange(
             eq(ANALYSIS_API_BASE_URL + API_KEY_OPERATION_PATH),

@@ -43,7 +43,7 @@ public class AnalysisApiKeyApi {
     this.restTemplate = restTemplate;
   }
 
-  public @NotNull List<CreatedAnalysisApiKey> requestAnalysisApiKeyCreation(User user) {
+  public @NotNull List<CreatedAnalysisApiKey> createAnalysisApiKeys(User user) {
     var uriString = getAnalysisApiKeyApiUri();
 
     var headers = new HttpHeaders();

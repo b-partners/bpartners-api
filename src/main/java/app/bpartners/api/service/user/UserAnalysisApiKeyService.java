@@ -37,7 +37,7 @@ public class UserAnalysisApiKeyService {
   @SneakyThrows
   public UserAnalysisApiKey getAnalysisApiKey(User user) {
     List<CreatedAnalysisApiKey> createdAnalysisApiKeys =
-        analysisApiKeyApi.requestAnalysisApiKeyCreation(user);
+        analysisApiKeyApi.createAnalysisApiKeys(user);
 
     var createdAnalysisApiKey = createdAnalysisApiKeys.getFirst();
 

@@ -61,7 +61,7 @@ class UserAnalysisApiKeyServiceTest {
   @Test
   void successfully_get_analysis_api_key() {
     var createdApiKey = new CreatedAnalysisApiKey("apikey", now());
-    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(List.of(createdApiKey));
+    when(analysisApiKeyApi.createAnalysisApiKeys(any())).thenReturn(List.of(createdApiKey));
 
     UserAnalysisApiKey actual = subject.getAnalysisApiKey(mock());
 
@@ -74,7 +74,7 @@ class UserAnalysisApiKeyServiceTest {
     var userEmail = randomUUID() + "@email.com";
 
     when(userMock.getEmail()).thenReturn(userEmail);
-    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any()))
+    when(analysisApiKeyApi.createAnalysisApiKeys(any()))
         .thenThrow(
             new RuntimeException(
                 "API exception occurred while attempting to create user.email="
@@ -97,7 +97,7 @@ class UserAnalysisApiKeyServiceTest {
     var userEmail = randomUUID() + "@email.com";
 
     when(userMock.getEmail()).thenReturn(userEmail);
-    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(List.of());
+    when(analysisApiKeyApi.createAnalysisApiKeys(any())).thenReturn(List.of());
 
     assertThrows(RuntimeException.class, () -> subject.getAnalysisApiKey(userMock));
   }

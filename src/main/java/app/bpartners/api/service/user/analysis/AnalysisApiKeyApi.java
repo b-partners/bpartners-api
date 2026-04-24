@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -44,7 +43,7 @@ public class AnalysisApiKeyApi {
     this.restTemplate = restTemplate;
   }
 
-  public @NotNull ResponseEntity<List<CreatedAnalysisApiKey>> requestAnalysisApiKeyCreation(User user) {
+  public @NotNull List<CreatedAnalysisApiKey> requestAnalysisApiKeyCreation(User user) {
     var uriString = getAnalysisApiKeyApiUri();
 
     var headers = new HttpHeaders();
@@ -52,11 +51,29 @@ public class AnalysisApiKeyApi {
 
     var request = new HttpEntity<>(List.of(toAnalysisApiKeyCreation(user)), headers);
 
-    return restTemplate.exchange(uriString, POST, request, new ParameterizedTypeReference<>() {});
+    var response =
+        restTemplate.exchange(
+            uriString,
+            POST,
+            request,
+            new ParameterizedTypeReference<List<CreatedAnalysisApiKey>>() {});
+
+    if (!response.getStatusCode().is2xxSuccessful()) {
+      throw new RuntimeException(
+          "API exception occurred while attempting to create user.email="
+              + user.getEmail()
+              + " analysis api key");
+    }
+
+    if (response.getBody() != null && response.getBody().isEmpty()) {
+      throw new RuntimeException(
+          "API failed to create user.email=" + user.getEmail() + " analysis api key");
+    }
+
+    return response.getBody();
   }
 
-  public @NotNull ResponseEntity<RevokedAnalysisApiKey> requestAnalysisApiKeyRevocation(
-      String apiKeyToRevoke) {
+  public @NotNull RevokedAnalysisApiKey requestAnalysisApiKeyRevocation(String apiKeyToRevoke) {
     var uriString = getAnalysisApiKeyApiUri();
 
     var headers = new HttpHeaders();
@@ -64,7 +81,21 @@ public class AnalysisApiKeyApi {
 
     var request = new HttpEntity<>(new AnalysisApiKeyRevocation(apiKeyToRevoke), headers);
 
-    return restTemplate.exchange(uriString, DELETE, request, new ParameterizedTypeReference<>() {});
+    var response =
+        restTemplate.exchange(
+            uriString, DELETE, request, new ParameterizedTypeReference<RevokedAnalysisApiKey>() {});
+
+    if (!response.getStatusCode().is2xxSuccessful()) {
+      throw new RuntimeException(
+          "API exception occurred while attempting to revoke analysis api key "
+              + hide(apiKeyToRevoke));
+    }
+
+    if (response.getBody() == null) {
+      throw new RuntimeException("API failed to provide revoked key" + hide(apiKeyToRevoke));
+    }
+
+    return response.getBody();
   }
 
   private @NotNull String getAnalysisApiKeyApiUri() {
@@ -86,5 +117,14 @@ public class AnalysisApiKeyApi {
         DEFAULT_ALLOWED_MODELS,
         DEFAULT_AUTHORIZED_ZONES,
         DEFAULT_DETECTABLE_OBJECT_TYPES);
+  }
+
+  static String hide(String apiKey) {
+    int keyLength = apiKey.length();
+    int hideRange = keyLength / (keyLength / 6);
+    String shownPart = apiKey.substring(hideRange, (keyLength - hideRange));
+    String hider = "*".repeat(hideRange);
+
+    return hider + shownPart + hider;
   }
 }

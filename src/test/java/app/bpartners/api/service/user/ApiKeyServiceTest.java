@@ -47,11 +47,12 @@ class ApiKeyServiceTest {
     when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
     when(userAnalysisApiKeyServiceMock.revokeAnalysisApiKey(analysisApiKeyToRevoke()))
         .thenReturn(analysisApiKeyToRevoke().toBuilder().enabled(false).build());
+    var key = analysisRevokeApiKey().getKey();
+    var keys = List.of(key);
+    var user = user2();
 
     var actualException =
-        assertThrows(
-            ForbiddenException.class,
-            () -> subject.revokeApiKeys(List.of(analysisRevokeApiKey().getKey()), user2()));
+        assertThrows(ForbiddenException.class, () -> subject.revokeApiKeys(keys, user));
 
     assertEquals("Users can only revoke it's own api key", actualException.getMessage());
   }
@@ -61,11 +62,12 @@ class ApiKeyServiceTest {
     when(userAnalysisApiKeyRepositoryMock.getByApiKey(DASHBOARD_KEY)).thenReturn(null);
     when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
+    var key = dashboardRevokeApiKey().getKey();
+    var keys = List.of(key);
+    var user = user1();
 
     var actualException =
-        assertThrows(
-            ForbiddenException.class,
-            () -> subject.revokeApiKeys(List.of(dashboardRevokeApiKey().getKey()), user1()));
+        assertThrows(ForbiddenException.class, () -> subject.revokeApiKeys(keys, user));
 
     assertEquals("Users can only revoke it's own api key", actualException.getMessage());
   }

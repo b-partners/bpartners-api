@@ -1,10 +1,12 @@
 package app.bpartners.api.service.user.analysis;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.user.analysis.ConsumerType.INSURANCE;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.POST;
 
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ApiException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -43,7 +45,7 @@ public class AnalysisApiKeyApi {
     this.restTemplate = restTemplate;
   }
 
-  public @NotNull List<CreatedAnalysisApiKey> createAnalysisApiKeys(User user) {
+  public List<CreatedAnalysisApiKey> createAnalysisApiKeys(User user) {
     var uriString = getAnalysisApiKeyApiUri();
 
     var headers = new HttpHeaders();
@@ -73,7 +75,7 @@ public class AnalysisApiKeyApi {
     return response.getBody();
   }
 
-  public @NotNull RevokedAnalysisApiKey requestAnalysisApiKeyRevocation(String apiKeyToRevoke) {
+  public RevokedAnalysisApiKey requestAnalysisApiKeyRevocation(String apiKeyToRevoke) {
     var uriString = getAnalysisApiKeyApiUri();
 
     var headers = new HttpHeaders();
@@ -86,13 +88,15 @@ public class AnalysisApiKeyApi {
             uriString, DELETE, request, new ParameterizedTypeReference<RevokedAnalysisApiKey>() {});
 
     if (!response.getStatusCode().is2xxSuccessful()) {
-      throw new RuntimeException(
+      throw new ApiException(
+          SERVER_EXCEPTION,
           "API exception occurred while attempting to revoke analysis api key "
               + hide(apiKeyToRevoke));
     }
 
     if (response.getBody() == null) {
-      throw new RuntimeException("API failed to provide revoked key" + hide(apiKeyToRevoke));
+      throw new ApiException(
+          SERVER_EXCEPTION, "API failed to provide revoked key" + hide(apiKeyToRevoke));
     }
 
     return response.getBody();
@@ -104,7 +108,7 @@ public class AnalysisApiKeyApi {
           UriComponentsBuilder.fromUri(new URI(geoJobsBaseUrl + API_KEY_API_PATH));
       return uriBuilder.toUriString();
     } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 

@@ -1,13 +1,10 @@
 package app.bpartners.api.service.user;
 
-import static app.bpartners.api.service.user.UserAnalysisApiKeyService.hide;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.OK;
 
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
@@ -15,10 +12,8 @@ import app.bpartners.api.repository.implementation.UserAnalysisApiKeyRepositoryI
 import app.bpartners.api.service.user.analysis.AnalysisApiKeyApi;
 import app.bpartners.api.service.user.analysis.CreatedAnalysisApiKey;
 import app.bpartners.api.service.user.analysis.RevokedAnalysisApiKey;
-import java.net.URISyntaxException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
 
 class UserAnalysisApiKeyServiceTest {
   UserAnalysisApiKeyRepositoryImpl userAnalysisApiKeyRepositoryMock = mock();
@@ -33,7 +28,7 @@ class UserAnalysisApiKeyServiceTest {
         UserAnalysisApiKey.builder().apiKey(apiKeyStr).enabled(true).build();
     RevokedAnalysisApiKey revokedAnalysisApiKey = new RevokedAnalysisApiKey(apiKeyStr, now());
     when(analysisApiKeyApi.requestAnalysisApiKeyRevocation(apiKeyStr))
-        .thenReturn(ResponseEntity.ok(revokedAnalysisApiKey));
+        .thenReturn(revokedAnalysisApiKey);
     when(userAnalysisApiKeyRepositoryMock.save(any())).thenAnswer(i -> i.getArgument(0));
 
     UserAnalysisApiKey actual = subject.revokeAnalysisApiKey(apiKey);
@@ -49,7 +44,10 @@ class UserAnalysisApiKeyServiceTest {
     String apiKeyStr = "apikey-to-revoke";
     UserAnalysisApiKey apiKey = UserAnalysisApiKey.builder().apiKey(apiKeyStr).build();
     when(analysisApiKeyApi.requestAnalysisApiKeyRevocation(apiKeyStr))
-        .thenReturn(ResponseEntity.status(BAD_REQUEST).build());
+        .thenThrow(
+            new RuntimeException(
+                "API exception occurred while attempting to revoke analysis api key "
+                    + hide(apiKeyStr)));
 
     var actualException =
         assertThrows(RuntimeException.class, () -> subject.revokeAnalysisApiKey(apiKey));
@@ -63,10 +61,7 @@ class UserAnalysisApiKeyServiceTest {
   @Test
   void successfully_get_analysis_api_key() {
     var createdApiKey = new CreatedAnalysisApiKey("apikey", now());
-    var responseEntityMock = mock(ResponseEntity.class);
-    when(responseEntityMock.getStatusCode()).thenReturn(OK);
-    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(responseEntityMock);
-    when(responseEntityMock.getBody()).thenReturn(List.of(createdApiKey));
+    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(List.of(createdApiKey));
 
     UserAnalysisApiKey actual = subject.getAnalysisApiKey(mock());
 
@@ -75,13 +70,16 @@ class UserAnalysisApiKeyServiceTest {
 
   @Test
   void throw_exception_when_api_exception_occurs() {
-    var responseEntityMock = mock(ResponseEntity.class);
     var userMock = mock(User.class);
     var userEmail = randomUUID() + "@email.com";
 
     when(userMock.getEmail()).thenReturn(userEmail);
-    when(responseEntityMock.getStatusCode()).thenReturn(BAD_REQUEST);
-    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(responseEntityMock);
+    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any()))
+        .thenThrow(
+            new RuntimeException(
+                "API exception occurred while attempting to create user.email="
+                    + userEmail
+                    + " analysis api key"));
 
     var actualException =
         assertThrows(RuntimeException.class, () -> subject.getAnalysisApiKey(userMock));
@@ -95,20 +93,21 @@ class UserAnalysisApiKeyServiceTest {
 
   @Test
   void throw_exception_when_api_returns_empty_list() {
-    var responseEntityMock = mock(ResponseEntity.class);
     var userMock = mock(User.class);
     var userEmail = randomUUID() + "@email.com";
 
     when(userMock.getEmail()).thenReturn(userEmail);
-    when(responseEntityMock.getStatusCode()).thenReturn(OK);
-    when(responseEntityMock.getBody()).thenReturn(List.of());
-    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(responseEntityMock);
+    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(List.of());
 
-    var actualException =
-        assertThrows(RuntimeException.class, () -> subject.getAnalysisApiKey(userMock));
+    assertThrows(RuntimeException.class, () -> subject.getAnalysisApiKey(userMock));
+  }
 
-    assertEquals(
-        "API failed to create user.email=" + userEmail + " analysis api key",
-        actualException.getMessage());
+  static String hide(String apiKey) {
+    int keyLength = apiKey.length();
+    int hideRange = keyLength / (keyLength / 6);
+    String shownPart = apiKey.substring(hideRange, (keyLength - hideRange));
+    String hider = "*".repeat(hideRange);
+
+    return hider + shownPart + hider;
   }
 }

@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,11 +31,11 @@ class AnalysisApiKeyApiTest {
             eq(HttpMethod.POST),
             any(HttpEntity.class),
             any(ParameterizedTypeReference.class)))
-        .thenReturn(ResponseEntity.ok(List.of()));
+        .thenReturn(ResponseEntity.ok(List.of(new CreatedAnalysisApiKey("key", null))));
 
     var response = subject.requestAnalysisApiKeyCreation(user);
 
-    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertFalse(response.isEmpty());
     verify(restTemplate)
         .exchange(
             eq(ANALYSIS_API_BASE_URL + API_KEY_OPERATION_PATH),
@@ -61,7 +60,7 @@ class AnalysisApiKeyApiTest {
 
     var response = subject.requestAnalysisApiKeyRevocation(apiKeyToRevoke);
 
-    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response);
     verify(restTemplate)
         .exchange(
             eq(ANALYSIS_API_BASE_URL + API_KEY_OPERATION_PATH),

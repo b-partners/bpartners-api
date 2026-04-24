@@ -14,6 +14,7 @@ import app.bpartners.api.endpoint.rest.model.UserApiKey;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import java.time.Instant;
 import java.util.List;
@@ -37,6 +38,39 @@ class ApiKeyServiceTest {
           userServiceMock, userAnalysisApiKeyRepositoryMock, userAnalysisApiKeyServiceMock);
 
   @Test
+  void non_admin_cannot_revoke_others_analysis_api_key() {
+    when(userAnalysisApiKeyRepositoryMock.getByApiKey(ANALYSIS_KEY))
+        .thenReturn(analysisApiKeyToRevoke());
+    when(userAnalysisApiKeyRepositoryMock.save(any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
+    when(userAnalysisApiKeyServiceMock.revokeAnalysisApiKey(analysisApiKeyToRevoke()))
+        .thenReturn(analysisApiKeyToRevoke().toBuilder().enabled(false).build());
+
+    var actualException =
+        assertThrows(
+            ForbiddenException.class,
+            () -> subject.revokeApiKeys(List.of(analysisRevokeApiKey().getKey()), user2()));
+
+    assertEquals("Users can only revoke it's own api key", actualException.getMessage());
+  }
+
+  @Test
+  void non_admin_cannot_revoke_others_dashboard_api_key() {
+    when(userAnalysisApiKeyRepositoryMock.getByApiKey(DASHBOARD_KEY)).thenReturn(null);
+    when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
+
+    var actualException =
+        assertThrows(
+            ForbiddenException.class,
+            () -> subject.revokeApiKeys(List.of(dashboardRevokeApiKey().getKey()), user1()));
+
+    assertEquals("Users can only revoke it's own api key", actualException.getMessage());
+  }
+
+  @Test
   void throw_bad_request_on_empty_keys() {
     var actualException =
         assertThrows(
@@ -46,7 +80,7 @@ class ApiKeyServiceTest {
   }
 
   @Test
-  void revoke_mixed_api_keys() {
+  void admin_revoke_mixed_api_keys() {
     when(userAnalysisApiKeyRepositoryMock.getByApiKey(DASHBOARD_KEY)).thenReturn(null);
     when(userAnalysisApiKeyRepositoryMock.getByApiKey(ANALYSIS_KEY))
         .thenReturn(analysisApiKeyToRevoke());
@@ -103,10 +137,10 @@ class ApiKeyServiceTest {
   }
 
   private User user1() {
-    return User.builder().id(USER_1_UUID).build();
+    return User.builder().id(USER_1_UUID).roles(List.of()).build();
   }
 
   private User user2() {
-    return User.builder().id(USER_2_UUID).apiKey(DASHBOARD_KEY).build();
+    return User.builder().id(USER_2_UUID).roles(List.of()).apiKey(DASHBOARD_KEY).build();
   }
 }

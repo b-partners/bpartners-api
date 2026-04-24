@@ -44,8 +44,7 @@ public class AnalysisApiKeyApi {
     this.restTemplate = restTemplate;
   }
 
-  public @NotNull ResponseEntity<List<CreatedAnalysisApiKey>> requestAnalysisApiKeyCreation(User user)
-      throws URISyntaxException {
+  public @NotNull ResponseEntity<List<CreatedAnalysisApiKey>> requestAnalysisApiKeyCreation(User user) {
     var uriString = getAnalysisApiKeyApiUri();
 
     var headers = new HttpHeaders();
@@ -57,7 +56,7 @@ public class AnalysisApiKeyApi {
   }
 
   public @NotNull ResponseEntity<RevokedAnalysisApiKey> requestAnalysisApiKeyRevocation(
-      String apiKeyToRevoke) throws URISyntaxException {
+      String apiKeyToRevoke) {
     var uriString = getAnalysisApiKeyApiUri();
 
     var headers = new HttpHeaders();
@@ -68,10 +67,14 @@ public class AnalysisApiKeyApi {
     return restTemplate.exchange(uriString, DELETE, request, new ParameterizedTypeReference<>() {});
   }
 
-  private @NotNull String getAnalysisApiKeyApiUri() throws URISyntaxException {
-    UriComponentsBuilder uriBuilder =
-        UriComponentsBuilder.fromUri(new URI(geoJobsBaseUrl + API_KEY_API_PATH));
-    return uriBuilder.toUriString();
+  private @NotNull String getAnalysisApiKeyApiUri() {
+    try {
+      UriComponentsBuilder uriBuilder =
+          UriComponentsBuilder.fromUri(new URI(geoJobsBaseUrl + API_KEY_API_PATH));
+      return uriBuilder.toUriString();
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private AnalysisApiKeyCreation toAnalysisApiKeyCreation(User user) {

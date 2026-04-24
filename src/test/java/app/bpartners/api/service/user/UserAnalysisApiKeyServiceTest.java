@@ -27,7 +27,7 @@ class UserAnalysisApiKeyServiceTest {
       new UserAnalysisApiKeyService(userAnalysisApiKeyRepositoryMock, analysisApiKeyApi);
 
   @Test
-  void successfully_revoke_analysis_api_key() throws URISyntaxException {
+  void successfully_revoke_analysis_api_key() {
     String apiKeyStr = "apikey-to-revoke";
     UserAnalysisApiKey apiKey =
         UserAnalysisApiKey.builder().apiKey(apiKeyStr).enabled(true).build();
@@ -45,7 +45,7 @@ class UserAnalysisApiKeyServiceTest {
   }
 
   @Test
-  void throw_exception_when_revocation_api_fails() throws URISyntaxException {
+  void throw_exception_when_revocation_api_fails() {
     String apiKeyStr = "apikey-to-revoke";
     UserAnalysisApiKey apiKey = UserAnalysisApiKey.builder().apiKey(apiKeyStr).build();
     when(analysisApiKeyApi.requestAnalysisApiKeyRevocation(apiKeyStr))
@@ -61,7 +61,7 @@ class UserAnalysisApiKeyServiceTest {
   }
 
   @Test
-  void successfully_get_analysis_api_key() throws URISyntaxException {
+  void successfully_get_analysis_api_key() {
     var createdApiKey = new CreatedAnalysisApiKey("apikey", now());
     var responseEntityMock = mock(ResponseEntity.class);
     when(responseEntityMock.getStatusCode()).thenReturn(OK);
@@ -74,7 +74,7 @@ class UserAnalysisApiKeyServiceTest {
   }
 
   @Test
-  void throw_exception_when_api_exception_occurs() throws URISyntaxException {
+  void throw_exception_when_api_exception_occurs() {
     var responseEntityMock = mock(ResponseEntity.class);
     var userMock = mock(User.class);
     var userEmail = randomUUID() + "@email.com";
@@ -94,7 +94,7 @@ class UserAnalysisApiKeyServiceTest {
   }
 
   @Test
-  void throw_exception_when_api_returns_empty_list() throws URISyntaxException {
+  void throw_exception_when_api_returns_empty_list() {
     var responseEntityMock = mock(ResponseEntity.class);
     var userMock = mock(User.class);
     var userEmail = randomUUID() + "@email.com";

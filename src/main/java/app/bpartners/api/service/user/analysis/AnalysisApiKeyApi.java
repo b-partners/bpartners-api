@@ -28,8 +28,8 @@ public class AnalysisApiKeyApi {
   private static final List<AuthorizedZone> DEFAULT_AUTHORIZED_ZONES = List.of(); // deprecated
   private static final List<DetectableObjectType> DEFAULT_DETECTABLE_OBJECT_TYPES =
       List.of(); // deprecated
-  public static final String AUTHORIZATION_HEADER = "x-api-key";
-  public static final String API_KEY_API_PATH = "/api/keys";
+  private static final String AUTHORIZATION_HEADER = "x-api-key";
+  private static final String API_KEY_API_PATH = "/api/keys";
 
   private final String geoJobsBaseUrl;
   private final String geoJobsAdminApiKey;

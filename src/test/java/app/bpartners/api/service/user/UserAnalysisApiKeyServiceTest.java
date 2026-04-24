@@ -65,7 +65,7 @@ class UserAnalysisApiKeyServiceTest {
     var createdApiKey = new CreatedAnalysisApiKey("apikey", now());
     var responseEntityMock = mock(ResponseEntity.class);
     when(responseEntityMock.getStatusCode()).thenReturn(OK);
-    when(analysisApiKeyApi.requestAnalysisApiKeys(any())).thenReturn(responseEntityMock);
+    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(responseEntityMock);
     when(responseEntityMock.getBody()).thenReturn(List.of(createdApiKey));
 
     UserAnalysisApiKey actual = subject.getAnalysisApiKey(mock());
@@ -81,7 +81,7 @@ class UserAnalysisApiKeyServiceTest {
 
     when(userMock.getEmail()).thenReturn(userEmail);
     when(responseEntityMock.getStatusCode()).thenReturn(BAD_REQUEST);
-    when(analysisApiKeyApi.requestAnalysisApiKeys(any())).thenReturn(responseEntityMock);
+    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(responseEntityMock);
 
     var actualException =
         assertThrows(RuntimeException.class, () -> subject.getAnalysisApiKey(userMock));
@@ -102,7 +102,7 @@ class UserAnalysisApiKeyServiceTest {
     when(userMock.getEmail()).thenReturn(userEmail);
     when(responseEntityMock.getStatusCode()).thenReturn(OK);
     when(responseEntityMock.getBody()).thenReturn(List.of());
-    when(analysisApiKeyApi.requestAnalysisApiKeys(any())).thenReturn(responseEntityMock);
+    when(analysisApiKeyApi.requestAnalysisApiKeyCreation(any())).thenReturn(responseEntityMock);
 
     var actualException =
         assertThrows(RuntimeException.class, () -> subject.getAnalysisApiKey(userMock));

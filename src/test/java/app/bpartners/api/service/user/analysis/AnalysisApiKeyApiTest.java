@@ -34,7 +34,7 @@ class AnalysisApiKeyApiTest {
             any(ParameterizedTypeReference.class)))
         .thenReturn(ResponseEntity.ok(List.of()));
 
-    var response = subject.requestAnalysisApiKeys(user);
+    var response = subject.requestAnalysisApiKeyCreation(user);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     verify(restTemplate)

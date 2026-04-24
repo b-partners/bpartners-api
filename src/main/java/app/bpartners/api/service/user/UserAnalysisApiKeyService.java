@@ -46,7 +46,7 @@ public class UserAnalysisApiKeyService {
   @SneakyThrows
   public UserAnalysisApiKey getAnalysisApiKey(User user) {
     ResponseEntity<List<CreatedAnalysisApiKey>> response =
-        analysisApiKeyApi.requestAnalysisApiKeys(user);
+        analysisApiKeyApi.requestAnalysisApiKeyCreation(user);
 
     if (!response.getStatusCode().is2xxSuccessful()) {
       throw new RuntimeException(

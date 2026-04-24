@@ -44,7 +44,7 @@ public class AnalysisApiKeyApi {
     this.restTemplate = restTemplate;
   }
 
-  public @NotNull ResponseEntity<List<CreatedAnalysisApiKey>> requestAnalysisApiKeys(User user)
+  public @NotNull ResponseEntity<List<CreatedAnalysisApiKey>> requestAnalysisApiKeyCreation(User user)
       throws URISyntaxException {
     var uriString = getAnalysisApiKeyApiUri();
 

@@ -72,7 +72,10 @@ public class StripeFactory {
       scheduleSubscription(stripeCustomer, subscription, price, billingCycleAnchor, user);
       return new Redirection()
           .redirectionUrl(
-              getApiUrl() + "/account/" + user.getDefaultAccount().getId() + "?stripeStatus=done")
+              getDashboardUrl()
+                  + "/account/"
+                  + user.getDefaultAccount().getId()
+                  + "?stripeStatus=done")
           .redirectionStatusUrls(redirectionUrls);
     } else if (trialEnd.isAfter(temporalUtils.fifthOfActualMonth())
         && trialEnd.isBefore(temporalUtils.endOfActualMonth())
@@ -85,14 +88,17 @@ public class StripeFactory {
     scheduleSubscription(stripeCustomer, subscription, price, billingCycleAnchor, user);
     return new Redirection()
         .redirectionUrl(
-            getApiUrl() + "/account/" + user.getDefaultAccount().getId() + "?stripeStatus=done")
+            getDashboardUrl()
+                + "/account/"
+                + user.getDefaultAccount().getId()
+                + "?stripeStatus=done")
         .redirectionStatusUrls(redirectionUrls);
   }
 
-  private String getApiUrl() {
+  private String getDashboardUrl() {
     return System.getenv("ENV") != null && System.getenv("ENV").equals("preprod")
-        ? "https://api.preprod.dashboard.birdia.fr"
-        : "https://api.dashboard.birdia.fr";
+        ? "https://preprod.dashboard.birdia.fr"
+        : "https://dashboard.birdia.fr";
   }
 
   private Redirection mapFromSession(Session session, RedirectionStatusUrls redirectionUrls) {

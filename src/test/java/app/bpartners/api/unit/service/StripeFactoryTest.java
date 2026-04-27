@@ -143,7 +143,7 @@ public class StripeFactoryTest {
     verify(subject, never()).createSessionSubscription(any(), any(), any(), any(), any());
     assertThat(actual.getRedirectionUrl())
         .isEqualTo(
-            "https://api.dashboard.birdia.fr/account/"
+            "https://dashboard.birdia.fr/account/"
                 + user.getDefaultAccount().getId()
                 + "?stripeStatus=done");
   }

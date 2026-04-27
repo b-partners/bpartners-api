@@ -40,13 +40,13 @@ public class BearerAuthenticator implements UsernamePasswordAuthenticator {
   public User retrieveUserWithoutLegalFileCheck(HttpServletRequest request) {
     String bearer = request.getHeader(AUTHORIZATION_HEADER);
     if (bearer == null) {
-      throw new UsernameNotFoundException("Bad credentials");
+      throw new UsernameNotFoundException("Bad credentials : token is null");
     }
 
     bearer = bearer.substring(BEARER_PREFIX.length()).trim();
     String email = cognitoComponent.getEmailByToken(bearer);
     if (email == null) {
-      throw new UsernameNotFoundException("Bad credentials");
+      throw new UsernameNotFoundException("Bad credentials : token is not valid");
     }
     return userService.getUserByEmail(email);
   }

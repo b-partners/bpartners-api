@@ -86,7 +86,11 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
     try {
       return bearerAuthenticator.retrieveUserWithoutLegalFileCheck(request);
     } catch (AuthenticationException ignored) {
-      return apiKeyAuthenticator.retrieveUserWithoutLegalFileCheck(request);
+      try {
+        return apiKeyAuthenticator.retrieveUserWithoutLegalFileCheck(request);
+      } catch (AuthenticationException e) {
+        throw new ForbiddenException("Either api key or bearer token is not valid");
+      }
     }
   }
 

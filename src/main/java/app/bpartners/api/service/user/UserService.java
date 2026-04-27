@@ -22,6 +22,7 @@ import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.SnsService;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -145,8 +146,8 @@ public class UserService {
     return userRepository.getUsersWithSubscription();
   }
 
-  public User getUserByApiKey(String apikey) {
-    return userRepository.getUserByApiKey(apikey);
+  public Optional<User> findUserByApiKey(String apikey) {
+    return userRepository.findByApiKey(apikey);
   }
 
   // TODO : delete and replace test with getApiKeys method

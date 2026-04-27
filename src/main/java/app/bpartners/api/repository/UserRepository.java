@@ -20,7 +20,7 @@ public interface UserRepository {
 
   User getUserByToken(String token);
 
-  User getUserByApiKey(String apiKey);
+  Optional<User> findByApiKey(String apiKey);
 
   User getByEmail(String email);
 

@@ -23,6 +23,7 @@ import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +47,7 @@ class DetectionTrackingIT extends MockedThirdParties {
   void setUp() {
     when(userMock.getId()).thenReturn(JOE_DOE_ID);
     when(userMock.getEmail()).thenReturn(JOE_EMAIL);
-    when(userRepository.getUserByApiKey(dummyApiKey)).thenReturn(userMock);
+    when(userRepository.findByApiKey(dummyApiKey)).thenReturn(Optional.of(userMock));
     when(userRepository.getByEmail(JOE_EMAIL)).thenReturn(userMock);
     when(userRepository.getById(JOE_DOE_ID)).thenReturn(userMock);
 

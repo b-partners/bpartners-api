@@ -18,6 +18,7 @@ import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class ApiKeyServiceTest {
@@ -44,7 +45,7 @@ class ApiKeyServiceTest {
     when(userAnalysisApiKeyRepositoryMock.save(any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-    when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
+    when(userServiceMock.findUserByApiKey(ANALYSIS_KEY)).thenReturn(Optional.empty());
     when(userAnalysisApiKeyServiceMock.revokeAnalysisApiKey(analysisApiKeyToRevoke()))
         .thenReturn(analysisApiKeyToRevoke().toBuilder().enabled(false).build());
     var key = analysisRevokeApiKey().getKey();
@@ -61,7 +62,7 @@ class ApiKeyServiceTest {
   void non_admin_cannot_revoke_others_dashboard_api_key() {
     when(userAnalysisApiKeyRepositoryMock.getByApiKey(DASHBOARD_KEY)).thenReturn(null);
     when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-    when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
+    when(userServiceMock.findUserByApiKey(DASHBOARD_KEY)).thenReturn(Optional.of(user2()));
     var key = dashboardRevokeApiKey().getKey();
     var keys = List.of(key);
     var user = user1();
@@ -89,8 +90,8 @@ class ApiKeyServiceTest {
     when(userAnalysisApiKeyRepositoryMock.save(any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-    when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
-    when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
+    when(userServiceMock.findUserByApiKey(ANALYSIS_KEY)).thenReturn(Optional.empty());
+    when(userServiceMock.findUserByApiKey(DASHBOARD_KEY)).thenReturn(Optional.of(user2()));
     when(userAnalysisApiKeyServiceMock.revokeAnalysisApiKey(analysisApiKeyToRevoke()))
         .thenReturn(analysisApiKeyToRevoke().toBuilder().enabled(false).build());
 

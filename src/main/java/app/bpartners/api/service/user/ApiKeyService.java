@@ -58,10 +58,11 @@ public class ApiKeyService {
   }
 
   private UserApiKey revokeUserApiKey(String key, User authenticatedUser) {
-    var userApiKeyOwner = userService.getUserByApiKey(key);
-    if (userApiKeyOwner == null) {
+    var optionalUser = userService.findUserByApiKey(key);
+    if (optionalUser.isEmpty()) {
       throw new BadRequestException("No users found with api key " + key);
     }
+    var userApiKeyOwner = optionalUser.get();
     if (!Objects.equals(userApiKeyOwner.getId(), authenticatedUser.getId())
         && !authenticatedUser.getRoles().contains(ADMIN_ROLE)) {
       throw new ForbiddenException("Users can only revoke it's own api key");

@@ -23,19 +23,26 @@ public class ApiKeyAuthenticator implements UsernamePasswordAuthenticator {
       String username, UsernamePasswordAuthenticationToken authenticationToken) {
     var apiKey = getApiKeyFromHeader(authenticationToken);
     if (apiKey == null) {
-      throw new UsernameNotFoundException("Bad credentials");
+      throw new UsernameNotFoundException("Bad credentials: api key is null");
     }
-    var user = userService.getUserByApiKey(apiKey);
-    return new Principal(user, apiKey);
+    var optionalUser = userService.findUserByApiKey(apiKey);
+    if (optionalUser.isEmpty()) {
+      throw new UsernameNotFoundException("Bad credentials: api key is not valid");
+    }
+    return new Principal(optionalUser.get(), apiKey);
   }
 
   @Override
   public User retrieveUserWithoutLegalFileCheck(HttpServletRequest request) {
     var apiKey = request.getHeader(API_KEY_HEADER);
     if (apiKey == null) {
-      throw new UsernameNotFoundException("Bad credentials");
+      throw new UsernameNotFoundException("Bad credentials: api key is null");
     }
-    return userService.getUserByApiKey(apiKey);
+    var optionalUser = userService.findUserByApiKey(apiKey);
+    if (optionalUser.isEmpty()) {
+      throw new UsernameNotFoundException("Bad credentials: api key is not valid");
+    }
+    return optionalUser.get();
   }
 
   private String getApiKeyFromHeader(

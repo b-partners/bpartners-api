@@ -25,11 +25,11 @@ public class BearerAuthenticator implements UsernamePasswordAuthenticator {
       String username, UsernamePasswordAuthenticationToken authenticationToken) {
     String bearer = getBearerFromHeader(authenticationToken);
     if (bearer == null) {
-      throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
+      throw new UsernameNotFoundException("Bad credentials: token is null"); // NOSONAR
     }
     String email = cognitoComponent.getEmailByToken(bearer);
     if (email == null) {
-      throw new UsernameNotFoundException("Bad credentials"); // NOSONAR
+      throw new UsernameNotFoundException("Bad credentials: token is not valid"); // NOSONAR
     }
     User user = userService.getUserByEmail(email);
 

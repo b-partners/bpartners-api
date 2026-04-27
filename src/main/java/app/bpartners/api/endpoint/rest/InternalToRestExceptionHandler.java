@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -78,6 +80,8 @@ public class InternalToRestExceptionHandler {
 
   @ExceptionHandler(
       value = {
+        UsernameNotFoundException.class,
+        AuthenticationException.class,
         AccessDeniedException.class,
         BadCredentialsException.class,
         ForbiddenException.class

@@ -4,6 +4,7 @@ import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SETUP;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
+import static com.stripe.param.checkout.SessionCreateParams.PaymentMethodCollection.IF_REQUIRED;
 import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
 import static java.util.UUID.randomUUID;
 
@@ -119,6 +120,7 @@ public class StripeFactory {
                         SessionCreateParams.SubscriptionData.ProrationBehavior.NONE)
                     .setBillingCycleAnchor(billingCycleAnchor)
                     .build())
+            .setPaymentMethodCollection(IF_REQUIRED)
             .build());
   }
 

@@ -503,22 +503,15 @@ public class SubscriptionService {
                             .build())
                     .build());
 
-    var session =
-        stripeFactory.createSession(
-            user,
-            endOfTrialPeriod,
-            stripeCustomer,
-            subscriptionProduct,
-            newVariableProductPrice,
-            redirectionUrls,
-            billingCycleAnchor,
-            subscription);
-    return new Redirection()
-        .redirectionUrl(session.getUrl())
-        .redirectionStatusUrls(
-            new RedirectionStatusUrls()
-                .successUrl(session.getSuccessUrl())
-                .failureUrl(session.getCancelUrl()));
+    return stripeFactory.initiateSubscriptionWorkflow(
+        user,
+        endOfTrialPeriod,
+        stripeCustomer,
+        subscriptionProduct,
+        newVariableProductPrice,
+        redirectionUrls,
+        billingCycleAnchor,
+        subscription);
   }
 
   private LocalDate computeEndOfTrialPeriod(User user) {

@@ -2,15 +2,14 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
-import static com.stripe.param.checkout.SessionCreateParams.Mode.SETUP;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
 import static com.stripe.param.checkout.SessionCreateParams.PaymentMethodCollection.IF_REQUIRED;
 import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.subscription.SessionMode;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscriptionSession;
@@ -47,7 +46,7 @@ public class StripeFactory {
     return com.stripe.model.Subscription.list(params).getData();
   }
 
-  public Session createSession(
+  public Redirection initiateSubscriptionWorkflow(
       User user,
       LocalDate trialEnd,
       Customer stripeCustomer,
@@ -70,16 +69,36 @@ public class StripeFactory {
             && (trialEnd.isBefore(temporalUtils.fifthOfNextMonth())
                 || trialEnd.isBefore(temporalUtils.fifthOfNextMonth()));
     if (isTrialEndBetweenFirstAndFifthOfNextMonth || isTrialEndBetweenFirstAndFifthOfActualMonth) {
-      return createSessionSetUp(
-          stripeCustomer, redirectionUrls, subscription, price, billingCycleAnchor, user);
+      scheduleSubscription(stripeCustomer, subscription, price, billingCycleAnchor, user);
+      return new Redirection()
+          .redirectionUrl(
+              getApiUrl() + "/account/" + user.getDefaultAccount().getId() + "?stripeStatus=done")
+          .redirectionStatusUrls(redirectionUrls);
     } else if (trialEnd.isAfter(temporalUtils.fifthOfActualMonth())
         && trialEnd.isBefore(temporalUtils.endOfActualMonth())
         && !isTodayBeforeFifthOfActualMonth) {
-      return createSessionSubscription(
-          stripeCustomer, subscriptionProduct, price, redirectionUrls, billingCycleAnchor);
+      var sessionSubscription =
+          createSessionSubscription(
+              stripeCustomer, subscriptionProduct, price, redirectionUrls, billingCycleAnchor);
+      return mapFromSession(sessionSubscription, redirectionUrls);
     }
-    return createSessionSetUp(
-        stripeCustomer, redirectionUrls, subscription, price, billingCycleAnchor, user);
+    scheduleSubscription(stripeCustomer, subscription, price, billingCycleAnchor, user);
+    return new Redirection()
+        .redirectionUrl(
+            getApiUrl() + "/account/" + user.getDefaultAccount().getId() + "?stripeStatus=done")
+        .redirectionStatusUrls(redirectionUrls);
+  }
+
+  private String getApiUrl() {
+    return System.getenv("ENV") != null && System.getenv("ENV").equals("preprod")
+        ? "https://api.preprod.dashboard.birdia.fr"
+        : "https://api.dashboard.birdia.fr";
+  }
+
+  private Redirection mapFromSession(Session session, RedirectionStatusUrls redirectionUrls) {
+    return new Redirection()
+        .redirectionUrl(session.getUrl())
+        .redirectionStatusUrls(redirectionUrls);
   }
 
   public Session createSessionSubscription(
@@ -124,35 +143,22 @@ public class StripeFactory {
             .build());
   }
 
-  public Session createSessionSetUp(
+  public void scheduleSubscription(
       Customer stripeCustomer,
-      RedirectionStatusUrls redirectionUrls,
       Subscription subscription,
       Price newVariableProductPrice,
       Long billingCycleAnchor,
-      User user)
-      throws StripeException {
-    var session =
-        Session.create(
-            SessionCreateParams.builder()
-                .setMode(SETUP)
-                .setCustomer(stripeCustomer.getId())
-                .setCurrency(defaultCurrency())
-                .setSuccessUrl(redirectionUrls.getSuccessUrl())
-                .setCancelUrl(redirectionUrls.getFailureUrl())
-                .setUiMode(HOSTED)
-                .build());
+      User user) {
     SubscriptionSchedule subscriptionSchedule =
         subscriptionScheduleCreation(
             stripeCustomer.getId(),
             subscription,
             newVariableProductPrice.getId(),
             billingCycleAnchor);
+
     userSubscriptionSessionRepository.save(
         UserSubscriptionSession.builder()
             .id(randomUUID().toString())
-            .sessionId(session.getId())
-            .sessionMode(SessionMode.SETUP)
             .userId(user.getId())
             .subscriptionScheduleId(subscriptionSchedule.getId())
             .isCancelled(false)
@@ -161,8 +167,6 @@ public class StripeFactory {
                     .atZone(ZoneId.of("Europe/Paris"))
                     .toLocalDate())
             .build());
-
-    return session;
   }
 
   @SneakyThrows

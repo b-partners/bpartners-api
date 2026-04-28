@@ -51,7 +51,7 @@ public class InvoiceController {
   private final InvoiceExportRequestService invoiceExportRequestService;
   private final InvoiceExportRequestRestMapper invoiceExportRequestRestMapper;
 
-  @GetMapping("users/{uId}/invoiceExportRequests/{requestId}")
+  @GetMapping("/users/{uId}/invoiceExportRequests/{requestId}")
   public InvoiceExportRequest retrieveInvoiceExportRequestById(
       @PathVariable String uId, @PathVariable String requestId) {
     var authenticatedUser = getAuthenticatedUser();

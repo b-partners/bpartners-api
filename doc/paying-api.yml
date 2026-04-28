@@ -1416,9 +1416,7 @@ components:
           type: string
           format: date
         outputFormat:
-          type: string
-          enum:
-            - ZIP
+          $ref: '#/components/schemas/InvoiceExportOutputFormat'
         batchSize:
           type: integer
         statusList:
@@ -1427,6 +1425,10 @@ components:
             $ref: '#/components/schemas/InvoiceStatus'
         archiveStatus:
           $ref: '#/components/schemas/archiveStatus'
+    InvoiceExportOutputFormat:
+      type: string
+      enum:
+        - ZIP
     InvoiceExportRequest:
       allOf:
         - $ref: '#/components/schemas/CreateInvoiceExportRequest'
@@ -1451,7 +1453,7 @@ components:
         creationDatetime:
           type: string
           format: date-time
-        expirationDatetime:
+        urlExpirationDatetime:
           type: string
           format: date-time
     Transaction:

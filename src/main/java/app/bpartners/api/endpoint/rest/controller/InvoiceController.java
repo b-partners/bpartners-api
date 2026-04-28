@@ -1,26 +1,25 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUser;
 import static app.bpartners.api.endpoint.rest.security.AuthProvider.getAuthenticatedUserId;
+import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
+import app.bpartners.api.endpoint.rest.mapper.InvoiceExportRequestRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoicesSummaryRestMapper;
-import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
-import app.bpartners.api.endpoint.rest.model.CrupdateInvoice;
-import app.bpartners.api.endpoint.rest.model.Invoice;
-import app.bpartners.api.endpoint.rest.model.InvoiceReference;
-import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
-import app.bpartners.api.endpoint.rest.model.InvoicesSummary;
-import app.bpartners.api.endpoint.rest.model.PreSignedURL;
-import app.bpartners.api.endpoint.rest.model.UpdateInvoiceArchivedStatus;
-import app.bpartners.api.endpoint.rest.model.UpdatePaymentRegMethod;
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
 import app.bpartners.api.endpoint.rest.validator.UpdatePaymentRegValidator;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.service.invoice.InvoiceExportRequestService;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.InvoiceSummaryService;
+
+import java.lang.Exception;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -49,6 +48,20 @@ public class InvoiceController {
   private final UpdatePaymentRegValidator paymentValidator;
   private final InvoicesSummaryRestMapper summaryRestMapper;
   private final InvoiceSummaryService summaryService;
+  private final InvoiceExportRequestService invoiceExportRequestService;
+  private final InvoiceExportRequestRestMapper invoiceExportRequestRestMapper;
+
+  @GetMapping("users/{uId}/invoiceExportRequests/{requestId}")
+  public InvoiceExportRequest retrieveInvoiceExportRequestById(
+      @PathVariable String uId, @PathVariable String requestId) {
+    var authenticatedUser = getAuthenticatedUser();
+    if (authenticatedUser != null
+        && !authenticatedUser.getId().equals(uId)
+        && !authenticatedUser.getRoles().contains(ADMIN_ROLE)) {
+      throw new ForbiddenException("User can only export their own invoices");
+    }
+    return invoiceExportRequestRestMapper.toRest(invoiceExportRequestService.getById(requestId));
+  }
 
   @GetMapping("/accounts/{aId}/invoices/exportLink")
   public PreSignedURL getInvoicesExportLink(

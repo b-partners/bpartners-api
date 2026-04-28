@@ -318,6 +318,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(GET, "/accounts/*/invoices/exportLink")
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole(), EVAL_PROSPECT.getRole())
+                    .requestMatchers(GET, "/users/*/invoiceExportRequests/*")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(PUT, "/users/*/invoiceExportRequests")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider))
                     .authenticated()

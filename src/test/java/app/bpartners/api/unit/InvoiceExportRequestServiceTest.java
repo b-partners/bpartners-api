@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.model.InvoiceExportRequest;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.jpa.InvoiceExportRequestRepository;
@@ -15,8 +16,9 @@ import org.junit.jupiter.api.Test;
 
 class InvoiceExportRequestServiceTest {
   InvoiceExportRequestRepository invoiceExportRequestRepositoryMock = mock();
+  EventProducer eventProducerMock = mock();
   InvoiceExportRequestService subject =
-      new InvoiceExportRequestService(invoiceExportRequestRepositoryMock);
+      new InvoiceExportRequestService(invoiceExportRequestRepositoryMock, eventProducerMock);
 
   @Test
   void throws_exception_when_no_invoice_export_request_found() {

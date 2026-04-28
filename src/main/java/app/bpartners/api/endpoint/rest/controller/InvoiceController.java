@@ -18,8 +18,6 @@ import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.invoice.InvoiceExportRequestService;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.InvoiceSummaryService;
-
-import java.lang.Exception;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -61,6 +59,13 @@ public class InvoiceController {
       throw new ForbiddenException("User can only export their own invoices");
     }
     return invoiceExportRequestRestMapper.toRest(invoiceExportRequestService.getById(requestId));
+  }
+
+  @PutMapping("/users/{uId}/invoiceExportRequests")
+  public List<InvoiceExportRequest> submitInvoiceExportRequests(
+      @PathVariable String uId,
+      @RequestBody List<CreateInvoiceExportRequest> createInvoiceExportRequestList) {
+    throw new UnsupportedOperationException("Not implemented");
   }
 
   @GetMapping("/accounts/{aId}/invoices/exportLink")
@@ -171,7 +176,7 @@ public class InvoiceController {
     while (retries > 0) {
       try {
         return service.crupdateInvoice(invoice);
-      } catch (Exception e) {
+      } catch (java.lang.Exception e) {
         Random random = new Random();
         Thread.sleep(Duration.ofSeconds((long) (1 + random.nextDouble() * 2)));
         retries--;

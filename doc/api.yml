@@ -144,6 +144,10 @@ paths:
     $ref: './paying-api.yml#/operations/getRelaunches'
   /accounts/{aId}/invoices/{iId}/relaunch:
     $ref: './paying-api.yml#/operations/relaunchInvoice'
+  /users/{uId}/invoiceExportRequests/{requestId}:
+    $ref: './paying-api.yml#/operations/invoiceExportRequestSingleOperations'
+  /users/{uId}/invoiceExportRequests:
+    $ref: './paying-api.yml#/operations/invoiceExportRequestOperations'
 
   #############################################
   ################# Files API #################

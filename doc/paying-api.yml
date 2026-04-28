@@ -1336,8 +1336,124 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  invoiceExportRequestSingleOperations:
+    get:
+      tags:
+        - Paying
+      summary: Retrieve invoice export request by ID
+      operationId: retrieveInvoiceExportRequest
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Retrieved invoice export request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceExportRequest'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  invoiceExportRequestOperations:
+    put:
+      tags:
+        - Paying
+      summary: Submit invoice export requests between date intervals
+      operationId: submitInvoiceExportRequest
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateInvoiceExportRequest'
+      responses:
+        200:
+          description: List of submitted invoice export requests
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/InvoiceExportRequest'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
 components:
   schemas:
+    CreateInvoiceExportRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        outputFormat:
+          type: string
+          enum:
+            - ZIP
+        batchSize:
+          type: integer
+        statusList:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceStatus'
+        archiveStatus:
+          $ref: '#/components/schemas/archiveStatus'
+    InvoiceExportRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateInvoiceExportRequest'
+      properties:
+        totalBatchCount:
+          type: integer
+        totalInvoiceCount:
+          type: integer
+        batchList:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceExportBatch'
+    InvoiceExportBatch:
+      type: object
+      properties:
+        contentSize:
+          type: integer
+        url:
+          type: string
+        properties:
+          additionalProperties: true
+        creationDatetime:
+          type: string
+          format: date-time
+        expirationDatetime:
+          type: string
+          format: date-time
     Transaction:
       type: object
       properties:

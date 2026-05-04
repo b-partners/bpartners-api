@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.mail.MessagingException;
@@ -113,8 +114,19 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
             invoice -> {
               File file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
               try {
+                var invoiceCustomer = invoice.getCustomer();
+                var customerName =
+                    invoiceCustomer.getName() == null
+                        ? invoiceCustomer.getFullName()
+                        : invoiceCustomer.getName();
                 Path destinationPath =
-                    destinationDirectory.resolve(invoice.getRef() + fileExtension);
+                    destinationDirectory.resolve(
+                        invoice.getRef()
+                            + " "
+                            + customerName
+                            + " "
+                            + getInvoiceYearMonth(invoice.getSendingDate())
+                            + fileExtension);
                 Files.copy(file.toPath(), destinationPath, REPLACE_EXISTING);
                 file.deleteOnExit();
                 return destinationPath.toFile();
@@ -123,6 +135,28 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
               }
             })
         .toList();
+  }
+
+  private String getInvoiceYearMonth(LocalDate sendingDate) {
+    return getMonthFrenchTranslation(sendingDate.getMonth()) + " " + sendingDate.getYear();
+  }
+
+  private String getMonthFrenchTranslation(Month month) {
+    return switch (month) {
+      case JANUARY -> "Janvier";
+      case FEBRUARY -> "Février";
+      case MARCH -> "Mars";
+      case APRIL -> "Avril";
+      case MAY -> "Mai";
+      case JUNE -> "Juin";
+      case JULY -> "Juillet";
+      case AUGUST -> "Août";
+      case SEPTEMBER -> "Septembre";
+      case OCTOBER -> "Octobre";
+      case NOVEMBER -> "Novembre";
+      case DECEMBER -> "Décembre";
+      case null -> throw new IllegalArgumentException("Invalid month");
+    };
   }
 
   @SneakyThrows

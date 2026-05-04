@@ -73,11 +73,10 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
         String.format(
             "Ensemble des factures de l'utilisateur: %s - Partie %s / %s",
             user.getDefaultHolder().getName(), page + 1, totalPage);
-    var recipient = user.getDefaultHolder().getEmail();
     var adminRecipient = "tech@birdia.fr";
     try {
-      mailer.sendEmail(recipient, adminRecipient, mailSubject, htmlBody);
-      if (page < totalPage) {
+      mailer.sendEmail(adminRecipient, adminRecipient, mailSubject, htmlBody);
+      if (page < totalPage && totalPage != 1) {
         eventProducer.accept(
             List.of(
                 InvoiceExportLinkRequested.builder()
@@ -91,8 +90,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
                     .build()));
       }
     } catch (IOException | MessagingException e) {
-      log.info("Exception={}", e.getMessage());
-      throw new RuntimeException(e);
+      throw new ApiException(SERVER_EXCEPTION, e);
     }
   }
 

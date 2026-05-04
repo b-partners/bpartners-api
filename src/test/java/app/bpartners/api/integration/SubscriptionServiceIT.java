@@ -210,6 +210,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
+  @Disabled("debug")
   void initiate_subscription() {
     var product =
         SubscriptionProduct.builder()

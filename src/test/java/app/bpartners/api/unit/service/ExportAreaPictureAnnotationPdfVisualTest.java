@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
@@ -40,6 +41,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   private static FileService fileService = mock();
+  private static BucketComponent bucketComponent = mock();
 
   private static ExportAreaPictureAnnotationPDFGenerator pdfGenerator;
   private static ExportAreaPictureAnnotationPDFProcessor subject;
@@ -57,7 +59,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         .thenReturn(new ClassPathResource("files/logo_company.jpeg").getFile());
 
     pdfGenerator =
-        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), fileService);
+        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), bucketComponent);
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(

@@ -1,6 +1,6 @@
 package app.bpartners.api.service.annotation;
 
-import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor.IMAGE_FORMAT;
+import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.IMAGE_FORMAT;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.awt.image.BufferedImage;

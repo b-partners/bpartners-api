@@ -7,10 +7,10 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.annotation.model.Pair;
-import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private final EmojiReplacer emojiReplacer;
-  private final FileService fileService;
+  private final BucketComponent bucketComponent;
 
   public static final String KEY_LABEL = "key";
   public static final String FONT_NAME = "Kumbh Sans";
@@ -34,10 +34,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
   public ExportAreaPictureAnnotationPDFGenerator(
-      TemplateResolverEngine templateResolverEngine, FileService fileService) {
+      TemplateResolverEngine templateResolverEngine, BucketComponent bucketComponent) {
     this.templateResolverEngine = templateResolverEngine;
     this.emojiReplacer = getEmojiReplacer();
-    this.fileService = fileService;
+    this.bucketComponent = bucketComponent;
   }
 
   @SneakyThrows
@@ -86,7 +86,9 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       Pair<String, List<String>> annotation3DImages) {
     var templateEngine = templateResolverEngine.getTemplateEngine();
 
-    var context = createContext(user, logoBase64, annotation, annotationImages, annotation3DImages);
+    var context =
+        createContext(
+            user, logoBase64, annotation, annotationImages, annotation3DImages, bucketComponent);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 

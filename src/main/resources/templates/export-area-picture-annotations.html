@@ -66,26 +66,65 @@
             white-space: normal;
         }
 
-        .annotation-item-image{
-            display: block;
-            width: 300px;
-            margin-left: auto; /* align to right */
-            height: auto;
+        /* CORRECTION : Colonne droite pour les images du bâtiment (68%) */
+        .annotation-item-image-container {
+            display: table-cell;
+            width: 68%;
+            vertical-align: middle;
+            text-align: center;
         }
 
-        .annotation-item-image-3d{
+        /* Gestion de l'affichage des images du bâtiment côte à côte */
+        .building-images-row {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+        }
+
+        .building-image-cell {
+            display: table-cell;
+            width: 50%;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .annotation-item-image {
+            max-width: 100%;
+            height: 140px;
+            width: 100%;
+            object-fit: contain;
+            vertical-align: middle;
+        }
+
+        .annotation-item-image-3d {
+            max-width: 100%;
+            height: 140px;
+            width: 100%;
+            object-fit: contain;
+            vertical-align: middle;
+        }
+
+        .annotation-blank-item-image-3d {
+            width: 100%;
+            height: 140px;
             display: block;
-            width: 400px;
-            margin-left: auto;
-            height: auto;
+            background-color: #756c6c;
+            color: white;
+            text-align: center;
+            line-height: 140px;
+            border-radius: 4px;
+            font-size: 11px;
         }
 
         .annotation-information-title{
             font-size: 1.5rem; /* 18px */
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             font-weight: bold;
             color: #FF521B;
             text-align: center;
+            page-break-after: avoid;
         }
 
         .annotation-item-title{ font-size: 1.1rem; } /* 13.2 */
@@ -209,34 +248,7 @@
             display: block;
         }
 
-        /* ==========================================================================
-   STYLES COMPLETS POUR LA SECTION DES PANS 3D
-   ========================================================================== */
-
-        /* Titre principal de la section (identique aux autres pages) */
-        .annotation-information-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #FF521B;
-            text-align: center;
-            page-break-after: avoid;
-        }
-
-        /* Zone d'affichage du modèle 3D principal de l'en-tête */
-        .image-wrapper {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .main-image-3d {
-            display: inline-block;
-            height: 220px;
-            max-width: 100%;
-            object-fit: contain;
-        }
-
-        /* En-tête des colonnes d'images (Photo façade / Image annotée) */
+        /* STYLES COMPLETS POUR LA SECTION DES PANS 3D */
         .pan-col-headers {
             display: table;
             width: 100%;
@@ -297,7 +309,7 @@
             width: 100%;
             table-layout: fixed;
             border-collapse: separate;
-            border-spacing: 10px 0; /* Gère l'espace horizontal entre les deux images */
+            border-spacing: 10px 0;
         }
 
         /* Cellule de chaque image */
@@ -424,86 +436,79 @@
         </div>
     </section>
 
-    <section th:if="${pages3D}" th:each="page, pageStat : ${pages3D}"
-             class="page"
-             th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
+<section th:if="${pages3D}" th:each="page, pageStat : ${pages3D}"
+         class="page"
+         th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
 
-        <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
+    <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
 
-        <!-- Vue 3D principale -->
-        <div class="image-wrapper" th:if="${pageStat.first}">
-            <img alt="annotation-3d" class="main-image-3d" th:src="${mainImage3D}" />
-        </div>
+    <div class="image-wrapper" th:if="${pageStat.first}">
+        <img alt="annotation-3d" class="main-image-3d" th:src="${mainImage3D}" />
+    </div>
 
-        <!-- En-tête des colonnes aligné à droite de la zone descriptive -->
-        <div style="display:table; width:100%; table-layout:fixed; margin-bottom:10px;">
-            <div style="display:table-cell; width:32%;"></div>
-            <div style="display:table-cell; width:68%;">
-                <div class="pan-col-headers">
-                    <div class="pan-col-header">Photo façade / Vue 3D</div>
-                    <div class="pan-col-header">Image annotée</div>
-                </div>
+    <div style="display:table; width:100%; table-layout:fixed; margin-bottom:10px;">
+        <div style="display:table-cell; width:32%;"></div>
+        <div style="display:table-cell; width:68%;">
+            <div class="pan-col-headers">
+                <div class="pan-col-header">Photo façade / Vue 3D</div>
+                <div class="pan-col-header">Image annotée</div>
             </div>
         </div>
+    </div>
 
-        <div th:each="pan, panStat: ${page}" class="annotation-item">
-            <div class="pan-annotation-content">
+    <div th:each="pan, panStat: ${page}" class="annotation-item">
+        <div class="pan-annotation-content">
 
-                <!-- Labels (Zone 32%) -->
-                <div class="pan-annotation-labels">
-                    <h4 class="annotation-item-title">
-                        <span class="annotation-item-title-value" th:text="${pan.name} ?: 'Non renseigné'"></span>
-                    </h4>
-                    <p class="annotation-item-info-item" th:each="info : ${pan.infos}">
-                        <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
-                        <span>:</span>
-                        <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
-                    </p>
-                </div>
+            <div class="pan-annotation-labels">
+                <h4 class="annotation-item-title">
+                    <span class="annotation-item-title-value" th:text="${pan.name} ?: 'Non renseigné'"></span>
+                </h4>
+                <p class="annotation-item-info-item" th:each="info : ${pan.infos}">
+                    <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
+                    <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
+                </p>
+            </div>
 
-                <!-- Images (Zone 68% - 2 colonnes comme dans l'aperçu) -->
-                <div class="pan-annotation-images">
-                    <div class="pan-images-row">
+            <div class="pan-annotation-images">
+                <div class="pan-images-row">
 
-                        <!-- Colonne 1 : Image de base (3D ou photo brute selon dispo) -->
-                        <div class="pan-image-cell">
-                            <img class="annotation-item-image-3d" alt="annotation 3d sub-image"
-                                 th:if="${pansImages3DUris[pageStat.index] != null
+                    <div class="pan-image-cell">
+                        <img class="annotation-item-image-3d" alt="annotation 3d sub-image"
+                             th:if="${pansImages3DUris[pageStat.index] != null
                                      and pansImages3DUris[pageStat.index].size() > panStat.index
                                      and pansImages3DUris[pageStat.index][panStat.index] != null}"
-                                 th:src="${pansImages3DUris[pageStat.index][panStat.index]}" />
+                             th:src="${pansImages3DUris[pageStat.index][panStat.index]}" />
 
-                            <div class="annotation-blank-item-image-3d"
-                                 th:if="${pansImages3DUris == null
+                        <div class="annotation-blank-item-image-3d"
+                             th:if="${pansImages3DUris == null
                                      or pansImages3DUris.size() <= pageStat.index
                                      or pansImages3DUris[pageStat.index] == null
                                      or pansImages3DUris[pageStat.index].size() <= panStat.index
                                      or pansImages3DUris[pageStat.index][panStat.index] == null}">
-                                Image indisponible
-                            </div>
+                            Image indisponible
                         </div>
-
-                        <!-- Colonne 2 : Seconde image / Image annotée correspondante -->
-                        <div class="pan-image-cell">
-                            <img class="annotation-item-image-3d" alt="annotation sub-image"
-                                 th:if="${subImagesPages3D[pageStat.index] != null and subImagesPages3D[pageStat.index].size() > panStat.index}"
-                                 th:src="${subImagesPages3D[pageStat.index][panStat.index]}" />
-
-                            <div class="annotation-blank-item-image-3d"
-                                 th:if="${subImagesPages3D[pageStat.index] == null or subImagesPages3D[pageStat.index].size() <= panStat.index}">
-                                Image indisponible
-                            </div>
-                        </div>
-
                     </div>
+
+                    <div class="pan-image-cell">
+                        <img class="annotation-item-image-3d" alt="annotation sub-image"
+                             th:if="${subImagesPages3D[pageStat.index] != null and subImagesPages3D[pageStat.index].size() > panStat.index}"
+                             th:src="${subImagesPages3D[pageStat.index][panStat.index]}" />
+
+                        <div class="annotation-blank-item-image-3d"
+                             th:if="${subImagesPages3D[pageStat.index] == null or subImagesPages3D[pageStat.index].size() <= panStat.index}">
+                            Image indisponible
+                        </div>
+                    </div>
+
                 </div>
-
             </div>
-        </div>
-    </section>
 
-    <section class="llm page last-page" th:if="${llm}">
-        <div th:utext="${llm}"></div>
-    </section>
+        </div>
+    </div>
+</section>
+
+<section class="llm page last-page" th:if="${llm}">
+    <div th:utext="${llm}"></div>
+</section>
 </body>
 </html>

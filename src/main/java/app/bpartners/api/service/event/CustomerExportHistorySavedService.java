@@ -65,8 +65,10 @@ public class CustomerExportHistorySavedService implements Consumer<CustomerExpor
 
   private String getHtmlBody(CustomerExportHistory customerExportHistory) {
     var context = new Context();
-    context.setVariable("month", customerExportHistory.getAdditionalProperties().get("month"));
-    context.setVariable("year", customerExportHistory.getAdditionalProperties().get("year"));
+    context.setVariable(
+        "month", customerExportHistory.getAdditionalProperties().getOrDefault("month", null));
+    context.setVariable(
+        "year", customerExportHistory.getAdditionalProperties().getOrDefault("year", null));
 
     return templateResolverEngine.parseTemplateResolver(
         CUSTOMER_EXPORT_HISTORY_EMAIL_TEMPLATE, context);

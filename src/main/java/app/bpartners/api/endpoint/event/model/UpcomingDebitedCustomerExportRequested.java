@@ -2,10 +2,12 @@ package app.bpartners.api.endpoint.event.model;
 
 import java.time.Duration;
 import java.time.YearMonth;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+@AllArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = false)
 @ToString

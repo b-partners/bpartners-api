@@ -4,9 +4,12 @@ import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static java.time.Instant.now;
+import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.CustomerExportHistorySaved;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
 import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.BoundedPageSize;
@@ -21,7 +24,6 @@ import app.bpartners.api.service.file.CustomerExportFunction;
 import app.bpartners.api.service.subscription.UpcomingUserDebitService;
 import app.bpartners.api.service.user.UserService;
 import java.time.YearMonth;
-import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
@@ -41,6 +43,7 @@ public class UpcomingDebitedCustomerExportRequestedService
   private final CustomerExportFunction customerExportFunction;
   private final BucketComponent bucketComponent;
   private final CustomerExportHistoryJpaRepository customerExportHistoryJpaRepository;
+  private final EventProducer eventProducer;
 
   @Override
   public void accept(UpcomingDebitedCustomerExportRequested event) {
@@ -113,15 +116,15 @@ public class UpcomingDebitedCustomerExportRequestedService
                 .creationDatetime(now())
                 .build());
 
-    // TODO: export to xlsx and sent through email
+    eventProducer.accept(
+        List.of(new CustomerExportHistorySaved(savedCustomerExportHistory.getId())));
   }
 
   private List<CustomerExportPayload> getCustomerExportPayloads(YearMonth yearMonth) {
     var begin = yearMonth.atDay(1);
     var end = yearMonth.atEndOfMonth();
-    var beginInstant = begin.atStartOfDay().toInstant(ZoneOffset.of("Europe/Paris"));
-    var endInstant =
-        end.plusDays(1).atStartOfDay().toInstant(ZoneOffset.of("Europe/Paris")).minus(1L, SECONDS);
+    var beginInstant = begin.atStartOfDay().toInstant(UTC);
+    var endInstant = end.plusDays(1).atStartOfDay().toInstant(UTC).minus(1L, SECONDS);
     var unknownStripeCustomersAtPeriod =
         unknownStripeCustomerJpaRepository.findAllByCreationDatetimeBetween(
             beginInstant, endInstant);

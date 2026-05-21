@@ -78,8 +78,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
     g2d.dispose();
 
-    var panImageWithMeasurements = generatePanImageWithMeasurements(pan);
-    return mergePanImagesSideBySide(panImage, panImageWithMeasurements);
+    return generatePanImageWithMeasurements(pan);
   }
 
   public BufferedImage generatePanImageWithMeasurements(ExportAreaPictureAnnotation3DPan pan) {

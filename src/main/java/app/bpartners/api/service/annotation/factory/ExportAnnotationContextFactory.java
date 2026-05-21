@@ -52,7 +52,7 @@ public class ExportAnnotationContextFactory {
             ExportAreaPictureAnnotationPDFGenerator.GroupedByKey.from(annotation.getAnnotations()),
             3,
             3));
-    context.setVariable("subImagesPages", groupByFirstPage(subImagesUris, 3, 3));
+    context.setVariable("subImagesPages", groupByFirstPage(subImagesUris, 2, 3));
 
     if (annotation.getLlm() != null) {
       configureLLMContext(context, annotation);

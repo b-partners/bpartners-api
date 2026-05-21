@@ -8,12 +8,14 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered;
+import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
 import app.bpartners.api.model.User;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceTriggeredService;
 import app.bpartners.api.service.subscription.UpcomingUserDebitService;
 import java.time.Duration;
+import java.time.YearMonth;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -54,12 +56,22 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
     assertDoesNotThrow(() -> subject.accept(MonthlySubscriptionInvoiceTriggered.builder().build()));
 
     var eventCaptor = ArgumentCaptor.forClass(List.class);
-    verify(eventProducerMock, times(2)).accept(eventCaptor.capture());
+    verify(eventProducerMock, times(3)).accept(eventCaptor.capture());
+    var upcomingDebitedCustomerExportRequested =
+        (UpcomingDebitedCustomerExportRequested) eventCaptor.getAllValues().getFirst().getFirst();
     var monthlySubscriptionInvoiceRequested1 =
-        (MonthlySubscriptionInvoiceRequested) eventCaptor.getAllValues().getFirst().getFirst();
+        (MonthlySubscriptionInvoiceRequested) eventCaptor.getAllValues().get(1).getFirst();
     var monthlySubscriptionInvoiceRequested2 =
         (MonthlySubscriptionInvoiceRequested) eventCaptor.getAllValues().getLast().getFirst();
 
+    assertEquals(
+        new UpcomingDebitedCustomerExportRequested(YearMonth.now()),
+        upcomingDebitedCustomerExportRequested);
+    assertEquals(
+        Duration.ofSeconds(120L), upcomingDebitedCustomerExportRequested.maxConsumerDuration());
+    assertEquals(
+        Duration.ofSeconds(60),
+        upcomingDebitedCustomerExportRequested.maxConsumerBackoffBetweenRetries());
     assertEquals(
         expectedMonthlySubscriptionInvoiceRequestedPage1, monthlySubscriptionInvoiceRequested1);
     assertEquals(

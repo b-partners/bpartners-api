@@ -20,11 +20,8 @@ import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.file.CustomerExportFunction;
 import app.bpartners.api.service.subscription.UpcomingUserDebitService;
 import app.bpartners.api.service.user.UserService;
-
-import java.time.Instant;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
@@ -123,9 +120,11 @@ public class UpcomingDebitedCustomerExportRequestedService
     var begin = yearMonth.atDay(1);
     var end = yearMonth.atEndOfMonth();
     var beginInstant = begin.atStartOfDay().toInstant(ZoneOffset.of("Europe/Paris"));
-    var endInstant = end.plusDays(1).atStartOfDay().toInstant(ZoneOffset.of("Europe/Paris")).minus(1L, SECONDS);
+    var endInstant =
+        end.plusDays(1).atStartOfDay().toInstant(ZoneOffset.of("Europe/Paris")).minus(1L, SECONDS);
     var unknownStripeCustomersAtPeriod =
-        unknownStripeCustomerJpaRepository.findAllByCreationDatetimeBetween(beginInstant, endInstant);
+        unknownStripeCustomerJpaRepository.findAllByCreationDatetimeBetween(
+            beginInstant, endInstant);
 
     return unknownStripeCustomersAtPeriod.stream()
         .map(

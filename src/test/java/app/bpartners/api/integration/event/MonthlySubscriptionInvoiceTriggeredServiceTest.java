@@ -36,7 +36,8 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
     var userTwoMock = mock(User.class);
     var userToCreditMock = mock(User.class);
     var userToCreditIdentifier = randomUUID().toString();
-    when(upcomingUserDebitServiceMock.getUpcomingUserDebited()).thenReturn(List.of(userOneMock, userTwoMock));
+    when(upcomingUserDebitServiceMock.getUpcomingUserDebited())
+        .thenReturn(List.of(userOneMock, userTwoMock));
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditIdentifier);
     when(userRepositoryMock.getById(userToCreditIdentifier)).thenReturn(userToCreditMock);
     var expectedMonthlySubscriptionInvoiceRequestedPage1 =

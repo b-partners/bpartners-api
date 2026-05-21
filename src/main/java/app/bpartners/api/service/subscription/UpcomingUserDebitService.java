@@ -67,6 +67,7 @@ public class UpcomingUserDebitService {
                 customer ->
                     UnknownStripeCustomer.builder()
                         .id(randomUUID().toString())
+                        .stripeCustomerIdentifier(customer.getId())
                         .name(customer.getName())
                         .email(customer.getEmail())
                         .phone(customer.getPhone())
@@ -75,18 +76,25 @@ public class UpcomingUserDebitService {
                         .build())
             .toList();
 
-    unknownStripeCustomerJpaRepository.saveAll(unknownStripeCustomers);
+    if (!unknownStripeCustomers.isEmpty()) {
+      unknownStripeCustomerJpaRepository.saveAll(unknownStripeCustomers);
+    }
   }
 
   private String computeFullTextAddressFromStripeCustomer(Customer customer) {
-    return customer.getAddress().getLine1()
+    var customerAddress = customer.getAddress();
+    return concatIfPresent(customerAddress.getLine1())
         + " "
-        + customer.getAddress().getLine2()
+        + concatIfPresent(customerAddress.getLine2())
         + " "
-        + customer.getAddress().getCity()
+        + concatIfPresent(customerAddress.getCity())
         + " "
-        + customer.getAddress().getPostalCode()
+        + concatIfPresent(customerAddress.getPostalCode())
         + " "
-        + customer.getAddress().getCountry();
+        + concatIfPresent(customerAddress.getCountry());
+  }
+
+  private String concatIfPresent(String v) {
+    return v == null ? "" : v;
   }
 }

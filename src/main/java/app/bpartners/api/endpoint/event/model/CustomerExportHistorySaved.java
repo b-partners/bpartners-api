@@ -1,15 +1,14 @@
 package app.bpartners.api.endpoint.event.model;
 
 import java.time.Duration;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public class CustomerExportHistorySaved extends PojaEvent {
   private String customerExportHistoryIdentifier;
 

@@ -12,6 +12,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceTriggeredService;
+import app.bpartners.api.service.subscription.UpcomingUserDebitService;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -21,9 +22,13 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
   UserRepository userRepositoryMock = mock();
   EventProducer eventProducerMock = mock();
   UserSubscriptionConf userSubscriptionConfMock = mock();
+  UpcomingUserDebitService upcomingUserDebitServiceMock = mock();
   MonthlySubscriptionInvoiceTriggeredService subject =
       new MonthlySubscriptionInvoiceTriggeredService(
-          userRepositoryMock, eventProducerMock, userSubscriptionConfMock);
+          userRepositoryMock,
+          eventProducerMock,
+          userSubscriptionConfMock,
+          upcomingUserDebitServiceMock);
 
   @Test
   void request_monthly_subscription_invoice_for_users_enabled() {
@@ -31,7 +36,7 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
     var userTwoMock = mock(User.class);
     var userToCreditMock = mock(User.class);
     var userToCreditIdentifier = randomUUID().toString();
-    when(userRepositoryMock.findAllByCriteria(any())).thenReturn(List.of(userOneMock, userTwoMock));
+    when(upcomingUserDebitServiceMock.getUpcomingUserDebited()).thenReturn(List.of(userOneMock, userTwoMock));
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditIdentifier);
     when(userRepositoryMock.getById(userToCreditIdentifier)).thenReturn(userToCreditMock);
     var expectedMonthlySubscriptionInvoiceRequestedPage1 =

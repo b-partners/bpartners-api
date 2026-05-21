@@ -58,7 +58,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   TemporalUtils temporalUtils = new TemporalUtils();
   StripeConf stripeConfMock = mock();
   UserCustomerConverter userCustomerConverter =
-      new UserCustomerConverter(userRepositoryMock, customerRepositoryMock);
+      new UserCustomerConverter(userSubscriptionConfMock, customerRepositoryMock);
   StripeFactory stripeFactoryMock = mock();
   StripeInvoiceService stripeInvoiceServiceMock = mock();
   MonthlySubscriptionInvoiceRequestedService subject =

@@ -6,19 +6,17 @@ import app.bpartners.api.endpoint.rest.model.CustomerStatus;
 import app.bpartners.api.endpoint.rest.model.CustomerType;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.User;
+import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
-import app.bpartners.api.repository.UserRepository;
 import java.time.Instant;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class UserCustomerConverter implements Function<User, Customer> {
-  private final String ADMIN_RECIPIENT = System.getenv("ADMIN.EMAIL");
-  private final UserRepository userRepository;
+  private final UserSubscriptionConf userSubscriptionConf;
   private final CustomerRepository customerRepository;
 
   @Override
@@ -27,7 +25,7 @@ public class UserCustomerConverter implements Function<User, Customer> {
     return customerRepository.save(
         Customer.builder()
             .id(randomUUID().toString())
-            .idUser(getAdminUserId())
+            .idUser(userSubscriptionConf.getUserToCreditId())
             .name(accountHolderToDebit.getName())
             .firstName(user.getFirstName()) // TODO: Bad ! because customers are company
             .lastName(user.getLastName()) // TODO: Bad ! because customers are company
@@ -49,10 +47,5 @@ public class UserCustomerConverter implements Function<User, Customer> {
             .updatedAt(Instant.now())
             .createdAt(Instant.now())
             .build());
-  }
-
-  private @Nullable String getAdminUserId() {
-    var user = userRepository.findByEmail(ADMIN_RECIPIENT).orElse(null);
-    return user == null ? null : user.getId();
   }
 }

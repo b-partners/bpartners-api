@@ -1,0 +1,29 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Customer export history</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, Georgia, and Courier, serif;
+            color: black;
+        }
+
+        h1, section, footer {
+            margin: 2vh 2vw;
+        }
+
+        h1 {
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<p>
+    Bonjour,
+</p>
+<p> Veuillez trouver en pièce jointe le résultat de l'export des clients facturés <span th:if="${month != null && year != null}"> pour le <span
+        th:text="${month}"></span>/<span th:text="${year}"></span></span></p>
+<p>Cordialement,</p>
+<p>L'équipe Birdia.</p>
+</body>
+</html>

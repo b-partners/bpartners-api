@@ -18,8 +18,6 @@ import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.invoice.InvoiceExportRequestService;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.InvoiceSummaryService;
-
-import java.lang.Exception;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -171,7 +169,7 @@ public class InvoiceController {
     while (retries > 0) {
       try {
         return service.crupdateInvoice(invoice);
-      } catch (Exception e) {
+      } catch (java.lang.Exception e) {
         Random random = new Random();
         Thread.sleep(Duration.ofSeconds((long) (1 + random.nextDouble() * 2)));
         retries--;

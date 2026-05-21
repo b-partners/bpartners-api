@@ -190,7 +190,7 @@ public class UserService {
         .toList();
   }
 
-  public ArrayList<User> getEnabledUsers() {
+  public List<User> getEnabledUsers() {
     var enabledUsersCount = userRepository.countUsersByStatus(ENABLED);
     double enabledUsersRatio = Double.valueOf(enabledUsersCount) / (double) MAX_SIZE;
     var pageNb = (int) Math.ceil(enabledUsersRatio);

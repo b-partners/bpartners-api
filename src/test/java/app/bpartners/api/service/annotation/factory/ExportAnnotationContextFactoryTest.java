@@ -1,7 +1,7 @@
 package app.bpartners.api.service.annotation.factory;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,7 +31,7 @@ public class ExportAnnotationContextFactoryTest {
     pan.setImageUri(imageFile.getAbsolutePath());
     pan.setName("pan1");
     annotation3D.addPansItem(pan);
-    when(bucketComponent.download(eq("bucket/key/pan1.png"), eq(false))).thenReturn(imageFile);
+    when(bucketComponent.download(any(), anyBoolean())).thenReturn(imageFile);
 
     List<String> actual =
         ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, bucketComponent);

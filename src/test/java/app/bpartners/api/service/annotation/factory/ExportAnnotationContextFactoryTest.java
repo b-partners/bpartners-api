@@ -24,7 +24,7 @@ public class ExportAnnotationContextFactoryTest {
   BucketComponent bucketComponent = mock();
 
   @Test
-  public void configure_3d_pan_image_context() throws IOException {
+  void configure_3d_pan_image_context() throws IOException {
     File imageFile = new ClassPathResource("files/image-with-vegetation.jpg").getFile();
     ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
     ExportAreaPictureAnnotation3DPan pan = new ExportAreaPictureAnnotation3DPan();

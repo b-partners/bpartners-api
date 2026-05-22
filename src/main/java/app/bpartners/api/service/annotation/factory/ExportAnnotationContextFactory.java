@@ -4,8 +4,8 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.User;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
-import app.bpartners.api.service.annotation.ImageCompressor;
 import app.bpartners.api.service.annotation.model.Pair;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -107,24 +107,46 @@ public class ExportAnnotationContextFactory {
 
   static List<String> getPansImages3DContext(
       ExportAreaPictureAnnotation3D annotation3D, BucketComponent bucketComponent) {
-    var imageCompressor = new ImageCompressor();
+    var exportAreaPictureAnnotationImage3DGenerator =
+        new ExportAreaPictureAnnotationImage3DGenerator();
+
+    var overallPansTopView =
+        exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getPans());
     return annotation3D.getPans().stream()
         .map(
             pan -> {
+              var image =
+                  exportAreaPictureAnnotationImage3DGenerator.generateBaseImageWithHighlightedPan(
+                      overallPansTopView.second(), overallPansTopView.first(), pan);
               try {
-                if (pan.getImageUri() == null) {
-                  log.warn("No image provided for pan: {}", pan.getName());
-                  return null;
+                if (pan.getImageUri() == null || pan.getImageUri().isBlank()) {
+                  log.warn(
+                      "No image provided for pan: {}. Falling back to top view image.",
+                      pan.getName());
                 }
-                var imageFile = bucketComponent.download(pan.getImageUri(), false);
-                var image = ImageIO.read(imageFile);
-                var compressedImage = imageCompressor.compressImage(image);
-                return base64ToUri(base64(compressedImage));
+                var imageFileFromS3 = bucketComponent.download(pan.getImageUri(), true);
+
+                if (imageFileFromS3 != null) {
+                  image = ImageIO.read(imageFileFromS3);
+                }
               } catch (IOException e) {
-                throw new IllegalStateException("Failed to read pan image: " + e);
+                log.error(
+                    "Error while downloading pan image: {}. Falling back to top view image.",
+                    pan.getName(),
+                    e);
               }
+
+              return bufferedImageToUri(image);
             })
         .toList();
+  }
+
+  private static String bufferedImageToUri(BufferedImage image) {
+    try {
+      return base64ToUri(base64(image));
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not convert image to base64 uri", e);
+    }
   }
 
   static <T> List<List<T>> groupByFirstPage(List<T> list, int firstPageMax, int limit) {

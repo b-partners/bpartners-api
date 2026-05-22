@@ -97,14 +97,11 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private Pair<String, List<String>> generateAnnotation3DImages(
       ExportAreaPictureAnnotation3D annotation3D, byte[] globalImage3D) throws IOException {
     var mainImage3D = base64Image(globalImage3D);
-    var baseImageData =
-        exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getPans());
-
     var subImages3D = new ArrayList<String>();
+
     for (var pan : annotation3D.getPans()) {
       var panImage =
-          exportAreaPictureAnnotationImage3DGenerator.generatePanImage(
-              baseImageData.second(), baseImageData.first(), pan);
+          exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(pan);
       subImages3D.add(base64(panImage));
     }
 

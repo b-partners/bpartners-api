@@ -52,13 +52,11 @@
             height: 320px;
         }
 
-        /* CORRECTION DE LA STRUCTURE DE LA LIGNE D'ANNOTATION */
         .annotation-item {
             display: table;
             width: 100%;
-            margin-top: 24px;
-            padding-bottom: 20px;
-            table-layout: fixed; /* Force le respect strict des proportions de colonnes */
+            margin-top: 20px;
+            table-layout: fixed;
             page-break-inside: avoid;
         }
 
@@ -66,12 +64,10 @@
             border-bottom: none;
         }
 
-        /* Colonne gauche : zone de texte (32% pour s'aligner sur le design général) */
         .annotation-item-labels {
             display: table-cell;
-            width: 32%;
-            vertical-align: middle;
-            padding-right: 18px;
+            width: calc(100% - 320px);
+            vertical-align: top;
             word-wrap: break-word;
             white-space: normal;
         }
@@ -100,12 +96,12 @@
             text-align: center;
         }
 
+
         .annotation-item-image {
-            max-width: 100%;
-            height: 140px;
-            width: 100%;
-            object-fit: contain;
-            vertical-align: middle;
+            display: block;
+            width: 300px;
+            margin-left: auto;
+            height: auto;
         }
 
         .annotation-item-image-3d {

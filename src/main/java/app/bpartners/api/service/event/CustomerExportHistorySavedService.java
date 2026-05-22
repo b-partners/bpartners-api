@@ -2,6 +2,7 @@ package app.bpartners.api.service.event;
 
 import static java.lang.System.currentTimeMillis;
 
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.CustomerExportHistorySaved;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.bucket.BucketComponent;
@@ -30,6 +31,7 @@ public class CustomerExportHistorySavedService implements Consumer<CustomerExpor
   private final BucketComponent bucketComponent;
   private final FileWriter fileWriter;
   private final TemplateResolverEngine templateResolverEngine;
+  private final SesConf sesConf;
 
   @SneakyThrows
   @Override
@@ -47,7 +49,7 @@ public class CustomerExportHistorySavedService implements Consumer<CustomerExpor
 
     var customerExportHistory = optionalCustomerExportHistory.get();
 
-    var recipientEmail = System.getenv("ADMIN.EMAIL");
+    var recipientEmail = sesConf.getAdminEmail();
     var concerned = "tech@birdia.fr";
     var subject = getSubject(customerExportHistory);
     var body = getHtmlBody(customerExportHistory);

@@ -5,6 +5,7 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.CustomerExportHistorySaved;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.bucket.BucketComponent;
@@ -20,23 +21,32 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class CustomerExportHistorySavedServiceTest {
+  private static final String ADMIN_EMAIL = "dummy@example.com";
   SesService emailServiceMock = mock(SesService.class);
   CustomerExportHistoryJpaRepository customerExportHistoryJpaRepositoryMock =
       mock(CustomerExportHistoryJpaRepository.class);
   BucketComponent bucketComponentMock = mock(BucketComponent.class);
   FileWriter fileWriterMock = mock(FileWriter.class);
   TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
+  SesConf sesConfMock = mock(SesConf.class);
   CustomerExportHistorySavedService subject =
       new CustomerExportHistorySavedService(
           emailServiceMock,
           customerExportHistoryJpaRepositoryMock,
           bucketComponentMock,
           fileWriterMock,
-          templateResolverEngine);
+          templateResolverEngine,
+          sesConfMock);
+
+  @BeforeEach
+  void setUp() {
+    when(sesConfMock.getAdminEmail()).thenReturn(ADMIN_EMAIL);
+  }
 
   @SneakyThrows
   @Test
@@ -63,7 +73,11 @@ class CustomerExportHistorySavedServiceTest {
     var listCaptor = ArgumentCaptor.forClass(List.class);
     verify(emailServiceMock)
         .sendEmail(
-            eq(null), eq("tech@birdia.fr"), eq(emailSubject), eq(emailBody), listCaptor.capture());
+            eq(ADMIN_EMAIL),
+            eq("tech@birdia.fr"),
+            eq(emailSubject),
+            eq(emailBody),
+            listCaptor.capture());
     var attachment = (Attachment) listCaptor.getValue().getFirst();
     assertEquals(
         Attachment.builder().name(attachment.getName()).content(emptyBytes).build(), attachment);
@@ -127,7 +141,11 @@ class CustomerExportHistorySavedServiceTest {
     var listCaptor = ArgumentCaptor.forClass(List.class);
     verify(emailServiceMock)
         .sendEmail(
-            eq(null), eq("tech@birdia.fr"), eq(emailSubject), eq(emailBody), listCaptor.capture());
+            eq(ADMIN_EMAIL),
+            eq("tech@birdia.fr"),
+            eq(emailSubject),
+            eq(emailBody),
+            listCaptor.capture());
     var attachment = (Attachment) listCaptor.getValue().getFirst();
     assertEquals(
         Attachment.builder().name(attachment.getName()).content(emptyBytes).build(), attachment);

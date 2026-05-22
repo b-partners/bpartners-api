@@ -1,19 +1,47 @@
 package app.bpartners.api.service.annotation.factory;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.model.Point;
+import app.bpartners.api.endpoint.rest.model.Polygon;
 import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.model.Pair;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.thymeleaf.context.Context;
 
 public class ExportAnnotationContextFactoryTest {
   BucketComponent bucketComponent = mock();
+
+  @Test
+  public void configure_3d_pan_image_context() throws IOException {
+    File imageFile = new ClassPathResource("files/image-with-vegetation.jpg").getFile();
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    ExportAreaPictureAnnotation3DPan pan = new ExportAreaPictureAnnotation3DPan();
+    pan.setImageUri(imageFile.getAbsolutePath());
+    pan.setName("pan1");
+    annotation3D.addPansItem(pan);
+    when(bucketComponent.download(eq("bucket/key/pan1.png"), eq(false))).thenReturn(imageFile);
+
+    List<String> actual =
+        ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, bucketComponent);
+
+    assertNotNull(actual, "Result should not be null");
+    assertEquals(1, actual.size());
+    String dataUri = actual.get(0);
+    assertNotNull(dataUri);
+    assertTrue(dataUri.startsWith("data:image/png;base64,"));
+  }
 
   @Test
   void base64_to_uri_should_prefix_when_missing() {

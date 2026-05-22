@@ -29,6 +29,7 @@ public class ExportAnnotationContextFactoryTest {
     ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
     ExportAreaPictureAnnotation3DPan pan = new ExportAreaPictureAnnotation3DPan();
     pan.setImageUri(imageFile.getAbsolutePath());
+    pan.setPolygon(dummyPolygon(50, 50, 50, 50));
     pan.setName("pan1");
     annotation3D.addPansItem(pan);
     when(bucketComponent.download(any(), anyBoolean())).thenReturn(imageFile);

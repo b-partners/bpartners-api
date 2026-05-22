@@ -870,6 +870,8 @@ components:
     ExportAreaPictureAnnotation3DPan:
       type: object
       properties:
+        imageUri:
+          type: string
         name:
           type: string
         polygon:

@@ -12,7 +12,6 @@ import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.model.Pair;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;

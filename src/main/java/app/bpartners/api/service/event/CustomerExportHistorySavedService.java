@@ -60,7 +60,8 @@ public class CustomerExportHistorySavedService implements Consumer<CustomerExpor
   private List<Attachment> getAttachments(CustomerExportHistory customerExportHistory) {
     var fileKey = customerExportHistory.getFileKey();
     var downloadedExport = bucketComponent.download(fileKey, true);
-    var attachmentName = "customers_exported_" + currentTimeMillis() + ".xslx";
+    var attachmentName =
+        "Birdia - Liste des clients exportés pour suivi Stripe " + currentTimeMillis() + ".xlsx";
     var attachmentAsBytes = fileWriter.writeAsByte(downloadedExport);
     return List.of(Attachment.builder().name(attachmentName).content(attachmentAsBytes).build());
   }

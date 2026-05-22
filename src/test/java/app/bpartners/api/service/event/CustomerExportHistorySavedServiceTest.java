@@ -81,8 +81,9 @@ class CustomerExportHistorySavedServiceTest {
     var attachment = (Attachment) listCaptor.getValue().getFirst();
     assertEquals(
         Attachment.builder().name(attachment.getName()).content(emptyBytes).build(), attachment);
-    assertTrue(attachment.getName().contains("customers_exported"));
-    assertTrue(attachment.getName().contains(".xslx"));
+    assertTrue(
+        attachment.getName().contains("Birdia - Liste des clients exportés pour suivi Stripe "));
+    assertTrue(attachment.getName().contains(".xlsx"));
   }
 
   private static @NotNull String getBody() {
@@ -149,8 +150,9 @@ class CustomerExportHistorySavedServiceTest {
     var attachment = (Attachment) listCaptor.getValue().getFirst();
     assertEquals(
         Attachment.builder().name(attachment.getName()).content(emptyBytes).build(), attachment);
-    assertTrue(attachment.getName().contains("customers_exported"));
-    assertTrue(attachment.getName().contains(".xslx"));
+    assertTrue(
+        attachment.getName().contains("Birdia - Liste des clients exportés pour suivi Stripe "));
+    assertTrue(attachment.getName().contains(".xlsx"));
   }
 
   private String getEmailBody() {

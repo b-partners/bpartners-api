@@ -81,7 +81,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     log.info("Upcoming Stripe Invoice {} for user {}", nextInvoiceDate, userToDebit.getEmail());
 
     if (nextInvoiceDate != null
-        && nextInvoiceDate.isBefore(temporalUtils.getSixthOfActualMonthAt2359(now()))) {
+        && nextInvoiceDate.isBefore(temporalUtils.getSixthOfNextMonthAt2359(now()))) {
       Invoice monthlySubscriptionInvoice;
       try {
         monthlySubscriptionInvoice =

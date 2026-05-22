@@ -8,7 +8,7 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-@Entity(name = "customer_export_requested")
+@Entity(name = "customer_export_history")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

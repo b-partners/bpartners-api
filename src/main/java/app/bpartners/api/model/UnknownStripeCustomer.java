@@ -1,5 +1,6 @@
 package app.bpartners.api.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import java.time.Instant;
@@ -14,7 +15,10 @@ import lombok.*;
 @ToString
 public class UnknownStripeCustomer {
   @Id private String id;
+
+  @Column(name = "stripe_customer_id")
   private String stripeCustomerIdentifier;
+
   private String name;
   private String email;
   private String phone;

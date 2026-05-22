@@ -3,7 +3,7 @@ package app.bpartners.api.unit.service;
 import static app.bpartners.api.file.FileWriter.base64Image;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,7 +37,8 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
 
   @BeforeEach
   void setUp() {
-    when(bucketComponentMock.download(any(), any())).thenReturn(null);
+    when(bucketComponentMock.download(any(), anyBoolean())).thenReturn(null);
+
     subject =
         new ExportAreaPictureAnnotationPDFGenerator(
             new TemplateResolverEngine(), bucketComponentMock);

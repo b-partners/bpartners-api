@@ -83,6 +83,9 @@ public class UpcomingUserDebitService {
 
   private String computeFullTextAddressFromStripeCustomer(Customer customer) {
     var customerAddress = customer.getAddress();
+    if (customerAddress == null) {
+      return null;
+    }
     return concatIfPresent(customerAddress.getLine1())
         + " "
         + concatIfPresent(customerAddress.getLine2())

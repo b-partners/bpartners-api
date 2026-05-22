@@ -123,6 +123,7 @@ public class ExportAnnotationContextFactory {
                   log.warn(
                       "No image provided for pan: {}. Falling back to top view image.",
                       pan.getName());
+                  return bufferedImageToUri(image);
                 }
                 var imageFileFromS3 = bucketComponent.download(pan.getImageUri(), true);
 

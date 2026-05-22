@@ -48,7 +48,7 @@ public class StripeFactory {
 
   public Redirection initiateSubscriptionWorkflow(
       User user,
-      LocalDate trialEnd,
+      LocalDate dateFromWhenSubscriptionPeriodStart,
       Customer stripeCustomer,
       SubscriptionProduct subscriptionProduct,
       Price price,
@@ -59,15 +59,15 @@ public class StripeFactory {
     var today = LocalDate.now();
     boolean isTodayBeforeFifthOfActualMonth = today.isBefore(temporalUtils.fifthOfActualMonth());
     boolean isTrialEndBetweenFirstAndFifthOfActualMonth =
-        (trialEnd.isAfter(temporalUtils.startOfActualMonth())
-                || trialEnd.isEqual(temporalUtils.startOfActualMonth()))
-            && (trialEnd.isBefore(temporalUtils.fifthOfActualMonth())
-                || trialEnd.isEqual(temporalUtils.fifthOfActualMonth()));
+        (dateFromWhenSubscriptionPeriodStart.isAfter(temporalUtils.startOfActualMonth())
+                || dateFromWhenSubscriptionPeriodStart.isEqual(temporalUtils.startOfActualMonth()))
+            && (dateFromWhenSubscriptionPeriodStart.isBefore(temporalUtils.fifthOfActualMonth())
+                || dateFromWhenSubscriptionPeriodStart.isEqual(temporalUtils.fifthOfActualMonth()));
     boolean isTrialEndBetweenFirstAndFifthOfNextMonth =
-        (trialEnd.isAfter(temporalUtils.startOfNextMonth())
-                || trialEnd.isEqual(temporalUtils.startOfNextMonth()))
-            && (trialEnd.isBefore(temporalUtils.fifthOfNextMonth())
-                || trialEnd.isBefore(temporalUtils.fifthOfNextMonth()));
+        (dateFromWhenSubscriptionPeriodStart.isAfter(temporalUtils.startOfNextMonth())
+                || dateFromWhenSubscriptionPeriodStart.isEqual(temporalUtils.startOfNextMonth()))
+            && (dateFromWhenSubscriptionPeriodStart.isBefore(temporalUtils.fifthOfNextMonth())
+                || dateFromWhenSubscriptionPeriodStart.isBefore(temporalUtils.fifthOfNextMonth()));
     if (isTrialEndBetweenFirstAndFifthOfNextMonth || isTrialEndBetweenFirstAndFifthOfActualMonth) {
       scheduleSubscription(stripeCustomer, subscription, price, billingCycleAnchor, user);
       return new Redirection()
@@ -77,8 +77,8 @@ public class StripeFactory {
                   + user.getDefaultAccount().getId()
                   + "?stripeStatus=done")
           .redirectionStatusUrls(redirectionUrls);
-    } else if (trialEnd.isAfter(temporalUtils.fifthOfActualMonth())
-        && trialEnd.isBefore(temporalUtils.endOfActualMonth())
+    } else if (dateFromWhenSubscriptionPeriodStart.isAfter(temporalUtils.fifthOfActualMonth())
+        && dateFromWhenSubscriptionPeriodStart.isBefore(temporalUtils.endOfActualMonth())
         && !isTodayBeforeFifthOfActualMonth) {
       var sessionSubscription =
           createSessionSubscription(

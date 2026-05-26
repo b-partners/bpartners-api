@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpire
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.LegalFile;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionService;

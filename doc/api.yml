@@ -84,6 +84,8 @@ paths:
   #############################################
   /users/{uId}/billingPortal:
     $ref: './user-subscription-api.yml#/operations/billingPortalOperation'
+  /users/{uId}/paymentMethods:
+    $ref: './user-subscription-api.yml#/operations/paymentMethodsOperation'
   /users/subscriptionRegistration:
     $ref: './user-subscription-api.yml#/operations/registerUserSubscription'
   /users/{uId}/subscriptionInitiation:

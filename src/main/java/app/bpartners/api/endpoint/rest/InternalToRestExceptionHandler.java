@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest;
 
+import app.bpartners.api.endpoint.rest.security.exception.NoPaymentMethodFoundException;
+import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpiredException;
 import app.bpartners.api.model.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.LockAcquisitionException;
@@ -80,6 +82,7 @@ public class InternalToRestExceptionHandler {
 
   @ExceptionHandler(
       value = {
+        NoPaymentMethodFoundException.class,
         UsernameNotFoundException.class,
         AuthenticationException.class,
         AccessDeniedException.class,
@@ -124,6 +127,13 @@ public class InternalToRestExceptionHandler {
   ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleDataIntegrityViolation(
       DataIntegrityViolationException e) {
     log.info("Bad request", e);
+    return new ResponseEntity<>(toRest(e, HttpStatus.BAD_REQUEST), HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(value = {UserSubscriptionExpiredException.class})
+  ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception>
+      handleUserSubscriptionExpiredException(UserSubscriptionExpiredException e) {
+    log.info("UserSubscriptionExpiredException", e);
     return new ResponseEntity<>(toRest(e, HttpStatus.BAD_REQUEST), HttpStatus.BAD_REQUEST);
   }
 

@@ -3,10 +3,14 @@ package app.bpartners.api.unit.service;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Month.APRIL;
 import static java.time.Month.MAY;
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
@@ -22,6 +26,7 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.SubscriptionScheduleCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -63,34 +68,23 @@ public class StripeFactoryTest {
     when(product.getE2Id()).thenReturn("e2id");
     when(product.getPriceInCents()).thenReturn(5880L);
     when(product.getType()).thenReturn(MONTHLY);
-    Session fakeSession = new Session();
-    fakeSession.setId("session_id");
     com.stripe.model.SubscriptionSchedule fakeSchedule =
         new com.stripe.model.SubscriptionSchedule();
     fakeSchedule.setId("schedule_id");
 
-    try (MockedStatic<Session> mockedSession = Mockito.mockStatic(Session.class)) {
-      mockedSession
-          .when(() -> Session.create(any(SessionCreateParams.class)))
-          .thenReturn(fakeSession);
-      doReturn(fakeSchedule)
-          .when(subject)
-          .subscriptionScheduleCreation(
-              anyString(), any(Subscription.class), anyString(), anyLong());
+    doReturn(fakeSchedule)
+        .when(subject)
+        .subscriptionScheduleCreation(anyString(), any(Subscription.class), anyString(), anyLong());
 
-      Session result =
-          subject.createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
+    subject.scheduleSubscription(customer, subscription, price, billingCycleAnchor, user);
 
-      assertThat(result.getId()).isEqualTo("session_id");
-      mockedSession.verify(() -> Session.create(any(SessionCreateParams.class)), times(1));
-      verify(userSubscriptionSessionRepositoryMock, times(1))
-          .save(any(UserSubscriptionSession.class));
-    }
+    verify(userSubscriptionSessionRepositoryMock, times(1))
+        .save(any(UserSubscriptionSession.class));
   }
 
   @Test
   void subscription_schedule_creation() {
-    var customerId = "customer_id";
+    var customerId = randomUUID().toString();
     var billingCycleAnchor = 123456L;
     var subscriptionProduct = mock(SubscriptionProduct.class);
     when(subscriptionProduct.getE2Id()).thenReturn("e2id");
@@ -98,9 +92,10 @@ public class StripeFactoryTest {
     when(subscriptionProduct.getType()).thenReturn(MONTHLY);
     var subscription = mock(Subscription.class);
     when(subscription.getSubscriptionProduct()).thenReturn(subscriptionProduct);
-    var meteredPriceId = "metered_price_id";
+    var meteredPriceId = randomUUID().toString();
+    var fakeScheduleIdentifier = randomUUID().toString();
     var fakeSchedule = new SubscriptionSchedule();
-    fakeSchedule.setId("schedule_id");
+    fakeSchedule.setId(fakeScheduleIdentifier);
     try (MockedStatic<SubscriptionSchedule> mockedSchedule =
         mockStatic(SubscriptionSchedule.class)) {
       mockedSchedule
@@ -111,7 +106,7 @@ public class StripeFactoryTest {
           subject.subscriptionScheduleCreation(
               customerId, subscription, meteredPriceId, billingCycleAnchor);
 
-      assertThat(actual.getId()).isEqualTo("schedule_id");
+      assertThat(actual.getId()).isEqualTo(fakeScheduleIdentifier);
       mockedSchedule.verify(
           () -> SubscriptionSchedule.create(any(SubscriptionScheduleCreateParams.class)), times(1));
     }
@@ -121,32 +116,43 @@ public class StripeFactoryTest {
   void create_session_if_trial_end_is_between_1_to_4_actual_month() throws StripeException {
     var trialEnd = LocalDate.of(2025, APRIL, 2);
     mockTemporalWindow();
-    var mockSession = mock(Session.class);
     var customer = mock(Customer.class);
     var product = mock(SubscriptionProduct.class);
     var price = mock(Price.class);
     var urls = mock(RedirectionStatusUrls.class);
     var subscription = mock(Subscription.class);
     var billingCycleAnchor = 123456L;
-    var user = User.builder().id("user_id").build();
-    doReturn(mockSession)
+    var accountIdentifier = randomUUID().toString();
+    var userIdentifier = randomUUID().toString();
+    var user =
+        User.builder()
+            .id(userIdentifier)
+            .accounts(List.of(Account.builder().id(accountIdentifier).build()))
+            .build();
+
+    doNothing()
         .when(subject)
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
+        .scheduleSubscription(customer, subscription, price, billingCycleAnchor, user);
 
     var actual =
-        subject.createSession(
+        subject.initiateSubscriptionWorkflow(
             user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
     verify(subject, times(1))
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
+        .scheduleSubscription(customer, subscription, price, billingCycleAnchor, user);
     verify(subject, never()).createSessionSubscription(any(), any(), any(), any(), any());
-    assertThat(actual).isEqualTo(mockSession);
+    assertThat(actual.getRedirectionUrl())
+        .isEqualTo(
+            "https://dashboard.birdia.fr/account/"
+                + user.getDefaultAccount().getId()
+                + "?stripeStatus=done");
   }
 
   @Test
   void create_session_if_trial_end_is_before_end_of_actual_month_not_between_1_and_4_of_month()
       throws StripeException {
     var trialEnd = LocalDate.of(2025, APRIL, 10);
+    var userIdentifier = randomUUID().toString();
     mockTemporalWindow();
     when(temporalUtilsMock.endOfActualMonth()).thenReturn(LocalDate.of(2025, APRIL, 30));
     var mockSession = mock(Session.class);
@@ -156,19 +162,19 @@ public class StripeFactoryTest {
     var urls = mock(RedirectionStatusUrls.class);
     var subscription = mock(Subscription.class);
     var billingCycleAnchor = 123456L;
-    var user = User.builder().id("user_id").build();
+    var user = User.builder().id(userIdentifier).build();
     doReturn(mockSession)
         .when(subject)
         .createSessionSubscription(customer, product, price, urls, billingCycleAnchor);
 
     var actual =
-        subject.createSession(
+        subject.initiateSubscriptionWorkflow(
             user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
     verify(subject, times(1))
         .createSessionSubscription(customer, product, price, urls, billingCycleAnchor);
-    verify(subject, never()).createSessionSetUp(any(), any(), any(), any(), any(), any());
-    assertThat(actual).isEqualTo(mockSession);
+    verify(subject, never()).scheduleSubscription(any(), any(), any(), any(), any());
+    assertEquals(urls, actual.getRedirectionStatusUrls());
   }
 
   @Test
@@ -185,18 +191,20 @@ public class StripeFactoryTest {
     var urls = mock(RedirectionStatusUrls.class);
     var subscription = mock(Subscription.class);
     var billingCycleAnchor = 123456L;
-    var user = User.builder().build();
-    doReturn(mockSession)
+    var accountIdentifier = randomUUID().toString();
+    var user =
+        User.builder().accounts(List.of(Account.builder().id(accountIdentifier).build())).build();
+    doNothing()
         .when(subject)
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
+        .scheduleSubscription(customer, subscription, price, billingCycleAnchor, user);
 
-    var actual =
-        subject.createSession(
-            user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
+    assertDoesNotThrow(
+        () ->
+            subject.initiateSubscriptionWorkflow(
+                user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription));
 
-    verify(subject, times(1)).createSessionSetUp(any(), any(), any(), any(), any(), any());
+    verify(subject, times(1)).scheduleSubscription(any(), any(), any(), any(), any());
     verify(subject, never()).createSessionSubscription(any(), any(), any(), any(), any());
-    assertThat(actual).isEqualTo(mockSession);
   }
 
   @Test
@@ -211,19 +219,25 @@ public class StripeFactoryTest {
     var urls = mock(RedirectionStatusUrls.class);
     var subscription = mock(Subscription.class);
     var billingCycleAnchor = 123456L;
-    var user = User.builder().id("user_id").build();
-    doReturn(mockSession)
+    var accountIdentifier = randomUUID().toString();
+    var userIdentifier = randomUUID().toString();
+    var user =
+        User.builder()
+            .id(userIdentifier)
+            .accounts(List.of(Account.builder().id(accountIdentifier).build()))
+            .build();
+    doNothing()
         .when(subject)
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
+        .scheduleSubscription(customer, subscription, price, billingCycleAnchor, user);
 
-    var actual =
-        subject.createSession(
-            user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
+    assertDoesNotThrow(
+        () ->
+            subject.initiateSubscriptionWorkflow(
+                user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription));
 
     verify(subject, times(1))
-        .createSessionSetUp(customer, urls, subscription, price, billingCycleAnchor, user);
+        .scheduleSubscription(customer, subscription, price, billingCycleAnchor, user);
     verify(subject, never()).createSessionSubscription(any(), any(), any(), any(), any());
-    assertThat(actual).isEqualTo(mockSession);
   }
 
   private void mockTemporalWindow() {

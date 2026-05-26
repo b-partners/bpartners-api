@@ -25,6 +25,7 @@ import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.StripePortalService;
+import app.bpartners.api.service.subscription.StripeSetupService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.stripe.exception.StripeException;
@@ -51,6 +52,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   @MockBean SubscriptionProductRepository subscriptionProductRepositoryMock;
   @Autowired StripeInvoiceService stripeInvoiceService;
   @Autowired StripePortalService stripePortalService;
+  @Autowired private StripeSetupService stripeSetupService;
 
   @Test
   @Disabled("Local use only for debug")
@@ -210,6 +212,21 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
   }
 
   @Test
+  void initiate_setup() {
+    var actual =
+        stripeSetupService.setupCheckoutSession(
+            System.getenv("CUSTOMER_ID"),
+            new RedirectionStatusUrls()
+                .successUrl("http://localhost/success")
+                .failureUrl("http://localhost/failure"));
+
+    assertNotNull(actual);
+    assertNotNull(actual.getRedirectionUrl());
+    assertTrue(actual.getRedirectionUrl().contains("https://checkout.stripe.com/c/pay"));
+  }
+
+  @Test
+  @Disabled("debug")
   void initiate_subscription() {
     var product =
         SubscriptionProduct.builder()

@@ -480,7 +480,10 @@ public class SubscriptionService {
               + latestSubscription.getEndDatetime());
     }
     var endOfTrialPeriod = computeEndOfTrialPeriod(user);
-    var billingCycleAnchor = computeBillingCycleAnchor(endOfTrialPeriod);
+    var today = LocalDate.now();
+    var dateFromWhenSubscriptionPeriodStart =
+        endOfTrialPeriod.isAfter(today) ? endOfTrialPeriod : today;
+    long billingCycleAnchor = computeBillingCycleAnchor(dateFromWhenSubscriptionPeriodStart);
     log.info(
         "Schedule start date = {}",
         Instant.ofEpochSecond(billingCycleAnchor).atZone(ZoneId.of("Europe/Paris")).toLocalDate());
@@ -503,22 +506,15 @@ public class SubscriptionService {
                             .build())
                     .build());
 
-    var session =
-        stripeFactory.createSession(
-            user,
-            endOfTrialPeriod,
-            stripeCustomer,
-            subscriptionProduct,
-            newVariableProductPrice,
-            redirectionUrls,
-            billingCycleAnchor,
-            subscription);
-    return new Redirection()
-        .redirectionUrl(session.getUrl())
-        .redirectionStatusUrls(
-            new RedirectionStatusUrls()
-                .successUrl(session.getSuccessUrl())
-                .failureUrl(session.getCancelUrl()));
+    return stripeFactory.initiateSubscriptionWorkflow(
+        user,
+        dateFromWhenSubscriptionPeriodStart,
+        stripeCustomer,
+        subscriptionProduct,
+        newVariableProductPrice,
+        redirectionUrls,
+        billingCycleAnchor,
+        subscription);
   }
 
   private LocalDate computeEndOfTrialPeriod(User user) {

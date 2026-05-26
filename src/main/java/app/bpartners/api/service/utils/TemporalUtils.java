@@ -108,10 +108,10 @@ public class TemporalUtils {
     return LocalDate.now().withDayOfMonth(1).atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
   }
 
-  public Instant getSixthOfActualMonthAt2359(Instant instant) {
+  public Instant getSixthOfMonthAt2359(Instant instant, int plusMonth) {
     return instant
         .atZone(ZONE_ID_OF_EUROPE_PARIS)
-        .plusMonths(0)
+        .plusMonths(plusMonth)
         .withDayOfMonth(6)
         .withHour(23)
         .withMinute(59)

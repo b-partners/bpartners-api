@@ -1,4 +1,4 @@
-create table "invoice_export_batch"
+create table if not exists "invoice_export_batch"
 (
     id                        varchar default uuid_generate_v4() primary key,
     invoice_export_request_id varchar

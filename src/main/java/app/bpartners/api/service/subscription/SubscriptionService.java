@@ -481,7 +481,8 @@ public class SubscriptionService {
     }
     var endOfTrialPeriod = computeEndOfTrialPeriod(user);
     var today = LocalDate.now();
-    var dateFromWhenSubscriptionPeriodStart = endOfTrialPeriod.isAfter(today) ? endOfTrialPeriod : today;
+    var dateFromWhenSubscriptionPeriodStart =
+        endOfTrialPeriod.isAfter(today) ? endOfTrialPeriod : today;
     long billingCycleAnchor = computeBillingCycleAnchor(dateFromWhenSubscriptionPeriodStart);
     log.info(
         "Schedule start date = {}",

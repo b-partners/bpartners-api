@@ -21,8 +21,10 @@ import app.bpartners.api.repository.jpa.UnknownStripeCustomerJpaRepository;
 import app.bpartners.api.service.customer.CustomerExportPayload;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.file.CustomerExportFunction;
+import app.bpartners.api.service.subscription.StripeCustomerService;
 import app.bpartners.api.service.subscription.UpcomingUserDebitService;
 import app.bpartners.api.service.user.UserService;
+import java.time.Instant;
 import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +46,7 @@ public class UpcomingDebitedCustomerExportRequestedService
   private final BucketComponent bucketComponent;
   private final CustomerExportHistoryJpaRepository customerExportHistoryJpaRepository;
   private final EventProducer eventProducer;
+  private final StripeCustomerService stripeCustomerService;
 
   @Override
   public void accept(UpcomingDebitedCustomerExportRequested event) {
@@ -61,6 +64,7 @@ public class UpcomingDebitedCustomerExportRequestedService
             .map(
                 upcomingDebitedUser -> {
                   var userSubscriptionId = upcomingDebitedUser.getUserSubscriptionId();
+                  var stripeCustomer = stripeCustomerService.getCustomer(upcomingDebitedUser);
                   var customer =
                       customerService
                           .getCustomers(
@@ -83,7 +87,12 @@ public class UpcomingDebitedCustomerExportRequestedService
                     return null;
                   }
                   return new CustomerExportPayload(
-                      customer.getName(), customer.getEmail(), userSubscriptionId, false);
+                      customer.getName(),
+                      customer.getEmail(),
+                      userSubscriptionId,
+                      stripeCustomer.getName(),
+                      false,
+                      Instant.ofEpochSecond(stripeCustomer.getCreated()));
                 })
             .toList();
 
@@ -133,10 +142,12 @@ public class UpcomingDebitedCustomerExportRequestedService
         .map(
             unknownStripeCustomer ->
                 new CustomerExportPayload(
-                    unknownStripeCustomer.getName(),
+                    null,
                     unknownStripeCustomer.getEmail(),
                     unknownStripeCustomer.getStripeCustomerIdentifier(),
-                    true))
+                    unknownStripeCustomer.getName(),
+                    true,
+                    unknownStripeCustomer.getCreationDatetime()))
         .toList();
   }
 }

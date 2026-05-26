@@ -1,4 +1,11 @@
 package app.bpartners.api.service.customer;
 
+import java.time.Instant;
+
 public record CustomerExportPayload(
-    String name, String email, String stripeCustomerId, boolean unknown) {}
+    String internalCustomerName,
+    String email,
+    String stripeCustomerId,
+    String stripeCustomerName,
+    boolean unknown,
+    Instant stripeCreationDatetime) {}

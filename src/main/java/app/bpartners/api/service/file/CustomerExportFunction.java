@@ -4,16 +4,28 @@ import app.bpartners.api.service.customer.CustomerExportPayload;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class CustomerExportFunction implements Function<List<CustomerExportPayload>, File> {
 
-  private static final String[] HEADERS = {"Name", "Email", "Stripe Customer ID", "Unknown"};
+  private static final String[] HEADERS = {
+    "Stripe Customer ID",
+    "Email",
+    "Stripe Name",
+    "Dashboard Customer Name (Invoice)",
+    "Creation Datetime",
+    "Facture générée"
+  };
 
   @Override
   public File apply(List<CustomerExportPayload> payloads) {
@@ -42,10 +54,19 @@ public class CustomerExportFunction implements Function<List<CustomerExportPaylo
         int rowIndex = 1;
         for (CustomerExportPayload payload : payloads) {
           Row row = sheet.createRow(rowIndex++);
-          row.createCell(0).setCellValue(payload.name());
+          row.createCell(0).setCellValue(payload.stripeCustomerId());
           row.createCell(1).setCellValue(payload.email());
-          row.createCell(2).setCellValue(payload.stripeCustomerId());
-          row.createCell(3).setCellValue(payload.unknown());
+          row.createCell(2).setCellValue(payload.stripeCustomerName());
+          row.createCell(3).setCellValue(payload.internalCustomerName());
+          row.createCell(4)
+              .setCellValue(
+                  String.valueOf(
+                      LocalDateTime.from(
+                          payload
+                              .stripeCreationDatetime()
+                              .atZone(ZoneOffset.UTC)
+                              .withZoneSameInstant(ZoneId.of("Europe/Paris")))));
+          row.createCell(5).setCellValue(!payload.unknown());
         }
 
         for (int i = 0; i < HEADERS.length; i++) {
@@ -55,6 +76,7 @@ public class CustomerExportFunction implements Function<List<CustomerExportPaylo
         workbook.write(fos);
       }
 
+      log.info("Customers export file created: {}", tempFile.getAbsolutePath());
       return tempFile;
 
     } catch (IOException e) {

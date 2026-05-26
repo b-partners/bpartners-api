@@ -19,9 +19,11 @@ import app.bpartners.api.repository.jpa.CustomerExportHistoryJpaRepository;
 import app.bpartners.api.repository.jpa.UnknownStripeCustomerJpaRepository;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.file.CustomerExportFunction;
+import app.bpartners.api.service.subscription.StripeCustomerService;
 import app.bpartners.api.service.subscription.UpcomingUserDebitService;
 import app.bpartners.api.service.user.UserService;
 import java.io.File;
+import java.time.Instant;
 import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +43,7 @@ class UpcomingDebitedCustomerExportRequestedServiceTest {
   CustomerExportHistoryJpaRepository customerExportHistoryJpaRepositoryMock =
       mock(CustomerExportHistoryJpaRepository.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
+  StripeCustomerService stripeCustomerServiceMock = mock(StripeCustomerService.class);
 
   UpcomingDebitedCustomerExportRequestedService subject =
       new UpcomingDebitedCustomerExportRequestedService(
@@ -52,7 +55,8 @@ class UpcomingDebitedCustomerExportRequestedServiceTest {
           customerExportFunctionMock,
           bucketComponentMock,
           customerExportHistoryJpaRepositoryMock,
-          eventProducerMock);
+          eventProducerMock,
+          stripeCustomerServiceMock);
 
   @Test
   void export_upcoming_user_debited_customers() {
@@ -64,6 +68,8 @@ class UpcomingDebitedCustomerExportRequestedServiceTest {
     var customerMock = mock(Customer.class);
     var unknownStripeCustomerMock = mock(UnknownStripeCustomer.class);
     var exportedExcelFileMock = mock(File.class);
+    var stripeCustomerMock = mock(com.stripe.model.Customer.class);
+    var stripeCreated = Instant.now().toEpochMilli() / 1000;
 
     when(userDebitedMock.getEmail()).thenReturn(mail);
     when(userDebitedMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
@@ -71,6 +77,10 @@ class UpcomingDebitedCustomerExportRequestedServiceTest {
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userOwnerIdentifier);
     when(upcomingUserDebitServiceMock.getUpcomingUserDebited())
         .thenReturn(List.of(userDebitedMock));
+
+    when(stripeCustomerMock.getName()).thenReturn("customer name");
+    when(stripeCustomerMock.getCreated()).thenReturn(stripeCreated);
+    when(stripeCustomerServiceMock.getCustomer(userMock)).thenReturn(stripeCustomerMock);
     when(customerMock.getName()).thenReturn("customer name");
     when(customerMock.getEmail()).thenReturn(mail);
     when(unknownStripeCustomerMock.getName()).thenReturn("unknown customer name");

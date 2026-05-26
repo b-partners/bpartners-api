@@ -18,6 +18,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.account.AccountRefreshService;
 import app.bpartners.api.service.subscription.StripePortalService;
+import app.bpartners.api.service.subscription.StripeSetupService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.ApiKeyService;
 import app.bpartners.api.service.user.UserService;
@@ -38,6 +39,7 @@ public class UserController {
   private final CreateSubscriptionInitiationRestValidator subscriptionInitiationRestValidator;
   private final StripePortalService stripePortalService;
   private final ApiKeyService apiKeyService;
+  private final StripeSetupService stripeSetupService;
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
@@ -49,6 +51,17 @@ public class UserController {
 
     return stripePortalService.initiateBillingPortalSession(
         userSubscriptionId, redirectionStatusUrls);
+  }
+
+  @PostMapping("/users/{uId}/paymentMethods")
+  public Redirection initiatePaymentMethodInsertion(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestBody RedirectionStatusUrls redirectionStatusUrls) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
+
+    return stripeSetupService.setupCheckoutSession(userSubscriptionId, redirectionStatusUrls);
   }
 
   @PostMapping("/users/{uId}/subscriptionInitiation")

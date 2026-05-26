@@ -91,6 +91,7 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/users/*/legalFiles", GET.name()),
                         new AntPathRequestMatcher("/users/*/legalFiles/*", PUT.name()),
                         new AntPathRequestMatcher("/users/*/billingPortal", POST.name()),
+                        new AntPathRequestMatcher("/users/*/paymentMethods", POST.name()),
                         new AntPathRequestMatcher("/users/*/subscriptionInitiation", POST.name()),
                         new AntPathRequestMatcher("/**", OPTIONS.toString()),
                         new AntPathRequestMatcher("/whois/*", GET.name()),
@@ -130,6 +131,8 @@ public class SecurityConf {
                     .requestMatchers(PUT, "/users/*/legalFiles/*")
                     .permitAll()
                     .requestMatchers(POST, "/users/*/billingPortal")
+                    .permitAll()
+                    .requestMatchers(POST, "/users/*/paymentMethods")
                     .permitAll()
                     // Authentication check done in user controller for subscription status
                     .requestMatchers(POST, "/users/*/subscriptionInitiation")

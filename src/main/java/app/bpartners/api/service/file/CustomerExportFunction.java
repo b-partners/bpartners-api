@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ public class CustomerExportFunction implements Function<List<CustomerExportPaylo
 
   @Override
   public File apply(List<CustomerExportPayload> payloads) {
+    var uniqueCustomerToExports = new HashSet<>(payloads);
     try {
       File tempFile = File.createTempFile("customers_export_", ".xlsx");
 
@@ -52,7 +54,7 @@ public class CustomerExportFunction implements Function<List<CustomerExportPaylo
         }
 
         int rowIndex = 1;
-        for (CustomerExportPayload payload : payloads) {
+        for (CustomerExportPayload payload : uniqueCustomerToExports) {
           Row row = sheet.createRow(rowIndex++);
           row.createCell(0).setCellValue(payload.stripeCustomerId());
           row.createCell(1).setCellValue(payload.email());

@@ -13,8 +13,8 @@ create table if not exists "invoice_export_request"
     creation_datetime   timestamp without time zone
 );
 
-create index "invoice_export_request_user_id_idx" on "invoice_export_request" ("user_id");
-create index "invoice_export_begin_date_idx" on "invoice_export_request" ("begin_date");
-create index "invoice_export_end_date_idx" on "invoice_export_request" ("end_date");
-create index "invoice_export_status_list_idx" on "invoice_export_request" ("status_list");
-create index "invoice_export_archive_status_idx" on "invoice_export_request" ("archive_status");
+create index if not exists "invoice_export_request_user_id_idx" on "invoice_export_request" ("user_id");
+create index if not exists "invoice_export_begin_date_idx" on "invoice_export_request" ("begin_date");
+create index if not exists "invoice_export_end_date_idx" on "invoice_export_request" ("end_date");
+create index if not exists "invoice_export_status_list_idx" on "invoice_export_request" ("status_list");
+create index if not exists "invoice_export_archive_status_idx" on "invoice_export_request" ("archive_status");

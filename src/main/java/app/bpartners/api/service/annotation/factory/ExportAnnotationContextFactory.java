@@ -111,13 +111,15 @@ public class ExportAnnotationContextFactory {
         new ExportAreaPictureAnnotationImage3DGenerator();
 
     var overallPansTopView =
-        exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getPans());
+        exportAreaPictureAnnotationImage3DGenerator.generateBaseImageWithSlopeBoundary(
+            annotation3D.getPans());
     return annotation3D.getPans().stream()
         .map(
             pan -> {
               var image =
-                  exportAreaPictureAnnotationImage3DGenerator.generateBaseImageWithHighlightedPan(
-                      overallPansTopView.second(), overallPansTopView.first(), pan);
+                  exportAreaPictureAnnotationImage3DGenerator
+                      .generateBaseImageWithHighlightedPanWithSlopeBoundary(
+                          overallPansTopView.second(), overallPansTopView.first(), pan);
               try {
                 if (pan.getImageUri() == null || pan.getImageUri().isBlank()) {
                   log.warn(

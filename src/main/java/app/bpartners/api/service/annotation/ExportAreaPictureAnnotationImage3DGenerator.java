@@ -65,12 +65,60 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return new Pair<>(transform, baseImage);
   }
 
+  public Pair<Transform, BufferedImage> generateBaseImageWithSlopeBoundary(
+      List<ExportAreaPictureAnnotation3DPan> pans) {
+    var allPoints =
+        pans.stream()
+            .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
+            .map(
+                p ->
+                    new IntXY(
+                        requireNonNull(p.getX()).intValue(), requireNonNull(p.getY()).intValue()))
+            .toList();
+
+    var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
+    var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
+    var transform = Transform.from(new Coordinates(allX, allY), CONTENT_SIZE, TARGET_SIZE);
+
+    var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
+    var g2d = Graphics2DFactory.make(baseImage);
+
+    pans.forEach(pan -> drawPan(g2d, transform, RED, pan));
+
+    g2d.dispose();
+
+    return new Pair<>(transform, baseImage);
+  }
+
   public BufferedImage generatePanImage(
       BufferedImage baseImage, Transform transform, ExportAreaPictureAnnotation3DPan pan) {
     var panImage = generateBaseImageWithHighlightedPan(baseImage, transform, pan);
     var panImageWithMeasurements = generatePanImageWithMeasurements(pan);
 
     return mergePanImagesSideBySide(panImage, panImageWithMeasurements);
+  }
+
+  public BufferedImage generateBaseImageWithHighlightedPanWithSlopeBoundary(
+      BufferedImage baseImage,
+      Transform transform,
+      ExportAreaPictureAnnotation3DPan panToHighlight) {
+    var panImage = BufferedImageFactory.make(baseImage);
+    var g2d = Graphics2DFactory.make(panImage);
+
+    drawPan(g2d, transform, SELECTED_PAN_COLOR, panToHighlight);
+
+    g2d.dispose();
+
+    return panImage;
+  }
+
+  private static void drawPan(
+      Graphics2D g2d, Transform transform, Color fillColor, ExportAreaPictureAnnotation3DPan pan) {
+    var polygon = Coordinates.from(requireNonNull(pan.getPolygon()));
+    polygon = transform.apply(polygon);
+
+    drawFillPolygon(g2d, fillColor, polygon);
+    drawStrokePolygon(g2d, transform, pan);
   }
 
   public BufferedImage generateBaseImageWithHighlightedPan(

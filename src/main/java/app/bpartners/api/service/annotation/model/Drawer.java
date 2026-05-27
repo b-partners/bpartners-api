@@ -1,7 +1,9 @@
 package app.bpartners.api.service.annotation.model;
 
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationMeasurement;
 import app.bpartners.api.model.annotation.IntXY;
+import app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory;
 import java.awt.*;
 import java.util.List;
 import lombok.Builder;
@@ -15,6 +17,18 @@ public class Drawer {
   }
 
   public static void drawStrokePolygon(
+      Graphics2D g2d, Transform transform, ExportAreaPictureAnnotation3DPan pan) {
+    List<RoofSlopBoundary> boundaries = RoofSlopeBoundaryFactory.create(transform, pan);
+    boundaries.forEach(
+        boundary ->
+            drawStrokePolygon(
+                g2d,
+                boundary.getType().getColor(),
+                boundary.getType().getStroke(),
+                boundary.getCoordinates()));
+  }
+
+  public static void drawStrokePolygon( // TODO: draw each `line` according to it's pan edge type
       Graphics2D g2d, Color color, Stroke stroke, Coordinates polygon) {
     g2d.setColor(color);
     g2d.setStroke(stroke);

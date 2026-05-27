@@ -86,7 +86,7 @@ class LegalFileIT extends FacadeIT {
 
     List<LegalFile> actual = api.getLegalFiles(JOE_DOE_ID);
 
-    assertEquals(7, actual.size());
+    assertEquals(8, actual.size());
     assertTrue(actual.contains(legalFile1().toBeConfirmed(true)));
   }
 

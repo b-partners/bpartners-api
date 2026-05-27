@@ -119,4 +119,16 @@ public class TemporalUtils {
         .withNano(0)
         .toInstant();
   }
+
+  public Instant getSixthOfNextMonthAt2359(Instant instant) {
+    return instant
+        .atZone(ZONE_ID_OF_EUROPE_PARIS)
+        .plusMonths(1)
+        .withDayOfMonth(6)
+        .withHour(23)
+        .withMinute(59)
+        .withSecond(0)
+        .withNano(0)
+        .toInstant();
+  }
 }

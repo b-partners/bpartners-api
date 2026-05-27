@@ -4,6 +4,7 @@ import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.ANALYSIS;
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,9 +34,11 @@ import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.UserService;
+import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class UserServiceTest {
   UserService subject;
@@ -75,6 +78,25 @@ class UserServiceTest {
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
     when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
+  }
+
+  @Test
+  void get_enabled_users() {
+    var userMock = mock(User.class);
+    when(userRepositoryMock.countUsersByStatus(ENABLED)).thenReturn(1L);
+    when(userRepositoryMock.findAllByCriteria(any())).thenReturn(List.of(userMock));
+
+    var actual = subject.getEnabledUsers();
+
+    assertEquals(List.of(userMock), actual);
+    var hashMapCaptor = ArgumentCaptor.forClass(HashMap.class);
+    verify(userRepositoryMock).findAllByCriteria(hashMapCaptor.capture());
+    var expectedCriteria = new HashMap<String, Object>();
+    expectedCriteria.put("status", ENABLED);
+    expectedCriteria.put("page", 1);
+    expectedCriteria.put("pageSize", MAX_SIZE);
+    var actualCriteria = hashMapCaptor.getValue();
+    assertEquals(expectedCriteria, actualCriteria);
   }
 
   @Test

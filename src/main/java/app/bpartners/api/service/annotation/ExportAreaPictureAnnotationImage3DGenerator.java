@@ -67,10 +67,20 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   public BufferedImage generatePanImage(
       BufferedImage baseImage, Transform transform, ExportAreaPictureAnnotation3DPan pan) {
+    var panImage = generateBaseImageWithHighlightedPan(baseImage, transform, pan);
+    var panImageWithMeasurements = generatePanImageWithMeasurements(pan);
+
+    return mergePanImagesSideBySide(panImage, panImageWithMeasurements);
+  }
+
+  public BufferedImage generateBaseImageWithHighlightedPan(
+      BufferedImage baseImage,
+      Transform transform,
+      ExportAreaPictureAnnotation3DPan panToHighlight) {
     var panImage = BufferedImageFactory.make(baseImage);
     var g2d = Graphics2DFactory.make(panImage);
 
-    var polygon = Coordinates.from(requireNonNull(pan.getPolygon()));
+    var polygon = Coordinates.from(requireNonNull(panToHighlight.getPolygon()));
     polygon = transform.apply(polygon);
 
     drawFillPolygon(g2d, SELECTED_PAN_COLOR, polygon);
@@ -78,8 +88,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
     g2d.dispose();
 
-    var panImageWithMeasurements = generatePanImageWithMeasurements(pan);
-    return mergePanImagesSideBySide(panImage, panImageWithMeasurements);
+    return panImage;
   }
 
   public BufferedImage generatePanImageWithMeasurements(ExportAreaPictureAnnotation3DPan pan) {

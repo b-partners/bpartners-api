@@ -3,6 +3,7 @@ package app.bpartners.api.service.annotation;
 import static app.bpartners.api.file.FileWriter.base64Image;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.adjustAnnotation;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
+import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.base64;
 import static app.bpartners.api.service.utils.UserUtils.getUserLogo;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
@@ -14,14 +15,10 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenera
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +35,6 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       exportAreaPictureAnnotationImage3DGenerator;
   private final FileService fileService;
   private final ImageCompressor imageCompressor;
-
-  static final String IMAGE_FORMAT = "png";
 
   private static ExportAreaPictureAnnotationImageConf mainConf() {
     return new ExportAreaPictureAnnotationImageConf();
@@ -102,14 +97,11 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private Pair<String, List<String>> generateAnnotation3DImages(
       ExportAreaPictureAnnotation3D annotation3D, byte[] globalImage3D) throws IOException {
     var mainImage3D = base64Image(globalImage3D);
-    var baseImageData =
-        exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getPans());
-
     var subImages3D = new ArrayList<String>();
+
     for (var pan : annotation3D.getPans()) {
       var panImage =
-          exportAreaPictureAnnotationImage3DGenerator.generatePanImage(
-              baseImageData.second(), baseImageData.first(), pan);
+          exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(pan);
       subImages3D.add(base64(panImage));
     }
 
@@ -146,16 +138,6 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       throws IOException {
     var generatedImage = exportAreaPictureAnnotationImageGenerator.apply(image, conf, annotations);
     return base64(generatedImage);
-  }
-
-  private static String base64(BufferedImage image) throws IOException {
-    try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-        OutputStream b64 = Base64.getEncoder().wrap(out)) {
-
-      ImageIO.write(image, IMAGE_FORMAT, b64);
-      b64.flush();
-      return out.toString(StandardCharsets.ISO_8859_1);
-    }
   }
 
   private static BufferedImage downloadImage(String imageUrl) {

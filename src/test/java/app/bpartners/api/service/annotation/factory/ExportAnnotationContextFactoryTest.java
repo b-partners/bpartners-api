@@ -1,16 +1,47 @@
 package app.bpartners.api.service.annotation.factory;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.model.Point;
+import app.bpartners.api.endpoint.rest.model.Polygon;
+import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.model.Pair;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.thymeleaf.context.Context;
 
 public class ExportAnnotationContextFactoryTest {
+  BucketComponent bucketComponent = mock();
+
+  @Test
+  void configure_3d_pan_image_context() throws IOException {
+    File imageFile = new ClassPathResource("files/image-with-vegetation.jpg").getFile();
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    ExportAreaPictureAnnotation3DPan pan = new ExportAreaPictureAnnotation3DPan();
+    pan.setImageUri(imageFile.getAbsolutePath());
+    pan.setPolygon(dummyPolygon(50, 50, 50, 50));
+    pan.setName("pan1");
+    annotation3D.addPansItem(pan);
+    when(bucketComponent.download(any(), anyBoolean())).thenReturn(imageFile);
+
+    List<String> actual =
+        ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, bucketComponent);
+
+    assertNotNull(actual, "Result should not be null");
+    assertEquals(1, actual.size());
+    String dataUri = actual.get(0);
+    assertNotNull(dataUri);
+    assertTrue(dataUri.startsWith("data:image/png;base64,"));
+  }
 
   @Test
   void base64_to_uri_should_prefix_when_missing() {
@@ -76,7 +107,8 @@ public class ExportAnnotationContextFactoryTest {
             export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150)));
     Pair<String, List<String>> images = new Pair<>("main3d", List.of("a", "b"));
 
-    ExportAnnotationContextFactory.configureAnnotation3DContext(context, annotation3D, images);
+    ExportAnnotationContextFactory.configureAnnotation3DContext(
+        context, annotation3D, images, bucketComponent);
 
     assertEquals("data:image/png;base64,main3d", context.getVariable("mainImage3D"));
     List<List<String>> subImagesPages =
@@ -121,7 +153,8 @@ public class ExportAnnotationContextFactoryTest {
     Pair<String, List<String>> images3d = new Pair<>("main3d", List.of());
 
     Context context =
-        ExportAnnotationContextFactory.createContext(user, "logo", annotation, images, images3d);
+        ExportAnnotationContextFactory.createContext(
+            user, "logo", annotation, images, images3d, bucketComponent);
 
     assertEquals(user, context.getVariable("user"));
     assertEquals("https://example.com", context.getVariable("userWebsite"));
@@ -147,7 +180,8 @@ public class ExportAnnotationContextFactoryTest {
     Pair<String, List<String>> images3d = new Pair<>("main3d", List.of());
 
     Context context =
-        ExportAnnotationContextFactory.createContext(user, "logo", annotation, images, images3d);
+        ExportAnnotationContextFactory.createContext(
+            user, "logo", annotation, images, images3d, bucketComponent);
 
     assertEquals("llm text", context.getVariable("llm"));
     assertEquals("B", context.getVariable("globalRateType"));
@@ -160,6 +194,7 @@ public class ExportAnnotationContextFactoryTest {
     return new ExportAreaPictureAnnotation3DPan()
         .name(name)
         .polygon(dummyPolygon(x1, y1, x2, y2))
+        .imageUri(null)
         .measurements(
             List.of(
                 new ExportAreaPictureAnnotationMeasurement()

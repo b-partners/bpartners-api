@@ -14,9 +14,11 @@ import app.bpartners.api.endpoint.rest.model.UserApiKey;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class ApiKeyServiceTest {
@@ -30,8 +32,46 @@ class ApiKeyServiceTest {
   UserService userServiceMock = mock(UserService.class);
   UserAnalysisApiKeyRepository userAnalysisApiKeyRepositoryMock =
       mock(UserAnalysisApiKeyRepository.class);
+  UserAnalysisApiKeyService userAnalysisApiKeyServiceMock = mock(UserAnalysisApiKeyService.class);
 
-  ApiKeyService subject = new ApiKeyService(userServiceMock, userAnalysisApiKeyRepositoryMock);
+  ApiKeyService subject =
+      new ApiKeyService(
+          userServiceMock, userAnalysisApiKeyRepositoryMock, userAnalysisApiKeyServiceMock);
+
+  @Test
+  void non_admin_cannot_revoke_others_analysis_api_key() {
+    when(userAnalysisApiKeyRepositoryMock.getByApiKey(ANALYSIS_KEY))
+        .thenReturn(analysisApiKeyToRevoke());
+    when(userAnalysisApiKeyRepositoryMock.save(any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(userServiceMock.findUserByApiKey(ANALYSIS_KEY)).thenReturn(Optional.empty());
+    when(userAnalysisApiKeyServiceMock.revokeAnalysisApiKey(analysisApiKeyToRevoke()))
+        .thenReturn(analysisApiKeyToRevoke().toBuilder().enabled(false).build());
+    var key = analysisRevokeApiKey().getKey();
+    var keys = List.of(key);
+    var user = user2();
+
+    var actualException =
+        assertThrows(ForbiddenException.class, () -> subject.revokeApiKeys(keys, user));
+
+    assertEquals("Users can only revoke it's own api key", actualException.getMessage());
+  }
+
+  @Test
+  void non_admin_cannot_revoke_others_dashboard_api_key() {
+    when(userAnalysisApiKeyRepositoryMock.getByApiKey(DASHBOARD_KEY)).thenReturn(null);
+    when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(userServiceMock.findUserByApiKey(DASHBOARD_KEY)).thenReturn(Optional.of(user2()));
+    var key = dashboardRevokeApiKey().getKey();
+    var keys = List.of(key);
+    var user = user1();
+
+    var actualException =
+        assertThrows(ForbiddenException.class, () -> subject.revokeApiKeys(keys, user));
+
+    assertEquals("Users can only revoke it's own api key", actualException.getMessage());
+  }
 
   @Test
   void throw_bad_request_on_empty_keys() {
@@ -43,15 +83,17 @@ class ApiKeyServiceTest {
   }
 
   @Test
-  void revoke_mixed_api_keys() {
+  void admin_revoke_mixed_api_keys() {
     when(userAnalysisApiKeyRepositoryMock.getByApiKey(DASHBOARD_KEY)).thenReturn(null);
     when(userAnalysisApiKeyRepositoryMock.getByApiKey(ANALYSIS_KEY))
         .thenReturn(analysisApiKeyToRevoke());
     when(userAnalysisApiKeyRepositoryMock.save(any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(userServiceMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-    when(userServiceMock.getUserByApiKey(ANALYSIS_KEY)).thenReturn(null);
-    when(userServiceMock.getUserByApiKey(DASHBOARD_KEY)).thenReturn(user2());
+    when(userServiceMock.findUserByApiKey(ANALYSIS_KEY)).thenReturn(Optional.empty());
+    when(userServiceMock.findUserByApiKey(DASHBOARD_KEY)).thenReturn(Optional.of(user2()));
+    when(userAnalysisApiKeyServiceMock.revokeAnalysisApiKey(analysisApiKeyToRevoke()))
+        .thenReturn(analysisApiKeyToRevoke().toBuilder().enabled(false).build());
 
     var expected = List.of(revokedDashboardApiKey(), revokedAnalysisApiKey());
 
@@ -98,10 +140,10 @@ class ApiKeyServiceTest {
   }
 
   private User user1() {
-    return User.builder().id(USER_1_UUID).build();
+    return User.builder().id(USER_1_UUID).roles(List.of()).build();
   }
 
   private User user2() {
-    return User.builder().id(USER_2_UUID).apiKey(DASHBOARD_KEY).build();
+    return User.builder().id(USER_2_UUID).roles(List.of()).apiKey(DASHBOARD_KEY).build();
   }
 }

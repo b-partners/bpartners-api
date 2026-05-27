@@ -1,7 +1,9 @@
 package app.bpartners.api.service.user;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.ANALYSIS;
 import static app.bpartners.api.endpoint.rest.model.UserApiKeyType.DASHBOARD;
+import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserRegistrationRequested;
@@ -20,8 +22,10 @@ import app.bpartners.api.repository.jpa.InvoiceSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
 import app.bpartners.api.service.SnsService;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -145,8 +149,8 @@ public class UserService {
     return userRepository.getUsersWithSubscription();
   }
 
-  public User getUserByApiKey(String apikey) {
-    return userRepository.getUserByApiKey(apikey);
+  public Optional<User> findUserByApiKey(String apikey) {
+    return userRepository.findByApiKey(apikey);
   }
 
   // TODO : delete and replace test with getApiKeys method
@@ -184,5 +188,22 @@ public class UserService {
             })
         .flatMap(List::stream)
         .toList();
+  }
+
+  public List<User> getEnabledUsers() {
+    var enabledUsersCount = userRepository.countUsersByStatus(ENABLED);
+    double enabledUsersRatio = Double.valueOf(enabledUsersCount) / (double) MAX_SIZE;
+    var pageNb = (int) Math.ceil(enabledUsersRatio);
+    var enabledUsers = new ArrayList<User>();
+
+    for (int page = 1; page <= pageNb; page++) {
+      var criteria = new HashMap<String, Object>();
+      criteria.put("status", ENABLED);
+      criteria.put("page", page);
+      criteria.put("pageSize", MAX_SIZE);
+
+      enabledUsers.addAll(userRepository.findAllByCriteria(criteria));
+    }
+    return enabledUsers;
   }
 }

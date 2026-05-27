@@ -1,3 +1,61 @@
+# [0.79.0](https://github.com/b-partners/bpartners-api/compare/v0.78.1...v0.79.0) (2026-05-27)
+
+
+### Bug Fixes
+
+* add logo compression consumers as beans ([c15a3c7](https://github.com/b-partners/bpartners-api/commit/c15a3c749ac89e803829ed8eb6a3c1d61584575b))
+* add shift_direction attribute in HAreaPicture ([6a52a36](https://github.com/b-partners/bpartners-api/commit/6a52a36596d869ceb150d46dc7fc8f6c095b3f22))
+* allow zoom level under BUILDING on 20cm image precision ([9cd2d23](https://github.com/b-partners/bpartners-api/commit/9cd2d23b0482f3d094eca3a790a5aa8887bec309))
+* always verify user payment method even during trial period ([35683a2](https://github.com/b-partners/bpartners-api/commit/35683a2a76791ee937755f58118b77d3d3e50b2c))
+* **CustomerExportHistorySavedService:** rename attachment to correct xlsx extension ([0f8b6a4](https://github.com/b-partners/bpartners-api/commit/0f8b6a444f02f8c8975a21632f8affd727055906))
+* **CustomerExportPayload:** export unique customer using stripeCustomerIdentifier attribute ([175e516](https://github.com/b-partners/bpartners-api/commit/175e516da6d02eaf0ab30294bb7256c18ec11f54))
+* explicit user white listed scope and remove redondant verification through api full authorization ([2268785](https://github.com/b-partners/bpartners-api/commit/22687858c31b677801d3d46f57b2a87001724ab1))
+* global rate not shown when llm null on pdf export ([65a66d2](https://github.com/b-partners/bpartners-api/commit/65a66d27ca53fceab01b55fe8bf6833d34f92920))
+* **InternalToRestExceptionHandler:** handle AuthenticationException to 403 http response ([e613c03](https://github.com/b-partners/bpartners-api/commit/e613c033b5554594b82c71589a2c7df525f02191))
+* **InvoiceExportLinkRequestedService:** add customer name and year month FR translated on zipped invoices ([28d2d93](https://github.com/b-partners/bpartners-api/commit/28d2d934137029f0eafab8fa669b6c770aae7794))
+* **InvoiceExportLinkRequestedService:** only send mail to admin and avoid duplicated empty mail ([e4ba873](https://github.com/b-partners/bpartners-api/commit/e4ba873e717f139f268a214dc190ed47c6fd478f))
+* **MonthlySubscriptionInvoiceRequestedService:** compute invoice when next invoice date before sixth of next month ([df17777](https://github.com/b-partners/bpartners-api/commit/df177774ce11cf4b42730ae62d874c2aa995bf1a))
+* **MonthlySubscriptionInvoiceRequestedService:** set invoice details to actual month period not last month ([50b6e4c](https://github.com/b-partners/bpartners-api/commit/50b6e4c15df01730bcf24d5a133ca005dac6a509))
+* page content indexing in export pdf ([70945f5](https://github.com/b-partners/bpartners-api/commit/70945f504a4e7e1d1247adfcb11d1f9f39d274dc))
+* redirect to dashboard page instead of stripe setup workflow when scheduled subscription case ([2e89090](https://github.com/b-partners/bpartners-api/commit/2e890905bf85d9865f058e8ced5bd3665abf4b5d))
+* return real user api keys not authenticated user keys ([d6dde13](https://github.com/b-partners/bpartners-api/commit/d6dde131add96bca636dd803fc89e3f8eeafd790))
+* **StripeFactory:** ask for payment method during subscription only if any already associated ([791f146](https://github.com/b-partners/bpartners-api/commit/791f14666897b4a963c22136606b59b1501671a2))
+* **StripeFactory:** redirect to dashboard url not api url after subscription schedule ([cd00b1a](https://github.com/b-partners/bpartners-api/commit/cd00b1a051205ad99dba52c9533ba289ff0aed85))
+* **SubscriptionService:** return existing susbcriptions even if free tria period active when stripe susbcriptions not empty ([a9615cd](https://github.com/b-partners/bpartners-api/commit/a9615cd2c18d6ee6ff9529bccf45390d43a9fc8f))
+* **SubscriptionService:** set default active subscription period end to fifth of next month minus 1s ([6205146](https://github.com/b-partners/bpartners-api/commit/620514674a74cc636ff76697decc49701964535b))
+* **SubscriptionService:** use today on subscription initiation when endOfTrial period before today ([1184492](https://github.com/b-partners/bpartners-api/commit/11844922ea7de3cf5ae7bd388a4aa3fb62728d87))
+* trigger email notification on onboarded user after analysis api keys generated ([9a12a23](https://github.com/b-partners/bpartners-api/commit/9a12a236ebf94598d04d08facca0447c0e48c618))
+* **UpcomingDebitedCustomerExport:** ajust exported customers data including extra stripe informations ([c71b812](https://github.com/b-partners/bpartners-api/commit/c71b8120d4d61348ce5dbffe709c669783ae395c))
+* **UpcomingDebitedCustomerExportRequested:** add default no-args constructor ([fed0c9b](https://github.com/b-partners/bpartners-api/commit/fed0c9b76889abe76aba9a990addd19aa1a45a06))
+* **UpcomingUserDebitService:** avoid NPE when customer address not provided ([785627b](https://github.com/b-partners/bpartners-api/commit/785627bd940be346f4c7fe1c1ef833d98c3deeb6))
+* use areaPicture.geoPositions instead of tile in getAvailableLayersFrom ([826f9a9](https://github.com/b-partners/bpartners-api/commit/826f9a99a270c99f458c15dd88f3f0bc56ca45fc))
+* **UserAnalysisApiKeyRequested:** update actual user.apiKey to analysisApiKey ([c5a1a32](https://github.com/b-partners/bpartners-api/commit/c5a1a323ca59f8d76237923c009443e0cdd3e2b1))
+* **UserCustomerConverter:** associate converted customer from user through default user to credit identifier ([c185f7b](https://github.com/b-partners/bpartners-api/commit/c185f7b42fdf423309b3cc83d661978978bb828a))
+* **UserOnboarded:** persist generated api key through subscriptionService to avoid bad sql transactions handling ([eeb3521](https://github.com/b-partners/bpartners-api/commit/eeb3521e4c34e67889ce7721335be4e2c136fdb2))
+* **UserRestMapper:** also return ACTIVE subscription status even if trial period not expired but user subscribe on stripe ([740d03b](https://github.com/b-partners/bpartners-api/commit/740d03b1445cc12547f62acec5b80d5af38dcd85))
+* **UserSubscription:** always require payment method even if user not in trial period ([5f2530b](https://github.com/b-partners/bpartners-api/commit/5f2530b9a566221d7ebcab5028c077bd8ee6b1a2))
+* **UserSubscription:** compute default period when SUBSCRIPTION_VALIDATION_NOT_REQUIRED for user white listed ([20aafd8](https://github.com/b-partners/bpartners-api/commit/20aafd8a9121b9411afd6ce86a2df067b989c3f1))
+* **UserSubscription:** map payment method through user whitelisted ([648406d](https://github.com/b-partners/bpartners-api/commit/648406db29f9360a7fad41ce28d65bcb9a8bc9e9))
+* **UserSubscription:** return CANCELLED status only when latest subscription ends actual or next month ([8e6204f](https://github.com/b-partners/bpartners-api/commit/8e6204f7faa460fa089215ce54b81bcaab796fa1))
+* **UserSubscriptionSession:** save subscription session creation datetime ([aa25318](https://github.com/b-partners/bpartners-api/commit/aa2531803f7a8fb9720ab36c71d61c9039507956))
+
+
+### Features
+
+* 3d pans in export pdf ([b319a12](https://github.com/b-partners/bpartners-api/commit/b319a12269c51a60404d018034bc52e4a409ead1))
+* add delete prospect by id endpoint ([8c008df](https://github.com/b-partners/bpartners-api/commit/8c008df211d32d0eb3f7f5bf4f021c569d4c92aa))
+* add luxembourg area ([4971fdf](https://github.com/b-partners/bpartners-api/commit/4971fdf49f8c52edabedc452c417bee13d3b5607))
+* initiate payment methods insertion using setup ([cead89c](https://github.com/b-partners/bpartners-api/commit/cead89c533a0ee008ab621cf63548266d82d4dc8))
+* retrieve invoice export request by its id ([76f0a61](https://github.com/b-partners/bpartners-api/commit/76f0a612c65bc3f2265ae40bebce8bdc5a27757a))
+* support switzerland area ([648a070](https://github.com/b-partners/bpartners-api/commit/648a070244de57743e412dac0e54781e78f58f92))
+
+
+### Reverts
+
+* **Drawer:** from 35cd87b6628921741dd144eeb23ddd94b4e73245 into a627df37f635edf843d646a65f53335a5acb79a3 ([#1680](https://github.com/b-partners/bpartners-api/issues/1680)) ([6ce8de8](https://github.com/b-partners/bpartners-api/commit/6ce8de8db548b85cc2db7147facccec8268e9a7e))
+
+
+
 ## [0.78.1](https://github.com/b-partners/bpartners-api/compare/v0.78.0...v0.78.1) (2026-02-03)
 
 
@@ -183,16 +241,6 @@
 
 * area picture annotation converter ([0fb3f40](https://github.com/b-partners/bpartners-api/commit/0fb3f4020bd11c31514d0c845ba69129bb430f5a))
 * GET /users/{id}/keys for ADMIN_ROLE ([2051cad](https://github.com/b-partners/bpartners-api/commit/2051cad759984f32c72c2d4af0b3c54ed9ed8a9f))
-
-
-
-## [0.70.1](https://github.com/b-partners/bpartners-api/compare/v0.70.0...v0.70.1) (2025-10-14)
-
-
-### Bug Fixes
-
-* export pdf ([51cfb42](https://github.com/b-partners/bpartners-api/commit/51cfb4238d81fb7560926e0a6be637f522b605c3))
-* **ExportAreaPictureAnnotation:** return presignedURL instead of byte directly ([ff1baa2](https://github.com/b-partners/bpartners-api/commit/ff1baa25ccb97a48570eadf2c7a1579a30212cf3))
 
 
 

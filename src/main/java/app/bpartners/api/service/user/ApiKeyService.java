@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 public class ApiKeyService {
   private final UserService userService;
   private final UserAnalysisApiKeyRepository userAnalysisApiKeyRepository;
+  private final UserAnalysisApiKeyService userAnalysisApiKeyService;
 
   @Transactional
   public List<UserApiKey> revokeApiKeys(List<String> keys, User user) {
@@ -30,32 +31,43 @@ public class ApiKeyService {
     return keys.stream().map(key -> revokeApiKey(key, user)).toList();
   }
 
-  private UserApiKey revokeApiKey(String key, User user) {
+  private UserApiKey revokeApiKey(String key, User authenticatedUser) {
     UserAnalysisApiKey userAnalysisApiKey = userAnalysisApiKeyRepository.getByApiKey(key);
     if (userAnalysisApiKey != null) {
-      User apiKeyOwner = userAnalysisApiKey.getUser();
-      if (!Objects.equals(apiKeyOwner.getId(), user.getId())
-          && !user.getRoles().contains(ADMIN_ROLE)) {
-        throw new ForbiddenException("Users can only revoke it's own api key");
-      }
+      return revokeAnalysisApiKey(authenticatedUser, userAnalysisApiKey);
+    }
+    return revokeUserApiKey(key, authenticatedUser);
+  }
 
-      UserAnalysisApiKey revokedAnalysisApiKey =
-          userAnalysisApiKeyRepository.save(userAnalysisApiKey.toBuilder().enabled(false).build());
-      return new UserApiKey()
-          .key(revokedAnalysisApiKey.getApiKey())
-          .enabled(revokedAnalysisApiKey.isEnabled())
-          .type(ANALYSIS)
-          .expirationDatetime(revokedAnalysisApiKey.getExpirationDatetime())
-          .creationDatetime(revokedAnalysisApiKey.getCreationDatetime());
-    }
-    var userApiKeyOwner = userService.getUserByApiKey(key);
-    if (userApiKeyOwner == null && !user.getRoles().contains(ADMIN_ROLE)) {
-      throw new BadRequestException("No users found with api key " + key);
-    }
-    if (!Objects.equals(userApiKeyOwner.getId(), user.getId())
-        && !user.getRoles().contains(ADMIN_ROLE)) {
+  private UserApiKey revokeAnalysisApiKey(
+      User authenticatedUser, UserAnalysisApiKey userAnalysisApiKey) {
+    User apiKeyOwner = userAnalysisApiKey.getUser();
+    if (!Objects.equals(apiKeyOwner.getId(), authenticatedUser.getId())
+        && !authenticatedUser.getRoles().contains(ADMIN_ROLE)) {
       throw new ForbiddenException("Users can only revoke it's own api key");
     }
+
+    UserAnalysisApiKey revokedAnalysisApiKey =
+        userAnalysisApiKeyService.revokeAnalysisApiKey(userAnalysisApiKey);
+    return new UserApiKey()
+        .key(revokedAnalysisApiKey.getApiKey())
+        .enabled(revokedAnalysisApiKey.isEnabled())
+        .type(ANALYSIS)
+        .expirationDatetime(revokedAnalysisApiKey.getExpirationDatetime())
+        .creationDatetime(revokedAnalysisApiKey.getCreationDatetime());
+  }
+
+  private UserApiKey revokeUserApiKey(String key, User authenticatedUser) {
+    var optionalUser = userService.findUserByApiKey(key);
+    if (optionalUser.isEmpty()) {
+      throw new BadRequestException("No users found with api key " + key);
+    }
+    var userApiKeyOwner = optionalUser.get();
+    if (!Objects.equals(userApiKeyOwner.getId(), authenticatedUser.getId())
+        && !authenticatedUser.getRoles().contains(ADMIN_ROLE)) {
+      throw new ForbiddenException("Users can only revoke it's own api key");
+    }
+
     var savedUserWithRevokedApiKey =
         userService.save(userApiKeyOwner.toBuilder().apiKey(null).build());
     return new UserApiKey()
@@ -63,6 +75,6 @@ public class ApiKeyService {
         .enabled(savedUserWithRevokedApiKey.getApiKey() != null)
         .type(DASHBOARD)
         .expirationDatetime(null)
-        .creationDatetime(null); // TODO
+        .creationDatetime(null);
   }
 }

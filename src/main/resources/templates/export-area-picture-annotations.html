@@ -43,19 +43,28 @@
             margin: 20px auto 0px auto;
         }
 
-        .main-image-3d {
-            display: block;
-            width: 400px;
-            margin: 50px auto 30px auto;
+        .image-wrapper {
+            text-align: center;
         }
 
-        .annotation-item{
+        .main-image-3d {
+            display: inline-block;
+            height: 320px;
+        }
+
+        .annotation-item {
             display: table;
             width: 100%;
             margin-top: 20px;
+            table-layout: fixed;
+            page-break-inside: avoid;
         }
 
-        .annotation-item-labels{
+        .annotation-item:last-child {
+            border-bottom: none;
+        }
+
+        .annotation-item-labels {
             display: table-cell;
             width: calc(100% - 320px);
             vertical-align: top;
@@ -63,35 +72,74 @@
             white-space: normal;
         }
 
-        .annotation-item-image{
-            display: block;
-            width: 300px;
-            margin-left: auto; /* align to right */
-            height: auto;
+        /* CORRECTION : Colonne droite pour les images du bâtiment (68%) */
+        .annotation-item-image-container {
+            display: table-cell;
+            width: 68%;
+            vertical-align: middle;
+            text-align: center;
         }
 
-        .annotation-item-image-3d{
+        /* Gestion de l'affichage des images du bâtiment côte à côte */
+        .building-images-row {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+        }
+
+        .building-image-cell {
+            display: table-cell;
+            width: 50%;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+
+        .annotation-item-image {
             display: block;
-            width: 400px;
+            width: 300px;
             margin-left: auto;
             height: auto;
         }
 
-        .annotation-information-title{
+        .annotation-item-image-3d {
+            max-width: 100%;
+            height: 140px;
+            width: 100%;
+            object-fit: contain;
+            vertical-align: middle;
+        }
+
+        .annotation-blank-item-image-3d {
+            width: 100%;
+            height: 140px;
+            display: block;
+            background-color: #756c6c;
+            color: white;
+            text-align: center;
+            line-height: 140px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .annotation-information-title {
             font-size: 1.5rem; /* 18px */
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             font-weight: bold;
             color: #FF521B;
             text-align: center;
+            page-break-after: avoid;
         }
 
-        .annotation-item-title{ font-size: 1.1rem; } /* 13.2 */
-        .annotation-item-title-value{ margin-right: 15px; }
-        .annotation-item-info-label{ font-weight: bold; }
-        .annotation-item-info-value{ font-weight: normal; }
+        .annotation-item-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
+        .annotation-item-title-value { margin-right: 15px; }
+        .annotation-item-info-label { font-weight: bold; }
+        .annotation-item-info-value { font-weight: normal; }
         .annotation-item-info-item {
             font-size: 1rem; /* 12px */
-            margin: 5px 0;
+            margin: 6px 0;
         }
 
         .degradation-container {
@@ -200,10 +248,63 @@
         }
 
         .footer-logo {
-            /*max-width: 150px;*/
             max-height: 120px;
             margin-top: 20px;
             display: block;
+        }
+
+        /* STYLES COMPLETS POUR LA SECTION DES PANS 3D */
+        .pan-col-headers {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            margin-bottom: 8px;
+        }
+
+        .pan-col-header {
+            display: table-cell;
+            width: 50%;
+            text-align: center;
+            font-size: 10px;
+            color: #999;
+            padding: 5px;
+            background-color: #f7f7f7;
+            border-radius: 4px;
+        }
+
+        .pan-annotation-content {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .pan-annotation-labels {
+            display: table-cell;
+            width: 32%;
+            vertical-align: middle;
+            padding-right: 18px;
+            word-wrap: break-word;
+        }
+
+        .pan-annotation-images {
+            display: table-cell;
+            width: 68%;
+            vertical-align: middle;
+        }
+
+        .pan-images-row {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+        }
+
+        .pan-image-cell {
+            display: table-cell;
+            width: 50%;
+            vertical-align: middle;
+            text-align: center;
         }
 
     </style>
@@ -211,98 +312,156 @@
     <title>Rapport d'analyse</title>
 </head>
 <body>
-    <section class="page">
-        <h1 class="title">
-            <span class="title-label">Rapport d'analyse de l'adresse : </span>
-            <br />
-            <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
-        </h1>
-        <img alt="annotation" class="main-image" th:src="${mainImage}"/>
-        <table class="degradation-container" th:if="${globalRateType != null}">
+<section class="page">
+    <h1 class="title">
+        <span class="title-label">Rapport d'analyse de l'adresse : </span>
+        <br />
+        <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
+    </h1>
+    <img alt="annotation" class="main-image" th:src="${mainImage}"/>
+    <table class="degradation-container" th:if="${globalRateType != null}">
+        <tr>
+            <td class="degradation-left">
+                <table class="degradation-levels">
+                    <tr>
+                        <td th:each="level : ${degradationLevels}"
+                            th:classappend="${level.label == globalRateType} ? ' active' : ''"
+                            th:style="'background-color:' + ${level.color}">
+                            <span th:text="${level.label}"></span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td class="degradation-right" th:if="${globalRateValue}">
+                <div class="degradation-score">
+                    <span th:text="'NOTE DE DÉGRADATION GLOBALE : ' + ${globalRateValue} + '%'"></span>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div class="footer-info">
+        <table>
             <tr>
-                <td class="degradation-left">
-                    <table class="degradation-levels">
-                        <tr>
-                            <td th:each="level : ${degradationLevels}"
-                                th:classappend="${level.label == globalRateType} ? ' active' : ''"
-                                th:style="'background-color:' + ${level.color}">
-                                <span th:text="${level.label}"></span>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-                <td class="degradation-right" th:if="${globalRateValue}">
-                    <div class="degradation-score">
-                        <span th:text="'NOTE DE DÉGRADATION GLOBALE : ' + ${globalRateValue} + '%'"></span>
+                <td>
+                    <div th:text="${user.getName()}"></div>
+                    <div th:text="${address}"></div>
+                    <div th:text="${user.getMobilePhoneNumber()}"></div>
+                    <div th:text="${user.getEmail()}"></div>
+                    <div th:if="${userWebsite}">
+                        <a th:href="${userWebsite}" th:text="${userWebsite}"></a>
                     </div>
+                </td>
+
+                <td th:if="${logo!=null}">
+                    <img class="footer-logo" th:src="${logo}" alt="logo"/>
                 </td>
             </tr>
         </table>
-        <div class="footer-info">
-            <table>
-                <tr>
-                    <td>
-                        <div th:text="${user.getName()}"></div>
-                        <div th:text="${address}"></div>
-                        <div th:text="${user.getMobilePhoneNumber()}"></div>
-                        <div th:text="${user.getEmail()}"></div>
-                        <div th:if="${userWebsite}">
-                            <a th:href="${userWebsite}" th:text="${userWebsite}"></a>
-                        </div>
-                    </td>
+    </div>
+</section>
 
-                    <td th:if="${logo!=null}">
-                        <img class="footer-logo" th:src="${logo}" alt="logo"/>
-                    </td>
-                </tr>
-            </table>
+<section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null} ? ' last-page' : ''">
+    <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
+
+    <div th:each="annotation, annotationStat : ${page}" class="annotation-item">
+        <div class="annotation-item-labels">
+            <h4 class="annotation-item-title">
+                <span class="annotation-item-title-value" th:text="${annotation.mergedInstance().labelName} ?: 'Non renseigné'"></span>
+            </h4>
+            <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
+                <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
+                <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
+            </p>
         </div>
-    </section>
-    <section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null} ? ' last-page' : ''">
-        <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
-        <div th:each="annotation, annotationStat : ${page}" class="annotation-item">
-            <div class="annotation-item-labels">
-                <h4 class="annotation-item-title">
-                    <span class="annotation-item-title-value" th:text="${annotation.mergedInstance().labelName} ?: 'Non renseigné'"></span>
-                </h4>
-                <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
-                    <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
-                    <span>:</span>
-                    <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
-                </p>
+
+        <div class="annotation-item-image-container">
+            <div class="building-images-row">
+                <div class="building-image-cell">
+                    <img
+                            class="annotation-item-image"
+                            alt="annotation sub-image"
+                            th:if="${subImagesPages[pageStat.index] != null and subImagesPages[pageStat.index].size() > annotationStat.index}"
+                            th:src="${subImagesPages[pageStat.index][annotationStat.index]}"
+                    />
+                </div>
             </div>
-            <img
-                class="annotation-item-image"
-                alt="annotation sub-image"
-                th:if="${subImagesPages[pageStat.index] != null and subImagesPages[pageStat.index].size() > annotationStat.index}"
-                th:src="${subImagesPages[pageStat.index][annotationStat.index]}"
-            />
         </div>
-    </section>
-    <section th:if="${pages3D}" th:each="page, pageStat : ${pages3D}" class="page" th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
-        <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
-        <img alt="annotation-3d" class="main-image-3d" th:src="${mainImage3D}" th:if="${pageStat.first}" />
-        <div th:each="pan, panStat: ${page}" class="annotation-item">
-            <div class="annotation-item-labels">
+    </div>
+</section>
+
+<section th:if="${pages3D}" th:each="page, pageStat : ${pages3D}"
+         class="page"
+         th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
+
+    <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
+
+    <div class="image-wrapper" th:if="${pageStat.first}">
+        <img alt="annotation-3d" class="main-image-3d" th:src="${mainImage3D}" />
+    </div>
+
+    <div style="display:table; width:100%; table-layout:fixed; margin-bottom:10px;">
+        <div style="display:table-cell; width:32%;"></div>
+        <div style="display:table-cell; width:68%;">
+            <div class="pan-col-headers">
+                <div class="pan-col-header">Photo façade / Vue 3D</div>
+                <div class="pan-col-header">Image annotée</div>
+            </div>
+        </div>
+    </div>
+
+    <div th:each="pan, panStat: ${page}" class="annotation-item">
+        <div class="pan-annotation-content">
+
+            <div class="pan-annotation-labels">
                 <h4 class="annotation-item-title">
                     <span class="annotation-item-title-value" th:text="${pan.name} ?: 'Non renseigné'"></span>
                 </h4>
                 <p class="annotation-item-info-item" th:each="info : ${pan.infos}">
-                    <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>
-                    <span>:</span>
+                    <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
                     <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
                 </p>
             </div>
-            <img
-                class="annotation-item-image-3d"
-                alt="annotation sub-image"
-                th:if="${subImagesPages3D[pageStat.index] != null and subImagesPages3D[pageStat.index].size() > panStat.index}"
-                th:src="${subImagesPages3D[pageStat.index][panStat.index]}"
-            />
+
+            <div class="pan-annotation-images">
+                <div class="pan-images-row">
+
+                    <div class="pan-image-cell">
+                        <img class="annotation-item-image-3d" alt="annotation 3d sub-image"
+                             th:if="${pansImages3DUris[pageStat.index] != null
+                                     and pansImages3DUris[pageStat.index].size() > panStat.index
+                                     and pansImages3DUris[pageStat.index][panStat.index] != null}"
+                             th:src="${pansImages3DUris[pageStat.index][panStat.index]}" />
+
+                        <div class="annotation-blank-item-image-3d"
+                             th:if="${pansImages3DUris == null
+                                     or pansImages3DUris.size() <= pageStat.index
+                                     or pansImages3DUris[pageStat.index] == null
+                                     or pansImages3DUris[pageStat.index].size() <= panStat.index
+                                     or pansImages3DUris[pageStat.index][panStat.index] == null}">
+                            Image indisponible
+                        </div>
+                    </div>
+
+                    <div class="pan-image-cell">
+                        <img class="annotation-item-image-3d" alt="annotation sub-image"
+                             th:if="${subImagesPages3D[pageStat.index] != null and subImagesPages3D[pageStat.index].size() > panStat.index}"
+                             th:src="${subImagesPages3D[pageStat.index][panStat.index]}" />
+
+                        <div class="annotation-blank-item-image-3d"
+                             th:if="${subImagesPages3D[pageStat.index] == null or subImagesPages3D[pageStat.index].size() <= panStat.index}">
+                            Image indisponible
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
-    </section>
-    <section class="llm page last-page" th:if="${llm}">
-        <div th:utext="${llm}"></div>
-    </section>
+    </div>
+</section>
+
+<section class="llm page last-page" th:if="${llm}">
+    <div th:utext="${llm}"></div>
+</section>
 </body>
 </html>

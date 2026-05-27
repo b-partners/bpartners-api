@@ -783,6 +783,8 @@ components:
       properties:
         areaPicture:
           $ref: "#/components/schemas/AreaPictureDetails"
+        prospectName:
+          type: string
     ExportAreaPictureAnnotationMeasurement:
       type: object
       properties:
@@ -868,6 +870,8 @@ components:
     ExportAreaPictureAnnotation3DPan:
       type: object
       properties:
+        imageUri:
+          type: string
         name:
           type: string
         polygon:

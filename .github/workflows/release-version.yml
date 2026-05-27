@@ -17,6 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.6
         with:
+          fetch-depth: 0
           # secrets.GITHUB_TOKEN is not enough for releasing on protected branch
           # Use a Personal Access Token from someone who has sufficient privileges
           token: ${{ secrets.POJA_GH_TOKEN_FOR_CONVENTIONAL_CHANGELOG }}
@@ -29,23 +30,12 @@ jobs:
       # We will use conventional-changelog which only supports yaml, yml and toml version file
       - name: From gradle.properties to version.yml
         run: |
-          cp gradle.properties version.yml
-          sed -i 's/=/: /g' version.yml
+          grep '^version=' gradle.properties \
+            | sed 's/version=/version: /' \
+            > version.yml
+          
+          cat version.yml
           git status
-
-      - name: Commit version.yml if it is untracked
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git stash
-
-          if [ -n "$(git status --porcelain version.yml)" ]; then
-            echo "version.yml changed or untracked → amending commit"
-            git add version.yml
-            git commit --amend --no-edit
-          else
-            echo "version.yml unchanged → skipping commit"
-          fi
 
       # conventional-ch increments the patch version even when
       # it skipped commiting due to empty changelog. In such a case,

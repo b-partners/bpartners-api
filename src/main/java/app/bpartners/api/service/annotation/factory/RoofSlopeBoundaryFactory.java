@@ -38,6 +38,13 @@ public class RoofSlopeBoundaryFactory {
 
   private static RoofSlopeBoundaryType getRoofSlopeBoundaryType(
       ExportAreaPictureAnnotation3DPan pan, int boundaryIndex) {
+    var typeNames = getRoofSlopeBoundaryTypeNames(pan); // TODO: get from upper level
+    var typeName = typeNames.get(boundaryIndex);
+
+    return RoofSlopeBoundaryType.fromLabel(typeName);
+  }
+
+  public static List<String> getRoofSlopeBoundaryTypeNames(ExportAreaPictureAnnotation3DPan pan) {
     try {
       var mapper = new ObjectMapper();
       var rawTypeNames =
@@ -45,15 +52,9 @@ public class RoofSlopeBoundaryFactory {
               .filter(info -> TYPE_NAME_LABEL.equals(info.getLabel()))
               .findFirst();
       if (rawTypeNames.isEmpty()) {
-        return RoofSlopeBoundaryType.DEFAULT;
+        return List.of();
       }
-      var typeNames =
-          mapper.readValue(
-              rawTypeNames.get().getValue(),
-              new TypeReference<List<String>>() {}); // TODO: get from upper level
-      var typeName = typeNames.get(boundaryIndex);
-
-      return RoofSlopeBoundaryType.fromLabel(typeName);
+      return mapper.readValue(rawTypeNames.get().getValue(), new TypeReference<List<String>>() {});
     } catch (JsonProcessingException e) {
       throw new IllegalStateException("Failed to read types from pan info. " + e);
     }

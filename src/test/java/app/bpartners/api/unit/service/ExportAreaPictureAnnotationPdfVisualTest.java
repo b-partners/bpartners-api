@@ -14,8 +14,10 @@ import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
+import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.image.BufferedImage;
@@ -24,7 +26,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -136,9 +140,45 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
   private ExportAreaPictureAnnotation heavyAnnotationFromPayload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    return objectMapper.readValue(
-        new ClassPathResource("payload/heavy-export-pdf-payload.json").getInputStream(),
-        ExportAreaPictureAnnotation.class);
+    var annotation =
+        objectMapper.readValue(
+            new ClassPathResource("payload/heavy-export-pdf-payload.json").getInputStream(),
+            ExportAreaPictureAnnotation.class);
+
+    annotation
+        .get3d()
+        .getPans()
+        .forEach(
+            pan -> {
+              int lines = pan.getPolygon().getPoints().size() - 1;
+              var edgeTypes = new String[lines];
+
+              var possibleTypes =
+                  Arrays.stream(RoofSlopeBoundaryType.values())
+                      .map(t -> t.getLabel().toLowerCase())
+                      .toList();
+              for (int i = 0; i < lines; i++) {
+                var randomType =
+                    possibleTypes
+                        .get(new Random().nextInt(possibleTypes.size()))
+                        .replace("_", "-");
+                edgeTypes[i] = randomType;
+              }
+
+              String jsonEdgeTypes = null;
+              try {
+                jsonEdgeTypes = objectMapper.writeValueAsString(edgeTypes);
+              } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+              }
+              pan.getInfos()
+                  .add(
+                      new ExportAreaPictureAnnotationInstanceInfo()
+                          .label("edgeTypes")
+                          .value(jsonEdgeTypes));
+            });
+
+    return annotation;
   }
 
   private ExportAreaPictureAnnotation unevenExportAreaPictureAnnotation() {

@@ -28,7 +28,7 @@ public class Drawer {
                 boundary.getCoordinates()));
   }
 
-  public static void drawStrokePolygon( // TODO: draw each `line` according to it's pan edge type
+  public static void drawStrokePolygon(
       Graphics2D g2d, Color color, Stroke stroke, Coordinates polygon) {
     g2d.setColor(color);
     g2d.setStroke(stroke);

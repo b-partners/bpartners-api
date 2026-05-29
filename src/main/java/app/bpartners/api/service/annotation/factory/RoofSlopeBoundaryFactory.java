@@ -39,6 +39,9 @@ public class RoofSlopeBoundaryFactory {
   private static RoofSlopeBoundaryType getRoofSlopeBoundaryType(
       ExportAreaPictureAnnotation3DPan pan, int boundaryIndex) {
     var typeNames = getRoofSlopeBoundaryTypeNames(pan); // TODO: get from upper level
+    if (typeNames.isEmpty()) {
+      return RoofSlopeBoundaryType.DEFAULT;
+    }
     var typeName = typeNames.get(boundaryIndex);
 
     return RoofSlopeBoundaryType.fromLabel(typeName);

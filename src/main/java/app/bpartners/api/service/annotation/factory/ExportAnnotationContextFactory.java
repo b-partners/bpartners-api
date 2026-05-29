@@ -1,21 +1,23 @@
 package app.bpartners.api.service.annotation.factory;
 
+import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory.getRoofSlopeBoundaryTypeNames;
+
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
+import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.context.Context;
@@ -101,8 +103,35 @@ public class ExportAnnotationContextFactory {
 
     context.setVariable("pages3D", pages3D);
     context.setVariable("mainImage3D", mainImage3DUri);
+    context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
+    context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
     context.setVariable("subImagesPages3D", groupByFirstPage(subImages3DUris, 3, 4));
     context.setVariable("pansImages3DUris", groupByFirstPage(pansImages3D, 3, 4));
+  }
+
+  static Map<Integer, List<String>> getRoofSlopeBoundaryPerPage(
+      List<List<ExportAreaPictureAnnotation3DPan>> paged3DPans) {
+    var map = new HashMap<Integer, List<String>>();
+    for (int i = 0; i < paged3DPans.size(); i++) {
+      var page = paged3DPans.get(i);
+      var typesInPage = new ArrayList<String>();
+      for (var pan : page) {
+        List<String> boundariesTypes = getRoofSlopeBoundaryTypeNames(pan);
+        typesInPage.addAll(boundariesTypes);
+      }
+      map.put(i, new ArrayList<>(new LinkedHashSet<>(typesInPage)));
+    }
+    return map;
+  }
+
+  static Map<String, String> getRoofSlopeBoundaryMap() {
+    var allRoofSlopeBoundaries = RoofSlopeBoundaryType.values();
+    var map = new HashMap<String, String>();
+    for (var boundary : allRoofSlopeBoundaries) {
+      var image = Drawer.createStrokeIllustration(boundary);
+      map.put(boundary.getLabel().replace("_", "-"), bufferedImageToUri(image));
+    }
+    return map;
   }
 
   static List<String> getPansImages3DContext(
@@ -116,8 +145,9 @@ public class ExportAnnotationContextFactory {
         .map(
             pan -> {
               var image =
-                  exportAreaPictureAnnotationImage3DGenerator.generateBaseImageWithHighlightedPan(
-                      overallPansTopView.second(), overallPansTopView.first(), pan);
+                  exportAreaPictureAnnotationImage3DGenerator
+                      .generateBaseImageWithHighlightedPanWithSlopeBoundary(
+                          overallPansTopView.second(), overallPansTopView.first(), pan);
               try {
                 if (pan.getImageUri() == null || pan.getImageUri().isBlank()) {
                   log.warn(

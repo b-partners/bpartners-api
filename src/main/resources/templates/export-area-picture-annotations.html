@@ -142,6 +142,29 @@
             margin: 6px 0;
         }
 
+        .roof-slope-boundaries-legend {
+            margin-bottom: 12px;
+            line-height: 2;
+        }
+
+        .legend-item {
+            display: inline-block;
+            white-space: nowrap;
+            margin-right: 16px;
+            vertical-align: middle;
+        }
+
+        .legend-item img {
+            vertical-align: middle;
+            width: 32px;
+            height: 16px;
+        }
+
+        .legend-item span {
+            font-size: 11px;
+            vertical-align: middle;
+        }
+
         .degradation-container {
             width: 100%;
             border-collapse: collapse;
@@ -399,6 +422,15 @@
         <img alt="annotation-3d" class="main-image-3d" th:src="${mainImage3D}" />
     </div>
 
+    <div class="roof-slope-boundaries-legend">
+        <div class="legend-item" th:each="type : ${roofSlopeBoundariesPerPage[pageStat.index]}">
+            <img th:src="${roofSlopeBoundariesImages[type]}"
+                 th:alt="${type}"
+                 style="width: 32px; height: 16px; object-fit: contain;" />
+            <span th:text="${type}"></span>
+        </div>
+    </div>
+
     <div style="display:table; width:100%; table-layout:fixed; margin-bottom:10px;">
         <div style="display:table-cell; width:32%;"></div>
         <div style="display:table-cell; width:68%;">
@@ -416,10 +448,13 @@
                 <h4 class="annotation-item-title">
                     <span class="annotation-item-title-value" th:text="${pan.name} ?: 'Non renseigné'"></span>
                 </h4>
-                <p class="annotation-item-info-item" th:each="info : ${pan.infos}">
-                    <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
-                    <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
-                </p>
+                <div class="annotation-item-info-item" th:each="info : ${pan.infos}">
+
+                    <span th:if="${info != null and info.label != 'edgeTypes'}">
+                        <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
+                        <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
+                    </span>
+                </div>
             </div>
 
             <div class="pan-annotation-images">

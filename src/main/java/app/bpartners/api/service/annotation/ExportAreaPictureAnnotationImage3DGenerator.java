@@ -28,9 +28,9 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   private static final MeasurementConf MEASUREMENT_CONF =
       MeasurementConf.builder()
           .offset(new IntXY(0, 6))
-          .textColor(WHITE)
-          .bgColor(new Color(0, 0, 0, 150))
-          .font(new Font("Arial", PLAIN, 22))
+          .textColor(BLACK)
+          .bgColor(new Color(200, 200, 200, 150))
+          .font(new Font("Arial", PLAIN, 35)) // TODO: sync with pdf font
           .build();
 
   public Pair<Transform, BufferedImage> generateBaseImage(
@@ -65,12 +65,60 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return new Pair<>(transform, baseImage);
   }
 
+  public Pair<Transform, BufferedImage> generateBaseImageWithSlopeBoundary(
+      List<ExportAreaPictureAnnotation3DPan> pans) {
+    var allPoints =
+        pans.stream()
+            .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
+            .map(
+                p ->
+                    new IntXY(
+                        requireNonNull(p.getX()).intValue(), requireNonNull(p.getY()).intValue()))
+            .toList();
+
+    var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
+    var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
+    var transform = Transform.from(new Coordinates(allX, allY), CONTENT_SIZE, TARGET_SIZE);
+
+    var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
+    var g2d = Graphics2DFactory.make(baseImage);
+
+    pans.forEach(pan -> drawPan(g2d, transform, RED, pan));
+
+    g2d.dispose();
+
+    return new Pair<>(transform, baseImage);
+  }
+
   public BufferedImage generatePanImage(
       BufferedImage baseImage, Transform transform, ExportAreaPictureAnnotation3DPan pan) {
     var panImage = generateBaseImageWithHighlightedPan(baseImage, transform, pan);
     var panImageWithMeasurements = generatePanImageWithMeasurements(pan);
 
     return mergePanImagesSideBySide(panImage, panImageWithMeasurements);
+  }
+
+  public BufferedImage generateBaseImageWithHighlightedPanWithSlopeBoundary(
+      BufferedImage baseImage,
+      Transform transform,
+      ExportAreaPictureAnnotation3DPan panToHighlight) {
+    var panImage = BufferedImageFactory.make(baseImage);
+    var g2d = Graphics2DFactory.make(panImage);
+
+    drawPan(g2d, transform, SELECTED_PAN_COLOR, panToHighlight);
+
+    g2d.dispose();
+
+    return panImage;
+  }
+
+  private static void drawPan(
+      Graphics2D g2d, Transform transform, Color fillColor, ExportAreaPictureAnnotation3DPan pan) {
+    var polygon = Coordinates.from(requireNonNull(pan.getPolygon()));
+    polygon = transform.apply(polygon);
+
+    drawFillPolygon(g2d, fillColor, polygon);
+    drawStrokePolygon(g2d, transform, pan, 1f);
   }
 
   public BufferedImage generateBaseImageWithHighlightedPan(
@@ -100,9 +148,15 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var mapped = transform.apply(coordinates);
 
     drawFillPolygon(g2d, SELECTED_PAN_COLOR, mapped);
-    drawStrokePolygon(g2d, BLACK, POLYGON_STROKE, mapped);
+    drawStrokePolygon(g2d, transform, pan, 3.5f);
     drawPolygonPoints(g2d, BLACK, POLYGON_POINTS_SIZE, mapped);
-    drawPolygonMeasurements(g2d, MEASUREMENT_CONF, mapped, pan.getMeasurements());
+    drawPolygonMeasurements(
+        g2d,
+        MEASUREMENT_CONF,
+        mapped,
+        pan.getMeasurements(),
+        panImageWithMeasurements.getWidth(),
+        panImageWithMeasurements.getHeight());
 
     g2d.dispose();
     return panImageWithMeasurements;

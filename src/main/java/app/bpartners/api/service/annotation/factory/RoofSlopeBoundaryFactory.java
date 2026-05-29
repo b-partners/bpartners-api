@@ -14,6 +14,8 @@ import java.util.List;
 public class RoofSlopeBoundaryFactory {
   private static final String TYPE_NAME_LABEL = "edgeTypes";
 
+  private RoofSlopeBoundaryFactory() {}
+
   public static List<RoofSlopBoundary> create(
       Transform transform, ExportAreaPictureAnnotation3DPan pan) {
     var boundaries = new ArrayList<RoofSlopBoundary>();

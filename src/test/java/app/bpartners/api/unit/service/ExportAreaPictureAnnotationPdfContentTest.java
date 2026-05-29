@@ -14,7 +14,6 @@ import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
-import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +29,7 @@ class ExportAreaPictureAnnotationPdfContentTest {
   }
 
   @Test
-  void html_should_contain_3d_pans_information() throws IOException {
+  void html_should_contain_3d_pans_information() {
     ExportAreaPictureAnnotation annotation =
         new ExportAreaPictureAnnotation()
             .address("123 Test Street")

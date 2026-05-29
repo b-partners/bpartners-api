@@ -29,8 +29,11 @@ public enum RoofSlopeBoundaryType {
 
   EGOUT("egout", new Color(30, 144, 255), new BasicStroke(2f)),
 
-  GOUTTIERE("gouttiere", new Color(0, 191, 255), new BasicStroke(
-      2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[] {8f, 6f}, 0f)),
+  GOUTTIERE(
+      "gouttiere",
+      new Color(0, 191, 255),
+      new BasicStroke(
+          2f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[] {8f, 6f}, 0f)),
 
   DESCENTE_EP(
       "descente_ep",

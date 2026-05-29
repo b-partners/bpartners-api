@@ -150,7 +150,13 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     drawFillPolygon(g2d, SELECTED_PAN_COLOR, mapped);
     drawStrokePolygon(g2d, transform, pan, 3.5f);
     drawPolygonPoints(g2d, BLACK, POLYGON_POINTS_SIZE, mapped);
-    drawPolygonMeasurements(g2d, MEASUREMENT_CONF, mapped, pan.getMeasurements(), panImageWithMeasurements.getWidth(), panImageWithMeasurements.getHeight());
+    drawPolygonMeasurements(
+        g2d,
+        MEASUREMENT_CONF,
+        mapped,
+        pan.getMeasurements(),
+        panImageWithMeasurements.getWidth(),
+        panImageWithMeasurements.getHeight());
 
     g2d.dispose();
     return panImageWithMeasurements;

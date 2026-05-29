@@ -17,23 +17,27 @@ import org.junit.jupiter.api.Test;
 
 class ExportAreaPictureAnnotationImage3DGeneratorTest {
 
-  private final ExportAreaPictureAnnotationImage3DGenerator subject = new ExportAreaPictureAnnotationImage3DGenerator();
+  private final ExportAreaPictureAnnotationImage3DGenerator subject =
+      new ExportAreaPictureAnnotationImage3DGenerator();
 
   @Test
   void generateBaseImageWithSlopeBoundary_should_draw_correct_colors() {
-    var pan = new ExportAreaPictureAnnotation3DPan()
-        .polygon(new Polygon().points(List.of(
-            new Point().x(100d).y(100d),
-            new Point().x(200d).y(100d),
-            new Point().x(200d).y(200d),
-            new Point().x(100d).y(200d),
-            new Point().x(100d).y(100d)
-        )))
-        .infos(List.of(
-            new ExportAreaPictureAnnotationInstanceInfo()
-                .label("edgeTypes")
-                .value("[\"faitage\", \"egout\", \"rive\", \"noue\"]")
-        ));
+    var pan =
+        new ExportAreaPictureAnnotation3DPan()
+            .polygon(
+                new Polygon()
+                    .points(
+                        List.of(
+                            new Point().x(100d).y(100d),
+                            new Point().x(200d).y(100d),
+                            new Point().x(200d).y(200d),
+                            new Point().x(100d).y(200d),
+                            new Point().x(100d).y(100d))))
+            .infos(
+                List.of(
+                    new ExportAreaPictureAnnotationInstanceInfo()
+                        .label("edgeTypes")
+                        .value("[\"faitage\", \"egout\", \"rive\", \"noue\"]")));
 
     var result = subject.generateBaseImageWithSlopeBoundary(List.of(pan));
     BufferedImage image = result.second();
@@ -43,10 +47,9 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     assertEquals(550, image.getHeight());
 
     var transform = result.first();
-    var coords = transform.apply(new Coordinates(
-        new int[]{150, 200, 150, 100},
-        new int[]{100, 150, 200, 150}
-    ));
+    var coords =
+        transform.apply(
+            new Coordinates(new int[] {150, 200, 150, 100}, new int[] {100, 150, 200, 150}));
 
     // faitage color: 220, 20, 60
     assertColorEquals(new Color(220, 20, 60), image.getRGB(coords.allX()[0], coords.allY()[0]));
@@ -60,33 +63,39 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
 
   @Test
   void generateBaseImage_should_draw_pans_in_red() {
-    var pan = new ExportAreaPictureAnnotation3DPan()
-        .polygon(new Polygon().points(List.of(
-            new Point().x(100d).y(100d),
-            new Point().x(200d).y(100d),
-            new Point().x(200d).y(200d),
-            new Point().x(100d).y(100d)
-        )));
+    var pan =
+        new ExportAreaPictureAnnotation3DPan()
+            .polygon(
+                new Polygon()
+                    .points(
+                        List.of(
+                            new Point().x(100d).y(100d),
+                            new Point().x(200d).y(100d),
+                            new Point().x(200d).y(200d),
+                            new Point().x(100d).y(100d))));
 
     var result = subject.generateBaseImage(List.of(pan));
     BufferedImage image = result.second();
 
     var transform = result.first();
-    var center = transform.apply(new Coordinates(new int[]{150}, new int[]{125}));
+    var center = transform.apply(new Coordinates(new int[] {150}, new int[] {125}));
 
     assertColorEquals(Color.RED, image.getRGB(center.allX()[0], center.allY()[0]));
   }
 
   @Test
   void generatePanImageWithMeasurements_should_draw_highlighted_pan() {
-    var pan = new ExportAreaPictureAnnotation3DPan()
-        .polygon(new Polygon().points(List.of(
-            new Point().x(100d).y(100d),
-            new Point().x(200d).y(100d),
-            new Point().x(200d).y(200d),
-            new Point().x(100d).y(100d)
-        )))
-        .measurements(List.of());
+    var pan =
+        new ExportAreaPictureAnnotation3DPan()
+            .polygon(
+                new Polygon()
+                    .points(
+                        List.of(
+                            new Point().x(100d).y(100d),
+                            new Point().x(200d).y(100d),
+                            new Point().x(200d).y(200d),
+                            new Point().x(100d).y(100d))))
+            .measurements(List.of());
 
     BufferedImage image = subject.generatePanImageWithMeasurements(pan);
 
@@ -94,7 +103,7 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     // SELECTED_PAN_COLOR: 229, 142, 25
     var coords = Coordinates.from(pan.getPolygon());
     var transform = Transform.from(coords, 490, 550);
-    var center = transform.apply(new Coordinates(new int[]{150}, new int[]{125}));
+    var center = transform.apply(new Coordinates(new int[] {150}, new int[] {125}));
 
     assertColorEquals(new Color(229, 142, 25), image.getRGB(center.allX()[0], center.allY()[0]));
   }

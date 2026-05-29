@@ -1,6 +1,5 @@
 package app.bpartners.api.unit.service;
 
-import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactoryTest.dummyPolygon;
 import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactoryTest.export3DPan;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -32,21 +31,28 @@ class ExportAreaPictureAnnotationPdfContentTest {
 
   @Test
   void html_should_contain_3d_pans_information() throws IOException {
-    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation()
-        .address("123 Test Street")
-        ._3d(new ExportAreaPictureAnnotation3D()
-            .pans(List.of(
-                export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
-                export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150)
-            )));
+    ExportAreaPictureAnnotation annotation =
+        new ExportAreaPictureAnnotation()
+            .address("123 Test Street")
+            ._3d(
+                new ExportAreaPictureAnnotation3D()
+                    .pans(
+                        List.of(
+                            export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
+                            export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150))));
 
     Pair<String, List<String>> annotationImages = new Pair<>("main", List.of());
-    Pair<String, List<String>> annotation3DImages = new Pair<>("main3d", List.of("pan1_img", "pan2_img"));
+    Pair<String, List<String>> annotation3DImages =
+        new Pair<>("main3d", List.of("pan1_img", "pan2_img"));
 
-    Context context = app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-        user(), "logo", annotation, annotationImages, annotation3DImages, bucketComponent);
+    Context context =
+        app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
+            user(), "logo", annotation, annotationImages, annotation3DImages, bucketComponent);
 
-    String html = templateResolverEngine.getTemplateEngine().process("export-area-picture-annotations", context);
+    String html =
+        templateResolverEngine
+            .getTemplateEngine()
+            .process("export-area-picture-annotations", context);
 
     assertNotNull(html);
     assertTrue(html.contains("Informations détaillées sur les pans du bâtiment"));
@@ -65,14 +71,19 @@ class ExportAreaPictureAnnotationPdfContentTest {
 
   @Test
   void html_should_contain_llm_analysis() {
-    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation()
-        .address("123 Test Street")
-        .llm("<h2>Analyse LLM</h2><p>Test content with emoji 🛠️</p>");
+    ExportAreaPictureAnnotation annotation =
+        new ExportAreaPictureAnnotation()
+            .address("123 Test Street")
+            .llm("<h2>Analyse LLM</h2><p>Test content with emoji 🛠️</p>");
 
-    Context context = app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-        user(), "logo", annotation, new Pair<>("main", List.of()), null, bucketComponent);
+    Context context =
+        app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
+            user(), "logo", annotation, new Pair<>("main", List.of()), null, bucketComponent);
 
-    String html = templateResolverEngine.getTemplateEngine().process("export-area-picture-annotations", context);
+    String html =
+        templateResolverEngine
+            .getTemplateEngine()
+            .process("export-area-picture-annotations", context);
 
     assertNotNull(html);
     assertTrue(html.contains("Analyse LLM"));

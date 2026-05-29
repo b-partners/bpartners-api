@@ -17,7 +17,9 @@ class RoofSlopeBoundaryTypeTest {
   @Test
   void fromLabel_should_handle_underscores_and_hyphens() {
     assertEquals(RoofSlopeBoundaryType.DESCENTE_EP, RoofSlopeBoundaryType.fromLabel("descente-ep"));
-    assertEquals(RoofSlopeBoundaryType.GARDE_CORPS_TEMPORAIRE, RoofSlopeBoundaryType.fromLabel("garde-corps-temporaire"));
+    assertEquals(
+        RoofSlopeBoundaryType.GARDE_CORPS_TEMPORAIRE,
+        RoofSlopeBoundaryType.fromLabel("garde-corps-temporaire"));
   }
 
   @Test

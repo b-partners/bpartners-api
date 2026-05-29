@@ -157,8 +157,8 @@ public class Drawer {
       int boxY = (int) (targetCenterY - boxHeight / 2.0);
 
       // Prevent overflow
-      boxX = Math.max(0, Math.min(boxX, imageWidth  - boxWidth));
-      boxY = Math.max(0, Math.min(boxY, imageHeight - boxHeight));
+      boxX = Math.clamp(boxX, 0, imageWidth - boxWidth);
+      boxY = Math.clamp(boxY, 0, imageHeight - boxHeight);
 
       // 2. Draw background rectangle
       g2d.setColor(conf.bgColor());

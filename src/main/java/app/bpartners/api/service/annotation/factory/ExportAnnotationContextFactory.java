@@ -105,7 +105,6 @@ public class ExportAnnotationContextFactory {
     context.setVariable("mainImage3D", mainImage3DUri);
     context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
     context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
-    context.setVariable("roofSlopeBoundariesPerPan", getRoofSlopeBoundaryPerPan(annotation3D));
     context.setVariable("subImagesPages3D", groupByFirstPage(subImages3DUris, 3, 4));
     context.setVariable("pansImages3DUris", groupByFirstPage(pansImages3D, 3, 4));
   }
@@ -122,21 +121,6 @@ public class ExportAnnotationContextFactory {
       }
       map.put(i, new ArrayList<>(new LinkedHashSet<>(typesInPage)));
     }
-    return map;
-  }
-
-  static Map<ExportAreaPictureAnnotation3DPan, List<String>> getRoofSlopeBoundaryPerPan(
-      ExportAreaPictureAnnotation3D annotation3D) {
-    var map = new HashMap<ExportAreaPictureAnnotation3DPan, List<String>>();
-
-    annotation3D
-        .getPans()
-        .forEach(
-            pan -> {
-              List<String> boundariesTypes = getRoofSlopeBoundaryTypeNames(pan);
-              map.put(pan, boundariesTypes);
-            });
-
     return map;
   }
 

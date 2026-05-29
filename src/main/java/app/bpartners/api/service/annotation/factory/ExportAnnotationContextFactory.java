@@ -129,7 +129,7 @@ public class ExportAnnotationContextFactory {
     var map = new HashMap<String, String>();
     for (var boundary : allRoofSlopeBoundaries) {
       var image = Drawer.createStrokeIllustration(boundary);
-      map.put(boundary.getLabel(), bufferedImageToUri(image));
+      map.put(boundary.getLabel().replace("_", "-"), bufferedImageToUri(image));
     }
     return map;
   }

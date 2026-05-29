@@ -156,13 +156,10 @@ class ExportAreaPictureAnnotationPdfVisualTest {
               var possibleTypes =
                   Arrays.stream(RoofSlopeBoundaryType.values())
                       .map(t -> t.getLabel().toLowerCase())
-                      .filter(t -> !t.contains("_") && !t.contains("-"))
                       .toList();
               for (int i = 0; i < lines; i++) {
                 var randomType =
-                    possibleTypes
-                        .get(new Random().nextInt(possibleTypes.size()))
-                        .replace("_", "-");
+                    possibleTypes.get(new Random().nextInt(possibleTypes.size())).replace("_", "-");
                 edgeTypes[i] = randomType;
               }
 

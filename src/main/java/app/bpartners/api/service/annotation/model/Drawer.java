@@ -72,8 +72,16 @@ public class Drawer {
       g2d.fillRect(0, 0, width, height);
 
       // stroke line
+      var stroke = (BasicStroke) type.getStroke();
       g2d.setColor(type.getColor());
-      g2d.setStroke(type.getStroke());
+      g2d.setStroke(
+          new BasicStroke(
+              9f,
+              stroke.getEndCap(),
+              stroke.getLineJoin(),
+              stroke.getMiterLimit(),
+              stroke.getDashArray(),
+              stroke.getDashPhase()));
 
       int y = height / 2;
 

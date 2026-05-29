@@ -19,6 +19,7 @@ public class RoofSlopeBoundaryFactory {
   public static List<RoofSlopBoundary> create(
       Transform transform, ExportAreaPictureAnnotation3DPan pan) {
     var boundaries = new ArrayList<RoofSlopBoundary>();
+    var boundariesTypesNames = getRoofSlopeBoundaryTypeNames(pan);
 
     for (int i = 1; i < pan.getPolygon().getPoints().size(); i++) {
       var startPoint = pan.getPolygon().getPoints().get(i - 1);
@@ -30,7 +31,8 @@ public class RoofSlopeBoundaryFactory {
       var transformedBoundaryCoordinates = transform.apply(boundaryCoordinates);
       var boundary =
           new RoofSlopBoundary(
-              getRoofSlopeBoundaryType(pan, i - 1), transformedBoundaryCoordinates);
+              getRoofSlopeBoundaryType(boundariesTypesNames, i - 1),
+              transformedBoundaryCoordinates);
 
       boundaries.add(boundary);
     }
@@ -39,8 +41,7 @@ public class RoofSlopeBoundaryFactory {
   }
 
   private static RoofSlopeBoundaryType getRoofSlopeBoundaryType(
-      ExportAreaPictureAnnotation3DPan pan, int boundaryIndex) {
-    var typeNames = getRoofSlopeBoundaryTypeNames(pan); // TODO: get from upper level
+      List<String> typeNames, int boundaryIndex) {
     if (typeNames.isEmpty()) {
       return RoofSlopeBoundaryType.DEFAULT;
     }

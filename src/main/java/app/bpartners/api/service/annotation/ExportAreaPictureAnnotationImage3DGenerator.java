@@ -30,7 +30,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
           .offset(new IntXY(0, 6))
           .textColor(BLACK)
           .bgColor(new Color(200, 200, 200, 150))
-          .font(new Font("Arial", PLAIN, 35))
+          .font(new Font("Arial", PLAIN, 35)) // TODO: sync with pdf font
           .build();
 
   public Pair<Transform, BufferedImage> generateBaseImage(

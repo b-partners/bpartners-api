@@ -28,9 +28,9 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   private static final MeasurementConf MEASUREMENT_CONF =
       MeasurementConf.builder()
           .offset(new IntXY(0, 6))
-          .textColor(WHITE)
-          .bgColor(new Color(0, 0, 0, 150))
-          .font(new Font("Arial", PLAIN, 22))
+          .textColor(BLACK)
+          .bgColor(new Color(200, 200, 200, 150))
+          .font(new Font("Arial", PLAIN, 35))
           .build();
 
   public Pair<Transform, BufferedImage> generateBaseImage(

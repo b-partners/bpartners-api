@@ -87,13 +87,7 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public List<User> findAll() {
-    return jpaRepository.findAll().stream()
-        .map(
-            userEntity -> {
-              var fetchedUser = userMapper.toDomain(userEntity);
-              return retrievePaymentMethod(fetchedUser);
-            })
-        .collect(toList());
+    return jpaRepository.findAll().stream().map(userMapper::toDomain).collect(toList());
   }
 
   @Override
@@ -132,11 +126,7 @@ public class UserRepositoryImpl implements UserRepository {
         .setMaxResults(pageSize)
         .getResultList()
         .stream()
-        .map(
-            userEntity -> {
-              var fetchedUser = userMapper.toDomain(userEntity);
-              return retrievePaymentMethod(fetchedUser);
-            })
+        .map(userMapper::toDomain)
         .toList();
   }
 

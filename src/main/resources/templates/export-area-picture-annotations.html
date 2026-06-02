@@ -29,7 +29,7 @@
             font-size: 1.7rem; /* ~ 20px */
             text-align: center;
             font-weight: bold !important;
-            margin: 50px auto 50px auto;
+            margin: 20px auto 20px auto;
         }
 
         .title-value {
@@ -166,54 +166,130 @@
         }
 
         .degradation-container {
+            display: block;
             width: 100%;
-            border-collapse: collapse;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 20px;
+        }
+
+        .degradation-section-title {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            color: #6b6b6b;
+            margin: 0 0 10px;
+            text-transform: uppercase;
+        }
+
+        .degradation-levels {
+            display: table;
+            width: 100%;
             table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 6px 0;
         }
 
-        .degradation-left {
-            text-align: left;
-            vertical-align: middle;
-            padding-left: 10px;
-            width: 65%;
-        }
-
-        .degradation-right {
-            text-align: right;
-            vertical-align: middle;
-            padding-right: 10px;
-            width: 35%;
-        }
-
-        .degradation-levels td {
-            width: 40px;
-            height: 40px;
-            border-radius: 6px;
+        .degradation-level-card {
+            display: table-cell;
+            background: #f7f7f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 6px 8px;
             text-align: center;
-            vertical-align: middle;
-            font-weight: bold;
-            color: black;
-            border: 2px solid transparent;
+            vertical-align: top;
         }
 
-        .degradation-levels td.active {
-            border: 3px solid black;
+        .degradation-level-card.active {
+            background: #ffffff;
+            border: 2px solid #EF9F27;
+        }
+
+        .degradation-level-header {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .degradation-level-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            color: #2c2c2a;
+            line-height: 1.3;
+            margin-bottom: 3px;
+        }
+
+        .degradation-level-subtitle {
+            display: block;
+            font-size: 9px;
+            color: #888780;
+            line-height: 1.3;
+        }
+
+        .degradation-bar-segment {
+            display: block;
+            height: 8px;
+            border-radius: 4px;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .degradation-marker {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 8px solid #2c2c2a;
+        }
+
+        .degradation-footer {
+            display: table;
+            width: 100%;
+            margin-top: 14px;
+        }
+
+        .degradation-level-info {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: left;
         }
 
         .degradation-score {
-            display: inline-block;
-            background-color: #4A644E;
-            color: white;
-            font-size: 14px;
-            padding: 10px 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            white-space: nowrap;
+            display: table-cell;
             vertical-align: middle;
+            text-align: right;
         }
 
-        .degradation-score span {
-            color: white;
+        .degradation-footer-label {
+            display: block;
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            color: #6b6b6b;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .degradation-footer-value {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #BA7517;
+            margin: 0;
+        }
+
+        .degradation-score .degradation-footer-value {
+            font-size: 16px;
+        }
+
+        .degradation-disclaimer {
+            display: block;
+            font-size: 8px;
+            color: #aaa;
+            margin: 10px 0 0;
+            line-height: 1.4;
         }
 
         /* LLM */
@@ -257,7 +333,6 @@
 
         .footer-info {
             width: 100%;
-            padding-top: 40px;
         }
 
         .footer-info table {
@@ -342,26 +417,42 @@
         <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
     </h1>
     <img alt="annotation" class="main-image" th:src="${mainImage}"/>
-    <table class="degradation-container" th:if="${globalRateType != null}">
-        <tr>
-            <td class="degradation-left">
-                <table class="degradation-levels">
-                    <tr>
-                        <td th:each="level : ${degradationLevels}"
-                            th:classappend="${level.label == globalRateType} ? ' active' : ''"
-                            th:style="'background-color:' + ${level.color}">
-                            <span th:text="${level.label}"></span>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-            <td class="degradation-right" th:if="${globalRateValue}">
-                <div class="degradation-score">
-                    <span th:text="'NOTE DE DÉGRADATION GLOBALE : ' + ${globalRateValue} + '%'"></span>
+    <div class="degradation-container" th:if="${globalRateType != null}">
+        <p class="degradation-section-title">ÉTAT APPARENT DE LA TOITURE</p>
+
+        <div class="degradation-levels">
+            <div th:each="level : ${degradationLevels}"
+                 th:classappend="${level.label == activeDegradationLevel.label} ? ' active' : ''"
+                 class="degradation-level-card">
+                <i th:class="'ti ' + ${level.icon}" aria-hidden="true"></i>
+                <span class="degradation-level-label" th:text="${level.label}"></span>
+                <span class="degradation-level-subtitle" th:text="${level.subtitle}"></span>
+                <div class="degradation-bar-segment" th:style="'background-color: ' + ${level.color}">
+                    <div class="degradation-marker"
+                         th:if="${level.label == activeDegradationLevel.label}"
+                         th:style="'left: calc(' + ${globalRateValue} + '% - 6px)'"></div>
                 </div>
-            </td>
-        </tr>
-    </table>
+            </div>
+        </div>
+
+        <div class="degradation-footer" th:if="${activeDegradationLevel != null}">
+            <div class="degradation-level-info">
+                <i th:class="'ti ' + ${activeDegradationLevel.icon}" aria-hidden="true"></i>
+                <div>
+                    <p class="degradation-footer-label" th:text="${activeDegradationLevel.label}"></p>
+                    <p class="degradation-footer-value" th:text="${activeDegradationLevel.subtitle}"></p>
+                </div>
+            </div>
+            <div class="degradation-score">
+                <p class="degradation-footer-label">SCORE D'USURE VISIBLE</p>
+                <p class="degradation-footer-value" th:text="${globalRateValue} + '%'"></p>
+            </div>
+        </div>
+
+        <p class="degradation-disclaimer">
+            * Analyse issue d'images aériennes. Ne remplace pas une expertise terrain.
+        </p>
+    </div>
     <div class="footer-info">
         <table>
             <tr>

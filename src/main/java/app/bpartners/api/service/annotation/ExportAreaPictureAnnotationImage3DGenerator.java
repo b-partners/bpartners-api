@@ -83,7 +83,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
 
-    pans.forEach(pan -> drawPan(g2d, transform, RED, pan));
+    pans.forEach(pan -> drawStrokePolygon(g2d, transform, pan, 1f));
 
     g2d.dispose();
 
@@ -147,7 +147,6 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var transform = Transform.from(coordinates, CONTENT_SIZE - 10, TARGET_SIZE);
     var mapped = transform.apply(coordinates);
 
-    drawFillPolygon(g2d, SELECTED_PAN_COLOR, mapped);
     drawStrokePolygon(g2d, transform, pan, 3.5f);
     drawPolygonPoints(g2d, BLACK, POLYGON_POINTS_SIZE, mapped);
     drawPolygonMeasurements(

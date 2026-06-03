@@ -76,16 +76,15 @@ public class ExportAnnotationContextFactory {
   }
 
   static void configureGlobalRateContext(Context context, ExportAreaPictureAnnotation annotation) {
+    var degradationLevels = DegradationLevel.values();
+    var activeDegradationLevel = DegradationLevel.valueOf(annotation);
+
     context.setVariable("globalRateType", annotation.getGlobalRateType());
     context.setVariable("globalRateValue", annotation.getGlobalRateValue());
     context.setVariable(
         "degradationLevels",
-        List.of(
-            Map.of("label", "A", "color", "#47BE62"),
-            Map.of("label", "B", "color", "#F4FBAB"),
-            Map.of("label", "C", "color", "#F9DD56"),
-            Map.of("label", "D", "color", "#F38F4B"),
-            Map.of("label", "E", "color", "#EF2C2D")));
+        degradationLevels.length > 0 ? Arrays.asList(degradationLevels) : null);
+    context.setVariable("activeDegradationLevel", activeDegradationLevel);
   }
 
   static void configureAnnotation3DContext(

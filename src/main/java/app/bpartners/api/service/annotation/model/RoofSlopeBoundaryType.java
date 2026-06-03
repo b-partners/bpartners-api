@@ -1,6 +1,5 @@
 package app.bpartners.api.service.annotation.model;
 
-import static java.awt.Color.WHITE;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

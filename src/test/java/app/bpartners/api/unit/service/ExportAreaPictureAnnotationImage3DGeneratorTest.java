@@ -9,7 +9,6 @@ import app.bpartners.api.endpoint.rest.model.Point;
 import app.bpartners.api.endpoint.rest.model.Polygon;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.Coordinates;
-import app.bpartners.api.service.annotation.model.Transform;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;

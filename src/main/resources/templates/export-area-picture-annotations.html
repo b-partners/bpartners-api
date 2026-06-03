@@ -426,7 +426,7 @@
     <div class="degradation-container" th:if="${globalRateType != null}">
         <p class="degradation-section-title">ÉTAT APPARENT DE LA TOITURE</p>
 
-        <div class="degradation-levels">
+        <div class="degradation-levels" th:if="${degradationLevels != null} and ${activeDegradationLevel != null}">
             <div th:each="level : ${degradationLevels}"
                  th:classappend="${level.label == activeDegradationLevel.label} ? ' active' : ''"
                  class="degradation-level-card">

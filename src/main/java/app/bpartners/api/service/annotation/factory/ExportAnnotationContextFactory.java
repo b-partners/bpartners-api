@@ -5,13 +5,14 @@ import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFact
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
+import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class ExportAnnotationContextFactory {
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages,
-      BucketComponent bucketComponent) {
+      FileService fileService) {
     var context = new Context();
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
@@ -64,8 +65,7 @@ public class ExportAnnotationContextFactory {
       configureGlobalRateContext(context, annotation);
     }
     if (annotation.get3d() != null) {
-      configureAnnotation3DContext(
-          context, annotation.get3d(), annotation3DImages, bucketComponent);
+      configureAnnotation3DContext(context, annotation.get3d(), annotation3DImages, fileService);
     }
 
     return context;
@@ -91,14 +91,14 @@ public class ExportAnnotationContextFactory {
       Context context,
       ExportAreaPictureAnnotation3D annotation3D,
       Pair<String, List<String>> annotation3DImages,
-      BucketComponent bucketComponent) {
+      FileService fileService) {
     var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
     var mainImage3DUri = base64ToUri(annotation3DImages.first());
     var subImages3DUris =
         annotation3DImages.second().stream()
             .map(ExportAnnotationContextFactory::base64ToUri)
             .toList();
-    var pansImages3D = getPansImages3DContext(annotation3D, bucketComponent);
+    var pansImages3D = getPansImages3DContext(annotation3D, fileService);
 
     context.setVariable("pages3D", pages3D);
     context.setVariable("mainImage3D", mainImage3DUri);
@@ -134,7 +134,7 @@ public class ExportAnnotationContextFactory {
   }
 
   static List<String> getPansImages3DContext(
-      ExportAreaPictureAnnotation3D annotation3D, BucketComponent bucketComponent) {
+      ExportAreaPictureAnnotation3D annotation3D, FileService fileService) {
     var exportAreaPictureAnnotationImage3DGenerator =
         new ExportAreaPictureAnnotationImage3DGenerator();
 
@@ -154,11 +154,27 @@ public class ExportAnnotationContextFactory {
                       pan.getName());
                   return bufferedImageToUri(image);
                 }
-                var imageFileFromS3 = bucketComponent.download(pan.getImageUri(), true);
-
-                if (imageFileFromS3 != null) {
-                  image = ImageIO.read(imageFileFromS3);
+                var fileInfo = fileService.findById(pan.getImageUri());
+                if (fileInfo == null) {
+                  log.warn(
+                      "Can't get image file for pan: {} from file id {}. Falling back to top view"
+                          + " image.",
+                      pan.getName(),
+                      pan.getImageUri());
+                  return bufferedImageToUri(image);
                 }
+                var fileFromFileService =
+                    fileService.downloadFile(
+                        FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
+
+                if (fileFromFileService == null) {
+                  log.warn(
+                      "Can't get image file for pan: {}. Falling back to top view image.",
+                      pan.getName());
+                  return bufferedImageToUri(image);
+                }
+
+                image = ImageIO.read(fileFromFileService);
               } catch (IOException e) {
                 log.error(
                     "Error while downloading pan image: {}. Falling back to top view image.",

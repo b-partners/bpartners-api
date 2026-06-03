@@ -5,12 +5,11 @@ import static app.bpartners.api.service.annotation.factory.ExportAnnotationConte
 import static java.time.LocalDateTime.now;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.*;
-import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
@@ -45,7 +44,6 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   private static FileService fileService = mock();
-  private static BucketComponent bucketComponent = mock();
 
   private static ExportAreaPictureAnnotationPDFGenerator pdfGenerator;
   private static ExportAreaPictureAnnotationPDFProcessor subject;
@@ -54,20 +52,36 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
   @BeforeAll
   static void setup() throws IOException {
-    mockImage =
-        ImageIO.read(
-            new ClassPathResource("files/downloaded-annotation-image.jpeg").getInputStream());
+    mockImage = ImageIO.read(new ClassPathResource("files/rue_de_la_vau.png").getInputStream());
     mockImageBytes = toByteStream(mockImage);
 
+    when(fileService.findById(imageFileInfo().getId())).thenReturn(imageFileInfo());
+
     when(fileService.downloadFile(any(), any(), any()))
-        .thenReturn(new ClassPathResource("files/logo_company.jpeg").getFile());
+        .thenAnswer(
+            invocation -> {
+              String fileId = invocation.getArgument(2); // Gets the second argument
+
+              if (fileId != null && fileId.equals(user().getLogoFileId())) {
+                return new ClassPathResource("files/logo_company.jpeg").getFile();
+              }
+
+              return new ClassPathResource("files/rue_de_la_vau.png").getFile();
+            });
 
     pdfGenerator =
-        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), bucketComponent);
+        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), fileService);
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(
             pdfGenerator, imageGenerator, image3DGenerator, fileService, imageCompressor);
+  }
+
+  private static app.bpartners.api.model.FileInfo imageFileInfo() {
+    return app.bpartners.api.model.FileInfo.builder()
+        .userUploaderId(user().getId())
+        .id("fileInfoId")
+        .build();
   }
 
   private static byte[] toByteStream(BufferedImage bufferedImage) throws IOException {
@@ -177,6 +191,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                       new ExportAreaPictureAnnotationInstanceInfo()
                           .label("edgeTypes")
                           .value(jsonEdgeTypes));
+              pan.setImageUri("imageUri");
             });
 
     return annotation;
@@ -262,7 +277,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 new ExportAreaPictureAnnotationInstanceInfo().label("Mesure").value(mesure)));
   }
 
-  app.bpartners.api.model.User user() {
+  static app.bpartners.api.model.User user() {
     return User.builder()
         .id("userId")
         .firstName("User")

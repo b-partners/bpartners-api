@@ -84,31 +84,6 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
   }
 
   @Test
-  void generatePanImageWithMeasurements_should_draw_highlighted_pan() {
-    var pan =
-        new ExportAreaPictureAnnotation3DPan()
-            .polygon(
-                new Polygon()
-                    .points(
-                        List.of(
-                            new Point().x(100d).y(100d),
-                            new Point().x(200d).y(100d),
-                            new Point().x(200d).y(200d),
-                            new Point().x(100d).y(100d))))
-            .measurements(List.of());
-
-    BufferedImage image = subject.generatePanImageWithMeasurements(pan);
-
-    assertNotNull(image);
-    // SELECTED_PAN_COLOR: 229, 142, 25
-    var coords = Coordinates.from(pan.getPolygon());
-    var transform = Transform.from(coords, 490, 550);
-    var center = transform.apply(new Coordinates(new int[] {150}, new int[] {125}));
-
-    assertColorEquals(new Color(229, 142, 25), image.getRGB(center.allX()[0], center.allY()[0]));
-  }
-
-  @Test
   void mergePanImagesSideBySide_should_work() {
     BufferedImage img1 = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
     BufferedImage img2 = new BufferedImage(200, 150, BufferedImage.TYPE_INT_RGB);

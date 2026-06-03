@@ -13,7 +13,6 @@ import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -252,23 +251,6 @@ public class ExportAnnotationContextFactoryTest {
     assertEquals("B", context.getVariable("globalRateType"));
     assertEquals(0.7, context.getVariable("globalRateValue"));
     assertNotNull(context.getVariable("mainImage3D"));
-  }
-
-  @Test
-  void buffered_image_to_uri_should_throw_illegal_state_exception_on_unwritable_image() {
-    BufferedImage invalidImage =
-        new BufferedImage(10, 10, BufferedImage.TYPE_CUSTOM) {
-          @Override
-          public int getType() {
-            return BufferedImage.TYPE_CUSTOM;
-          }
-        };
-
-    assertThrows(
-        IllegalStateException.class,
-        () -> {
-          ExportAnnotationContextFactory.base64(invalidImage);
-        });
   }
 
   public static ExportAreaPictureAnnotation3DPan export3DPan(

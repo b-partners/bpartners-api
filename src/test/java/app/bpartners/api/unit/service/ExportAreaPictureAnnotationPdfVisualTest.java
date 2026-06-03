@@ -92,6 +92,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   @Test
   void generate_from_heavy_payload() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
+    mockImage = ImageIO.read(new ClassPathResource("files/rue_de_la_vau.png").getInputStream());
+    mockImageBytes = toByteStream(mockImage);
 
     byte[] pdfBytes =
         assertDoesNotThrow(

@@ -34,10 +34,9 @@ public class ExportAnnotationContextFactoryTest {
     pan.setPolygon(dummyPolygon(50, 50, 50, 50));
     pan.setName("pan1");
     annotation3D.addPansItem(pan);
-    when(fileService.findById(eq("file-id")))
+    when(fileService.findById("file-id"))
         .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
-    when(fileService.downloadFile(eq(FileType.IMAGE), eq("user-id"), eq("file-id")))
-        .thenReturn(imageFile);
+    when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(imageFile);
 
     List<String> actual =
         ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
@@ -67,8 +66,7 @@ public class ExportAnnotationContextFactoryTest {
   }
 
   @Test
-  void configure_3d_pan_image_context_should_fallback_on_download_io_exception()
-      throws IOException {
+  void configure_3d_pan_image_context_should_fallback_on_download_io_exception() {
     ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
     ExportAreaPictureAnnotation3DPan pan = new ExportAreaPictureAnnotation3DPan();
     pan.setImageUri("file-id");
@@ -76,10 +74,9 @@ public class ExportAnnotationContextFactoryTest {
     pan.setName("pan_error");
     annotation3D.addPansItem(pan);
 
-    when(fileService.findById(eq("file-id")))
+    when(fileService.findById("file-id"))
         .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
-    when(fileService.downloadFile(eq(FileType.IMAGE), eq("user-id"), eq("file-id")))
-        .thenReturn(null);
+    when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(null);
 
     List<String> actual =
         ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
@@ -101,7 +98,7 @@ public class ExportAnnotationContextFactoryTest {
     pan.setName("pan_missing_file_info");
     annotation3D.addPansItem(pan);
 
-    when(fileService.findById(eq("file-id"))).thenReturn(null);
+    when(fileService.findById("file-id")).thenReturn(null);
 
     List<String> actual =
         ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);

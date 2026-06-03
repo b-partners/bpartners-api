@@ -8,7 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.*;
-import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.model.Pair;
@@ -21,7 +20,6 @@ import org.thymeleaf.context.Context;
 
 class ExportAreaPictureAnnotationPdfContentTest {
   private final TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
-  private final BucketComponent bucketComponent = mock(BucketComponent.class);
   private final FileService fileService = mock();
 
   @BeforeEach

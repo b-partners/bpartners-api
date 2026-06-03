@@ -55,7 +55,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     mockImage = ImageIO.read(new ClassPathResource("files/rue_de_la_vau.png").getInputStream());
     mockImageBytes = toByteStream(mockImage);
 
-    when(fileService.findById(eq(imageFileInfo().getId()))).thenReturn(imageFileInfo());
+    when(fileService.findById(imageFileInfo().getId())).thenReturn(imageFileInfo());
 
     when(fileService.downloadFile(any(), any(), any()))
         .thenAnswer(

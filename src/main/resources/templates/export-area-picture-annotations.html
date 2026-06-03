@@ -446,12 +446,12 @@
                 <i th:class="'ti ' + ${activeDegradationLevel.icon}" aria-hidden="true"></i>
                 <div>
                     <p class="degradation-footer-label" th:text="${activeDegradationLevel.label}"></p>
-                    <p class="degradation-footer-value" th:text="${activeDegradationLevel.subtitle}"></p>
+                    <p class="degradation-footer-value" th:text="${activeDegradationLevel.subtitle}" th:style="'color: ' + ${activeDegradationLevel.color}"></p>
                 </div>
             </div>
             <div class="degradation-score">
                 <p class="degradation-footer-label">SCORE D'USURE VISIBLE</p>
-                <p class="degradation-footer-value" th:text="${globalRateValue} + '%'"></p>
+                <p class="degradation-footer-value" th:text="${globalRateValue} + '%'" th:style="'color: ' + ${activeDegradationLevel.color}"></p>
             </div>
         </div>
 

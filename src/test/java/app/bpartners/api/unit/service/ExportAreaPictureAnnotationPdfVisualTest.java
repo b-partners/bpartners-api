@@ -6,6 +6,7 @@ import static java.time.LocalDateTime.now;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,10 +61,12 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     mockImageBytes = toByteStream(mockImage);
 
     when(fileService.downloadFile(any(), any(), any()))
+        .thenReturn(new ClassPathResource("files/rue_de_la_vau.png").getFile());
+    when(fileService.downloadFile(any(), eq(user().getLogoFileId()), any()))
         .thenReturn(new ClassPathResource("files/logo_company.jpeg").getFile());
 
     pdfGenerator =
-        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), bucketComponent);
+        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), fileService);
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(
@@ -262,7 +265,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 new ExportAreaPictureAnnotationInstanceInfo().label("Mesure").value(mesure)));
   }
 
-  app.bpartners.api.model.User user() {
+  static app.bpartners.api.model.User user() {
     return User.builder()
         .id("userId")
         .firstName("User")

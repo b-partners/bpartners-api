@@ -6,13 +6,13 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.endpoint.rest.model.FileType;
-import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
+import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,8 +20,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.imageio.ImageIO;
-
-import app.bpartners.api.service.file.FileService;
 import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.context.Context;
 
@@ -67,8 +65,7 @@ public class ExportAnnotationContextFactory {
       configureGlobalRateContext(context, annotation);
     }
     if (annotation.get3d() != null) {
-      configureAnnotation3DContext(
-          context, annotation.get3d(), annotation3DImages, fileService);
+      configureAnnotation3DContext(context, annotation.get3d(), annotation3DImages, fileService);
     }
 
     return context;
@@ -158,7 +155,9 @@ public class ExportAnnotationContextFactory {
                   return bufferedImageToUri(image);
                 }
                 var fileInfo = fileService.findById(pan.getImageUri());
-                var fileFromFileService = fileService.downloadFile(FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
+                var fileFromFileService =
+                    fileService.downloadFile(
+                        FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
 
                 if (fileFromFileService == null) {
                   log.warn(

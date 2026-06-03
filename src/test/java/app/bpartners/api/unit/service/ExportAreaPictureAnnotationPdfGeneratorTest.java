@@ -8,7 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.*;
-import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.model.Pair;
@@ -41,8 +40,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
     when(fileService.downloadFile(any(), any(), any())).thenReturn(null);
 
     subject =
-        new ExportAreaPictureAnnotationPDFGenerator(
-            new TemplateResolverEngine(), fileService);
+        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), fileService);
   }
 
   @Test

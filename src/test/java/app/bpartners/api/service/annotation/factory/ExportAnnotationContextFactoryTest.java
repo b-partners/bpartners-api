@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.LogCaptor;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.model.Point;
 import app.bpartners.api.endpoint.rest.model.Polygon;
@@ -13,6 +14,7 @@ import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
+import ch.qos.logback.classic.Level;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -85,6 +87,39 @@ public class ExportAnnotationContextFactoryTest {
     assertNotNull(actual);
     assertEquals(1, actual.size());
     assertTrue(actual.get(0).startsWith("data:image/png;base64,"));
+  }
+
+  @Test
+  void configure_3d_pan_image_context_should_log_when_file_info_missing() {
+    LogCaptor logCaptor = new LogCaptor();
+    logCaptor.configure(ExportAnnotationContextFactory.class);
+
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    ExportAreaPictureAnnotation3DPan pan = new ExportAreaPictureAnnotation3DPan();
+    pan.setImageUri("file-id");
+    pan.setPolygon(dummyPolygon(50, 50, 50, 50));
+    pan.setName("pan_missing_file_info");
+    annotation3D.addPansItem(pan);
+
+    when(fileService.findById(eq("file-id"))).thenReturn(null);
+
+    List<String> actual =
+        ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
+
+    assertNotNull(actual);
+    assertEquals(1, actual.size());
+
+    var warnEvents =
+        logCaptor.getLogEvents().stream()
+            .filter(event -> event.getLevel().equals(Level.WARN))
+            .toList();
+    assertEquals(1, warnEvents.size());
+    assertTrue(
+        warnEvents
+            .get(0)
+            .getFormattedMessage()
+            .contains("Can't get image file for pan: pan_missing_file_info"));
+    assertTrue(warnEvents.get(0).getFormattedMessage().contains("file-id"));
   }
 
   @Test

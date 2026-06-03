@@ -15,12 +15,14 @@ import app.bpartners.api.service.annotation.model.Pair;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import app.bpartners.api.service.file.FileService;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.thymeleaf.context.Context;
 
 public class ExportAnnotationContextFactoryTest {
-  BucketComponent bucketComponent = mock();
+  FileService fileService = mock();
 
   @Test
   void configure_3d_pan_image_context() throws IOException {
@@ -31,10 +33,10 @@ public class ExportAnnotationContextFactoryTest {
     pan.setPolygon(dummyPolygon(50, 50, 50, 50));
     pan.setName("pan1");
     annotation3D.addPansItem(pan);
-    when(bucketComponent.download(any(), anyBoolean())).thenReturn(imageFile);
+    when(fileService.downloadFile(any(), any(), any())).thenReturn(imageFile);
 
     List<String> actual =
-        ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, bucketComponent);
+        ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
 
     assertNotNull(actual, "Result should not be null");
     assertEquals(1, actual.size());
@@ -108,7 +110,7 @@ public class ExportAnnotationContextFactoryTest {
     Pair<String, List<String>> images = new Pair<>("main3d", List.of("a", "b"));
 
     ExportAnnotationContextFactory.configureAnnotation3DContext(
-        context, annotation3D, images, bucketComponent);
+        context, annotation3D, images, fileService);
 
     assertEquals("data:image/png;base64,main3d", context.getVariable("mainImage3D"));
     List<List<String>> subImagesPages =
@@ -154,7 +156,7 @@ public class ExportAnnotationContextFactoryTest {
 
     Context context =
         ExportAnnotationContextFactory.createContext(
-            user, "logo", annotation, images, images3d, bucketComponent);
+            user, "logo", annotation, images, images3d, fileService);
 
     assertEquals(user, context.getVariable("user"));
     assertEquals("https://example.com", context.getVariable("userWebsite"));
@@ -181,7 +183,7 @@ public class ExportAnnotationContextFactoryTest {
 
     Context context =
         ExportAnnotationContextFactory.createContext(
-            user, "logo", annotation, images, images3d, bucketComponent);
+            user, "logo", annotation, images, images3d, fileService);
 
     assertEquals("llm text", context.getVariable("llm"));
     assertEquals("B", context.getVariable("globalRateType"));

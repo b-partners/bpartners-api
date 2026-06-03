@@ -11,6 +11,7 @@ import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -25,7 +26,7 @@ import org.springframework.stereotype.Component;
 public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private final EmojiReplacer emojiReplacer;
-  private final BucketComponent bucketComponent;
+  private final FileService fileService;
 
   public static final String KEY_LABEL = "key";
   public static final String FONT_NAME = "Kumbh Sans";
@@ -34,10 +35,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
   public ExportAreaPictureAnnotationPDFGenerator(
-      TemplateResolverEngine templateResolverEngine, BucketComponent bucketComponent) {
+      TemplateResolverEngine templateResolverEngine, FileService fileService) {
     this.templateResolverEngine = templateResolverEngine;
     this.emojiReplacer = getEmojiReplacer();
-    this.bucketComponent = bucketComponent;
+    this.fileService = fileService;
   }
 
   @SneakyThrows
@@ -88,7 +89,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
 
     var context =
         createContext(
-            user, logoBase64, annotation, annotationImages, annotation3DImages, bucketComponent);
+            user, logoBase64, annotation, annotationImages, annotation3DImages, fileService);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 

@@ -13,6 +13,7 @@ import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,10 +23,11 @@ import org.thymeleaf.context.Context;
 class ExportAreaPictureAnnotationPdfContentTest {
   private final TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
   private final BucketComponent bucketComponent = mock(BucketComponent.class);
+  private final FileService fileService = mock();
 
   @BeforeEach
   void setup() {
-    when(bucketComponent.download(any(), anyBoolean())).thenReturn(null);
+    when(fileService.downloadFile(any(), any(), any())).thenReturn(null);
   }
 
   @Test
@@ -46,7 +48,7 @@ class ExportAreaPictureAnnotationPdfContentTest {
 
     Context context =
         app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-            user(), "logo", annotation, annotationImages, annotation3DImages, bucketComponent);
+            user(), "logo", annotation, annotationImages, annotation3DImages, fileService);
 
     String html =
         templateResolverEngine
@@ -77,7 +79,7 @@ class ExportAreaPictureAnnotationPdfContentTest {
 
     Context context =
         app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-            user(), "logo", annotation, new Pair<>("main", List.of()), null, bucketComponent);
+            user(), "logo", annotation, new Pair<>("main", List.of()), null, fileService);
 
     String html =
         templateResolverEngine

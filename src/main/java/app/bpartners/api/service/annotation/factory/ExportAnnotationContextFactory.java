@@ -155,6 +155,14 @@ public class ExportAnnotationContextFactory {
                   return bufferedImageToUri(image);
                 }
                 var fileInfo = fileService.findById(pan.getImageUri());
+                if (fileInfo == null) {
+                  log.warn(
+                      "Can't get image file for pan: {} from file id {}. Falling back to top view"
+                          + " image.",
+                      pan.getName(),
+                      pan.getImageUri());
+                  return bufferedImageToUri(image);
+                }
                 var fileFromFileService =
                     fileService.downloadFile(
                         FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());

@@ -1,7 +1,5 @@
 package app.bpartners.api.service.annotation.model;
 
-import static java.awt.Color.WHITE;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
@@ -13,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @RequiredArgsConstructor
 public enum RoofSlopeBoundaryType {
-  INCONNU("inconnu", WHITE, new BasicStroke(1.5f)),
+  INCONNU("inconnu", new Color(35, 39, 43), new BasicStroke(1.5f)),
 
   FAITAGE("faitage", new Color(220, 20, 60), new BasicStroke(3f)),
 

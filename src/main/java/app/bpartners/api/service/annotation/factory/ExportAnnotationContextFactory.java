@@ -1,21 +1,24 @@
 package app.bpartners.api.service.annotation.factory;
 
+import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory.getRoofSlopeBoundaryTypeNames;
+
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
+import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
+import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
 import org.thymeleaf.context.Context;
@@ -31,7 +34,7 @@ public class ExportAnnotationContextFactory {
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages,
-      BucketComponent bucketComponent) {
+      FileService fileService) {
     var context = new Context();
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
@@ -62,8 +65,7 @@ public class ExportAnnotationContextFactory {
       configureGlobalRateContext(context, annotation);
     }
     if (annotation.get3d() != null) {
-      configureAnnotation3DContext(
-          context, annotation.get3d(), annotation3DImages, bucketComponent);
+      configureAnnotation3DContext(context, annotation.get3d(), annotation3DImages, fileService);
     }
 
     return context;
@@ -74,39 +76,65 @@ public class ExportAnnotationContextFactory {
   }
 
   static void configureGlobalRateContext(Context context, ExportAreaPictureAnnotation annotation) {
+    var degradationLevels = DegradationLevel.values();
+    var activeDegradationLevel = DegradationLevel.valueOf(annotation);
+
     context.setVariable("globalRateType", annotation.getGlobalRateType());
     context.setVariable("globalRateValue", annotation.getGlobalRateValue());
     context.setVariable(
         "degradationLevels",
-        List.of(
-            Map.of("label", "A", "color", "#47BE62"),
-            Map.of("label", "B", "color", "#F4FBAB"),
-            Map.of("label", "C", "color", "#F9DD56"),
-            Map.of("label", "D", "color", "#F38F4B"),
-            Map.of("label", "E", "color", "#EF2C2D")));
+        degradationLevels.length > 0 ? Arrays.asList(degradationLevels) : null);
+    context.setVariable("activeDegradationLevel", activeDegradationLevel);
   }
 
   static void configureAnnotation3DContext(
       Context context,
       ExportAreaPictureAnnotation3D annotation3D,
       Pair<String, List<String>> annotation3DImages,
-      BucketComponent bucketComponent) {
+      FileService fileService) {
     var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
     var mainImage3DUri = base64ToUri(annotation3DImages.first());
     var subImages3DUris =
         annotation3DImages.second().stream()
             .map(ExportAnnotationContextFactory::base64ToUri)
             .toList();
-    var pansImages3D = getPansImages3DContext(annotation3D, bucketComponent);
+    var pansImages3D = getPansImages3DContext(annotation3D, fileService);
 
     context.setVariable("pages3D", pages3D);
     context.setVariable("mainImage3D", mainImage3DUri);
+    context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
+    context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
     context.setVariable("subImagesPages3D", groupByFirstPage(subImages3DUris, 3, 4));
     context.setVariable("pansImages3DUris", groupByFirstPage(pansImages3D, 3, 4));
   }
 
+  static Map<Integer, List<String>> getRoofSlopeBoundaryPerPage(
+      List<List<ExportAreaPictureAnnotation3DPan>> paged3DPans) {
+    var map = new HashMap<Integer, List<String>>();
+    for (int i = 0; i < paged3DPans.size(); i++) {
+      var page = paged3DPans.get(i);
+      var typesInPage = new ArrayList<String>();
+      for (var pan : page) {
+        List<String> boundariesTypes = getRoofSlopeBoundaryTypeNames(pan);
+        typesInPage.addAll(boundariesTypes);
+      }
+      map.put(i, new ArrayList<>(new LinkedHashSet<>(typesInPage)));
+    }
+    return map;
+  }
+
+  static Map<String, String> getRoofSlopeBoundaryMap() {
+    var allRoofSlopeBoundaries = RoofSlopeBoundaryType.values();
+    var map = new HashMap<String, String>();
+    for (var boundary : allRoofSlopeBoundaries) {
+      var image = Drawer.createStrokeIllustration(boundary);
+      map.put(boundary.getLabel().replace("_", "-"), bufferedImageToUri(image));
+    }
+    return map;
+  }
+
   static List<String> getPansImages3DContext(
-      ExportAreaPictureAnnotation3D annotation3D, BucketComponent bucketComponent) {
+      ExportAreaPictureAnnotation3D annotation3D, FileService fileService) {
     var exportAreaPictureAnnotationImage3DGenerator =
         new ExportAreaPictureAnnotationImage3DGenerator();
 
@@ -116,8 +144,9 @@ public class ExportAnnotationContextFactory {
         .map(
             pan -> {
               var image =
-                  exportAreaPictureAnnotationImage3DGenerator.generateBaseImageWithHighlightedPan(
-                      overallPansTopView.second(), overallPansTopView.first(), pan);
+                  exportAreaPictureAnnotationImage3DGenerator
+                      .generateBaseImageWithHighlightedPanWithSlopeBoundary(
+                          overallPansTopView.second(), overallPansTopView.first(), pan);
               try {
                 if (pan.getImageUri() == null || pan.getImageUri().isBlank()) {
                   log.warn(
@@ -125,11 +154,27 @@ public class ExportAnnotationContextFactory {
                       pan.getName());
                   return bufferedImageToUri(image);
                 }
-                var imageFileFromS3 = bucketComponent.download(pan.getImageUri(), true);
-
-                if (imageFileFromS3 != null) {
-                  image = ImageIO.read(imageFileFromS3);
+                var fileInfo = fileService.findById(pan.getImageUri());
+                if (fileInfo == null) {
+                  log.warn(
+                      "Can't get image file for pan: {} from file id {}. Falling back to top view"
+                          + " image.",
+                      pan.getName(),
+                      pan.getImageUri());
+                  return bufferedImageToUri(image);
                 }
+                var fileFromFileService =
+                    fileService.downloadFile(
+                        FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
+
+                if (fileFromFileService == null) {
+                  log.warn(
+                      "Can't get image file for pan: {}. Falling back to top view image.",
+                      pan.getName());
+                  return bufferedImageToUri(image);
+                }
+
+                image = ImageIO.read(fileFromFileService);
               } catch (IOException e) {
                 log.error(
                     "Error while downloading pan image: {}. Falling back to top view image.",

@@ -1,3 +1,12 @@
+# [0.80.0](https://github.com/b-partners/bpartners-api/compare/v0.79.0...v0.80.0) (2026-06-04)
+
+
+### Features
+
+* pan edge label in export pdf ([8c84bb7](https://github.com/b-partners/bpartners-api/commit/8c84bb7d99c7ded698d5d16731af9004e3c89d37))
+
+
+
 # [0.79.0](https://github.com/b-partners/bpartners-api/compare/v0.78.1...v0.79.0) (2026-05-27)
 
 
@@ -219,28 +228,6 @@
 
 * expot area picture annotation with annotator 3d ([a627df3](https://github.com/b-partners/bpartners-api/commit/a627df37f635edf843d646a65f53335a5acb79a3))
 * implement captcha token verification ([f05ac18](https://github.com/b-partners/bpartners-api/commit/f05ac180dda4a8f47bec1d0c8472272b235335da))
-
-
-
-# [0.71.0](https://github.com/b-partners/bpartners-api/compare/v0.70.1...v0.71.0) (2025-10-24)
-
-
-### Bug Fixes
-
-* get areaPictureMapLayers ([11b619a](https://github.com/b-partners/bpartners-api/commit/11b619a3e679a0dcf5c6fe492115efae5adabbe3))
-* **ProspectJpaRepository:** filter by old_name or new_name not only old_name ([a82203c](https://github.com/b-partners/bpartners-api/commit/a82203c6e86cd47eb9dbe371ce8a1c47697e26e6))
-* **Prospect:** persist creation datetime and order list by creation datetime DESC ([2fe4cdf](https://github.com/b-partners/bpartners-api/commit/2fe4cdfc7c0534e5aa86847bc2f120666b4e58ed))
-* **Prospect:** persist update datetime and order list by update datetime DESC ([24fdd94](https://github.com/b-partners/bpartners-api/commit/24fdd94d4962ca99d69da306963ef30e12175d56))
-* **Prospect:** remove sort by lastEvaluationDate ([69dba1a](https://github.com/b-partners/bpartners-api/commit/69dba1a3a7fd102db6c7ec4a95a3e2537757de1c))
-* **Prospect:** sort list with nulls last ([4615c94](https://github.com/b-partners/bpartners-api/commit/4615c944c41d519b384b4b8bab8837a021475a99))
-* remove year from hauts-de-seine departement name ([d64d5ed](https://github.com/b-partners/bpartners-api/commit/d64d5edf131243fb923d58f99581e4c423336ff8))
-* update metz layer and exclude an user from RoofAnalysisConsumptionFreeTrialValidator ([849ba7f](https://github.com/b-partners/bpartners-api/commit/849ba7f475cba8a7f2bb436f75423a0144acd5e9))
-
-
-### Features
-
-* area picture annotation converter ([0fb3f40](https://github.com/b-partners/bpartners-api/commit/0fb3f4020bd11c31514d0c845ba69129bb430f5a))
-* GET /users/{id}/keys for ADMIN_ROLE ([2051cad](https://github.com/b-partners/bpartners-api/commit/2051cad759984f32c72c2d4af0b3c54ed9ed8a9f))
 
 
 

@@ -8,10 +8,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.*;
-import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class ExportAreaPictureAnnotationPdfGeneratorTest {
-  BucketComponent bucketComponentMock = mock();
+  FileService fileService = mock();
   ExportAreaPictureAnnotationPDFGenerator subject;
   private static BufferedImage mockImage;
 
@@ -37,11 +37,10 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
 
   @BeforeEach
   void setUp() {
-    when(bucketComponentMock.download(any(), anyBoolean())).thenReturn(null);
+    when(fileService.downloadFile(any(), any(), any())).thenReturn(null);
 
     subject =
-        new ExportAreaPictureAnnotationPDFGenerator(
-            new TemplateResolverEngine(), bucketComponentMock);
+        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), fileService);
   }
 
   @Test

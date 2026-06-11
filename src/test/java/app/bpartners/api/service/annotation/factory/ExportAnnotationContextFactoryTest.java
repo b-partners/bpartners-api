@@ -287,44 +287,54 @@ public class ExportAnnotationContextFactoryTest {
 
   public static ExportAreaPictureAnnotation3DPan export3DPan(
       String name, String surface, String observation, int x1, int y1, int x2, int y2) {
-    return new ExportAreaPictureAnnotation3DPan()
+    return ExportAreaPictureAnnotation3DPan.builder()
         .name(name)
         .polygon(dummyPolygon(x1, y1, x2, y2))
         .imageUri(null)
         .measurements(
             List.of(
-                new ExportAreaPictureAnnotationMeasurement()
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(5.0)
                     .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
+                    .isInvisible(false)
+                    .build(),
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(5.0)
                     .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
+                    .isInvisible(false)
+                    .build(),
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(5.0)
                     .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
+                    .isInvisible(false)
+                    .build(),
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(5.0)
                     .unit("m")
-                    .isInvisible(false)))
+                    .isInvisible(false)
+                    .build()))
         .infos(
             List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value(surface),
-                new ExportAreaPictureAnnotationInstanceInfo()
+                ExportAreaPictureAnnotationInstanceInfo.builder()
+                    .label("Surface")
+                    .value(surface)
+                    .build(),
+                ExportAreaPictureAnnotationInstanceInfo.builder()
                     .label("Observation")
-                    .value(observation)));
+                    .value(observation)
+                    .build()))
+        .build();
   }
 
   public static Polygon dummyPolygon(int x1, int y1, int x2, int y2) {
-    return new Polygon()
+    return Polygon.builder()
         .points(
             List.of(
-                new Point().x((double) x1).y((double) y1),
-                new Point().x((double) x2).y((double) y1),
-                new Point().x((double) x2).y((double) y2),
-                new Point().x((double) x1).y((double) y2),
-                new Point().x((double) x1).y((double) y1)));
+                Point.builder().x((double) x1).y((double) y1).build(),
+                Point.builder().x((double) x2).y((double) y1).build(),
+                Point.builder().x((double) x2).y((double) y2).build(),
+                Point.builder().x((double) x1).y((double) y2).build(),
+                Point.builder().x((double) x1).y((double) y1).build()))
+        .build();
   }
 }

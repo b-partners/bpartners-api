@@ -1,0 +1,438 @@
+
+> Task :compileTestJava
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:9: error: cannot find symbol
+import app.bpartners.api.model.User;
+                              ^
+  symbol:   class User
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:10: error: cannot find symbol
+import app.bpartners.api.model.UserAnalysisApiKey;
+                              ^
+  symbol:   class UserAnalysisApiKey
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:11: error: cannot find symbol
+import app.bpartners.api.model.mapper.UserApiKeyMapper;
+                                     ^
+  symbol:   class UserApiKeyMapper
+  location: package app.bpartners.api.model.mapper
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:12: error: cannot find symbol
+import app.bpartners.api.repository.UserRepository;
+                                   ^
+  symbol:   class UserRepository
+  location: package app.bpartners.api.repository
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:13: error: package app.bpartners.api.repository.jpa does not exist
+import app.bpartners.api.repository.jpa.UserAnalysisApiKeyJpaRepository;
+                                       ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:14: error: package app.bpartners.api.repository.jpa.model does not exist
+import app.bpartners.api.repository.jpa.model.HUserAnalysisApiKey;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:27: error: cannot find symbol
+  UserAnalysisApiKeyJpaRepository jpaRepositoryMock = mock();
+  ^
+  symbol:   class UserAnalysisApiKeyJpaRepository
+  location: class UserAnalysisApiKeyRepositoryImplTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:28: error: cannot find symbol
+  UserApiKeyMapper mapper = mock();
+  ^
+  symbol:   class UserApiKeyMapper
+  location: class UserAnalysisApiKeyRepositoryImplTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:29: error: cannot find symbol
+  UserRepository userRepositoryMock = mock();
+  ^
+  symbol:   class UserRepository
+  location: class UserAnalysisApiKeyRepositoryImplTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:30: error: cannot find symbol
+  UserAnalysisApiKeyRepositoryImpl subject =
+  ^
+  symbol:   class UserAnalysisApiKeyRepositoryImpl
+  location: class UserAnalysisApiKeyRepositoryImplTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:118: error: cannot find symbol
+  private HUserAnalysisApiKey hUserAnalysisApiKey() {
+          ^
+  symbol:   class HUserAnalysisApiKey
+  location: class UserAnalysisApiKeyRepositoryImplTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/repository/implementation/UserAnalysisApiKeyRepositoryImplTest.java:128: error: cannot find symbol
+  private UserAnalysisApiKey userAnalysisApiKey() {
+          ^
+  symbol:   class UserAnalysisApiKey
+  location: class UserAnalysisApiKeyRepositoryImplTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:12: error: cannot find symbol
+import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
+                                     ^
+  symbol:   class Invoice
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:12: error: static import only from classes and interfaces
+import static app.bpartners.api.model.Invoice.DEFAULT_DELAY_PENALTY_PERCENT;
+^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:13: error: cannot find symbol
+import static app.bpartners.api.model.Money.fromMinor;
+                                     ^
+  symbol:   class Money
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:13: error: static import only from classes and interfaces
+import static app.bpartners.api.model.Money.fromMinor;
+^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:14: error: package app.bpartners.api.repository.bridge.model.Account does not exist
+import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
+                                                               ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:14: error: static import only from classes and interfaces
+import static app.bpartners.api.repository.bridge.model.Account.BridgeAccount.BRIDGE_STATUS_OK;
+^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:55: error: package app.bpartners.api.endpoint.rest.security.cognito does not exist
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+                                                       ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:56: error: package app.bpartners.api.endpoint.rest.security.model does not exist
+import app.bpartners.api.endpoint.rest.security.model.Principal;
+                                                     ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:57: error: package app.bpartners.api.endpoint.rest.security.principal does not exist
+import app.bpartners.api.endpoint.rest.security.principal.PrincipalProvider;
+                                                         ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:58: error: cannot find symbol
+import app.bpartners.api.model.Account;
+                              ^
+  symbol:   class Account
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:59: error: cannot find symbol
+import app.bpartners.api.model.AccountHolder;
+                              ^
+  symbol:   class AccountHolder
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:60: error: package app.bpartners.api.model.exception does not exist
+import app.bpartners.api.model.exception.BadRequestException;
+                                        ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:61: error: package app.bpartners.api.model.exception does not exist
+import app.bpartners.api.model.exception.NotFoundException;
+                                        ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:62: error: package app.bpartners.api.model.subscription does not exist
+import app.bpartners.api.model.subscription.UserSubscription;
+                                           ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:63: error: cannot find symbol
+import app.bpartners.api.repository.LegalFileRepository;
+                                   ^
+  symbol:   class LegalFileRepository
+  location: package app.bpartners.api.repository
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:64: error: package app.bpartners.api.repository.ban does not exist
+import app.bpartners.api.repository.ban.BanApi;
+                                       ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:65: error: package app.bpartners.api.repository.ban.model does not exist
+import app.bpartners.api.repository.ban.model.GeoPosition;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:66: error: package app.bpartners.api.repository.bridge.model.Account does not exist
+import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
+                                                        ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:67: error: package app.bpartners.api.repository.jpa.model does not exist
+import app.bpartners.api.repository.jpa.model.HAccountHolder;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:68: error: package app.bpartners.api.repository.sendinblue does not exist
+import app.bpartners.api.repository.sendinblue.SendinblueApi;
+                                              ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:69: error: package app.bpartners.api.repository.sendinblue.model does not exist
+import app.bpartners.api.repository.sendinblue.model.Attributes;
+                                                    ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:70: error: package app.bpartners.api.repository.sendinblue.model does not exist
+import app.bpartners.api.repository.sendinblue.model.Contact;
+                                                    ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:71: error: package app.bpartners.api.service.subscription does not exist
+import app.bpartners.api.service.subscription.SubscriptionService;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:72: error: cannot find symbol
+import app.bpartners.api.service.utils.GeoUtils;
+                                      ^
+  symbol:   class GeoUtils
+  location: package app.bpartners.api.service.utils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRepositoryTest.java:7: error: cannot find symbol
+import app.bpartners.api.model.Invoice;
+                              ^
+  symbol:   class Invoice
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRepositoryTest.java:8: error: cannot find symbol
+import app.bpartners.api.repository.InvoiceRepository;
+                                   ^
+  symbol:   class InvoiceRepository
+  location: package app.bpartners.api.repository
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:4: error: cannot find symbol
+import app.bpartners.api.endpoint.SentryConf;
+                                 ^
+  symbol:   class SentryConf
+  location: package app.bpartners.api.endpoint
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:5: error: cannot find symbol
+import app.bpartners.api.endpoint.event.EventProducer;
+                                       ^
+  symbol:   class EventProducer
+  location: package app.bpartners.api.endpoint.event
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:6: error: package app.bpartners.api.endpoint.rest.security.cognito does not exist
+import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+                                                       ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:7: error: package app.bpartners.api.manager does not exist
+import app.bpartners.api.manager.ProjectTokenManager;
+                                ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:8: error: package app.bpartners.api.payment does not exist
+import app.bpartners.api.payment.StripeConf;
+                                ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:9: error: package app.bpartners.api.payment does not exist
+import app.bpartners.api.payment.UserSubscriptionConf;
+                                ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:10: error: cannot find symbol
+import app.bpartners.api.repository.LegalFileRepository;
+                                   ^
+  symbol:   class LegalFileRepository
+  location: package app.bpartners.api.repository
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:11: error: package app.bpartners.api.repository.prospecting.datasource.buildingpermit does not exist
+import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
+                                                                         ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:12: error: package app.bpartners.api.repository.sendinblue does not exist
+import app.bpartners.api.repository.sendinblue.SendinblueConf;
+                                              ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:13: error: package app.bpartners.api.service.payment does not exist
+import app.bpartners.api.service.payment.PaymentScheduleService;
+                                        ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:14: error: package app.bpartners.api.service.subscription does not exist
+import app.bpartners.api.service.subscription.StripeCustomerService;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:15: error: package app.bpartners.api.service.subscription does not exist
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:16: error: package app.bpartners.api.service.subscription does not exist
+import app.bpartners.api.service.subscription.StripeSubscriptionService;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:17: error: package app.bpartners.api.service.subscription does not exist
+import app.bpartners.api.service.subscription.SubscriptionService;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/conf/FacadeIT.java:6: error: cannot find symbol
+import app.bpartners.api.PojaGenerated;
+                        ^
+  symbol:   class PojaGenerated
+  location: package app.bpartners.api
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/conf/FacadeIT.java:14: error: cannot find symbol
+@PojaGenerated
+ ^
+  symbol: class PojaGenerated
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRepositoryTest.java:15: error: cannot find symbol
+  @Autowired private InvoiceRepository subject;
+                     ^
+  symbol:   class InvoiceRepository
+  location: class InvoiceRepositoryTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:25: error: cannot find symbol
+  @MockBean protected PaymentScheduleService paymentScheduleService;
+                      ^
+  symbol:   class PaymentScheduleService
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:26: error: cannot find symbol
+  @MockBean protected BuildingPermitConf buildingPermitConf;
+                      ^
+  symbol:   class BuildingPermitConf
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:27: error: cannot find symbol
+  @MockBean protected SentryConf sentryConf;
+                      ^
+  symbol:   class SentryConf
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:28: error: cannot find symbol
+  @MockBean protected SendinblueConf sendinblueConf;
+                      ^
+  symbol:   class SendinblueConf
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:29: error: cannot find symbol
+  @MockBean protected CognitoComponent cognitoComponentMock;
+                      ^
+  symbol:   class CognitoComponent
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:30: error: cannot find symbol
+  @MockBean protected ProjectTokenManager projectTokenManager;
+                      ^
+  symbol:   class ProjectTokenManager
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:31: error: cannot find symbol
+  @MockBean protected LegalFileRepository legalFileRepositoryMock;
+                      ^
+  symbol:   class LegalFileRepository
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:32: error: cannot find symbol
+  @MockBean protected StripeConf stripeConf;
+                      ^
+  symbol:   class StripeConf
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:33: error: cannot find symbol
+  @MockBean protected UserSubscriptionConf userSubscriptionConf;
+                      ^
+  symbol:   class UserSubscriptionConf
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:34: error: cannot find symbol
+  @MockBean protected SubscriptionService subscriptionService;
+                      ^
+  symbol:   class SubscriptionService
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:35: error: cannot find symbol
+  @MockBean protected StripePaymentMethodService stripePaymentMethodServiceMock;
+                      ^
+  symbol:   class StripePaymentMethodService
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:36: error: cannot find symbol
+  @MockBean protected StripeCustomerService stripeCustomerServiceMock;
+                      ^
+  symbol:   class StripeCustomerService
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:37: error: cannot find symbol
+  @MockBean protected StripeSubscriptionService stripeSubscriptionServiceMock;
+                      ^
+  symbol:   class StripeSubscriptionService
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/MockedThirdParties.java:38: error: cannot find symbol
+  @MockBean protected EventProducer eventProducer;
+                      ^
+  symbol:   class EventProducer
+  location: class MockedThirdParties
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/conf/PostgresConf.java:3: error: cannot find symbol
+import app.bpartners.api.PojaGenerated;
+                        ^
+  symbol:   class PojaGenerated
+  location: package app.bpartners.api
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/conf/PostgresConf.java:7: error: cannot find symbol
+@PojaGenerated
+ ^
+  symbol: class PojaGenerated
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:210: error: cannot find symbol
+  public static BridgeAccount joeDoeBridgeAccount() {
+                ^
+  symbol:   class BridgeAccount
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:221: error: cannot find symbol
+  public static BridgeAccount otherBridgeAccount() {
+                ^
+  symbol:   class BridgeAccount
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:608: error: cannot find symbol
+  public static app.bpartners.api.model.LegalFile domainLegalFile() {
+                                       ^
+  symbol:   class LegalFile
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:616: error: cannot find symbol
+  public static app.bpartners.api.model.LegalFile domainApprovedLegalFile() {
+                                       ^
+  symbol:   class LegalFile
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:667: error: cannot find symbol
+  public static GeoPosition geoPosZero() {
+                ^
+  symbol:   class GeoPosition
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:671: error: package GeoUtils does not exist
+  public static GeoUtils.Coordinate coordinateZero() {
+                        ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:738: error: cannot find symbol
+  public static void setUpCognito(CognitoComponent cognitoComponentMock) {
+                                  ^
+  symbol:   class CognitoComponent
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:744: error: cannot find symbol
+  public static void setUpProvider(PrincipalProvider provider) {
+                                   ^
+  symbol:   class PrincipalProvider
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:751: error: cannot find symbol
+  public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {
+                                       ^
+  symbol:   class SendinblueApi
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:777: error: cannot find symbol
+  public static void setUpLegalFileRepository(LegalFileRepository legalFileRepositoryMock) {
+                                              ^
+  symbol:   class LegalFileRepository
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:786: error: cannot find symbol
+  public static void setUpUserSubscription(SubscriptionService subscriptionService) {
+                                           ^
+  symbol:   class SubscriptionService
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:792: error: cannot find symbol
+  public static void setUpBanApiMock(BanApi banApiMock) {
+                                     ^
+  symbol:   class BanApi
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:797: error: cannot find symbol
+  public static Account joePersistedAccount() {
+                ^
+  symbol:   class Account
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:811: error: cannot find symbol
+  public static AccountHolder joeDoeAccountHolder() {
+                ^
+  symbol:   class AccountHolder
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/integration/conf/utils/TestUtils.java:815: error: cannot find symbol
+  public static HAccountHolder accountHolderEntity1() {
+                ^
+  symbol:   class HAccountHolder
+  location: class TestUtils
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:11: error: cannot find symbol
+import app.bpartners.api.model.Invoice;
+                              ^
+  symbol:   class Invoice
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:12: error: cannot find symbol
+import app.bpartners.api.model.InvoiceProduct;
+                              ^
+  symbol:   class InvoiceProduct
+  location: package app.bpartners.api.model
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:13: error: cannot find symbol
+import app.bpartners.api.model.mapper.InvoiceRelaunchMapper;
+                                     ^
+  symbol:   class InvoiceRelaunchMapper
+  location: package app.bpartners.api.model.mapper
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:14: error: cannot find symbol
+import app.bpartners.api.repository.InvoiceRepository;
+                                   ^
+  symbol:   class InvoiceRepository
+  location: package app.bpartners.api.repository
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:15: error: cannot find symbol
+import app.bpartners.api.repository.implementation.InvoiceRelaunchRepositoryImpl;
+                                                  ^
+  symbol:   class InvoiceRelaunchRepositoryImpl
+  location: package app.bpartners.api.repository.implementation
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:16: error: package app.bpartners.api.repository.jpa does not exist
+import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+                                       ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:17: error: package app.bpartners.api.repository.jpa does not exist
+import app.bpartners.api.repository.jpa.InvoiceRelaunchJpaRepository;
+                                       ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:18: error: package app.bpartners.api.repository.jpa.model does not exist
+import app.bpartners.api.repository.jpa.model.HInvoice;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:19: error: package app.bpartners.api.repository.jpa.model does not exist
+import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:20: error: package app.bpartners.api.repository.jpa.model does not exist
+import app.bpartners.api.repository.jpa.model.HInvoiceRelaunch;
+                                             ^
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:32: error: cannot find symbol
+  InvoiceRelaunchJpaRepository invoiceRelaunchJpaRepositoryMock;
+  ^
+  symbol:   class InvoiceRelaunchJpaRepository
+  location: class InvoiceRelaunchRepositoryTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:33: error: cannot find symbol
+  InvoiceRelaunchMapper invoiceRelaunchMapperMock;
+  ^
+  symbol:   class InvoiceRelaunchMapper
+  location: class InvoiceRelaunchRepositoryTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:34: error: cannot find symbol
+  InvoiceRepository invoiceRepositoryMock;
+  ^
+  symbol:   class InvoiceRepository
+  location: class InvoiceRelaunchRepositoryTest
+/home/duduk/Documents/Projects/bpartners-api/src/test/java/app/bpartners/api/unit/repository/InvoiceRelaunchRepositoryTest.java:35: error: cannot find symbol
+  InvoiceJpaRepository invoiceJpaRepositoryMock;
+  ^
+  symbol:   class InvoiceJpaRepository
+  location: class InvoiceRelaunchRepositoryTest
+100 errors
+only showing the first 100 errors, of 2072 total; use -Xmaxerrs if you would like to see more
+> Task :compileTestJava FAILED
+FAILURE: Build failed with an exception.
+* What went wrong:
+Execution failed for task ':compileTestJava'.
+> Compilation failed; see the compiler error output for details.
+* Try:
+> Run with --info option to get more log output.
+> Run with --scan to get full insights.
+BUILD FAILED in 2m 29s
+2 actionable tasks: 1 executed, 1 up-to-date

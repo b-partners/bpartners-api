@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;
+import app.bpartners.api.service.annotation.model.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -47,13 +47,18 @@ class ExportAreaPictureAnnotationImageGeneratorTest {
 
   @Test
   void should_throw_if_bad_hexadecimal_color() {
-    var badExportAnnotationInstance1 = exportAreaPictureAnnotationInstance().fillColor("FFFFFF");
+    var badExportAnnotationInstance1 =
+        exportAreaPictureAnnotationInstance().toBuilder().fillColor("FFFFFF").build();
     var badExportAnnotationInstance2 =
-        exportAreaPictureAnnotationInstance().fillColor("#FFFFFFFFFFFF");
+        exportAreaPictureAnnotationInstance().toBuilder().fillColor("#FFFFFFFFFFFF").build();
     var exportAreaPictureAnnotation1 =
-        exportAreaPictureAnnotation().annotations(List.of(badExportAnnotationInstance1));
+        exportAreaPictureAnnotation().toBuilder()
+            .annotations(List.of(badExportAnnotationInstance1))
+            .build();
     var exportAreaPictureAnnotation2 =
-        exportAreaPictureAnnotation().annotations(List.of(badExportAnnotationInstance2));
+        exportAreaPictureAnnotation().toBuilder()
+            .annotations(List.of(badExportAnnotationInstance2))
+            .build();
     var annotations1 = exportAreaPictureAnnotation1.getAnnotations();
     var annotations2 = exportAreaPictureAnnotation2.getAnnotations();
 
@@ -78,38 +83,53 @@ class ExportAreaPictureAnnotationImageGeneratorTest {
   }
 
   static ExportAreaPictureAnnotation exportAreaPictureAnnotation() {
-    return new ExportAreaPictureAnnotation()
+    return ExportAreaPictureAnnotation.builder()
         .imageUrl("https://dummy.com")
-        .annotations(List.of(exportAreaPictureAnnotationInstance()));
+        .annotations(List.of(exportAreaPictureAnnotationInstance()))
+        .build();
   }
 
   static ExportAreaPictureAnnotationInstance exportAreaPictureAnnotationInstance() {
-    return new ExportAreaPictureAnnotationInstance()
+    return ExportAreaPictureAnnotationInstance.builder()
         .labelName("Polygon A")
         .strokeColor("#000000")
         .fillColor("#00000000")
         .infos(
             List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("Type").value("Non renseigné"),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value("305 m²")))
+                ExportAreaPictureAnnotationInstanceInfo.builder()
+                    .label("Type")
+                    .value("Non renseigné")
+                    .build(),
+                ExportAreaPictureAnnotationInstanceInfo.builder()
+                    .label("Surface")
+                    .value("305 m²")
+                    .build()))
         .measurements(
             List.of(
-                new ExportAreaPictureAnnotationMeasurement()
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(20d)
                     .isInvisible(false)
-                    .unit("m"),
-                new ExportAreaPictureAnnotationMeasurement().value(20d).isInvisible(true).unit("m"),
-                new ExportAreaPictureAnnotationMeasurement()
+                    .unit("m")
+                    .build(),
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(20d)
                     .isInvisible(true)
-                    .unit("m")))
+                    .unit("m")
+                    .build(),
+                ExportAreaPictureAnnotationMeasurement.builder()
+                    .value(20d)
+                    .isInvisible(true)
+                    .unit("m")
+                    .build()))
         .polygon(
-            new Polygon()
+            Polygon.builder()
                 .points(
                     List.of(
-                        new Point().x(122d).y(81d),
-                        new Point().x(184d).y(176d),
-                        new Point().x(88d).y(135d),
-                        new Point().x(122d).y(81d))));
+                        Point.builder().x(122d).y(81d).build(),
+                        Point.builder().x(184d).y(176d).build(),
+                        Point.builder().x(88d).y(135d).build(),
+                        Point.builder().x(122d).y(81d).build()))
+                .build())
+        .build();
   }
 }

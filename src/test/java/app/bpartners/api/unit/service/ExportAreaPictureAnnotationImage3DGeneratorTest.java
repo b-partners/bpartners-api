@@ -25,11 +25,11 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     var polygon = new Polygon();
     polygon.setPoints(
         List.of(
-            new Point().setX(100d).setY(100d),
-            new Point().setX(200d).setY(100d),
-            new Point().setX(200d).setY(200d),
-            new Point().setX(100d).setY(200d),
-            new Point().setX(100d).setY(100d)));
+            new Point(100d, 100d),
+            new Point(200d, 100d),
+            new Point(200d, 200d),
+            new Point(100d, 200d),
+            new Point(100d, 100d)));
     pan.setPolygon(polygon);
     var info = new ExportAreaPictureAnnotationInstanceInfo();
     info.setLabel("edgeTypes");
@@ -63,10 +63,10 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     var polygon = new Polygon();
     polygon.setPoints(
         List.of(
-            new Point().setX(100d).setY(100d),
-            new Point().setX(200d).setY(100d),
-            new Point().setX(200d).setY(200d),
-            new Point().setX(100d).setY(100d)));
+            new Point(100d, 100d),
+            new Point(200d, 100d),
+            new Point(200d, 200d),
+            new Point(100d, 100d)));
     pan.setPolygon(polygon);
 
     var result = subject.generateBaseImage(List.of(pan));

@@ -21,11 +21,11 @@ class RoofSlopeBoundaryFactoryTest {
     var polygon = new Polygon();
     polygon.setPoints(
         List.of(
-            new Point().setX(0d).setY(0d),
-            new Point().setX(10d).setY(0d),
-            new Point().setX(10d).setY(10d),
-            new Point().setX(0d).setY(10d),
-            new Point().setX(0d).setY(0d)));
+            Point.builder().x(0d).y(0d).build(),
+            Point.builder().x(10d).y(0d).build(),
+            Point.builder().x(10d).y(10d).build(),
+            Point.builder().x(0d).y(10d).build(),
+            Point.builder().x(0d).y(0d).build()));
     pan.setPolygon(polygon);
     var info = new ExportAreaPictureAnnotationInstanceInfo();
     info.setLabel("edgeTypes");
@@ -48,11 +48,7 @@ class RoofSlopeBoundaryFactoryTest {
   void create_should_use_default_type_when_edgeTypes_info_is_missing() {
     var pan = new ExportAreaPictureAnnotation3DPan();
     var polygon = new Polygon();
-    polygon.setPoints(
-        List.of(
-            new Point().setX(0d).setY(0d),
-            new Point().setX(10d).setY(0d),
-            new Point().setX(0d).setY(0d)));
+    polygon.setPoints(List.of(new Point(0d, 0d), new Point(10d, 0d), new Point(0d, 0d)));
     pan.setPolygon(polygon);
     pan.setInfos(List.of());
 

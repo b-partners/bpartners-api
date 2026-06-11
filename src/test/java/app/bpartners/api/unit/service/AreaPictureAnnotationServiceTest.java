@@ -4,12 +4,12 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.model.*;
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
 import app.bpartners.api.service.aws.S3Service;
 import java.io.IOException;

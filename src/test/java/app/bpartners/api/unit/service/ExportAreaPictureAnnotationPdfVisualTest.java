@@ -9,10 +9,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
+import app.bpartners.api.service.annotation.model.*;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -188,9 +188,10 @@ class ExportAreaPictureAnnotationPdfVisualTest {
               }
               pan.getInfos()
                   .add(
-                      new ExportAreaPictureAnnotationInstanceInfo()
+                      ExportAreaPictureAnnotationInstanceInfo.builder()
                           .label("edgeTypes")
-                          .value(jsonEdgeTypes));
+                          .value(jsonEdgeTypes)
+                          .build());
               pan.setImageUri("imageUri");
             });
 
@@ -198,7 +199,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   private ExportAreaPictureAnnotation unevenExportAreaPictureAnnotation() {
-    return new ExportAreaPictureAnnotation()
+    return ExportAreaPictureAnnotation.builder()
         .imageUrl("https://dummy.com")
         .address("Uneven Annotation Test")
         .annotations(
@@ -209,11 +210,12 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 exportInstance("Group C", "Type 3", "Moyen", "2m", 100, 100, 200, 200),
                 exportInstance("Group C", "Type 3", "Moyen", "2m", 200, 100, 300, 200),
                 exportInstance("Group C", "Type 3", "Moyen", "2m", 300, 100, 400, 200),
-                exportInstance("Group D", "Type 4", "N/A", "0m", 0, 200, 100, 300)));
+                exportInstance("Group D", "Type 4", "N/A", "0m", 0, 200, 100, 300)))
+        .build();
   }
 
   private ExportAreaPictureAnnotation fullExportAreaPictureAnnotation() {
-    return new ExportAreaPictureAnnotation()
+    return ExportAreaPictureAnnotation.builder()
         .imageUrl("https://dummy.com")
         .address("123 Rue de la Test, 75000 Paris")
         .globalRateValue(75.5)
@@ -234,47 +236,56 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 exportInstance(
                     "Bottom Right", "Corner", "Target", "4096,5120", 3996, 5020, 4096, 5120)))
         ._3d(
-            new ExportAreaPictureAnnotation3D()
+            ExportAreaPictureAnnotation3D.builder()
                 .pans(
                     List.of(
                         export3DPan("Top Left Pan", "25m²", "Target", 0, 0, 100, 100),
                         export3DPan("Top Right Pan", "22m²", "Target", 3996, 0, 4096, 100),
                         export3DPan("Bottom Left Pan", "30m²", "Target", 0, 5020, 100, 5120),
-                        export3DPan(
-                            "Bottom Right Pan", "28m²", "Target", 3996, 5020, 4096, 5120))));
+                        export3DPan("Bottom Right Pan", "28m²", "Target", 3996, 5020, 4096, 5120)))
+                .build())
+        .build();
   }
 
   private ExportAreaPictureAnnotationInstance exportInstance(
       String key, String type, String etat, String mesure, int x1, int y1, int x2, int y2) {
-    return new ExportAreaPictureAnnotationInstance()
+    return ExportAreaPictureAnnotationInstance.builder()
         .fillColor("#FF521B80") // with opacity
         .strokeColor("#FF521B")
         .labelName(key)
         .polygon(dummyPolygon(x1, y1, x2, y2))
         .measurements(
             List.of(
-                new ExportAreaPictureAnnotationMeasurement()
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(2.0)
                     .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
+                    .isInvisible(false)
+                    .build(),
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(2.0)
                     .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
+                    .isInvisible(false)
+                    .build(),
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(2.0)
                     .unit("m")
-                    .isInvisible(false),
-                new ExportAreaPictureAnnotationMeasurement()
+                    .isInvisible(false)
+                    .build(),
+                ExportAreaPictureAnnotationMeasurement.builder()
                     .value(2.0)
                     .unit("m")
-                    .isInvisible(false)))
+                    .isInvisible(false)
+                    .build()))
         .infos(
             List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("key").value(key),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Type").value(type),
-                new ExportAreaPictureAnnotationInstanceInfo().label("État").value(etat),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Mesure").value(mesure)));
+                ExportAreaPictureAnnotationInstanceInfo.builder().label("key").value(key).build(),
+                ExportAreaPictureAnnotationInstanceInfo.builder().label("Type").value(type).build(),
+                ExportAreaPictureAnnotationInstanceInfo.builder().label("État").value(etat).build(),
+                ExportAreaPictureAnnotationInstanceInfo.builder()
+                    .label("Mesure")
+                    .value(mesure)
+                    .build()))
+        .build();
   }
 
   static app.bpartners.api.model.User user() {

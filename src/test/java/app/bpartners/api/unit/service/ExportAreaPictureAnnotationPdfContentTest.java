@@ -7,9 +7,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
+import app.bpartners.api.service.annotation.model.*;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -30,14 +30,16 @@ class ExportAreaPictureAnnotationPdfContentTest {
   @Test
   void html_should_contain_3d_pans_information() {
     ExportAreaPictureAnnotation annotation =
-        new ExportAreaPictureAnnotation()
+        ExportAreaPictureAnnotation.builder()
             .address("123 Test Street")
             ._3d(
-                new ExportAreaPictureAnnotation3D()
+                ExportAreaPictureAnnotation3D.builder()
                     .pans(
                         List.of(
                             export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
-                            export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150))));
+                            export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150)))
+                    .build())
+            .build();
 
     Pair<String, List<String>> annotationImages = new Pair<>("main", List.of());
     Pair<String, List<String>> annotation3DImages =
@@ -70,9 +72,10 @@ class ExportAreaPictureAnnotationPdfContentTest {
   @Test
   void html_should_contain_llm_analysis() {
     ExportAreaPictureAnnotation annotation =
-        new ExportAreaPictureAnnotation()
+        ExportAreaPictureAnnotation.builder()
             .address("123 Test Street")
-            .llm("<h2>Analyse LLM</h2><p>Test content with emoji 🛠️</p>");
+            .llm("<h2>Analyse LLM</h2><p>Test content with emoji 🛠️</p>")
+            .build();
 
     Context context =
         app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(

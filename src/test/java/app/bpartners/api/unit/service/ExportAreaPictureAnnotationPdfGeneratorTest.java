@@ -7,9 +7,9 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
+import app.bpartners.api.service.annotation.model.*;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -81,7 +81,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
   }
 
   static ExportAreaPictureAnnotation exportAreaPictureAnnotation() {
-    return new ExportAreaPictureAnnotation()
+    return ExportAreaPictureAnnotation.builder()
         .imageUrl("https://dummy.com")
         .address("Dummy Address")
         .annotations(
@@ -89,15 +89,23 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
                 exportAreaPictureAnnotationInstance("key1"),
                 exportAreaPictureAnnotationInstance("key1"),
                 exportAreaPictureAnnotationInstance("key2"),
-                exportAreaPictureAnnotationInstance("key2")));
+                exportAreaPictureAnnotationInstance("key2")))
+        .build();
   }
 
   static ExportAreaPictureAnnotationInstance exportAreaPictureAnnotationInstance(String key) {
-    return new ExportAreaPictureAnnotationInstance()
+    return ExportAreaPictureAnnotationInstance.builder()
         .infos(
             List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("key").value(key),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Type").value("Non renseigné"),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value("305 m²")));
+                ExportAreaPictureAnnotationInstanceInfo.builder().label("key").value(key).build(),
+                ExportAreaPictureAnnotationInstanceInfo.builder()
+                    .label("Type")
+                    .value("Non renseigné")
+                    .build(),
+                ExportAreaPictureAnnotationInstanceInfo.builder()
+                    .label("Surface")
+                    .value("305 m²")
+                    .build()))
+        .build();
   }
 }

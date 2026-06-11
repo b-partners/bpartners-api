@@ -59,7 +59,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
 
     when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any(), any()))
         .thenReturn(fileMock);
-    when(exportAreaPictureAnnotationMock.imageUrl()).thenReturn("https://dummy.com");
+    when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("https://dummy.com");
     when(fileServiceMock.downloadFile(any(), any(), any()))
         .thenReturn(new ClassPathResource("files/downloaded-annotation-image.jpeg").getFile());
   }

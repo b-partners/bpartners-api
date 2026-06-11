@@ -39,6 +39,7 @@ class ExportAreaPictureAnnotationPdfContentTest {
                             export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
                             export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150)))
                     .build())
+            .annotations(List.of())
             .build();
 
     Pair<String, List<String>> annotationImages = new Pair<>("main", List.of());

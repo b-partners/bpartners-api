@@ -6,8 +6,8 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.LogCaptor;
 import app.bpartners.api.endpoint.rest.model.*;
-import app.bpartners.api.endpoint.rest.model.Point;
-import app.bpartners.api.endpoint.rest.model.Polygon;
+import app.bpartners.api.service.annotation.model.Point;
+import app.bpartners.api.service.annotation.model.Polygon;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.User;

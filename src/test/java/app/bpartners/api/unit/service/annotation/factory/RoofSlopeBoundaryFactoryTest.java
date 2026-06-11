@@ -2,10 +2,10 @@ package app.bpartners.api.unit.service.annotation.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
-import app.bpartners.api.endpoint.rest.model.Point;
-import app.bpartners.api.endpoint.rest.model.Polygon;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.service.annotation.model.Point;
+import app.bpartners.api.service.annotation.model.Polygon;
 import app.bpartners.api.model.annotation.IntXY;
 import app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
@@ -19,20 +19,20 @@ class RoofSlopeBoundaryFactoryTest {
   void create_should_return_boundaries_with_correct_types() {
     var pan =
         new ExportAreaPictureAnnotation3DPan()
-            .polygon(
+            .setPolygon(
                 new Polygon()
-                    .points(
+                    .setPoints(
                         List.of(
-                            new Point().x(0d).y(0d),
-                            new Point().x(10d).y(0d),
-                            new Point().x(10d).y(10d),
-                            new Point().x(0d).y(10d),
-                            new Point().x(0d).y(0d))))
-            .infos(
+                            new Point().setX(0d).setY(0d),
+                            new Point().setX(10d).setY(0d),
+                            new Point().setX(10d).setY(10d),
+                            new Point().setX(0d).setY(10d),
+                            new Point().setX(0d).setY(0d))))
+            .setInfos(
                 List.of(
                     new ExportAreaPictureAnnotationInstanceInfo()
-                        .label("edgeTypes")
-                        .value("[\"faitage\", \"egout\", \"rive\", \"noue\"]")));
+                        .setLabel("edgeTypes")
+                        .setValue("[\"faitage\", \"egout\", \"rive\", \"noue\"]")));
     var transform =
         Transform.builder().min(new IntXY(0, 0)).offset(new IntXY(0, 0)).scale(1.0).build();
 
@@ -49,14 +49,14 @@ class RoofSlopeBoundaryFactoryTest {
   void create_should_use_default_type_when_edgeTypes_info_is_missing() {
     var pan =
         new ExportAreaPictureAnnotation3DPan()
-            .polygon(
+            .setPolygon(
                 new Polygon()
-                    .points(
+                    .setPoints(
                         List.of(
-                            new Point().x(0d).y(0d),
-                            new Point().x(10d).y(0d),
-                            new Point().x(0d).y(0d))))
-            .infos(List.of());
+                            new Point().setX(0d).setY(0d),
+                            new Point().setX(10d).setY(0d),
+                            new Point().setX(0d).setY(0d))))
+            .setInfos(List.of());
     var transform =
         Transform.builder().min(new IntXY(0, 0)).offset(new IntXY(0, 0)).scale(1.0).build();
 

@@ -3,10 +3,10 @@ package app.bpartners.api.unit.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
-import app.bpartners.api.endpoint.rest.model.Point;
-import app.bpartners.api.endpoint.rest.model.Polygon;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.service.annotation.model.Point;
+import app.bpartners.api.service.annotation.model.Polygon;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.Coordinates;
 import java.awt.Color;

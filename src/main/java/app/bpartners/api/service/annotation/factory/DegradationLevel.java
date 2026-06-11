@@ -1,6 +1,6 @@
 package app.bpartners.api.service.annotation.factory;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

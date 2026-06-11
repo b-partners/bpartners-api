@@ -1,6 +1,6 @@
 package app.bpartners.api.service.annotation;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

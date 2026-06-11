@@ -5,7 +5,7 @@ import static java.awt.Color.*;
 import static java.awt.Font.PLAIN;
 import static java.util.Objects.requireNonNull;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.model.annotation.IntXY;
 import app.bpartners.api.service.annotation.factory.BufferedImageFactory;
 import app.bpartners.api.service.annotation.factory.Graphics2DFactory;
@@ -53,7 +53,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
     pans.forEach(
         pan -> {
-          var rawData = Coordinates.from(requireNonNull(pan.getPolygon()));
+          var rawData = Coordinates.from(pan.getPolygon());
           var mapped = transform.apply(rawData);
 
           drawFillPolygon(g2d, RED, mapped);
@@ -114,7 +114,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   private static void drawPan(
       Graphics2D g2d, Transform transform, Color fillColor, ExportAreaPictureAnnotation3DPan pan) {
-    var polygon = Coordinates.from(requireNonNull(pan.getPolygon()));
+    var polygon = Coordinates.from(pan.getPolygon());
     polygon = transform.apply(polygon);
 
     drawFillPolygon(g2d, fillColor, polygon);
@@ -128,7 +128,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var panImage = BufferedImageFactory.make(baseImage);
     var g2d = Graphics2DFactory.make(panImage);
 
-    var polygon = Coordinates.from(requireNonNull(panToHighlight.getPolygon()));
+    var polygon = Coordinates.from(panToHighlight.getPolygon());
     polygon = transform.apply(polygon);
 
     drawFillPolygon(g2d, SELECTED_PAN_COLOR, polygon);

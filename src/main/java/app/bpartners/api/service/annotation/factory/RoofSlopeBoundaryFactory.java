@@ -1,6 +1,6 @@
 package app.bpartners.api.service.annotation.factory;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.service.annotation.model.Coordinates;
 import app.bpartners.api.service.annotation.model.RoofSlopBoundary;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;

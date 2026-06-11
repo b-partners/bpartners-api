@@ -3,7 +3,7 @@ package app.bpartners.api.service.areapicture;
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.AreaPictureAnnotation;

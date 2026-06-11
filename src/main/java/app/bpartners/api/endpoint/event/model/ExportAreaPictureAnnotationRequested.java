@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.event.model;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
 import java.time.Duration;
 import lombok.*;
 

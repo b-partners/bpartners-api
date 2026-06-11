@@ -6,9 +6,9 @@ import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationIm
 import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.base64;
 import static app.bpartners.api.service.utils.UserUtils.getUserLogo;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator.GroupedByKey;

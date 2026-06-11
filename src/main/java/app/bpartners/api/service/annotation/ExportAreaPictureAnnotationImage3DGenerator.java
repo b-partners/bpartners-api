@@ -5,11 +5,11 @@ import static java.awt.Color.*;
 import static java.awt.Font.PLAIN;
 import static java.util.Objects.requireNonNull;
 
-import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.model.annotation.IntXY;
 import app.bpartners.api.service.annotation.factory.BufferedImageFactory;
 import app.bpartners.api.service.annotation.factory.Graphics2DFactory;
 import app.bpartners.api.service.annotation.model.Coordinates;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.Transform;
 import java.awt.*;

@@ -5,13 +5,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.LogCaptor;
-import app.bpartners.api.endpoint.rest.model.*;
-import app.bpartners.api.service.annotation.model.Point;
-import app.bpartners.api.service.annotation.model.Polygon;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.*;
 import app.bpartners.api.service.file.FileService;
 import ch.qos.logback.classic.Level;
 import java.io.File;
@@ -32,10 +29,12 @@ public class ExportAnnotationContextFactoryTest {
     pan.setImageUri("file-id");
     pan.setPolygon(dummyPolygon(50, 50, 50, 50));
     pan.setName("pan1");
-    annotation3D.addPansItem(pan);
+    annotation3D.setPans(List.of(pan));
     when(fileService.findById("file-id"))
         .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
-    when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(imageFile);
+    when(fileService.downloadFile(
+            app.bpartners.api.endpoint.rest.model.FileType.IMAGE, "user-id", "file-id"))
+        .thenReturn(imageFile);
 
     List<String> actual =
         ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
@@ -54,7 +53,7 @@ public class ExportAnnotationContextFactoryTest {
     pan.setImageUri("");
     pan.setPolygon(dummyPolygon(50, 50, 50, 50));
     pan.setName("pan_blank");
-    annotation3D.addPansItem(pan);
+    annotation3D.setPans(List.of(pan));
 
     List<String> actual =
         ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
@@ -71,11 +70,13 @@ public class ExportAnnotationContextFactoryTest {
     pan.setImageUri("file-id");
     pan.setPolygon(dummyPolygon(50, 50, 50, 50));
     pan.setName("pan_error");
-    annotation3D.addPansItem(pan);
+    annotation3D.setPans(List.of(pan));
 
     when(fileService.findById("file-id"))
         .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
-    when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(null);
+    when(fileService.downloadFile(
+            app.bpartners.api.endpoint.rest.model.FileType.IMAGE, "user-id", "file-id"))
+        .thenReturn(null);
 
     List<String> actual =
         ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
@@ -95,7 +96,7 @@ public class ExportAnnotationContextFactoryTest {
     pan.setImageUri("file-id");
     pan.setPolygon(dummyPolygon(50, 50, 50, 50));
     pan.setName("pan_missing_file_info");
-    annotation3D.addPansItem(pan);
+    annotation3D.setPans(List.of(pan));
 
     when(fileService.findById("file-id")).thenReturn(null);
 

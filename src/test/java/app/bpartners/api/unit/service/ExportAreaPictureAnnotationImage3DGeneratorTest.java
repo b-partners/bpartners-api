@@ -3,12 +3,12 @@ package app.bpartners.api.unit.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
+import app.bpartners.api.service.annotation.model.Coordinates;
 import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotationInstanceInfo;
 import app.bpartners.api.service.annotation.model.Point;
 import app.bpartners.api.service.annotation.model.Polygon;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
-import app.bpartners.api.service.annotation.model.Coordinates;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -21,22 +21,20 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
 
   @Test
   void generateBaseImageWithSlopeBoundary_should_draw_correct_colors() {
-    var pan =
-        new ExportAreaPictureAnnotation3DPan()
-            .polygon(
-                new Polygon()
-                    .points(
-                        List.of(
-                            new Point().x(100d).y(100d),
-                            new Point().x(200d).y(100d),
-                            new Point().x(200d).y(200d),
-                            new Point().x(100d).y(200d),
-                            new Point().x(100d).y(100d))))
-            .infos(
-                List.of(
-                    new ExportAreaPictureAnnotationInstanceInfo()
-                        .label("edgeTypes")
-                        .value("[\"faitage\", \"egout\", \"rive\", \"noue\"]")));
+    var pan = new ExportAreaPictureAnnotation3DPan();
+    var polygon = new Polygon();
+    polygon.setPoints(
+        List.of(
+            new Point().setX(100d).setY(100d),
+            new Point().setX(200d).setY(100d),
+            new Point().setX(200d).setY(200d),
+            new Point().setX(100d).setY(200d),
+            new Point().setX(100d).setY(100d)));
+    pan.setPolygon(polygon);
+    var info = new ExportAreaPictureAnnotationInstanceInfo();
+    info.setLabel("edgeTypes");
+    info.setValue("[\"faitage\", \"egout\", \"rive\", \"noue\"]");
+    pan.setInfos(List.of(info));
 
     var result = subject.generateBaseImageWithSlopeBoundary(List.of(pan));
     BufferedImage image = result.second();
@@ -50,7 +48,6 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
         transform.apply(
             new Coordinates(new int[] {150, 200, 150, 100}, new int[] {100, 150, 200, 150}));
 
-    // faitage color: 220, 20, 60
     assertColorEquals(new Color(220, 20, 60), image.getRGB(coords.allX()[0], coords.allY()[0]));
     // egout color: 30, 144, 255
     assertColorEquals(new Color(30, 144, 255), image.getRGB(coords.allX()[1], coords.allY()[1]));
@@ -62,16 +59,15 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
 
   @Test
   void generateBaseImage_should_draw_pans_in_red() {
-    var pan =
-        new ExportAreaPictureAnnotation3DPan()
-            .polygon(
-                new Polygon()
-                    .points(
-                        List.of(
-                            new Point().x(100d).y(100d),
-                            new Point().x(200d).y(100d),
-                            new Point().x(200d).y(200d),
-                            new Point().x(100d).y(100d))));
+    var pan = new ExportAreaPictureAnnotation3DPan();
+    var polygon = new Polygon();
+    polygon.setPoints(
+        List.of(
+            new Point().setX(100d).setY(100d),
+            new Point().setX(200d).setY(100d),
+            new Point().setX(200d).setY(200d),
+            new Point().setX(100d).setY(100d)));
+    pan.setPolygon(polygon);
 
     var result = subject.generateBaseImage(List.of(pan));
     BufferedImage image = result.second();

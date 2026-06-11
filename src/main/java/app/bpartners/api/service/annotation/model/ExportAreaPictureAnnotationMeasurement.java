@@ -5,15 +5,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import lombok.experimental.Accessors;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Accessors(chain = true)
 public class ExportAreaPictureAnnotationMeasurement {
   private String unit;
   private Double value;
+
+  @com.fasterxml.jackson.annotation.JsonProperty("isInvisible")
   private Boolean isInvisible;
+
+  public Boolean isInvisible() {
+    return isInvisible;
+  }
 }

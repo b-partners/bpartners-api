@@ -4,11 +4,11 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotationInstanceInfo;
-import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -98,12 +98,13 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       assert !this.instances.isEmpty();
       var instance = this.instances.getFirst();
 
-      return new ExportAreaPictureAnnotationInstance()
-          .setLabelName(key)
-          .setFillColor(instance.getFillColor())
-          .setInfos(infos())
-          .setMeasurements(instance.getMeasurements())
-          .setPolygon(instance.getPolygon());
+      var result = new ExportAreaPictureAnnotationInstance();
+      result.setLabelName(key);
+      result.setFillColor(instance.getFillColor());
+      result.setInfos(infos());
+      result.setMeasurements(instance.getMeasurements());
+      result.setPolygon(instance.getPolygon());
+      return result;
     }
 
     public List<ExportAreaPictureAnnotationInstanceInfo> infos() {

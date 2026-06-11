@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.*;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
@@ -59,7 +59,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
 
     when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any(), any()))
         .thenReturn(fileMock);
-    when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("https://dummy.com");
+    when(exportAreaPictureAnnotationMock.imageUrl()).thenReturn("https://dummy.com");
     when(fileServiceMock.downloadFile(any(), any(), any()))
         .thenReturn(new ClassPathResource("files/downloaded-annotation-image.jpeg").getFile());
   }

@@ -2,8 +2,6 @@ package app.bpartners.api.service.annotation.model;
 
 import static java.util.Objects.requireNonNull;
 
-import app.bpartners.api.service.annotation.model.Polygon;
-
 public record Coordinates(int[] allX, int[] allY) {
   public static Coordinates from(Polygon polygon) {
     var coordinates = requireNonNull(polygon.getPoints());

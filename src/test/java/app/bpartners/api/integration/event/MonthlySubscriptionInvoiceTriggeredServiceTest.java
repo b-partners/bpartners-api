@@ -1,5 +1,6 @@
 package app.bpartners.api.integration.event;
 
+import static app.bpartners.api.endpoint.event.EventStack.EVENT_STACK_2;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,13 +66,14 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
         (MonthlySubscriptionInvoiceRequested) eventCaptor.getAllValues().getLast().getFirst();
 
     assertEquals(
-        new UpcomingDebitedCustomerExportRequested(YearMonth.now()),
+        new UpcomingDebitedCustomerExportRequested(YearMonth.now().minusMonths(1L)),
         upcomingDebitedCustomerExportRequested);
     assertEquals(
         Duration.ofSeconds(120L), upcomingDebitedCustomerExportRequested.maxConsumerDuration());
     assertEquals(
         Duration.ofSeconds(60),
         upcomingDebitedCustomerExportRequested.maxConsumerBackoffBetweenRetries());
+    assertEquals(EVENT_STACK_2, upcomingDebitedCustomerExportRequested.getEventStack());
     assertEquals(
         expectedMonthlySubscriptionInvoiceRequestedPage1, monthlySubscriptionInvoiceRequested1);
     assertEquals(

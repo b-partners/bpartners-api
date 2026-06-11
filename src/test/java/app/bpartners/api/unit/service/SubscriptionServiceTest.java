@@ -4,6 +4,7 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.R
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
+import static java.time.ZoneOffset.UTC;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -393,7 +394,14 @@ class SubscriptionServiceTest {
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
     when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
     when(detectionTrackingJpaRepositoryMock.findAllByIdUserAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+            userId,
+            temporalUtils.startOfLastMonth().atStartOfDay().toInstant(UTC),
+            temporalUtils
+                .endOfLastMonth()
+                .plusDays(1L)
+                .atStartOfDay()
+                .minusSeconds(1L)
+                .toInstant(UTC)))
         .thenReturn(someDetectionTrackingLogs(userId, (int) expectedUsage));
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
         .thenReturn(subscriptionProductMock);
@@ -459,7 +467,14 @@ class SubscriptionServiceTest {
       when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
       when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
       when(detectionTrackingJpaRepositoryMock.findAllByIdUserAndCreationDatetimeBetween(
-              userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+              userId,
+              temporalUtils.startOfLastMonth().atStartOfDay().toInstant(UTC),
+              temporalUtils
+                  .endOfLastMonth()
+                  .plusDays(1L)
+                  .atStartOfDay()
+                  .minusSeconds(1L)
+                  .toInstant(UTC)))
           .thenReturn(someDetectionTrackingLogs(userId, (int) expectedUsage));
       when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
           .thenReturn(subscriptionProductMock);
@@ -490,7 +505,14 @@ class SubscriptionServiceTest {
 
     when(userMock.getId()).thenReturn(userId);
     when(detectionTrackingJpaRepositoryMock.findAllByIdUserAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+            userId,
+            temporalUtils.startOfLastMonth().atStartOfDay().toInstant(UTC),
+            temporalUtils
+                .endOfLastMonth()
+                .plusDays(1L)
+                .atStartOfDay()
+                .minusSeconds(1L)
+                .toInstant(UTC)))
         .thenReturn(someDetectionTrackingLogs(userId, (int) expectedUsage));
 
     var actual = subject.computeMonthlySubscriptionVariableConsumption(userMock);
@@ -524,7 +546,14 @@ class SubscriptionServiceTest {
     when(stripeClientMock.subscriptions()).thenReturn(stripeSubscriptionServiceMock);
 
     when(detectionTrackingJpaRepositoryMock.findAllByIdUserAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+            userId,
+            temporalUtils.startOfLastMonth().atStartOfDay().toInstant(UTC),
+            temporalUtils
+                .endOfLastMonth()
+                .plusDays(1L)
+                .atStartOfDay()
+                .minusSeconds(1L)
+                .toInstant(UTC)))
         .thenReturn(someDetectionTrackingLogs(userId, (int) expectedUsage));
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
         .thenReturn(subscriptionProductMock);
@@ -564,7 +593,14 @@ class SubscriptionServiceTest {
     when(stripeClientMock.subscriptionItems()).thenReturn(subscriptionItemServiceMock);
 
     when(detectionTrackingJpaRepositoryMock.findAllByIdUserAndCreationDatetimeBetween(
-            userId, temporalUtils.startOfMonth(), temporalUtils.endOfMonth()))
+            userId,
+            temporalUtils.startOfLastMonth().atStartOfDay().toInstant(UTC),
+            temporalUtils
+                .endOfLastMonth()
+                .plusDays(1L)
+                .atStartOfDay()
+                .minusSeconds(1L)
+                .toInstant(UTC)))
         .thenReturn(someDetectionTrackingLogs(userId, (int) expectedUsage));
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
         .thenReturn(subscriptionProductMock);

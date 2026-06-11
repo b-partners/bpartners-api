@@ -52,6 +52,9 @@ public class RoofSlopeBoundaryFactory {
 
   public static List<String> getRoofSlopeBoundaryTypeNames(ExportAreaPictureAnnotation3DPan pan) {
     try {
+      if (pan.getInfos() == null) {
+        return List.of();
+      }
       var mapper = new ObjectMapper();
       var rawTypeNames =
           pan.getInfos().stream()

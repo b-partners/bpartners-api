@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.model.ExportAreaPictureAnnotationRequested;
-import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.ExportAreaPictureAnnotationRequestedService;

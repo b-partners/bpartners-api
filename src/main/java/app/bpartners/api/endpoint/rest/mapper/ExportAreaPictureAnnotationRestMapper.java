@@ -8,7 +8,6 @@ import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotationIns
 import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotationMeasurement;
 import app.bpartners.api.service.annotation.model.Point;
 import app.bpartners.api.service.annotation.model.Polygon;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,9 +39,7 @@ public class ExportAreaPictureAnnotationRestMapper {
     }
     var domain = new ExportAreaPictureAnnotation3D();
     domain.setPans(
-        rest.getPans() == null
-            ? null
-            : rest.getPans().stream().map(this::toDomain).toList());
+        rest.getPans() == null ? null : rest.getPans().stream().map(this::toDomain).toList());
     return domain;
   }
 
@@ -60,9 +57,7 @@ public class ExportAreaPictureAnnotationRestMapper {
             ? null
             : rest.getMeasurements().stream().map(this::toDomain).toList());
     domain.setInfos(
-        rest.getInfos() == null
-            ? null
-            : rest.getInfos().stream().map(this::toDomain).toList());
+        rest.getInfos() == null ? null : rest.getInfos().stream().map(this::toDomain).toList());
     return domain;
   }
 
@@ -77,9 +72,7 @@ public class ExportAreaPictureAnnotationRestMapper {
             ? null
             : rest.getMeasurements().stream().map(this::toDomain).toList());
     domain.setInfos(
-        rest.getInfos() == null
-            ? null
-            : rest.getInfos().stream().map(this::toDomain).toList());
+        rest.getInfos() == null ? null : rest.getInfos().stream().map(this::toDomain).toList());
     domain.setPolygon(toDomain(rest.getPolygon()));
     domain.setFillColor(rest.getFillColor());
     domain.setStrokeColor(rest.getStrokeColor());
@@ -116,9 +109,7 @@ public class ExportAreaPictureAnnotationRestMapper {
     }
     var domain = new Polygon();
     domain.setPoints(
-        rest.getPoints() == null
-            ? null
-            : rest.getPoints().stream().map(this::toDomain).toList());
+        rest.getPoints() == null ? null : rest.getPoints().stream().map(this::toDomain).toList());
     return domain;
   }
 

@@ -1,7 +1,5 @@
 package app.bpartners.api.service.annotation.model;
 
-import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotationMeasurement;
 import app.bpartners.api.model.annotation.IntXY;
 import app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory;
 import java.awt.*;

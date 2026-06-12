@@ -32,7 +32,7 @@ class ExportAreaPictureAnnotationPdfContentTest {
     ExportAreaPictureAnnotation annotation =
         ExportAreaPictureAnnotation.builder()
             .address("123 Test Street")
-            ._3d(
+            .annotation3d(
                 ExportAreaPictureAnnotation3D.builder()
                     .pans(
                         List.of(

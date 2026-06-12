@@ -38,8 +38,7 @@ public class ExportAreaPictureAnnotationRestMapper {
       return null;
     }
     var domain = new ExportAreaPictureAnnotation3D();
-    domain.setPans(
-        rest.getPans() == null ? null : rest.getPans().stream().map(this::toDomain).toList());
+    domain.setPans(rest.getPans().stream().map(this::toDomain).toList());
     return domain;
   }
 
@@ -67,12 +66,8 @@ public class ExportAreaPictureAnnotationRestMapper {
       return null;
     }
     var domain = new ExportAreaPictureAnnotationInstance();
-    domain.setMeasurements(
-        rest.getMeasurements() == null
-            ? null
-            : rest.getMeasurements().stream().map(this::toDomain).toList());
-    domain.setInfos(
-        rest.getInfos() == null ? null : rest.getInfos().stream().map(this::toDomain).toList());
+    domain.setMeasurements(rest.getMeasurements().stream().map(this::toDomain).toList());
+    domain.setInfos(rest.getInfos().stream().map(this::toDomain).toList());
     domain.setPolygon(toDomain(rest.getPolygon()));
     domain.setFillColor(rest.getFillColor());
     domain.setStrokeColor(rest.getStrokeColor());
@@ -88,7 +83,7 @@ public class ExportAreaPictureAnnotationRestMapper {
     var domain = new ExportAreaPictureAnnotationMeasurement();
     domain.setUnit(rest.getUnit());
     domain.setValue(rest.getValue());
-    domain.setIsInvisible(rest.getIsInvisible());
+    domain.setInvisible(rest.getIsInvisible());
     return domain;
   }
 

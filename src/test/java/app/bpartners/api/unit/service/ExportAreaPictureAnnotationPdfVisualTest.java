@@ -235,7 +235,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 exportInstance("Bottom Left", "Corner", "Target", "0,5120", 0, 5020, 100, 5120),
                 exportInstance(
                     "Bottom Right", "Corner", "Target", "4096,5120", 3996, 5020, 4096, 5120)))
-        ._3d(
+        .annotation3d(
             ExportAreaPictureAnnotation3D.builder()
                 .pans(
                     List.of(

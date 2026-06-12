@@ -11,12 +11,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ExportAreaPictureAnnotationMeasurement {
   private String unit;
-  private Double value;
+  private double value;
 
   @com.fasterxml.jackson.annotation.JsonProperty("isInvisible")
-  private Boolean isInvisible;
+  private boolean isInvisible;
 
-  public Boolean isInvisible() {
+  public boolean isInvisible() {
     return isInvisible;
+  }
+
+  public void setInvisible(boolean invisible) {
+    this.isInvisible = invisible;
   }
 }

@@ -109,7 +109,7 @@ public class ExportAreaPictureAnnotationImageGenerator
     var measurements = annotationInstance.getMeasurements();
     for (int i = 0; i < coordinates.size() - 1; i++) {
       var measurement = measurements.get(i);
-      if (measurement.getIsInvisible()) {
+      if (measurement.isInvisible()) {
         continue;
       }
 

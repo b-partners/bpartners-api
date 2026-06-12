@@ -56,6 +56,7 @@ public class ExportAnnotationContextFactory {
             3,
             3));
     context.setVariable("subImagesPages", groupByFirstPage(subImagesUris, 3, 3));
+    context.setVariable("roofSummary", AnnotationSummaryFactory.create(annotation));
 
     if (annotation.getLlm() != null) {
       configureLLMContext(context, annotation);

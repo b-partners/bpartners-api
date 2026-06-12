@@ -2,14 +2,14 @@ package app.bpartners.api.service.annotation.factory;
 
 import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory.getRoofSlopeBoundaryTypeNames;
 
-import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.model.Drawer;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.service.annotation.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.file.FileService;
@@ -49,12 +49,15 @@ public class ExportAnnotationContextFactory {
     context.setVariable("logo", logoUri);
     context.setVariable("address", annotation.getAddress());
     context.setVariable("mainImage", mainImageUri);
-    context.setVariable(
-        "pages",
-        groupByFirstPage(
-            ExportAreaPictureAnnotationPDFGenerator.GroupedByKey.from(annotation.getAnnotations()),
-            3,
-            3));
+    if (annotation.getAnnotations() != null) {
+      context.setVariable(
+          "pages",
+          groupByFirstPage(
+              ExportAreaPictureAnnotationPDFGenerator.GroupedByKey.from(
+                  annotation.getAnnotations()),
+              3,
+              3));
+    }
     context.setVariable("subImagesPages", groupByFirstPage(subImagesUris, 3, 3));
 
     if (annotation.getLlm() != null) {

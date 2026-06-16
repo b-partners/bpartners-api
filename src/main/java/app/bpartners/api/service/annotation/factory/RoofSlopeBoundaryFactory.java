@@ -43,7 +43,7 @@ public class RoofSlopeBoundaryFactory {
   private static Pair<List<String>, List<Point>> validate(ExportAreaPictureAnnotation3DPan pan) {
     var boundariesTypesNames = getRoofSlopeBoundaryTypeNames(pan);
     var points = pan.getPolygon().getPoints();
-    if (points == null || points.isEmpty()) {
+    if (points == null) {
       throw new IllegalStateException("No points provided for pan " + pan.getName());
     }
     if (points.size() - 1 != boundariesTypesNames.size()) {

@@ -1,10 +1,8 @@
 package app.bpartners.api.service.annotation.factory;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.service.annotation.model.Coordinates;
-import app.bpartners.api.service.annotation.model.RoofSlopBoundary;
-import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
-import app.bpartners.api.service.annotation.model.Transform;
+import app.bpartners.api.endpoint.rest.model.Point;
+import app.bpartners.api.service.annotation.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,11 +17,13 @@ public class RoofSlopeBoundaryFactory {
   public static List<RoofSlopBoundary> create(
       Transform transform, ExportAreaPictureAnnotation3DPan pan) {
     var boundaries = new ArrayList<RoofSlopBoundary>();
-    var boundariesTypesNames = getRoofSlopeBoundaryTypeNames(pan);
+    var validePan = validate(pan);
+    var boundariesTypesNames = validePan.first();
+    var points = validePan.second();
 
-    for (int i = 1; i < pan.getPolygon().getPoints().size(); i++) {
-      var startPoint = pan.getPolygon().getPoints().get(i - 1);
-      var endPoint = pan.getPolygon().getPoints().get(i);
+    for (int i = 1; i < points.size(); i++) {
+      var startPoint = points.get(i - 1);
+      var endPoint = points.get(i);
       var boundaryCoordinates =
           new Coordinates(
               new int[] {startPoint.getX().intValue(), endPoint.getX().intValue()},
@@ -38,6 +38,24 @@ public class RoofSlopeBoundaryFactory {
     }
 
     return boundaries;
+  }
+
+  private static Pair<List<String>, List<Point>> validate(ExportAreaPictureAnnotation3DPan pan) {
+    var boundariesTypesNames = getRoofSlopeBoundaryTypeNames(pan);
+    var points = pan.getPolygon().getPoints();
+    if (points == null || points.isEmpty()) {
+      throw new IllegalStateException("No points provided for pan " + pan.getName());
+    }
+    if (points.size() - 1 != boundariesTypesNames.size()) {
+      throw new IllegalStateException(
+          "Number of edges and number of edge types should be equal. "
+              + "Edges: "
+              + (points.size() - 1)
+              + ", edge types: "
+              + boundariesTypesNames.size());
+    }
+
+    return new Pair<>(boundariesTypesNames, points);
   }
 
   private static RoofSlopeBoundaryType getRoofSlopeBoundaryType(

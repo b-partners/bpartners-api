@@ -576,7 +576,7 @@
             <tr>
                 <td>
                     <div th:text="${user.getName()}"></div>
-                    <div th:text="${address}"></div>
+                    <div th:text="${user.getDefaultHolder().getAddress()}"></div>
                     <div th:text="${user.getMobilePhoneNumber()}"></div>
                     <div th:text="${user.getEmail()}"></div>
                     <div th:if="${userWebsite}">

@@ -54,8 +54,6 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
         .thenReturn(mockImage);
     when(exportAreaPictureAnnotationImage3DGeneratorMock.generateBaseImage(any()))
         .thenReturn(new Pair<>(mock(), mockImage));
-    when(exportAreaPictureAnnotationImage3DGeneratorMock.generatePanImage(any(), any(), any()))
-        .thenReturn(mockImage);
 
     when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any(), any()))
         .thenReturn(fileMock);

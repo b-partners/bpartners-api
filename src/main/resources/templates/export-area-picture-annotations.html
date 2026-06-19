@@ -89,6 +89,12 @@
             text-align: center;
         }
 
+        .summary-image-wrapper {
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+        }
+
         .main-image-3d {
             display: inline-block;
             height: 320px;
@@ -720,7 +726,7 @@
         <h2 class="annotation-information-title">Résumé sur les mesures</h2>
         <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
 
-        <div class="image-wrapper">
+        <div class="summary-image-wrapper">
             <img alt="roof-summary-diagram" class="summary-image" th:src="${roofSummary.baseImageWithNamesUri}"/>
         </div>
     </div>

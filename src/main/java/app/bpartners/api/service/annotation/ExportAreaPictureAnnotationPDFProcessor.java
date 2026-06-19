@@ -3,7 +3,7 @@ package app.bpartners.api.service.annotation;
 import static app.bpartners.api.file.FileWriter.base64Image;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.adjustAnnotation;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
-import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.base64;
+import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64;
 import static app.bpartners.api.service.utils.UserUtils.getUserLogo;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;

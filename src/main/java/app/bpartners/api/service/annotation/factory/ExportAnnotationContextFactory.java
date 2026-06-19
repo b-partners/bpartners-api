@@ -43,7 +43,7 @@ public class ExportAnnotationContextFactory {
             .map(ExportAnnotationContextFactory::base64ToUri)
             .toList();
     var defaultAccountHolder = user.getDefaultHolder();
-    var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "";
+    var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
 
     context.setVariable("user", user);
     context.setVariable("userWebsite", user.getDefaultWebsite());

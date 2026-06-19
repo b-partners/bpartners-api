@@ -67,16 +67,6 @@
             object-fit: contain;
         }
 
-        .diagram-page-image-mini {
-            display: block;
-            max-width: 100%;
-            max-height: 450px;
-            width: auto;
-            height: auto;
-            margin: 0 auto 0 auto;
-            object-fit: contain;
-        }
-
         .title {
             font-size: 1.7rem; /* ~ 20px */
             text-align: center;
@@ -121,6 +111,16 @@
             width: auto;
             height: auto;
             margin: 0 auto;
+            object-fit: contain;
+        }
+
+        .diagram-page-image-mini {
+            display: block;
+            max-width: 100%;
+            max-height: 450px;
+            width: auto;
+            height: auto;
+            margin: 0 auto 0 auto;
             object-fit: contain;
         }
 
@@ -740,9 +740,11 @@
         <h2 class="annotation-information-title">Résumé sur les mesures</h2>
         <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
 
-        <img alt="roof-summary-diagram"
-                 class="diagram-page-image-mini"
-                 th:src="${roofSummary.baseImageWithNamesUri}"/>
+        <img
+            alt="roof-summary-diagram"
+            th:src="${roofSummary.baseImageWithNamesUri}"
+            style="display:block; margin-left:auto; margin-right:auto; max-height:450px; max-width:100%; width:auto; height:auto;"
+        />
     </div>
 
     <div class="degradation-container">

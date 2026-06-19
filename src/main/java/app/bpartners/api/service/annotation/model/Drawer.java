@@ -210,9 +210,7 @@ public class Drawer {
     for (int i = 0; i < n; i++) {
       int j = (i + 1) % n;
 
-      double cross =
-          (double) polygon.allX()[i] * polygon.allY()[j]
-              - (double) polygon.allX()[j] * polygon.allY()[i];
+      double cross = polygon.allX()[i] * polygon.allY()[j] - polygon.allX()[j] * polygon.allY()[i];
 
       area += cross;
       cx += (polygon.allX()[i] + polygon.allX()[j]) * cross;

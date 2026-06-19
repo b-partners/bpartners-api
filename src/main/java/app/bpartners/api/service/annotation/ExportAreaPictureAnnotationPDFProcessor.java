@@ -95,7 +95,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   }
 
   private Pair<String, List<String>> generateAnnotation3DImages(
-      ExportAreaPictureAnnotation3D annotation3D, byte[] globalImage3D) {
+      ExportAreaPictureAnnotation3D annotation3D, byte[] globalImage3D) throws IOException {
     var mainImage3D = base64Image(globalImage3D);
     var subImages3D = new ArrayList<String>();
 
@@ -134,7 +134,8 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private String generateAnnotationImageAsBase64(
       BufferedImage image,
       ExportAreaPictureAnnotationImageConf conf,
-      List<ExportAreaPictureAnnotationInstance> annotations) {
+      List<ExportAreaPictureAnnotationInstance> annotations)
+      throws IOException {
     var generatedImage = exportAreaPictureAnnotationImageGenerator.apply(image, conf, annotations);
     return base64(generatedImage);
   }

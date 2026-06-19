@@ -193,7 +193,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
       var coordinates = Coordinates.from(pan.getPolygon());
       var mapped = transform.apply(coordinates);
-      var font = new Font(FONT_NAME, PLAIN, SUMMARY_IMAGE_FONT.getSize() * 2);
+      var font = new Font(FONT_NAME, PLAIN, (int) (SUMMARY_IMAGE_FONT.getSize() * 2));
       drawStrokePolygon(g2d, BLACK, POLYGON_STROKE, mapped);
       drawTextInPolygonCentroid(
           g2d,
@@ -210,12 +210,15 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   }
 
   private static @NotNull List<IntXY> extractPoints(List<ExportAreaPictureAnnotation3DPan> pans) {
-    return pans.stream()
-        .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
-        .map(
-            p ->
-                new IntXY(requireNonNull(p.getX()).intValue(), requireNonNull(p.getY()).intValue()))
-        .toList();
+    var allPoints =
+        pans.stream()
+            .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
+            .map(
+                p ->
+                    new IntXY(
+                        requireNonNull(p.getX()).intValue(), requireNonNull(p.getY()).intValue()))
+            .toList();
+    return allPoints;
   }
 
   public BufferedImage generateBaseImageWithHighlightedPanWithSlopeBoundary(

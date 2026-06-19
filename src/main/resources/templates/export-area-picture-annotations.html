@@ -100,6 +100,10 @@
             height: 320px;
         }
 
+        .summary-image-container {
+            text-align: center;
+        }
+
         .summary-image {
             display: block;
             max-width: 100%;
@@ -722,12 +726,14 @@
 </section>
 
 <section class="page summary-page" th:if="${roofSummary}">
-    <div class="summary-image-wrapper">
+    <div>
         <h2 class="annotation-information-title">Résumé sur les mesures</h2>
         <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
 
-        <div class="summary-image-wrapper">
-            <img alt="roof-summary-diagram" class="summary-image" th:src="${roofSummary.baseImageWithNamesUri}"/>
+        <div class="summary-image-container">
+            <img alt="roof-summary-diagram"
+                 class="summary-image"
+                 th:src="${roofSummary.baseImageWithNamesUri}"/>
         </div>
     </div>
 

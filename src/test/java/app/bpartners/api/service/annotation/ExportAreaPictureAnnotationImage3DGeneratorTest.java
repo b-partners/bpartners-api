@@ -62,13 +62,6 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     return file;
   }
 
-  private ExportAreaPictureAnnotation annotationFromPayload() throws IOException {
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    return objectMapper.readValue(
-        new ClassPathResource("payload/export-pdf-payload.json").getInputStream(),
-        ExportAreaPictureAnnotation.class);
-  }
-
   private ExportAreaPictureAnnotation heavyAnnotationFromPayload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     var annotation =

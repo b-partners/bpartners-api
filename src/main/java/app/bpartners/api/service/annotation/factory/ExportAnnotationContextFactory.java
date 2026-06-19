@@ -24,7 +24,6 @@ import org.thymeleaf.context.Context;
 
 @Slf4j
 public class ExportAnnotationContextFactory {
-  private static final String BASE_64_URI_PREFIX = "data:image/png;base64,";
   public static final String IMAGE_FORMAT = "png";
 
   public static Context createContext(

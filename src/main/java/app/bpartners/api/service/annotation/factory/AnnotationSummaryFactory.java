@@ -10,17 +10,20 @@ import app.bpartners.api.service.annotation.model.summary.AnnotationMeasurementS
 import app.bpartners.api.service.annotation.model.summary.AnnotationPitch;
 import app.bpartners.api.service.annotation.model.summary.AnnotationRoofSlopeSummary;
 import app.bpartners.api.service.annotation.model.summary.AnnotationSummary;
-import app.bpartners.api.service.annotation.model.summary.AnnotationWaste;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AnnotationSummaryFactory {
+
+  private AnnotationSummaryFactory() {}
+
   private static final String UNKNOWN_VALUE_PLACEHOLDER = "-";
 
   public static AnnotationSummary create(
@@ -43,8 +46,6 @@ public class AnnotationSummaryFactory {
     List<AnnotationRoofSlopeSummary> faces = faces(annotation);
     List<AnnotationMeasurementSummary> measurements = getMeasurementsSummary(faces, annotation);
     List<AnnotationPitch> pitchBreakdown = pitchBreakdown(faces);
-    List<AnnotationWaste> wasteTable = wasteTable(annotation);
-    String suggestedWastePercent = suggestedWastePercent(annotation);
 
     return new AnnotationSummary(
         baseImageWithRoofSlopeBoundariesUri,
@@ -52,9 +53,9 @@ public class AnnotationSummaryFactory {
         baseImageWithNamesUri,
         measurements,
         pitchBreakdown,
-        wasteTable,
+        null,
         faces,
-        suggestedWastePercent);
+        null);
   }
 
   private static List<AnnotationMeasurementSummary> getMeasurementsSummary(
@@ -157,7 +158,7 @@ public class AnnotationSummaryFactory {
                     return null;
                   }
                 })
-            .filter(fd -> fd != null)
+            .filter(Objects::nonNull)
             .toList();
 
     double totalArea = parseable.stream().mapToDouble(FaceData::area).sum();
@@ -182,16 +183,6 @@ public class AnnotationSummaryFactory {
                   String.format("%.1f %%", pct));
             })
         .toList();
-  }
-
-  private static List<AnnotationWaste> wasteTable(
-      ExportAreaPictureAnnotation annotation) { // TODO: instruction unclear
-    return null;
-  }
-
-  private static String suggestedWastePercent(
-      ExportAreaPictureAnnotation annotation) { // TODO: instruction unclear
-    return null;
   }
 
   private static List<AnnotationRoofSlopeSummary> faces(ExportAreaPictureAnnotation annotation) {

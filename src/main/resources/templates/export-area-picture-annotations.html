@@ -37,6 +37,11 @@
             justify-content: flex-start;
         }
 
+        .summary-image-large {
+            width: 100%;
+            max-height: 500px;
+        }
+
         .last-page { page-break-after: avoid; }
 
         /* Belt-and-suspenders: whichever .page happens to be the very last
@@ -707,7 +712,7 @@
 <section class="page diagram-page" th:if="${roofSummary}">
     <h2 class="annotation-information-title">Surface</h2>
     <p class="section-description">Surface en m²</p>
-    <img class="diagram-page-image" th:src="${roofSummary.baseImageWithAreasUri}"/>
+    <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithAreasUri}"/>
 </section>
 
 <section class="page summary-page" th:if="${roofSummary}">

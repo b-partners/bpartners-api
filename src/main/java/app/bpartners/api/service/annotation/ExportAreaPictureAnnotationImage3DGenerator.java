@@ -115,7 +115,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
                   .filter(m -> m.getLabel().toLowerCase().startsWith("surface"))
                   .findFirst();
           if (optionalArea.isPresent()) {
-            area = optionalArea.get().getValue();
+            area = optionalArea.get().getValue().replace("m²", "").replace("m", "");
           }
 
           var coordinates = Coordinates.from(pan.getPolygon());

@@ -193,7 +193,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
       var coordinates = Coordinates.from(pan.getPolygon());
       var mapped = transform.apply(coordinates);
-      var font = new Font(FONT_NAME, PLAIN, (int) (SUMMARY_IMAGE_FONT.getSize() * 2.2));
+      var font = new Font(FONT_NAME, PLAIN, (int) (SUMMARY_IMAGE_FONT.getSize() * 2));
       drawStrokePolygon(g2d, BLACK, POLYGON_STROKE, mapped);
       drawTextInPolygonCentroid(
           g2d,

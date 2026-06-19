@@ -86,9 +86,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       Pair<String, List<String>> annotation3DImages) {
     var templateEngine = templateResolverEngine.getTemplateEngine();
 
+    var exportAreaPictureAnnotation3DGenerator = new ExportAreaPictureAnnotationImage3DGenerator();
     var context =
         createContext(
-            user, logoBase64, annotation, annotationImages, annotation3DImages, fileService);
+            user, logoBase64, annotation, annotationImages, annotation3DImages, fileService, exportAreaPictureAnnotation3DGenerator);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 

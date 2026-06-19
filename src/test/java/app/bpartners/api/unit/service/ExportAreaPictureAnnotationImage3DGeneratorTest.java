@@ -38,7 +38,7 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
                         .label("edgeTypes")
                         .value("[\"faitage\", \"egout\", \"rive\", \"noue\"]")));
 
-    var result = subject.generateBaseImageWithSlopeBoundary(List.of(pan));
+    var result = subject.generateBaseImageWithSlopeBoundariesWithMeasurement(List.of(pan));
     BufferedImage image = result.second();
 
     assertNotNull(image);

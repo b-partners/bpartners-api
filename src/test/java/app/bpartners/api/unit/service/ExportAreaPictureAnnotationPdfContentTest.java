@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -21,6 +22,7 @@ import org.thymeleaf.context.Context;
 class ExportAreaPictureAnnotationPdfContentTest {
   private final TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
   private final FileService fileService = mock();
+  private final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator = new ExportAreaPictureAnnotationImage3DGenerator();
 
   @BeforeEach
   void setup() {
@@ -45,7 +47,7 @@ class ExportAreaPictureAnnotationPdfContentTest {
 
     Context context =
         app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-            user(), "logo", annotation, annotationImages, annotation3DImages, fileService);
+            user(), "logo", annotation, annotationImages, annotation3DImages, fileService, image3DGenerator);
 
     String html =
         templateResolverEngine
@@ -76,7 +78,7 @@ class ExportAreaPictureAnnotationPdfContentTest {
 
     Context context =
         app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-            user(), "logo", annotation, new Pair<>("main", List.of()), null, fileService);
+            user(), "logo", annotation, new Pair<>("main", List.of()), null, fileService, image3DGenerator);
 
     String html =
         templateResolverEngine

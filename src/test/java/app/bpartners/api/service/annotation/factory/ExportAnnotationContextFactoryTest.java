@@ -1,5 +1,6 @@
 package app.bpartners.api.service.annotation.factory;
 
+import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64ToUri;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -123,7 +124,7 @@ public class ExportAnnotationContextFactoryTest {
 
   @Test
   void base64_to_uri_should_prefix_when_missing() {
-    String result = ExportAnnotationContextFactory.base64ToUri("abc");
+    String result = base64ToUri("abc");
 
     assertEquals("data:image/png;base64,abc", result);
   }
@@ -132,7 +133,7 @@ public class ExportAnnotationContextFactoryTest {
   void base64_to_uri_should_not_prefix_when_already_uri() {
     String input = "data:image/png;base64,abc";
 
-    String result = ExportAnnotationContextFactory.base64ToUri(input);
+    String result = base64ToUri(input);
 
     assertEquals(input, result);
   }

@@ -14,7 +14,7 @@
             font-size: 12px;
         }
 
-        @page { size: A4; }
+        @page { size: A4; margin: 18px 28px; }
 
         .page {
             width: 100%;
@@ -23,7 +23,49 @@
             page-break-after: always;
         }
 
+        /* Pages whose content is fully under our control (single diagram
+           image + fixed legend/title) are hard-capped to one A4 page so an
+           oversized source image can never push the page break onto a 2nd sheet. */
+        .diagram-page {
+            max-height: 1087px;
+            overflow: hidden;
+        }
+
+        .summary-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .summary-image-large {
+            width: 100%;
+            max-height: 500px;
+        }
+
         .last-page { page-break-after: avoid; }
+
+        /* Belt-and-suspenders: whichever .page happens to be the very last
+           element in the rendered document never forces a break after itself,
+           regardless of which conditional section (llm / pages3D / roofSummary /
+           pitchBreakdown / wasteTable / faces) ends up being last. This avoids
+           relying on correctly chaining "is this the last one" logic across
+           many independent th:if blocks. */
+        body > .page:last-of-type,
+        body > section.page:last-child {
+            page-break-after: avoid;
+        }
+
+        /* Full-bleed diagram pages: Longueur / Surface / Pitch and Direction.
+           Image is capped so title + intro + legend + diagram always fit one A4 page. */
+        .diagram-page-image {
+            display: block;
+            max-width: 100%;
+            max-height: 850px;
+            width: auto;
+            height: auto;
+            margin: 16px auto 0 auto;
+            object-fit: contain;
+        }
 
         .title {
             font-size: 1.7rem; /* ~ 20px */
@@ -47,9 +89,39 @@
             text-align: center;
         }
 
+        .summary-image-wrapper {
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+        }
+
         .main-image-3d {
             display: inline-block;
             height: 320px;
+        }
+
+        .summary-image-container {
+            text-align: center;
+        }
+
+        .summary-image {
+            display: block;
+            max-width: 100%;
+            max-height: 320px;
+            width: auto;
+            height: auto;
+            margin: 0 auto;
+            object-fit: contain;
+        }
+
+        .diagram-page-image-mini {
+            display: block;
+            max-width: 100%;
+            max-height: 450px;
+            width: auto;
+            height: auto;
+            margin: 0 auto 0 auto;
+            object-fit: contain;
         }
 
         .annotation-item {
@@ -131,6 +203,16 @@
             color: #FF521B;
             text-align: center;
             page-break-after: avoid;
+        }
+
+        /* Short descriptive subtitle shown under a dedicated summary page's
+           title (Longueur / Surface / Résumé sur les mesures / Resumé sur les pans). */
+        .section-description {
+            font-size: 0.95rem;
+            color: #6b6b6b;
+            text-align: center;
+            margin: -12px 0 20px;
+            line-height: 1.4;
         }
 
         .annotation-item-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
@@ -290,6 +372,36 @@
             color: #aaa;
             margin: 10px 0 0;
             line-height: 1.4;
+        }
+
+        /* Compact tables used on the dedicated summary pages, sized to avoid
+           page overflow regardless of row count (measurements ~13 rows,
+           roof face summary one row per pan). */
+        .measurements-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .measurements-table td {
+            padding: 4px 0;
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+
+        .measurements-table td:first-child {
+            font-weight: bold;
+            width: 55%;
+        }
+
+        .roof-face-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .roof-face-table td {
+            padding: 4px 6px;
+            line-height: 1.3;
         }
 
         /* LLM */
@@ -480,7 +592,7 @@
     </div>
 </section>
 
-<section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null} ? ' last-page' : ''">
+<section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and roofSummary == null} ? ' last-page' : ''">
     <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
 
     <div th:each="annotation, annotationStat : ${page}" class="annotation-item">
@@ -511,7 +623,7 @@
 
 <section th:if="${pages3D}" th:each="page, pageStat : ${pages3D}"
          class="page"
-         th:classappend="${pageStat.last and llm == null} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and llm == null and roofSummary == null} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
 
@@ -566,9 +678,9 @@
 
                         <div class="annotation-blank-item-image-3d"
                              th:if="${pansImages3DUris == null
-                                     or pansImages3DUris.size() <= pageStat.index
+                                     or pansImages3DUris.size() &lt;= pageStat.index
                                      or pansImages3DUris[pageStat.index] == null
-                                     or pansImages3DUris[pageStat.index].size() <= panStat.index
+                                     or pansImages3DUris[pageStat.index].size() &lt;= panStat.index
                                      or pansImages3DUris[pageStat.index][panStat.index] == null}">
                             Image indisponible
                         </div>
@@ -580,7 +692,7 @@
                              th:src="${subImagesPages3D[pageStat.index][panStat.index]}" />
 
                         <div class="annotation-blank-item-image-3d"
-                             th:if="${subImagesPages3D[pageStat.index] == null or subImagesPages3D[pageStat.index].size() <= panStat.index}">
+                             th:if="${subImagesPages3D[pageStat.index] == null or subImagesPages3D[pageStat.index].size() &lt;= panStat.index}">
                             Image indisponible
                         </div>
                     </div>
@@ -592,8 +704,131 @@
     </div>
 </section>
 
-<section class="llm page last-page" th:if="${llm}">
+<section class="llm page" th:classappend="${roofSummary == null} ? ' last-page' : ''" th:if="${llm}">
     <div th:utext="${llm}"></div>
+</section>
+
+<section class="page diagram-page" th:if="${roofSummary}">
+    <div th:if="${allEdgeTypes}">
+        <h2 class="annotation-information-title">Longueur</h2>
+        <p class="section-description">Longueur en mètre</p>
+        <div class="roof-slope-boundaries-legend">
+            <div class="legend-item" th:each="type : ${allEdgeTypes}">
+                <img th:src="${roofSlopeBoundariesImages[type]}"
+                     th:alt="${type}"
+                     style="width: 32px; height: 16px; object-fit: contain;" />
+                <span th:text="${type}"></span>
+            </div>
+        </div>
+    </div>
+    <img class="diagram-page-image" th:src="${roofSummary.diagramImageBase64}"/>
+</section>
+
+<section class="page diagram-page" th:if="${true == false and roofSummary}">
+    <h2 class="annotation-information-title">Pente</h2>
+    <img class="diagram-page-image" th:src="${roofSummary.diagramImageBase64}"/>
+</section>
+
+<section class="page diagram-page" th:if="${roofSummary}">
+    <h2 class="annotation-information-title">Surface</h2>
+    <p class="section-description">Surface en m²</p>
+    <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithAreasUri}"/>
+</section>
+
+<section class="page summary-page" th:if="${roofSummary}">
+    <div>
+        <h2 class="annotation-information-title">Résumé sur les mesures</h2>
+        <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
+
+    <div class="image-wrapper">
+        <img
+            alt="roof-summary-diagram"
+            th:src="${roofSummary.baseImageWithNamesUri}"
+            class="main-image-3d"
+        />
+    </div>
+    </div>
+
+    <div class="degradation-container">
+        <p class="degradation-section-title">Mesures</p>
+        <table class="measurements-table">
+            <tr th:each="m : ${roofSummary.measurements}">
+                <td th:text="${m.label}"></td>
+                <td th:text="${m.value}"></td>
+            </tr>
+        </table>
+    </div>
+</section>
+
+<section class="page last-page" th:if="${roofSummary != null and roofSummary.faces != null}">
+    <h2 class="annotation-information-title">Resumé sur les pans</h2>
+    <p class="section-description">Répartition des pentes, calcul de la marge et détail par pan</p>
+
+    <div class="degradation-container" th:if="${roofSummary != null and roofSummary.pitchBreakdown != null}" style="margin-top:0;">
+        <p class="degradation-section-title">Répartition des pentes</p>
+        <table style="width:100%; border-collapse: collapse;">
+            <tr>
+                <td style="font-weight:bold; padding:4px 8px;">Pente</td>
+                <td style="padding:4px 8px;" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.pitch}"></td>
+            </tr>
+            <tr>
+                <td style="font-weight:bold; padding:4px 8px;">Surface</td>
+                <td style="padding:4px 8px;" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.area}"></td>
+            </tr>
+            <tr>
+                <td style="font-weight:bold; padding:4px 8px;">Toit %</td>
+                <td style="padding:4px 8px;" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.roofPercent}"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="degradation-container" th:if="${roofSummary != null and roofSummary.wasteTable != null}">
+        <p class="degradation-section-title">Waste Calculation Table</p>
+        <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
+            <tr>
+                <td style="font-weight:bold; padding:4px 6px;">Waste</td>
+                <td style="padding:4px 6px; text-align:center;"
+                    th:each="w : ${roofSummary.wasteTable}"
+                    th:classappend="${w.suggested} ? 'suggested-cell' : ''"
+                    th:style="${w.suggested} ? 'background-color:#e8f5e9; font-weight:bold;' : ''"
+                    th:text="${w.percent}"></td>
+            </tr>
+            <tr>
+                <td style="font-weight:bold; padding:4px 6px;">Area</td>
+                <td style="padding:4px 6px; text-align:center;"
+                    th:each="w : ${roofSummary.wasteTable}"
+                    th:style="${w.suggested} ? 'background-color:#e8f5e9; font-weight:bold;' : ''"
+                    th:text="${w.area}"></td>
+            </tr>
+        </table>
+        <p class="annotation-item-info-item" style="margin-top:10px;"
+           th:utext="'Aether recommends &lt;strong&gt;' + ${roofSummary.suggestedWastePercent} + '&lt;/strong&gt; waste factor. Please use Aether suggestions with caution.'"></p>
+    </div>
+
+    <div class="degradation-container" th:if="${roofSummary != null and roofSummary.faces != null}">
+        <p class="degradation-section-title">Resumé par Pan</p>
+        <table class="roof-face-table">
+            <tr style="background-color:#f7f7f5;">
+                <td style="font-weight:bold;">Pan</td>
+                <td style="font-weight:bold;">Surface (m²)</td>
+                <td style="font-weight:bold;">Pente (°)</td>
+                <td style="font-weight:bold;">Toit %</td>
+                <td style="font-weight:bold;">Surface (m²) avec +10% de perte</td>
+                <td style="font-weight:bold;">Surface (m²) avec +20% de perte</td>
+            </tr>
+            <tr th:each="f : ${roofSummary.faces}">
+                <td th:text="${f.name}"></td>
+                <td th:text="${f.area}"></td>
+                <td th:text="${f.pitch}"></td>
+                <td th:text="${f.roofPercent}"></td>
+                <td th:text="${f.area10}"></td>
+                <td th:text="${f.area20}"></td>
+            </tr>
+        </table>
+        <p class="degradation-disclaimer">
+            Avertissement : Ces calculs sont des estimations et leur exactitude n’est pas garantie.
+        </p>
+    </div>
 </section>
 </body>
 </html>

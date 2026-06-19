@@ -67,6 +67,16 @@
             object-fit: contain;
         }
 
+        .diagram-page-image-mini {
+            display: block;
+            max-width: 100%;
+            max-height: 250px;
+            width: auto;
+            height: auto;
+            margin: 0 auto 0 auto;
+            object-fit: contain;
+        }
+
         .title {
             font-size: 1.7rem; /* ~ 20px */
             text-align: center;
@@ -731,7 +741,7 @@
         <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
 
         <img alt="roof-summary-diagram"
-                 class="diagram-page-image"
+                 class="diagram-page-image-mini"
                  th:src="${roofSummary.baseImageWithNamesUri}"/>
     </div>
 

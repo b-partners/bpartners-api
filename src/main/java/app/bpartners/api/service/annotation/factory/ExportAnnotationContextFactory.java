@@ -38,12 +38,18 @@ public class ExportAnnotationContextFactory {
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
     var mainImageUri = base64ToUri(annotationImages.first());
-    var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
+    var subImagesUris =
+        annotationImages.second().stream()
+            .map(ExportAnnotationContextFactory::base64ToUri)
+            .toList();
+    var defaultAccountHolder = user.getDefaultHolder();
+    var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
 
     context.setVariable("user", user);
     context.setVariable("userWebsite", user.getDefaultWebsite());
     context.setVariable("logo", logoUri);
     context.setVariable("address", annotation.getAddress());
+    context.setVariable("userAddress", userAddress);
     context.setVariable("mainImage", mainImageUri);
     context.setVariable(
         "pages",

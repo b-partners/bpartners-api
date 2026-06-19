@@ -22,7 +22,8 @@ import org.thymeleaf.context.Context;
 class ExportAreaPictureAnnotationPdfContentTest {
   private final TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
   private final FileService fileService = mock();
-  private final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator = new ExportAreaPictureAnnotationImage3DGenerator();
+  private final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
+      new ExportAreaPictureAnnotationImage3DGenerator();
 
   @BeforeEach
   void setup() {
@@ -47,7 +48,13 @@ class ExportAreaPictureAnnotationPdfContentTest {
 
     Context context =
         app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-            user(), "logo", annotation, annotationImages, annotation3DImages, fileService, image3DGenerator);
+            user(),
+            "logo",
+            annotation,
+            annotationImages,
+            annotation3DImages,
+            fileService,
+            image3DGenerator);
 
     String html =
         templateResolverEngine
@@ -78,7 +85,13 @@ class ExportAreaPictureAnnotationPdfContentTest {
 
     Context context =
         app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-            user(), "logo", annotation, new Pair<>("main", List.of()), null, fileService, image3DGenerator);
+            user(),
+            "logo",
+            annotation,
+            new Pair<>("main", List.of()),
+            null,
+            fileService,
+            image3DGenerator);
 
     String html =
         templateResolverEngine

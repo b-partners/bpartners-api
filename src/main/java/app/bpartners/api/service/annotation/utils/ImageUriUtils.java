@@ -1,12 +1,12 @@
 package app.bpartners.api.service.annotation.utils;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import javax.imageio.ImageIO;
 
 public final class ImageUriUtils {
   private static final String BASE_64_URI_PREFIX = "data:image/png;base64,";
@@ -20,7 +20,7 @@ public final class ImageUriUtils {
 
   public static String base64(BufferedImage image) {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-         OutputStream b64 = Base64.getEncoder().wrap(out)) {
+        OutputStream b64 = Base64.getEncoder().wrap(out)) {
       ImageIO.write(image, IMAGE_FORMAT, b64);
       b64.flush();
       return out.toString(StandardCharsets.ISO_8859_1);

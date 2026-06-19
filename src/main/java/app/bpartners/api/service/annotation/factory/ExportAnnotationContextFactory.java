@@ -1,6 +1,7 @@
 package app.bpartners.api.service.annotation.factory;
 
 import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory.getRoofSlopeBoundaryTypeNames;
+import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64ToUri;
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
@@ -13,12 +14,9 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenera
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
+import app.bpartners.api.service.annotation.utils.ImageUriUtils;
 import app.bpartners.api.service.file.FileService;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +39,7 @@ public class ExportAnnotationContextFactory {
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
     var mainImageUri = base64ToUri(annotationImages.first());
-    var subImagesUris =
-        annotationImages.second().stream()
-            .map(ExportAnnotationContextFactory::base64ToUri)
-            .toList();
+    var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
 
     context.setVariable("user", user);
     context.setVariable("userWebsite", user.getDefaultWebsite());
@@ -111,9 +106,7 @@ public class ExportAnnotationContextFactory {
     var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
     var mainImage3DUri = base64ToUri(annotation3DImages.first());
     var subImages3DUris =
-        annotation3DImages.second().stream()
-            .map(ExportAnnotationContextFactory::base64ToUri)
-            .toList();
+        annotation3DImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var pansImages3D = getPansImages3DContext(annotation3D, fileService);
 
     context.setVariable("pages3D", pages3D);
@@ -231,21 +224,5 @@ public class ExportAnnotationContextFactory {
     }
 
     return pages;
-  }
-
-  public static String base64(BufferedImage image) {
-    try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-        OutputStream b64 = Base64.getEncoder().wrap(out)) {
-
-      ImageIO.write(image, IMAGE_FORMAT, b64);
-      b64.flush();
-      return out.toString(StandardCharsets.ISO_8859_1);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to convert image into base64 encoding " + e);
-    }
-  }
-
-  static String base64ToUri(String base64Image) {
-    return !base64Image.startsWith("data:") ? BASE_64_URI_PREFIX + base64Image : base64Image;
   }
 }

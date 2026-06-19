@@ -8,20 +8,17 @@ import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Random;
-
+import javax.imageio.ImageIO;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
-
-import javax.imageio.ImageIO;
 
 @Slf4j
 class ExportAreaPictureAnnotationImage3DGeneratorTest {

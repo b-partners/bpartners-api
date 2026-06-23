@@ -704,10 +704,6 @@
     </div>
 </section>
 
-<section class="llm page" th:classappend="${roofSummary == null} ? ' last-page' : ''" th:if="${llm}">
-    <div th:utext="${llm}"></div>
-</section>
-
 <section class="page diagram-page" th:if="${roofSummary}">
     <div th:if="${allEdgeTypes}">
         <h2 class="annotation-information-title">Longueur</h2>
@@ -760,7 +756,7 @@
     </div>
 </section>
 
-<section class="page last-page" th:if="${roofSummary != null and roofSummary.faces != null}">
+<section class="page" th:classappend="${llm == null} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null}">
     <h2 class="annotation-information-title">Resumé sur les pans</h2>
     <p class="section-description">Répartition des pentes, calcul de la marge et détail par pan</p>
 
@@ -830,5 +826,10 @@
         </p>
     </div>
 </section>
+
+<section class="llm page last-page" th:if="${llm}">
+    <div th:utext="${llm}"></div>
+</section>
+
 </body>
 </html>

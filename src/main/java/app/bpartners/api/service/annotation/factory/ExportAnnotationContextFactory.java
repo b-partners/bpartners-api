@@ -38,10 +38,7 @@ public class ExportAnnotationContextFactory {
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
     var mainImageUri = base64ToUri(annotationImages.first());
-    var subImagesUris =
-        annotationImages.second().stream()
-            .map(ExportAnnotationContextFactory::base64ToUri)
-            .toList();
+    var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var defaultAccountHolder = user.getDefaultHolder();
     var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
 

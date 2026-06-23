@@ -5,6 +5,7 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyRequested;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.util.List;
@@ -19,11 +20,21 @@ import org.springframework.stereotype.Service;
 public class UserOnboardedService implements Consumer<UserOnboarded> {
   private final SubscriptionService subscriptionService;
   private final UserCustomerConverter userCustomerConverter;
+  private final UserRepository userRepository;
   private final EventProducer eventProducer;
 
   @Override
   public void accept(UserOnboarded event) {
     var onboardedUser = event.getOnboardedUser().getOnboardedUser();
+
+    var persistedUser = userRepository.getById(onboardedUser.getId());
+    if (persistedUser.getUserSubscriptionId() != null) {
+      log.info(
+          "User(id={}) already onboarded (userSubscriptionId present), skipping re-processing",
+          onboardedUser.getId());
+      return;
+    }
+
     var apiKey = randomUUID().toString();
     var userWithApiKey = onboardedUser.toBuilder().apiKey(apiKey).build();
     log.info(

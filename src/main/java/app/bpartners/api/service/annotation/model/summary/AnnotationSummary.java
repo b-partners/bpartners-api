@@ -6,6 +6,7 @@ public record AnnotationSummary(
     String diagramImageBase64,
     String baseImageWithAreasUri,
     String baseImageWithNamesUri,
+    String baseImageWithPitchesUri,
     List<AnnotationMeasurementSummary> measurements,
     List<AnnotationPitch> pitchBreakdown,
     List<AnnotationWaste> wasteTable,

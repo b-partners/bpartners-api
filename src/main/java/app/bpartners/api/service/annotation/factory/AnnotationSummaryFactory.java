@@ -37,10 +37,12 @@ public class AnnotationSummaryFactory {
             .second();
     var baseImageWithAreas = generator.generateBaseImageWithAreas(annotation.get3d().getPans());
     var baseImageWithNames = generator.generateBaseImageWithNames(annotation.get3d().getPans());
+    var baseImageWithPitches = generator.generateBaseImageWithPitches(annotation.get3d().getPans());
 
     String baseImageWithRoofSlopeBoundariesUri = bufferedImageToUri(diagramImage);
     String baseImageWithAreasUri = bufferedImageToUri(baseImageWithAreas);
     String baseImageWithNamesUri = bufferedImageToUri(baseImageWithNames);
+    String baseImageWithPitchesUri = bufferedImageToUri(baseImageWithPitches);
     List<AnnotationRoofSlopeSummary> faces = faces(annotation);
     List<AnnotationMeasurementSummary> measurements = getMeasurementsSummary(faces, annotation);
     List<AnnotationPitch> pitchBreakdown = pitchBreakdown(faces);
@@ -49,6 +51,7 @@ public class AnnotationSummaryFactory {
         baseImageWithRoofSlopeBoundariesUri,
         baseImageWithAreasUri,
         baseImageWithNamesUri,
+        baseImageWithPitchesUri,
         measurements,
         pitchBreakdown,
         null,
@@ -133,7 +136,7 @@ public class AnnotationSummaryFactory {
             key ->
                 new AnnotationMeasurementSummary(
                     key.substring(0, 1).toUpperCase() + key.substring(1).replace("-", " "),
-                    String.format("%.2f m² (%s)", edgeTypesSize.get(key), edgeTypesCount.get(key))))
+                    String.format("%.2f m (%s)", edgeTypesSize.get(key), edgeTypesCount.get(key))))
         .toList();
   }
 

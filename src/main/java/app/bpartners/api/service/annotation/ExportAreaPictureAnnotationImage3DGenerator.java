@@ -112,7 +112,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
           var area = "-";
           var optionalArea =
               pan.getInfos().stream()
-                  .filter(m -> m.getLabel().toLowerCase().startsWith("surface"))
+                  .filter(m -> m.getLabel().toLowerCase().startsWith("surface rampant"))
                   .findFirst();
           if (optionalArea.isPresent()) {
             area = optionalArea.get().getValue().replace("m²", "").replace("m", "");
@@ -148,15 +148,15 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
     pans.forEach(
         pan -> {
-          var area = "-";
-          var optionalArea =
+          var pitch = "-";
+          var optionalPitch =
               pan.getInfos().stream()
                   .filter(m -> m.getLabel().toLowerCase().startsWith("pente"))
                   .map(ExportAreaPictureAnnotationInstanceInfo::getValue)
                   .map(AnnotationSummaryFactory::formatPitch)
                   .findFirst();
-          if (optionalArea.isPresent()) {
-            area = optionalArea.get();
+          if (optionalPitch.isPresent()) {
+            pitch = optionalPitch.get();
           }
 
           var coordinates = Coordinates.from(pan.getPolygon());
@@ -166,7 +166,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
               g2d,
               MEASUREMENT_CONF.toBuilder().bgColor(null).font(SUMMARY_IMAGE_FONT).build(),
               mapped,
-              area,
+              pitch,
               baseImage.getWidth(),
               baseImage.getHeight());
         });

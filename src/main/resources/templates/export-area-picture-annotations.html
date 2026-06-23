@@ -720,12 +720,13 @@
     <img class="diagram-page-image" th:src="${roofSummary.diagramImageBase64}"/>
 </section>
 
-<section class="page diagram-page" th:if="${true == false and roofSummary}">
+<section class="page diagram-page" th:if="${roofSummary.baseImageWithPitchesUri}">
     <h2 class="annotation-information-title">Pente</h2>
-    <img class="diagram-page-image" th:src="${roofSummary.diagramImageBase64}"/>
+    <p class="section-description">Pente en dégré</p>
+    <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithPitchesUri}"/>
 </section>
 
-<section class="page diagram-page" th:if="${roofSummary}">
+<section class="page diagram-page" th:if="${roofSummary.baseImageWithAreasUri}">
     <h2 class="annotation-information-title">Surface</h2>
     <p class="section-description">Surface en m²</p>
     <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithAreasUri}"/>

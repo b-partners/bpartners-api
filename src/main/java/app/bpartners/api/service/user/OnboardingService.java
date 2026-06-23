@@ -4,10 +4,10 @@ import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.UUID.randomUUID;
-import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.SesConf;
+import app.bpartners.api.endpoint.event.model.PojaEvent;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.UserUpserted;
 import app.bpartners.api.endpoint.rest.model.AccountStatus;
@@ -33,9 +33,12 @@ import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @AllArgsConstructor
@@ -56,8 +59,9 @@ public class OnboardingService {
   private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
   private final SesConf sesConf;
   private final SesService mailer;
+  private final ApplicationContext applicationContext;
 
-  @Transactional(isolation = SERIALIZABLE)
+  @Transactional
   public OnboardedUser onboardUser(OnboardUser onboardUser) {
     User toSave = onboardUser.getUser();
     String companyName = onboardUser.getCompanyName();
@@ -67,7 +71,7 @@ public class OnboardingService {
     User savedUser = userRepository.create(userDefaultValues(toSave, id, bridgePassword));
 
     if (usercreateCognitoUser) {
-      eventProducer.accept(List.of(toTypedUser(savedUser)));
+      publishAfterCommit(List.of(toTypedUser(savedUser)));
     }
 
     AccountHolder accountHolderToSave = fromNewUser(companyName, savedUser);
@@ -82,16 +86,28 @@ public class OnboardingService {
     OnboardedUser onboardedUser =
         new OnboardedUser(updatedAccount, savedAccount, savedAccountHolder);
 
-    eventProducer.accept(List.of(toTypedEvent(onboardedUser))); // TODO: add appropriate test
+    publishAfterCommit(List.of(toTypedEvent(onboardedUser)));
 
     return onboardedUser;
   }
 
-  @Transactional(isolation = SERIALIZABLE)
   public List<OnboardedUser> onboardUsers(List<OnboardUser> toSave) {
-    return toSave.stream()
-        .map(onboardUser -> onboardUser(onboardUser))
-        .collect(Collectors.toList());
+    OnboardingService self = applicationContext.getBean(OnboardingService.class);
+    return toSave.stream().map(self::onboardUser).collect(Collectors.toList());
+  }
+
+  private void publishAfterCommit(List<? extends PojaEvent> events) {
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+              eventProducer.accept(events);
+            }
+          });
+    } else {
+      eventProducer.accept(events);
+    }
   }
 
   private UserUpserted toTypedUser(User user) {

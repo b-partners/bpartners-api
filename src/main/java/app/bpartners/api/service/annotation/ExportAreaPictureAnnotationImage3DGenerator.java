@@ -112,7 +112,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
           var area = "-";
           var optionalArea =
               pan.getInfos().stream()
-                  .filter(m -> m.getLabel().toLowerCase().startsWith("surface"))
+                  .filter(m -> m.getLabel().toLowerCase().startsWith("surface rampant"))
                   .findFirst();
           if (optionalArea.isPresent()) {
             area = optionalArea.get().getValue().replace("m²", "").replace("m", "");

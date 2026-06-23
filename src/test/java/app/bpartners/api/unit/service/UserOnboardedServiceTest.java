@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyRequested;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.subscription.UserSubscription;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.UserOnboardedService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -21,10 +22,14 @@ import org.mockito.ArgumentCaptor;
 class UserOnboardedServiceTest {
   SubscriptionService subscriptionServiceMock = mock();
   UserCustomerConverter userCustomerConverterMock = mock();
+  UserRepository userRepositoryMock = mock();
   EventProducer eventProducerMock = mock();
   UserOnboardedService subject =
       new UserOnboardedService(
-          subscriptionServiceMock, userCustomerConverterMock, eventProducerMock);
+          subscriptionServiceMock,
+          userCustomerConverterMock,
+          userRepositoryMock,
+          eventProducerMock);
 
   @SneakyThrows
   @Test
@@ -32,6 +37,7 @@ class UserOnboardedServiceTest {
     var user = User.builder().email("random" + randomUUID() + "@mail.com").build();
     var accountMock = mock(Account.class);
     var accountHolderMock = mock(AccountHolder.class);
+    when(userRepositoryMock.getById(any())).thenReturn(user);
     when(userCustomerConverterMock.apply(user)).thenReturn(mock(Customer.class));
     when(subscriptionServiceMock.createOrLinkUserSubscription(any()))
         .thenAnswer(
@@ -66,5 +72,29 @@ class UserOnboardedServiceTest {
     var captured = (List<UserAnalysisApiKeyRequested>) eventCaptor.getValue();
     assertEquals(1, captured.size());
     assertEquals(new UserAnalysisApiKeyRequested(capturedUserWithApiKey), captured.getFirst());
+  }
+
+  @SneakyThrows
+  @Test
+  void does_not_reprocess_already_onboarded_user() {
+    var user = User.builder().email("random" + randomUUID() + "@mail.com").build();
+    var alreadyOnboardedUser = user.toBuilder().userSubscriptionId("stripe_customer_id").build();
+    when(userRepositoryMock.getById(any())).thenReturn(alreadyOnboardedUser);
+
+    var event =
+        UserOnboarded.builder()
+            .onboardedUser(
+                OnboardedUser.builder()
+                    .onboardedUser(user)
+                    .onboardedAccount(mock(Account.class))
+                    .onboardedAccountHolder(mock(AccountHolder.class))
+                    .build())
+            .build();
+
+    assertDoesNotThrow(() -> subject.accept(event));
+
+    verifyNoInteractions(subscriptionServiceMock);
+    verifyNoInteractions(userCustomerConverterMock);
+    verifyNoInteractions(eventProducerMock);
   }
 }

@@ -1,5 +1,6 @@
 package app.bpartners.api.service.annotation.factory;
 
+import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64ToUri;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -11,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.Polygon;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.User;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import ch.qos.logback.classic.Level;
@@ -23,6 +25,8 @@ import org.thymeleaf.context.Context;
 
 public class ExportAnnotationContextFactoryTest {
   FileService fileService = mock(FileService.class);
+  ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
+      new ExportAreaPictureAnnotationImage3DGenerator();
 
   @Test
   void configure_3d_pan_image_context() throws IOException {
@@ -120,7 +124,7 @@ public class ExportAnnotationContextFactoryTest {
 
   @Test
   void base64_to_uri_should_prefix_when_missing() {
-    String result = ExportAnnotationContextFactory.base64ToUri("abc");
+    String result = base64ToUri("abc");
 
     assertEquals("data:image/png;base64,abc", result);
   }
@@ -129,7 +133,7 @@ public class ExportAnnotationContextFactoryTest {
   void base64_to_uri_should_not_prefix_when_already_uri() {
     String input = "data:image/png;base64,abc";
 
-    String result = ExportAnnotationContextFactory.base64ToUri(input);
+    String result = base64ToUri(input);
 
     assertEquals(input, result);
   }
@@ -234,7 +238,7 @@ public class ExportAnnotationContextFactoryTest {
 
     Context context =
         ExportAnnotationContextFactory.createContext(
-            user, "logo", annotation, images, images3d, fileService);
+            user, "logo", annotation, images, images3d, fileService, image3DGenerator);
 
     assertEquals(user, context.getVariable("user"));
     assertEquals("https://example.com", context.getVariable("userWebsite"));
@@ -253,7 +257,7 @@ public class ExportAnnotationContextFactoryTest {
 
     Context context =
         ExportAnnotationContextFactory.createContext(
-            user, null, annotation, images, images3d, fileService);
+            user, null, annotation, images, images3d, fileService, image3DGenerator);
 
     assertNull(context.getVariable("logo"));
   }
@@ -276,7 +280,7 @@ public class ExportAnnotationContextFactoryTest {
 
     Context context =
         ExportAnnotationContextFactory.createContext(
-            user, "logo", annotation, images, images3d, fileService);
+            user, "logo", annotation, images, images3d, fileService, image3DGenerator);
 
     assertEquals("llm text", context.getVariable("llm"));
     assertEquals("B", context.getVariable("globalRateType"));

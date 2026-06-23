@@ -81,7 +81,7 @@ public class User implements Serializable {
   }
 
   public AccountHolder getDefaultHolder() {
-    if (accountHolders.isEmpty()) {
+    if (accountHolders == null || accountHolders.isEmpty()) {
       return null;
     }
     AccountHolder first = accountHolders.get(0);

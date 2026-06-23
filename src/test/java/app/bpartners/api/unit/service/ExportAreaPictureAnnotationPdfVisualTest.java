@@ -286,7 +286,11 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         .email("user@mail.com")
         .logoFileId("logoFileId")
         .accountHolders(
-            List.of(AccountHolder.builder().website("https://fancywebsite.com").build()))
+            List.of(
+                AccountHolder.builder()
+                    .website("https://fancywebsite.com")
+                    .address("Fancy Address")
+                    .build()))
         .build();
   }
 }

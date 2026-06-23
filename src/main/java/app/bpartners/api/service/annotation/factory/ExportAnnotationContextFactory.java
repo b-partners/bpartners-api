@@ -1,6 +1,8 @@
 package app.bpartners.api.service.annotation.factory;
 
 import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory.getRoofSlopeBoundaryTypeNames;
+import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64ToUri;
+import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
@@ -12,12 +14,9 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenera
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
+import app.bpartners.api.service.annotation.utils.ImageUriUtils;
 import app.bpartners.api.service.file.FileService;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,6 @@ import org.thymeleaf.context.Context;
 
 @Slf4j
 public class ExportAnnotationContextFactory {
-  private static final String BASE_64_URI_PREFIX = "data:image/png;base64,";
   public static final String IMAGE_FORMAT = "png";
 
   public static Context createContext(
@@ -34,20 +32,21 @@ public class ExportAnnotationContextFactory {
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages,
-      FileService fileService) {
+      FileService fileService,
+      ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator) {
     var context = new Context();
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
     var mainImageUri = base64ToUri(annotationImages.first());
-    var subImagesUris =
-        annotationImages.second().stream()
-            .map(ExportAnnotationContextFactory::base64ToUri)
-            .toList();
+    var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
+    var defaultAccountHolder = user.getDefaultHolder();
+    var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
 
     context.setVariable("user", user);
     context.setVariable("userWebsite", user.getDefaultWebsite());
     context.setVariable("logo", logoUri);
     context.setVariable("address", annotation.getAddress());
+    context.setVariable("userAddress", userAddress);
     context.setVariable("mainImage", mainImageUri);
     context.setVariable(
         "pages",
@@ -66,9 +65,23 @@ public class ExportAnnotationContextFactory {
     }
     if (annotation.get3d() != null) {
       configureAnnotation3DContext(context, annotation.get3d(), annotation3DImages, fileService);
+      configureAnnotationSummaryContext(context, annotation, annotationImage3DGenerator);
     }
 
     return context;
+  }
+
+  static void configureAnnotationSummaryContext(
+      Context context,
+      ExportAreaPictureAnnotation annotation,
+      ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator) {
+    context.setVariable(
+        "roofSummary", AnnotationSummaryFactory.create(annotation, annotationImage3DGenerator));
+
+    context.setVariable(
+        "allEdgeTypes",
+        allRoofSlopeBoundaryTypes(
+            (Map<Integer, List<String>>) context.getVariable("roofSlopeBoundariesPerPage")));
   }
 
   static void configureLLMContext(Context context, ExportAreaPictureAnnotation annotation) {
@@ -95,9 +108,7 @@ public class ExportAnnotationContextFactory {
     var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
     var mainImage3DUri = base64ToUri(annotation3DImages.first());
     var subImages3DUris =
-        annotation3DImages.second().stream()
-            .map(ExportAnnotationContextFactory::base64ToUri)
-            .toList();
+        annotation3DImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var pansImages3D = getPansImages3DContext(annotation3D, fileService);
 
     context.setVariable("pages3D", pages3D);
@@ -106,6 +117,13 @@ public class ExportAnnotationContextFactory {
     context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
     context.setVariable("subImagesPages3D", groupByFirstPage(subImages3DUris, 3, 4));
     context.setVariable("pansImages3DUris", groupByFirstPage(pansImages3D, 3, 4));
+  }
+
+  static HashSet<String> allRoofSlopeBoundaryTypes(Map<Integer, List<String>> perPage) {
+    var allTypes = new ArrayList<String>();
+    perPage.forEach((page, types) -> allTypes.addAll(types));
+
+    return new HashSet<>(allTypes);
   }
 
   static Map<Integer, List<String>> getRoofSlopeBoundaryPerPage(
@@ -187,14 +205,6 @@ public class ExportAnnotationContextFactory {
         .toList();
   }
 
-  private static String bufferedImageToUri(BufferedImage image) {
-    try {
-      return base64ToUri(base64(image));
-    } catch (IOException e) {
-      throw new IllegalStateException("Could not convert image to base64 uri", e);
-    }
-  }
-
   static <T> List<List<T>> groupByFirstPage(List<T> list, int firstPageMax, int limit) {
     List<List<T>> pages = new ArrayList<>();
     var iterator = list.iterator();
@@ -216,19 +226,5 @@ public class ExportAnnotationContextFactory {
     }
 
     return pages;
-  }
-
-  public static String base64(BufferedImage image) throws IOException {
-    try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-        OutputStream b64 = Base64.getEncoder().wrap(out)) {
-
-      ImageIO.write(image, IMAGE_FORMAT, b64);
-      b64.flush();
-      return out.toString(StandardCharsets.ISO_8859_1);
-    }
-  }
-
-  static String base64ToUri(String base64Image) {
-    return !base64Image.startsWith("data:") ? BASE_64_URI_PREFIX + base64Image : base64Image;
   }
 }

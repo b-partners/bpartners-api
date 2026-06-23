@@ -93,13 +93,60 @@ public class Drawer {
     return image;
   }
 
+  public static void drawTextInPolygonCentroid(
+      Graphics2D g2d,
+      MeasurementConf conf,
+      Coordinates polygon,
+      String text,
+      int imageWidth,
+      int imageHeight) {
+    var font = conf.font().deriveFont(conf.font().getSize2D());
+    g2d.setFont(font);
+
+    var fm = g2d.getFontMetrics(font);
+
+    int textWidth = fm.stringWidth(text);
+    int textHeight = fm.getHeight();
+    int ascent = fm.getAscent();
+
+    var polygonCentroid = polygonCentroid(polygon);
+
+    double cx = polygonCentroid[0];
+    double cy = polygonCentroid[1];
+
+    int paddingX = conf.offset().x() > 0 ? conf.offset().x() : 8;
+    int paddingY = conf.offset().y() > 0 ? conf.offset().y() : 6;
+
+    int boxWidth = textWidth + paddingX * 2;
+    int boxHeight = textHeight + paddingY * 2;
+
+    int boxX = (int) (cx - boxWidth / 2.0);
+    int boxY = (int) (cy - boxHeight / 2.0);
+
+    boxX = Math.clamp(boxX, 0, imageWidth - boxWidth);
+    boxY = Math.clamp(boxY, 0, imageHeight - boxHeight);
+
+    if (conf.bgColor() != null) {
+      g2d.setColor(conf.bgColor());
+      g2d.fillRect(boxX, boxY, boxWidth, boxHeight);
+    }
+
+    g2d.setColor(conf.textColor());
+
+    int textX = boxX + paddingX;
+    int textY = boxY + paddingY + ascent;
+
+    g2d.drawString(text, textX, textY);
+  }
+
   public static void drawPolygonMeasurements(
       Graphics2D g2d,
       MeasurementConf conf,
       Coordinates polygon,
       List<ExportAreaPictureAnnotationMeasurement> measurements,
       int imageWidth,
-      int imageHeight) {
+      int imageHeight,
+      boolean showUnit) {
 
     float targetFontSize = conf.font().getSize2D();
     java.awt.Font largerFont = conf.font().deriveFont(targetFontSize);
@@ -110,7 +157,10 @@ public class Drawer {
     for (int i = 0; i < numPoints; i++) {
       var measurement = measurements.get(i);
       if (!measurement.getIsInvisible()) {
-        var measurementText = measurement.getValue() + measurement.getUnit();
+        var measurementText = String.format("%.2f", measurement.getValue());
+        if (showUnit) {
+          measurementText += measurement.getUnit();
+        }
         var fontMetrics = g2d.getFontMetrics(largerFont);
 
         int textWidth = fontMetrics.stringWidth(measurementText);
@@ -123,36 +173,25 @@ public class Drawer {
         double midX = (point1.x() + point2.x()) / 2.0;
         double midY = (point1.y() + point2.y()) / 2.0;
 
-        double dx = point2.x() - (double) point1.x();
-        double dy = point2.y() - (double) point1.y();
-        double len = Math.hypot(dx, dy);
-
-        if (len == 0) continue;
-
-        double nx = -dy / len;
-        double ny = dx / len;
-
-        double pushDistance = 25.0;
-
-        double targetCenterX = midX + nx * pushDistance;
-        double targetCenterY = midY + ny * pushDistance;
-
         int paddingX = conf.offset.x() > 0 ? conf.offset.x() : 8;
         int paddingY = conf.offset.y() > 0 ? conf.offset.y() : 6;
 
         int boxWidth = textWidth + (paddingX * 2);
         int boxHeight = textHeight + (paddingY * 2);
 
-        int boxX = (int) (targetCenterX - boxWidth / 2.0);
-        int boxY = (int) (targetCenterY - boxHeight / 2.0);
+        int desiredBoxX = (int) (midX - boxWidth / 2.0);
+        int desiredBoxY = (int) (midY - boxHeight / 2.0);
 
-        boxX = Math.clamp(boxX, 0, imageWidth - boxWidth);
-        boxY = Math.clamp(boxY, 0, imageHeight - boxHeight);
+        int boxX = Math.clamp(desiredBoxX, 0, imageWidth - boxWidth);
+        int boxY = Math.clamp(desiredBoxY, 0, imageHeight - boxHeight);
 
-        g2d.setColor(conf.bgColor());
-        g2d.fillRect(boxX, boxY, boxWidth, boxHeight);
+        if (conf.bgColor() != null) {
+          g2d.setColor(conf.bgColor());
+          g2d.fillRect(boxX, boxY, boxWidth, boxHeight);
+        }
 
         g2d.setColor(conf.textColor());
+
         int textX = boxX + paddingX;
         int textY = boxY + paddingY + ascent;
 
@@ -161,6 +200,33 @@ public class Drawer {
     }
   }
 
-  @Builder
+  private static double[] polygonCentroid(Coordinates polygon) {
+    double area = 0;
+    double cx = 0;
+    double cy = 0;
+
+    int n = polygon.allX().length;
+
+    for (int i = 0; i < n; i++) {
+      int j = (i + 1) % n;
+
+      double cross =
+          (double) polygon.allX()[i] * polygon.allY()[j]
+              - (double) polygon.allX()[j] * polygon.allY()[i];
+
+      area += cross;
+      cx += (polygon.allX()[i] + polygon.allX()[j]) * cross;
+      cy += (polygon.allY()[i] + polygon.allY()[j]) * cross;
+    }
+
+    area *= 0.5;
+
+    cx /= (6 * area);
+    cy /= (6 * area);
+
+    return new double[] {cx, cy};
+  }
+
+  @Builder(toBuilder = true)
   public record MeasurementConf(IntXY offset, Color textColor, Color bgColor, Font font) {}
 }

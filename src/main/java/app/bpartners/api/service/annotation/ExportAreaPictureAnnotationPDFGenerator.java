@@ -48,11 +48,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
 
-    var html =
-        parseDataToString(user, logoBase64, annotation, annotationImages, annotation3DImages);
-    if (annotation.getLlm() != null) {
-      html = emojiReplacer.replaceEmoji(html);
-    }
+    var html = parseDataToHTML(user, logoBase64, annotation, annotationImages, annotation3DImages);
 
     try (var outputStream = new ByteArrayOutputStream()) {
       var builder = new PdfRendererBuilder();
@@ -76,6 +72,20 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     } catch (RuntimeException | IOException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
+  }
+
+  public String parseDataToHTML(
+      User user,
+      String logoBase64,
+      ExportAreaPictureAnnotation annotation,
+      Pair<String, List<String>> annotationImages,
+      Pair<String, List<String>> annotation3DImages) {
+    var html =
+        parseDataToString(user, logoBase64, annotation, annotationImages, annotation3DImages);
+    if (annotation.getLlm() != null) {
+      html = emojiReplacer.replaceEmoji(html);
+    }
+    return html;
   }
 
   private String parseDataToString(

@@ -30,11 +30,10 @@ import java.util.List;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-//@Disabled("This is a visual test to generate a PDF file for manual inspection.")
+// @Disabled("This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
@@ -113,9 +112,16 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     byte[] pdfBytes =
         assertDoesNotThrow(
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+    ExportAreaPictureAnnotationDOCXProcessor docxProcessor =
+        new ExportAreaPictureAnnotationDOCXProcessor(pdfGenerator);
+    byte[] docxBytes =
+        assertDoesNotThrow(
+            () -> docxProcessor.process(user(), null, exportAreaPictureAnnotation, null, null));
 
     assertNotNull(pdfBytes);
     savePdfFile(pdfBytes, "heavy-payload");
+    assertNotNull(docxBytes);
+    saveDocxFile(docxBytes, "heavy-payload");
   }
 
   @Test
@@ -140,6 +146,12 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
     assertNotNull(pdfBytes);
     savePdfFile(pdfBytes, "uneven");
+  }
+
+  private static void saveDocxFile(byte[] pdfBytes, String suffix) throws IOException {
+    String now = now().format(DateTimeFormatter.ISO_DATE_TIME).replace(":", "-");
+    Files.write(
+        Paths.get(String.format("build/annotation-export-%s-%s.docx", now, suffix)), pdfBytes);
   }
 
   private static void savePdfFile(byte[] pdfBytes, String suffix) throws IOException {

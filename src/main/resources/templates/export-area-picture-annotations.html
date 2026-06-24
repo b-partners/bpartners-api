@@ -732,21 +732,25 @@
     <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithAreasUri}"/>
 </section>
 
-<section class="page summary-page" th:if="${roofSummary != null}">
+<section
+        class="page summary-page"
+        th:if="${roofSummary != null}"
+        style="display: flex; flex-direction: column; height: 100%;"
+>
     <div>
         <h2 class="annotation-information-title">Résumé sur les mesures</h2>
         <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
 
-    <div class="image-wrapper">
-        <img
-            alt="roof-summary-diagram"
-            th:src="${roofSummary.baseImageWithNamesUri}"
-            class="main-image-3d"
-        />
-    </div>
+        <div class="image-wrapper">
+            <img
+                    alt="roof-summary-diagram"
+                    th:src="${roofSummary.baseImageWithNamesUri}"
+                    class="main-image-3d"
+            />
+        </div>
     </div>
 
-    <div class="degradation-container">
+    <div class="degradation-container" style="margin-top: auto;">
         <p class="degradation-section-title">Mesures</p>
         <table class="measurements-table">
             <tr th:each="m : ${roofSummary.measurements}">

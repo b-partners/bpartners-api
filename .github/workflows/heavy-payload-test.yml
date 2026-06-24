@@ -35,12 +35,25 @@ jobs:
         if: always()
         run: find build -name "*.pdf" -type f
 
+      - name: List generated DOCXs
+        if: always()
+        run: find build -name "*.docx" -type f
+
       - name: Upload generated PDFs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: heavy-payload-test-pdfs
           path: build/**/*.pdf
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload generated DOCXs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: heavy-payload-test-docxs
+          path: build/**/*.docx
           retention-days: 30
           if-no-files-found: warn
 

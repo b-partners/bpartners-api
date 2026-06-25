@@ -23,6 +23,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -40,7 +41,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     return new ExportAreaPictureAnnotationImageConf();
   }
 
-  private static ExportAreaPictureAnnotationImageConf subImageConf() {
+  static ExportAreaPictureAnnotationImageConf subImageConf() {
     return new ExportAreaPictureAnnotationImageConf(
         2,
         DEFAULT_POINT_SIZE,
@@ -76,7 +77,27 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     Pair<String, List<String>> annotationImages =
         generateAnnotationImages(
             exportAnnotation, compressedImage, annotationRescale.x(), annotationRescale.y());
+    String logoBase64 = getLogoBase64(user, annotationRescale);
+
+    Pair<String, List<String>> annotation3DImages =
+        generateAnnotation3DImages(exportAnnotation, globalImage3D);
+
+    return exportAreaPictureAnnotationPDFGenerator.apply(
+        user, logoBase64, exportAnnotation, annotationImages, annotation3DImages);
+  }
+
+  @Nullable
+  Pair<String, List<String>> generateAnnotation3DImages(
+      ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D) {
     Pair<String, List<String>> annotation3DImages = null;
+    if (exportAnnotation.get3d() != null && globalImage3D != null) {
+      annotation3DImages = generateAnnotation3DImages(exportAnnotation.get3d(), globalImage3D);
+    }
+    return annotation3DImages;
+  }
+
+  public @Nullable String getLogoBase64(
+      User user, ExportAreaPictureAnnotationAdjustment.RescaleValue annotationRescale) {
     BufferedImage logo = getUserLogo(user.getId(), user.getLogoFileId(), fileService);
     String logoBase64 =
         logo == null
@@ -85,13 +106,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
                 logo,
                 subImageConf().rescale(annotationRescale.x(), annotationRescale.y()),
                 List.of());
-
-    if (exportAnnotation.get3d() != null && globalImage3D != null) {
-      annotation3DImages = generateAnnotation3DImages(exportAnnotation.get3d(), globalImage3D);
-    }
-
-    return exportAreaPictureAnnotationPDFGenerator.apply(
-        user, logoBase64, exportAnnotation, annotationImages, annotation3DImages);
+    return logoBase64;
   }
 
   private Pair<String, List<String>> generateAnnotation3DImages(
@@ -108,7 +123,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     return new Pair<>(mainImage3D, subImages3D);
   }
 
-  private Pair<String, List<String>> generateAnnotationImages(
+  Pair<String, List<String>> generateAnnotationImages(
       ExportAreaPictureAnnotation annotation,
       BufferedImage baseImage,
       double rescaleXValue,
@@ -138,7 +153,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     return base64(generatedImage);
   }
 
-  private static BufferedImage downloadImage(String imageUrl) {
+  static BufferedImage downloadImage(String imageUrl) {
     try {
       return ImageIO.read(new URI(imageUrl).toURL());
     } catch (IOException | URISyntaxException e) {

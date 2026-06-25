@@ -113,10 +113,10 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         assertDoesNotThrow(
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
     ExportAreaPictureAnnotationDOCXProcessor docxProcessor =
-        new ExportAreaPictureAnnotationDOCXProcessor(pdfGenerator);
+        new ExportAreaPictureAnnotationDOCXProcessor(pdfGenerator, subject, imageCompressor);
     byte[] docxBytes =
         assertDoesNotThrow(
-            () -> docxProcessor.process(user(), null, exportAreaPictureAnnotation, null, null));
+            () -> docxProcessor.process(user(), exportAreaPictureAnnotation, mockImageBytes));
 
     assertNotNull(pdfBytes);
     savePdfFile(pdfBytes, "heavy-payload");

@@ -106,7 +106,8 @@ public class ExportAnnotationContextFactory {
       Pair<String, List<String>> annotation3DImages,
       FileService fileService) {
     var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
-    var mainImage3DUri = base64ToUri(annotation3DImages.first());
+    var mainImage3DUri =
+        annotation3DImages == null ? null : base64ToUri(annotation3DImages.first());
     var subImages3DUris =
         annotation3DImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var pansImages3D = getPansImages3DContext(annotation3D, fileService);

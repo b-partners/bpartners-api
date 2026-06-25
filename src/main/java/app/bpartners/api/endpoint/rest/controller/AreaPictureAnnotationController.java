@@ -86,9 +86,9 @@ public class AreaPictureAnnotationController {
       @RequestPart(value = "globalImage3D", required = false) MultipartFile globalImage3D)
       throws IOException {
     var userId = AuthProvider.getAuthenticatedUserId();
-    byte[] globalImageBytes = globalImage3D != null ? globalImage3D.getBytes() : null;
+    byte[] global3DImageBytes = globalImage3D != null ? globalImage3D.getBytes() : null;
 
-    return service.exportAreaPictureAnnotationToPdf(userId, annotation, globalImageBytes);
+    return service.exportAreaPictureAnnotationToPdf(userId, annotation, global3DImageBytes);
   }
 
   @PostMapping("/accounts/{aId}/annotations/convert")

@@ -157,7 +157,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     try {
       return ImageIO.read(new URI(imageUrl).toURL());
     } catch (IOException | URISyntaxException e) {
-      throw new BadRequestException("Cannot read the image from the url");
+      throw new BadRequestException("Cannot read the image from the url" + e.getMessage());
     }
   }
 }

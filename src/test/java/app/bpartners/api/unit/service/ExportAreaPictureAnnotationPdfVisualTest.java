@@ -206,7 +206,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
               pan.setImageUri("imageUri");
             });
 
-    annotation.setImageUrl(new ClassPathResource("files/rue_de_la_vau.png").getFile().getAbsolutePath());
+    annotation.setImageUrl(new ClassPathResource("files/rue_de_la_vau.png").getFile().toURI().toString());
     return annotation;
   }
 

@@ -108,7 +108,8 @@ class UserRepositoryImplTest {
     when(criteriaBuilderMock.equal(any(Expression.class), any())).thenReturn(predicateMock);
     when(queryMock.where(predicateMock)).thenReturn(queryMock);
     when(entityManagerMock.getCriteriaBuilder()).thenReturn(criteriaBuilderMock);
-    when(typedQueryMock.setFirstResult(eq((1)))).thenReturn(typedQueryMock);
+    // offset = (page - 1) * pageSize = (2 - 1) * 99 = 99
+    when(typedQueryMock.setFirstResult(eq((99)))).thenReturn(typedQueryMock);
     when(typedQueryMock.setMaxResults(eq(99))).thenReturn(typedQueryMock);
     when(typedQueryMock.getResultList()).thenReturn(List.of(userEntityMock));
     when(entityManagerMock.createQuery(queryMock)).thenReturn(typedQueryMock);
@@ -122,8 +123,45 @@ class UserRepositoryImplTest {
     var capturedPageSizeValue = integerCaptor.getAllValues().getLast();
 
     assertEquals(expectedUsers, actual);
-    assertEquals(1, capturedPageValue);
+    assertEquals(99, capturedPageValue);
     assertEquals(expectedPageSize, capturedPageSizeValue.intValue());
+  }
+
+  @Test
+  void find_all_by_criteria_computes_row_offset_beyond_first_page() {
+    var criteriaBuilderMock = mock(CriteriaBuilder.class);
+    var queryMock = mock(CriteriaQuery.class);
+    var rootMock = mock(Root.class);
+    var predicateMock = mock(Predicate.class);
+    var typedQueryMock = mock(TypedQuery.class);
+    var userEntityMock = mock(HUser.class);
+    var userMock = mock(User.class);
+    var page = 3;
+    var pageSize = 500;
+    var expectedOffset = (page - 1) * pageSize;
+    var criteria = new HashMap<String, Object>();
+    criteria.put("status", EnableStatus.ENABLED);
+    criteria.put("page", page);
+    criteria.put("pageSize", pageSize);
+
+    when(userMapperMock.toDomain(any())).thenReturn(userMock);
+    when(queryMock.from(HUser.class)).thenReturn(rootMock);
+    when(criteriaBuilderMock.createQuery(HUser.class)).thenReturn(queryMock);
+    when(criteriaBuilderMock.equal(any(Expression.class), any())).thenReturn(predicateMock);
+    when(queryMock.where(predicateMock)).thenReturn(queryMock);
+    when(entityManagerMock.getCriteriaBuilder()).thenReturn(criteriaBuilderMock);
+    when(typedQueryMock.setFirstResult(eq(expectedOffset))).thenReturn(typedQueryMock);
+    when(typedQueryMock.setMaxResults(eq(pageSize))).thenReturn(typedQueryMock);
+    when(typedQueryMock.getResultList()).thenReturn(List.of(userEntityMock));
+    when(entityManagerMock.createQuery(queryMock)).thenReturn(typedQueryMock);
+
+    subject.findAllByCriteria(criteria);
+
+    var integerCaptor = ArgumentCaptor.forClass(Integer.class);
+    verify(typedQueryMock).setFirstResult(integerCaptor.capture());
+    verify(typedQueryMock).setMaxResults(integerCaptor.capture());
+    assertEquals(expectedOffset, integerCaptor.getAllValues().getFirst());
+    assertEquals(pageSize, integerCaptor.getAllValues().getLast().intValue());
   }
 
   @Test

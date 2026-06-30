@@ -66,7 +66,7 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
         (MonthlySubscriptionInvoiceRequested) eventCaptor.getAllValues().getLast().getFirst();
 
     assertEquals(
-        new UpcomingDebitedCustomerExportRequested(YearMonth.now().minusMonths(1L)),
+        new UpcomingDebitedCustomerExportRequested(YearMonth.now()),
         upcomingDebitedCustomerExportRequested);
     assertEquals(
         Duration.ofSeconds(120L), upcomingDebitedCustomerExportRequested.maxConsumerDuration());

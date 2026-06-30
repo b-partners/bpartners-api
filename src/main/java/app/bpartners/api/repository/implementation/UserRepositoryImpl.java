@@ -234,7 +234,8 @@ public class UserRepositoryImpl implements UserRepository {
     return retrievePaymentMethod(fetchedUser);
   }
 
-  private User retrievePaymentMethod(User fetchedUser) {
+  @Override
+  public User retrievePaymentMethod(User fetchedUser) {
     if (fetchedUser == null) {
       return null;
     }

@@ -32,6 +32,8 @@ public interface UserRepository {
 
   User create(User user);
 
+  User retrievePaymentMethod(User user);
+
   void deleteById(String id);
 
   List<User> getUsersWithSubscription();

@@ -23,6 +23,7 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.UserStripeCustomerEmailCorrespondenceJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
@@ -61,6 +62,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
       new UserCustomerConverter(userSubscriptionConfMock, customerRepositoryMock);
   StripeFactory stripeFactoryMock = mock();
   StripeInvoiceService stripeInvoiceServiceMock = mock();
+  UserStripeCustomerEmailCorrespondenceJpaRepository
+      userStripeCustomerEmailCorrespondenceJpaRepositoryMock = mock();
   MonthlySubscriptionInvoiceRequestedService subject =
       new MonthlySubscriptionInvoiceRequestedService(
           invoiceServiceMock,
@@ -72,7 +75,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           userCustomerConverter,
           stripeConfMock,
           stripeFactoryMock,
-          stripeInvoiceServiceMock);
+          stripeInvoiceServiceMock,
+          userStripeCustomerEmailCorrespondenceJpaRepositoryMock);
 
   @BeforeEach
   void setUp() {
@@ -80,6 +84,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(stripeInvoiceMock.getNextPaymentAttempt())
         .thenReturn(temporalUtils.getSixthOfMonthAt2359(now(), 1).minus(2L, DAYS).getEpochSecond());
     when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(any())).thenReturn(stripeInvoiceMock);
+    when(userStripeCustomerEmailCorrespondenceJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.empty());
   }
 
   @Test
@@ -251,6 +257,221 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     // assertEquals(
     //  Duration.ofSeconds(60L),
     // monthlySubscriptionInvoiceCreated.maxConsumerBackoffBetweenRetries());
+  }
+
+  @Test
+  void generate_invoice_for_user_with_stripe_customer_email_correspondence()
+      throws StripeException {
+    var userToCreditId = "userToCreditId";
+    var userToDebitId = "userToDebitId";
+    var userToCreditMock = mock(User.class);
+    var userToDebitMock = mock(User.class);
+    var customerMock = mock(Customer.class);
+    var userOriginalEmail = "userOriginalEmail";
+    var correspondenceEmail = "correspondenceEmail";
+    var userSubscriptionMock = mock(UserSubscription.class);
+    var subscriptionMock = mock(Subscription.class);
+    var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var subscriptionEligibilityMock = mock(UserSubscriptionEligible.class);
+    var subscriptionProductName = "subscriptionProductName";
+    var userSubscriptionId = "notNullSubscription";
+    when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
+    var subscription = mock(com.stripe.model.Subscription.class);
+    when(stripeFactoryMock.retrieveUserSubscriptions(any())).thenReturn(List.of(subscription));
+    var items = mock(SubscriptionItemCollection.class);
+    when(subscription.getItems()).thenReturn(items);
+    var data = mock(SubscriptionItem.class);
+    when(items.getData()).thenReturn(List.of(data));
+    var plan = mock(Plan.class);
+    when(data.getPlan()).thenReturn(plan);
+    when(plan.getProduct()).thenReturn("essentialProduct");
+
+    when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
+    when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
+    when(userRepositoryMock.findAllByCriteria(any())).thenReturn(List.of(userToDebitMock));
+    when(invoiceServiceMock.crupdateSubscriptionInvoice(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(userToCreditMock.getId()).thenReturn(userToCreditId);
+    when(userToDebitMock.getId()).thenReturn(userToDebitId);
+    when(userToDebitMock.getEmail()).thenReturn(userOriginalEmail);
+    when(userToDebitMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
+    when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
+    when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
+    when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
+    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
+    when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
+    when(subscriptionMock.getEndDatetime())
+        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+    when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
+    when(customerRepositoryMock.findByIdUserAndCriteria(
+            any(),
+            any(),
+            any(),
+            eq(userOriginalEmail),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(Integer.class),
+            any(Integer.class)))
+        .thenReturn(List.of());
+    var correspondence =
+        UserStripeCustomerEmailCorrespondence.builder()
+            .id(randomUUID().toString())
+            .userId(userToDebitId)
+            .stripeCustomerId("stripeCustomerId")
+            .email(correspondenceEmail)
+            .build();
+    when(userStripeCustomerEmailCorrespondenceJpaRepositoryMock.findByUserId(userToDebitId))
+        .thenReturn(Optional.of(correspondence));
+    when(customerRepositoryMock.findByIdUserAndCriteria(
+            any(),
+            any(),
+            any(),
+            eq(correspondenceEmail),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(Integer.class),
+            any(Integer.class)))
+        .thenReturn(List.of(customerMock));
+    when(subscriptionServiceMock.getSubscriptionByUser(userToDebitMock))
+        .thenReturn(userSubscriptionMock);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userToDebitId))
+        .thenReturn(Optional.of(subscriptionEligibilityMock));
+
+    assertDoesNotThrow(
+        () -> subject.accept(MonthlySubscriptionInvoiceRequested.builder().build())); // TODO
+
+    var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
+    verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
+    verify(userStripeCustomerEmailCorrespondenceJpaRepositoryMock).findByUserId(userToDebitId);
+    verify(customerRepositoryMock, never()).save(any());
+    var createdInvoice = invoiceCaptor.getValue();
+    var expectedInvoice = computeExpectedInvoice(createdInvoice, userToCreditMock, customerMock);
+    var expectedInvoiceProduct =
+        computeExpectedInvoiceProduct(
+            createdInvoice.getProducts().getFirst(), expectedInvoice, subscriptionProductName);
+
+    assertEquals(customerMock, createdInvoice.getCustomer());
+    assertEquals(expectedInvoice, createdInvoice);
+    assertEquals(1, createdInvoice.getProducts().size());
+    assertEquals(expectedInvoiceProduct, createdInvoice.getProducts().getFirst());
+  }
+
+  @Test
+  void generate_invoice_falls_back_to_converter_when_correspondence_customer_missing()
+      throws StripeException {
+    var userToCreditId = "userToCreditId";
+    var userToDebitId = randomUUID().toString();
+    var userToCreditMock = mock(User.class);
+    var userToDebitMock = mock(User.class);
+    var holderMock = accountHolderWithValuesMock(mock(AccountHolder.class));
+    var userOriginalEmail = "dummyEmail";
+    var correspondenceEmail = "unknownCorrespondenceEmail";
+    var customerFirstName = "customerFirstName";
+    var customerLastName = "customerLastName";
+    var userSubscriptionMock = mock(UserSubscription.class);
+    var subscriptionMock = mock(Subscription.class);
+    var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var subscriptionEligibilityMock = mock(UserSubscriptionEligible.class);
+    var subscriptionProductName = "subscriptionProductName";
+    var userSubscriptionId = "notNullSubscription";
+    var adminUserId = randomUUID().toString();
+    var adminUserMock = mock(User.class);
+    when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
+    var subscription = mock(com.stripe.model.Subscription.class);
+    when(stripeFactoryMock.retrieveUserSubscriptions(any())).thenReturn(List.of(subscription));
+    var items = mock(SubscriptionItemCollection.class);
+    when(subscription.getItems()).thenReturn(items);
+    var data = mock(SubscriptionItem.class);
+    when(items.getData()).thenReturn(List.of(data));
+    var plan = mock(Plan.class);
+    when(data.getPlan()).thenReturn(plan);
+    when(plan.getProduct()).thenReturn("essentialProduct");
+
+    when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
+    when(userRepositoryMock.getById(userToCreditId)).thenReturn(userToCreditMock);
+    when(userRepositoryMock.findAllByCriteria(any())).thenReturn(List.of(userToDebitMock));
+    when(invoiceServiceMock.crupdateSubscriptionInvoice(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(userToCreditMock.getId()).thenReturn(userToCreditId);
+    when(userToDebitMock.getId()).thenReturn(userToDebitId);
+    when(userToDebitMock.getDefaultHolder()).thenReturn(holderMock);
+    when(userToDebitMock.getEmail()).thenReturn(userOriginalEmail);
+    when(userToDebitMock.getFirstName()).thenReturn(customerFirstName);
+    when(userToDebitMock.getLastName()).thenReturn(customerLastName);
+    when(userToDebitMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
+    when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
+    when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
+    when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
+    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
+    when(subscriptionMock.getEndDatetime())
+        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+    when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
+    when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
+    when(adminUserMock.getId()).thenReturn(adminUserId);
+    when(userRepositoryMock.findByEmail(System.getenv("ADMIN_EMAIL")))
+        .thenReturn(Optional.of(adminUserMock));
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userToDebitMock.getId()))
+        .thenReturn(Optional.of(subscriptionEligibilityMock));
+    when(customerRepositoryMock.findByIdUserAndCriteria(
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(Integer.class),
+            any(Integer.class)))
+        .thenReturn(List.of());
+    var correspondence =
+        UserStripeCustomerEmailCorrespondence.builder()
+            .id(randomUUID().toString())
+            .userId(userToDebitId)
+            .stripeCustomerId("stripeCustomerId")
+            .email(correspondenceEmail)
+            .build();
+    when(userStripeCustomerEmailCorrespondenceJpaRepositoryMock.findByUserId(userToDebitId))
+        .thenReturn(Optional.of(correspondence));
+    when(customerRepositoryMock.save(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(subscriptionServiceMock.getSubscriptionByUser(userToDebitMock))
+        .thenReturn(userSubscriptionMock);
+
+    assertDoesNotThrow(
+        () -> subject.accept(MonthlySubscriptionInvoiceRequested.builder().build())); // TODO
+
+    var invoiceCaptor = forClass(Invoice.class);
+    var customerCaptor = forClass(Customer.class);
+    verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
+    verify(userStripeCustomerEmailCorrespondenceJpaRepositoryMock).findByUserId(userToDebitId);
+    verify(customerRepositoryMock).save(customerCaptor.capture());
+    var createdInvoice = invoiceCaptor.getValue();
+    var actualCustomer = customerCaptor.getValue();
+    var expectedCreatedCustomer =
+        computeExpectedCreatedCustomer(adminUserId, userToDebitMock, actualCustomer);
+    var expectedInvoice =
+        computeExpectedInvoice(createdInvoice, userToCreditMock, expectedCreatedCustomer);
+    var expectedInvoiceProduct =
+        computeExpectedInvoiceProduct(
+            createdInvoice.getProducts().getFirst(), expectedInvoice, subscriptionProductName);
+
+    assertEquals(expectedCreatedCustomer, actualCustomer);
+    assertEquals(expectedInvoice, createdInvoice);
+    assertEquals(1, createdInvoice.getProducts().size());
+    assertEquals(expectedInvoiceProduct, createdInvoice.getProducts().getFirst());
   }
 
   @Test

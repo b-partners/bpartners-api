@@ -21,6 +21,7 @@ import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.CustomerRepository;
+import app.bpartners.api.repository.jpa.UserStripeCustomerEmailCorrespondenceJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -61,6 +62,8 @@ public class MonthlySubscriptionInvoiceRequestedService
   private final StripeConf stripeConf;
   private final StripeFactory stripeFactory;
   private final StripeInvoiceService stripeInvoiceService;
+  private final UserStripeCustomerEmailCorrespondenceJpaRepository
+      userStripeCustomerEmailCorrespondenceJpaRepository;
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
@@ -235,7 +238,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private Customer computeCustomerToDebit(User userToCredit, User userToDebit) {
-    var optionalCustomerToDebit =
+    var optionalCustomerToDebitFromOriginalUserToDebitEmail =
         customerRepository
             .findByIdUserAndCriteria(
                 userToCredit.getId(),
@@ -252,7 +255,31 @@ public class MonthlySubscriptionInvoiceRequestedService
                 MAX_SIZE)
             .stream()
             .findAny();
-    return optionalCustomerToDebit.orElseGet(() -> userCustomerConverter.apply(userToDebit));
+    if (optionalCustomerToDebitFromOriginalUserToDebitEmail.isEmpty()) {
+      var optionalUserStripeCustomerEmailCorrespondence =
+          userStripeCustomerEmailCorrespondenceJpaRepository.findByUserId(userToDebit.getId());
+      if (optionalUserStripeCustomerEmailCorrespondence.isPresent()) {
+        return customerRepository
+            .findByIdUserAndCriteria(
+                userToCredit.getId(),
+                null,
+                null,
+                optionalUserStripeCustomerEmailCorrespondence.get().getEmail(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                CustomerStatus.ENABLED,
+                MIN_PAGE,
+                MAX_SIZE)
+            .stream()
+            .findAny()
+            .orElseGet(() -> userCustomerConverter.apply(userToDebit));
+      }
+    }
+    return optionalCustomerToDebitFromOriginalUserToDebitEmail.orElseGet(
+        () -> userCustomerConverter.apply(userToDebit));
   }
 
   private double getProductUnitPrice(List<String> productIds) {

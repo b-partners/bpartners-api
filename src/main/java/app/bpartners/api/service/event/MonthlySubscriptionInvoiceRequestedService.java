@@ -157,12 +157,12 @@ public class MonthlySubscriptionInvoiceRequestedService
                         .equals(monthlySubscriptionInvoice.getTotalPriceWithVat())
                     && existingInvoice
                         .getCreatedAt()
-                        .isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 0))
+                        .isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 1))
                     && existingInvoice
                         .getCreatedAt()
                         .isAfter(
                             temporalUtils
-                                .startOfLastMonth()
+                                .startOfActualMonth()
                                 .atStartOfDay(ZoneId.of("Europe/Paris"))
                                 .toInstant()));
   }
@@ -176,9 +176,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
@@ -188,7 +188,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
-    var sendingDate = temporalUtils.endOfLastMonth();
+    var sendingDate = temporalUtils.endOfActualMonth();
     LocalDateTime fixedDateTime = LocalDateTime.of(sendingDate, LocalTime.now());
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
@@ -200,7 +200,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfActualMonth())
+        .toPayAt(temporalUtils.fifthOfNextMonth())
         .sendingDate(sendingDate)
         .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)

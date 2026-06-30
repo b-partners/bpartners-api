@@ -89,39 +89,9 @@
             text-align: center;
         }
 
-        .summary-image-wrapper {
-            display: flex;
-            justify-content: center; 
-            align-items: center; 
-        }
-
         .main-image-3d {
             display: inline-block;
             height: 320px;
-        }
-
-        .summary-image-container {
-            text-align: center;
-        }
-
-        .summary-image {
-            display: block;
-            max-width: 100%;
-            max-height: 320px;
-            width: auto;
-            height: auto;
-            margin: 0 auto;
-            object-fit: contain;
-        }
-
-        .diagram-page-image-mini {
-            display: block;
-            max-width: 100%;
-            max-height: 450px;
-            width: auto;
-            height: auto;
-            margin: 0 auto 0 auto;
-            object-fit: contain;
         }
 
         .annotation-item {
@@ -144,7 +114,7 @@
             white-space: normal;
         }
 
-        /* CORRECTION : Colonne droite pour les images du bâtiment (68%) */
+        /* Colonne droite pour les images du bâtiment (68%) */
         .annotation-item-image-container {
             display: table-cell;
             width: 68%;
@@ -167,7 +137,6 @@
             vertical-align: middle;
             text-align: center;
         }
-
 
         .annotation-item-image {
             display: block;
@@ -469,7 +438,7 @@
             display: inline-block;
         }
 
-        /* STYLES COMPLETS POUR LA SECTION DES PANS 3D */
+        /* STYLES POUR LA SECTION DES PANS 3D */
         .pan-col-headers {
             display: table;
             width: 100%;
@@ -737,13 +706,13 @@
         <h2 class="annotation-information-title">Résumé sur les mesures</h2>
         <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
 
-    <div class="image-wrapper">
-        <img
-            alt="roof-summary-diagram"
-            th:src="${roofSummary.baseImageWithNamesUri}"
-            class="main-image-3d"
-        />
-    </div>
+        <div class="image-wrapper">
+            <img
+                    alt="roof-summary-diagram"
+                    th:src="${roofSummary.baseImageWithNamesUri}"
+                    class="main-image-3d"
+            />
+        </div>
     </div>
 
     <div class="degradation-container">
@@ -786,7 +755,6 @@
                 <td style="font-weight:bold; padding:4px 6px;">Waste</td>
                 <td style="padding:4px 6px; text-align:center;"
                     th:each="w : ${roofSummary.wasteTable}"
-                    th:classappend="${w.suggested} ? 'suggested-cell' : ''"
                     th:style="${w.suggested} ? 'background-color:#e8f5e9; font-weight:bold;' : ''"
                     th:text="${w.percent}"></td>
             </tr>

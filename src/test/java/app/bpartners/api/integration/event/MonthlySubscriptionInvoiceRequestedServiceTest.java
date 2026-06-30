@@ -43,11 +43,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-@Disabled("Skipping as impl changed")
 class MonthlySubscriptionInvoiceRequestedServiceTest {
   InvoiceService invoiceServiceMock = mock();
   UserRepository userRepositoryMock = mock();
@@ -81,8 +79,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   @BeforeEach
   void setUp() {
     var stripeInvoiceMock = mock(com.stripe.model.Invoice.class);
+    // The invoice is computed only when the next Stripe payment attempt falls before the 6th of the
+    // current month; pick a date that satisfies this regardless of the day the test actually runs.
     when(stripeInvoiceMock.getNextPaymentAttempt())
-        .thenReturn(temporalUtils.getSixthOfMonthAt2359(now(), 1).minus(2L, DAYS).getEpochSecond());
+        .thenReturn(temporalUtils.getSixthOfMonthAt2359(now(), 0).minus(1L, DAYS).getEpochSecond());
     when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(any())).thenReturn(stripeInvoiceMock);
     when(userStripeCustomerEmailCorrespondenceJpaRepositoryMock.findByUserId(any()))
         .thenReturn(Optional.empty());
@@ -154,9 +154,12 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenReturn(Optional.of(subscriptionEligibilityMock));
 
     assertDoesNotThrow(
-        () -> {
-          subject.accept(MonthlySubscriptionInvoiceRequested.builder().build()); // TODO
-        });
+        () ->
+            subject.accept(
+                MonthlySubscriptionInvoiceRequested.builder()
+                    .userToCredit(userToCredit)
+                    .userToAttemptDebit(subscribedUser)
+                    .build()));
 
     var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
     verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
@@ -165,6 +168,93 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     assertEquals(
         "Analyse de toîtures supplémentaire",
         invoiceCaptorValue.getProducts().get(1).getDescription());
+  }
+
+  @Test
+  void does_not_recreate_invoice_when_already_computed_even_if_amount_differs()
+      throws StripeException {
+    var userToCreditId = "userToCreditId";
+    var userToDebitId = "userToDebitId";
+    var customerName = "customerName";
+    var userToCreditMock = mock(User.class);
+    var userToDebitMock = mock(User.class);
+    var resolvedCustomerMock = mock(Customer.class);
+    var userSubscriptionMock = mock(UserSubscription.class);
+    var subscriptionMock = mock(Subscription.class);
+    var subscriptionProductMock = mock(SubscriptionProduct.class);
+    var subscriptionEligibilityMock = mock(UserSubscriptionEligible.class);
+    var userSubscriptionId = "notNullSubscription";
+
+    when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
+    var subscription = mock(com.stripe.model.Subscription.class);
+    when(stripeFactoryMock.retrieveUserSubscriptions(any())).thenReturn(List.of(subscription));
+    var items = mock(SubscriptionItemCollection.class);
+    when(subscription.getItems()).thenReturn(items);
+    var data = mock(SubscriptionItem.class);
+    when(items.getData()).thenReturn(List.of(data));
+    var plan = mock(Plan.class);
+    when(data.getPlan()).thenReturn(plan);
+    when(plan.getProduct()).thenReturn("essentialProduct");
+
+    when(userToCreditMock.getId()).thenReturn(userToCreditId);
+    when(userToDebitMock.getId()).thenReturn(userToDebitId);
+    when(userToDebitMock.getName()).thenReturn("userToDebitName");
+    when(userToDebitMock.getEmail()).thenReturn("dummyEmail");
+    when(userToDebitMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
+    when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
+    when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
+    when(subscriptionProductMock.getName()).thenReturn("subscriptionProductName");
+    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
+    when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
+    when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
+    when(subscriptionServiceMock.getSubscriptionByUser(userToDebitMock))
+        .thenReturn(userSubscriptionMock);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userToDebitId))
+        .thenReturn(Optional.of(subscriptionEligibilityMock));
+    when(resolvedCustomerMock.getName()).thenReturn(customerName);
+    when(customerRepositoryMock.findByIdUserAndCriteria(
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(Integer.class),
+            any(Integer.class)))
+        .thenReturn(List.of(resolvedCustomerMock));
+
+    var billingPeriod =
+        "pour la période de "
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
+            + " au "
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+    var alreadyComputedInvoice =
+        Invoice.builder()
+            .customer(Customer.builder().name(customerName).build())
+            .title("Facture " + billingPeriod)
+            .createdAt(now())
+            // amount intentionally different from the freshly recomputed one: a retry recomputes
+            // the
+            // variable consumption live, so the price may differ for the same customer and period.
+            .totalPriceWithVat(new Fraction(BigInteger.valueOf(999_999L)))
+            .build();
+    when(invoiceServiceMock.getInvoices(any(), any(), any(), any(), any(), any(), any()))
+        .thenReturn(List.of(alreadyComputedInvoice));
+
+    assertDoesNotThrow(
+        () ->
+            subject.accept(
+                MonthlySubscriptionInvoiceRequested.builder()
+                    .userToCredit(userToCreditMock)
+                    .userToAttemptDebit(userToDebitMock)
+                    .build()));
+
+    verify(invoiceServiceMock, never()).crupdateSubscriptionInvoice(any());
   }
 
   @Test
@@ -200,6 +290,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
     when(userToDebitMock.getId()).thenReturn(userToDebitId);
+    when(userToDebitMock.getName()).thenReturn("userToDebitName");
     when(userToDebitMock.getEmail()).thenReturn(customerEmail);
     when(userToDebitMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
     when(userToDebitMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
@@ -232,7 +323,12 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenReturn(Optional.of(subscriptionEligibilityMock));
 
     assertDoesNotThrow(
-        () -> subject.accept(MonthlySubscriptionInvoiceRequested.builder().build())); // TODO
+        () ->
+            subject.accept(
+                MonthlySubscriptionInvoiceRequested.builder()
+                    .userToCredit(userToCreditMock)
+                    .userToAttemptDebit(userToDebitMock)
+                    .build()));
 
     // var eventCaptor = ArgumentCaptor.forClass(List.class);
     var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
@@ -293,6 +389,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
     when(userToDebitMock.getId()).thenReturn(userToDebitId);
+    when(userToDebitMock.getName()).thenReturn("userToDebitName");
     when(userToDebitMock.getEmail()).thenReturn(userOriginalEmail);
     when(userToDebitMock.getUserSubscriptionId()).thenReturn(userSubscriptionId);
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
@@ -347,7 +444,12 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenReturn(Optional.of(subscriptionEligibilityMock));
 
     assertDoesNotThrow(
-        () -> subject.accept(MonthlySubscriptionInvoiceRequested.builder().build())); // TODO
+        () ->
+            subject.accept(
+                MonthlySubscriptionInvoiceRequested.builder()
+                    .userToCredit(userToCreditMock)
+                    .userToAttemptDebit(userToDebitMock)
+                    .build()));
 
     var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
     verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
@@ -403,6 +505,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
     when(userToDebitMock.getId()).thenReturn(userToDebitId);
+    when(userToDebitMock.getName()).thenReturn("userToDebitName");
     when(userToDebitMock.getDefaultHolder()).thenReturn(holderMock);
     when(userToDebitMock.getEmail()).thenReturn(userOriginalEmail);
     when(userToDebitMock.getFirstName()).thenReturn(customerFirstName);
@@ -451,7 +554,12 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenReturn(userSubscriptionMock);
 
     assertDoesNotThrow(
-        () -> subject.accept(MonthlySubscriptionInvoiceRequested.builder().build())); // TODO
+        () ->
+            subject.accept(
+                MonthlySubscriptionInvoiceRequested.builder()
+                    .userToCredit(userToCreditMock)
+                    .userToAttemptDebit(userToDebitMock)
+                    .build()));
 
     var invoiceCaptor = forClass(Invoice.class);
     var customerCaptor = forClass(Customer.class);
@@ -461,7 +569,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var createdInvoice = invoiceCaptor.getValue();
     var actualCustomer = customerCaptor.getValue();
     var expectedCreatedCustomer =
-        computeExpectedCreatedCustomer(adminUserId, userToDebitMock, actualCustomer);
+        computeExpectedCreatedCustomer(userToCreditId, userToDebitMock, actualCustomer);
     var expectedInvoice =
         computeExpectedInvoice(createdInvoice, userToCreditMock, expectedCreatedCustomer);
     var expectedInvoiceProduct =
@@ -501,6 +609,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(userToCreditMock.getId()).thenReturn(userToCreditId);
     when(userToDebitMock.getId()).thenReturn(userToDebitId);
+    when(userToDebitMock.getName()).thenReturn("userToDebitName");
     when(userToDebitMock.getDefaultHolder()).thenReturn(holderMock);
     when(userToDebitMock.getEmail()).thenReturn(customerEmail);
     when(userToDebitMock.getFirstName()).thenReturn(customerFirstName);
@@ -540,7 +649,12 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenReturn(userSubscriptionMock);
 
     assertDoesNotThrow(
-        () -> subject.accept(MonthlySubscriptionInvoiceRequested.builder().build())); // TODO
+        () ->
+            subject.accept(
+                MonthlySubscriptionInvoiceRequested.builder()
+                    .userToCredit(userToCreditMock)
+                    .userToAttemptDebit(userToDebitMock)
+                    .build()));
 
     // var eventCaptor = forClass(List.class);
     var invoiceCaptor = forClass(Invoice.class);
@@ -554,7 +668,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     var actualInvoiceProduct = createdInvoice.getProducts().getFirst();
     var actualCustomer = customerCaptor.getValue();
     var expectedCreatedCustomer =
-        computeExpectedCreatedCustomer(adminUserId, userToDebitMock, actualCustomer);
+        computeExpectedCreatedCustomer(userToCreditId, userToDebitMock, actualCustomer);
     var expectedInvoice =
         computeExpectedInvoice(createdInvoice, userToCreditMock, expectedCreatedCustomer);
     var expectedInvoiceProduct =

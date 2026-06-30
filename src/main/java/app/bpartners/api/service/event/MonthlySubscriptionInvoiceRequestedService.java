@@ -156,8 +156,8 @@ public class MonthlySubscriptionInvoiceRequestedService
                         .getName()
                         .equalsIgnoreCase(monthlySubscriptionInvoice.getCustomer().getName())
                     && existingInvoice
-                        .getTotalPriceWithVat()
-                        .equals(monthlySubscriptionInvoice.getTotalPriceWithVat())
+                        .getTitle()
+                        .equalsIgnoreCase(monthlySubscriptionInvoice.getTitle())
                     && existingInvoice
                         .getCreatedAt()
                         .isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 1))

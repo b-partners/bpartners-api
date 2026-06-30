@@ -143,7 +143,7 @@ public class UserController {
   }
 
   @GetMapping("/users")
-  public List<User> geUsers(
+  public List<V2User> geUsers(
       @RequestParam String email,
       @RequestParam(name = "page", required = false) PageFromOne page,
       @RequestParam(value = "pageSize", required = false) BoundedPageSize pageSize) {
@@ -151,7 +151,7 @@ public class UserController {
     criteria.put("email", email);
     criteria.put("page", page == null ? MIN_PAGE : page.getValue());
     criteria.put("pageSize", pageSize == null ? MAX_SIZE : pageSize.getValue());
-    return service.getUsersByCriteria(criteria).stream().map(mapper::toRest).toList();
+    return service.getUsersByCriteria(criteria).stream().map(mapper::toRestV2).toList();
   }
 
   @GetMapping(value = "/users/{id}")

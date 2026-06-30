@@ -45,16 +45,7 @@ public class AccountHolderRestMapper {
         .siren(domain.getSiren())
         .verificationStatus(domain.getVerificationStatus())
         .initialCashflow(domain.getInitialCashflow().getCentsRoundUp())
-        .companyInfo(
-            new CompanyInfo()
-                .isSubjectToVat(domain.isSubjectToVat())
-                .email(domain.getEmail())
-                .website(domain.getWebsite())
-                .phone(domain.getMobilePhoneNumber())
-                .tvaNumber(domain.getVatNumber())
-                .socialCapital(domain.getSocialCapital())
-                .location(domain.getLocation())
-                .townCode(domain.getTownCode()))
+        .companyInfo(toRestCompanyInfo(domain))
         .contactAddress(
             new ContactAddress()
                 .prospectingPerimeter(domain.getProspectingPerimeter())
@@ -71,6 +62,18 @@ public class AccountHolderRestMapper {
         .city(domain.getCity())
         .country(domain.getCountry())
         .feedback(createAccountHolderFeedback(domain.getFeedbackLink()));
+  }
+
+  public static CompanyInfo toRestCompanyInfo(app.bpartners.api.model.AccountHolder domain) {
+    return new CompanyInfo()
+        .isSubjectToVat(domain.isSubjectToVat())
+        .email(domain.getEmail())
+        .website(domain.getWebsite())
+        .phone(domain.getMobilePhoneNumber())
+        .tvaNumber(domain.getVatNumber())
+        .socialCapital(domain.getSocialCapital())
+        .location(domain.getLocation())
+        .townCode(domain.getTownCode());
   }
 
   public AccountHolderFeedback createAccountHolderFeedback(String feedbackLink) {

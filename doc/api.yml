@@ -42,6 +42,8 @@ paths:
   #############################################
   ############ User Accounts API ##############
   #############################################
+  /users:
+    $ref: './userAccounts-api.yml#/operations/usersOperations'
   /users/{id}:
     $ref: './userAccounts-api.yml#/operations/getUserById'
   /users/{id}/subordinatesUsers:

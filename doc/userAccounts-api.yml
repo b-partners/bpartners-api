@@ -65,6 +65,46 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  usersOperations:
+    get:
+      tags:
+        - User Accounts
+      summary: Retrieve users
+      parameters:
+        - in: query
+          name: email
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: page
+          description: If not provided, default value is 1.
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          description: If not provided, default value is 30.
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: List of filtered users by provided email address
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/V2User'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getUserById:
     get:
       tags:
@@ -749,6 +789,40 @@ components:
           format: date-time
         toBeConfirmed:
           type: boolean
+    V2User:
+      properties:
+        id:
+          type: string
+          example: 'uuid'
+        firstName:
+          type: string
+          example: 'John'
+        lastName:
+          type: string
+          example: 'Doe'
+        phone:
+          type: string
+          example: "+33 1 23 45 67 89"
+        email:
+          type: string
+        status:
+          $ref: '#/components/schemas/EnableStatus'
+        activeAccount:
+          $ref: '#/components/schemas/Account'
+        activeAccountHolder:
+          $ref: '#/components/schemas/AccountHolderIdentity'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRole'
+        subscriptionStatus:
+          $ref: '#/components/schemas/UserSubscriptionStatus'
+        subscription:
+          $ref: '#/components/schemas/UserSubscription'
+        userParent:
+          $ref: '#/components/schemas/User'
+        logoFileId:
+          type: string
     User:
       properties:
         id:
@@ -879,7 +953,7 @@ components:
           type: string
         contactAddress:
           $ref: '#/components/schemas/ContactAddress'
-    AccountHolder:
+    AccountHolderIdentity:
       type: object
       properties:
         id:
@@ -898,12 +972,16 @@ components:
           type: string
         officialActivityName:
           type: string
+        companyInfo:
+          $ref: '#/components/schemas/CompanyInfo'
+    AccountHolder:
+      allOf:
+        - $ref: '#/components/schemas/AccountHolderIdentity'
+      properties:
         feedback:
           $ref: '#/components/schemas/AccountHolderFeedback'
         contactAddress:
           $ref: '#/components/schemas/ContactAddress'
-        companyInfo:
-          $ref: '#/components/schemas/CompanyInfo'
         businessActivities:
           $ref: '#/components/schemas/CompanyBusinessActivity'
         initialCashflow:

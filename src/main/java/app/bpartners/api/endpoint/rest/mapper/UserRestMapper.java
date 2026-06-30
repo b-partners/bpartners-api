@@ -85,6 +85,9 @@ public class UserRestMapper {
   }
 
   public User toRest(app.bpartners.api.model.User domain) {
+    if (domain == null) {
+      return null;
+    }
     // TODO: associate user subscription to User directly
     var subscription = subscriptionService.getSubscriptionByUser(domain);
     var userSubscriptionId =

@@ -4,6 +4,7 @@ import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFact
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64ToUri;
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
+import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
@@ -41,6 +42,7 @@ public class ExportAnnotationContextFactory {
     var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var defaultAccountHolder = user.getDefaultHolder();
     var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
+    var conf = AreaPictureAnnotationConfRestMapper.toDomain(annotation.getConf());
 
     context.setVariable("user", user);
     context.setVariable("userWebsite", user.getDefaultWebsite());
@@ -48,6 +50,7 @@ public class ExportAnnotationContextFactory {
     context.setVariable("address", annotation.getAddress());
     context.setVariable("userAddress", userAddress);
     context.setVariable("mainImage", mainImageUri);
+    context.setVariable("conf", conf);
     context.setVariable(
         "pages",
         groupByFirstPage(

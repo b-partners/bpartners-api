@@ -497,7 +497,7 @@
     <title>Rapport d'analyse</title>
 </head>
 <body>
-<section class="page">
+<section class="page" th:if="${conf.showTitlePage}">
     <h1 class="title">
         <span class="title-label">Rapport d'analyse de l'adresse : </span>
         <br />
@@ -561,7 +561,7 @@
     </div>
 </section>
 
-<section th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and roofSummary == null} ? ' last-page' : ''">
+<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and roofSummary == null} ? ' last-page' : ''">
     <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
 
     <div th:each="annotation, annotationStat : ${page}" class="annotation-item">
@@ -590,7 +590,7 @@
     </div>
 </section>
 
-<section th:if="${pages3D}" th:each="page, pageStat : ${pages3D}"
+<section th:if="${pages3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pages3D}"
          class="page"
          th:classappend="${pageStat.last and llm == null and roofSummary == null} ? ' last-page' : ''">
 
@@ -673,7 +673,7 @@
     </div>
 </section>
 
-<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.diagramImageBase64 != null}">
+<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.diagramImageBase64 != null and conf.isShowMeasurementSummary()}">
     <div th:if="${allEdgeTypes}">
         <h2 class="annotation-information-title">Longueur</h2>
         <p class="section-description">Longueur en mètre</p>
@@ -689,19 +689,19 @@
     <img class="diagram-page-image" th:src="${roofSummary.diagramImageBase64}"/>
 </section>
 
-<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithPitchesUri != null}">
+<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithPitchesUri != null and conf.isShowPitchSummary() == true}">
     <h2 class="annotation-information-title">Pente</h2>
     <p class="section-description">Pente en dégré</p>
     <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithPitchesUri}"/>
 </section>
 
-<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithAreasUri != null}">
+<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithAreasUri != null and conf.isShowAreaSummary() == true}">
     <h2 class="annotation-information-title">Surface</h2>
     <p class="section-description">Surface en m²</p>
     <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithAreasUri}"/>
 </section>
 
-<section class="page summary-page" th:if="${roofSummary != null}">
+<section class="page summary-page" th:if="${roofSummary != null and conf.isShowOverallSummary()}">
     <div>
         <h2 class="annotation-information-title">Résumé sur les mesures</h2>
         <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
@@ -726,7 +726,7 @@
     </div>
 </section>
 
-<section class="page" th:classappend="${llm == null} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null}">
+<section class="page" th:classappend="${llm == null} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
     <h2 class="annotation-information-title">Resumé sur les pans</h2>
     <p class="section-description">Répartition des pentes, calcul de la marge et détail par pan</p>
 
@@ -796,7 +796,7 @@
     </div>
 </section>
 
-<section class="llm page last-page" th:if="${llm}">
+<section class="llm page last-page" th:if="${llm and conf.isShowLlmSummary()}">
     <div th:utext="${llm}"></div>
 </section>
 

@@ -55,20 +55,22 @@ public class CustomerExportFunction implements Function<List<CustomerExportPaylo
 
         int rowIndex = 1;
         for (CustomerExportPayload payload : uniqueCustomerToExports) {
-          Row row = sheet.createRow(rowIndex++);
-          row.createCell(0).setCellValue(payload.stripeCustomerId());
-          row.createCell(1).setCellValue(payload.email());
-          row.createCell(2).setCellValue(payload.stripeCustomerName());
-          row.createCell(3).setCellValue(payload.internalCustomerName());
-          row.createCell(4)
-              .setCellValue(
-                  String.valueOf(
-                      LocalDateTime.from(
-                          payload
-                              .stripeCreationDatetime()
-                              .atZone(ZoneOffset.UTC)
-                              .withZoneSameInstant(ZoneId.of("Europe/Paris")))));
-          row.createCell(5).setCellValue(!payload.unknown());
+          if (payload != null) {
+            Row row = sheet.createRow(rowIndex++);
+            row.createCell(0).setCellValue(payload.stripeCustomerId());
+            row.createCell(1).setCellValue(payload.email());
+            row.createCell(2).setCellValue(payload.stripeCustomerName());
+            row.createCell(3).setCellValue(payload.internalCustomerName());
+            row.createCell(4)
+                .setCellValue(
+                    String.valueOf(
+                        LocalDateTime.from(
+                            payload
+                                .stripeCreationDatetime()
+                                .atZone(ZoneOffset.UTC)
+                                .withZoneSameInstant(ZoneId.of("Europe/Paris")))));
+            row.createCell(5).setCellValue(!payload.unknown());
+          }
         }
 
         for (int i = 0; i < HEADERS.length; i++) {

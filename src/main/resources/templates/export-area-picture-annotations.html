@@ -2,19 +2,79 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <style>
+        :root {
+            --color-text-main: #2b2b2a;
+            --color-text-muted: #6b6b6b;
+            --color-text-light: #888780;
+            --color-text-accent: #ff521b;
+            --color-text-dark: #000000;
+            --color-text-white: #ffffff;
+            --color-text-placeholder: #999999;
+
+            --color-bg-light: #f7f7f5;
+            --color-bg-alt: #f7f7f7;
+            --color-bg-dark: #756c6c;
+            --color-bg-white: #ffffff;
+
+            --color-border-light: #e0e0e0;
+            --color-border-accent: #ef9f27;
+            --color-border-none: none;
+
+            --font-family-main: 'Kumbh Sans', Arial, Verdana;
+            --font-size-root: 12px;
+            --font-size-title: 1.7rem;
+            --font-size-section-title: 1.5rem;
+            --font-size-subtitle: 1.25rem;
+            --font-size-body-large: 1.1rem;
+            --font-size-body-normal: 1rem;
+            --font-size-body-small: 0.95rem;
+            --font-size-caption: 11px;
+            --font-size-badge: 10px;
+            --font-size-micro: 9px;
+            --font-size-nano: 8px;
+
+            --space-xs: 4px;
+            --space-sm: 6px;
+            --space-md: 10px;
+            --space-lg: 14px;
+            --space-xl: 16px;
+            --space-xxl: 20px;
+            --space-huge: 40px;
+
+            --page-margin-v: 18px;
+            --page-margin-h: 28px;
+
+            --radius-sm: 4px;
+            --radius-md: 8px;
+
+            --max-height-page: 1087px;
+            --max-height-img-large: 500px;
+            --max-height-img-diagram: 850px;
+            --max-height-img-medium: 450px;
+            --max-height-img-small: 320px;
+            --max-height-img-logo: 120px;
+
+            --width-img-main: 550px;
+            --width-img-annotation: 300px;
+            --height-img-3d: 140px;
+        }
+
         * {
-            color: #2b2b2a;
+            color: var(--color-text-main);
             box-sizing: border-box;
-            font-family: 'Kumbh Sans', Arial, Verdana;
+            font-family: var(--font-family-main);
             padding: 0;
             margin: 0;
         }
 
         html {
-            font-size: 12px;
+            font-size: var(--font-size-root);
         }
 
-        @page { size: A4; margin: 18px 28px; }
+        @page {
+            size: A4;
+            margin: var(--page-margin-v) var(--page-margin-h);
+        }
 
         .page {
             width: 100%;
@@ -23,11 +83,8 @@
             page-break-after: always;
         }
 
-        /* Pages whose content is fully under our control (single diagram
-           image + fixed legend/title) are hard-capped to one A4 page so an
-           oversized source image can never push the page break onto a 2nd sheet. */
         .diagram-page {
-            max-height: 1087px;
+            max-height: var(--max-height-page);
             overflow: hidden;
         }
 
@@ -39,50 +96,44 @@
 
         .summary-image-large {
             width: 100%;
-            max-height: 500px;
+            max-height: var(--max-height-img-large);
         }
 
-        .last-page { page-break-after: avoid; }
+        .last-page {
+            page-break-after: avoid;
+        }
 
-        /* Belt-and-suspenders: whichever .page happens to be the very last
-           element in the rendered document never forces a break after itself,
-           regardless of which conditional section (llm / pages3D / roofSummary /
-           pitchBreakdown / wasteTable / faces) ends up being last. This avoids
-           relying on correctly chaining "is this the last one" logic across
-           many independent th:if blocks. */
         body > .page:last-of-type,
         body > section.page:last-child {
             page-break-after: avoid;
         }
 
-        /* Full-bleed diagram pages: Longueur / Surface / Pitch and Direction.
-           Image is capped so title + intro + legend + diagram always fit one A4 page. */
         .diagram-page-image {
             display: block;
             max-width: 100%;
-            max-height: 850px;
+            max-height: var(--max-height-img-diagram);
             width: auto;
             height: auto;
-            margin: 16px auto 0 auto;
+            margin: var(--space-xl) auto 0 auto;
             object-fit: contain;
         }
 
         .title {
-            font-size: 1.7rem; /* ~ 20px */
+            font-size: var(--font-size-title);
             text-align: center;
             font-weight: bold !important;
-            margin: 20px auto 20px auto;
+            margin: var(--space-xxl) auto var(--space-xxl) auto;
         }
 
         .title-value {
-            color: #FF521B;
-            margin: 5px 0px;
+            color: var(--color-text-accent);
+            margin: var(--space-sm) 0px;
         }
 
         .main-image {
             display: block;
-            width: 550px;
-            margin: 20px auto 0px auto;
+            width: var(--width-img-main);
+            margin: var(--space-xxl) auto 0px auto;
         }
 
         .image-wrapper {
@@ -91,13 +142,13 @@
 
         .summary-image-wrapper {
             display: flex;
-            justify-content: center; 
-            align-items: center; 
+            justify-content: center;
+            align-items: center;
         }
 
         .main-image-3d {
             display: inline-block;
-            height: 320px;
+            height: var(--max-height-img-small);
         }
 
         .summary-image-container {
@@ -107,7 +158,7 @@
         .summary-image {
             display: block;
             max-width: 100%;
-            max-height: 320px;
+            max-height: var(--max-height-img-small);
             width: auto;
             height: auto;
             margin: 0 auto;
@@ -117,7 +168,7 @@
         .diagram-page-image-mini {
             display: block;
             max-width: 100%;
-            max-height: 450px;
+            max-height: var(--max-height-img-medium);
             width: auto;
             height: auto;
             margin: 0 auto 0 auto;
@@ -127,24 +178,23 @@
         .annotation-item {
             display: table;
             width: 100%;
-            margin-top: 20px;
+            margin-top: var(--space-xxl);
             table-layout: fixed;
             page-break-inside: avoid;
         }
 
         .annotation-item:last-child {
-            border-bottom: none;
+            border-bottom: var(--color-border-none);
         }
 
         .annotation-item-labels {
             display: table-cell;
-            width: calc(100% - 320px);
+            width: calc(100% - var(--width-img-annotation) - var(--space-xxl));
             vertical-align: top;
             word-wrap: break-word;
             white-space: normal;
         }
 
-        /* CORRECTION : Colonne droite pour les images du bâtiment (68%) */
         .annotation-item-image-container {
             display: table-cell;
             width: 68%;
@@ -152,13 +202,12 @@
             text-align: center;
         }
 
-        /* Gestion de l'affichage des images du bâtiment côte à côte */
         .building-images-row {
             display: table;
             width: 100%;
             table-layout: fixed;
             border-collapse: separate;
-            border-spacing: 10px 0;
+            border-spacing: var(--space-md) 0;
         }
 
         .building-image-cell {
@@ -168,17 +217,16 @@
             text-align: center;
         }
 
-
         .annotation-item-image {
             display: block;
-            width: 300px;
+            width: var(--width-img-annotation);
             margin-left: auto;
             height: auto;
         }
 
         .annotation-item-image-3d {
             max-width: 100%;
-            height: 140px;
+            height: var(--height-img-3d);
             width: 100%;
             object-fit: contain;
             vertical-align: middle;
@@ -186,82 +234,94 @@
 
         .annotation-blank-item-image-3d {
             width: 100%;
-            height: 140px;
+            height: var(--height-img-3d);
             display: block;
-            background-color: #756c6c;
-            color: white;
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-white);
             text-align: center;
-            line-height: 140px;
-            border-radius: 4px;
-            font-size: 11px;
+            line-height: var(--height-img-3d);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-caption);
         }
 
         .annotation-information-title {
-            font-size: 1.5rem; /* 18px */
-            margin-bottom: 20px;
+            font-size: var(--font-size-section-title);
+            margin-bottom: var(--space-xxl);
             font-weight: bold;
-            color: #FF521B;
+            color: var(--color-text-accent);
             text-align: center;
             page-break-after: avoid;
         }
 
-        /* Short descriptive subtitle shown under a dedicated summary page's
-           title (Longueur / Surface / Résumé sur les mesures / Resumé sur les pans). */
         .section-description {
-            font-size: 0.95rem;
-            color: #6b6b6b;
+            font-size: var(--font-size-body-small);
+            color: var(--color-text-muted);
             text-align: center;
-            margin: -12px 0 20px;
+            margin: -12px 0 var(--space-xxl);
             line-height: 1.4;
         }
 
-        .annotation-item-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
-        .annotation-item-title-value { margin-right: 15px; }
-        .annotation-item-info-label { font-weight: bold; }
-        .annotation-item-info-value { font-weight: normal; }
+        .annotation-item-title {
+            font-size: var(--font-size-body-large);
+            font-weight: bold;
+            margin-bottom: var(--space-md);
+        }
+
+        .annotation-item-title-value {
+            margin-right: 15px;
+        }
+
+        .annotation-item-info-label {
+            font-weight: bold;
+        }
+
+        .annotation-item-info-value {
+            font-weight: normal;
+        }
+
         .annotation-item-info-item {
-            font-size: 1rem; /* 12px */
-            margin: 6px 0;
+            font-size: var(--font-size-body-normal);
+            margin: var(--space-sm) 0;
         }
 
         .roof-slope-boundaries-legend {
-            margin-bottom: 12px;
+            margin-bottom: var(--space-xs);
             line-height: 2;
         }
 
         .legend-item {
             display: inline-block;
             white-space: nowrap;
-            margin-right: 16px;
+            margin-right: var(--space-xl);
             vertical-align: middle;
         }
 
         .legend-item img {
             vertical-align: middle;
             width: 32px;
-            height: 16px;
+            height: var(--space-xl);
         }
 
         .legend-item span {
-            font-size: 11px;
+            font-size: var(--font-size-caption);
             vertical-align: middle;
         }
 
         .degradation-container {
             display: block;
             width: 100%;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 14px;
-            margin-top: 20px;
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            margin-top: var(--space-xxl);
         }
 
         .degradation-section-title {
-            font-size: 11px;
+            font-size: var(--font-size-caption);
             font-weight: 500;
             letter-spacing: 0.08em;
-            color: #6b6b6b;
-            margin: 0 0 10px;
+            color: var(--color-text-muted);
+            margin: 0 0 var(--space-md);
             text-transform: uppercase;
         }
 
@@ -270,66 +330,66 @@
             width: 100%;
             table-layout: fixed;
             border-collapse: separate;
-            border-spacing: 6px 0;
+            border-spacing: var(--space-sm) 0;
         }
 
         .degradation-level-card {
             display: table-cell;
-            background: #f7f7f5;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 10px 6px 8px;
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-md);
+            padding: var(--space-md) var(--space-sm) var(--space-md);
             text-align: center;
             vertical-align: top;
         }
 
         .degradation-level-card.active {
-            background: #ffffff;
-            border: 2px solid #EF9F27;
+            background: var(--color-bg-white);
+            border: 2px solid var(--color-border-accent);
         }
 
         .degradation-level-header {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: var(--radius-md);
         }
 
         .degradation-level-label {
             display: block;
-            font-size: 10px;
+            font-size: var(--font-size-badge);
             font-weight: 600;
-            color: #2c2c2a;
+            color: var(--color-text-main);
             line-height: 1.3;
             margin-bottom: 3px;
         }
 
         .degradation-level-subtitle {
             display: block;
-            font-size: 9px;
-            color: #888780;
+            font-size: var(--font-size-micro);
+            color: var(--color-text-light);
             line-height: 1.3;
         }
 
         .degradation-bar-segment {
             display: block;
-            height: 8px;
-            border-radius: 4px;
+            height: var(--radius-md);
+            border-radius: var(--radius-sm);
             width: 100%;
-            margin-top: 8px;
+            margin-top: var(--radius-md);
         }
 
         .degradation-marker {
             display: inline-block;
             width: 0;
             height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-bottom: 8px solid #2c2c2a;
+            border-left: var(--space-sm) solid transparent;
+            border-right: var(--space-sm) solid transparent;
+            border-bottom: var(--radius-md) solid var(--color-text-main);
         }
 
         .degradation-footer {
             display: table;
             width: 100%;
-            margin-top: 14px;
+            margin-top: var(--space-lg);
         }
 
         .degradation-level-info {
@@ -346,10 +406,10 @@
 
         .degradation-footer-label {
             display: block;
-            font-size: 9px;
+            font-size: var(--font-size-micro);
             font-weight: 500;
             letter-spacing: 0.06em;
-            color: #6b6b6b;
+            color: var(--color-text-muted);
             margin: 0;
             text-transform: uppercase;
         }
@@ -358,33 +418,30 @@
             display: block;
             font-size: 13px;
             font-weight: 500;
-            color: #FF521B;
+            color: var(--color-text-accent);
             margin: 0;
         }
 
         .degradation-score .degradation-footer-value {
-            font-size: 16px;
+            font-size: var(--space-xl);
         }
 
         .degradation-disclaimer {
             display: block;
-            font-size: 8px;
+            font-size: var(--font-size-nano);
             color: #aaa;
-            margin: 10px 0 0;
+            margin: var(--space-md) 0 0;
             line-height: 1.4;
         }
 
-        /* Compact tables used on the dedicated summary pages, sized to avoid
-           page overflow regardless of row count (measurements ~13 rows,
-           roof face summary one row per pan). */
         .measurements-table {
             width: 100%;
             border-collapse: collapse;
         }
 
         .measurements-table td {
-            padding: 4px 0;
-            font-size: 0.95rem;
+            padding: var(--radius-sm) 0;
+            font-size: var(--font-size-body-small);
             line-height: 1.3;
         }
 
@@ -396,31 +453,30 @@
         .roof-face-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: var(--font-size-nano);
         }
 
         .roof-face-table td {
-            padding: 4px 6px;
+            padding: var(--radius-sm) var(--space-sm);
             line-height: 1.3;
         }
 
-        /* LLM */
         .llm h2 {
-            font-size: 1.5rem !important; /* 18px */
-            color: #FF521B;
+            font-size: var(--font-size-section-title) !important;
+            color: var(--color-text-accent);
             text-align: center;
             font-weight: bold;
-            margin-top: 20px;
+            margin-top: var(--space-xxl);
             margin-bottom: 15px;
         }
 
         .llm h3 {
-            color: #000000;
-            font-size: 1.25rem !important; /* 15 */
+            color: var(--color-text-dark);
+            font-size: var(--font-size-subtitle) !important;
             text-align: center;
             font-weight: bold;
             margin-top: 15px;
-            margin-bottom: 10px;
+            margin-bottom: var(--space-md);
         }
 
         .llm section ul {
@@ -431,21 +487,21 @@
         }
 
         .llm section ul li {
-            margin: 8px 0;
+            margin: var(--radius-md) 0;
             line-height: 1.5;
             text-align: justify;
         }
 
         .emoji svg,
         .emoji img {
-            width: 1em;                 /* match text height */
-            height: 1em;                /* ensure square emoji */
+            width: 1em;
+            height: 1em;
             display: inline-block;
         }
 
         .footer-info {
             width: 100%;
-            padding-top: 40px;
+            padding-top: var(--space-huge);
         }
 
         .footer-info table {
@@ -464,28 +520,27 @@
         }
 
         .footer-logo {
-            max-height: 120px;
-            margin-top: 20px;
+            max-height: var(--max-height-img-logo);
+            margin-top: var(--space-xxl);
             display: inline-block;
         }
 
-        /* STYLES COMPLETS POUR LA SECTION DES PANS 3D */
         .pan-col-headers {
             display: table;
             width: 100%;
             table-layout: fixed;
-            margin-bottom: 8px;
+            margin-bottom: var(--radius-md);
         }
 
         .pan-col-header {
             display: table-cell;
             width: 50%;
             text-align: center;
-            font-size: 10px;
-            color: #999;
+            font-size: var(--font-size-badge);
+            color: var(--color-text-placeholder);
             padding: 5px;
-            background-color: #f7f7f7;
-            border-radius: 4px;
+            background-color: var(--color-bg-alt);
+            border-radius: var(--radius-sm);
         }
 
         .pan-annotation-content {
@@ -498,7 +553,7 @@
             display: table-cell;
             width: 32%;
             vertical-align: middle;
-            padding-right: 18px;
+            padding-right: var(--page-margin-v);
             word-wrap: break-word;
         }
 
@@ -513,7 +568,7 @@
             width: 100%;
             table-layout: fixed;
             border-collapse: separate;
-            border-spacing: 10px 0;
+            border-spacing: var(--space-md) 0;
         }
 
         .pan-image-cell {
@@ -522,7 +577,6 @@
             vertical-align: middle;
             text-align: center;
         }
-
     </style>
     <meta charset="UTF-8"/>
     <title>Rapport d'analyse</title>

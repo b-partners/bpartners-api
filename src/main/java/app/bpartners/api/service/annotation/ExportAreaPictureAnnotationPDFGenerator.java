@@ -4,6 +4,7 @@ import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVE
 import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
@@ -26,6 +27,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private final EmojiReplacer emojiReplacer;
   private final FileService fileService;
+  private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper;
 
   public static final String KEY_LABEL = "key";
   public static final String FONT_NAME = "Kumbh Sans";
@@ -34,7 +36,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
   public ExportAreaPictureAnnotationPDFGenerator(
-      TemplateResolverEngine templateResolverEngine, FileService fileService) {
+      TemplateResolverEngine templateResolverEngine,
+      FileService fileService,
+      AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
+    this.areaPictureAnnotationConfRestMapper = areaPictureAnnotationConfRestMapper;
     this.templateResolverEngine = templateResolverEngine;
     this.emojiReplacer = getEmojiReplacer();
     this.fileService = fileService;
@@ -95,7 +100,8 @@ public class ExportAreaPictureAnnotationPDFGenerator {
             annotationImages,
             annotation3DImages,
             fileService,
-            exportAreaPictureAnnotation3DGenerator);
+            exportAreaPictureAnnotation3DGenerator,
+            areaPictureAnnotationConfRestMapper);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 

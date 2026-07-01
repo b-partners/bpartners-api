@@ -968,6 +968,41 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  invoiceStatusesOperations:
+    put:
+      tags:
+        - Paying
+      operationId: requestInvoiceStatusesUpdate
+      summary: Request invoice statuses update
+      description: |
+        Permits invoices statuses update either providing invoice unique identifier + newInvoiceStatus, or invoice unique reference + newInvoiceStatus.
+        In case, both `invoiceIdentifier` and `invoiceReference` are provided, produces exception.
+      parameters:
+        - in: path
+          name: aId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateInvoiceStatus'
+      responses:
+        204:
+          description: Invoices statuses update requested without response content
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   getInvoices:
     get:
       tags:
@@ -1780,6 +1815,15 @@ components:
         maturityDate:
           type: string
           format: date
+    UpdateInvoiceStatus:
+      type: object
+      properties:
+        invoiceReference:
+          type: string
+        invoiceIdentifier:
+          type: string
+        invoiceStatus:
+          $ref: '#/components/schemas/InvoiceStatus'
     InvoiceStatus:
       type: string
       enum:

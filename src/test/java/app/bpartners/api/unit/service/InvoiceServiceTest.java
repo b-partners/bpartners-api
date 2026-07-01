@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.UpdateInvoiceStatusRequested;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.AccountHolder;
@@ -31,6 +32,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class InvoiceServiceTest {
   InvoiceRepository repositoryMock = mock(InvoiceRepository.class);
@@ -184,5 +186,39 @@ class InvoiceServiceTest {
     var actual = subject.duplicateAsDraft("invoiceId", "ref");
 
     assertEquals(invoice, actual);
+  }
+
+  @Test
+  void request_invoice_statuses_update_by_identifier_produces_event() {
+    var updateInvoiceStatus =
+        new app.bpartners.api.model.UpdateInvoiceStatus(
+            "invoiceId", null, InvoiceStatus.PAID, "userId");
+
+    subject.requestInvoiceStatusesUpdate(List.of(updateInvoiceStatus));
+
+    ArgumentCaptor<List<UpdateInvoiceStatusRequested>> captor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducerMock).accept(captor.capture());
+    var actualEvent = captor.getValue().get(0);
+    assertEquals("invoiceId", actualEvent.getInvoiceIdentifier());
+    assertEquals(null, actualEvent.getInvoiceReference());
+    assertEquals(InvoiceStatus.PAID, actualEvent.getNewStatus());
+    assertEquals("userId", actualEvent.getUserOwnerIdentifier());
+  }
+
+  @Test
+  void request_invoice_statuses_update_by_reference_produces_event() {
+    var updateInvoiceStatus =
+        new app.bpartners.api.model.UpdateInvoiceStatus(
+            null, "invoiceRef", InvoiceStatus.PAID, "userId");
+
+    subject.requestInvoiceStatusesUpdate(List.of(updateInvoiceStatus));
+
+    ArgumentCaptor<List<UpdateInvoiceStatusRequested>> captor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducerMock).accept(captor.capture());
+    var actualEvent = captor.getValue().get(0);
+    assertEquals(null, actualEvent.getInvoiceIdentifier());
+    assertEquals("invoiceRef", actualEvent.getInvoiceReference());
+    assertEquals(InvoiceStatus.PAID, actualEvent.getNewStatus());
+    assertEquals("userId", actualEvent.getUserOwnerIdentifier());
   }
 }

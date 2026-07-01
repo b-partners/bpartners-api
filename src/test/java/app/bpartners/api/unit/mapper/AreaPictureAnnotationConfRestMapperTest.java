@@ -8,20 +8,22 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf;
 import org.junit.jupiter.api.Test;
 
 class AreaPictureAnnotationConfRestMapperTest {
+  AreaPictureAnnotationConfRestMapper subject = new AreaPictureAnnotationConfRestMapper();
 
   @Test
   void to_domain_ok() {
-    ExportAreaPictureAnnotationConf rest = new ExportAreaPictureAnnotationConf()
-        .showTitlePage(true)
-        .showAnnotationPages(false)
-        .showAnnotation3dPages(true)
-        .showMeasurementSummary(false)
-        .showPitchSummary(true)
-        .showAreaSummary(false)
-        .showOverallSummary(true)
-        .showLlmSummary(false);
+    ExportAreaPictureAnnotationConf rest =
+        new ExportAreaPictureAnnotationConf()
+            .showTitlePage(true)
+            .showAnnotationPages(false)
+            .showAnnotation3dPages(true)
+            .showMeasurementSummary(false)
+            .showPitchSummary(true)
+            .showAreaSummary(false)
+            .showOverallSummary(true)
+            .showLlmSummary(false);
 
-    var domain = AreaPictureAnnotationConfRestMapper.toDomain(rest);
+    var domain = subject.toDomain(rest);
 
     assertTrue(domain.isShowTitlePage());
     assertFalse(domain.isShowAnnotationPages());
@@ -35,7 +37,7 @@ class AreaPictureAnnotationConfRestMapperTest {
 
   @Test
   void to_domain_null_defaults_to_true() {
-    var domain = AreaPictureAnnotationConfRestMapper.toDomain(null);
+    var domain = subject.toDomain(null);
 
     assertTrue(domain.isShowTitlePage());
     assertTrue(domain.isShowAnnotationPages());
@@ -49,10 +51,10 @@ class AreaPictureAnnotationConfRestMapperTest {
 
   @Test
   void to_domain_partial_null_defaults_to_true() {
-    ExportAreaPictureAnnotationConf rest = new ExportAreaPictureAnnotationConf()
-        .showTitlePage(false);
+    ExportAreaPictureAnnotationConf rest =
+        new ExportAreaPictureAnnotationConf().showTitlePage(false);
 
-    var domain = AreaPictureAnnotationConfRestMapper.toDomain(rest);
+    var domain = subject.toDomain(rest);
 
     assertFalse(domain.isShowTitlePage());
     assertTrue(domain.isShowAnnotationPages());

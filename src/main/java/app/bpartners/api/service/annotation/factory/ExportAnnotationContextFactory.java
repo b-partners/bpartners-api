@@ -34,7 +34,8 @@ public class ExportAnnotationContextFactory {
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages,
       FileService fileService,
-      ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator) {
+      ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator,
+      AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
     var context = new Context();
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
@@ -42,7 +43,7 @@ public class ExportAnnotationContextFactory {
     var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var defaultAccountHolder = user.getDefaultHolder();
     var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
-    var conf = AreaPictureAnnotationConfRestMapper.toDomain(annotation.getConf());
+    var conf = areaPictureAnnotationConfRestMapper.toDomain(annotation.getConf());
 
     context.setVariable("user", user);
     context.setVariable("userWebsite", user.getDefaultWebsite());

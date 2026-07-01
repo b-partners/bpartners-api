@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
@@ -25,6 +26,8 @@ import org.springframework.core.io.ClassPathResource;
 
 class ExportAreaPictureAnnotationPdfGeneratorTest {
   FileService fileService = mock();
+  AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
+      new AreaPictureAnnotationConfRestMapper();
   ExportAreaPictureAnnotationPDFGenerator subject;
   private static BufferedImage mockImage;
 
@@ -40,7 +43,8 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
     when(fileService.downloadFile(any(), any(), any())).thenReturn(null);
 
     subject =
-        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), fileService);
+        new ExportAreaPictureAnnotationPDFGenerator(
+            new TemplateResolverEngine(), fileService, areaPictureAnnotationConfRestMapper);
   }
 
   @Test

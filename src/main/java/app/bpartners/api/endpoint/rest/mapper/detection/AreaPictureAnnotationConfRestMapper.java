@@ -1,10 +1,12 @@
 package app.bpartners.api.endpoint.rest.mapper.detection;
 
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AreaPictureAnnotationConfRestMapper {
 
-  public static ExportAreaPictureAnnotationConf toDomain(
+  public ExportAreaPictureAnnotationConf toDomain(
       app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf rest) {
 
     if (rest == null) {

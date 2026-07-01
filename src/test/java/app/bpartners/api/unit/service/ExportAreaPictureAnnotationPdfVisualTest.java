@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
@@ -30,16 +31,17 @@ import java.util.List;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-//@Disabled("This is a visual test to generate a PDF file for manual inspection.")
+// @Disabled("This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
   private static final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
       new ExportAreaPictureAnnotationImage3DGenerator();
+  private static final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
+      new AreaPictureAnnotationConfRestMapper();
   private static final ImageCompressor imageCompressor = new ImageCompressor();
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -70,7 +72,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             });
 
     pdfGenerator =
-        new ExportAreaPictureAnnotationPDFGenerator(new TemplateResolverEngine(), fileService);
+        new ExportAreaPictureAnnotationPDFGenerator(
+            new TemplateResolverEngine(), fileService, areaPictureAnnotationConfRestMapper);
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(

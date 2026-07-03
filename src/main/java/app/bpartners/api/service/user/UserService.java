@@ -113,7 +113,9 @@ public class UserService {
   }
 
   public List<User> getUsersByCriteria(HashMap<String, Object> criteria) {
-    return userRepository.findAllByCriteria(criteria);
+    return userRepository.findAllByCriteria(criteria).stream()
+        .map(userRepository::retrievePaymentMethod)
+        .toList();
   }
 
   @Transactional

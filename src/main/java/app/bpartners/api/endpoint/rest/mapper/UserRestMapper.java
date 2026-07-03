@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.endpoint.rest.mapper.AccountHolderRestMapper.toRestCompanyInfo;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.*;
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
@@ -35,7 +36,58 @@ public class UserRestMapper {
   private final UserWhiteListedJpaRepository userWhiteListedRepository;
   private final TemporalUtils temporalUtils;
 
+  public V2User toRestV2(app.bpartners.api.model.User domain) {
+    var subscription = subscriptionService.getSubscriptionByUser(domain);
+    var userSubscriptionId =
+        domain.getUserSubscriptionId(); // TODO: look why unpaidStripeInvoices could not be empty
+    // whenever userSubscriptionId null
+    var unpaidStripeInvoices = stripeInvoiceService.getUnpaidStripeInvoices(userSubscriptionId);
+    var subscriptionEligibility =
+        userSubscriptionEligibleRepository.findByUserId(domain.getId()).orElse(null);
+    var userWhiteListed = userWhiteListedRepository.findByUserId(domain.getId()).orElse(null);
+    var subscriptionStatus =
+        getSubscriptionStatus(
+            subscription,
+            subscriptionEligibility,
+            userSubscriptionId != null && !unpaidStripeInvoices.isEmpty(),
+            domain.isPaymentMethodExists(),
+            userWhiteListed);
+    return new V2User()
+        .id(domain.getId())
+        .firstName(domain.getFirstName())
+        .lastName(domain.getLastName())
+        .phone(domain.getMobilePhoneNumber())
+        .email(domain.getEmail())
+        .status(domain.getStatus())
+        .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()))
+        .activeAccountHolder(
+            domain.getDefaultHolder() == null
+                ? null
+                : new AccountHolderIdentity()
+                    .id(domain.getDefaultHolder().getId())
+                    .name(domain.getDefaultHolder().getName())
+                    .address(domain.getDefaultHolder().getAddress())
+                    .city(domain.getDefaultHolder().getCity())
+                    .country(domain.getDefaultHolder().getCountry())
+                    .postalCode(domain.getDefaultHolder().getPostalCode())
+                    .siren(domain.getDefaultHolder().getSiren())
+                    .officialActivityName(domain.getDefaultHolder().getMainActivity())
+                    .companyInfo(toRestCompanyInfo(domain.getDefaultHolder())))
+        .roles(toRest(domain.getRoles()))
+        .subscriptionStatus(subscriptionStatus)
+        .subscription(
+            new UserSubscription()
+                .status(subscriptionStatus)
+                .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
+                .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))
+        .userParent(toRest(domain.getParentUser()))
+        .logoFileId(domain.getLogoFileId());
+  }
+
   public User toRest(app.bpartners.api.model.User domain) {
+    if (domain == null) {
+      return null;
+    }
     // TODO: associate user subscription to User directly
     var subscription = subscriptionService.getSubscriptionByUser(domain);
     var userSubscriptionId =

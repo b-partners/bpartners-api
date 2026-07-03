@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoicesSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
+import app.bpartners.api.endpoint.rest.validator.UpdateInvoiceStatusRestValidator;
 import app.bpartners.api.endpoint.rest.validator.UpdatePaymentRegValidator;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.BoundedPageSize;
@@ -27,13 +28,8 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -48,6 +44,7 @@ public class InvoiceController {
   private final InvoiceSummaryService summaryService;
   private final InvoiceExportRequestService invoiceExportRequestService;
   private final InvoiceExportRequestRestMapper invoiceExportRequestRestMapper;
+  private final UpdateInvoiceStatusRestValidator updateInvoiceStatusRestValidator;
 
   @GetMapping("users/{uId}/invoiceExportRequests/{requestId}")
   public InvoiceExportRequest retrieveInvoiceExportRequestById(
@@ -151,6 +148,25 @@ public class InvoiceController {
       @RequestBody List<UpdateInvoiceArchivedStatus> toArchive) {
     List<ArchiveInvoice> archiveInvoices = toArchive.stream().map(mapper::toDomain).toList();
     return service.archiveInvoices(archiveInvoices).stream().map(mapper::toRest).toList();
+  }
+
+  @PutMapping(value = "/accounts/{aId}/invoices/statuses")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void requestInvoiceStatusesUpdate(
+      @PathVariable(name = "aId") String accountId,
+      @RequestBody List<UpdateInvoiceStatus> updateInvoiceStatuses) {
+    updateInvoiceStatusRestValidator.accept(updateInvoiceStatuses);
+
+    service.requestInvoiceStatusesUpdate(
+        updateInvoiceStatuses.stream()
+            .map(
+                restUpdateInvoiceStatus ->
+                    new app.bpartners.api.model.UpdateInvoiceStatus(
+                        restUpdateInvoiceStatus.getInvoiceIdentifier(),
+                        restUpdateInvoiceStatus.getInvoiceReference(),
+                        restUpdateInvoiceStatus.getInvoiceStatus(),
+                        getAuthenticatedUserId()))
+            .toList());
   }
 
   @PostMapping("/accounts/{aId}/invoices/{iId}/duplication")

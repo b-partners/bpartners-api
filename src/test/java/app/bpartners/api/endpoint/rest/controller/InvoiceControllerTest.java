@@ -15,8 +15,10 @@ import app.bpartners.api.endpoint.rest.mapper.InvoiceExportRequestRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoicesSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.InvoiceExportRequest;
+import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
+import app.bpartners.api.endpoint.rest.validator.UpdateInvoiceStatusRestValidator;
 import app.bpartners.api.endpoint.rest.validator.UpdatePaymentRegValidator;
 import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.User;
@@ -27,6 +29,7 @@ import app.bpartners.api.service.invoice.InvoiceSummaryService;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 class InvoiceControllerTest {
@@ -40,6 +43,7 @@ class InvoiceControllerTest {
   BucketComponent bucketComponentMock = mock();
   InvoiceExportRequestRestMapper invoiceExportRequestRestMapper =
       new InvoiceExportRequestRestMapper(bucketComponentMock);
+  UpdateInvoiceStatusRestValidator updateInvoiceStatusRestValidatorMock = mock();
 
   InvoiceController subject =
       new InvoiceController(
@@ -50,7 +54,8 @@ class InvoiceControllerTest {
           invoicesSummaryRestMapperMock,
           invoiceSummaryServiceMock,
           invoiceExportRequestServiceMock,
-          invoiceExportRequestRestMapper);
+          invoiceExportRequestRestMapper,
+          updateInvoiceStatusRestValidatorMock);
 
   @Test
   void get_invoice_export_request_when_own_request() {
@@ -153,6 +158,36 @@ class InvoiceControllerTest {
             () -> subject.retrieveInvoiceExportRequestById(userIdentifier, requestId));
 
     assertEquals("User can only export their own invoices", actualException.getMessage());
+
+    authProviderMockedStatic.close();
+  }
+
+  @Test
+  void request_invoice_statuses_update_validates_then_delegates_to_service() {
+    var accountId = randomUUID().toString();
+    var userIdentifier = randomUUID().toString();
+    var restUpdateInvoiceStatus =
+        new app.bpartners.api.endpoint.rest.model.UpdateInvoiceStatus()
+            .invoiceIdentifier("invoiceId")
+            .invoiceStatus(InvoiceStatus.PAID);
+    var updateInvoiceStatuses = List.of(restUpdateInvoiceStatus);
+
+    MockedStatic<AuthProvider> authProviderMockedStatic = mockStatic(AuthProvider.class);
+    authProviderMockedStatic.when(AuthProvider::getAuthenticatedUserId).thenReturn(userIdentifier);
+    doNothing().when(updateInvoiceStatusRestValidatorMock).accept(updateInvoiceStatuses);
+
+    subject.requestInvoiceStatusesUpdate(accountId, updateInvoiceStatuses);
+
+    verify(updateInvoiceStatusRestValidatorMock).accept(updateInvoiceStatuses);
+    ArgumentCaptor<List<app.bpartners.api.model.UpdateInvoiceStatus>> captor =
+        ArgumentCaptor.forClass(List.class);
+    verify(invoiceServiceMock).requestInvoiceStatusesUpdate(captor.capture());
+    var actual = captor.getValue();
+    assertEquals(1, actual.size());
+    assertEquals(
+        new app.bpartners.api.model.UpdateInvoiceStatus(
+            "invoiceId", null, InvoiceStatus.PAID, userIdentifier),
+        actual.get(0));
 
     authProviderMockedStatic.close();
   }

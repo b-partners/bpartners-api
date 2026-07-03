@@ -15,18 +15,12 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
+import app.bpartners.api.endpoint.event.model.UpdateInvoiceStatusRequested;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
-import app.bpartners.api.model.ArchiveInvoice;
-import app.bpartners.api.model.BoundedPageSize;
-import app.bpartners.api.model.Fraction;
-import app.bpartners.api.model.Invoice;
-import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.model.PaymentHistoryStatus;
-import app.bpartners.api.model.PaymentRequest;
-import app.bpartners.api.model.PreSignedLink;
+import app.bpartners.api.model.*;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -58,7 +52,7 @@ public class InvoiceService {
   private final PaymentService paymentService;
   private final InvoiceValidator invoiceValidator;
   private final CustomerInvoiceValidator customerInvoiceValidator;
-  private final EventProducer<InvoiceExportLinkRequested> eventProducer;
+  private final EventProducer eventProducer;
   private final UserRepository userRepository;
 
   @SneakyThrows
@@ -200,6 +194,18 @@ public class InvoiceService {
                         .collect(Collectors.toList()))
             .build();
     return crupdateInvoice(duplicatedInvoice);
+  }
+
+  public void requestInvoiceStatusesUpdate(List<UpdateInvoiceStatus> updateInvoiceStatuses) {
+    updateInvoiceStatuses.forEach(
+        updateInvoiceStatus ->
+            eventProducer.accept(
+                List.of(
+                    new UpdateInvoiceStatusRequested(
+                        updateInvoiceStatus.invoiceIdentifier(),
+                        updateInvoiceStatus.invoiceReference(),
+                        updateInvoiceStatus.status(),
+                        updateInvoiceStatus.userOwnerIdentifier()))));
   }
 
   public List<Invoice> archiveInvoices(List<ArchiveInvoice> archiveInvoices) {

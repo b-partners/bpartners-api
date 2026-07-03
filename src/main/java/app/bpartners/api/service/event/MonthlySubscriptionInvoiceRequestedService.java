@@ -21,6 +21,7 @@ import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.CustomerRepository;
+import app.bpartners.api.repository.jpa.UserStripeCustomerEmailCorrespondenceJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -61,6 +62,8 @@ public class MonthlySubscriptionInvoiceRequestedService
   private final StripeConf stripeConf;
   private final StripeFactory stripeFactory;
   private final StripeInvoiceService stripeInvoiceService;
+  private final UserStripeCustomerEmailCorrespondenceJpaRepository
+      userStripeCustomerEmailCorrespondenceJpaRepository;
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
@@ -81,7 +84,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     log.info("Upcoming Stripe Invoice {} for user {}", nextInvoiceDate, userToDebit.getEmail());
 
     if (nextInvoiceDate != null
-        && nextInvoiceDate.isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 0))) {
+        && nextInvoiceDate.isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 1))) {
       Invoice monthlySubscriptionInvoice;
       try {
         monthlySubscriptionInvoice =
@@ -153,16 +156,16 @@ public class MonthlySubscriptionInvoiceRequestedService
                         .getName()
                         .equalsIgnoreCase(monthlySubscriptionInvoice.getCustomer().getName())
                     && existingInvoice
-                        .getTotalPriceWithVat()
-                        .equals(monthlySubscriptionInvoice.getTotalPriceWithVat())
+                        .getTitle()
+                        .equalsIgnoreCase(monthlySubscriptionInvoice.getTitle())
                     && existingInvoice
                         .getCreatedAt()
-                        .isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 0))
+                        .isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 1))
                     && existingInvoice
                         .getCreatedAt()
                         .isAfter(
                             temporalUtils
-                                .startOfLastMonth()
+                                .startOfActualMonth()
                                 .atStartOfDay(ZoneId.of("Europe/Paris"))
                                 .toInstant()));
   }
@@ -176,9 +179,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var invoiceId = randomUUID().toString();
     var monthPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
     var invoiceTitle = "Facture " + monthPeriod;
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
@@ -188,7 +191,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
-    var sendingDate = temporalUtils.endOfLastMonth();
+    var sendingDate = temporalUtils.endOfActualMonth();
     LocalDateTime fixedDateTime = LocalDateTime.of(sendingDate, LocalTime.now());
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
@@ -200,7 +203,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfActualMonth())
+        .toPayAt(temporalUtils.fifthOfNextMonth())
         .sendingDate(sendingDate)
         .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)
@@ -235,7 +238,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   }
 
   private Customer computeCustomerToDebit(User userToCredit, User userToDebit) {
-    var optionalCustomerToDebit =
+    var optionalCustomerToDebitFromOriginalUserToDebitEmail =
         customerRepository
             .findByIdUserAndCriteria(
                 userToCredit.getId(),
@@ -252,7 +255,31 @@ public class MonthlySubscriptionInvoiceRequestedService
                 MAX_SIZE)
             .stream()
             .findAny();
-    return optionalCustomerToDebit.orElseGet(() -> userCustomerConverter.apply(userToDebit));
+    if (optionalCustomerToDebitFromOriginalUserToDebitEmail.isEmpty()) {
+      var optionalUserStripeCustomerEmailCorrespondence =
+          userStripeCustomerEmailCorrespondenceJpaRepository.findByUserId(userToDebit.getId());
+      if (optionalUserStripeCustomerEmailCorrespondence.isPresent()) {
+        return customerRepository
+            .findByIdUserAndCriteria(
+                userToCredit.getId(),
+                null,
+                null,
+                optionalUserStripeCustomerEmailCorrespondence.get().getEmail(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                CustomerStatus.ENABLED,
+                MIN_PAGE,
+                MAX_SIZE)
+            .stream()
+            .findAny()
+            .orElseGet(() -> userCustomerConverter.apply(userToDebit));
+      }
+    }
+    return optionalCustomerToDebitFromOriginalUserToDebitEmail.orElseGet(
+        () -> userCustomerConverter.apply(userToDebit));
   }
 
   private double getProductUnitPrice(List<String> productIds) {

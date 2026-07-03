@@ -42,6 +42,8 @@ paths:
   #############################################
   ############ User Accounts API ##############
   #############################################
+  /users:
+    $ref: './userAccounts-api.yml#/operations/usersOperations'
   /users/{id}:
     $ref: './userAccounts-api.yml#/operations/getUserById'
   /users/{id}/subordinatesUsers:
@@ -128,6 +130,8 @@ paths:
     $ref: './paying-api.yml#/operations/importProducts'
   /accounts/{aId}/invoices:
     $ref: './paying-api.yml#/operations/getInvoices'
+  /accounts/{aId}/invoices/statuses:
+    $ref: './paying-api.yml#/operations/invoiceStatusesOperations'
   /accounts/{aId}/invoices/exportLink:
     $ref: './paying-api.yml#/operations/exportInvoices'
   /accounts/{aId}/invoicesSummary:

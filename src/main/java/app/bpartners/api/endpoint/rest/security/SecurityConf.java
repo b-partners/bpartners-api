@@ -463,6 +463,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
+                            PUT, "/accounts/*/invoices/statuses", authResourceProvider))
+                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(
+                        new SelfAccountMatcher(
                             GET, "/accounts/*/invoices/*/relaunches", authResourceProvider))
                     .authenticated()
                     .requestMatchers(

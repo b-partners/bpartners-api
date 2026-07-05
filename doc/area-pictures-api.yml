@@ -940,69 +940,81 @@ components:
       type: object
       required:
         - type
-        - style
+        - priority
       properties:
         type:
           type: string
           enum: [ TEXT, IMAGE, TABLE ]
           example: "TEXT"
-        style:
+        priority:
           type: string
           enum: [ IMPORTANT, MEDIUM, SMALL ]
           description: "Controls the visual weight and scale of the block contextually."
-      oneOf:
-        - $ref: '#/components/schemas/TextSection'
-        - $ref: '#/components/schemas/ImageSection'
-        - $ref: '#/components/schemas/TableSection'
+          example: "MEDIUM"
+      discriminator:
+        propertyName: type
+        mapping:
+          TEXT: '#/components/schemas/TextSection'
+          IMAGE: '#/components/schemas/ImageSection'
+          TABLE: '#/components/schemas/TableSection'
 
     TextSection:
-      type: object
-      required:
-        - text
-      properties:
-        text:
-          type: string
-          example: "L'accès au pan Nord nécessite l'installation d'un échafaudage de classe 3."
+      allOf:
+        - $ref: '#/components/schemas/PageSection'
+        - type: object
+          required:
+            - text
+          properties:
+            text:
+              type: string
+              example: "L'accès au pan Nord nécessite l'installation d'un échafaudage de classe 3."
 
     ImageSection:
-      type: object
-      required:
-        - url
-      properties:
-        url:
-          type: string
-          format: uri
-          example: "https://your-storage.com/images/photo_accent.jpg"
-        caption:
-          type: string
-          example: "Vue rapprochée de la souche de cheminée"
+      allOf:
+        - $ref: '#/components/schemas/PageSection'
+        - type: object
+          required:
+            - url
+          properties:
+            url:
+              type: string
+              format: uri
+              example: "https://your-storage.com/images/photo_accent.jpg"
+            caption:
+              type: string
+              example: "Vue rapprochée de la souche de cheminée"
 
     TableSection:
+      allOf:
+        - $ref: '#/components/schemas/PageSection'
+        - type: object
+          required:
+            - tableData
+          properties:
+            tableData:
+              $ref: '#/components/schemas/TableData'
+
+    TableData:
       type: object
       required:
-        - tableData
+        - headers
+        - rows
       properties:
-        tableData:
-          type: object
-          required:
-            - headers
-            - rows
-          properties:
-            headers:
-              type: array
-              items:
-                type: string
-              example: [ "Élément", "Priorité", "Action Requise" ]
-            rows:
-              type: array
-              items:
-                type: array
-                items:
-                  type: string
-              example: [
-                [ "Solin de cheminée", "Élevée", "Reprise complète de l'étanchéité" ],
-                [ "Gouttière Est", "Moyenne", "Nettoyage" ]
-              ]
+        headers:
+          type: array
+          items:
+            type: string
+          example: [ "Élément", "Priorité", "Action Requise" ]
+        rows:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+          example: [
+            [ "Solin de cheminée", "Élevée", "Reprise complète de l'étanchéité" ],
+            [ "Gouttière Est", "Moyenne", "Nettoyage" ]
+          ]
 
     ConverterData:
       type: object

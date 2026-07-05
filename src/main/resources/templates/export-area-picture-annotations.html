@@ -233,18 +233,18 @@
             text-transform: uppercase;
         }
 
-        /* Data grids optimized specifically using HTML standard layout elements */
         .degradation-levels {
-            display: block;
+            display: table;
             width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 6px 0;
             margin-bottom: 10px;
         }
 
         .degradation-level-card {
-            display: block;
-            float: left;
-            width: 24%; /* Balanced across max 4 items; adjust up or down depending on item count */
-            margin-right: 1%;
+            display: table-cell;
+            vertical-align: top;
             background: #f7f7f5;
             border: 1px solid #e0e0e0;
             border-radius: 8px;

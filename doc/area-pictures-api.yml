@@ -883,6 +883,10 @@ components:
             $ref: "#/components/schemas/ExportAreaPictureAnnotationInstance"
         conf:
           $ref: "#/components/schemas/ExportAreaPictureAnnotationConf"
+        customPages:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomPage"
       required:
         - address
         - imageUrl
@@ -918,6 +922,88 @@ components:
         - polygon
         - measurements
         - infos
+    CustomPage:
+      type: object
+      required:
+        - pageTitle
+        - sections
+      properties:
+        pageTitle:
+          type: string
+          example: "Observations Supplémentaires de Chantier"
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageSection'
+
+    PageSection:
+      type: object
+      required:
+        - type
+        - style
+      properties:
+        type:
+          type: string
+          enum: [ TEXT, IMAGE, TABLE ]
+          example: "TEXT"
+        style:
+          type: string
+          enum: [ IMPORTANT, MEDIUM, SMALL ]
+          description: "Controls the visual weight and scale of the block contextually."
+      oneOf:
+        - $ref: '#/components/schemas/TextSection'
+        - $ref: '#/components/schemas/ImageSection'
+        - $ref: '#/components/schemas/TableSection'
+
+    TextSection:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          example: "L'accès au pan Nord nécessite l'installation d'un échafaudage de classe 3."
+
+    ImageSection:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          example: "https://your-storage.com/images/photo_accent.jpg"
+        caption:
+          type: string
+          example: "Vue rapprochée de la souche de cheminée"
+
+    TableSection:
+      type: object
+      required:
+        - tableData
+      properties:
+        tableData:
+          type: object
+          required:
+            - headers
+            - rows
+          properties:
+            headers:
+              type: array
+              items:
+                type: string
+              example: [ "Élément", "Priorité", "Action Requise" ]
+            rows:
+              type: array
+              items:
+                type: array
+                items:
+                  type: string
+              example: [
+                [ "Solin de cheminée", "Élevée", "Reprise complète de l'étanchéité" ],
+                [ "Gouttière Est", "Moyenne", "Nettoyage" ]
+              ]
+
     ConverterData:
       type: object
       additionalProperties:

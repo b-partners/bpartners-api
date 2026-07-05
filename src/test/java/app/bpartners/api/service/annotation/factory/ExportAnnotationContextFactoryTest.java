@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.LogCaptor;
+import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.model.Point;
 import app.bpartners.api.endpoint.rest.model.Polygon;
@@ -27,6 +28,8 @@ public class ExportAnnotationContextFactoryTest {
   FileService fileService = mock(FileService.class);
   ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
       new ExportAreaPictureAnnotationImage3DGenerator();
+  AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
+      new AreaPictureAnnotationConfRestMapper();
 
   @Test
   void configure_3d_pan_image_context() throws IOException {
@@ -238,7 +241,14 @@ public class ExportAnnotationContextFactoryTest {
 
     Context context =
         ExportAnnotationContextFactory.createContext(
-            user, "logo", annotation, images, images3d, fileService, image3DGenerator);
+            user,
+            "logo",
+            annotation,
+            images,
+            images3d,
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
 
     assertEquals(user, context.getVariable("user"));
     assertEquals("https://example.com", context.getVariable("userWebsite"));
@@ -257,7 +267,14 @@ public class ExportAnnotationContextFactoryTest {
 
     Context context =
         ExportAnnotationContextFactory.createContext(
-            user, null, annotation, images, images3d, fileService, image3DGenerator);
+            user,
+            null,
+            annotation,
+            images,
+            images3d,
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
 
     assertNull(context.getVariable("logo"));
   }
@@ -280,7 +297,14 @@ public class ExportAnnotationContextFactoryTest {
 
     Context context =
         ExportAnnotationContextFactory.createContext(
-            user, "logo", annotation, images, images3d, fileService, image3DGenerator);
+            user,
+            "logo",
+            annotation,
+            images,
+            images3d,
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
 
     assertEquals("llm text", context.getVariable("llm"));
     assertEquals("B", context.getVariable("globalRateType"));

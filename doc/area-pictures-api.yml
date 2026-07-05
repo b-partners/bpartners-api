@@ -785,6 +785,33 @@ components:
           $ref: "#/components/schemas/AreaPictureDetails"
         prospectName:
           type: string
+    ExportAreaPictureAnnotationConf:
+      type: object
+      properties:
+        showTitlePage:
+          type: boolean
+          default: true
+        showAnnotationPages:
+          type: boolean
+          default: true
+        showAnnotation3dPages:
+          type: boolean
+          default: true
+        showMeasurementSummary:
+          type: boolean
+          default: true
+        showPitchSummary:
+          type: boolean
+          default: true
+        showAreaSummary:
+          type: boolean
+          default: true
+        showOverallSummary:
+          type: boolean
+          default: true
+        showLlmSummary:
+          type: boolean
+          default: true
     ExportAreaPictureAnnotationMeasurement:
       type: object
       properties:
@@ -854,6 +881,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ExportAreaPictureAnnotationInstance"
+        conf:
+          $ref: "#/components/schemas/ExportAreaPictureAnnotationConf"
       required:
         - address
         - imageUrl

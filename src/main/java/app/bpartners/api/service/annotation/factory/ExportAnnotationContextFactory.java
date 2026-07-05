@@ -4,6 +4,7 @@ import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFact
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64ToUri;
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
+import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
@@ -33,7 +34,8 @@ public class ExportAnnotationContextFactory {
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages,
       FileService fileService,
-      ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator) {
+      ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator,
+      AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
     var context = new Context();
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
@@ -41,6 +43,7 @@ public class ExportAnnotationContextFactory {
     var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var defaultAccountHolder = user.getDefaultHolder();
     var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
+    var conf = areaPictureAnnotationConfRestMapper.toDomain(annotation.getConf());
 
     context.setVariable("user", user);
     context.setVariable("userWebsite", user.getDefaultWebsite());
@@ -48,6 +51,7 @@ public class ExportAnnotationContextFactory {
     context.setVariable("address", annotation.getAddress());
     context.setVariable("userAddress", userAddress);
     context.setVariable("mainImage", mainImageUri);
+    context.setVariable("conf", conf);
     context.setVariable(
         "pages",
         groupByFirstPage(

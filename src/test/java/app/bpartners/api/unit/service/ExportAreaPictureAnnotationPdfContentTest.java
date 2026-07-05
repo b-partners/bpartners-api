@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
@@ -24,6 +25,8 @@ class ExportAreaPictureAnnotationPdfContentTest {
   private final FileService fileService = mock();
   private final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
       new ExportAreaPictureAnnotationImage3DGenerator();
+  private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
+      new AreaPictureAnnotationConfRestMapper();
 
   @BeforeEach
   void setup() {
@@ -54,7 +57,8 @@ class ExportAreaPictureAnnotationPdfContentTest {
             annotationImages,
             annotation3DImages,
             fileService,
-            image3DGenerator);
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
 
     String html =
         templateResolverEngine
@@ -91,7 +95,8 @@ class ExportAreaPictureAnnotationPdfContentTest {
             new Pair<>("main", List.of()),
             null,
             fileService,
-            image3DGenerator);
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
 
     String html =
         templateResolverEngine

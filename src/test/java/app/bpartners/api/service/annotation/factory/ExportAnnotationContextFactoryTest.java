@@ -445,7 +445,7 @@ public class ExportAnnotationContextFactoryTest {
   }
 
   @Test
-  void map_section_should_map_image_section_with_successful_download() throws IOException {
+  void map_section_should_map_image_section_with_successful_download() {
     ImageSection restSection = new ImageSection();
     restSection.setType(TypeEnum.IMAGE);
     restSection.setPriority(PriorityEnum.SMALL);
@@ -487,7 +487,7 @@ public class ExportAnnotationContextFactoryTest {
   }
 
   @Test
-  void map_section_should_fallback_when_image_download_fails() throws IOException {
+  void map_section_should_fallback_when_image_download_fails() {
     ImageSection restSection = new ImageSection();
     restSection.setType(TypeEnum.IMAGE);
     restSection.setPriority(PriorityEnum.SMALL);
@@ -526,7 +526,7 @@ public class ExportAnnotationContextFactoryTest {
   }
 
   @Test
-  void map_section_should_fallback_when_image_is_null() throws IOException {
+  void map_section_should_fallback_when_image_is_null() {
     ImageSection restSection = new ImageSection();
     restSection.setType(TypeEnum.IMAGE);
     restSection.setPriority(PriorityEnum.SMALL);
@@ -640,15 +640,19 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAnnotations(List.of());
     annotation.setAddress("Paris");
 
+    User user = new User();
+    Pair<String, List<Object>> pairA = new Pair<>("a", List.of());
+    Pair<String, List<Object>> pairB = new Pair<>("b", List.of());
+
     assertThrows(
         IllegalArgumentException.class,
         () ->
             ExportAnnotationContextFactory.createContext(
-                new User(),
+                user,
                 null,
                 annotation,
-                new Pair<>("a", List.of()),
-                new Pair<>("b", List.of()),
+                pairA,
+                pairB,
                 fileService,
                 image3DGenerator,
                 areaPictureAnnotationConfRestMapper));

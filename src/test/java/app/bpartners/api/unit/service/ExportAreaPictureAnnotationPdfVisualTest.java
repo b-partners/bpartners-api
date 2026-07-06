@@ -218,50 +218,6 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     savePdfFile(pdfBytes, "heavy-payload-with-custom-pages");
   }
 
-  private List<PageSection> customTextSection() {
-    return List.of(
-        new TextSection()
-            .text("RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES ÉLECTRIQUES")
-            .priority(PageSection.PriorityEnum.IMPORTANT)
-            .type(PageSection.TypeEnum.TEXT),
-        new TextSection()
-            .text(
-                "L'accès au toit par le côté Ouest est limité par la présence de lignes"
-                    + " électriques haute tension. Prudence recommandée. Lors de l'inspection"
-                    + " préliminaire des abords du bâtiment, il a été mis en évidence que les"
-                    + " conducteurs aériens surplombent directement la zone de levage potentielle,"
-                    + " restreignant drastiquement les marges de manœuvre pour le déploiement"
-                    + " des dispositifs d'accès temporaires.")
-            .priority(PageSection.PriorityEnum.MEDIUM)
-            .type(PageSection.TypeEnum.TEXT),
-        new TextSection()
-            .text("1. Mesures de prévention obligatoires et logistique déportée")
-            .priority(PageSection.PriorityEnum.IMPORTANT)
-            .type(PageSection.TypeEnum.TEXT),
-        new TextSection()
-            .text(
-                "Afin de garantir la sécurité absolue des équipes techniques et d'éviter tout"
-                    + " risque d'amorçage ou d'arc électrique, l'utilisation d'échelles métalliques"
-                    + " est formellement proscrite sur ce flanc. L'approvisionnement du chantier en"
-                    + " matériaux ainsi que le montage des échafaudages devront être intégralement"
-                    + " déportés sur le versant Est, qui offre un dégagement total et sécurisé.")
-            .priority(PageSection.PriorityEnum.MEDIUM)
-            .type(PageSection.TypeEnum.TEXT),
-        new TextSection()
-            .text("2. Balisage et zone d'exclusion au sol")
-            .priority(PageSection.PriorityEnum.IMPORTANT)
-            .type(PageSection.TypeEnum.TEXT),
-        new TextSection()
-            .text(
-                "Une zone d'exclusion temporaire doit être matérialisée au sol par un barriérage"
-                    + " rigide pour empêcher le stationnement ou le déploiement d'engins de levage"
-                    + " sous les lignes électriques. Toute intervention finale sur la rive Ouest"
-                    + " devra faire l'objet d'une signalisation visuelle standardisée signalant le"
-                    + " danger mortel à proximité immédiate des câbles sous tension.")
-            .priority(PageSection.PriorityEnum.MEDIUM)
-            .type(PageSection.TypeEnum.TEXT));
-  }
-
   @Test
   void generate_from_heavy_payload_without_title_page() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();

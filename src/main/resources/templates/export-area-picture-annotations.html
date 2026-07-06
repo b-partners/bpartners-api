@@ -233,53 +233,33 @@
             text-transform: uppercase;
         }
 
-        .degradation-levels {
-            display: table;
+        .degradation-levels-table {
             width: 100%;
             table-layout: fixed;
             border-collapse: separate;
-            border-spacing: 6px 0;
-            margin-bottom: 10px;
+            border-spacing: 10px 0; /* Restores the exact horizontal gaps between cards */
+            margin: 15px 0;
         }
 
-        .degradation-level-card {
-            display: table-cell;
+        .degradation-level-card-cell {
+            width: 20%; /* Evenly spreads the 5 cards across 100% width */
             vertical-align: top;
+            padding: 0;
+        }
+
+        .degradation-level-card-inner {
             background: #f7f7f5;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
             padding: 10px 6px 8px;
             text-align: center;
+            height: 100%;
+            display: block;
         }
 
-        .degradation-level-card:last-child {
-            margin-right: 0;
-        }
-
-        .degradation-level-card.active {
+        .degradation-level-card-cell.active .degradation-level-card-inner {
             background: #ffffff;
             border: 2px solid #EF9F27;
-        }
-
-        .degradation-level-header {
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .degradation-level-label {
-            display: block;
-            font-size: 10px;
-            font-weight: 600;
-            color: #2c2c2a;
-            line-height: 1.3;
-            margin-bottom: 3px;
-        }
-
-        .degradation-level-subtitle {
-            display: block;
-            font-size: 9px;
-            color: #888780;
-            line-height: 1.3;
         }
 
         .degradation-bar-segment {
@@ -300,6 +280,22 @@
             border-bottom: 8px solid #2c2c2a;
             position: absolute;
             top: 0;
+        }
+
+        .degradation-level-label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            color: #2c2c2a;
+            line-height: 1.3;
+            margin-bottom: 3px;
+        }
+
+        .degradation-level-subtitle {
+            display: block;
+            font-size: 9px;
+            color: #888780;
+            line-height: 1.3;
         }
 
         .degradation-footer {
@@ -588,20 +584,24 @@
     <div class="degradation-container clearfix" th:if="${globalRateType != null}">
         <p class="degradation-section-title">ÉTAT APPARENT DE LA TOITURE</p>
 
-        <div class="degradation-levels clearfix" th:if="${degradationLevels != null} and ${activeDegradationLevel != null}">
-            <div th:each="level : ${degradationLevels}"
-                 th:classappend="${level.label == activeDegradationLevel.label} ? ' active' : ''"
-                 class="degradation-level-card">
-                <i th:class="'ti ' + ${level.icon}" aria-hidden="true"></i>
-                <span class="degradation-level-label" th:text="${level.label}"></span>
-                <span class="degradation-level-subtitle" th:text="${level.subtitle}"></span>
-                <div class="degradation-bar-segment" th:style="'background-color: ' + ${level.color}">
-                    <div class="degradation-marker"
-                         th:if="${level.label == activeDegradationLevel.label}"
-                         th:style="'left: calc(' + ${globalRateValue} + '% - 6px)'"></div>
-                </div>
-            </div>
-        </div>
+        <table class="degradation-levels-table" th:if="${degradationLevels != null} and ${activeDegradationLevel != null}">
+            <tr>
+                <td th:each="level : ${degradationLevels}"
+                    th:classappend="${level.label == activeDegradationLevel.label} ? ' active' : ''"
+                    class="degradation-level-card-cell">
+                    <div class="degradation-level-card-inner">
+                        <i th:class="'ti ' + ${level.icon}" aria-hidden="true"></i>
+                        <span class="degradation-level-label" th:text="${level.label}"></span>
+                        <span class="degradation-level-subtitle" th:text="${level.subtitle}"></span>
+                        <div class="degradation-bar-segment" th:style="'background-color: ' + ${level.color}">
+                            <div class="degradation-marker"
+                                 th:if="${level.label == activeDegradationLevel.label}"
+                                 th:style="'left: calc(' + ${globalRateValue} + '% - 6px)'"></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
         <div class="degradation-footer clearfix" th:if="${activeDegradationLevel != null}">
             <div class="degradation-level-info">

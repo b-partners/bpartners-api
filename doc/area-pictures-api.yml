@@ -935,7 +935,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PageSection'
-
     PageSection:
       type: object
       required:
@@ -957,7 +956,6 @@ components:
           TEXT: '#/components/schemas/TextSection'
           IMAGE: '#/components/schemas/ImageSection'
           TABLE: '#/components/schemas/TableSection'
-
     TextSection:
       allOf:
         - $ref: '#/components/schemas/PageSection'
@@ -968,7 +966,6 @@ components:
             text:
               type: string
               example: "L'accès au pan Nord nécessite l'installation d'un échafaudage de classe 3."
-
     ImageSection:
       allOf:
         - $ref: '#/components/schemas/PageSection'
@@ -983,7 +980,6 @@ components:
             caption:
               type: string
               example: "Vue rapprochée de la souche de cheminée"
-
     TableSection:
       allOf:
         - $ref: '#/components/schemas/PageSection'
@@ -993,7 +989,6 @@ components:
           properties:
             tableData:
               $ref: '#/components/schemas/TableData'
-
     TableData:
       type: object
       required:
@@ -1015,7 +1010,6 @@ components:
             [ "Solin de cheminée", "Élevée", "Reprise complète de l'étanchéité" ],
             [ "Gouttière Est", "Moyenne", "Nettoyage" ]
           ]
-
     ConverterData:
       type: object
       additionalProperties:

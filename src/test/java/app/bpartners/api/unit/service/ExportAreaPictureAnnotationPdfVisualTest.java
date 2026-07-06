@@ -33,10 +33,11 @@ import java.util.List;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-// @Disabled("This is a visual test to generate a PDF file for manual inspection.")
+@Disabled("This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
@@ -151,7 +152,6 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             .text("RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES ÉLECTRIQUES")
             .priority(PageSection.PriorityEnum.IMPORTANT)
             .type(PageSection.TypeEnum.TEXT),
-
         new TextSection()
             .text(
                 "L'accès au toit par le côté Ouest est limité par la présence de lignes"
@@ -162,12 +162,10 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                     + " des dispositifs d'accès temporaires.")
             .priority(PageSection.PriorityEnum.MEDIUM)
             .type(PageSection.TypeEnum.TEXT),
-
         new TextSection()
             .text("1. Mesures de prévention obligatoires et logistique déportée")
             .priority(PageSection.PriorityEnum.IMPORTANT)
             .type(PageSection.TypeEnum.TEXT),
-
         new TextSection()
             .text(
                 "Afin de garantir la sécurité absolue des équipes techniques et d'éviter tout"
@@ -177,12 +175,10 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                     + " déportés sur le versant Est, qui offre un dégagement total et sécurisé.")
             .priority(PageSection.PriorityEnum.MEDIUM)
             .type(PageSection.TypeEnum.TEXT),
-
         new TextSection()
             .text("2. Balisage et zone d'exclusion au sol")
             .priority(PageSection.PriorityEnum.IMPORTANT)
             .type(PageSection.TypeEnum.TEXT),
-
         new TextSection()
             .text(
                 "Une zone d'exclusion temporaire doit être matérialisée au sol par un barriérage"
@@ -191,8 +187,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                     + " devra faire l'objet d'une signalisation visuelle standardisée signalant le"
                     + " danger mortel à proximité immédiate des câbles sous tension.")
             .priority(PageSection.PriorityEnum.MEDIUM)
-            .type(PageSection.TypeEnum.TEXT)
-    );
+            .type(PageSection.TypeEnum.TEXT));
   }
 
   @Test

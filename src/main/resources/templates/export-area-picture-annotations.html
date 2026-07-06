@@ -876,6 +876,10 @@
     </div>
 </section>
 
+<section class="llm page" th:classappend="${customPages == null or #lists.isEmpty(customPages)} ? ' last-page' : ''" th:if="${llm and conf.isShowLlmSummary()}">
+    <div th:utext="${llm}"></div>
+</section>
+
 <section th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last} ? ' last-page' : ''">
     <h2 class="custom-page-title" th:text="${page.pageTitle}"></h2>
 
@@ -906,10 +910,6 @@
             </table>
         </div>
     </div>
-</section>
-
-<section class="llm page" th:classappend="${customPages == null or #lists.isEmpty(customPages)} ? ' last-page' : ''" th:if="${llm and conf.isShowLlmSummary()}">
-    <div th:utext="${llm}"></div>
 </section>
 
 </body>

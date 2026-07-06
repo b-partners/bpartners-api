@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
@@ -92,6 +94,128 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ImageIO.write(bufferedImage, "png", outputStream);
     return outputStream.toByteArray();
+  }
+
+  @Test
+  void generate_from_heavy_payload_with_custom_pages() throws IOException, URISyntaxException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
+    exportAreaPictureAnnotation.setCustomPages(
+        List.of(
+            // PAGE 1: TEXT SECTIONS (Increasing text length layout showcase)
+            new CustomPage()
+                .pageTitle("Showcase - Sections Textuelles Complètes")
+                .sections(
+                    List.of(
+                        new TextSection()
+                            .text(
+                                "L'accès au toit par le côté Ouest est limité par la présence de"
+                                    + " lignes électriques haute tension. Prudence recommandée.")
+                            .priority(PageSection.PriorityEnum.SMALL)
+                            .type(PageSection.TypeEnum.TEXT),
+                        new TextSection()
+                            .text(
+                                "L'accès au toit par le côté Ouest est limité par la présence de"
+                                    + " lignes électriques haute tension. Prudence recommandée."
+                                    + " Lors de l'inspection préliminaire des abords du bâtiment,"
+                                    + " il a été mis en évidence que les conducteurs aériens"
+                                    + " surplombent directement la zone de levage potentielle.")
+                            .priority(PageSection.PriorityEnum.MEDIUM)
+                            .type(PageSection.TypeEnum.TEXT),
+                        new TextSection()
+                            .text(
+                                "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES ÉLECTRIQUES."
+                                    + " L'accès au toit par le côté Ouest est limité par la"
+                                    + " présence de lignes électriques haute tension. Prudence"
+                                    + " recommandée. Afin de garantir la sécurité absolue des"
+                                    + " équipes techniques et d'éviter tout risque d'amorçage ou"
+                                    + " d'arc électrique, l'utilisation d'échelles métalliques est"
+                                    + " formellement proscrite sur ce flanc. L'approvisionnement du"
+                                    + " chantier en matériaux ainsi que le montage des échafaudages"
+                                    + " devront être intégralement déportés sur le versant Est, qui"
+                                    + " offre un dégagement total et sécurisé.")
+                            .priority(PageSection.PriorityEnum.IMPORTANT)
+                            .type(PageSection.TypeEnum.TEXT))),
+
+            // PAGE 2: IMAGE SECTIONS (Small, Medium, Important scales)
+            new CustomPage()
+                .pageTitle("Showcase - Sections d'Images Contextuelles")
+                .sections(
+                    List.of(
+                        new ImageSection()
+                            .url(
+                                new URI(
+                                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                            .caption("Aperçu miniature de la zone de stockage")
+                            .priority(PageSection.PriorityEnum.SMALL)
+                            .type(PageSection.TypeEnum.IMAGE),
+                        new ImageSection()
+                            .url(
+                                new URI(
+                                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                            .caption("Vue moyenne de l'acheminement des structures")
+                            .priority(PageSection.PriorityEnum.MEDIUM)
+                            .type(PageSection.TypeEnum.IMAGE),
+                        new ImageSection()
+                            .url(
+                                new URI(
+                                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                            .caption("Rendu pleine largeur des lignes électriques haute tension")
+                            .priority(PageSection.PriorityEnum.IMPORTANT)
+                            .type(PageSection.TypeEnum.IMAGE))),
+
+            // PAGE 3: TABLE SECTIONS (Small, Medium, Important variations)
+            new CustomPage()
+                .pageTitle("Showcase - Sections Tableaux Structurels")
+                .sections(
+                    List.of(
+                        new TableSection()
+                            .tableData(
+                                new TableData()
+                                    .headers(List.of("Matériau", "Quantité", "Statut"))
+                                    .rows(
+                                        List.of(
+                                            List.of("Tuiles Canal", "500 u", "Livré"),
+                                            List.of("Ciment", "10 sacs", "Attente"))))
+                            .priority(PageSection.PriorityEnum.SMALL)
+                            .type(PageSection.TypeEnum.TABLE),
+                        new TableSection()
+                            .tableData(
+                                new TableData()
+                                    .headers(
+                                        List.of("Élément", "Zone affectée", "Niveau de risque"))
+                                    .rows(
+                                        List.of(
+                                            List.of("Lignes HT", "Flanc Ouest", "Élevé"),
+                                            List.of("Échafaudage", "Pignon Est", "Faible"))))
+                            .priority(PageSection.PriorityEnum.MEDIUM)
+                            .type(PageSection.TypeEnum.TABLE),
+                        new TableSection()
+                            .tableData(
+                                new TableData()
+                                    .headers(
+                                        List.of(
+                                            "Intervention",
+                                            "Responsable",
+                                            "Mesure Prioritaire d'Urgence"))
+                                    .rows(
+                                        List.of(
+                                            List.of(
+                                                "Balisage Sol",
+                                                "Chef de Chantier",
+                                                "Installation barriérage rigide haute visibilité"),
+                                            List.of(
+                                                "Avis Enedis",
+                                                "Conducteur Travaux",
+                                                "Demande DICT et isolation provisoire câbles"))))
+                            .priority(PageSection.PriorityEnum.IMPORTANT)
+                            .type(PageSection.TypeEnum.TABLE)))));
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "heavy-payload-with-custom-pages");
   }
 
   @Test

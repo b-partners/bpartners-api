@@ -895,8 +895,8 @@
         </div>
 
         <!-- TABLE Section -->
-        <div th:case="'TABLE'">
-            <table class="custom-table">
+        <div class="degradation-container" th:case="'TABLE'">
+            <table class="roof-face-table">
                 <thead>
                     <tr>
                         <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>

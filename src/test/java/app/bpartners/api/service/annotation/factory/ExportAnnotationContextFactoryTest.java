@@ -641,8 +641,8 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     User user = new User();
-    Pair<String, List<Object>> pairA = new Pair<>("a", List.of());
-    Pair<String, List<Object>> pairB = new Pair<>("b", List.of());
+    Pair<String, List<String>> pairA = new Pair<>("a", List.of());
+    Pair<String, List<String>> pairB = new Pair<>("b", List.of());
 
     assertThrows(
         IllegalArgumentException.class,

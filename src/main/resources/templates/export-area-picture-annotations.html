@@ -508,6 +508,71 @@
             margin-right: 0;
         }
 
+        .custom-page-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #FF521B;
+            text-align: center;
+        }
+
+        .custom-section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+            display: block;
+            width: 100%;
+        }
+
+        .custom-section-text {
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        .custom-section-image-container {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .custom-section-image {
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .custom-section-caption {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .custom-table th, .custom-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .custom-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        /* Priority styles for Text */
+        .text-priority-IMPORTANT { font-size: 1.2rem; font-weight: bold; }
+        .text-priority-MEDIUM { font-size: 1rem; }
+        .text-priority-SMALL { font-size: 0.85rem; color: #444; }
+
+        /* Priority styles for Image */
+        .image-priority-IMPORTANT { width: 100%; }
+        .image-priority-MEDIUM { width: 70%; }
+        .image-priority-SMALL { width: 40%; }
+
     </style>
     <meta charset="UTF-8"/>
     <title>Rapport d'analyse</title>
@@ -577,7 +642,7 @@
     </div>
 </section>
 
-<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and roofSummary == null} ? ' last-page' : ''">
+<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and roofSummary == null and (customPages == null or customPages.isEmpty())} ? ' last-page' : ''">
     <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
 
     <div th:each="annotation, annotationStat : ${page}" class="annotation-item clearfix">
@@ -608,7 +673,7 @@
 
 <section th:if="${pages3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pages3D}"
          class="page"
-         th:classappend="${pageStat.last and llm == null and roofSummary == null} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and llm == null and roofSummary == null and (customPages == null or customPages.isEmpty())} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
 
@@ -688,7 +753,8 @@
     </div>
 </section>
 
-<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.diagramImageBase64 != null and conf.isShowMeasurementSummary()}">
+<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.diagramImageBase64 != null and conf.isShowMeasurementSummary()}"
+         th:classappend="${llm == null and (customPages == null or customPages.isEmpty())} ? ' last-page' : ''">
     <div th:if="${allEdgeTypes}">
         <h2 class="annotation-information-title">Longueur</h2>
         <p class="section-description">Longueur en mètre</p>
@@ -741,7 +807,7 @@
     </div>
 </section>
 
-<section class="page" th:classappend="${llm == null} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
+<section class="page" th:classappend="${llm == null and (customPages == null or customPages.isEmpty())} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
     <h2 class="annotation-information-title">Résumé sur les pans</h2>
     <p class="section-description">Répartition des pentes, calcul de la marge et détail par pan</p>
 
@@ -811,8 +877,40 @@
     </div>
 </section>
 
-<section class="llm page last-page" th:if="${llm and conf.isShowLlmSummary()}">
+<section class="llm page" th:classappend="${customPages == null or customPages.isEmpty()} ? ' last-page' : ''" th:if="${llm and conf.isShowLlmSummary()}">
     <div th:utext="${llm}"></div>
+</section>
+
+<section th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last} ? ' last-page' : ''">
+    <h2 class="custom-page-title" th:text="${page.pageTitle}"></h2>
+
+    <div th:each="section : ${page.sections}" class="custom-section" th:switch="${section.type.name()}">
+
+        <!-- TEXT Section -->
+        <div th:case="'TEXT'" th:class="'custom-section-text text-priority-' + ${section.priority.name()}" th:text="${section.text}"></div>
+
+        <!-- IMAGE Section -->
+        <div th:case="'IMAGE'" class="custom-section-image-container">
+            <img class="custom-section-image" th:classappend="'image-priority-' + ${section.priority.name()}" th:src="${section.url}" alt="custom section image"/>
+            <div th:if="${section.caption}" class="custom-section-caption" th:text="${section.caption}"></div>
+        </div>
+
+        <!-- TABLE Section -->
+        <div th:case="'TABLE'">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="row : ${section.tableData.rows}">
+                        <td th:each="cell : ${row}" th:text="${cell}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </section>
 
 </body>

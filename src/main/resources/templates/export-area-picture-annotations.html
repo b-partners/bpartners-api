@@ -595,8 +595,7 @@
                         <span class="degradation-level-subtitle" th:text="${level.subtitle}"></span>
                         <div class="degradation-bar-segment" th:style="'background-color: ' + ${level.color}">
                             <div class="degradation-marker"
-                                 th:if="${level.label == activeDegradationLevel.label}"
-                                 th:style="'left: calc(' + ${globalRateValue} + '% - 6px)'"></div>
+                                 th:if="${level.label == activeDegradationLevel.label}"></div>
                         </div>
                     </div>
                 </td>

@@ -642,7 +642,7 @@
     </div>
 </section>
 
-<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and roofSummary == null and (customPages == null or customPages.isEmpty())} ? ' last-page' : ''">
+<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
     <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
 
     <div th:each="annotation, annotationStat : ${page}" class="annotation-item clearfix">
@@ -673,7 +673,7 @@
 
 <section th:if="${pages3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pages3D}"
          class="page"
-         th:classappend="${pageStat.last and llm == null and roofSummary == null and (customPages == null or customPages.isEmpty())} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and llm == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
 
@@ -754,7 +754,7 @@
 </section>
 
 <section class="page diagram-page" th:if="${roofSummary != null and roofSummary.diagramImageBase64 != null and conf.isShowMeasurementSummary()}"
-         th:classappend="${llm == null and (customPages == null or customPages.isEmpty())} ? ' last-page' : ''">
+         th:classappend="${llm == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
     <div th:if="${allEdgeTypes}">
         <h2 class="annotation-information-title">Longueur</h2>
         <p class="section-description">Longueur en mètre</p>
@@ -807,7 +807,7 @@
     </div>
 </section>
 
-<section class="page" th:classappend="${llm == null and (customPages == null or customPages.isEmpty())} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
+<section class="page" th:classappend="${llm == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
     <h2 class="annotation-information-title">Résumé sur les pans</h2>
     <p class="section-description">Répartition des pentes, calcul de la marge et détail par pan</p>
 
@@ -877,7 +877,7 @@
     </div>
 </section>
 
-<section class="llm page" th:classappend="${customPages == null or customPages.isEmpty()} ? ' last-page' : ''" th:if="${llm and conf.isShowLlmSummary()}">
+<section class="llm page" th:classappend="${customPages == null or #lists.isEmpty(customPages)} ? ' last-page' : ''" th:if="${llm and conf.isShowLlmSummary()}">
     <div th:utext="${llm}"></div>
 </section>
 

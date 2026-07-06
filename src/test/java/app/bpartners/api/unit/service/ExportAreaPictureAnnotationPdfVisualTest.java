@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
@@ -91,6 +93,47 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ImageIO.write(bufferedImage, "png", outputStream);
     return outputStream.toByteArray();
+  }
+
+  @Test
+  void generate_from_heavy_payload_with_custom_pages() throws IOException, URISyntaxException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
+    exportAreaPictureAnnotation.setCustomPages(
+        List.of(
+            new CustomPage()
+                .pageTitle("Rapport de Chantier Supplémentaire")
+                .sections(
+                    List.of(
+                        new TextSection()
+                            .text(
+                                "L'accès au toit par le côté Ouest est limité par la présence de"
+                                    + " lignes électriques haute tension. Prudence recommandée.")
+                            .priority(PageSection.PriorityEnum.IMPORTANT)
+                            .type(PageSection.TypeEnum.TEXT),
+                        new ImageSection()
+                            .url(
+                                new URI(
+                                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                            .caption("Zone de stockage des matériaux")
+                            .priority(PageSection.PriorityEnum.MEDIUM)
+                            .type(PageSection.TypeEnum.IMAGE),
+                        new TableSection()
+                            .tableData(
+                                new TableData()
+                                    .headers(List.of("Matériau", "Quantité", "Statut"))
+                                    .rows(
+                                        List.of(
+                                            List.of("Tuiles Canal", "500 units", "Livré"),
+                                            List.of("Ciment", "10 bags", "En attente"))))
+                            .priority(PageSection.PriorityEnum.SMALL)
+                            .type(PageSection.TypeEnum.TABLE)))));
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "heavy-payload-with-custom-pages");
   }
 
   @Test

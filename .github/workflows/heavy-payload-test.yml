@@ -27,7 +27,7 @@ jobs:
       - name: Run heavy payload PDF test
         run: |
           ./gradlew test \
-            --tests "ExportAreaPictureAnnotationPdfVisualTest.generate_from_heavy_payload" \
+            --tests "ExportAreaPictureAnnotationPdfVisualTest.generate_from_heavy_payload*" \
             -i
         continue-on-error: true
 

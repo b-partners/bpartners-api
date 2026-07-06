@@ -135,7 +135,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                             .type(PageSection.TypeEnum.TABLE))),
             new CustomPage()
                 .pageTitle("Rapport de Chantier Supplémentaire")
-                .sections(customTextSection));
+                .sections(customTextSection())));
 
     byte[] pdfBytes =
         assertDoesNotThrow(

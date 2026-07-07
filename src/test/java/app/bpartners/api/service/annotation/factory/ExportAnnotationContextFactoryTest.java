@@ -8,19 +8,31 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.LogCaptor;
 import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.model.ImageSection;
+import app.bpartners.api.endpoint.rest.model.PageSection.PriorityEnum;
+import app.bpartners.api.endpoint.rest.model.PageSection.TypeEnum;
 import app.bpartners.api.endpoint.rest.model.Point;
 import app.bpartners.api.endpoint.rest.model.Polygon;
+import app.bpartners.api.endpoint.rest.model.TableSection;
+import app.bpartners.api.endpoint.rest.model.TextSection;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.custompage.SectionPriority;
 import app.bpartners.api.service.file.FileService;
 import ch.qos.logback.classic.Level;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 import java.util.List;
+import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.core.io.ClassPathResource;
 import org.thymeleaf.context.Context;
 
@@ -310,6 +322,340 @@ public class ExportAnnotationContextFactoryTest {
     assertEquals("B", context.getVariable("globalRateType"));
     assertEquals(0.7, context.getVariable("globalRateValue"));
     assertNotNull(context.getVariable("mainImage3D"));
+  }
+
+  @Test
+  void create_context_should_add_custom_pages() {
+    User user = new User();
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+    annotation.setImageUrl("http://image.com");
+
+    CustomPage restPage = new CustomPage();
+    restPage.setPageTitle("Custom Title");
+    TextSection restSection = new TextSection();
+    restSection.setType(TypeEnum.TEXT);
+    restSection.setPriority(PriorityEnum.IMPORTANT);
+    restSection.setText("Custom Text");
+    restPage.setSections(List.of(restSection));
+    annotation.setCustomPages(List.of(restPage));
+
+    Pair<String, List<String>> images = new Pair<>("main", List.of());
+    Pair<String, List<String>> images3d = new Pair<>("main3d", List.of());
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            user,
+            null,
+            annotation,
+            images,
+            images3d,
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+    assertNotNull(customPages);
+    assertEquals(1, customPages.size());
+    assertEquals("Custom Title", customPages.get(0).getPageTitle());
+    assertEquals(1, customPages.get(0).getSections().size());
+    assertTrue(
+        customPages.get(0).getSections().get(0)
+            instanceof app.bpartners.api.service.annotation.model.custompage.TextSection);
+    assertEquals(
+        "Custom Text",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                customPages.get(0).getSections().get(0))
+            .getText());
+  }
+
+  @Test
+  void map_section_should_map_text_section() {
+    TextSection restSection = new TextSection();
+    restSection.setType(TypeEnum.TEXT);
+    restSection.setPriority(PriorityEnum.IMPORTANT);
+    restSection.setText("Hello World");
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.TextSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.TextSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals("Hello World", mapped.getText());
+    assertEquals(SectionPriority.IMPORTANT, mapped.getPriority());
+  }
+
+  @Test
+  void map_section_should_map_table_section() {
+    TableSection restSection = new TableSection();
+    restSection.setType(TypeEnum.TABLE);
+    restSection.setPriority(PriorityEnum.MEDIUM);
+    TableData tableData = new TableData();
+    tableData.setHeaders(List.of("H1", "H2"));
+    tableData.setRows(List.of(List.of("R1C1", "R1C2")));
+    restSection.setTableData(tableData);
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.TableSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.TableSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals(SectionPriority.MEDIUM, mapped.getPriority());
+    assertEquals(List.of("H1", "H2"), mapped.getTableData().getHeaders());
+    assertEquals(List.of("R1C1", "R1C2"), mapped.getTableData().getRows().get(0));
+  }
+
+  @Test
+  void map_section_should_map_image_section_with_successful_download() {
+    ImageSection restSection = new ImageSection();
+    restSection.setType(TypeEnum.IMAGE);
+    restSection.setPriority(PriorityEnum.SMALL);
+    restSection.setUrl(URI.create("https://example.com/image.png"));
+    restSection.setCaption("A caption");
+
+    BufferedImage mockImage = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+
+    try (MockedStatic<ImageIO> mockedImageIO = Mockito.mockStatic(ImageIO.class)) {
+      mockedImageIO.when(() -> ImageIO.read(Mockito.any(URL.class))).thenReturn(mockImage);
+
+      ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+      annotation.setCustomPages(
+          List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+      annotation.setAnnotations(List.of());
+      annotation.setAddress("Paris");
+
+      Context context =
+          ExportAnnotationContextFactory.createContext(
+              new User(),
+              null,
+              annotation,
+              new Pair<>("a", List.of()),
+              new Pair<>("b", List.of()),
+              fileService,
+              image3DGenerator,
+              areaPictureAnnotationConfRestMapper);
+      List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+          (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+              context.getVariable("customPages");
+
+      app.bpartners.api.service.annotation.model.custompage.ImageSection mapped =
+          (app.bpartners.api.service.annotation.model.custompage.ImageSection)
+              customPages.get(0).getSections().get(0);
+      assertEquals(SectionPriority.SMALL, mapped.getPriority());
+      assertEquals("A caption", mapped.getCaption());
+      assertTrue(mapped.getUrl().startsWith("data:image/png;base64,"));
+    }
+  }
+
+  @Test
+  void map_section_should_fallback_when_image_download_fails() {
+    ImageSection restSection = new ImageSection();
+    restSection.setType(TypeEnum.IMAGE);
+    restSection.setPriority(PriorityEnum.SMALL);
+    restSection.setUrl(URI.create("https://example.com/image.png"));
+
+    try (MockedStatic<ImageIO> mockedImageIO = Mockito.mockStatic(ImageIO.class)) {
+      mockedImageIO
+          .when(() -> ImageIO.read(Mockito.any(URL.class)))
+          .thenThrow(new IOException("Download failed"));
+
+      ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+      annotation.setCustomPages(
+          List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+      annotation.setAnnotations(List.of());
+      annotation.setAddress("Paris");
+
+      Context context =
+          ExportAnnotationContextFactory.createContext(
+              new User(),
+              null,
+              annotation,
+              new Pair<>("a", List.of()),
+              new Pair<>("b", List.of()),
+              fileService,
+              image3DGenerator,
+              areaPictureAnnotationConfRestMapper);
+      List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+          (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+              context.getVariable("customPages");
+
+      app.bpartners.api.service.annotation.model.custompage.ImageSection mapped =
+          (app.bpartners.api.service.annotation.model.custompage.ImageSection)
+              customPages.get(0).getSections().get(0);
+      assertEquals("https://example.com/image.png", mapped.getUrl());
+    }
+  }
+
+  @Test
+  void map_section_should_fallback_when_image_is_null() {
+    ImageSection restSection = new ImageSection();
+    restSection.setType(TypeEnum.IMAGE);
+    restSection.setPriority(PriorityEnum.SMALL);
+    restSection.setUrl(URI.create("https://example.com/image.png"));
+
+    try (MockedStatic<ImageIO> mockedImageIO = Mockito.mockStatic(ImageIO.class)) {
+      mockedImageIO.when(() -> ImageIO.read(Mockito.any(URL.class))).thenReturn(null);
+
+      ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+      annotation.setCustomPages(
+          List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+      annotation.setAnnotations(List.of());
+      annotation.setAddress("Paris");
+
+      Context context =
+          ExportAnnotationContextFactory.createContext(
+              new User(),
+              null,
+              annotation,
+              new Pair<>("a", List.of()),
+              new Pair<>("b", List.of()),
+              fileService,
+              image3DGenerator,
+              areaPictureAnnotationConfRestMapper);
+      List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+          (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+              context.getVariable("customPages");
+
+      app.bpartners.api.service.annotation.model.custompage.ImageSection mapped =
+          (app.bpartners.api.service.annotation.model.custompage.ImageSection)
+              customPages.get(0).getSections().get(0);
+      assertEquals("https://example.com/image.png", mapped.getUrl());
+    }
+  }
+
+  @Test
+  void map_section_should_block_non_http_urls() {
+    ImageSection restSection = new ImageSection();
+    restSection.setType(TypeEnum.IMAGE);
+    restSection.setPriority(PriorityEnum.SMALL);
+    restSection.setUrl(URI.create("file:///etc/passwd"));
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.ImageSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.ImageSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals("file:///etc/passwd", mapped.getUrl());
+  }
+
+  @Test
+  void map_section_should_handle_invalid_url() {
+    ImageSection restSection = new ImageSection();
+    restSection.setType(TypeEnum.IMAGE);
+    restSection.setPriority(PriorityEnum.SMALL);
+    restSection.setUrl(URI.create("not-a-url"));
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.ImageSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.ImageSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals("not-a-url", mapped.getUrl());
+  }
+
+  @Test
+  void map_section_should_throw_on_unknown_section_type() {
+    app.bpartners.api.endpoint.rest.model.PageSection unknownSection =
+        new app.bpartners.api.endpoint.rest.model.PageSection() {};
+    unknownSection.setPriority(PriorityEnum.MEDIUM);
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(unknownSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    User user = new User();
+    Pair<String, List<String>> pairA = new Pair<>("a", List.of());
+    Pair<String, List<String>> pairB = new Pair<>("b", List.of());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            ExportAnnotationContextFactory.createContext(
+                user,
+                null,
+                annotation,
+                pairA,
+                pairB,
+                fileService,
+                image3DGenerator,
+                areaPictureAnnotationConfRestMapper));
   }
 
   public static ExportAreaPictureAnnotation3DPan export3DPan(

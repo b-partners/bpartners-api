@@ -15,9 +15,15 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenera
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
+import app.bpartners.api.service.annotation.model.custompage.CustomPage;
+import app.bpartners.api.service.annotation.model.custompage.PageSection;
+import app.bpartners.api.service.annotation.model.custompage.SectionPriority;
+import app.bpartners.api.service.annotation.model.custompage.TableData;
 import app.bpartners.api.service.annotation.utils.ImageUriUtils;
 import app.bpartners.api.service.file.FileService;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +78,74 @@ public class ExportAnnotationContextFactory {
       configureAnnotationSummaryContext(context, annotation, annotationImage3DGenerator);
     }
 
+    if (annotation.getCustomPages() != null) {
+      context.setVariable("customPages", mapCustomPages(annotation.getCustomPages()));
+    }
+
     return context;
+  }
+
+  private static List<CustomPage> mapCustomPages(
+      List<app.bpartners.api.endpoint.rest.model.CustomPage> customPages) {
+    return customPages.stream()
+        .map(
+            page ->
+                CustomPage.builder()
+                    .pageTitle(page.getPageTitle())
+                    .sections(
+                        page.getSections().stream()
+                            .map(ExportAnnotationContextFactory::mapSection)
+                            .toList())
+                    .build())
+        .toList();
+  }
+
+  private static PageSection mapSection(
+      app.bpartners.api.endpoint.rest.model.PageSection restSection) {
+    SectionPriority priority = SectionPriority.valueOf(restSection.getPriority().name());
+    if (restSection instanceof app.bpartners.api.endpoint.rest.model.TextSection textRestSection) {
+      return app.bpartners.api.service.annotation.model.custompage.TextSection.builder()
+          .priority(priority)
+          .text(textRestSection.getText())
+          .build();
+    } else if (restSection
+        instanceof app.bpartners.api.endpoint.rest.model.ImageSection imageRestSection) {
+      String imageUri = String.valueOf(imageRestSection.getUrl());
+      try {
+        URI uri = new URI(imageUri);
+        String scheme = uri.getScheme();
+        if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+          var image = ImageIO.read(uri.toURL());
+          if (image != null) {
+            imageUri = ImageUriUtils.bufferedImageToUri(image);
+          } else {
+            log.warn("Could not read image from url: {}", imageUri);
+          }
+        } else {
+          log.warn("Blocked non-http/https image url: {}", imageUri);
+        }
+      } catch (IOException | URISyntaxException | IllegalArgumentException e) {
+        log.error("Could not download image from url: {}", imageRestSection.getUrl(), e);
+      }
+      return app.bpartners.api.service.annotation.model.custompage.ImageSection.builder()
+          .priority(priority)
+          .url(imageUri)
+          .caption(imageRestSection.getCaption())
+          .build();
+    } else if (restSection
+        instanceof app.bpartners.api.endpoint.rest.model.TableSection tableRestSection) {
+      app.bpartners.api.endpoint.rest.model.TableData restTableData =
+          tableRestSection.getTableData();
+      return app.bpartners.api.service.annotation.model.custompage.TableSection.builder()
+          .priority(priority)
+          .tableData(
+              TableData.builder()
+                  .headers(restTableData.getHeaders())
+                  .rows(restTableData.getRows())
+                  .build())
+          .build();
+    }
+    throw new IllegalArgumentException("Unknown section type: " + restSection.getClass());
   }
 
   static void configureAnnotationSummaryContext(

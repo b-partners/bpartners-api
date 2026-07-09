@@ -219,115 +219,17 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
-  void generate_from_heavy_payload_without_title_page() throws IOException {
+  void generate_from_heavy_payload_without_anything() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
     exportAreaPictureAnnotation.setConf(
         new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showTitlePage(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-title");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_annotation_pages() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showAnnotationPages(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-annotation");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_annotation_3d_pages() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showAnnotation3dPages(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-annotation-3d");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_measurement_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showMeasurementSummary(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-measurement-summary");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_pitch_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showPitchSummary(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-pitch-summary");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_area_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showAreaSummary(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-area-summary");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_overall_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showOverallSummary(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-overall-summary");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_llm_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
+            .showTitlePage(false)
+            .showAnnotationPages(false)
+            .showAnnotation3dPages(false)
+            .showMeasurementSummary(false)
+            .showPitchSummary(false)
+            .showAreaSummary(false)
+            .showOverallSummary(false)
             .showLlmSummary(false));
 
     byte[] pdfBytes =
@@ -335,7 +237,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
 
     assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-llm-summary");
+    savePdfFile(pdfBytes, "heavy-payload-no-title");
   }
 
   @Test

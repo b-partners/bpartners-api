@@ -876,37 +876,78 @@
     </div>
 </section>
 
-<section th:each="page, pageStat : ${customPages}" class="page">
+<section th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last and (llm == null or !conf.isShowLlmSummary())} ? ' last-page' : ''">
     <h2 class="custom-page-title" th:text="${page.pageTitle}"></h2>
 
     <div th:each="section : ${page.sections}" class="custom-section" th:switch="${section.type.name()}">
 
-        <!-- TEXT Section -->
+        <!-- 1. TEXT Section -->
         <div th:case="'TEXT'" th:class="'custom-section-text text-priority-' + ${section.priority.name()}" th:text="${section.text}"></div>
 
-        <!-- IMAGE Section -->
+        <!-- 2. IMAGE Section -->
         <div th:case="'IMAGE'" class="custom-section-image-container">
             <img class="custom-section-image" th:classappend="'image-priority-' + ${section.priority.name()}" th:src="${section.url}" alt="custom section image"/>
             <div th:if="${section.caption}" class="custom-section-caption" th:text="${section.caption}"></div>
         </div>
 
-        <!-- TABLE Section -->
+        <!-- 3. TABLE Section -->
         <div class="degradation-container" th:case="'TABLE'">
             <table class="roof-face-table">
                 <thead>
-                    <tr style="background-color:#f7f7f5;">
-                        <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>
-                    </tr>
+                <tr style="background-color:#f7f7f5;">
+                    <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>
+                </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="row : ${section.tableData.rows}">
-                        <td th:each="cell : ${row}" th:text="${cell}"></td>
-                    </tr>
+                <tr th:each="row : ${section.tableData.rows}">
+                    <td th:each="cell : ${row}" th:text="${cell}"></td>
+                </tr>
                 </tbody>
             </table>
         </div>
+
+        <!-- 4. SPLIT_SECTION (The new Two-Column Layout) -->
+        <div th:case="'SPLIT_SECTION'" class="clearfix" style="width: 100%; display: block;">
+            <!-- Left Column (49% wide) -->
+            <div style="float: left; width: 49%; display: block;">
+                <div th:with="section=${section.leftSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+
+            <!-- Right Column (49% wide) -->
+            <div style="float: right; width: 49%; display: block;">
+                <div th:with="section=${section.rightSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+        </div>
     </div>
 </section>
+
+<!-- Reusable Fragment Engine -->
+<div th:fragment="renderChildSection" th:switch="${section.type.name()}" th:remove="tag">
+    <!-- Child TEXT -->
+    <div th:case="'TEXT'" th:class="'custom-section-text text-priority-' + ${section.priority.name()}" th:text="${section.text}"></div>
+
+    <!-- Child IMAGE -->
+    <div th:case="'IMAGE'" class="custom-section-image-container" style="text-align: center;">
+        <img class="custom-section-image" th:classappend="'image-priority-' + ${section.priority.name()}" th:src="${section.url}" alt="custom section image"/>
+        <div th:if="${section.caption}" class="custom-section-caption" th:text="${section.caption}"></div>
+    </div>
+
+    <!-- Child TABLE -->
+    <div class="degradation-container" th:case="'TABLE'" style="margin-top: 5px;">
+        <table class="roof-face-table">
+            <thead>
+            <tr style="background-color:#f7f7f5;">
+                <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${section.tableData.rows}">
+                <td th:each="cell : ${row}" th:text="${cell}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <section class="llm page" th:classappend="${customPages == null or #lists.isEmpty(customPages)} ? ' last-page' : ''" th:if="${llm and conf.isShowLlmSummary()}">
     <div th:utext="${llm}"></div>

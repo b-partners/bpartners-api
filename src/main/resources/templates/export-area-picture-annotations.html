@@ -876,7 +876,7 @@
     </div>
 </section>
 
-<section th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last} ? ' last-page' : ''">
+<section th:each="page, pageStat : ${customPages}" class="page">
     <h2 class="custom-page-title" th:text="${page.pageTitle}"></h2>
 
     <div th:each="section : ${page.sections}" class="custom-section" th:switch="${section.type.name()}">

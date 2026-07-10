@@ -216,15 +216,30 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                         new SplitSection()
                             .leftSection(
                                 new TextSection()
-                                    .text("Gauche text")
-                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .text(
+                                        "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES"
+                                            + " ÉLECTRIQUES. L'accès au toit par le côté Ouest est"
+                                            + " limité par la présence de lignes électriques haute"
+                                            + " tension. Prudence recommandée. Afin de garantir la"
+                                            + " sécurité absolue des équipes techniques et d'éviter"
+                                            + " tout risque d'amorçage ou d'arc électrique,"
+                                            + " l'utilisation d'échelles métalliques est"
+                                            + " formellement proscrite sur ce flanc."
+                                            + " L'approvisionnement du chantier en matériaux ainsi"
+                                            + " que le montage des échafaudages devront être"
+                                            + " intégralement déportés sur le versant Est, qui"
+                                            + " offre un dégagement total et sécurisé.")
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
                                     .type(PageSection.TypeEnum.TEXT))
                             .rightSection(
-                                new TextSection()
-                                    .text("Droite text")
+                                new ImageSection()
+                                    .url(
+                                        new URI(
+                                            "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                                    .caption("Aperçu miniature de la zone de stockage")
                                     .priority(PageSection.PriorityEnum.SMALL)
-                                    .type(PageSection.TypeEnum.TEXT))
-                            .priority(PageSection.PriorityEnum.MEDIUM)
+                                    .type(PageSection.TypeEnum.IMAGE))
+                            .priority(PageSection.PriorityEnum.IMPORTANT)
                             .type(PageSection.TypeEnum.SPLIT_SECTION))),
             new CustomPage()
                 .pageTitle("Showcase - Sections Divisees en Trois")
@@ -233,8 +248,20 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                         new ThreeSplitSection()
                             .leftSection(
                                 new TextSection()
-                                    .text("Colonne gauche")
-                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .text(
+                                        "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES"
+                                            + " ÉLECTRIQUES. L'accès au toit par le côté Ouest est"
+                                            + " limité par la présence de lignes électriques haute"
+                                            + " tension. Prudence recommandée. Afin de garantir la"
+                                            + " sécurité absolue des équipes techniques et d'éviter"
+                                            + " tout risque d'amorçage ou d'arc électrique,"
+                                            + " l'utilisation d'échelles métalliques est"
+                                            + " formellement proscrite sur ce flanc."
+                                            + " L'approvisionnement du chantier en matériaux ainsi"
+                                            + " que le montage des échafaudages devront être"
+                                            + " intégralement déportés sur le versant Est, qui"
+                                            + " offre un dégagement total et sécurisé.")
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
                                     .type(PageSection.TypeEnum.TEXT))
                             .middleSection(
                                 new TextSection()
@@ -242,10 +269,13 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                                     .priority(PageSection.PriorityEnum.SMALL)
                                     .type(PageSection.TypeEnum.TEXT))
                             .rightSection(
-                                new TextSection()
-                                    .text("Colonne droite")
+                                new ImageSection()
+                                    .url(
+                                        new URI(
+                                            "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                                    .caption("Aperçu miniature de la zone de stockage")
                                     .priority(PageSection.PriorityEnum.SMALL)
-                                    .type(PageSection.TypeEnum.TEXT))
+                                    .type(PageSection.TypeEnum.IMAGE))
                             .priority(PageSection.PriorityEnum.MEDIUM)
                             .type(PageSection.TypeEnum.THREE_SPLIT_SECTION)))));
 

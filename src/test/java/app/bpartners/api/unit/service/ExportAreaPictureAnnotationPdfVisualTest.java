@@ -237,7 +237,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                                         new URI(
                                             "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
                                     .caption("Aperçu miniature de la zone de stockage")
-                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
                                     .type(PageSection.TypeEnum.IMAGE))
                             .priority(PageSection.PriorityEnum.IMPORTANT)
                             .type(PageSection.TypeEnum.SPLIT_SECTION))),
@@ -274,7 +274,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                                         new URI(
                                             "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
                                     .caption("Aperçu miniature de la zone de stockage")
-                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
                                     .type(PageSection.TypeEnum.IMAGE))
                             .priority(PageSection.PriorityEnum.MEDIUM)
                             .type(PageSection.TypeEnum.THREE_SPLIT_SECTION)))));

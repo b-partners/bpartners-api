@@ -4,5 +4,6 @@ public enum SectionType {
   TEXT,
   IMAGE,
   TABLE,
-  SPLIT_SECTION
+  SPLIT_SECTION,
+  THREE_SPLIT_SECTION
 }

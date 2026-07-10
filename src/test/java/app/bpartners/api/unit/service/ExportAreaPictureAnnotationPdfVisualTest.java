@@ -208,7 +208,46 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                                                 "Conducteur Travaux",
                                                 "Demande DICT et isolation provisoire câbles"))))
                             .priority(PageSection.PriorityEnum.IMPORTANT)
-                            .type(PageSection.TypeEnum.TABLE)))));
+                            .type(PageSection.TypeEnum.TABLE))),
+            new CustomPage()
+                .pageTitle("Showcase - Sections Divisees")
+                .sections(
+                    List.of(
+                        new SplitSection()
+                            .leftSection(
+                                new TextSection()
+                                    .text("Gauche text")
+                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .type(PageSection.TypeEnum.TEXT))
+                            .rightSection(
+                                new TextSection()
+                                    .text("Droite text")
+                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .type(PageSection.TypeEnum.TEXT))
+                            .priority(PageSection.PriorityEnum.MEDIUM)
+                            .type(PageSection.TypeEnum.SPLIT_SECTION))),
+            new CustomPage()
+                .pageTitle("Showcase - Sections Divisees en Trois")
+                .sections(
+                    List.of(
+                        new ThreeSplitSection()
+                            .leftSection(
+                                new TextSection()
+                                    .text("Colonne gauche")
+                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .type(PageSection.TypeEnum.TEXT))
+                            .middleSection(
+                                new TextSection()
+                                    .text("Colonne milieu")
+                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .type(PageSection.TypeEnum.TEXT))
+                            .rightSection(
+                                new TextSection()
+                                    .text("Colonne droite")
+                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .type(PageSection.TypeEnum.TEXT))
+                            .priority(PageSection.PriorityEnum.MEDIUM)
+                            .type(PageSection.TypeEnum.THREE_SPLIT_SECTION)))));
 
     byte[] pdfBytes =
         assertDoesNotThrow(

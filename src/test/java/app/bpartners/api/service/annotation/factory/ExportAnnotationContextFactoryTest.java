@@ -690,6 +690,127 @@ public class ExportAnnotationContextFactoryTest {
                     .value(observation)));
   }
 
+  @Test
+  void map_section_should_map_split_section() {
+    SplitSection restSection = new SplitSection();
+    restSection.setType(TypeEnum.SPLIT_SECTION);
+    restSection.setPriority(PriorityEnum.MEDIUM);
+
+    TextSection leftText = new TextSection();
+    leftText.setType(TypeEnum.TEXT);
+    leftText.setPriority(PriorityEnum.SMALL);
+    leftText.setText("Left");
+
+    TextSection rightText = new TextSection();
+    rightText.setType(TypeEnum.TEXT);
+    rightText.setPriority(PriorityEnum.SMALL);
+    rightText.setText("Right");
+
+    restSection.setLeftSection(leftText);
+    restSection.setRightSection(rightText);
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.SplitSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.SplitSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals(SectionPriority.MEDIUM, mapped.getPriority());
+    assertEquals(
+        "Left",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getLeftSection())
+            .getText());
+    assertEquals(
+        "Right",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getRightSection())
+            .getText());
+  }
+
+  @Test
+  void map_section_should_map_three_split_section() {
+    ThreeSplitSection restSection = new ThreeSplitSection();
+    restSection.setType(TypeEnum.THREE_SPLIT_SECTION);
+    restSection.setPriority(PriorityEnum.MEDIUM);
+
+    TextSection leftText = new TextSection();
+    leftText.setType(TypeEnum.TEXT);
+    leftText.setPriority(PriorityEnum.SMALL);
+    leftText.setText("Left");
+
+    TextSection middleText = new TextSection();
+    middleText.setType(TypeEnum.TEXT);
+    middleText.setPriority(PriorityEnum.SMALL);
+    middleText.setText("Middle");
+
+    TextSection rightText = new TextSection();
+    rightText.setType(TypeEnum.TEXT);
+    rightText.setPriority(PriorityEnum.SMALL);
+    rightText.setText("Right");
+
+    restSection.setLeftSection(leftText);
+    restSection.setMiddleSection(middleText);
+    restSection.setRightSection(rightText);
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals(SectionPriority.MEDIUM, mapped.getPriority());
+    assertEquals(
+        "Left",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getLeftSection())
+            .getText());
+    assertEquals(
+        "Middle",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getMiddleSection())
+            .getText());
+    assertEquals(
+        "Right",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getRightSection())
+            .getText());
+  }
+
   public static Polygon dummyPolygon(int x1, int y1, int x2, int y2) {
     return new Polygon()
         .points(

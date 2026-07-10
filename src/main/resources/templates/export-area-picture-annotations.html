@@ -918,11 +918,23 @@
                 <div th:with="section=${section.rightSection}" th:insert="~{::renderChildSection}"></div>
             </div>
         </div>
+
+        <div th:case="'THREE_SPLIT_SECTION'" class="clearfix" style="width: 100%; display: block;">
+            <div style="float: left; width: 32%; display: block;">
+                <div th:with="section=${section.leftSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+            <div style="float: left; width: 32%; margin-left: 2%; display: block;">
+                <div th:with="section=${section.middleSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+            <div style="float: right; width: 32%; display: block;">
+                <div th:with="section=${section.rightSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+        </div>
     </div>
 </section>
 
 <!-- Reusable Fragment Engine -->
-<div th:fragment="renderChildSection" th:switch="${section.type.name()}" th:remove="tag">
+<div th:fragment="renderChildSection" th:switch="${section != null ? section.type.name() : ''}" th:remove="tag">
     <!-- Child TEXT -->
     <div th:case="'TEXT'" th:class="'custom-section-text text-priority-' + ${section.priority.name()}" th:text="${section.text}"></div>
 

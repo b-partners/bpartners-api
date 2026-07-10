@@ -144,6 +144,19 @@ public class ExportAnnotationContextFactory {
                   .rows(restTableData.getRows())
                   .build())
           .build();
+    } else if (restSection
+        instanceof app.bpartners.api.endpoint.rest.model.SplitSection splitRestSection) {
+      return new app.bpartners.api.service.annotation.model.custompage.SplitSection(
+          priority,
+          mapSection(splitRestSection.getLeftSection()),
+          mapSection(splitRestSection.getRightSection()));
+    } else if (restSection
+        instanceof app.bpartners.api.endpoint.rest.model.ThreeSplitSection threeSplitRestSection) {
+      return new app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection(
+          priority,
+          mapSection(threeSplitRestSection.getLeftSection()),
+          mapSection(threeSplitRestSection.getMiddleSection()),
+          mapSection(threeSplitRestSection.getRightSection()));
     }
     throw new IllegalArgumentException("Unknown section type: " + restSection.getClass());
   }

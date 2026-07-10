@@ -52,7 +52,7 @@ jobs:
 
       - name: Run Individual Discovered Test
         run: |
-          ./gradlew test --tests "app.bpartners.api.unit.service.ExportAreaPictureAnnotationPdfVisualTest.${{ matrix.test-method }}"
+          ./gradlew test --tests "app.bpartners.api.unit.service.ExportAreaPictureAnnotationPdfVisualTest.${{ matrix.test-method }}" -x jacocoTestCoverageVerification
 
       - name: Archive Generated Visual PDF Artifact
         if: always()

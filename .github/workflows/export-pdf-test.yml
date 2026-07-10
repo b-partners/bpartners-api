@@ -2,10 +2,6 @@ name: Heavy Payload Dynamic Matrix
 
 on:
   pull_request:
-    branches-ignore:
-      - preprod
-      - prod
-      - main
 
 jobs:
   discover-tests:

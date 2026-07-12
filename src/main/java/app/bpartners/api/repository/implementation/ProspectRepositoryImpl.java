@@ -295,6 +295,7 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   @Override
   @Transactional
   public void deleteProspectById(String id) {
+
     areaPictureJpaRepository.deleteByIdProspect(id);
     hasCustomerJpaRepository.deleteByIdProspect(id);
     jpaRepository.deleteById(id);

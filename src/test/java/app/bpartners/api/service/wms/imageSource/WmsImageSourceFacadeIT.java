@@ -25,7 +25,6 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.wms.ArcgisZoom;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
-import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -165,7 +164,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(areaPictureMapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
     when(areaPictureMapLayerServiceMock.getAirbusLayer()).thenReturn(airbusPneoLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
-        .thenThrow(new BlankImageException("Blank image"));
+        .thenThrow(ApiException.class);
     when(tileExtenderImageSource.downloadImage(
             argThat(area -> area.getCurrentLayer().equals(airbusPneoLayer()))))
         .thenReturn(getMockJpegFile());
@@ -181,7 +180,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
         .thenReturn(List.of(dijon_2025(), dijon_2026()));
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
-        .thenThrow(new BlankImageException("Blank image"));
+        .thenThrow(ApiException.class);
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
     when(tileExtenderImageSource.downloadImage(
             argThat(area -> area.getCurrentLayer().equals(pcrsLayer()))))
@@ -200,7 +199,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
     when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
-        .thenThrow(new BlankImageException("Blank image"));
+        .thenThrow(ApiException.class);
     when(tileExtenderImageSource.downloadImage(
             argThat(area -> area.getCurrentLayer().equals(rhonePCRSLayer()))))
         .thenReturn(getMockJpegFile());
@@ -219,7 +218,7 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
     when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
     when(areaPictureMapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
-        .thenThrow(new BlankImageException("Blank image"));
+        .thenThrow(ApiException.class);
     when(tileExtenderImageSource.downloadImage(
             argThat(area -> area.getCurrentLayer().equals(ignLayer()))))
         .thenReturn(getMockJpegFile());

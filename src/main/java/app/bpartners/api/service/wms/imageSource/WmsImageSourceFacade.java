@@ -12,7 +12,6 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
-import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
 import java.util.Comparator;
@@ -30,7 +29,6 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final IGNGeoserverImageSource ignGeoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
   private final TileExtenderImageSource tileExtenderImageSource;
-  private final ImageValidator imageValidator;
   private final Mailer mailer;
 
   private WmsImageSourceFacade(
@@ -39,14 +37,12 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       IGNGeoserverImageSource ignGeoserverImageSource,
       AreaPictureMapLayerService areaPictureMapLayerService,
       TileExtenderImageSource tileExtenderImageSource,
-      ImageValidator imageValidator,
       Mailer mailer) {
     super(fileDownloader);
     this.geoserverImageSource = geoserverImageSource;
     this.ignGeoserverImageSource = ignGeoserverImageSource;
     this.areaPictureMapLayerService = areaPictureMapLayerService;
     this.tileExtenderImageSource = tileExtenderImageSource;
-    this.imageValidator = imageValidator;
     this.mailer = mailer;
   }
 
@@ -102,12 +98,11 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
 
     try {
       log.info("Process image download from layer = {}", areaPicture.getCurrentLayer());
-      var image = tileExtenderImageSource.downloadImage(areaPicture);
-      imageValidator.accept(image);
-      return image;
-    } catch (ApiException | BlankImageException e) {
+      return tileExtenderImageSource.downloadImage(areaPicture);
+    } catch (ApiException e) {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
+
       if (AIRBUS.equals(areaPicture.getCurrentLayer().getSource()) && iteration == 0) {
         throw new ApiException(SERVER_EXCEPTION, "PNEO data is not available yet on this area");
       }

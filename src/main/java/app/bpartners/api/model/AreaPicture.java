@@ -34,6 +34,7 @@ public class AreaPicture {
   private Instant updatedAt;
   private ZoomLevel zoomLevel;
   private AreaPictureMapLayer currentLayer;
+  private AreaPictureMapLayer initialLayer;
   private Tile currentTile;
   private List<AreaPictureMapLayer> layers;
   private boolean isExtended;

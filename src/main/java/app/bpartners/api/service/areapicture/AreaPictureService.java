@@ -167,6 +167,7 @@ public class AreaPictureService {
       } else {
         var latest = mapLayerService.getLatestMostPreciseOrDefault(guessedMaps);
         areaPicture.setCurrentLayer(latest);
+        areaPicture.setInitialLayer(latest);
       }
     }
 

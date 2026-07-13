@@ -65,21 +65,22 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
         areaPictureMapLayerService
             .getAvailableLayersFrom(areaPicture.getCurrentGeoPosition())
             .stream()
+            .filter(layer -> !layer.equals(areaPicture.getInitialLayer()))
             .sorted(
                 Comparator.comparingInt(AreaPictureMapLayer::getPrecisionLevelInCm)
                     .thenComparing(
                         Comparator.comparingInt(AreaPictureMapLayer::getYear).reversed()))
             .toList();
-
-    if (iteration < orderedLayers.size()) {
-      areaPicture.setCurrentLayer(orderedLayers.get(iteration));
-
-      if ("IGN_PHOTO_AERIENNE".equals(areaPicture.getCurrentLayer().getName())
-          && areaPicture.getZoomLevel().equals(HOUSES_0)) {
-        areaPicture.setZoomLevel(BUILDING);
-      }
+    if ("IGN_PHOTO_AERIENNE".equals(areaPicture.getCurrentLayer().getName())
+        && areaPicture.getZoomLevel().equals(HOUSES_0)) {
+      areaPicture.setZoomLevel(BUILDING);
+    }
+    if (iteration == 0) {
+      areaPicture.setCurrentLayer(areaPicture.getCurrentLayer());
+    } else if (iteration <= orderedLayers.size()) {
+      areaPicture.setCurrentLayer(orderedLayers.get(iteration - 1));
     } else {
-      switch (iteration - orderedLayers.size()) {
+      switch (iteration - orderedLayers.size() - 1) {
         case 0 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getPCRSLayer());
         case 1 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getRhonePCRSLayer());
         case 2 -> {
@@ -95,7 +96,6 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
                 SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
       }
     }
-
     try {
       log.info("Process image download from layer = {}", areaPicture.getCurrentLayer());
       return tileExtenderImageSource.downloadImage(areaPicture);

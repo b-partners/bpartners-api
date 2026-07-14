@@ -205,7 +205,7 @@ public class ExportAnnotationContextFactory {
     context.setVariable("mainImage3D", mainImage3DUri);
     context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
     context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
-    context.setVariable("subImagesPages3D", groupByFirstPage(subImages3DUris, 3, 4));
+    context.setVariable("topViewPanImagesUris", groupByFirstPage(subImages3DUris, 3, 4));
     context.setVariable("pansImages3DUris", groupByFirstPage(pansImages3D, 3, 4));
   }
 

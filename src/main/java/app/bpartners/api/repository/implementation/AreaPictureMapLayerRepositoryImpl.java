@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -27,5 +28,10 @@ public class AreaPictureMapLayerRepositoryImpl implements AreaPictureMapLayerRep
     return jpaRepository.findAllByDepartementNameInIgnoreCase(departementNames).stream()
         .map(mapper::toDomain)
         .toList();
+  }
+
+  @Override
+  public List<AreaPictureMapLayer> findAll(Pageable pageable) {
+    return jpaRepository.findAll(pageable).stream().map(mapper::toDomain).toList();
   }
 }

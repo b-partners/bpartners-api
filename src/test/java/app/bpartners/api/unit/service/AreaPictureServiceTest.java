@@ -19,6 +19,7 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.exception.ServiceUnavailableException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
+import app.bpartners.api.repository.google.geocode.GeoCodeApi;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HProspect;
@@ -34,10 +35,12 @@ import app.bpartners.api.service.wms.imageSource.WmsImageSource;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+@Slf4j
 class AreaPictureServiceTest {
   SubscriptionService subscriptionServiceMock = mock();
   AreaPictureMapLayerService mapLayerServiceMock = mock();
@@ -49,6 +52,7 @@ class AreaPictureServiceTest {
   ProspectJpaRepository prospectJpaRepositoryMock = mock();
   AreaPictureConsumptionValidator consumptionValidatorMock = mock();
   AreaPictureZoomValidator areaPictureZoomValidatorMock = mock();
+  GeoCodeApi geoCodeApiMock = mock();
 
   AreaPictureService subject =
       new AreaPictureService(
@@ -61,7 +65,8 @@ class AreaPictureServiceTest {
           subscriptionServiceMock,
           prospectJpaRepositoryMock,
           consumptionValidatorMock,
-          areaPictureZoomValidatorMock);
+          areaPictureZoomValidatorMock,
+          geoCodeApiMock);
 
   @Test
   void save_area_picture_and_add_log() {

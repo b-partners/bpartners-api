@@ -16,6 +16,8 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,6 +31,12 @@ public class AreaPictureMapLayerService {
   public static final String DEFAULT_AIRBUS_PNEO_LAYER_UUID =
       "532ea7da-918e-4bb7-bc34-e167a3829e19";
   private final AreaPictureMapLayerRepository repository;
+
+  public List<AreaPictureMapLayer> getAllExistingLayers(int page, int pagesize) {
+    Pageable pageable = PageRequest.of(page, pagesize);
+    log.info("Process layers retrieval from repository");
+    return repository.findAll(pageable);
+  }
 
   public List<AreaPictureMapLayer> getAvailableLayersFrom(GeoPosition geoPosition) {
     return getAvailableLayersFrom(geoPosition.getLongitude(), geoPosition.getLatitude());

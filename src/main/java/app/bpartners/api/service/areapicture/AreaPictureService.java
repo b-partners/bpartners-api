@@ -13,6 +13,7 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
+import app.bpartners.api.repository.google.geocode.GeoCodeApi;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.service.file.FileService;
@@ -21,6 +22,8 @@ import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.wms.TileCreator;
 import app.bpartners.api.service.wms.imageSource.WmsImageSource;
+import com.google.maps.errors.ApiException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,6 +48,7 @@ public class AreaPictureService {
   private final ProspectJpaRepository prospectRepository;
   private final AreaPictureConsumptionValidator areaPictureConsumptionValidator;
   private final AreaPictureZoomValidator areaPictureZoomValidator;
+  private final GeoCodeApi geoCodeApi;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -174,7 +178,13 @@ public class AreaPictureService {
     areaPicture.setLayers(new ArrayList<>(guessedMaps));
   }
 
-  public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude) {
+  public List<AreaPictureMapLayer> getMapLayersFrom(String address)
+      throws IOException, InterruptedException, ApiException {
+    var geoPosition = geoCodeApi.searchGeoPositionFromAddress(address);
+    return getMapLayersFrom(geoPosition.getLongitude(), geoPosition.getLatitude());
+  }
+
+  public List<AreaPictureMapLayer> getMapLayersFrom(Double longitude, Double latitude) {
     var guessedMaps = mapLayerService.getAvailableLayersFrom(longitude, latitude);
     Collections.sort(guessedMaps, Comparator.reverseOrder());
     guessedMaps.addAll(
@@ -189,6 +199,29 @@ public class AreaPictureService {
   private void refreshAreaPictureTile(AreaPicture areaPicture) {
     Tile tile = tileCreator.apply(areaPicture);
     areaPicture.setCurrentTile(tile);
+  }
+
+  public List<AreaPictureMapLayer> getAllExistingLayers(int page, int pageSize) {
+    return mapLayerService.getAllExistingLayers(page, pageSize);
+  }
+
+  public List<AreaPictureMapLayer> retrieveLayers(
+      Double longitude,
+      Double latitude,
+      String address,
+      int page,
+      int pageSize,
+      boolean fetchAllLayers)
+      throws IOException, InterruptedException, ApiException {
+    if (address != null && !address.isBlank()) {
+      return getMapLayersFrom(address);
+    }
+
+    if (fetchAllLayers) {
+      return getAllExistingLayers(page, pageSize);
+    }
+
+    return getMapLayersFrom(longitude, latitude);
   }
 
   @Transactional

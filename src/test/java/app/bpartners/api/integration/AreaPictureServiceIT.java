@@ -15,7 +15,7 @@ class AreaPictureServiceIT extends MockedThirdParties {
     double longitude = -2.7623357;
     double latitude = 47.6653675;
 
-    var actual = areaPictureService.getMapLayers(longitude, latitude);
+    var actual = areaPictureService.getMapLayersFrom(longitude, latitude);
 
     assertEquals("cite:PCRS.LAMB93", actual.get(0).getName());
   }

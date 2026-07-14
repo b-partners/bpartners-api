@@ -8,6 +8,7 @@ import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.lang.Boolean.TRUE;
+import static java.time.Month.JANUARY;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,6 +46,7 @@ import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.imageSource.WmsImageSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -136,6 +138,19 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .departementName("ALL")
         .maximumZoom(new Zoom().level(BUILDING).number(19))
         .source(AIRBUS);
+  }
+
+  static AreaPictureMapLayer alpesMaritimeLayer() {
+    return new AreaPictureMapLayer()
+        .id("e2f2bfdf-51db-4fe4-9abf-47346dad7a15")
+        .name("ALPES-MARITIMES_2020_5cm")
+        .year(2020)
+        .lastUpdatedAt(LocalDate.of(2020, JANUARY, 1))
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("alpes-maritimes")
+        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
+        .source(GEOSERVER);
   }
 
   static AreaPictureMapLayer geoserverPCRSLayer() {
@@ -503,6 +518,68 @@ public class AreaPictureIT extends S3MockedThirdParties {
     expected.setGeoPositions(actual.getGeoPositions());
     expected.setCurrentGeoPosition(actual.getCurrentGeoPosition());
     assertEquals(expected, removeAvailableLayers(ignoreGeneratedDataOf(actual)));
+  }
+
+  @Test
+  void fetch_all_map_layers_ok()
+      throws ApiException, IOException, InterruptedException, com.google.maps.errors.ApiException {
+    ApiClient joeDoeClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(joeDoeClient);
+    when(geoCodeApiMock.searchGeoPositionFromAddress(any()))
+        .thenReturn(
+            new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                .latitude(CHARENTE_KNOWN_GEO_POSITION.getCoordinates().getLatitude())
+                .longitude(CHARENTE_KNOWN_GEO_POSITION.getCoordinates().getLongitude())
+                .score(0.0));
+
+    var actual = api.getAreaPictureMapLayers(null, null, null, 0, 10, true);
+    var actualReducedSize = api.getAreaPictureMapLayers(null, null, null, 0, 5, true);
+
+    assertEquals(10, actual.size());
+    assertEquals(5, actualReducedSize.size());
+  }
+
+  @Test
+  void fetch_map_layer_from_address_ok()
+      throws ApiException, IOException, InterruptedException, com.google.maps.errors.ApiException {
+    ApiClient joeDoeClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(joeDoeClient);
+    when(geoCodeApiMock.searchGeoPositionFromAddress(any()))
+        .thenReturn(
+            new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                .latitude(43.55083358865195)
+                .longitude(7.021729923735844)
+                .score(0.0));
+
+    var actual =
+        api.getAreaPictureMapLayers(
+            null, null, "12 Bd de la Croisette, 06400 Cannes", null, null, null);
+
+    assertEquals(5, actual.size());
+    assertTrue(
+        actual.containsAll(
+            List.of(
+                alpesMaritimeLayer(),
+                geoserverPCRSLayer(),
+                geoserverIGNPrimaryDefaultServerLayer(),
+                airbusDefaultServerLayer())));
+  }
+
+  @Test
+  void get_map_layers_from_coordinates_ok() throws ApiException {
+    ApiClient joeDoeClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(joeDoeClient);
+
+    var actual =
+        api.getAreaPictureMapLayers(
+            BigDecimal.valueOf(7.021729923735844),
+            BigDecimal.valueOf(43.55083358865195),
+            null,
+            null,
+            null,
+            null);
+
+    assertEquals(5, actual.size());
   }
 
   @Test

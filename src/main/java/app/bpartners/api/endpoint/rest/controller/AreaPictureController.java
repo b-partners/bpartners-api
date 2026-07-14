@@ -9,6 +9,8 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.service.areapicture.AreaPictureService;
+import com.google.maps.errors.ApiException;
+import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,8 +59,18 @@ public class AreaPictureController {
 
   @GetMapping("/areaPictureMapLayers")
   public List<AreaPictureMapLayer> getAreaPictureMapLayers(
-      @RequestParam(name = "longitude") Double longitude,
-      @RequestParam(name = "latitude") Double latitude) {
-    return service.getMapLayers(longitude, latitude).stream().map(layerMapper::toRest).toList();
+      @RequestParam(name = "longitude", required = false) Double longitude,
+      @RequestParam(name = "latitude", required = false) Double latitude,
+      @RequestParam(name = "address", required = false) String address,
+      @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+      @RequestParam(name = "pageSize", required = false, defaultValue = "1") int pageSize,
+      @RequestParam(name = "fetchAll", required = false, defaultValue = "false")
+          boolean fetchAllLayers)
+      throws IOException, InterruptedException, ApiException {
+    return service
+        .retrieveLayers(longitude, latitude, address, page, pageSize, fetchAllLayers)
+        .stream()
+        .map(layerMapper::toRest)
+        .toList();
   }
 }

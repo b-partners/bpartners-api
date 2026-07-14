@@ -3,7 +3,7 @@ operations:
     get:
       tags:
         - AreaPicture
-      summary: Retrieve area picture map layers for specific longitude and latitude.
+      summary: Retrieve area picture map layers by location (longitude/latitude or address) or retrieve all layers
       description: |
         Layers retrieved are ordered by priority layer, default and worst image quality providers being IGN.
       operationId: getAreaPictureMapLayers
@@ -12,12 +12,29 @@ operations:
           name: longitude
           schema:
             type: number
-          required: true
+          required: false
         - in: query
           name: latitude
           schema:
             type: number
-          required: true
+          required: false
+        - in: query
+          name: address
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+        - in: query
+          name: fetchAll
+          schema:
+            type: boolean
       responses:
         200:
           description: List of area picture map layers according to specific longitude and latitude

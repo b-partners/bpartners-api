@@ -1,3 +1,18 @@
+# [0.82.0](https://github.com/b-partners/bpartners-api/compare/v0.81.0...v0.82.0) (2026-07-15)
+
+
+### Bug Fixes
+
+* download image from current layer on first iteration ([ddbf444](https://github.com/b-partners/bpartners-api/commit/ddbf444983ae9a115d6b535a6320971021d76aba))
+* **WmsImageSourceFacade:** iterate over all available layers ([874dc44](https://github.com/b-partners/bpartners-api/commit/874dc44d46cb8be6776d308b0bdf2f0c2eb29b2d))
+
+
+### Features
+
+* add facade measurements to pdf ([75c961a](https://github.com/b-partners/bpartners-api/commit/75c961aec63d73e897d08b70966b5fa30a3ad66a))
+
+
+
 # [0.81.0](https://github.com/b-partners/bpartners-api/compare/v0.80.0...v0.81.0) (2026-07-09)
 
 
@@ -232,15 +247,6 @@
 ### Features
 
 * convert area picture annotation pixel to latlon ([36119d1](https://github.com/b-partners/bpartners-api/commit/36119d1f84cd1bb8ab4dde3e30addabeba2edd8c))
-
-
-
-## [0.73.1](https://github.com/b-partners/bpartners-api/compare/v0.73.0...v0.73.1) (2025-12-02)
-
-
-### Bug Fixes
-
-* sync release version & publish client ([883dbc9](https://github.com/b-partners/bpartners-api/commit/883dbc9339dddceb73c372ae2df83327f74af22d))
 
 
 

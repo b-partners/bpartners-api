@@ -25,9 +25,9 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.wms.ArcgisZoom;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
-import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -77,6 +77,30 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
         .build();
   }
 
+  public static AreaPictureMapLayer dijon_2025() {
+    return AreaPictureMapLayer.builder()
+        .id("ba706983-5382-4af8-83cc-8d582d0e7b34")
+        .departementName("ALL")
+        .year(2025)
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .name("DIJON_2025")
+        .source(GEOSERVER)
+        .build();
+  }
+
+  public static AreaPictureMapLayer dijon_2026() {
+    return AreaPictureMapLayer.builder()
+        .id("2b42797f-6f85-4651-8e30-55e8306d8698")
+        .departementName("ALL")
+        .year(2026)
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .name("DIJON_2026")
+        .source(GEOSERVER)
+        .build();
+  }
+
   public static AreaPictureMapLayer ignLayer() {
     return AreaPictureMapLayer.builder()
         .name("ORTHOPHOTOS.ORTHOPHOTOIMAGERY")
@@ -88,16 +112,23 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
     return AreaPictureMapLayer.builder().name("AIRBUS").source(AIRBUS).build();
   }
 
-  private AreaPictureMapLayer dijon() {
-    return AreaPictureMapLayer.builder().name("cite:Dijon").source(GEOSERVER).build();
-  }
-
-  private AreaPicture anAreaPicture(AreaPictureMapLayer areaPictureMapLayer) {
+  private AreaPicture anAreaPictureWithDijonLatestCurrentLayer(
+      AreaPictureMapLayer areaPictureMapLayer) {
     return AreaPicture.builder()
         .currentLayer(areaPictureMapLayer)
         .currentGeoPosition(new GeoPosition().latitude(12.34).longitude(56.78))
         .zoomLevel(HOUSES_0)
-        .currentLayer(AreaPictureMapLayer.builder().name("cite:Dijon").build())
+        .initialLayer(dijon_2026())
+        .currentTile(Tile.builder().arcgisZoom(ArcgisZoom.HOUSES_0).x(1).y(1).build())
+        .build();
+  }
+
+  private AreaPicture anAreaPictureWithIgnInitialLayer(AreaPictureMapLayer areaPictureMapLayer) {
+    return AreaPicture.builder()
+        .currentLayer(areaPictureMapLayer)
+        .currentGeoPosition(new GeoPosition().latitude(12.34).longitude(56.78))
+        .zoomLevel(HOUSES_0)
+        .initialLayer(ignLayer())
         .currentTile(Tile.builder().arcgisZoom(ArcgisZoom.HOUSES_0).x(1).y(1).build())
         .build();
   }
@@ -133,67 +164,91 @@ public class WmsImageSourceFacadeIT extends MockedThirdParties {
 
   @Test
   void download_image_with_airbus_layer_on_cascade_ok() {
+    when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
+        .thenReturn(List.of(dijon_2025(), dijon_2026()));
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
     when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
     when(areaPictureMapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
     when(areaPictureMapLayerServiceMock.getAirbusLayer()).thenReturn(airbusPneoLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
-        .thenThrow(new BlankImageException("Blank image"));
+        .thenThrow(ApiException.class);
     when(tileExtenderImageSource.downloadImage(
             argThat(area -> area.getCurrentLayer().equals(airbusPneoLayer()))))
         .thenReturn(getMockJpegFile());
 
-    subject.downloadImage(anAreaPicture(dijon()));
+    subject.downloadImage(anAreaPictureWithDijonLatestCurrentLayer(dijon_2026()));
 
-    verify(tileExtenderImageSource, times(5)).downloadImage(any(AreaPicture.class));
+    verify(tileExtenderImageSource, times(6)).downloadImage(any(AreaPicture.class));
     verify(areaPictureMapLayerServiceMock, times(1)).getAirbusLayer();
   }
 
   @Test
   void download_image_with_pcrs_layer_on_cascade_ok() {
-    when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
+        .thenReturn(List.of(dijon_2025(), dijon_2026()));
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
-        .thenThrow(new BlankImageException("Blank image"));
+        .thenThrow(ApiException.class);
+    when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
     when(tileExtenderImageSource.downloadImage(
             argThat(area -> area.getCurrentLayer().equals(pcrsLayer()))))
         .thenReturn(getMockJpegFile());
 
-    subject.downloadImage(anAreaPicture(dijon()));
+    subject.downloadImage(anAreaPictureWithDijonLatestCurrentLayer(dijon_2026()));
 
-    verify(tileExtenderImageSource, times(2)).downloadImage(any());
+    verify(tileExtenderImageSource, times(3)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getPCRSLayer();
   }
 
   @Test
   void download_image_with_rhone_pcrs_layer_on_cascade_ok() {
+    when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
+        .thenReturn(List.of(dijon_2025(), dijon_2026()));
     when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
     when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
-        .thenThrow(new BlankImageException("Blank image"));
+        .thenThrow(ApiException.class);
     when(tileExtenderImageSource.downloadImage(
             argThat(area -> area.getCurrentLayer().equals(rhonePCRSLayer()))))
         .thenReturn(getMockJpegFile());
 
-    subject.downloadImage(anAreaPicture(dijon()));
+    subject.downloadImage(anAreaPictureWithDijonLatestCurrentLayer(dijon_2026()));
 
-    verify(tileExtenderImageSource, times(3)).downloadImage(any());
+    verify(tileExtenderImageSource, times(4)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getRhonePCRSLayer();
   }
 
   @Test
-  void download_image_with_ign_layer_on_cascade_ok() {
-    when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
-    when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
+  void download_image_with_ign_as_current_layer_ok() {
+    when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
+        .thenReturn(List.of(dijon_2025(), dijon_2026()));
     when(areaPictureMapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
     when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
-        .thenThrow(new BlankImageException("Blank image"));
+        .thenThrow(ApiException.class);
     when(tileExtenderImageSource.downloadImage(
             argThat(area -> area.getCurrentLayer().equals(ignLayer()))))
         .thenReturn(getMockJpegFile());
 
-    subject.downloadImage(anAreaPicture(dijon()));
+    subject.downloadImage(anAreaPictureWithIgnInitialLayer(ignLayer()));
 
-    verify(tileExtenderImageSource, times(4)).downloadImage(any());
+    verify(tileExtenderImageSource, times(1)).downloadImage(any());
+  }
+
+  @Test
+  void download_image_with_ign_layer_on_cascade_ok() {
+    when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
+        .thenReturn(List.of(dijon_2025(), dijon_2026()));
+    when(areaPictureMapLayerServiceMock.getPCRSLayer()).thenReturn(pcrsLayer());
+    when(areaPictureMapLayerServiceMock.getRhonePCRSLayer()).thenReturn(rhonePCRSLayer());
+    when(areaPictureMapLayerServiceMock.getDefaultIGNLayer()).thenReturn(ignLayer());
+    when(tileExtenderImageSource.downloadImage(any(AreaPicture.class)))
+        .thenThrow(ApiException.class);
+    when(tileExtenderImageSource.downloadImage(
+            argThat(area -> area.getCurrentLayer().equals(ignLayer()))))
+        .thenReturn(getMockJpegFile());
+
+    subject.downloadImage(anAreaPictureWithDijonLatestCurrentLayer(dijon_2026()));
+
+    verify(tileExtenderImageSource, times(5)).downloadImage(any());
     verify(areaPictureMapLayerServiceMock, times(1)).getDefaultIGNLayer();
   }
 

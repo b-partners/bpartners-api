@@ -21,7 +21,7 @@ public class UserUpsertedService implements Consumer<UserUpserted> {
     try {
       cognitoComponent.createUser(email);
     } catch (UsernameExistsException e) {
-      log.info("User already exists, do nothing: email={}", email);
+      log.info("User already exists, do nothing: user(id={})", userUpserted.getUserId());
     }
   }
 }

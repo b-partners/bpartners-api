@@ -12,9 +12,9 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
-import app.bpartners.api.service.wms.imageSource.exception.BlankImageException;
 import java.io.File;
 import java.net.URI;
+import java.util.Comparator;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Range;
@@ -29,7 +29,6 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private final IGNGeoserverImageSource ignGeoserverImageSource;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
   private final TileExtenderImageSource tileExtenderImageSource;
-  private final ImageValidator imageValidator;
   private final Mailer mailer;
 
   private WmsImageSourceFacade(
@@ -38,14 +37,12 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
       IGNGeoserverImageSource ignGeoserverImageSource,
       AreaPictureMapLayerService areaPictureMapLayerService,
       TileExtenderImageSource tileExtenderImageSource,
-      ImageValidator imageValidator,
       Mailer mailer) {
     super(fileDownloader);
     this.geoserverImageSource = geoserverImageSource;
     this.ignGeoserverImageSource = ignGeoserverImageSource;
     this.areaPictureMapLayerService = areaPictureMapLayerService;
     this.tileExtenderImageSource = tileExtenderImageSource;
-    this.imageValidator = imageValidator;
     this.mailer = mailer;
   }
 
@@ -63,43 +60,55 @@ final class WmsImageSourceFacade extends AbstractWmsImageSource {
   private File cascadeRetryImageDownloadUntilValid(
       WmsImageSource wmsImageSource,
       AreaPicture areaPicture,
-      @Range(from = 0, to = 5) int iteration) {
-
-    switch (iteration) {
-      case 0 -> {
-        if ("IGN_PHOTO_AERIENNE".equals(areaPicture.getCurrentLayer().getName())
-            && areaPicture.getZoomLevel().equals(HOUSES_0)) {
-          areaPicture.setZoomLevel(BUILDING);
-        }
-        areaPicture.setCurrentLayer(areaPicture.getCurrentLayer());
-      }
-      case 1 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getPCRSLayer());
-      case 2 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getRhonePCRSLayer());
-      case 3 -> {
-        areaPicture.setCurrentLayer(areaPictureMapLayerService.getDefaultIGNLayer());
-        setMaxZoomLevel(areaPicture);
-      }
-      case 4 -> {
-        areaPicture.setCurrentLayer(areaPictureMapLayerService.getAirbusLayer());
-        setMaxZoomLevel(areaPicture);
-      }
-      default ->
-          throw new ApiException(
-              SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
+      @Range(from = 0, to = Integer.MAX_VALUE) int iteration) {
+    var orderedLayers =
+        areaPictureMapLayerService
+            .getAvailableLayersFrom(areaPicture.getCurrentGeoPosition())
+            .stream()
+            .filter(layer -> !layer.equals(areaPicture.getInitialLayer()))
+            .sorted(
+                Comparator.comparingInt(AreaPictureMapLayer::getPrecisionLevelInCm)
+                    .thenComparing(
+                        Comparator.comparingInt(AreaPictureMapLayer::getYear).reversed()))
+            .toList();
+    if ("IGN_PHOTO_AERIENNE".equals(areaPicture.getCurrentLayer().getName())
+        && areaPicture.getZoomLevel().equals(HOUSES_0)) {
+      areaPicture.setZoomLevel(BUILDING);
     }
-
+    if (iteration == 0) {
+      areaPicture.setCurrentLayer(areaPicture.getCurrentLayer());
+    } else if (iteration <= orderedLayers.size()) {
+      areaPicture.setCurrentLayer(orderedLayers.get(iteration - 1));
+    } else {
+      switch (iteration - orderedLayers.size() - 1) {
+        case 0 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getPCRSLayer());
+        case 1 -> areaPicture.setCurrentLayer(areaPictureMapLayerService.getRhonePCRSLayer());
+        case 2 -> {
+          areaPicture.setCurrentLayer(areaPictureMapLayerService.getDefaultIGNLayer());
+          setMaxZoomLevel(areaPicture);
+        }
+        case 3 -> {
+          areaPicture.setCurrentLayer(areaPictureMapLayerService.getAirbusLayer());
+          setMaxZoomLevel(areaPicture);
+        }
+        default ->
+            throw new ApiException(
+                SERVER_EXCEPTION, "could not find any server for " + areaPicture.describe());
+      }
+    }
     try {
       log.info("Process image download from layer = {}", areaPicture.getCurrentLayer());
-      var image = tileExtenderImageSource.downloadImage(areaPicture);
-      imageValidator.accept(image);
-      return image;
-    } catch (ApiException | BlankImageException e) {
+      return tileExtenderImageSource.downloadImage(areaPicture);
+    } catch (ApiException e) {
       log.info(
           "could not resolve {} , due to exception {}", areaPicture.describe(), e.getMessage());
+
       if (AIRBUS.equals(areaPicture.getCurrentLayer().getSource()) && iteration == 0) {
         throw new ApiException(SERVER_EXCEPTION, "PNEO data is not available yet on this area");
       }
-      return cascadeRetryImageDownloadUntilValid(tileExtenderImageSource, areaPicture, ++iteration);
+
+      return cascadeRetryImageDownloadUntilValid(
+          tileExtenderImageSource, areaPicture, iteration + 1);
     }
   }
 

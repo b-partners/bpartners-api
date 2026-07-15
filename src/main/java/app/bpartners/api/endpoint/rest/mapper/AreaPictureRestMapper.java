@@ -104,6 +104,7 @@ public class AreaPictureRestMapper {
         .zoomLevel(zoomLevel)
         .idProspect(rest.getProspectId())
         .currentLayer(mapLayer)
+        .initialLayer(mapLayer)
         .idUser(userId)
         .createdAt(rest.getCreatedAt())
         .updatedAt(rest.getUpdatedAt())

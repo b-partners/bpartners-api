@@ -81,7 +81,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             ? null
             : Instant.ofEpochSecond(upcomingStripeInvoice.getNextPaymentAttempt());
 
-    log.info("Upcoming Stripe Invoice {} for user {}", nextInvoiceDate, userToDebit.getEmail());
+    log.info("Upcoming Stripe Invoice {} for user(id={})", nextInvoiceDate, userToDebit.getId());
 
     if (nextInvoiceDate != null
         && nextInvoiceDate.isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 1))) {
@@ -103,16 +103,13 @@ public class MonthlySubscriptionInvoiceRequestedService
               List.of(userToDebit.getName()));
       if (isCustomerToDebitAlreadyHasComputedInvoice(
           existingComputedInvoices, monthlySubscriptionInvoice)) {
-        log.info(
-            "Subscription Invoice already computed for user(id={}, email={})",
-            userToDebit.getId(),
-            userToDebit.getEmail());
+        log.info("Subscription Invoice already computed for user(id={})", userToDebit.getId());
       } else {
         var createdInvoice = invoiceService.crupdateSubscriptionInvoice(monthlySubscriptionInvoice);
         log.info(
-            "Invoice(ref={}, customer={}) created",
+            "Invoice(ref={}, customer(id={})) created",
             createdInvoice.getRef(),
-            createdInvoice.getCustomer().getName());
+            createdInvoice.getCustomer().getId());
         /*
         TODO : uncomment to triggered mail sent
         eventProducer.accept(
@@ -124,9 +121,8 @@ public class MonthlySubscriptionInvoiceRequestedService
       }
     } else {
       log.info(
-          "User(id={}, email={}) does not have upcoming stripe invoice, skip computing invoice",
-          userToDebit.getId(),
-          userToDebit.getEmail());
+          "User(id={}) does not have upcoming stripe invoice, skip computing invoice",
+          userToDebit.getId());
     }
   }
 

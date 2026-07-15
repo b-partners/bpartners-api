@@ -46,8 +46,6 @@ public class Account implements Serializable {
         + id
         + ",name="
         + name
-        + ",iban="
-        + iban
         + ",status="
         + status
         + ","
@@ -57,6 +55,6 @@ public class Account implements Serializable {
   }
 
   public String describeMinInfos() {
-    return "Account(id=" + id + ",iban=" + iban + ",status=" + status + ")";
+    return "Account(id=" + id + ",status=" + status + ")";
   }
 }

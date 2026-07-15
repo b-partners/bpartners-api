@@ -57,7 +57,7 @@ public class ProspectCreatedService implements Consumer<ProspectCreated> {
     String invisibleRecipient = "tech@birdia.fr";
     String body = customHtmlBody(prospect);
 
-    log.info("Created prospect notified for account holder {}", accountHolder.getEmail());
+    log.info("Created prospect notified for accountHolder(id={})", accountHolder.getId());
 
     sesService.sendEmail(recipient, cc, subject, body, attachments, invisibleRecipient);
   }

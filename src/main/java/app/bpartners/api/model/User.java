@@ -59,7 +59,7 @@ public class User implements Serializable {
   private List<UserAnalysisApiKey> analysisApiKeys;
 
   public String describe() {
-    return "User(id" + id + ", name=" + getName() + ", email=" + email + ")";
+    return "User(id=" + id + ")";
   }
 
   public String getEncodedDeviceToken() {

@@ -54,7 +54,7 @@ public class Customer {
   protected boolean isConverted;
 
   public String describe() {
-    return "Customer(id=" + id + ", name=" + getFullName() + ", idUser=" + idUser + ")";
+    return "Customer(id=" + id + ", idUser=" + idUser + ")";
   }
 
   public String getFirstName() {

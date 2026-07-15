@@ -62,8 +62,6 @@ public class UserMapper {
             .externalUserId(entityUser.getBridgeUserId())
             .connectionStatus(entityUser.getBankConnectionStatus())
             .roles(entityUser.getRoles() == null ? List.of() : Arrays.asList(entityUser.getRoles()))
-            .snsArn(entityUser.getSnsArn())
-            .deviceToken(entityUser.getDeviceToken())
             .parentUser(
                 entityUser.getParentUser() == null ? null : toDomain(entityUser.getParentUser()))
             .analysisApiKeys(userAnalysisApiKeys)
@@ -95,8 +93,6 @@ public class UserMapper {
         .logoFileId(toSave.getLogoFileId())
         .monthlySubscription(toSave.getMonthlySubscription())
         .roles(toSave.getRoles() == null ? new Role[] {} : toSave.getRoles().toArray(Role[]::new))
-        .snsArn(toSave.getSnsArn())
-        .deviceToken(toSave.getDeviceToken())
         .parentUser(toSave.getParentUser() == null ? null : toEntity(toSave.getParentUser()))
         .analysisApiKeys(
             toSave.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toEntity).toList())

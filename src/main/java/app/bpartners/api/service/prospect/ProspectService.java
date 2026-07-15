@@ -52,7 +52,6 @@ import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
-import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
@@ -95,7 +94,6 @@ public class ProspectService {
   private final EventProducer eventProducer;
   private final SesConf sesConf;
   private final ProspectStatusService statusService;
-  private final SnsService snsService;
   private final UserService userService;
   private final CalendarApi calendarApi;
   private final TemplateResolverEngine templateResolverEngine;
@@ -905,7 +903,6 @@ public class ProspectService {
               HAccountHolder accountHolder = optionalHolder.get();
               User user = userService.getUserById(accountHolder.getIdUser());
               sendEmailProspectToContact(prospects, optionalHolder);
-              notifyProspectsToContact(user);
             } catch (IOException | MessagingException e) {
               throw new ApiException(SERVER_EXCEPTION, e);
             }
@@ -935,12 +932,6 @@ public class ProspectService {
     log.info(
         "Mail sent to accountHolder(id={}) after relaunching prospects not contacted",
         accountHolder.getId());
-  }
-
-  private void notifyProspectsToContact(User user) {
-    String message = "Pensez à modifier le statut de vos prospects pour les conserver";
-    snsService.pushNotification(message, user);
-    log.info("Notifications(message={}) sent to user(id={})", message, user.getId());
   }
 
   private Map<String, List<Prospect>> dispatchByHolder(List<Prospect> prospects) {

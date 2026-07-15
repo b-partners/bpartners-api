@@ -104,8 +104,6 @@ public class HUser implements Serializable {
   @Column(name = "roles", columnDefinition = "user_role[]")
   private Role[] roles;
 
-  private String snsArn;
-  private String deviceToken;
   private String apiKey;
 
   @OneToMany(fetch = EAGER, cascade = ALL)

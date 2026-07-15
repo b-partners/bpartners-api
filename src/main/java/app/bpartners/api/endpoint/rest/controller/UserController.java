@@ -129,14 +129,6 @@ public class UserController {
     return accountRefreshService.refreshDisconnectedUsers().stream().map(mapper::toRest).toList();
   }
 
-  @PostMapping(value = "/users/{uId}/deviceRegistration")
-  public User registerDevice(@PathVariable String uId, @RequestBody DeviceToken deviceToken) {
-    if (deviceToken.getToken() == null) {
-      throw new BadRequestException("DeviceToken.token is mandatory");
-    }
-    return mapper.toRest(service.registerDevice(uId, deviceToken.getToken()));
-  }
-
   @PostMapping(value = "/users/{uId}/accounts/{aId}/active")
   public User setActiveAccount(@PathVariable String aId, @PathVariable String uId) {
     return mapper.toRest(service.changeActiveAccount(uId, aId));

@@ -25,7 +25,6 @@ import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
-import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.accountholder.AccountHolderService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.ProspectEvaluationJobInitiatedService;
@@ -50,7 +49,6 @@ class ProspectEvaluationJobInitiatedServiceTest {
   SesConf sesConfMock = mock();
   ProspectRestMapper prospectRestMapperMock = mock();
   UserService userServiceMock = mock();
-  SnsService snsServiceMock = mock();
   TemplateResolverEngine templateResolverEngine = mock();
   CustomDateFormatter customDateFormatter = mock();
   ProspectEvaluationJobInitiatedService subject =
@@ -63,7 +61,6 @@ class ProspectEvaluationJobInitiatedServiceTest {
           sesConfMock,
           prospectRestMapperMock,
           userServiceMock,
-          snsServiceMock,
           templateResolverEngine,
           customDateFormatter);
 

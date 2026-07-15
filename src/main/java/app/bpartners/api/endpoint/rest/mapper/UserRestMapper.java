@@ -116,7 +116,6 @@ public class UserRestMapper {
         .logoFileId(domain.getLogoFileId())
         .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()))
         .roles(toRest(domain.getRoles()))
-        .snsArn(domain.getEncodedSnsArn())
         .subscriptionStatus(subscriptionStatus)
         .subscription(
             new UserSubscription()

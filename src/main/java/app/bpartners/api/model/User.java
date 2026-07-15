@@ -5,7 +5,6 @@ import static app.bpartners.api.service.utils.AccountUtils.filterActive;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
-import com.nimbusds.jose.util.Base64;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -51,8 +50,6 @@ public class User implements Serializable {
   private String oldS3key;
   private BankConnection.BankConnectionStatus connectionStatus;
   private List<Role> roles;
-  private String snsArn;
-  private String deviceToken;
   private User parentUser;
   private String apiKey;
   private boolean paymentMethodExists;
@@ -60,14 +57,6 @@ public class User implements Serializable {
 
   public String describe() {
     return "User(id=" + id + ")";
-  }
-
-  public String getEncodedDeviceToken() {
-    return deviceToken == null ? null : Base64.encode(deviceToken).toString();
-  }
-
-  public String getEncodedSnsArn() {
-    return snsArn == null ? null : Base64.encode(snsArn).toString();
   }
 
   public String getName() {

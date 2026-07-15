@@ -7,7 +7,6 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.BankConnection;
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
@@ -61,13 +60,7 @@ public class HUser implements Serializable {
   private HUser parentUser;
 
   private String email;
-  private String bridgeUserId; // TODO: persist this when creating new users
-  private String bridgePassword; // TODO: persist this when creating new users
   private String phoneNumber;
-  private String accessToken;
-  private Instant tokenExpirationDatetime;
-  private Instant tokenCreationDatetime;
-  private int monthlySubscription;
 
   @Column(name = "user_subscription_e2_id")
   private String userSubscriptionE2Id;
@@ -88,12 +81,6 @@ public class HUser implements Serializable {
   @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private EnableStatus status;
-
-  private Boolean idVerified;
-
-  @JdbcTypeCode(NAMED_ENUM)
-  @Enumerated(EnumType.STRING)
-  private IdentificationStatus identificationStatus;
 
   @Column(name = "old_s3_id_account")
   private String oldS3AccountKey;

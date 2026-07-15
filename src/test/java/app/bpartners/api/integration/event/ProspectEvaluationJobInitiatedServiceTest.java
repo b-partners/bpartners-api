@@ -224,13 +224,7 @@ class ProspectEvaluationJobInitiatedServiceTest {
             .build();
     when(prospectServiceMock.saveEvaluationJobs(anyList())).thenReturn(List.of(runningJob));
     var accountHolder = AccountHolder.builder().name("name").build();
-    var bankConnectionId = 2L;
-    var user =
-        User.builder()
-            .id(idUser)
-            .bankConnectionId(bankConnectionId)
-            .accountHolders(List.of(accountHolder))
-            .build();
+    var user = User.builder().id(idUser).accountHolders(List.of(accountHolder)).build();
     when(userServiceMock.getUserById(anyString())).thenReturn(user);
     var runningHolder = AccountHolder.builder().build();
     when(holderServiceMock.findDefaultByIdUser(anyString())).thenReturn(runningHolder);

@@ -73,7 +73,6 @@ class UserServiceTest {
             userApiKeyMapper);
 
     when(userRepositoryMock.getByEmail(any())).thenReturn(user());
-    when(userRepositoryMock.getUserByToken(any())).thenReturn(user());
   }
 
   @Test
@@ -126,10 +125,8 @@ class UserServiceTest {
   @Test
   void read_user_ok() {
     User userFromEmail = subject.getUserByEmail(user().getEmail());
-    User userFromToken = subject.getUserByToken(user().getAccessToken());
 
     assertNotNull(userFromEmail);
-    assertNotNull(userFromToken);
   }
 
   @Test
@@ -183,11 +180,7 @@ class UserServiceTest {
   }
 
   User user() {
-    return User.builder()
-        .id(JOE_DOE_ID)
-        .email("exemple@gmail.com")
-        .accessToken(JOE_DOE_TOKEN)
-        .build();
+    return User.builder().id(JOE_DOE_ID).email("exemple@gmail.com").build();
   }
 
   @Test

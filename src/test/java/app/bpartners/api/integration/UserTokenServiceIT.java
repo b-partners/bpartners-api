@@ -26,7 +26,6 @@ public class UserTokenServiceIT extends MockedThirdParties {
         .firstName("Joe")
         .lastName("Doe")
         .email("joe@email.com")
-        .bridgePassword("12345678")
         .roles(List.of(ADMIN_ROLE))
         .build();
   }

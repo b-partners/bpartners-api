@@ -86,11 +86,6 @@ public class UserService {
   }
 
   @Transactional
-  public User getUserByToken(String token) {
-    return userRepository.getUserByToken(token);
-  }
-
-  @Transactional
   public List<User> findAll() {
     return userRepository.findAll();
   }
@@ -109,7 +104,7 @@ public class UserService {
     }
     invoiceSummaryJpaRepository.deleteByIdUser(user.getId());
     accountJpaRepository.deleteHAccountByUserId(user.getId());
-    accountHolderJpaRepository.deleteByIdUser(user.getBridgeUserId());
+    accountHolderJpaRepository.deleteByIdUser(user.getId());
     userRepository.deleteById(user.getId());
     cognitoComponent.deleteUserByUsername(email);
   }

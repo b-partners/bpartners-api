@@ -1,14 +1,8 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static app.bpartners.api.service.user.OnboardingService.DEFAULT_BALANCE;
-import static app.bpartners.api.service.user.OnboardingService.DEFAULT_CASH_FLOW;
-import static app.bpartners.api.service.user.OnboardingService.DEFAULT_STATUS;
-import static app.bpartners.api.service.user.OnboardingService.DEFAULT_SUBJECT_TO_VAT;
-import static app.bpartners.api.service.user.OnboardingService.DEFAULT_USER_IDENTIFICATION;
-import static app.bpartners.api.service.user.OnboardingService.DEFAULT_USER_STATUS;
-import static app.bpartners.api.service.user.OnboardingService.DEFAULT_VERIFICATION_STATUS;
-import static app.bpartners.api.service.user.OnboardingService.DEFAULT_VERIFIED;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,7 +51,6 @@ class UserServiceIT extends MockedThirdParties {
         .lastName("User_lastname")
         .mobilePhoneNumber("+261324063616")
         .email("exemple@email.com")
-        .bridgePassword(String.valueOf(randomUUID()))
         .build();
   }
 
@@ -108,31 +101,27 @@ class UserServiceIT extends MockedThirdParties {
   }
 
   private static void verifyUserValues(User userToOnboard, User actual) {
-    assertNotNull(actual.getBridgePassword());
     assertNotNull(actual.getId());
     assertEquals(userToOnboard.getFirstName(), actual.getFirstName());
     assertEquals(userToOnboard.getLastName(), actual.getLastName());
     assertEquals(userToOnboard.getEmail(), actual.getEmail());
-    assertEquals(DEFAULT_USER_IDENTIFICATION, actual.getIdentificationStatus());
-    assertEquals(DEFAULT_USER_STATUS, actual.getStatus());
-    assertEquals(DEFAULT_VERIFIED, actual.getIdVerified());
+    assertEquals(ENABLED, actual.getStatus());
     assertEquals(userToOnboard.getMobilePhoneNumber(), actual.getMobilePhoneNumber());
   }
 
   private static void verifyAccountValues(User actual, List<Account> accounts) {
     Account account = accounts.get(0);
     assertEquals(actual.getName(), account.getName());
-    assertEquals(DEFAULT_BALANCE, account.getAvailableBalance());
-    assertEquals(DEFAULT_STATUS, account.getStatus());
+    assertEquals(new Money(), account.getAvailableBalance());
+    assertEquals(OPENED, account.getStatus());
   }
 
   private static void verifyAccountHolderValues(User actual, List<AccountHolder> accountHolders) {
     AccountHolder accountHolder = accountHolders.get(0);
     assertEquals(actual.getEmail(), accountHolder.getEmail());
     assertEquals(actual.getMobilePhoneNumber(), accountHolder.getMobilePhoneNumber());
-    assertEquals(DEFAULT_CASH_FLOW, accountHolder.getInitialCashflow());
+    assertEquals(new Fraction(), accountHolder.getInitialCashflow());
     assertEquals(COMPANY_NAME, accountHolder.getName());
-    assertEquals(DEFAULT_SUBJECT_TO_VAT, accountHolder.isSubjectToVat());
-    assertEquals(DEFAULT_VERIFICATION_STATUS, accountHolder.getVerificationStatus());
+    assertEquals(true, accountHolder.isSubjectToVat());
   }
 }

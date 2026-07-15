@@ -1,8 +1,5 @@
 package app.bpartners.api.repository.connectors.transaction;
 
-import static app.bpartners.api.service.utils.TransactionUtils.describeList;
-
-import app.bpartners.api.model.Money;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.TransactionMapper;
 import app.bpartners.api.repository.jpa.TransactionJpaRepository;
@@ -26,31 +23,12 @@ public class SavableTransactionConnectorRepository implements TransactionConnect
     throw new NotImplementedException(UNSUPPORTED_ERROR_MESSAGE);
   }
 
-  // TODO: check why transactions with same bridge ID are persisted twice
   @Override
   public List<TransactionConnector> saveAll(
       String idAccount, List<TransactionConnector> connectors) {
     List<HTransaction> toSave =
         connectors.stream()
-            .map(
-                connector -> {
-                  List<HTransaction> bridgeTransactions =
-                      jpaRepository.findAllByIdBridge(Long.valueOf(connector.getId()));
-                  if (bridgeTransactions.isEmpty()) {
-                    return mapper.toEntity(idAccount, connector);
-                  }
-                  if (bridgeTransactions.size() > 1) {
-                    log.warn(
-                        "Duplicated transactions with same external ID {}",
-                        describeList(bridgeTransactions));
-                  }
-                  HTransaction entity = bridgeTransactions.get(0);
-                  Money entityMoney = Money.fromMajor(entity.getAmount());
-                  if (!entityMoney.equals(connector.getAmount())) {
-                    return entity.toBuilder().amount(connector.getAmount().stringValue()).build();
-                  }
-                  return entity;
-                })
+            .map(connector -> mapper.toEntity(idAccount, connector))
             .collect(Collectors.toList());
     return jpaRepository.saveAll(toSave).stream()
         .map(mapper::toConnector)

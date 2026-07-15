@@ -1,41 +1,28 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
-import app.bpartners.api.endpoint.rest.model.AuthInitiation;
-import app.bpartners.api.endpoint.rest.model.CreateToken;
-import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.BearerAuthenticator;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoConf;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.User;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @AutoConfigureMockMvc
 class AuthenticationIT extends MockedThirdParties {
-  public static final String DEFAULT_STATE = "12341234";
-  private static final String PHONE_NUMBER = "+261340465338";
   @MockBean private CognitoConf cognitoConf;
   @MockBean private BearerAuthenticator bearerAuthenticatorMock;
 
@@ -49,67 +36,6 @@ class AuthenticationIT extends MockedThirdParties {
     setUpUserSubscription(subscriptionService);
     when(bearerAuthenticatorMock.retrieveUser(any(), any()))
         .thenReturn(new Principal(User.builder().id(JOE_DOE_ID).build(), JOE_DOE_TOKEN));
-  }
-
-  CreateToken invalidCreateToken() {
-    return new CreateToken()
-        .code(BAD_CODE)
-        .redirectionStatusUrls(
-            new RedirectionStatusUrls()
-                .successUrl(REDIRECT_SUCCESS_URL)
-                .failureUrl(REDIRECT_FAILURE_URL));
-  }
-
-  AuthInitiation validAuthInitiation() {
-    return new AuthInitiation()
-        .phone(PHONE_NUMBER)
-        .state(DEFAULT_STATE)
-        .redirectionStatusUrls(
-            new RedirectionStatusUrls()
-                .successUrl(REDIRECT_SUCCESS_URL)
-                .failureUrl(REDIRECT_FAILURE_URL));
-  }
-
-  @Test
-  void unauthenticated_get_auth_init_not_implemented_ok() throws IOException, InterruptedException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + localPort;
-    String data = new ObjectMapper().writeValueAsString(validAuthInitiation());
-    HttpResponse<String> response =
-        unauthenticatedClient.send(
-            HttpRequest.newBuilder()
-                .uri(URI.create(basePath + "/authInitiation"))
-                .header("Access-Control-Request-Method", "POST")
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .header("Origin", "http://localhost:3000")
-                .POST(HttpRequest.BodyPublishers.ofString(data))
-                .build(),
-            HttpResponse.BodyHandlers.ofString());
-
-    assertEquals(HttpStatus.NOT_IMPLEMENTED.value(), response.statusCode());
-  }
-
-  // TODO: add cognito get token ko and ok
-  @Test
-  void unauthenticated_get_token_ko() throws IOException, InterruptedException {
-    HttpClient unauthenticatedClient = HttpClient.newBuilder().build();
-    String basePath = "http://localhost:" + localPort;
-    String data = new ObjectMapper().writeValueAsString(invalidCreateToken());
-
-    HttpResponse<String> response =
-        unauthenticatedClient.send(
-            HttpRequest.newBuilder()
-                .uri(URI.create(basePath + "/token"))
-                .header("Access-Control-Request-Method", "POST")
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .header("Origin", "http://localhost:3000")
-                .POST(HttpRequest.BodyPublishers.ofString(data))
-                .build(),
-            HttpResponse.BodyHandlers.ofString());
-
-    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
   }
 
   @Test

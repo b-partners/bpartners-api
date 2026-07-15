@@ -12,7 +12,6 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.repository.AccountRepository;
 import app.bpartners.api.repository.UserRepository;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -100,13 +99,7 @@ public class AccountService {
   }
 
   public static User resetDefaultUser(User user, Account account) {
-    return user.toBuilder()
-        .preferredAccountId(account.getId())
-        .bankConnectionId(null)
-        .connectionStatus(null)
-        .bridgeItemLastRefresh(null)
-        .bridgeItemUpdatedAt(Instant.now())
-        .build();
+    return user.toBuilder().preferredAccountId(account.getId()).build();
   }
 
   public List<Account> saveAll(List<Account> accounts) {

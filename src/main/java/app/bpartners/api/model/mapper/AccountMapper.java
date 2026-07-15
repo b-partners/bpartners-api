@@ -13,12 +13,6 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class AccountMapper {
-  public static final String OPENED_STATUS = "Opened";
-  public static final String CLOSED_STATUS = "Closed";
-  public static final String CLOSING_STATUS = "Closing";
-  public static final String SUSPENDED_STATUS = "Suspended";
-  public static final String VALIDATION_REQUIRED = "Validation Required";
-  public static final String INVALID_CREDENTIALS = "Invalid Credentials";
 
   public Account toDomain(HAccount entity) {
     if (entity == null) {

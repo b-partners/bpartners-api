@@ -14,10 +14,6 @@ paths:
   #############################################
   /ping:
     $ref: './security-api.yml#/operations/ping'
-  /authInitiation:
-    $ref: './security-api.yml#/operations/initiateAuth'
-  /token:
-    $ref: './security-api.yml#/operations/createToken'
   /whoami:
     $ref: './security-api.yml#/operations/whoami'
   /whois/{id}:

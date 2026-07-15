@@ -41,7 +41,7 @@ public class UserMapper {
                 entityUser.getAccounts() == null
                     ? null
                     : entityUser.getAccounts().stream()
-                        .map(account -> accountMapper.toDomain(account, null))
+                        .map(accountMapper::toDomain)
                         .collect(Collectors.toList()))
             .accountHolders(
                 entityUser.getAccountHolders() == null

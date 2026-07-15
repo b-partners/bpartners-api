@@ -11,7 +11,6 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Account;
-import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
@@ -80,7 +79,6 @@ class DirtyAccountIT extends MockedThirdParties {
     return app.bpartners.api.model.Account.builder()
         .id(JOE_DOE_ACCOUNT_ID)
         .userId(JOE_DOE_ID)
-        .status(AccountStatus.OPENED)
         .bank(Bank.builder().build())
         .availableBalance(new Money(parseFraction(100000)))
         .active(true)
@@ -93,7 +91,6 @@ class DirtyAccountIT extends MockedThirdParties {
         .name("TODO")
         .iban("TODO")
         .bic("TODO")
-        .status(AccountStatus.VALIDATION_REQUIRED)
         .bank(Bank.builder().build())
         .availableBalance(new Money(parseFraction(100000)))
         .active(true)

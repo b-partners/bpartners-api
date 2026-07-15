@@ -27,7 +27,7 @@ public class AccountUtils {
 
   public static String describeAccountList(List<Account> accounts) {
     StringBuilder builder = new StringBuilder();
-    accounts.forEach(account -> builder.append(account.describeInfos()).append(". "));
+    accounts.forEach(account -> builder.append(account.describeMinInfos()).append(". "));
     return builder.toString();
   }
 

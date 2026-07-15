@@ -1,6 +1,5 @@
 package app.bpartners.api.service.user;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.UUID.randomUUID;
@@ -10,7 +9,6 @@ import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.PojaEvent;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.UserUpserted;
-import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -41,8 +39,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Slf4j
 public class OnboardingService {
   private static final boolean DEFAULT_SUBJECT_TO_VAT = true;
-  private static final AccountStatus DEFAULT_STATUS = OPENED;
-  private static final Money DEFAULT_BALANCE = new Money();
   private static final Fraction DEFAULT_CASH_FLOW = new Fraction();
 
   private final UserRepository userRepository;
@@ -136,8 +132,7 @@ public class OnboardingService {
         .userId(savedUser.getId())
         .idAccountHolder(savedAccountHolder.getId())
         .name(savedUser.getName())
-        .availableBalance(DEFAULT_BALANCE)
-        .status(DEFAULT_STATUS)
+        .availableBalance(new Money())
         .active(true)
         .build();
   }

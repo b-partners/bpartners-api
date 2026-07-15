@@ -777,7 +777,6 @@ public class TestUtils {
         .iban("FR0123456789")
         .bic("BIC_NOT_NULL")
         .availableBalance(fromMinor(10000.0))
-        .status(OPENED)
         .active(true)
         .bank(null)
         .build();

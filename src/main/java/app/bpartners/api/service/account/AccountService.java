@@ -1,10 +1,9 @@
 package app.bpartners.api.service.account;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.service.utils.AccountUtils.describeAccountList;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.UpdateAccountIdentity;
@@ -93,8 +92,7 @@ public class AccountService {
         .bank(null)
         .externalId(null)
         .availableBalance(new Money())
-        .status(OPENED)
-        .enableStatus(EnableStatus.ENABLED)
+        .enableStatus(ENABLED)
         .build();
   }
 

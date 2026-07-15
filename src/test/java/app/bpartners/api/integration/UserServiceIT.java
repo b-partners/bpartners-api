@@ -1,6 +1,5 @@
 package app.bpartners.api.integration;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.time.Instant.now;
@@ -113,7 +112,6 @@ class UserServiceIT extends MockedThirdParties {
     Account account = accounts.get(0);
     assertEquals(actual.getName(), account.getName());
     assertEquals(new Money(), account.getAvailableBalance());
-    assertEquals(OPENED, account.getStatus());
   }
 
   private static void verifyAccountHolderValues(User actual, List<AccountHolder> accountHolders) {

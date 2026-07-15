@@ -1,6 +1,5 @@
 package app.bpartners.api.unit.service;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.integration.conf.utils.TestUtils.joePersistedAccount;
 import static app.bpartners.api.service.account.AccountService.resetDefaultAccount;
@@ -77,7 +76,6 @@ class AccountServiceTest {
             .bank(null)
             .externalId(null)
             .availableBalance(new Money())
-            .status(OPENED)
             .enableStatus(EnableStatus.ENABLED)
             .build();
     assertEquals(expected, actual);

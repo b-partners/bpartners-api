@@ -37,8 +37,7 @@ public class UserOnboardedService implements Consumer<UserOnboarded> {
 
     var apiKey = randomUUID().toString();
     var userWithApiKey = onboardedUser.toBuilder().apiKey(apiKey).build();
-    log.info(
-        "User(id={}) api key to save : {}", userWithApiKey.getId(), userWithApiKey.getApiKey());
+    log.info("User(id={}) api key to save", userWithApiKey.getId());
     var linkedUserSubscription = subscriptionService.createOrLinkUserSubscription(userWithApiKey);
     var userWithUpdatedKeyAndSubscriptionE2Id = linkedUserSubscription.getUser();
     userCustomerConverter.apply(userWithUpdatedKeyAndSubscriptionE2Id);

@@ -36,9 +36,8 @@ public class UserAnalysisApiKeyRepositoryImpl implements UserAnalysisApiKeyRepos
     if (hApiKeys.size() > 1) {
       List<String> ownersIds = hApiKeys.stream().map(HUserAnalysisApiKey::getUserId).toList();
       log.warn(
-          "Multiple analysis belonging to users {} api key have the same key : {}",
-          String.join(", ", new HashSet<>(ownersIds)),
-          hApiKeys.getFirst().getApiKey());
+          "Multiple analysis belonging to users {} have the same api key",
+          String.join(", ", new HashSet<>(ownersIds)));
     }
 
     HUserAnalysisApiKey hApiKey = hApiKeys.stream().findFirst().orElse(null);

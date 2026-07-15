@@ -1,5 +1,7 @@
 package app.bpartners.api.model;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
@@ -9,8 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 
 @AllArgsConstructor
 @NoArgsConstructor

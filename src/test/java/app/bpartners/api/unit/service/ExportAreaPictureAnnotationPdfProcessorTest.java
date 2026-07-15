@@ -55,7 +55,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     when(exportAreaPictureAnnotationImage3DGeneratorMock.generateBaseImage(any()))
         .thenReturn(new Pair<>(mock(), mockImage));
 
-    when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any(), any()))
+    when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any(), any(), any()))
         .thenReturn(fileMock);
     when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("https://dummy.com");
     when(fileServiceMock.downloadFile(any(), any(), any()))

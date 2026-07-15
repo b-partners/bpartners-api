@@ -413,6 +413,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
               pan.setImageUri("imageUri");
             });
 
+    annotation.get3d().setFacades(new java.util.ArrayList<>(annotation.get3d().getPans()));
+
     return annotation;
   }
 
@@ -459,8 +461,11 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                         export3DPan("Top Left Pan", "25m²", "Target", 0, 0, 100, 100),
                         export3DPan("Top Right Pan", "22m²", "Target", 3996, 0, 4096, 100),
                         export3DPan("Bottom Left Pan", "30m²", "Target", 0, 5020, 100, 5120),
-                        export3DPan(
-                            "Bottom Right Pan", "28m²", "Target", 3996, 5020, 4096, 5120))));
+                        export3DPan("Bottom Right Pan", "28m²", "Target", 3996, 5020, 4096, 5120)))
+                .facades(
+                    List.of(
+                        export3DPan("Facade 1", "45m²", "Target", 0, 0, 100, 100),
+                        export3DPan("Facade 2", "40m²", "Target", 3996, 0, 4096, 100))));
   }
 
   private ExportAreaPictureAnnotationInstance exportInstance(

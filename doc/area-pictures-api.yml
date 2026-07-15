@@ -898,6 +898,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ExportAreaPictureAnnotation3DPan"
+        facades:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotation3DPan"
       required:
         - pans
     ExportAreaPictureAnnotation3DPan:

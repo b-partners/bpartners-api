@@ -211,7 +211,7 @@ public class ExportAnnotationContextFactoryTest {
         context, annotation3D, images, fileService);
     assertEquals("data:image/png;base64,main3d", context.getVariable("mainImage3D"));
     List<List<String>> subImagesPages =
-        (List<List<String>>) context.getVariable("subImagesPages3D");
+        (List<List<String>>) context.getVariable("topViewPanImagesUris");
     assertEquals(1, subImagesPages.size());
     assertEquals(2, subImagesPages.get(0).size());
     assertEquals("data:image/png;base64,a", subImagesPages.get(0).get(0));
@@ -238,6 +238,25 @@ public class ExportAnnotationContextFactoryTest {
     assertEquals("22m²", pan2.getInfos().get(0).getValue());
     assertEquals("Observation", pan2.getInfos().get(1).getLabel());
     assertEquals("À rénover", pan2.getInfos().get(1).getValue());
+
+    // Setting up facades
+    annotation3D.setFacades(
+        List.of(
+            export3DPan("Facade 1", "30m²", "Bon état", 50, 50, 150, 150),
+            export3DPan("Facade 2", "35m²", "À rénover", 200, 50, 300, 150)));
+
+    Pair<String, List<String>> facadeImages = new Pair<>("main3d", List.of("c", "d"));
+
+    ExportAnnotationContextFactory.configureAnnotationFacade3DContext(
+        context, annotation3D, facadeImages, fileService);
+
+    List<List<ExportAreaPictureAnnotation3DPan>> pagesFacade3D =
+        (List<List<ExportAreaPictureAnnotation3DPan>>) context.getVariable("pagesFacade3D");
+    assertNotNull(pagesFacade3D);
+    assertEquals(1, pagesFacade3D.size());
+    assertEquals(2, pagesFacade3D.get(0).size());
+    assertEquals("Facade 1", pagesFacade3D.get(0).get(0).getName());
+    assertEquals("Facade 2", pagesFacade3D.get(0).get(1).getName());
   }
 
   @Test

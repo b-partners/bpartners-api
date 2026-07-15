@@ -641,7 +641,7 @@
     </div>
 </section>
 
-<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
+<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and pagesFacade3D == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
     <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
 
     <div th:each="annotation, annotationStat : ${page}" class="annotation-item clearfix">
@@ -672,7 +672,7 @@
 
 <section th:if="${pages3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pages3D}"
          class="page"
-         th:classappend="${pageStat.last and llm == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and llm == null and pagesFacade3D == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
 
@@ -752,11 +752,11 @@
     </div>
 </section>
 
-<section th:if="${pages3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pages3D}"
+<section th:if="${pagesFacade3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pagesFacade3D}"
          class="page"
          th:classappend="${pageStat.last and llm == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
 
-    <h2 class="annotation-information-title"> Informations détaillées sur les facade du bâtiment </h2>
+    <h2 class="annotation-information-title"> Informations détaillées sur les façades du bâtiment </h2>
 
     <div class="clearfix" style="width:100%; margin-bottom:10px;">
         <div style="float:left; width:30%; height: 1px;"></div>
@@ -788,28 +788,28 @@
 
                     <div class="pan-image-cell">
                         <img class="annotation-item-image-3d" alt="annotation 3d sub-image"
-                             th:if="${pansImages3DUris[pageStat.index] != null
-                                     and pansImages3DUris[pageStat.index].size() > panStat.index
-                                     and pansImages3DUris[pageStat.index][panStat.index] != null}"
-                             th:src="${pansImages3DUris[pageStat.index][panStat.index]}" />
+                             th:if="${facadesImages3DUris[pageStat.index] != null
+                                     and facadesImages3DUris[pageStat.index].size() > panStat.index
+                                     and facadesImages3DUris[pageStat.index][panStat.index] != null}"
+                             th:src="${facadesImages3DUris[pageStat.index][panStat.index]}" />
 
                         <div class="annotation-blank-item-image-3d"
-                             th:if="${pansImages3DUris == null
-                                     or pansImages3DUris.size() &lt;= pageStat.index
-                                     or pansImages3DUris[pageStat.index] == null
-                                     or pansImages3DUris[pageStat.index].size() &lt;= panStat.index
-                                     or pansImages3DUris[pageStat.index][panStat.index] == null}">
+                             th:if="${facadesImages3DUris == null
+                                     or facadesImages3DUris.size() &lt;= pageStat.index
+                                     or facadesImages3DUris[pageStat.index] == null
+                                     or facadesImages3DUris[pageStat.index].size() &lt;= panStat.index
+                                     or facadesImages3DUris[pageStat.index][panStat.index] == null}">
                             Image indisponible
                         </div>
                     </div>
 
                     <div class="pan-image-cell">
                         <img class="annotation-item-image-3d" alt="annotation sub-image"
-                             th:if="${topViewPanImagesUris[pageStat.index] != null and topViewPanImagesUris[pageStat.index].size() > panStat.index}"
-                             th:src="${topViewPanImagesUris[pageStat.index][panStat.index]}" />
+                             th:if="${topViewFacadeImagesUris[pageStat.index] != null and topViewFacadeImagesUris[pageStat.index].size() > panStat.index}"
+                             th:src="${topViewFacadeImagesUris[pageStat.index][panStat.index]}" />
 
                         <div class="annotation-blank-item-image-3d"
-                             th:if="${topViewPanImagesUris[pageStat.index] == null or topViewPanImagesUris[pageStat.index].size() &lt;= panStat.index}">
+                             th:if="${topViewFacadeImagesUris[pageStat.index] == null or topViewFacadeImagesUris[pageStat.index].size() &lt;= panStat.index}">
                             Image indisponible
                         </div>
                     </div>

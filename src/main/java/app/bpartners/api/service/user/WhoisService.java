@@ -40,9 +40,8 @@ public class WhoisService {
   public User getSpecifiedUser(IntegratingApplication application, String userId) {
     User retrievedUser = userService.getUserById(userId);
     log.info(
-        "The application {} is getting the user {} (id={})",
+        "The application {} is getting the user(id={})",
         application.getApplicationName(),
-        retrievedUser.getName(),
         retrievedUser.getId());
     return retrievedUser;
   }

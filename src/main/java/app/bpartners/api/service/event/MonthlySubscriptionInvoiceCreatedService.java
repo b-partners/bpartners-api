@@ -52,7 +52,10 @@ public class MonthlySubscriptionInvoiceCreatedService
     var emailBody = ""; // TODO: custom email body
 
     mailer.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
-    log.info("Monthly subscription invoice mail sent to {} at {}", recipient, now());
+    log.info(
+        "Monthly subscription invoice mail sent to customer(id={}) at {}",
+        invoice.getCustomer().getId(),
+        now());
   }
 
   private int actualYear() {

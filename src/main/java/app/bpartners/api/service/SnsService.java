@@ -54,9 +54,9 @@ public class SnsService {
     if (snsArn == null) {
       log.warn(
           "[FAILED] Mobile notification with message content [{}]"
-              + " not sent to {} because SNS ARN is null",
+              + " not sent to user(id={}) because SNS ARN is null",
           message,
-          user.getName());
+          user.getId());
     } else {
       try {
         PublishResponse publishResponse =
@@ -65,9 +65,9 @@ public class SnsService {
       } catch (Exception e) {
         log.warn(
             "[FAILED] Mobile notification with message content [{}]"
-                + " not sent to {} because {}}",
+                + " not sent to user(id={}) because {}}",
             message,
-            user.getName(),
+            user.getId(),
             e.getMessage());
       }
     }

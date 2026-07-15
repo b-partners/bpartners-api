@@ -48,8 +48,8 @@ public class UserOnboardedNotificationRequestedService
           emailRecipient, null, emailSubject, htmlBody, attachments, "tech@birdia.fr");
     } catch (MessagingException | IOException e) {
       log.error(
-          "Onboarded email not sent for new user {}, exception : {}",
-          user.getEmail(),
+          "Onboarded email not sent for new user(id={}), exception : {}",
+          user.getId(),
           e.getMessage());
     }
   }
@@ -61,8 +61,8 @@ public class UserOnboardedNotificationRequestedService
       analysisKeys.addAll(analysisApiKeys.stream().map(UserApiKey::getKey).toList());
     } catch (RuntimeException e) {
       log.error(
-          "Error while getting user api keys for user {}, exception {}",
-          user.getEmail(),
+          "Error while getting user api keys for user(id={}), exception {}",
+          user.getId(),
           e.getMessage());
     }
     return analysisKeys;

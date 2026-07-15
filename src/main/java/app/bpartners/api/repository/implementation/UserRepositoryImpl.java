@@ -252,9 +252,8 @@ public class UserRepositoryImpl implements UserRepository {
             .build();
       } catch (StripeException e) {
         log.error(
-            "Unable to retrieve user(id={}, email={}) payment method due to stripe exception {}",
+            "Unable to retrieve user(id={}) payment method due to stripe exception {}",
             fetchedUser.getId(),
-            fetchedUser.getEmail(),
             e.getMessage());
         return fetchedUser;
       }

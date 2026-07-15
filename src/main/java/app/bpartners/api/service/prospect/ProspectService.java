@@ -418,7 +418,8 @@ public class ProspectService {
                     templateResolverEngine.parseTemplateResolver(
                         PROSPECT_MAIL_TEMPLATE, configureProspectContext(accountHolder));
                 try {
-                  log.info("The email should be sent to: " + accountHolder.getEmail());
+                  log.info(
+                      "The email should be sent to accountHolder(id={})", accountHolder.getId());
                   sesService.sendEmail(
                       accountHolder.getEmail(), null, subject, htmlbody, List.of());
                 } catch (IOException | MessagingException e) {
@@ -931,13 +932,15 @@ public class ProspectService {
     List<Attachment> attachments = List.of();
 
     sesService.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
-    log.info("Mail sent to {} after relaunching prospects not contacted", recipient);
+    log.info(
+        "Mail sent to accountHolder(id={}) after relaunching prospects not contacted",
+        accountHolder.getId());
   }
 
   private void notifyProspectsToContact(User user) {
     String message = "Pensez à modifier le statut de vos prospects pour les conserver";
     snsService.pushNotification(message, user);
-    log.info("Notifications(message=" + message + ") sent to " + user.getName());
+    log.info("Notifications(message={}) sent to user(id={})", message, user.getId());
   }
 
   private Map<String, List<Prospect>> dispatchByHolder(List<Prospect> prospects) {

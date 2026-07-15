@@ -58,9 +58,13 @@ public class MailingService {
                 String invisibleRecipient = sesConf.getAdminEmail();
                 sesService.sendEmail(
                     recipient, concerned, object, body, attachments, invisibleRecipient);
-                log.info("Email sent to {} from {} with object {}", recipient, concerned, object);
+                log.info(
+                    "Email(id={}) sent from accountHolder(id={}) with object {}",
+                    email.getId(),
+                    accountHolder.getId(),
+                    object);
               } catch (IOException | MessagingException e) {
-                log.error("Unable to sent email {}", email);
+                log.error("Unable to sent email {}", email.describe());
                 throw new ApiException(SERVER_EXCEPTION, e);
               }
             }

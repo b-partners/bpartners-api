@@ -62,17 +62,7 @@ public class Prospect implements Comparable<Prospect> {
   }
 
   public String describe() {
-    return "Prospect{"
-        + "id='"
-        + id
-        + '\''
-        + ", name='"
-        + name
-        + '\''
-        + ", email='"
-        + email
-        + '\''
-        + '}';
+    return "Prospect{id='" + id + '\'' + '}';
   }
 
   @Override

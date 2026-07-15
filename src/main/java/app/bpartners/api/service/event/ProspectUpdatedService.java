@@ -100,9 +100,10 @@ public class ProspectUpdatedService implements Consumer<ProspectUpdated> {
               updateType);
       List<Attachment> attachments = List.of();
       sesService.sendEmail(recipient, concerned, subject, htmlBody, attachments);
-      log.info("{} updated and mail sent to recipient={}", prospect.describe(), recipient);
+      log.info("{} updated and mail sent to admin recipient", prospect.describe());
     } catch (IOException | MessagingException e) {
-      log.warn("Unable to send email after " + prospect + " update. Exception was :" + e);
+      log.warn(
+          "Unable to send email after " + prospect.describe() + " update. Exception was :" + e);
       throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
     }
   }

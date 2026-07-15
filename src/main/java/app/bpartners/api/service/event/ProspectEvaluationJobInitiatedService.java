@@ -167,15 +167,11 @@ public class ProspectEvaluationJobInitiatedService
             evaluationJobFailedEmailBody(job, runningHolder, eventsWithAddress, e, runningJobStart);
         sesService.sendEmail(recipient, concerned, subject, htmlBody, List.of());
         log.info(
-            "Email sent to email to "
-                + recipient
-                + " after processing prospect evaluation "
+            "Email sent to admin recipient after processing prospect evaluation "
                 + runningJob.describe());
       } catch (IOException | MessagingException ex) {
         log.warn(
-            "Unable to send email to "
-                + recipient
-                + " after processing prospect evaluation "
+            "Unable to send email to admin recipient after processing prospect evaluation "
                 + runningJob.describe());
       }
     }

@@ -107,7 +107,9 @@ public class InvoiceRelaunchSavedService implements Consumer<InvoiceRelaunchSave
     try {
       service.sendEmail(recipient, concerned, subject, htmlBody, attachments, invisibleRecipient);
       log.info(
-          "Email sent from " + invoice.getActualAccount().describeMinInfos() + " to " + recipient);
+          "Email sent for {} from {}",
+          invoice.describe(),
+          invoice.getActualAccount().describeMinInfos());
     } catch (MessagingException | IOException e) {
       log.error("Email not sent : " + e.getMessage());
       throw new ApiException(SERVER_EXCEPTION, e);

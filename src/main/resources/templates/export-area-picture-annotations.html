@@ -641,7 +641,7 @@
     </div>
 </section>
 
-<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
+<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and pagesFacade3D == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
     <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
 
     <div th:each="annotation, annotationStat : ${page}" class="annotation-item clearfix">
@@ -672,7 +672,7 @@
 
 <section th:if="${pages3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pages3D}"
          class="page"
-         th:classappend="${pageStat.last and llm == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and llm == null and pagesFacade3D == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
 
@@ -736,11 +736,80 @@
 
                     <div class="pan-image-cell">
                         <img class="annotation-item-image-3d" alt="annotation sub-image"
-                             th:if="${subImagesPages3D[pageStat.index] != null and subImagesPages3D[pageStat.index].size() > panStat.index}"
-                             th:src="${subImagesPages3D[pageStat.index][panStat.index]}" />
+                             th:if="${topViewPanImagesUris[pageStat.index] != null and topViewPanImagesUris[pageStat.index].size() > panStat.index}"
+                             th:src="${topViewPanImagesUris[pageStat.index][panStat.index]}" />
 
                         <div class="annotation-blank-item-image-3d"
-                             th:if="${subImagesPages3D[pageStat.index] == null or subImagesPages3D[pageStat.index].size() &lt;= panStat.index}">
+                             th:if="${topViewPanImagesUris[pageStat.index] == null or topViewPanImagesUris[pageStat.index].size() &lt;= panStat.index}">
+                            Image indisponible
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section th:if="${pagesFacade3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pagesFacade3D}"
+         class="page"
+         th:classappend="${pageStat.last and llm == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
+
+    <h2 class="annotation-information-title"> Informations détaillées sur les façades du bâtiment </h2>
+
+    <div class="clearfix" style="width:100%; margin-bottom:10px;">
+        <div style="float:left; width:30%; height: 1px;"></div>
+        <div style="float:right; width:68%;">
+            <div class="pan-col-headers clearfix">
+                <div class="pan-col-header">Photo façade</div>
+                <div class="pan-col-header">Image annotée</div>
+            </div>
+        </div>
+    </div>
+
+    <div th:each="pan, panStat: ${page}" class="annotation-item clearfix">
+        <div class="pan-annotation-content clearfix">
+
+            <div class="pan-annotation-labels">
+                <h4 class="annotation-item-title">
+                    <span class="annotation-item-title-value" th:text="${pan.name} ?: 'Non renseigné'"></span>
+                </h4>
+                <div class="annotation-item-info-item" th:each="info : ${pan.infos}">
+                    <span th:if="${info != null and info.label != 'edgeTypes'}">
+                        <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
+                        <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="pan-annotation-images">
+                <div class="pan-images-row clearfix">
+
+                    <div class="pan-image-cell">
+                        <img class="annotation-item-image-3d" alt="annotation 3d sub-image"
+                             th:if="${facadesImages3DUris[pageStat.index] != null
+                                     and facadesImages3DUris[pageStat.index].size() > panStat.index
+                                     and facadesImages3DUris[pageStat.index][panStat.index] != null}"
+                             th:src="${facadesImages3DUris[pageStat.index][panStat.index]}" />
+
+                        <div class="annotation-blank-item-image-3d"
+                             th:if="${facadesImages3DUris == null
+                                     or facadesImages3DUris.size() &lt;= pageStat.index
+                                     or facadesImages3DUris[pageStat.index] == null
+                                     or facadesImages3DUris[pageStat.index].size() &lt;= panStat.index
+                                     or facadesImages3DUris[pageStat.index][panStat.index] == null}">
+                            Image indisponible
+                        </div>
+                    </div>
+
+                    <div class="pan-image-cell">
+                        <img class="annotation-item-image-3d" alt="annotation sub-image"
+                             th:if="${topViewFacadeImagesUris[pageStat.index] != null and topViewFacadeImagesUris[pageStat.index].size() > panStat.index}"
+                             th:src="${topViewFacadeImagesUris[pageStat.index][panStat.index]}" />
+
+                        <div class="annotation-blank-item-image-3d"
+                             th:if="${topViewFacadeImagesUris[pageStat.index] == null or topViewFacadeImagesUris[pageStat.index].size() &lt;= panStat.index}">
                             Image indisponible
                         </div>
                     </div>
@@ -876,37 +945,90 @@
     </div>
 </section>
 
-<section th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last} ? ' last-page' : ''">
+<section th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last and (llm == null or !conf.isShowLlmSummary())} ? ' last-page' : ''">
     <h2 class="custom-page-title" th:text="${page.pageTitle}"></h2>
 
     <div th:each="section : ${page.sections}" class="custom-section" th:switch="${section.type.name()}">
 
-        <!-- TEXT Section -->
+        <!-- 1. TEXT Section -->
         <div th:case="'TEXT'" th:class="'custom-section-text text-priority-' + ${section.priority.name()}" th:text="${section.text}"></div>
 
-        <!-- IMAGE Section -->
+        <!-- 2. IMAGE Section -->
         <div th:case="'IMAGE'" class="custom-section-image-container">
             <img class="custom-section-image" th:classappend="'image-priority-' + ${section.priority.name()}" th:src="${section.url}" alt="custom section image"/>
             <div th:if="${section.caption}" class="custom-section-caption" th:text="${section.caption}"></div>
         </div>
 
-        <!-- TABLE Section -->
+        <!-- 3. TABLE Section -->
         <div class="degradation-container" th:case="'TABLE'">
             <table class="roof-face-table">
                 <thead>
-                    <tr style="background-color:#f7f7f5;">
-                        <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>
-                    </tr>
+                <tr style="background-color:#f7f7f5;">
+                    <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>
+                </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="row : ${section.tableData.rows}">
-                        <td th:each="cell : ${row}" th:text="${cell}"></td>
-                    </tr>
+                <tr th:each="row : ${section.tableData.rows}">
+                    <td th:each="cell : ${row}" th:text="${cell}"></td>
+                </tr>
                 </tbody>
             </table>
         </div>
+
+        <!-- 4. SPLIT_SECTION (The new Two-Column Layout) -->
+        <div th:case="'SPLIT_SECTION'" class="clearfix" style="width: 100%; display: block;">
+            <!-- Left Column (49% wide) -->
+            <div style="float: left; width: 49%; display: block;">
+                <div th:with="section=${section.leftSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+
+            <!-- Right Column (49% wide) -->
+            <div style="float: right; width: 49%; display: block;">
+                <div th:with="section=${section.rightSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+        </div>
+
+        <div th:case="'THREE_SPLIT_SECTION'" class="clearfix" style="width: 100%; display: block;">
+            <div style="float: left; width: 32%; display: block;">
+                <div th:with="section=${section.leftSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+            <div style="float: left; width: 32%; margin-left: 2%; display: block;">
+                <div th:with="section=${section.middleSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+            <div style="float: right; width: 32%; display: block;">
+                <div th:with="section=${section.rightSection}" th:insert="~{::renderChildSection}"></div>
+            </div>
+        </div>
     </div>
 </section>
+
+<!-- Reusable Fragment Engine -->
+<div th:fragment="renderChildSection" th:switch="${section != null ? section.type.name() : ''}" th:remove="tag">
+    <!-- Child TEXT -->
+    <div th:case="'TEXT'" th:class="'custom-section-text text-priority-' + ${section.priority.name()}" th:text="${section.text}"></div>
+
+    <!-- Child IMAGE -->
+    <div th:case="'IMAGE'" class="custom-section-image-container" style="text-align: center;">
+        <img class="custom-section-image" th:classappend="'image-priority-' + ${section.priority.name()}" th:src="${section.url}" alt="custom section image"/>
+        <div th:if="${section.caption}" class="custom-section-caption" th:text="${section.caption}"></div>
+    </div>
+
+    <!-- Child TABLE -->
+    <div class="degradation-container" th:case="'TABLE'" style="margin-top: 5px;">
+        <table class="roof-face-table">
+            <thead>
+            <tr style="background-color:#f7f7f5;">
+                <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${section.tableData.rows}">
+                <td th:each="cell : ${row}" th:text="${cell}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <section class="llm page" th:classappend="${customPages == null or #lists.isEmpty(customPages)} ? ' last-page' : ''" th:if="${llm and conf.isShowLlmSummary()}">
     <div th:utext="${llm}"></div>

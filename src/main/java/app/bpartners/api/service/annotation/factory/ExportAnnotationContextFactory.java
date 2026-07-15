@@ -42,6 +42,28 @@ public class ExportAnnotationContextFactory {
       FileService fileService,
       ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator,
       AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
+    return createContext(
+        user,
+        logoBase64,
+        annotation,
+        annotationImages,
+        annotation3DImages,
+        null,
+        fileService,
+        annotationImage3DGenerator,
+        areaPictureAnnotationConfRestMapper);
+  }
+
+  public static Context createContext(
+      User user,
+      String logoBase64,
+      ExportAreaPictureAnnotation annotation,
+      Pair<String, List<String>> annotationImages,
+      Pair<String, List<String>> annotation3DImages,
+      Pair<String, List<String>> annotation3DFacadeImages,
+      FileService fileService,
+      ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator,
+      AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
     var context = new Context();
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
@@ -75,6 +97,8 @@ public class ExportAnnotationContextFactory {
     }
     if (annotation.get3d() != null) {
       configureAnnotation3DContext(context, annotation.get3d(), annotation3DImages, fileService);
+      configureAnnotationFacade3DContext(
+          context, annotation.get3d(), annotation3DFacadeImages, fileService);
       configureAnnotationSummaryContext(context, annotation, annotationImage3DGenerator);
     }
 
@@ -144,6 +168,19 @@ public class ExportAnnotationContextFactory {
                   .rows(restTableData.getRows())
                   .build())
           .build();
+    } else if (restSection
+        instanceof app.bpartners.api.endpoint.rest.model.SplitSection splitRestSection) {
+      return new app.bpartners.api.service.annotation.model.custompage.SplitSection(
+          priority,
+          mapSection(splitRestSection.getLeftSection()),
+          mapSection(splitRestSection.getRightSection()));
+    } else if (restSection
+        instanceof app.bpartners.api.endpoint.rest.model.ThreeSplitSection threeSplitRestSection) {
+      return new app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection(
+          priority,
+          mapSection(threeSplitRestSection.getLeftSection()),
+          mapSection(threeSplitRestSection.getMiddleSection()),
+          mapSection(threeSplitRestSection.getRightSection()));
     }
     throw new IllegalArgumentException("Unknown section type: " + restSection.getClass());
   }
@@ -192,7 +229,7 @@ public class ExportAnnotationContextFactory {
     context.setVariable("mainImage3D", mainImage3DUri);
     context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
     context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
-    context.setVariable("subImagesPages3D", groupByFirstPage(subImages3DUris, 3, 4));
+    context.setVariable("topViewPanImagesUris", groupByFirstPage(subImages3DUris, 3, 4));
     context.setVariable("pansImages3DUris", groupByFirstPage(pansImages3D, 3, 4));
   }
 
@@ -274,6 +311,83 @@ public class ExportAnnotationContextFactory {
                 log.error(
                     "Error while downloading pan image: {}. Falling back to top view image.",
                     pan.getName(),
+                    e);
+              }
+
+              return bufferedImageToUri(image);
+            })
+        .toList();
+  }
+
+  static void configureAnnotationFacade3DContext(
+      Context context,
+      ExportAreaPictureAnnotation3D annotation3D,
+      Pair<String, List<String>> annotation3DFacadeImages,
+      FileService fileService) {
+    if (annotation3D.getFacades() == null) {
+      return;
+    }
+    var pagesFacade3D = groupByFirstPage(annotation3D.getFacades(), 3, 4);
+    var subImages3DUris =
+        annotation3DFacadeImages != null && annotation3DFacadeImages.second() != null
+            ? annotation3DFacadeImages.second().stream().map(ImageUriUtils::base64ToUri).toList()
+            : List.<URI>of();
+    var facadesImages3D = getFacadesImages3DContext(annotation3D, fileService);
+
+    context.setVariable("pagesFacade3D", pagesFacade3D);
+    context.setVariable("topViewFacadeImagesUris", groupByFirstPage(subImages3DUris, 3, 4));
+    context.setVariable("facadesImages3DUris", groupByFirstPage(facadesImages3D, 3, 4));
+  }
+
+  static List<String> getFacadesImages3DContext(
+      ExportAreaPictureAnnotation3D annotation3D, FileService fileService) {
+    if (annotation3D.getFacades() == null) {
+      return List.of();
+    }
+    var exportAreaPictureAnnotationImage3DGenerator =
+        new ExportAreaPictureAnnotationImage3DGenerator();
+
+    var overallFacadesTopView =
+        exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getFacades());
+    return annotation3D.getFacades().stream()
+        .map(
+            facade -> {
+              var image =
+                  exportAreaPictureAnnotationImage3DGenerator
+                      .generateBaseImageWithHighlightedPanWithSlopeBoundary(
+                          overallFacadesTopView.second(), overallFacadesTopView.first(), facade);
+              try {
+                if (facade.getImageUri() == null || facade.getImageUri().isBlank()) {
+                  log.warn(
+                      "No image provided for facade: {}. Falling back to top view image.",
+                      facade.getName());
+                  return bufferedImageToUri(image);
+                }
+                var fileInfo = fileService.findById(facade.getImageUri());
+                if (fileInfo == null) {
+                  log.warn(
+                      "Can't get image file for facade: {} from file id {}. Falling back to top"
+                          + " view image.",
+                      facade.getName(),
+                      facade.getImageUri());
+                  return bufferedImageToUri(image);
+                }
+                var fileFromFileService =
+                    fileService.downloadFile(
+                        FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
+
+                if (fileFromFileService == null) {
+                  log.warn(
+                      "Can't get image file for facade: {}. Falling back to top view image.",
+                      facade.getName());
+                  return bufferedImageToUri(image);
+                }
+
+                image = ImageIO.read(fileFromFileService);
+              } catch (IOException e) {
+                log.error(
+                    "Error while downloading facade image: {}. Falling back to top view image.",
+                    facade.getName(),
                     e);
               }
 

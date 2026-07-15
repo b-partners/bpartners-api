@@ -211,7 +211,7 @@ public class ExportAnnotationContextFactoryTest {
         context, annotation3D, images, fileService);
     assertEquals("data:image/png;base64,main3d", context.getVariable("mainImage3D"));
     List<List<String>> subImagesPages =
-        (List<List<String>>) context.getVariable("subImagesPages3D");
+        (List<List<String>>) context.getVariable("topViewPanImagesUris");
     assertEquals(1, subImagesPages.size());
     assertEquals(2, subImagesPages.get(0).size());
     assertEquals("data:image/png;base64,a", subImagesPages.get(0).get(0));
@@ -238,6 +238,25 @@ public class ExportAnnotationContextFactoryTest {
     assertEquals("22m²", pan2.getInfos().get(0).getValue());
     assertEquals("Observation", pan2.getInfos().get(1).getLabel());
     assertEquals("À rénover", pan2.getInfos().get(1).getValue());
+
+    // Setting up facades
+    annotation3D.setFacades(
+        List.of(
+            export3DPan("Facade 1", "30m²", "Bon état", 50, 50, 150, 150),
+            export3DPan("Facade 2", "35m²", "À rénover", 200, 50, 300, 150)));
+
+    Pair<String, List<String>> facadeImages = new Pair<>("main3d", List.of("c", "d"));
+
+    ExportAnnotationContextFactory.configureAnnotationFacade3DContext(
+        context, annotation3D, facadeImages, fileService);
+
+    List<List<ExportAreaPictureAnnotation3DPan>> pagesFacade3D =
+        (List<List<ExportAreaPictureAnnotation3DPan>>) context.getVariable("pagesFacade3D");
+    assertNotNull(pagesFacade3D);
+    assertEquals(1, pagesFacade3D.size());
+    assertEquals(2, pagesFacade3D.get(0).size());
+    assertEquals("Facade 1", pagesFacade3D.get(0).get(0).getName());
+    assertEquals("Facade 2", pagesFacade3D.get(0).get(1).getName());
   }
 
   @Test
@@ -688,6 +707,260 @@ public class ExportAnnotationContextFactoryTest {
                 new ExportAreaPictureAnnotationInstanceInfo()
                     .label("Observation")
                     .value(observation)));
+  }
+
+  @Test
+  void map_section_should_map_split_section() {
+    SplitSection restSection = new SplitSection();
+    restSection.setType(TypeEnum.SPLIT_SECTION);
+    restSection.setPriority(PriorityEnum.MEDIUM);
+
+    TextSection leftText = new TextSection();
+    leftText.setType(TypeEnum.TEXT);
+    leftText.setPriority(PriorityEnum.SMALL);
+    leftText.setText("Left");
+
+    TextSection rightText = new TextSection();
+    rightText.setType(TypeEnum.TEXT);
+    rightText.setPriority(PriorityEnum.SMALL);
+    rightText.setText("Right");
+
+    restSection.setLeftSection(leftText);
+    restSection.setRightSection(rightText);
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.SplitSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.SplitSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals(SectionPriority.MEDIUM, mapped.getPriority());
+    assertEquals(
+        "Left",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getLeftSection())
+            .getText());
+    assertEquals(
+        "Right",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getRightSection())
+            .getText());
+  }
+
+  @Test
+  void map_section_should_map_three_split_section() {
+    ThreeSplitSection restSection = new ThreeSplitSection();
+    restSection.setType(TypeEnum.THREE_SPLIT_SECTION);
+    restSection.setPriority(PriorityEnum.MEDIUM);
+
+    TextSection leftText = new TextSection();
+    leftText.setType(TypeEnum.TEXT);
+    leftText.setPriority(PriorityEnum.SMALL);
+    leftText.setText("Left");
+
+    TextSection middleText = new TextSection();
+    middleText.setType(TypeEnum.TEXT);
+    middleText.setPriority(PriorityEnum.SMALL);
+    middleText.setText("Middle");
+
+    TextSection rightText = new TextSection();
+    rightText.setType(TypeEnum.TEXT);
+    rightText.setPriority(PriorityEnum.SMALL);
+    rightText.setText("Right");
+
+    restSection.setLeftSection(leftText);
+    restSection.setMiddleSection(middleText);
+    restSection.setRightSection(rightText);
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals(SectionPriority.MEDIUM, mapped.getPriority());
+    assertEquals(
+        "Left",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getLeftSection())
+            .getText());
+    assertEquals(
+        "Middle",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getMiddleSection())
+            .getText());
+    assertEquals(
+        "Right",
+        ((app.bpartners.api.service.annotation.model.custompage.TextSection)
+                mapped.getRightSection())
+            .getText());
+  }
+
+  @Test
+  void configure_3d_facade_image_context() throws IOException {
+    File imageFile = new ClassPathResource("files/image-with-vegetation.jpg").getFile();
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    ExportAreaPictureAnnotation3DPan facade = new ExportAreaPictureAnnotation3DPan();
+    facade.setImageUri("file-id");
+    facade.setPolygon(dummyPolygon(50, 50, 50, 50));
+    facade.setName("facade1");
+    annotation3D.addFacadesItem(facade);
+    when(fileService.findById("file-id"))
+        .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
+    when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(imageFile);
+
+    List<String> actual =
+        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+
+    assertNotNull(actual, "Result should not be null");
+    assertEquals(1, actual.size());
+    String dataUri = actual.get(0);
+    assertNotNull(dataUri);
+    assertTrue(dataUri.startsWith("data:image/png;base64,"));
+  }
+
+  @Test
+  void configure_3d_facade_image_context_should_fallback_when_uri_is_blank() {
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    ExportAreaPictureAnnotation3DPan facade = new ExportAreaPictureAnnotation3DPan();
+    facade.setImageUri("");
+    facade.setPolygon(dummyPolygon(50, 50, 50, 50));
+    facade.setName("facade_blank");
+    annotation3D.addFacadesItem(facade);
+
+    List<String> actual =
+        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+
+    assertNotNull(actual);
+    assertEquals(1, actual.size());
+    assertTrue(actual.get(0).startsWith("data:image/png;base64,"));
+  }
+
+  @Test
+  void configure_3d_facade_image_context_should_log_when_file_info_missing() {
+    LogCaptor logCaptor = new LogCaptor();
+    logCaptor.configure(ExportAnnotationContextFactory.class);
+
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    ExportAreaPictureAnnotation3DPan facade = new ExportAreaPictureAnnotation3DPan();
+    facade.setImageUri("file-id");
+    facade.setPolygon(dummyPolygon(50, 50, 50, 50));
+    facade.setName("facade_missing_file_info");
+    annotation3D.addFacadesItem(facade);
+
+    when(fileService.findById("file-id")).thenReturn(null);
+
+    List<String> actual =
+        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+
+    assertNotNull(actual);
+    assertEquals(1, actual.size());
+
+    var warnEvents =
+        logCaptor.getLogEvents().stream()
+            .filter(event -> event.getLevel().equals(Level.WARN))
+            .toList();
+    assertEquals(1, warnEvents.size());
+    assertTrue(
+        warnEvents
+            .get(0)
+            .getFormattedMessage()
+            .contains("Can't get image file for facade: facade_missing_file_info"));
+    assertTrue(warnEvents.get(0).getFormattedMessage().contains("file-id"));
+  }
+
+  @Test
+  void configure_3d_facade_image_context_should_fallback_on_download_failure() {
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    ExportAreaPictureAnnotation3DPan facade = new ExportAreaPictureAnnotation3DPan();
+    facade.setImageUri("file-id");
+    facade.setPolygon(dummyPolygon(50, 50, 50, 50));
+    facade.setName("facade_error");
+    annotation3D.addFacadesItem(facade);
+
+    when(fileService.findById("file-id"))
+        .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
+    when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(null);
+
+    List<String> actual =
+        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+
+    assertNotNull(actual);
+    assertEquals(1, actual.size());
+    assertTrue(actual.get(0).startsWith("data:image/png;base64,"));
+  }
+
+  @Test
+  void configure_3d_facade_image_context_should_fallback_on_io_exception_during_read() {
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    ExportAreaPictureAnnotation3DPan facade = new ExportAreaPictureAnnotation3DPan();
+    facade.setImageUri("file-id");
+    facade.setPolygon(dummyPolygon(50, 50, 50, 50));
+    facade.setName("facade_read_error");
+    annotation3D.addFacadesItem(facade);
+
+    when(fileService.findById("file-id"))
+        .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
+
+    File imageFile = mock(File.class);
+    when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(imageFile);
+
+    try (MockedStatic<ImageIO> mockedImageIO = Mockito.mockStatic(ImageIO.class)) {
+      mockedImageIO.when(() -> ImageIO.read(imageFile)).thenThrow(new IOException("Read error"));
+
+      List<String> actual =
+          ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+
+      assertNotNull(actual);
+      assertEquals(1, actual.size());
+      assertTrue(actual.get(0).startsWith("data:image/png;base64,"));
+    }
+  }
+
+  @Test
+  void configure_3d_facade_image_context_should_return_empty_when_facades_null() {
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    annotation3D.setFacades(null);
+
+    List<String> actual =
+        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+
+    assertNotNull(actual);
+    assertTrue(actual.isEmpty());
   }
 
   public static Polygon dummyPolygon(int x1, int y1, int x2, int y2) {

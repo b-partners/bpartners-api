@@ -898,6 +898,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ExportAreaPictureAnnotation3DPan"
+        facades:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportAreaPictureAnnotation3DPan"
       required:
         - pans
     ExportAreaPictureAnnotation3DPan:
@@ -943,7 +947,7 @@ components:
       properties:
         type:
           type: string
-          enum: [ TEXT, IMAGE, TABLE ]
+          enum: [ TEXT, IMAGE, TABLE, SPLIT_SECTION, THREE_SPLIT_SECTION ]
           example: "TEXT"
         priority:
           type: string
@@ -956,6 +960,28 @@ components:
           TEXT: '#/components/schemas/TextSection'
           IMAGE: '#/components/schemas/ImageSection'
           TABLE: '#/components/schemas/TableSection'
+          SPLIT_SECTION: '#/components/schemas/SplitSection'
+          THREE_SPLIT_SECTION: '#/components/schemas/ThreeSplitSection'
+    SplitSection:
+      allOf:
+        - $ref: '#/components/schemas/PageSection'
+        - type: object
+          properties:
+            leftSection:
+              $ref: '#/components/schemas/PageSection'
+            rightSection:
+              $ref: '#/components/schemas/PageSection'
+    ThreeSplitSection:
+      allOf:
+        - $ref: '#/components/schemas/PageSection'
+        - type: object
+          properties:
+            leftSection:
+              $ref: '#/components/schemas/PageSection'
+            middleSection:
+              $ref: '#/components/schemas/PageSection'
+            rightSection:
+              $ref: '#/components/schemas/PageSection'
     TextSection:
       allOf:
         - $ref: '#/components/schemas/PageSection'

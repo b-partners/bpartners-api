@@ -3,5 +3,7 @@ package app.bpartners.api.service.annotation.model.custompage;
 public enum SectionType {
   TEXT,
   IMAGE,
-  TABLE
+  TABLE,
+  SPLIT_SECTION,
+  THREE_SPLIT_SECTION
 }

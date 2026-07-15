@@ -208,7 +208,76 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                                                 "Conducteur Travaux",
                                                 "Demande DICT et isolation provisoire câbles"))))
                             .priority(PageSection.PriorityEnum.IMPORTANT)
-                            .type(PageSection.TypeEnum.TABLE)))));
+                            .type(PageSection.TypeEnum.TABLE))),
+            new CustomPage()
+                .pageTitle("Showcase - Sections Divisees")
+                .sections(
+                    List.of(
+                        new SplitSection()
+                            .leftSection(
+                                new TextSection()
+                                    .text(
+                                        "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES"
+                                            + " ÉLECTRIQUES. L'accès au toit par le côté Ouest est"
+                                            + " limité par la présence de lignes électriques haute"
+                                            + " tension. Prudence recommandée. Afin de garantir la"
+                                            + " sécurité absolue des équipes techniques et d'éviter"
+                                            + " tout risque d'amorçage ou d'arc électrique,"
+                                            + " l'utilisation d'échelles métalliques est"
+                                            + " formellement proscrite sur ce flanc."
+                                            + " L'approvisionnement du chantier en matériaux ainsi"
+                                            + " que le montage des échafaudages devront être"
+                                            + " intégralement déportés sur le versant Est, qui"
+                                            + " offre un dégagement total et sécurisé.")
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
+                                    .type(PageSection.TypeEnum.TEXT))
+                            .rightSection(
+                                new ImageSection()
+                                    .url(
+                                        new URI(
+                                            "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                                    .caption("Aperçu miniature de la zone de stockage")
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
+                                    .type(PageSection.TypeEnum.IMAGE))
+                            .priority(PageSection.PriorityEnum.IMPORTANT)
+                            .type(PageSection.TypeEnum.SPLIT_SECTION))),
+            new CustomPage()
+                .pageTitle("Showcase - Sections Divisees en Trois")
+                .sections(
+                    List.of(
+                        new ThreeSplitSection()
+                            .leftSection(
+                                new TextSection()
+                                    .text(
+                                        "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES"
+                                            + " ÉLECTRIQUES. L'accès au toit par le côté Ouest est"
+                                            + " limité par la présence de lignes électriques haute"
+                                            + " tension. Prudence recommandée. Afin de garantir la"
+                                            + " sécurité absolue des équipes techniques et d'éviter"
+                                            + " tout risque d'amorçage ou d'arc électrique,"
+                                            + " l'utilisation d'échelles métalliques est"
+                                            + " formellement proscrite sur ce flanc."
+                                            + " L'approvisionnement du chantier en matériaux ainsi"
+                                            + " que le montage des échafaudages devront être"
+                                            + " intégralement déportés sur le versant Est, qui"
+                                            + " offre un dégagement total et sécurisé.")
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
+                                    .type(PageSection.TypeEnum.TEXT))
+                            .middleSection(
+                                new TextSection()
+                                    .text("Colonne milieu")
+                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .type(PageSection.TypeEnum.TEXT))
+                            .rightSection(
+                                new ImageSection()
+                                    .url(
+                                        new URI(
+                                            "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                                    .caption("Aperçu miniature de la zone de stockage")
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
+                                    .type(PageSection.TypeEnum.IMAGE))
+                            .priority(PageSection.PriorityEnum.MEDIUM)
+                            .type(PageSection.TypeEnum.THREE_SPLIT_SECTION)))));
 
     byte[] pdfBytes =
         assertDoesNotThrow(
@@ -219,115 +288,17 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
-  void generate_from_heavy_payload_without_title_page() throws IOException {
+  void generate_from_heavy_payload_without_anything() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
     exportAreaPictureAnnotation.setConf(
         new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showTitlePage(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-title");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_annotation_pages() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showAnnotationPages(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-annotation");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_annotation_3d_pages() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showAnnotation3dPages(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-annotation-3d");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_measurement_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showMeasurementSummary(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-measurement-summary");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_pitch_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showPitchSummary(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-pitch-summary");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_area_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showAreaSummary(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-area-summary");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_overall_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showOverallSummary(false));
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-overall-summary");
-  }
-
-  @Test
-  void generate_from_heavy_payload_without_llm_summary() throws IOException {
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
-    exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
+            .showTitlePage(false)
+            .showAnnotationPages(false)
+            .showAnnotation3dPages(false)
+            .showMeasurementSummary(false)
+            .showPitchSummary(false)
+            .showAreaSummary(false)
+            .showOverallSummary(false)
             .showLlmSummary(false));
 
     byte[] pdfBytes =
@@ -335,7 +306,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
 
     assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "heavy-payload-no-llm-summary");
+    savePdfFile(pdfBytes, "heavy-payload-no-title");
   }
 
   @Test
@@ -442,6 +413,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
               pan.setImageUri("imageUri");
             });
 
+    annotation.get3d().setFacades(new java.util.ArrayList<>(annotation.get3d().getPans()));
+
     return annotation;
   }
 
@@ -488,8 +461,11 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                         export3DPan("Top Left Pan", "25m²", "Target", 0, 0, 100, 100),
                         export3DPan("Top Right Pan", "22m²", "Target", 3996, 0, 4096, 100),
                         export3DPan("Bottom Left Pan", "30m²", "Target", 0, 5020, 100, 5120),
-                        export3DPan(
-                            "Bottom Right Pan", "28m²", "Target", 3996, 5020, 4096, 5120))));
+                        export3DPan("Bottom Right Pan", "28m²", "Target", 3996, 5020, 4096, 5120)))
+                .facades(
+                    List.of(
+                        export3DPan("Facade 1", "45m²", "Target", 0, 0, 100, 100),
+                        export3DPan("Facade 2", "40m²", "Target", 3996, 0, 4096, 100))));
   }
 
   private ExportAreaPictureAnnotationInstance exportInstance(

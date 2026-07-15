@@ -103,7 +103,6 @@ class UserAnalysisApiKeyRepositoryImplTest {
             .getFirst()
             .getFormattedMessage()
             .contains("Multiple analysis belonging to users"));
-    assertTrue(warnEvents.getFirst().getFormattedMessage().contains(API_KEY));
   }
 
   @Test

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class AccountMapper {
+  private final BankMapper bankMapper;
 
   public Account toDomain(HAccount entity) {
     if (entity == null) {
@@ -21,9 +22,8 @@ public class AccountMapper {
     Money availableBalance = Money.fromMajor(entity.getAvailableBalance());
     return Account.builder()
         .id(entity.getId())
-        .externalId(entity.getExternalId())
         .userId(entity.getUser().getId())
-        .bank(null) // Not handle for now
+        .bank(bankMapper.toDomain(entity.getBank()))
         .name(entity.getName())
         .iban(entity.getIban())
         .bic(entity.getBic())
@@ -35,10 +35,8 @@ public class AccountMapper {
   public HAccount toEntity(Account account, HUser userEntity) {
     return HAccount.builder()
         .id(account.getId())
-        .externalId(account.getExternalId())
         .user(userEntity)
-        .idBank(
-            account.getBank() == null ? null : String.valueOf(account.getBank().getExternalId()))
+        .bank(bankMapper.toEntity(account.getBank()))
         .bic(account.getBic())
         .name(account.getName())
         .iban(account.getIban())

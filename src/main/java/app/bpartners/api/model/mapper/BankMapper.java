@@ -12,9 +12,15 @@ public class BankMapper {
     }
     return Bank.builder()
         .id(entity.getId())
-        .externalId(entity.getExternalId())
         .name(entity.getName())
         .logoUrl(entity.getLogoUrl())
         .build();
+  }
+
+  public HBank toEntity(Bank bank) {
+    if (bank == null) {
+      return null;
+    }
+    return HBank.builder().id(bank.getId()).name(bank.getName()).logoUrl(bank.getLogoUrl()).build();
   }
 }

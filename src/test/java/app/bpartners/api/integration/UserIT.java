@@ -1,6 +1,7 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.time.Instant.now;
@@ -14,10 +15,7 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.api.UserSubscriptionApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.OnboardUser;
-import app.bpartners.api.endpoint.rest.model.OnboardedUser;
-import app.bpartners.api.endpoint.rest.model.User;
-import app.bpartners.api.endpoint.rest.model.Whois;
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.subscription.Subscription;
@@ -80,6 +78,7 @@ class UserIT extends MockedThirdParties {
         .activeAccount(restJaneAccount())
         .roles(List.of())
         .subscriptionStatus(ACTIVE)
+        .identificationStatus(VALID_IDENTITY)
         .subscription(
             new app.bpartners.api.endpoint.rest.model.UserSubscription()
                 .status(ACTIVE)

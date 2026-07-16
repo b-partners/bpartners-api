@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.SnsConf;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.SnsService;
@@ -52,21 +51,5 @@ class SnsServiceTest {
         .thenThrow(InvalidParameterException.builder().build());
 
     assertThrows(BadRequestException.class, () -> subject.createEndpointArn("badToken"));
-  }
-
-  @Test
-  void push_notification_without_arn() {
-    User user = User.builder().firstName("john").lastName("").build();
-
-    assertDoesNotThrow(() -> subject.pushNotification("Hello", user));
-  }
-
-  @Test
-  void push_notification_with_arn() {
-    User user = User.builder().snsArn("arn:endpoint").firstName("John").lastName("").build();
-    when(snsClientMock.publish(any(PublishRequest.class)))
-        .thenReturn(PublishResponse.builder().messageId("msg123").build());
-
-    assertDoesNotThrow(() -> subject.pushNotification("Hello", user));
   }
 }

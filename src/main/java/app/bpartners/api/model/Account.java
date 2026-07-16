@@ -1,6 +1,7 @@
 package app.bpartners.api.model;
 
-import app.bpartners.api.endpoint.rest.model.AccountStatus;
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
@@ -29,11 +30,10 @@ public class Account implements Serializable {
   private Money availableBalance;
   private Bank bank;
   private boolean active;
-  private AccountStatus status;
   private EnableStatus enableStatus;
 
   public boolean isEnabled() {
-    return enableStatus == null || enableStatus == EnableStatus.ENABLED;
+    return enableStatus == null || enableStatus == ENABLED;
   }
 
   public Account active(boolean active) {
@@ -41,20 +41,7 @@ public class Account implements Serializable {
     return this;
   }
 
-  public String describeInfos() {
-    return "Account(id="
-        + id
-        + ",name="
-        + name
-        + ",status="
-        + status
-        + ","
-        + "active="
-        + active
-        + ")";
-  }
-
   public String describeMinInfos() {
-    return "Account(id=" + id + ",status=" + status + ")";
+    return "Account(id=" + id + "," + "active=" + active + ")";
   }
 }

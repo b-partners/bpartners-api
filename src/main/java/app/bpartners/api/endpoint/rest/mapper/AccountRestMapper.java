@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
+
 import app.bpartners.api.endpoint.rest.model.Account;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import lombok.AllArgsConstructor;
@@ -19,7 +21,7 @@ public class AccountRestMapper {
         .availableBalance(internal.getAvailableBalance().getCents().intValue())
         .bank(bankRestMapper.toRest(internal.getBank()))
         .active(internal.isActive())
-        .status(internal.getStatus());
+        .status(OPENED); // TODO: deprecated, only handle for retro-compatibility
   }
 
   public app.bpartners.api.model.UpdateAccountIdentity toDomain(

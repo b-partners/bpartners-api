@@ -80,8 +80,6 @@ public class SecurityConf {
                     new OrRequestMatcher(
                         new AntPathRequestMatcher("/ping"),
                         new AntPathRequestMatcher("/preUsers", POST.name()),
-                        new AntPathRequestMatcher("/authInitiation"),
-                        new AntPathRequestMatcher("/token"),
                         new AntPathRequestMatcher("/onboarding"),
                         new AntPathRequestMatcher("/sendEmail", POST.name()),
                         new AntPathRequestMatcher("/whoami", GET.name()),
@@ -108,10 +106,6 @@ public class SecurityConf {
             (authorize) ->
                 authorize
                     .requestMatchers("/ping")
-                    .permitAll()
-                    .requestMatchers("/authInitiation")
-                    .permitAll()
-                    .requestMatchers("/token")
                     .permitAll()
                     .requestMatchers(GET, "/whoami")
                     .permitAll()
@@ -203,8 +197,6 @@ public class SecurityConf {
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/monthlyUpcomingDebitedCustomers/*/*")
                     .hasAnyRole(ADMIN_ROLE.getRole())
-                    .requestMatchers(POST, "/users/accounts/refresh")
-                    .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/customers/export", authResourceProvider))

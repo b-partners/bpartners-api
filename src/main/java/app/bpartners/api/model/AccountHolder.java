@@ -1,7 +1,6 @@
 package app.bpartners.api.model;
 
 import app.bpartners.api.endpoint.rest.model.Geojson;
-import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,7 +36,6 @@ public class AccountHolder implements Serializable {
   private Fraction initialCashflow;
   private String feedbackLink;
   private boolean subjectToVat;
-  private VerificationStatus verificationStatus;
   private Geojson location;
   private Integer townCode;
   private int prospectingPerimeter;

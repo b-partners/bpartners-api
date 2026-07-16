@@ -14,10 +14,6 @@ paths:
   #############################################
   /ping:
     $ref: './security-api.yml#/operations/ping'
-  /authInitiation:
-    $ref: './security-api.yml#/operations/initiateAuth'
-  /token:
-    $ref: './security-api.yml#/operations/createToken'
   /whoami:
     $ref: './security-api.yml#/operations/whoami'
   /whois/{id}:
@@ -226,12 +222,6 @@ paths:
     $ref: './prospecting-api.yml#/operations/prospectEvaluationJobs'
   /accountHolders/{ahId}/prospects/evaluationJobs/{jId}:
     $ref: './prospecting-api.yml#/operations/prospectEvaluationJobDetails'
-
-  #############################################
-  ################# AWS SNS API ##############
-  #############################################
-  /users/{uId}/deviceRegistration:
-    $ref: './userAccounts-api.yml#/operations/deviceRegistrationOperations'
 
   #############################################
   ################# Google Sheet API ##############

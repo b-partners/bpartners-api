@@ -1,7 +1,6 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.time.Instant.now;
@@ -75,10 +74,7 @@ class UserIT extends MockedThirdParties {
         .id(JANE_DOE_ID)
         .firstName("Jane")
         .lastName("Doe")
-        .idVerified(true)
-        .identificationStatus(VALID_IDENTITY)
         .phone("+261341122334")
-        .monthlySubscriptionAmount(5)
         .logoFileId("logo.jpeg")
         .status(ENABLED)
         .activeAccount(restJaneAccount())

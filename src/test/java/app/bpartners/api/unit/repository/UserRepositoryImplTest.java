@@ -7,11 +7,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.UserMapper;
-import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.implementation.UserRepositoryImpl;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
@@ -28,10 +26,8 @@ import org.mockito.ArgumentCaptor;
 
 class UserRepositoryImplTest {
   EntityManager entityManagerMock = mock();
-  BankRepository bankRepositoryMock = mock();
   AccountJpaRepository accountJpaRepositoryMock = mock();
   AccountHolderJpaRepository holderJpaRepositoryMock = mock();
-  CognitoComponent cognitoComponentMock = mock();
   UserMapper userMapperMock = mock();
   UserJpaRepository userJpaRepositoryMock = mock();
   StripePaymentMethodService stripePaymentMethodServiceMock = mock();
@@ -39,10 +35,8 @@ class UserRepositoryImplTest {
       new UserRepositoryImpl(
           userJpaRepositoryMock,
           userMapperMock,
-          cognitoComponentMock,
           holderJpaRepositoryMock,
           accountJpaRepositoryMock,
-          bankRepositoryMock,
           entityManagerMock,
           stripePaymentMethodServiceMock);
 

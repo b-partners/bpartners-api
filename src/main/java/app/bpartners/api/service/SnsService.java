@@ -3,7 +3,6 @@ package app.bpartners.api.service;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
 import app.bpartners.api.endpoint.event.SnsConf;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import lombok.AllArgsConstructor;
@@ -15,8 +14,6 @@ import software.amazon.awssdk.services.sns.model.CreatePlatformEndpointResponse;
 import software.amazon.awssdk.services.sns.model.DeleteEndpointRequest;
 import software.amazon.awssdk.services.sns.model.InvalidParameterException;
 import software.amazon.awssdk.services.sns.model.NotFoundException;
-import software.amazon.awssdk.services.sns.model.PublishRequest;
-import software.amazon.awssdk.services.sns.model.PublishResponse;
 
 @Service
 @AllArgsConstructor
@@ -46,30 +43,6 @@ public class SnsService {
       throw new BadRequestException("Invalid provided device token " + deviceToken);
     } catch (Exception e) {
       throw new ApiException(SERVER_EXCEPTION, e);
-    }
-  }
-
-  public void pushNotification(String message, User user) {
-    String snsArn = user.getSnsArn();
-    if (snsArn == null) {
-      log.warn(
-          "[FAILED] Mobile notification with message content [{}]"
-              + " not sent to user(id={}) because SNS ARN is null",
-          message,
-          user.getId());
-    } else {
-      try {
-        PublishResponse publishResponse =
-            snsClient.publish(PublishRequest.builder().targetArn(snsArn).message(message).build());
-        log.info("Notifications pushed with messageId=" + publishResponse.messageId());
-      } catch (Exception e) {
-        log.warn(
-            "[FAILED] Mobile notification with message content [{}]"
-                + " not sent to user(id={}) because {}}",
-            message,
-            user.getId(),
-            e.getMessage());
-      }
     }
   }
 }

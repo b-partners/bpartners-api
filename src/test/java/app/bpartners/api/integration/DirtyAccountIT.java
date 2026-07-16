@@ -2,11 +2,8 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
-import static java.util.concurrent.Executors.newFixedThreadPool;
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 
@@ -14,8 +11,6 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.Account;
-import app.bpartners.api.endpoint.rest.model.AccountHolder;
-import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountIdentity;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
@@ -23,14 +18,7 @@ import app.bpartners.api.model.Bank;
 import app.bpartners.api.model.Money;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.bridge.model.Account.BridgeAccount;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -80,7 +68,7 @@ class DirtyAccountIT extends MockedThirdParties {
   private User userWithPreferredAccount() {
     return User.builder()
         .id(JOE_DOE_ID)
-        .preferredAccountId(String.valueOf(otherBridgeAccount().getId()))
+        .preferredAccountId(String.valueOf((joePersistedAccount().getId())))
         .email("joe@email.com")
         .accounts(List.of(joeDoeModelAccount()))
         .roles(List.of())
@@ -91,7 +79,6 @@ class DirtyAccountIT extends MockedThirdParties {
     return app.bpartners.api.model.Account.builder()
         .id(JOE_DOE_ACCOUNT_ID)
         .userId(JOE_DOE_ID)
-        .status(AccountStatus.OPENED)
         .bank(Bank.builder().build())
         .availableBalance(new Money(parseFraction(100000)))
         .active(true)
@@ -104,7 +91,6 @@ class DirtyAccountIT extends MockedThirdParties {
         .name("TODO")
         .iban("TODO")
         .bic("TODO")
-        .status(AccountStatus.VALIDATION_REQUIRED)
         .bank(Bank.builder().build())
         .availableBalance(new Money(parseFraction(100000)))
         .active(true)
@@ -113,33 +99,16 @@ class DirtyAccountIT extends MockedThirdParties {
 
   private void setUpUserRepository(UserRepository userRepositoryMock) {
     when(userRepositoryMock.findAll()).thenReturn(List.of(joeDoeUser()));
-    when(userRepositoryMock.getUserByToken(JOE_DOE_TOKEN)).thenReturn(joeDoeUser());
     when(userRepositoryMock.getByEmail(JOE_EMAIL)).thenReturn(joeDoeUser());
     when(userRepositoryMock.getById(JOE_DOE_ID)).thenReturn(joeDoeUser());
     when(userRepositoryMock.getById(JOE_DOE_ID)).thenReturn(joeDoeUser());
     when(userRepositoryMock.findAll()).thenReturn(List.of(joeDoeUser()));
   }
 
-  private void setUpUserBernardRepository(UserRepository userRepositoryMock) {
-    when(userRepositoryMock.findAll()).thenReturn(List.of(bernardUser()));
-    when(userRepositoryMock.getUserByToken(any())).thenReturn(bernardUser());
-    when(userRepositoryMock.getByEmail(any())).thenReturn(bernardUser());
-  }
-
-  private void setUpUserRepositoryWithPreferredAccount(UserRepository userRepositoryMock) {
-    User user = userWithPreferredAccount();
-
-    when(userRepositoryMock.findAll()).thenReturn(List.of(user));
-    when(userRepositoryMock.getById(any())).thenReturn(user);
-    when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
-    when(userRepositoryMock.getByEmail(any())).thenReturn(user);
-  }
-
   private void setUpUserRepositoryWithoutPreferredAccount(UserRepository userRepositoryMock) {
     User user = userWithPreferredAccount().toBuilder().preferredAccountId(null).build();
     when(userRepositoryMock.findAll()).thenReturn(List.of(user));
     when(userRepositoryMock.getById(any())).thenReturn(user);
-    when(userRepositoryMock.getUserByToken(any())).thenReturn(user);
     when(userRepositoryMock.getByEmail(any())).thenReturn(user);
   }
 
@@ -184,82 +153,6 @@ class DirtyAccountIT extends MockedThirdParties {
     assertNull(afterDisconnection.getBic());
   }
   */
-
-  @Test
-  void concurrently_get_bridge_accounts() {
-    UserAccountsApi api = configureBridgeUserAccountApi(otherBridgeAccount());
-    var callerNb = 50;
-    var executor = newFixedThreadPool(10);
-
-    var latch = new CountDownLatch(1);
-    var futures = new ArrayList<Future<List<Account>>>();
-    for (var callerIdx = 0; callerIdx < callerNb; callerIdx++) {
-      futures.add(executor.submit(() -> getAccountsByUserId(api, JOE_DOE_ID, latch)));
-    }
-    latch.countDown();
-
-    List<Account> retrieved =
-        futures.stream()
-            .map(TestUtils::getOptionalFutureResult)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .flatMap(Collection::stream)
-            // .peek(account -> assertEquals(AccountStatus.OPENED, account.getStatus()))
-            .collect(toUnmodifiableList());
-    // Since two accounts associated to joe doe user
-    assertEquals(callerNb * 2, retrieved.size());
-  }
-
-  @Test
-  void concurrently_get_bridge_account_holders() {
-    UserAccountsApi api = configureBridgeUserAccountApi(otherBridgeAccount());
-    var callerNb = 50;
-    var executor = newFixedThreadPool(10);
-
-    var latch = new CountDownLatch(1);
-    var futures = new ArrayList<Future<List<AccountHolder>>>();
-    for (var callerIdx = 0; callerIdx < callerNb; callerIdx++) {
-      futures.add(
-          executor.submit(() -> getAccountHolders(api, JOE_DOE_ID, JOE_DOE_ACCOUNT_ID, latch)));
-    }
-    latch.countDown();
-
-    List<AccountHolder> retrieved =
-        futures.stream()
-            .map(TestUtils::getOptionalFutureResult)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .flatMap(Collection::stream)
-            .peek(
-                account ->
-                    // TODO: ideally, also test concurrent updates of the balance
-                    assertEquals("NUMER", account.getName()))
-            .collect(toUnmodifiableList());
-    assertEquals(retrieved.size(), callerNb);
-  }
-
-  @SneakyThrows
-  private static List<Account> getAccountsByUserId(
-      UserAccountsApi api, String userId, CountDownLatch latch) {
-    latch.await();
-    return api.getAccountsByUserId(userId);
-  }
-
-  @SneakyThrows
-  private static List<AccountHolder> getAccountHolders(
-      UserAccountsApi api, String userId, String accountId, CountDownLatch latch) {
-    latch.await();
-    return api.getAccountHolders(userId, accountId);
-  }
-
-  private UserAccountsApi configureBridgeUserAccountApi(BridgeAccount bridgeAccount) {
-
-    reset(userRepositoryMock);
-    setUpUserRepositoryWithoutPreferredAccount(userRepositoryMock);
-
-    ApiClient client = TestUtils.anApiClient(JOE_DOE_COGNITO_TOKEN, null, localPort);
-    return new UserAccountsApi(client);
-  }
 
   @Test
   void joe_read_jane_accounts_ko() {

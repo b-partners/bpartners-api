@@ -16,7 +16,6 @@ import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.Customer;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
-import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
@@ -44,7 +43,6 @@ class AccountHolderIT extends MockedThirdParties {
   private static AccountHolder joeDoeAccountHolder() {
     return new AccountHolder()
         .id("b33e6eb0-e262-4596-a91f-20c6a7bfd343")
-        .verificationStatus(VerificationStatus.VERIFIED)
         .name("NUMER")
         .siren("899067250")
         .officialActivityName("businessAndRetail")

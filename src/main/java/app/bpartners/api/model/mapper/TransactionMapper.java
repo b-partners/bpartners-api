@@ -1,7 +1,6 @@
 package app.bpartners.api.model.mapper;
 
 import static app.bpartners.api.model.Money.fromMajor;
-import static app.bpartners.api.model.Money.fromMinor;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
@@ -9,7 +8,6 @@ import app.bpartners.api.model.Money;
 import app.bpartners.api.model.Transaction;
 import app.bpartners.api.model.TransactionCategory;
 import app.bpartners.api.model.TransactionSupportingDocs;
-import app.bpartners.api.repository.bridge.model.Transaction.BridgeTransaction;
 import app.bpartners.api.repository.connectors.transaction.TransactionConnector;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HTransaction;
@@ -25,20 +23,6 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class TransactionMapper {
   private final InvoiceMapper invoiceMapper;
-  private final TransactionSupportingDocsMapper docsMapper;
-
-  public TransactionConnector toConnector(BridgeTransaction bridgeTransaction) {
-    return TransactionConnector.builder()
-        .id(String.valueOf(bridgeTransaction.getId()))
-        .amount(fromMinor(bridgeTransaction.getAbsAmount()))
-        .currency(bridgeTransaction.getCurrency())
-        .label(bridgeTransaction.getLabel())
-        .transactionDate(bridgeTransaction.getTransactionDate())
-        .updatedAt(bridgeTransaction.getUpdatedAt())
-        .side(bridgeTransaction.getSide())
-        .status(bridgeTransaction.getStatus())
-        .build();
-  }
 
   // TODO: check if necessary to set ZoneId to Paris
   public TransactionConnector toConnector(HTransaction entity) {
@@ -46,7 +30,7 @@ public class TransactionMapper {
         LocalDate.ofInstant(entity.getPaymentDateTime(), ZoneId.systemDefault());
     Money amount = fromMajor(entity.getAmount());
     return TransactionConnector.builder()
-        .id(String.valueOf(entity.getIdBridge()))
+        .id(String.valueOf(entity.getId()))
         .amount(amount)
         .currency(entity.getCurrency())
         .label(entity.getLabel())
@@ -61,7 +45,6 @@ public class TransactionMapper {
 
     return HTransaction.builder()
         .id(domain.getId())
-        .idBridge(domain.getIdBridge())
         .idAccount(domain.getIdAccount())
         .amount(String.valueOf(domain.getAmount().getValue()))
         .paymentDateTime(domain.getPaymentDatetime())
@@ -77,7 +60,6 @@ public class TransactionMapper {
   public HTransaction toEntity(String idAccount, TransactionConnector connector) {
     return HTransaction.builder()
         .id(String.valueOf(randomUUID()))
-        .idBridge(Long.valueOf(connector.getId()))
         .idAccount(idAccount)
         .amount(String.valueOf(connector.getAmount().getValue()))
         .paymentDateTime(

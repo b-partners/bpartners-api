@@ -316,9 +316,9 @@ public class SecurityConf {
                     .requestMatchers(GET, "/accounts/*/invoices/exportLink")
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole(), EVAL_PROSPECT.getRole())
                     .requestMatchers(GET, "/users/*/invoiceExportRequests/*")
-                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .authenticated()
                     .requestMatchers(PUT, "/users/*/invoiceExportRequests")
-                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider))
                     .authenticated()

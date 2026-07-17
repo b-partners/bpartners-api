@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.mapper.InvoiceExportRequestRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoicesSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
+import app.bpartners.api.endpoint.rest.validator.CreateInvoiceExportRequestValidator;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
 import app.bpartners.api.endpoint.rest.validator.UpdateInvoiceStatusRestValidator;
 import app.bpartners.api.endpoint.rest.validator.UpdatePaymentRegValidator;
@@ -45,6 +46,7 @@ public class InvoiceController {
   private final InvoiceExportRequestService invoiceExportRequestService;
   private final InvoiceExportRequestRestMapper invoiceExportRequestRestMapper;
   private final UpdateInvoiceStatusRestValidator updateInvoiceStatusRestValidator;
+  private final CreateInvoiceExportRequestValidator createInvoiceExportRequestValidator;
 
   @GetMapping("users/{uId}/invoiceExportRequests/{requestId}")
   public InvoiceExportRequest retrieveInvoiceExportRequestById(
@@ -56,6 +58,25 @@ public class InvoiceController {
       throw new ForbiddenException("User can only export their own invoices");
     }
     return invoiceExportRequestRestMapper.toRest(invoiceExportRequestService.getById(requestId));
+  }
+
+  @PutMapping("users/{uId}/invoiceExportRequests")
+  public List<InvoiceExportRequest> submitInvoiceExportRequest(
+      @PathVariable String uId, @RequestBody List<CreateInvoiceExportRequest> payload) {
+    var authenticatedUser = getAuthenticatedUser();
+    if (authenticatedUser != null
+        && !authenticatedUser.getId().equals(uId)
+        && !authenticatedUser.getRoles().contains(ADMIN_ROLE)) {
+      throw new ForbiddenException("User can only export their own invoices");
+    }
+
+    payload.forEach(createInvoiceExportRequestValidator);
+
+    var toCreate =
+        payload.stream().map(rest -> invoiceExportRequestRestMapper.toDomain(uId, rest)).toList();
+    return invoiceExportRequestService.createInvoiceExportRequestList(toCreate).stream()
+        .map(invoiceExportRequestRestMapper::toRest)
+        .toList();
   }
 
   @GetMapping("/accounts/{aId}/invoices/exportLink")

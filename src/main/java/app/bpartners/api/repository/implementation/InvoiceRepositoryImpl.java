@@ -163,6 +163,74 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
     return jpaRepository.countAllByIdUserAndSendingDateBetween(userId, from, to);
   }
 
+  @Override
+  public int countAllByIdUserAndSendingDateBetweenAndCriteria(
+      String idUser,
+      LocalDate from,
+      LocalDate to,
+      List<InvoiceStatus> statusList,
+      ArchiveStatus archiveStatus) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<Long> query = builder.createQuery(Long.class);
+    Root<HInvoice> root = query.from(HInvoice.class);
+
+    query
+        .select(builder.count(root))
+        .where(exportPredicates(builder, root, idUser, from, to, statusList, archiveStatus));
+
+    return entityManager.createQuery(query).getSingleResult().intValue();
+  }
+
+  @Override
+  public List<Invoice> findAllByIdUserAndSendingDateBetweenAndCriteriaAndPaginate(
+      String idUser,
+      LocalDate from,
+      LocalDate to,
+      List<InvoiceStatus> statusList,
+      ArchiveStatus archiveStatus,
+      int page,
+      int pageSize) {
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
+    Root<HInvoice> root = query.from(HInvoice.class);
+
+    query
+        .where(exportPredicates(builder, root, idUser, from, to, statusList, archiveStatus))
+        .orderBy(builder.desc(root.get("sendingDate")), builder.asc(root.get("id")));
+
+    var user = userRepository.getById(idUser);
+    return entityManager
+        .createQuery(query)
+        .setFirstResult(page * pageSize)
+        .setMaxResults(pageSize)
+        .getResultList()
+        .stream()
+        .map(invoice -> mapper.toDomain(invoice, user))
+        .toList();
+  }
+
+  private Predicate exportPredicates(
+      CriteriaBuilder builder,
+      Root<HInvoice> root,
+      String idUser,
+      LocalDate from,
+      LocalDate to,
+      List<InvoiceStatus> statusList,
+      ArchiveStatus archiveStatus) {
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.equal(root.get("idUser"), idUser));
+    if (from != null && to != null) {
+      predicates.add(builder.between(root.get("sendingDate"), from, to));
+    }
+    if (archiveStatus != null) {
+      predicates.add(builder.equal(root.get("archiveStatus"), archiveStatus));
+    }
+    if (statusList != null && !statusList.isEmpty()) {
+      predicates.add(root.get("status").in(statusList));
+    }
+    return builder.and(predicates.toArray(new Predicate[0]));
+  }
+
   private void setCustomerFilters(
       CriteriaBuilder builder,
       Root<HInvoice> rootPath,

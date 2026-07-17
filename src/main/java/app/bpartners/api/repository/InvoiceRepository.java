@@ -30,6 +30,22 @@ public interface InvoiceRepository {
 
   int countAllByIdUserAndSendingDateBetween(String userId, LocalDate from, LocalDate to);
 
+  int countAllByIdUserAndSendingDateBetweenAndCriteria(
+      String idUser,
+      LocalDate from,
+      LocalDate to,
+      List<InvoiceStatus> statusList,
+      ArchiveStatus archiveStatus);
+
+  List<Invoice> findAllByIdUserAndSendingDateBetweenAndCriteriaAndPaginate(
+      String idUser,
+      LocalDate from,
+      LocalDate to,
+      List<InvoiceStatus> statusList,
+      ArchiveStatus archiveStatus,
+      int page,
+      int pageSize);
+
   List<Invoice> archiveAll(List<ArchiveInvoice> archiveInvoices);
 
   List<Invoice> findByIdUserAndRef(String idUser, String reference);

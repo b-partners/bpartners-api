@@ -79,6 +79,7 @@ class UserIT extends MockedThirdParties {
         .roles(List.of())
         .subscriptionStatus(ACTIVE)
         .identificationStatus(VALID_IDENTITY)
+        .idVerified(true)
         .subscription(
             new app.bpartners.api.endpoint.rest.model.UserSubscription()
                 .status(ACTIVE)

@@ -120,7 +120,8 @@ public class UserRestMapper {
                 .status(subscriptionStatus)
                 .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
                 .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))
-        .identificationStatus(VALID_IDENTITY);
+        .identificationStatus(VALID_IDENTITY)
+        .idVerified(true);
   }
 
   private UserSubscriptionStatus getSubscriptionStatus(

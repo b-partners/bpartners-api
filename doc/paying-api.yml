@@ -1383,6 +1383,11 @@ operations:
           schema:
             type: string
           required: true
+        - in: path
+          name: requestId
+          schema:
+            type: string
+          required: true
       responses:
         200:
           description: Retrieved invoice export request

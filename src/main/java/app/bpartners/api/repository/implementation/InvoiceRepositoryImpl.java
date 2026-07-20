@@ -13,11 +13,14 @@ import app.bpartners.api.model.mapper.PaymentRequestMapper;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.repository.jpa.model.HCustomer;
 import app.bpartners.api.repository.jpa.model.HInvoice;
+import app.bpartners.api.repository.model.InvoiceCriteria;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.time.LocalDate;
@@ -111,37 +114,33 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       List<String> filters,
       Integer page,
       Integer pageSize) {
+    return findAllByCriteria(
+        InvoiceCriteria.builder()
+            .idUser(idUser)
+            .statusList(statusList)
+            .archiveStatus(archiveStatus)
+            .keywords(filters)
+            .page(page)
+            .pageSize(pageSize)
+            .build());
+  }
+
+  @Override
+  public List<Invoice> findAllByCriteria(InvoiceCriteria criteria) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HInvoice> query = builder.createQuery(HInvoice.class);
-    List<Predicate> predicates = new ArrayList<>();
     Root<HInvoice> root = query.from(HInvoice.class);
+    // left join so that invoices without customer are not silently dropped by the join itself
+    Join<HInvoice, HCustomer> customer = root.join("customer", JoinType.LEFT);
 
-    predicates.add(builder.equal(root.get("idUser"), idUser));
-    predicates.add(builder.equal(root.get("archiveStatus"), archiveStatus));
-    if (statusList != null) {
-      predicates.add(
-          builder.or(
-              statusList.stream()
-                  .map(status -> builder.equal(root.get("status"), status))
-                  .toArray(Predicate[]::new)));
-    }
-    if (!filters.isEmpty()) {
-      List<Predicate> filtersPredicates = new ArrayList<>();
-      for (String filter : filters) {
-        filtersPredicates.add(
-            builder.like(builder.lower(root.get("title")), "%" + filter.toLowerCase() + "%"));
-        filtersPredicates.add(
-            builder.like(builder.lower(root.get("ref")), "%" + filter.toLowerCase() + "%"));
-        setCustomerFilters(builder, root, filtersPredicates, filter);
-      }
-      predicates.add(builder.or(filtersPredicates.toArray(new Predicate[0])));
-    }
+    query.where(criteriaPredicates(builder, root, customer, criteria));
 
+    var user = userRepository.getById(criteria.idUser());
+    var page = criteria.page();
+    var pageSize = criteria.pageSize();
     if (page != null && pageSize != null) {
       Pageable pageable = PageRequest.of(page, pageSize, Sort.by(DESC, "createdDatetime"));
-      query
-          .where(builder.and(predicates.toArray(new Predicate[0])))
-          .orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
+      query.orderBy(QueryUtils.toOrders(pageable.getSort(), root, builder));
 
       return entityManager
           .createQuery(query)
@@ -149,13 +148,55 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
           .setMaxResults(pageable.getPageSize())
           .getResultList()
           .stream()
-          .map(invoice -> mapper.toDomain(invoice, userRepository.getById(idUser)))
+          .map(invoice -> mapper.toDomain(invoice, user))
           .toList();
     }
-    query.where(builder.and(predicates.toArray(new Predicate[0])));
     return entityManager.createQuery(query).getResultList().stream()
-        .map(invoice -> mapper.toDomain(invoice, userRepository.getById(idUser)))
+        .map(invoice -> mapper.toDomain(invoice, user))
         .toList();
+  }
+
+  private Predicate criteriaPredicates(
+      CriteriaBuilder builder,
+      Root<HInvoice> root,
+      Join<HInvoice, HCustomer> customer,
+      InvoiceCriteria criteria) {
+    List<Predicate> predicates = new ArrayList<>();
+    predicates.add(builder.equal(root.get("idUser"), criteria.idUser()));
+    if (criteria.archiveStatus() != null) {
+      predicates.add(builder.equal(root.get("archiveStatus"), criteria.archiveStatus()));
+    }
+    if (criteria.statusList() != null && !criteria.statusList().isEmpty()) {
+      predicates.add(root.get("status").in(criteria.statusList()));
+    }
+    if (criteria.sendingDateFrom() != null) {
+      predicates.add(
+          builder.greaterThanOrEqualTo(root.get("sendingDate"), criteria.sendingDateFrom()));
+    }
+    if (criteria.sendingDateTo() != null) {
+      predicates.add(builder.lessThanOrEqualTo(root.get("sendingDate"), criteria.sendingDateTo()));
+    }
+    if (criteria.exactTitle() != null) {
+      predicates.add(
+          builder.equal(builder.lower(root.get("title")), criteria.exactTitle().toLowerCase()));
+    }
+    if (criteria.customerEmail() != null) {
+      predicates.add(
+          builder.equal(
+              builder.lower(customer.get("email")), criteria.customerEmail().toLowerCase()));
+    }
+    if (!criteria.keywords().isEmpty()) {
+      List<Predicate> keywordPredicates = new ArrayList<>();
+      for (String keyword : criteria.keywords()) {
+        keywordPredicates.add(
+            builder.like(builder.lower(root.get("title")), "%" + keyword.toLowerCase() + "%"));
+        keywordPredicates.add(
+            builder.like(builder.lower(root.get("ref")), "%" + keyword.toLowerCase() + "%"));
+        setCustomerFilters(builder, customer, keywordPredicates, keyword);
+      }
+      predicates.add(builder.or(keywordPredicates.toArray(new Predicate[0])));
+    }
+    return builder.and(predicates.toArray(new Predicate[0]));
   }
 
   @Override
@@ -233,10 +274,9 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
 
   private void setCustomerFilters(
       CriteriaBuilder builder,
-      Root<HInvoice> rootPath,
+      Join<HInvoice, HCustomer> customerPath,
       List<Predicate> filtersPredicates,
       String filter) {
-    Path<String> customerPath = rootPath.get("customer");
     filtersPredicates.add(
         builder.like(
             builder.lower(customerPath.get("firstName")), "%" + filter.toLowerCase() + "%"));

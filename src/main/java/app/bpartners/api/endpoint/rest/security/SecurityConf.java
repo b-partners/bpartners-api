@@ -319,6 +319,12 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(PUT, "/users/*/invoiceExportRequests")
                     .authenticated()
+                    .requestMatchers(PUT, "/users/*/invoiceExportRequests")
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/subscriptionInvoices", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider))
                     .authenticated()

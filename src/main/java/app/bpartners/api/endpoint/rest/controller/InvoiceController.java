@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceExportRequestRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoicesSummaryRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionInvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceExportRequestValidator;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
@@ -20,8 +21,10 @@ import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.invoice.InvoiceExportRequestService;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.InvoiceSummaryService;
+import app.bpartners.api.service.subscription.SubscriptionInvoiceService;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -47,6 +50,15 @@ public class InvoiceController {
   private final InvoiceExportRequestRestMapper invoiceExportRequestRestMapper;
   private final UpdateInvoiceStatusRestValidator updateInvoiceStatusRestValidator;
   private final CreateInvoiceExportRequestValidator createInvoiceExportRequestValidator;
+  private final SubscriptionInvoiceService subscriptionInvoiceService;
+  private final SubscriptionInvoiceRestMapper subscriptionInvoiceRestMapper;
+
+  @GetMapping("users/{uId}/subscriptionInvoices")
+  public List<SubscriptionInvoice> getUserSubscriptionInvoices(
+      @PathVariable String uId, @RequestParam YearMonth yearMonth) {
+    var subscriptionInvoices = subscriptionInvoiceService.getSubscriptionInvoices(uId, yearMonth);
+    return subscriptionInvoices.stream().map(subscriptionInvoiceRestMapper::toRest).toList();
+  }
 
   @GetMapping("users/{uId}/invoiceExportRequests/{requestId}")
   public InvoiceExportRequest retrieveInvoiceExportRequestById(

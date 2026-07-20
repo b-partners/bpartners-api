@@ -28,6 +28,7 @@ import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.ReferenceGenerator;
 import app.bpartners.api.service.subscription.StripeFactory;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
+import app.bpartners.api.service.subscription.SubscriptionInvoiceTitleComputer;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -36,6 +37,7 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +66,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   private final StripeInvoiceService stripeInvoiceService;
   private final UserStripeCustomerEmailCorrespondenceJpaRepository
       userStripeCustomerEmailCorrespondenceJpaRepository;
+  private final SubscriptionInvoiceTitleComputer subscriptionInvoiceTitleComputer;
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
@@ -173,12 +176,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var variableAnalysisConsumptionUsage = getVariableAnalysisConsumptionUsage(userToDebit);
 
     var invoiceId = randomUUID().toString();
-    var monthPeriod =
-        "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
-            + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
-    var invoiceTitle = "Facture " + monthPeriod;
+    var actualMonth = YearMonth.from(temporalUtils.startOfActualMonth());
+    var monthPeriod = subscriptionInvoiceTitleComputer.monthPeriodOf(actualMonth);
+    var invoiceTitle = subscriptionInvoiceTitleComputer.apply(actualMonth);
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
         computeSubscriptionProducts(

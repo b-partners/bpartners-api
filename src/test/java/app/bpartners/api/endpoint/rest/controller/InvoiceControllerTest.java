@@ -14,9 +14,11 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceExportRequestRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoicesSummaryRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionInvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceExportRequest;
 import app.bpartners.api.endpoint.rest.model.InvoiceExportRequest;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
+import app.bpartners.api.endpoint.rest.model.SubscriptionInvoice;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceExportRequestValidator;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
@@ -28,7 +30,9 @@ import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.invoice.InvoiceExportRequestService;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.InvoiceSummaryService;
+import app.bpartners.api.service.subscription.SubscriptionInvoiceService;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -47,6 +51,8 @@ class InvoiceControllerTest {
       new InvoiceExportRequestRestMapper(bucketComponentMock);
   UpdateInvoiceStatusRestValidator updateInvoiceStatusRestValidatorMock = mock();
   CreateInvoiceExportRequestValidator createInvoiceExportRequestValidatorMock = mock();
+  SubscriptionInvoiceService subscriptionInvoiceServiceMock = mock();
+  SubscriptionInvoiceRestMapper subscriptionInvoiceRestMapperMock = mock();
 
   InvoiceController subject =
       new InvoiceController(
@@ -59,7 +65,37 @@ class InvoiceControllerTest {
           invoiceExportRequestServiceMock,
           invoiceExportRequestRestMapper,
           updateInvoiceStatusRestValidatorMock,
-          createInvoiceExportRequestValidatorMock);
+          createInvoiceExportRequestValidatorMock,
+          subscriptionInvoiceServiceMock,
+          subscriptionInvoiceRestMapperMock);
+
+  @Test
+  void get_user_subscription_invoices_ok() {
+    var userIdentifier = randomUUID().toString();
+    var yearMonth = YearMonth.of(2024, 3);
+    var domain = app.bpartners.api.model.Invoice.builder().id("invoice_id").build();
+    var rest = new SubscriptionInvoice();
+    when(subscriptionInvoiceServiceMock.getSubscriptionInvoices(userIdentifier, yearMonth))
+        .thenReturn(List.of(domain));
+    when(subscriptionInvoiceRestMapperMock.toRest(domain)).thenReturn(rest);
+
+    var actual = subject.getUserSubscriptionInvoices(userIdentifier, yearMonth);
+
+    assertEquals(List.of(rest), actual);
+  }
+
+  @Test
+  void get_user_subscription_invoices_returns_empty_ok() {
+    var userIdentifier = randomUUID().toString();
+    var yearMonth = YearMonth.of(2024, 3);
+    when(subscriptionInvoiceServiceMock.getSubscriptionInvoices(userIdentifier, yearMonth))
+        .thenReturn(List.of());
+
+    var actual = subject.getUserSubscriptionInvoices(userIdentifier, yearMonth);
+
+    assertTrue(actual.isEmpty());
+    verifyNoInteractions(subscriptionInvoiceRestMapperMock);
+  }
 
   @Test
   void get_invoice_export_request_when_own_request() {

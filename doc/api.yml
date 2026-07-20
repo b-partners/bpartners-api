@@ -150,6 +150,8 @@ paths:
     $ref: './paying-api.yml#/operations/invoiceExportRequestSingleOperations'
   /users/{uId}/invoiceExportRequests:
     $ref: './paying-api.yml#/operations/invoiceExportRequestOperations'
+  /users/{uId}/subscriptionInvoices:
+    $ref: './paying-api.yml#/operations/userSubscriptionInvoiceOperations'
 
   #############################################
   ################# Files API #################
@@ -384,6 +386,10 @@ components:
         updatedAt:
           type: string
           format: date-time
+    YearMonth:
+      type: string
+      pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+      example: '2026-01'
     Page:
       type: integer
       description: Start at `1`

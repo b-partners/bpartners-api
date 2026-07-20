@@ -1,5 +1,7 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.endpoint.event.model.CustomerCrupdated.Type.CREATE;
+
 import app.bpartners.api.endpoint.event.model.CustomerCrupdated;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
@@ -23,7 +25,8 @@ import org.thymeleaf.context.Context;
 @AllArgsConstructor
 @Slf4j
 public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
-  public static final String CUSTOMER_CRUPDATED_MAIL = "customer_crupdated_mail";
+  private static final String CUSTOMER_UPDATED_MAIL = "customer_updated_mail";
+  private static final String CUSTOMER_CREATED_TEMPLATE_MAIL = "customer_created_template_mail";
   private final SesService service;
   private final CustomerRepository customerRepository;
   private final BanApi banApi;
@@ -56,14 +59,16 @@ public class CustomerCrupdatedService implements Consumer<CustomerCrupdated> {
                             .latitude(customerPosition.getCoordinates().getLatitude())
                             .build())
                     .build());
-        log.info("{} coordinates updated from BAN API", updatedCustomer.describe());
       }
     }
 
+    var template =
+        customerCrupdated.getType() == CREATE
+            ? CUSTOMER_CREATED_TEMPLATE_MAIL
+            : CUSTOMER_UPDATED_MAIL;
     String htmlBody =
         templateResolverEngine.parseTemplateResolver(
-            CUSTOMER_CRUPDATED_MAIL,
-            configureCustomerContext(customerCrupdated.getUser(), updatedCustomer, type));
+            template, configureCustomerContext(customerCrupdated.getUser(), updatedCustomer, type));
     try {
       service.sendEmail(recipient, null, subject, htmlBody, attachments);
       log.info("Email sent to notify {} update", updatedCustomer.describe());

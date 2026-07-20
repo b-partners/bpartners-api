@@ -1,0 +1,62 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Customer created</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, Georgia, and Courier, serif;
+            color: black;
+        }
+
+        body {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        a {
+            color: #1a56db;
+        }
+
+        .signature {
+            margin-top: 24px;
+        }
+
+        .signature-separator {
+            margin: 24px 0 8px 0;
+        }
+
+    </style>
+</head>
+<body>
+<p>Bonjour,</p>
+
+<p>Vous trouverez ci-joint notre rapport - <span th:text="${customer.fullAddress}"></span>.</p>
+
+<p>
+    <a href="https://meet.brevo.com/birdia/reunion-de-15-minutes">Réserver un créneau de 15 minutes</a>
+</p>
+
+<p>N'hésitez pas à réserver un créneau si vous avez la moindre question.</p>
+
+<p>Les informations associées au nouveau client :</p>
+<ul>
+    <li>Nom(s) : <span th:text="${customer.lastName}"></span></li>
+    <li>Prénom(s) : <span th:text="${customer.realName}"></span></li>
+    <li>Email : <span th:text="${customer.email}"></span></li>
+    <li>Numéro de téléphone : <span th:text="${customer.phone}"></span></li>
+    <li>Adresse : <span th:text="${customer.address}"></span></li>
+    <li>Ville : <span th:text="${customer.city}"></span></li>
+    <li>Code postal : <span th:text="${customer.zipCode}"></span></li>
+    <li>Pays : <span th:text="${customer.country}"></span></li>
+    <li>Site web : <span th:text="${customer.website}"></span></li>
+</ul>
+
+<div class="signature">
+    <div class="signature-separator">--</div>
+    <div>L'équipe BIRDIA</div>
+    <div>BIRDIA - Valorisation d'images aériennes par IA</div>
+    <div>14 rue Soleillet, 75020, Paris</div>
+    <div>06 68 62 48 36</div>
+    <div><a href="https://www.birdia.fr/">https://www.birdia.fr/</a></div>
+</div>
+</body>
+</html>

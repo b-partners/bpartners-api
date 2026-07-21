@@ -263,7 +263,8 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var panImageWithMeasurements = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
     var g2d = Graphics2DFactory.make(panImageWithMeasurements);
 
-    var coordinates = Coordinates.from(pan.getPolygon());
+    var polygon = pan.getOrientedPolygon() == null ? pan.getPolygon() : pan.getOrientedPolygon();
+    var coordinates = Coordinates.from(polygon);
     var transform = Transform.from(coordinates, CONTENT_SIZE - 10, TARGET_SIZE);
     var mapped = transform.apply(coordinates);
 

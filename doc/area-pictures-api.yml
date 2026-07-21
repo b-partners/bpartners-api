@@ -913,6 +913,8 @@ components:
           type: string
         polygon:
           $ref: "#/components/schemas/Polygon"
+        orientedPolygon:
+          $ref: "#/components/schemas/Polygon"
         measurements:
           type: array
           items:

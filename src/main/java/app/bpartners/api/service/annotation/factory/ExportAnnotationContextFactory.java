@@ -223,14 +223,14 @@ public class ExportAnnotationContextFactory {
     var mainImage3DUri = base64ToUri(annotation3DImages.first());
     var subImages3DUris =
         annotation3DImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
-    var pansImages3D = getPansImages3DContext(annotation3D, fileService);
+    var pansScreenshootImages3D = getPansImages3DContext(annotation3D, fileService);
 
     context.setVariable("pages3D", pages3D);
     context.setVariable("mainImage3D", mainImage3DUri);
     context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
     context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
     context.setVariable("topViewPanImagesUris", groupByFirstPage(subImages3DUris, 3, 4));
-    context.setVariable("pansImages3DUris", groupByFirstPage(pansImages3D, 3, 4));
+    context.setVariable("pansImages3DUris", groupByFirstPage(pansScreenshootImages3D, 3, 4));
   }
 
   static HashSet<String> allRoofSlopeBoundaryTypes(Map<Integer, List<String>> perPage) {

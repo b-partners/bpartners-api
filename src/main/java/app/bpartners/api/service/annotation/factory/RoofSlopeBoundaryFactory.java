@@ -20,10 +20,11 @@ public class RoofSlopeBoundaryFactory {
       Transform transform, ExportAreaPictureAnnotation3DPan pan) {
     var boundaries = new ArrayList<RoofSlopBoundary>();
     var boundariesTypesNames = getRoofSlopeBoundaryTypeNames(pan);
+    var polygon = pan.getOrientedPolygon() == null ? pan.getPolygon() : pan.getOrientedPolygon();
 
-    for (int i = 1; i < pan.getPolygon().getPoints().size(); i++) {
-      var startPoint = pan.getPolygon().getPoints().get(i - 1);
-      var endPoint = pan.getPolygon().getPoints().get(i);
+    for (int i = 1; i < polygon.getPoints().size(); i++) {
+      var startPoint = polygon.getPoints().get(i - 1);
+      var endPoint = polygon.getPoints().get(i);
       var boundaryCoordinates =
           new Coordinates(
               new int[] {startPoint.getX().intValue(), endPoint.getX().intValue()},

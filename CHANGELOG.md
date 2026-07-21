@@ -1,3 +1,12 @@
+# [0.85.0](https://github.com/b-partners/bpartners-api/compare/v0.84.0...v0.85.0) (2026-07-21)
+
+
+### Features
+
+* use translated polygon on pdf export if available ([2be0716](https://github.com/b-partners/bpartners-api/commit/2be0716d65d2686031ee61c345709fb8ff3f94d0))
+
+
+
 # [0.84.0](https://github.com/b-partners/bpartners-api/compare/v0.83.0...v0.84.0) (2026-07-21)
 
 
@@ -218,30 +227,6 @@
 ### Reverts
 
 * Revert "chore: add tech email as bcc on customer crupdate event triggered" ([732b2c4](https://github.com/b-partners/bpartners-api/commit/732b2c4124790af830248ea750ebc0b00ddd493a))
-
-
-
-# [0.76.0](https://github.com/b-partners/bpartners-api/compare/v0.75.0...v0.76.0) (2026-01-09)
-
-
-### Bug Fixes
-
-* **area-picture:** set zoom level to BUILDING(19) when ign the image source ([a750542](https://github.com/b-partners/bpartners-api/commit/a7505421d82d23cdb26572a5dd608ca3eaa074f1))
-* handle attachment on prospect notification as binary file ([f4da301](https://github.com/b-partners/bpartners-api/commit/f4da3015216b3a9d1f5880ad7e6ec03be5a95e41))
-* **SubscriptionService:** handle not_found stripe customer when retrieving stripe subscriptions ([8ebc681](https://github.com/b-partners/bpartners-api/commit/8ebc68137f64fbe9bb127dad22e58d302f06c718))
-* use multipart-file instead of binary on prospect notification ([f7a8298](https://github.com/b-partners/bpartners-api/commit/f7a82981ba8981e3f22785c4c7331826b64faf46))
-* **UserController:** add missing @RequestBody annotation on redirectionStatusUrls ([e66d704](https://github.com/b-partners/bpartners-api/commit/e66d704d36e7067e36d102bdf351dd98fbc8eb26))
-
-
-### Features
-
-* notify prospects creation with attachment ([18ac453](https://github.com/b-partners/bpartners-api/commit/18ac453c7aedc19ec668afad63a116937ec31fa2))
-* use POST /prospects/*/accountHolders for creation and PUT for save ([08c03f5](https://github.com/b-partners/bpartners-api/commit/08c03f584d6ecee07a35f8cdcc34503a89eca513))
-
-
-### Reverts
-
-* Revert "test(debug): commment WhoamiIT and SubscriptionServiceIT" ([d9519e7](https://github.com/b-partners/bpartners-api/commit/d9519e7dd6a2e0c281ebfbb17c3d5a3ba1fdd83d))
 
 
 

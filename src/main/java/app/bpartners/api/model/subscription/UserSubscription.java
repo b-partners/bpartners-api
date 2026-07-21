@@ -2,15 +2,16 @@ package app.bpartners.api.model.subscription;
 
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELED;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.UNPAID;
-import static java.time.LocalTime.now;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 
 import app.bpartners.api.model.User;
 import java.time.Instant;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.List;
 import lombok.*;
+import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -36,10 +37,10 @@ public class UserSubscription {
   public boolean hasSubscriptionCancelled() {
     if (getLatestSubscription() == null || getLatestSubscription().getEndDatetime() == null)
       return false;
-    var latestSubscriptionYearMonth = YearMonth.from(getLatestSubscription().getEndDatetime());
+    var latestSubscriptionYearMonth = getLatestSubscriptionYearMonth();
     var subscriptionYear = latestSubscriptionYearMonth.getYear();
     var subscriptionMonth = latestSubscriptionYearMonth.getMonth().getValue();
-    var actualYearMonth = YearMonth.from(now());
+    var actualYearMonth = YearMonth.from(Instant.now().atZone(ZoneId.of("Europe/Paris")));
     var actualYear = actualYearMonth.getYear();
     var actualMonth = actualYearMonth.getMonth().getValue();
     var subscriptionEndsActualOrNextMonthThisYear =
@@ -50,6 +51,11 @@ public class UserSubscription {
         actualMonth == 12 && subscriptionYear == actualYear + 1 && subscriptionMonth == 1;
     return (subscriptionEndsActualOrNextMonthThisYear || subscriptionEndsNextMonthNextYear)
         && (CANCELED).equals(getLatestSubscription().getStatus());
+  }
+
+  private @NotNull YearMonth getLatestSubscriptionYearMonth() {
+    Instant endDatetime = getLatestSubscription().getEndDatetime();
+    return YearMonth.from(endDatetime.atZone(ZoneId.of("Europe/Paris")));
   }
 
   public Subscription getLatestSubscription() {

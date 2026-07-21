@@ -16,7 +16,6 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.CustomerRepository;
-import app.bpartners.api.repository.ban.BanApi;
 import jakarta.transaction.Transactional;
 import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
@@ -40,7 +39,7 @@ public class CustomerService {
   private final CustomerRestMapper restMapper;
   private final EventProducer eventProducer;
   private final SesConf sesConf;
-  private final BanApi banApi;
+  private final String env = System.getenv("ENV");
 
   private static String replaceNullValue(String value) {
     return value == null ? "" : value;
@@ -158,21 +157,26 @@ public class CustomerService {
   private CustomerCrupdated toTypedEvent(User user, Customer customer, boolean isNew) {
     String subject =
         isNew
-            ? "Ajout du nouveau client "
+            ? "[BIRDIA] Rapport pour nouveau client "
                 + customer.getFullName()
-                + " par l'artisan "
+                + " par l'utilisateur "
                 + user.getName()
             : "Modification du client existant "
                 + customer.getFullName()
                 + " par l'artisan "
                 + user.getName();
-    String recipientEmail = sesConf.getAdminEmail();
+    String recipientEmail = getRecipientEmail(isNew);
     return new CustomerCrupdated()
         .subject(subject)
         .recipientEmail(recipientEmail)
         .type(isNew ? CustomerCrupdated.Type.CREATE : CustomerCrupdated.Type.UPDATE)
         .user(user)
         .customer(customer);
+  }
+
+  // TODO: set as ENV variable
+  private String getRecipientEmail(boolean isNew) {
+    return isNew && "prod".equalsIgnoreCase(env) ? "contact@birdia.fr" : sesConf.getAdminEmail();
   }
 
   @Transactional

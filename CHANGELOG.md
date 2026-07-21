@@ -1,3 +1,17 @@
+# [0.84.0](https://github.com/b-partners/bpartners-api/compare/v0.83.0...v0.84.0) (2026-07-21)
+
+
+### Bug Fixes
+
+* **UserSubscription:** compute year month using zone ID ([ec902b1](https://github.com/b-partners/bpartners-api/commit/ec902b1ef5487f9d6b73c4cb1ebb2c17dffd864d))
+
+
+### Features
+
+* get user subscription invoices ([a5da20e](https://github.com/b-partners/bpartners-api/commit/a5da20e7cf3f23971f4d08b7ac41388f5ca0709e))
+
+
+
 # [0.83.0](https://github.com/b-partners/bpartners-api/compare/v0.82.0...v0.83.0) (2026-07-17)
 
 
@@ -228,27 +242,6 @@
 ### Reverts
 
 * Revert "test(debug): commment WhoamiIT and SubscriptionServiceIT" ([d9519e7](https://github.com/b-partners/bpartners-api/commit/d9519e7dd6a2e0c281ebfbb17c3d5a3ba1fdd83d))
-
-
-
-# [0.75.0](https://github.com/b-partners/bpartners-api/compare/v0.74.0...v0.75.0) (2025-12-17)
-
-
-### Bug Fixes
-
-* handle UNPAID status on stripe ([a622f13](https://github.com/b-partners/bpartners-api/commit/a622f138236cbfc25c59cb614dc69e639d637427))
-* handle user whitelisted for prospect update ([a292a53](https://github.com/b-partners/bpartners-api/commit/a292a535c633ce615b343b516de2c69946aa0284))
-* notify account holder new prospects ([c81011c](https://github.com/b-partners/bpartners-api/commit/c81011c2a1b3e03af39864ba2ea081cf77c2c382))
-* prospect must have unique mail ([4624f3d](https://github.com/b-partners/bpartners-api/commit/4624f3ded56ba5fe6341d9fc9f5ef216fdb3dcae))
-* **ProspectService:** reverse condition when prospect is new ([bb8fddb](https://github.com/b-partners/bpartners-api/commit/bb8fddb4bf55b23ea7e79ed9cb219d90309c3932))
-* retrieve roof analysis subscription from detection tracking ([30f6314](https://github.com/b-partners/bpartners-api/commit/30f6314fc3bfba25b786fe832ab30e56aa2a322e))
-* **Subscription:** handle Exception when UNPAID subscription found ([176a533](https://github.com/b-partners/bpartners-api/commit/176a533d62efdf989f8ba158a84c266283b92140))
-* **SubscriptionService:** handle active scheduled subscription as domain active subscription ([c4ad0cc](https://github.com/b-partners/bpartners-api/commit/c4ad0ccd1a030a23a3fd311e1adbd3fd5b2cc9f6))
-
-
-### Features
-
-* access to user billing portal ([8b2da38](https://github.com/b-partners/bpartners-api/commit/8b2da383504a1ac2230b9ade95f496f35fdb2c27))
 
 
 

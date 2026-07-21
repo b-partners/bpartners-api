@@ -42,7 +42,6 @@ import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.wms.ArcgisZoom;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
-import app.bpartners.api.service.wms.imageSource.WmsImageSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.Instant;
@@ -92,7 +91,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @Autowired AreaPictureMapLayerService mapLayerService;
   @Autowired AreaPictureMapLayerRepository areaPictureMapLayerRepositoryMock;
   @MockBean BanApi banApiMock;
-  @MockBean WmsImageSource wmsImageSourceMock;
   @Autowired AccountRepository accountRepository;
   @MockBean AccountHolderRepository accountHolderRepository;
   @MockBean GeoCodeApi geoCodeApiMock;
@@ -392,20 +390,12 @@ public class AreaPictureIT extends S3MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpBanApiMock(banApiMock);
-    setUpWmsImageSourceMock(wmsImageSourceMock);
     setUpUserSubscription(subscriptionService);
     when(metaDataComponentMock.getXOffset()).thenReturn(1234);
     when(metaDataComponentMock.getYOffset()).thenReturn(123);
     when(metaDataComponentMock.getAirbusYear()).thenReturn(2025);
     when(metaDataComponentMock.getLastUpdatedAt()).thenReturn(LocalDate.of(2025, 1, 1));
     doNothing().when(areaPictureZoomValidatorMock).accept(any());
-  }
-
-  private void setUpWmsImageSourceMock(WmsImageSource wmsImageSource) {
-    FileSystemResource mockJpegFile =
-        new FileSystemResource(
-            this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
-    when(wmsImageSource.downloadImage(any())).thenReturn(mockJpegFile.getFile());
   }
 
   void setUpBanApiMock(BanApi banApi) {

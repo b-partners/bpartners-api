@@ -1,13 +1,12 @@
 package app.bpartners.api.service.areapicture;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
-import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.rest.model.ZoomLevel;
+import app.bpartners.api.file.FileDownloaderImpl;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -16,17 +15,16 @@ import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.service.file.FileService;
+import app.bpartners.api.service.geodata.ImageryService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
-import app.bpartners.api.service.wms.Tile;
-import app.bpartners.api.service.wms.TileCreator;
-import app.bpartners.api.service.wms.imageSource.WmsImageSource;
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,13 +36,12 @@ public class AreaPictureService {
   private final AreaPictureJpaRepository jpaRepository;
   private final AreaPictureMapper mapper;
   private final FileService fileService;
-  private final WmsImageSource wmsImageSource;
-  private final TileCreator tileCreator;
   private final AreaPictureMapLayerService mapLayerService;
   private final SubscriptionService subscriptionService;
   private final ProspectJpaRepository prospectRepository;
   private final AreaPictureConsumptionValidator areaPictureConsumptionValidator;
-  private final AreaPictureZoomValidator areaPictureZoomValidator;
+  private final ImageryService imageryService;
+  private final FileDownloaderImpl fileDownloader;
 
   public List<AreaPicture> findAllBy(String userId, String address, String filename) {
     return jpaRepository
@@ -71,40 +68,19 @@ public class AreaPictureService {
     return domain;
   }
 
-  private AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture)
-      throws RuntimeException {
-
-    long startRefresh = System.currentTimeMillis();
-    var refreshed = refreshAreaPictureTileAndLayers(areaPicture);
-    long endRefresh = System.currentTimeMillis();
-    log.info("Elapsed time for refreshAreaPictureTileAndLayers: {} ms", endRefresh - startRefresh);
-
-    long startDownload = System.currentTimeMillis();
-    var downloadedFile = wmsImageSource.downloadImage(areaPicture);
-    long endDownload = System.currentTimeMillis();
-    log.info("Elapsed time for downloadImage: {} ms", endDownload - startDownload);
-
-    if (areaPicture.getFilename().contains("ORTHOIMAGERY")
-        && areaPicture.getZoomLevel().equals(HOUSES_0)) {
-      areaPicture.setZoomLevel(ZoomLevel.BUILDING);
-      areaPicture.setCurrentLayer(mapLayerService.getDefaultIGNLayer());
-    } else if (areaPicture.getFilename().contains("AIRBUS_PNEO")
-        && areaPicture.getZoomLevel().equals(HOUSES_0)) {
-      areaPicture.setZoomLevel(ZoomLevel.BUILDING);
-      areaPicture.setCurrentLayer(mapLayerService.getAirbusLayer());
-    }
-
-    long startUpload = System.currentTimeMillis();
+  @SneakyThrows
+  private AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture) {
+    var areaPictureDetails =
+        imageryService.downloadFromGeodataSource(mapper.toCrupdatedAreaPictureDetails(areaPicture));
+    String filePresignedUrl =
+        Objects.requireNonNull(areaPictureDetails.getImagePresignedUrl()).getValue();
+    assert filePresignedUrl != null;
+    var downloadedFile = fileDownloader.get(areaPicture.getFilename(), new URI(filePresignedUrl));
+    var refreshed =
+        mapper.toDomain(areaPictureDetails, areaPicture.getIdUser(), areaPicture.getIdProspect());
     fileService.upload(
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
-    long endUpload = System.currentTimeMillis();
-    log.info("Elapsed time for fileService.upload: {} ms", endUpload - startUpload);
-
-    long startSave = System.currentTimeMillis();
-    var saved = save(refreshed);
-    long endSave = System.currentTimeMillis();
-    log.info("Elapsed time for save: {} ms", endSave - startSave);
-    return saved;
+    return save(refreshed);
   }
 
   @Transactional
@@ -143,38 +119,6 @@ public class AreaPictureService {
     return areaPicture;
   }
 
-  private AreaPicture refreshAreaPictureTileAndLayers(AreaPicture areaPicture) {
-    refreshAreaPictureTile(areaPicture);
-    refreshAreaPictureMapLayers(areaPicture);
-    return areaPicture;
-  }
-
-  private void refreshAreaPictureMapLayers(AreaPicture areaPicture) {
-    var guessedMaps =
-        new LinkedHashSet<>(
-            mapLayerService.getAvailableLayersFrom(areaPicture.getCurrentGeoPosition()));
-    var fallbackLayers =
-        List.of(
-            mapLayerService.getRhonePCRSLayer(),
-            mapLayerService.getPCRSLayer(),
-            mapLayerService.getDefaultIGNLayer(),
-            mapLayerService.getAirbusLayer());
-
-    if (areaPicture.getCurrentLayer() == null) {
-      if (guessedMaps.isEmpty()) {
-        areaPicture.setCurrentLayer(mapLayerService.getPCRSLayer());
-        guessedMaps.add(areaPicture.getCurrentLayer());
-      } else {
-        var latest = mapLayerService.getLatestMostPreciseOrDefault(guessedMaps);
-        areaPicture.setCurrentLayer(latest);
-        areaPicture.setInitialLayer(latest);
-      }
-    }
-
-    guessedMaps.addAll(fallbackLayers);
-    areaPicture.setLayers(new ArrayList<>(guessedMaps));
-  }
-
   public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude) {
     var guessedMaps = mapLayerService.getAvailableLayersFrom(longitude, latitude);
     Collections.sort(guessedMaps, Comparator.reverseOrder());
@@ -185,11 +129,6 @@ public class AreaPictureService {
             mapLayerService.getDefaultIGNLayer(),
             mapLayerService.getAirbusLayer()));
     return guessedMaps;
-  }
-
-  private void refreshAreaPictureTile(AreaPicture areaPicture) {
-    Tile tile = tileCreator.apply(areaPicture);
-    areaPicture.setCurrentTile(tile);
   }
 
   @Transactional

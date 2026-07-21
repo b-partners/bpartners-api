@@ -1,12 +1,16 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
+import app.bpartners.api.endpoint.rest.model.ShiftDirection;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.validator.AreaPictureValidator;
 import app.bpartners.api.repository.jpa.model.HAreaPicture;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
+import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -65,5 +69,40 @@ public class AreaPictureMapper {
         .shiftNb(domain.getShiftNb())
         .shiftDirection(domain.getShiftDirection())
         .build();
+  }
+
+  public AreaPicture toDomain(
+      AreaPictureDetails areaPictureDetails, String idUser, String idProspect) {
+    return AreaPicture.builder()
+        .id(areaPictureDetails.getId())
+        .address(areaPictureDetails.getAddress())
+        .zoomLevel(areaPictureDetails.getZoomLevel())
+        .idUser(idUser)
+        .idFileInfo(areaPictureDetails.getFileId())
+        .createdAt(areaPictureDetails.getCreatedAt())
+        .updatedAt(areaPictureDetails.getUpdatedAt())
+        .idProspect(idProspect)
+        .isExtended(Boolean.TRUE.equals(areaPictureDetails.getIsExtended()))
+        .geoPositions(areaPictureDetails.getGeoPositions())
+        .shiftNb(areaPictureDetails.getShiftNb())
+        .build();
+  }
+
+  public CrupdateAreaPictureDetails toCrupdatedAreaPictureDetails(AreaPicture areaPicture) {
+    return new CrupdateAreaPictureDetails()
+        .shiftNb(areaPicture.getShiftNb())
+        .address(areaPicture.getAddress())
+        .fileId(areaPicture.getIdFileInfo())
+        .filename(areaPicture.getFilename())
+        .zoomLevel(areaPicture.getZoomLevel())
+        .isExtended(areaPicture.isExtended())
+        .shiftDirection(toRest(areaPicture.getShiftDirection()))
+        .isOpaque(areaPicture.isOpaque());
+  }
+
+  public ShiftDirection toRest(TileExtenderRequestBody.ShiftDirection shiftDirection) {
+    return shiftDirection.equals(TileExtenderRequestBody.ShiftDirection.RIGHT_LEFT_SIDE)
+        ? ShiftDirection.RIGHT_LEFT_SIDE
+        : ShiftDirection.UP_DOWN_SIDE;
   }
 }

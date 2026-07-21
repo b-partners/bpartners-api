@@ -569,6 +569,12 @@ components:
         lastUpdatedAt:
           type: string
           format: date
+        creationDateTime:
+          type: string
+          format: date-time
+        expiredAt:
+          type: string
+          format: date-time
     OpenStreetMapLayer:
       deprecated: true
       description: deprecated, use AreaMapLayer
@@ -656,6 +662,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GeoPosition"
+        imagePresignedUrl:
+          $ref: '#/components/schemas/PreSignedURL'
     Tile:
       type: object
       properties:
@@ -1096,3 +1104,14 @@ components:
           type: string
         confidence:
           type: number
+    PreSignedURL:
+      type: object
+      properties:
+        value:
+          type: string
+        expirationDelay:
+          type: integer
+          description: In seconds
+        updatedAt:
+          type: string
+          format: date-time

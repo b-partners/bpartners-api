@@ -1,5 +1,6 @@
 package app.bpartners.api.service.annotation;
 
+import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory.selectPolygon;
 import static app.bpartners.api.service.annotation.model.Drawer.*;
 import static java.awt.Color.*;
 import static java.awt.Font.PLAIN;
@@ -263,7 +264,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var panImageWithMeasurements = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
     var g2d = Graphics2DFactory.make(panImageWithMeasurements);
 
-    var polygon = pan.getOrientedPolygon() == null ? pan.getPolygon() : pan.getOrientedPolygon();
+    var polygon = selectPolygon(pan, true);
     var coordinates = Coordinates.from(polygon);
     var transform = Transform.from(coordinates, CONTENT_SIZE - 10, TARGET_SIZE);
     var mapped = transform.apply(coordinates);

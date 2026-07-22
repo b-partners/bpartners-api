@@ -17,10 +17,10 @@ public class RoofSlopeBoundaryFactory {
   private RoofSlopeBoundaryFactory() {}
 
   public static List<RoofSlopBoundary> create(
-      Transform transform, ExportAreaPictureAnnotation3DPan pan) {
+      Transform transform, ExportAreaPictureAnnotation3DPan pan, boolean oriented) {
     var boundaries = new ArrayList<RoofSlopBoundary>();
     var boundariesTypesNames = getRoofSlopeBoundaryTypeNames(pan);
-    var polygon = pan.getOrientedPolygon() == null ? pan.getPolygon() : pan.getOrientedPolygon();
+    var polygon = selectPolygon(pan, oriented);
 
     for (int i = 1; i < polygon.getPoints().size(); i++) {
       var startPoint = polygon.getPoints().get(i - 1);
@@ -39,6 +39,14 @@ public class RoofSlopeBoundaryFactory {
     }
 
     return boundaries;
+  }
+
+  public static app.bpartners.api.endpoint.rest.model.Polygon selectPolygon(
+      ExportAreaPictureAnnotation3DPan pan, boolean useOriented) {
+    if (useOriented && pan.getOrientedPolygon() != null) {
+      return pan.getOrientedPolygon();
+    }
+    return pan.getPolygon();
   }
 
   private static RoofSlopeBoundaryType getRoofSlopeBoundaryType(

@@ -36,7 +36,7 @@ class RoofSlopeBoundaryFactoryTest {
     var transform =
         Transform.builder().min(new IntXY(0, 0)).offset(new IntXY(0, 0)).scale(1.0).build();
 
-    var boundaries = RoofSlopeBoundaryFactory.create(transform, pan);
+    var boundaries = RoofSlopeBoundaryFactory.create(transform, pan, false);
 
     assertEquals(4, boundaries.size());
     assertEquals(RoofSlopeBoundaryType.FAITAGE, boundaries.get(0).getType());
@@ -60,7 +60,7 @@ class RoofSlopeBoundaryFactoryTest {
     var transform =
         Transform.builder().min(new IntXY(0, 0)).offset(new IntXY(0, 0)).scale(1.0).build();
 
-    var boundaries = RoofSlopeBoundaryFactory.create(transform, pan);
+    var boundaries = RoofSlopeBoundaryFactory.create(transform, pan, false);
 
     assertEquals(2, boundaries.size());
     assertEquals(RoofSlopeBoundaryType.DEFAULT, boundaries.get(0).getType());

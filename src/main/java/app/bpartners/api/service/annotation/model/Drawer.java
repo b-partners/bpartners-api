@@ -21,8 +21,9 @@ public class Drawer {
       Graphics2D g2d,
       Transform transform,
       ExportAreaPictureAnnotation3DPan pan,
-      float strokeWidthMultiplier) {
-    List<RoofSlopBoundary> boundaries = RoofSlopeBoundaryFactory.create(transform, pan);
+      float strokeWidthMultiplier,
+      boolean oriented) {
+    List<RoofSlopBoundary> boundaries = RoofSlopeBoundaryFactory.create(transform, pan, oriented);
     boundaries.forEach(
         boundary -> {
           var stroke = (BasicStroke) boundary.getType().getStroke();

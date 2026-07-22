@@ -78,7 +78,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
     pans.forEach(
         pan -> {
-          drawStrokePolygon(g2d, transform, pan, 1f);
+          drawStrokePolygon(g2d, transform, pan, 1f, false);
           var coordinates = Coordinates.from(pan.getPolygon());
           var mapped = transform.apply(coordinates);
           drawPolygonMeasurements(
@@ -238,7 +238,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     polygon = transform.apply(polygon);
 
     drawFillPolygon(g2d, fillColor, polygon);
-    drawStrokePolygon(g2d, transform, pan, 1f);
+    drawStrokePolygon(g2d, transform, pan, 1f, false);
   }
 
   public BufferedImage generateBaseImageWithHighlightedPan(
@@ -268,7 +268,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var transform = Transform.from(coordinates, CONTENT_SIZE - 10, TARGET_SIZE);
     var mapped = transform.apply(coordinates);
 
-    drawStrokePolygon(g2d, transform, pan, 3.5f);
+    drawStrokePolygon(g2d, transform, pan, 3.5f, true);
     drawPolygonPoints(g2d, BLACK, POLYGON_POINTS_SIZE, mapped);
     drawPolygonMeasurements(
         g2d,

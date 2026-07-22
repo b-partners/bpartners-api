@@ -64,7 +64,16 @@ public class AreaPictureAnnotationController {
     return service
         .findAllDraftByAccountIdAndAreaPictureId(authenticatedUserId, areaPictureId, page, pageSize)
         .stream()
-        .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
+        .map(
+            annotation -> {
+              try {
+                return mapper.toRestDraft(authenticatedUserId, annotation);
+              } catch (IOException e) {
+                throw new RuntimeException(e);
+              } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+              }
+            })
         .toList();
   }
 
@@ -75,7 +84,16 @@ public class AreaPictureAnnotationController {
       @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return service.findAllDraftByAccountId(authenticatedUserId, page, pageSize).stream()
-        .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
+        .map(
+            annotation -> {
+              try {
+                return mapper.toRestDraft(authenticatedUserId, annotation);
+              } catch (IOException e) {
+                throw new RuntimeException(e);
+              } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+              }
+            })
         .toList();
   }
 

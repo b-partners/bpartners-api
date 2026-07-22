@@ -1,7 +1,5 @@
 package app.bpartners.api.endpoint.rest.controller;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
 import app.bpartners.api.endpoint.rest.mapper.AreaPictureMapLayerRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
@@ -9,8 +7,11 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.service.areapicture.AreaPictureService;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -25,15 +26,14 @@ public class AreaPictureController {
   private final AreaPictureRestMapper mapper;
   private final AreaPictureMapLayerRestMapper layerMapper;
 
+  @SneakyThrows
   @GetMapping(value = "/accounts/{accountId}/areaPictures")
   public List<AreaPictureDetails> findAllAreaPictures(
       @PathVariable(name = "accountId") String accountId,
       @RequestParam(required = false, defaultValue = "") String address,
       @RequestParam(required = false, defaultValue = "") String filename) {
     String userId = AuthProvider.getAuthenticatedUserId();
-    return service.findAllBy(userId, address, filename).stream()
-        .map(mapper::toRest)
-        .collect(toUnmodifiableList());
+    return service.findAllBy(userId, address, filename).stream().map(mapper::toRest).toList();
   }
 
   @GetMapping(value = "/accounts/{accountId}/areaPictures/{id}")
@@ -48,17 +48,18 @@ public class AreaPictureController {
   public AreaPictureDetails crupdateAreaPictureDetails(
       @PathVariable(name = "accountId") String accountId,
       @PathVariable(name = "id") String areaPictureId,
-      @RequestBody CrupdateAreaPictureDetails toCrupdate) {
+      @RequestBody CrupdateAreaPictureDetails toCrupdate)
+      throws IOException, InterruptedException {
     String userId = AuthProvider.getAuthenticatedUserId();
     var areaPicture = mapper.toDomain(toCrupdate, areaPictureId, userId);
-    var result = service.saveAreaPictureAndLogConsumption(areaPicture);
-    return mapper.toRest(result);
+    return service.downloadFromExternalSource(areaPicture);
   }
 
   @GetMapping("/areaPictureMapLayers")
   public List<AreaPictureMapLayer> getAreaPictureMapLayers(
       @RequestParam(name = "longitude") Double longitude,
-      @RequestParam(name = "latitude") Double latitude) {
+      @RequestParam(name = "latitude") Double latitude)
+      throws IOException, InterruptedException, URISyntaxException {
     return service.getMapLayers(longitude, latitude).stream().map(layerMapper::toRest).toList();
   }
 }

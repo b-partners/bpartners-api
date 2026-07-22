@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.model.DraftAreaPictureAnnotation;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.service.areapicture.AreaPictureService;
+import java.io.IOException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +53,8 @@ public class AreaPictureAnnotationRestMapper {
   }
 
   public DraftAreaPictureAnnotation toRestDraft(
-      String userId, app.bpartners.api.model.AreaPictureAnnotation areaPictureAnnotation) {
+      String userId, app.bpartners.api.model.AreaPictureAnnotation areaPictureAnnotation)
+      throws IOException, InterruptedException {
     var restAnnotation = toRest(areaPictureAnnotation);
     var areaPicture = areaPictureService.findBy(userId, restAnnotation.getIdAreaPicture());
     var prospect = prospectRepository.getById(areaPicture.getIdProspect());

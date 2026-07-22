@@ -19,10 +19,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+@Slf4j
 public class AreaPictureAnnotationIT extends MockedThirdParties {
   private static final String AREA_PICTURE_ANNOTATION_1_ID = "area_picture_annotation_1_id";
   private static final String AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_2_id";
@@ -220,9 +222,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         api.getDraftAnnotationsByAccountIdAndAreaPictureId(
             JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null);
 
-    assertTrue(
-        actualAnnotations.containsAll(
-            List.of(draftAreaPictureAnnotation1(), draftAreaPictureAnnotation2())));
+    assertEquals(draftAreaPictureAnnotation2(), actualAnnotations.getFirst());
+    assertEquals(draftAreaPictureAnnotation1(), actualAnnotations.getLast());
     assertTrue(actualAnnotations.stream().allMatch(DraftAreaPictureAnnotation::getIsDraft));
   }
 
@@ -233,9 +234,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
 
     var actualAnnotations = api.getDraftAnnotationsByAccountId(JOE_DOE_ACCOUNT_ID, null, null);
 
-    assertTrue(
-        actualAnnotations.containsAll(
-            List.of(draftAreaPictureAnnotation1(), draftAreaPictureAnnotation2())));
+    assertEquals(draftAreaPictureAnnotation2(), actualAnnotations.getFirst());
+    assertEquals(draftAreaPictureAnnotation1(), actualAnnotations.getLast());
     assertTrue(actualAnnotations.stream().allMatch(DraftAreaPictureAnnotation::getIsDraft));
   }
 

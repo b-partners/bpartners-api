@@ -6,6 +6,7 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.U
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.file.FileDownloaderImpl;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
@@ -18,9 +19,9 @@ import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.geodata.ImageryService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
+import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.Comparator;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -69,28 +70,38 @@ public class AreaPictureService {
   }
 
   @SneakyThrows
-  private AreaPicture downloadFromExternalSourceAndSave(AreaPicture areaPicture) {
+  @Transactional
+  public AreaPictureDetails downloadFromExternalSource(AreaPicture areaPicture) {
     var areaPictureDetails =
         imageryService.downloadFromGeodataSource(mapper.toCrupdatedAreaPictureDetails(areaPicture));
+    areaPictureDetails.setId(areaPicture.getId());
+    areaPictureDetails.setProspectId(areaPicture.getIdProspect());
+    log.info("Retrieved areaPictureDetails = {}", areaPictureDetails);
+    var refreshed =
+        mapper.toDomain(
+            areaPictureDetails,
+            areaPicture.getId(),
+            areaPicture.getIdUser(),
+            areaPicture.getIdProspect());
+    areaPicture = refreshed;
+    log.info("Refreshed supposed to be saved = {}", refreshed);
     String filePresignedUrl =
         Objects.requireNonNull(areaPictureDetails.getImagePresignedUrl()).getValue();
     assert filePresignedUrl != null;
     var downloadedFile = fileDownloader.get(areaPicture.getFilename(), new URI(filePresignedUrl));
-    var refreshed =
-        mapper.toDomain(areaPictureDetails, areaPicture.getIdUser(), areaPicture.getIdProspect());
     fileService.upload(
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
-    return save(refreshed);
+    save(areaPicture);
+    saveLogConsumption(areaPicture);
+    return areaPictureDetails;
   }
 
-  @Transactional
-  public AreaPicture saveAreaPictureAndLogConsumption(AreaPicture picture) {
+  public AreaPicture saveLogConsumption(AreaPicture picture) {
     areaPictureConsumptionValidator.accept(picture);
 
-    var areaPicture = downloadFromExternalSourceAndSave(picture);
     var usageMetric = 1L;
     var idProspect = picture.getIdProspect();
-    var address = areaPicture.getAddress();
+    var address = picture.getAddress();
     var comment = "Adresse : " + address;
 
     // TODO: Bad ! Only areaPicture must be returned done here
@@ -108,7 +119,7 @@ public class AreaPictureService {
     subscriptionService.addConsumption(
         SubscriptionConsumptionLog.builder()
             .id(randomUUID().toString())
-            .userId(areaPicture.getIdUser())
+            .userId(picture.getIdUser())
             .consumptionType(ROOF_ANALYSIS)
             .usageMetric(usageMetric)
             .consumptionUnit(UNIT)
@@ -116,18 +127,21 @@ public class AreaPictureService {
             .creationDatetime(now())
             .build());
 
-    return areaPicture;
+    return picture;
   }
 
-  public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude) {
+  public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude)
+      throws IOException, InterruptedException, URISyntaxException {
     var guessedMaps = mapLayerService.getAvailableLayersFrom(longitude, latitude);
-    Collections.sort(guessedMaps, Comparator.reverseOrder());
-    guessedMaps.addAll(
-        List.of(
-            mapLayerService.getPCRSLayer(),
-            mapLayerService.getRhonePCRSLayer(),
-            mapLayerService.getDefaultIGNLayer(),
-            mapLayerService.getAirbusLayer()));
+    //    TODO : mapLayerService already return the correct availableLayersFrom coordinates ordered
+    // by latest to oldest
+    //    Collections.sort(guessedMaps, Comparator.reverseOrder());
+    //    guessedMaps.addAll(
+    //        List.of(
+    //            mapLayerService.getPCRSLayer(),
+    //            mapLayerService.getRhonePCRSLayer(),
+    //            mapLayerService.getDefaultIGNLayer(),
+    //            mapLayerService.getAirbusLayer()));
     return guessedMaps;
   }
 

@@ -17,4 +17,17 @@ public class AreaPictureMapLayerMapper {
         .precisionLevelInCm(areaPictureMapLayer.getPrecisionLevelInCm())
         .build();
   }
+
+  public AreaPictureMapLayer toDomain(
+      app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer rest) {
+    return AreaPictureMapLayer.builder()
+        .id(rest.getId())
+        .name(rest.getName())
+        .year(rest.getYear())
+        .source(rest.getSource())
+        .departementName(rest.getDepartementName())
+        .maximumZoomLevel(rest.getMaximumZoomLevel())
+        .precisionLevelInCm(rest.getPrecisionLevelInCm())
+        .build();
+  }
 }

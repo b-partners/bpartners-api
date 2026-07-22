@@ -9,6 +9,7 @@ import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
+import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.file.FileDownloaderImpl;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.AreaPicture;
@@ -30,6 +31,7 @@ import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
 import java.io.File;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +65,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
           fileDownloaderMock);
 
   @Test
-  void save_area_picture_and_add_log() {
+  void save_area_picture_and_add_log() throws URISyntaxException {
     doNothing().when(areaPictureZoomValidatorMock).accept(any());
     var areaPictureMock = mock(AreaPicture.class);
     var geoPositionMock = mock(GeoPosition.class);
@@ -86,9 +88,13 @@ class AreaPictureServiceTest extends MockedThirdParties {
     when(mapLayerServiceMock.getAvailableLayersFrom(geoPositionMock))
         .thenReturn(List.of(areaPictureMapLayerMock));
     when(imageryServiceMock.downloadFromGeodataSource(any()))
-        .thenReturn(mock(AreaPictureDetails.class));
-    when(fileDownloaderMock.get(any(), any())).thenReturn(fileMock);
+        .thenReturn(
+            new AreaPictureDetails()
+                .fileId("fileId")
+                .imagePresignedUrl(new PreSignedURL().value("https://dummy-presigned-url")));
+    when(mapper.toDomain(any(), any(), any(), any())).thenReturn(mock(AreaPicture.class));
     when(fileServiceMock.upload(any(), any(), any(), any())).thenReturn(mock(FileInfo.class));
+    when(fileDownloaderMock.get(any(), any())).thenReturn(fileMock);
     when(jpaRepositoryMock.save(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(mapper.toDomain(any())).thenReturn(areaPictureMock);
@@ -97,7 +103,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
     var subscriptionConsumptionLogCaptor =
         ArgumentCaptor.forClass(SubscriptionConsumptionLog.class);
 
-    var actual = subject.saveAreaPictureAndLogConsumption(areaPictureMock);
+    var actual = subject.saveLogConsumption(areaPictureMock);
 
     verify(subscriptionServiceMock, times(1))
         .addConsumption(subscriptionConsumptionLogCaptor.capture());
@@ -139,8 +145,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
 
     var actualException =
         assertThrows(
-            ServiceUnavailableException.class,
-            () -> subject.saveAreaPictureAndLogConsumption(areaPictureMock));
+            ServiceUnavailableException.class, () -> subject.saveLogConsumption(areaPictureMock));
 
     assertEquals(
         "Address or zone " + randomAddress + " temporarily unavailable",
@@ -168,8 +173,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
 
     var actualException =
         assertThrows(
-            NotImplementedException.class,
-            () -> subject.saveAreaPictureAndLogConsumption(areaPictureMock));
+            NotImplementedException.class, () -> subject.saveLogConsumption(areaPictureMock));
 
     assertEquals(
         "Address or zone " + randomAddress + " not yet supported", actualException.getMessage());

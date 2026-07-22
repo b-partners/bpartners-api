@@ -1,5 +1,6 @@
 package app.bpartners.api.model.mapper;
 
+import app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
@@ -13,15 +14,23 @@ import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class AreaPictureMapper {
   private final AreaPictureValidator validator;
   private final AreaPictureMapLayerService areaPictureMapLayerService;
+  private final AreaPictureMapLayerMapper areaPictureMapLayerMapper;
+  private final AreaPictureRestMapper areaPictureRestMapper;
 
+  @SneakyThrows
   public AreaPicture toDomain(HAreaPicture entity) {
+    areaPictureMapLayerService.getById(entity.getIdLayer());
+    log.info("{}", entity.getIdLayer());
     AreaPictureMapLayer layer = areaPictureMapLayerService.getById(entity.getIdLayer());
     var domain =
         AreaPicture.builder()
@@ -72,9 +81,12 @@ public class AreaPictureMapper {
   }
 
   public AreaPicture toDomain(
-      AreaPictureDetails areaPictureDetails, String idUser, String idProspect) {
+      AreaPictureDetails areaPictureDetails,
+      String areaPictureId,
+      String idUser,
+      String idProspect) {
     return AreaPicture.builder()
-        .id(areaPictureDetails.getId())
+        .id(areaPictureId)
         .address(areaPictureDetails.getAddress())
         .zoomLevel(areaPictureDetails.getZoomLevel())
         .idUser(idUser)
@@ -85,6 +97,20 @@ public class AreaPictureMapper {
         .isExtended(Boolean.TRUE.equals(areaPictureDetails.getIsExtended()))
         .geoPositions(areaPictureDetails.getGeoPositions())
         .shiftNb(areaPictureDetails.getShiftNb())
+        .currentLayer(
+            areaPictureMapLayerMapper.toDomain(
+                Objects.requireNonNull(areaPictureDetails.getActualLayer())))
+        .currentTile(
+            Tile.builder()
+                .arcgisZoom(null)
+                .x(areaPictureDetails.getCurrentTile().getX())
+                .y(areaPictureDetails.getCurrentTile().getY())
+                .build())
+        .currentGeoPosition(areaPictureDetails.getCurrentGeoPosition())
+        .shiftDirection(
+            areaPictureDetails.getShiftDirection() == null
+                ? null
+                : areaPictureRestMapper.toDomain(areaPictureDetails.getShiftDirection()))
         .build();
   }
 
@@ -93,10 +119,13 @@ public class AreaPictureMapper {
         .shiftNb(areaPicture.getShiftNb())
         .address(areaPicture.getAddress())
         .fileId(areaPicture.getIdFileInfo())
-        .filename(areaPicture.getFilename())
         .zoomLevel(areaPicture.getZoomLevel())
         .isExtended(areaPicture.isExtended())
-        .shiftDirection(toRest(areaPicture.getShiftDirection()))
+        .prospectId(areaPicture.getIdProspect())
+        .shiftDirection(
+            areaPicture.getShiftDirection() == null
+                ? null
+                : toRest(areaPicture.getShiftDirection()))
         .isOpaque(areaPicture.isOpaque());
   }
 

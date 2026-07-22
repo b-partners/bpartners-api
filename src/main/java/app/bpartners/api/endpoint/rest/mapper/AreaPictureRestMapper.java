@@ -14,8 +14,7 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,18 +40,6 @@ public class AreaPictureRestMapper {
     Tile referenceTile = toRestTile(domain.getReferenceTile(), zoom);
     int xOffset = metaDataComponent.getXOffset();
     int yOffset = metaDataComponent.getYOffset();
-    List<AreaPictureMapLayer> layers = new ArrayList<>();
-    var existingLayers = domain.getLayers();
-    if (existingLayers != null) {
-      layers.addAll(existingLayers);
-    }
-    layers.addAll(
-        Arrays.asList(
-            areaPictureMapLayerService.getRhonePCRSLayer(),
-            areaPictureMapLayerService.getPCRSLayer(),
-            areaPictureMapLayerService.getDefaultIGNLayer(),
-            areaPictureMapLayerService.getAirbusLayer()));
-    domain.setLayers(layers);
     log.info("Layers={}", domain.getLayers());
 
     return new AreaPictureDetails()
@@ -70,7 +57,7 @@ public class AreaPictureRestMapper {
         .layer(TOUS_FR)
         .availableLayers(List.of(TOUS_FR))
         .actualLayer(layerRestMapper.toRest(domain.getCurrentLayer()))
-        .otherLayers(layers.stream().map(layerRestMapper::toRest).toList())
+        .otherLayers(domain.getLayers().stream().map(layerRestMapper::toRest).toList())
         .currentGeoPosition(domain.getCurrentGeoPosition())
         .geoPositions(domain.getGeoPositions())
         .currentTile(tile)
@@ -83,7 +70,8 @@ public class AreaPictureRestMapper {
         .isOpaque(domain.isOpaque());
   }
 
-  public AreaPicture toDomain(CrupdateAreaPictureDetails rest, String id, String userId) {
+  public AreaPicture toDomain(CrupdateAreaPictureDetails rest, String id, String userId)
+      throws IOException, InterruptedException {
     AreaPictureMapLayer mapLayer;
     validator.accept(rest);
     mapLayer = rest.getLayerId() == null ? null : layerRestMapper.toDomain(rest.getLayerId());

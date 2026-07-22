@@ -1,47 +1,163 @@
 package app.bpartners.api.service.geodata;
 
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
+import app.bpartners.api.model.exception.ImageryServiceException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import lombok.AllArgsConstructor;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-@AllArgsConstructor
+@Slf4j
 public class ImageryService {
-  private final String GEODATA_IMAGERY_BASEURL =
-      "https://hugrzdykhr4whxin6ckuupgtm40uujua.lambda-url.eu-west-3.on.aws/areaPicture";
-  private final ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
+  private static final String AREA_PICTURE_ENDPOINT = "/areaPicture";
+  private static final String AREA_PICTURE_MAP_LAYER_ENDPOINT = "/areaPictureMapLayer";
+  private static final String AREA_PICTURE_MAP_LAYERS_ENDPOINT = "/areaPictureMapLayers";
+  private final String GEODATA_IMAGERY_BASEURL;
+  private final ObjectMapper om;
+  private final HttpClient httpClient;
 
-  public AreaPictureDetails downloadFromGeodataSource(CrupdateAreaPictureDetails areaPicture)
-      throws RuntimeException {
+  public ImageryService(@Value("${geodata.imagery.baseurl}") String geoDataBaseUrl) {
+    this.GEODATA_IMAGERY_BASEURL = geoDataBaseUrl;
+    this.om = new ObjectMapper().registerModule(new JavaTimeModule());
+    this.httpClient = HttpClient.newHttpClient();
+  }
+
+  public AreaPictureDetails downloadFromGeodataSource(CrupdateAreaPictureDetails areaPicture) {
     try {
-      String jsonBody = om.writeValueAsString(areaPicture);
+      String requestBody = om.writeValueAsString(areaPicture);
       HttpRequest request =
           HttpRequest.newBuilder()
-              .uri(URI.create(GEODATA_IMAGERY_BASEURL))
+              .uri(buildUri(AREA_PICTURE_ENDPOINT))
               .header("Content-Type", "application/json")
-              .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+              .header("Accept", "application/json")
+              .POST(HttpRequest.BodyPublishers.ofString(requestBody))
               .build();
-      HttpClient client = HttpClient.newHttpClient();
-      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      if (response.statusCode() != 200) {
-        throw new RuntimeException(
-            "Failed to call GeoData Imagery with status code = "
-                + response.statusCode()
-                + " with body="
-                + response.statusCode());
-      }
+      HttpResponse<String> response = send(request);
+      validateResponse(response);
       return om.readValue(response.body(), AreaPictureDetails.class);
-    } catch (IOException | InterruptedException e) {
+    } catch (JsonProcessingException e) {
+      throw new ImageryServiceException(
+          "Failed to serialize or deserialize GeoData Imagery payload", e);
+    } catch (IOException e) {
+      throw new ImageryServiceException("Failed to communicate with GeoData Imagery API", e);
+    } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new RuntimeException("Cannot call GeoData Imagery API, Failed with exception=", e);
+      throw new ImageryServiceException("GeoData Imagery API request was interrupted", e);
     }
+  }
+
+  public AreaPictureMapLayer getById(String id) {
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(buildUri(AREA_PICTURE_MAP_LAYER_ENDPOINT + "/" + encodePathSegment(id)))
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+    try {
+      HttpResponse<String> response = send(request);
+      validateResponse(response);
+      return om.readValue(response.body(), AreaPictureMapLayer.class);
+    } catch (IOException e) {
+      throw new ImageryServiceException(
+          "Failed to deserialize GeoData Imagery map layer response", e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ImageryServiceException("GeoData Imagery API request was interrupted", e);
+    }
+  }
+
+  public List<AreaPictureMapLayer> getMapLayersFrom(Double longitude, Double latitude) {
+    Map<String, Double> queryParams =
+        Map.of(
+            "longitude", longitude,
+            "latitude", latitude);
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(buildUri(AREA_PICTURE_MAP_LAYERS_ENDPOINT, queryParams))
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+    try {
+      HttpResponse<String> response = send(request);
+      validateResponse(response);
+      return om.readValue(
+          response.body(),
+          om.getTypeFactory().constructCollectionType(List.class, AreaPictureMapLayer.class));
+    } catch (IOException e) {
+      throw new ImageryServiceException(
+          "Failed to deserialize GeoData Imagery map layers response", e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ImageryServiceException("GeoData Imagery API request was interrupted", e);
+    }
+  }
+
+  public String getMapLayersURLFrom(Map<String, Double> queryParams) {
+    String baseUrl = buildUri(AREA_PICTURE_MAP_LAYERS_ENDPOINT).toString();
+    if (queryParams == null || queryParams.isEmpty()) {
+      return baseUrl;
+    }
+    String queryString =
+        queryParams.entrySet().stream()
+            .map(entry -> encode(entry.getKey()) + "=" + encode(String.valueOf(entry.getValue())))
+            .collect(Collectors.joining("&"));
+    return baseUrl + "?" + queryString;
+  }
+
+  private HttpResponse<String> send(HttpRequest request) throws IOException, InterruptedException {
+    return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+  }
+
+  private void validateResponse(HttpResponse<String> response) {
+    if (response.statusCode() < 200 || response.statusCode() >= 300) {
+      throw new ImageryServiceException(
+          "GeoData Imagery API request failed. "
+              + "Status code: "
+              + response.statusCode()
+              + ", body: "
+              + response.body());
+    }
+  }
+
+  private URI buildUri(String endpoint) {
+    return URI.create(
+        removeTrailingSlash(GEODATA_IMAGERY_BASEURL) + "/" + removeLeadingSlash(endpoint));
+  }
+
+  private URI buildUri(String endpoint, Map<String, Double> queryParams) {
+
+    return URI.create(getMapLayersURLFrom(queryParams));
+  }
+
+  private String encode(String value) {
+    return URLEncoder.encode(value, StandardCharsets.UTF_8);
+  }
+
+  private String encodePathSegment(String value) {
+    return encode(value);
+  }
+
+  private String removeTrailingSlash(String value) {
+    log.info("URI={}", value);
+    return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+  }
+
+  private String removeLeadingSlash(String value) {
+    return value.startsWith("/") ? value.substring(1) : value;
   }
 }

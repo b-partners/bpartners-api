@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 
 @Slf4j
 class ImageryServiceTest {
-  private ImageryService subject = new ImageryService();
+  private ImageryService subject =
+      new ImageryService("https://hugrzdykhr4whxin6ckuupgtm40uujua.lambda-url.eu-west-3.on.aws");
 
   @Test
   void retrieve_area_picture_details_from_geodata_api_ok() {

@@ -20,13 +20,27 @@
             margin: 18px 28px;
         }
 
+        /* Prevent trailing blank page at the end of document rendering */
+        .page:last-of-type,
+        body > .page:last-child,
+        body > section:last-child {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+        }
+
         /* Standard page blocks using structural margins rather than flex/table constraints */
         .page {
             width: 100%;
             display: block;
             position: relative;
             page-break-after: always;
-            page-break-inside: auto;
+            break-after: page;
+            page-break-inside: avoid;
+        }
+
+        .page:last-of-type {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
         }
 
         /* Clearfix utility to fix floated containers without using display:table */
@@ -752,9 +766,10 @@
     </div>
 </section>
 
-<section th:if="${pagesFacade3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pagesFacade3D}"
+<section th:if="${pagesFacade3D and conf.showAnnotation3dPages}"
+         th:each="page, pageStat : ${pagesFacade3D}"
          class="page"
-         th:classappend="${pageStat.last and llm == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and roofSummary == null and (customPages == null or #lists.isEmpty(customPages)) and llm == null} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les façades du bâtiment </h2>
 

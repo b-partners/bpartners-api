@@ -6,9 +6,11 @@ import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.service.areapicture.AreaPictureService;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 class AreaPictureServiceIT extends MockedThirdParties {
   @Autowired AreaPictureService areaPictureService;
 
@@ -20,6 +22,6 @@ class AreaPictureServiceIT extends MockedThirdParties {
 
     var actual = areaPictureService.getMapLayers(longitude, latitude);
 
-    assertEquals("cite:PCRS.LAMB93", actual.get(0).getName());
+    assertEquals("PCRS", actual.get(0).getName());
   }
 }

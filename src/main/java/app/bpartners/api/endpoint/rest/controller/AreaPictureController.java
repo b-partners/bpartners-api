@@ -8,7 +8,6 @@ import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.service.areapicture.AreaPictureService;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -58,8 +57,7 @@ public class AreaPictureController {
   @GetMapping("/areaPictureMapLayers")
   public List<AreaPictureMapLayer> getAreaPictureMapLayers(
       @RequestParam(name = "longitude") Double longitude,
-      @RequestParam(name = "latitude") Double latitude)
-      throws IOException, InterruptedException, URISyntaxException {
+      @RequestParam(name = "latitude") Double latitude) {
     return service.getMapLayers(longitude, latitude).stream().map(layerMapper::toRest).toList();
   }
 }

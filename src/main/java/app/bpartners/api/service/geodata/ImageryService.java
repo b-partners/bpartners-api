@@ -4,7 +4,6 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.model.exception.ImageryServiceException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
@@ -47,17 +46,17 @@ public class ImageryService {
               .header("Accept", "application/json")
               .POST(HttpRequest.BodyPublishers.ofString(requestBody))
               .build();
+
       HttpResponse<String> response = send(request);
       validateResponse(response);
+
       return om.readValue(response.body(), AreaPictureDetails.class);
-    } catch (JsonProcessingException e) {
-      throw new ImageryServiceException(
-          "Failed to serialize or deserialize GeoData Imagery payload", e);
-    } catch (IOException e) {
-      throw new ImageryServiceException("Failed to communicate with GeoData Imagery API", e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new ImageryServiceException("GeoData Imagery API request was interrupted", e);
+      throw new ImageryServiceException(
+          "Thread was interrupted while calling GeoData Imagery service", e);
+    } catch (IOException e) {
+      throw new ImageryServiceException("Failed to process GeoData Imagery service response", e);
     }
   }
 
@@ -68,16 +67,17 @@ public class ImageryService {
             .header("Accept", "application/json")
             .GET()
             .build();
+
     try {
       HttpResponse<String> response = send(request);
       validateResponse(response);
       return om.readValue(response.body(), AreaPictureMapLayer.class);
-    } catch (IOException e) {
-      throw new ImageryServiceException(
-          "Failed to deserialize GeoData Imagery map layer response", e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new ImageryServiceException("GeoData Imagery API request was interrupted", e);
+      throw new ImageryServiceException(
+          "Thread was interrupted while calling GeoData Imagery service", e);
+    } catch (IOException e) {
+      throw new ImageryServiceException("Failed to process GeoData Imagery service response", e);
     }
   }
 
@@ -88,22 +88,23 @@ public class ImageryService {
             "latitude", latitude);
     HttpRequest request =
         HttpRequest.newBuilder()
-            .uri(buildUri(AREA_PICTURE_MAP_LAYERS_ENDPOINT, queryParams))
+            .uri(buildUri(queryParams))
             .header("Accept", "application/json")
             .GET()
             .build();
+
     try {
       HttpResponse<String> response = send(request);
       validateResponse(response);
       return om.readValue(
           response.body(),
           om.getTypeFactory().constructCollectionType(List.class, AreaPictureMapLayer.class));
-    } catch (IOException e) {
-      throw new ImageryServiceException(
-          "Failed to deserialize GeoData Imagery map layers response", e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new ImageryServiceException("GeoData Imagery API request was interrupted", e);
+      throw new ImageryServiceException(
+          "Thread was interrupted while calling GeoData Imagery service", e);
+    } catch (IOException e) {
+      throw new ImageryServiceException("Failed to process GeoData Imagery service response", e);
     }
   }
 
@@ -139,8 +140,7 @@ public class ImageryService {
         removeTrailingSlash(GEODATA_IMAGERY_BASEURL) + "/" + removeLeadingSlash(endpoint));
   }
 
-  private URI buildUri(String endpoint, Map<String, Double> queryParams) {
-
+  private URI buildUri(Map<String, Double> queryParams) {
     return URI.create(getMapLayersURLFrom(queryParams));
   }
 
@@ -153,7 +153,6 @@ public class ImageryService {
   }
 
   private String removeTrailingSlash(String value) {
-    log.info("URI={}", value);
     return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
   }
 

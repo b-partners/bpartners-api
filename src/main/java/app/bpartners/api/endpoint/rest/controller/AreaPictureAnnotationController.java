@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @AllArgsConstructor
 public class AreaPictureAnnotationController {
+
   private final AreaPictureAnnotationService service;
   private final AreaPictureAnnotationRestMapper mapper;
   private final AreaPictureAnnotationConverter areaPictureAnnotationConverter;
@@ -64,16 +65,7 @@ public class AreaPictureAnnotationController {
     return service
         .findAllDraftByAccountIdAndAreaPictureId(authenticatedUserId, areaPictureId, page, pageSize)
         .stream()
-        .map(
-            annotation -> {
-              try {
-                return mapper.toRestDraft(authenticatedUserId, annotation);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-              }
-            })
+        .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
         .toList();
   }
 
@@ -84,16 +76,7 @@ public class AreaPictureAnnotationController {
       @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return service.findAllDraftByAccountId(authenticatedUserId, page, pageSize).stream()
-        .map(
-            annotation -> {
-              try {
-                return mapper.toRestDraft(authenticatedUserId, annotation);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-              }
-            })
+        .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
         .toList();
   }
 
@@ -105,7 +88,6 @@ public class AreaPictureAnnotationController {
       throws IOException {
     var userId = AuthProvider.getAuthenticatedUserId();
     byte[] globalImageBytes = globalImage3D != null ? globalImage3D.getBytes() : null;
-
     return service.exportAreaPictureAnnotationToPdf(userId, annotation, globalImageBytes);
   }
 
@@ -113,7 +95,6 @@ public class AreaPictureAnnotationController {
   public Map<String, ConverterAnnotation> convertLatLonPolygonToPixel(
       @PathVariable(name = "aId") String ignored,
       @RequestBody Map<String, ConverterAnnotation> converterAnnotationMap) {
-
     converterValidator.accept(converterAnnotationMap);
     return areaPictureAnnotationConverter.toPixel(converterAnnotationMap);
   }
@@ -122,7 +103,6 @@ public class AreaPictureAnnotationController {
   public Map<String, ConverterAnnotation> convertPixelToLatLon(
       @PathVariable(name = "aId") String ignored,
       @RequestBody Map<String, ConverterAnnotation> converterAnnotationMap) {
-
     converterValidator.accept(converterAnnotationMap);
     return areaPictureAnnotationConverter.toLatLong(converterAnnotationMap);
   }

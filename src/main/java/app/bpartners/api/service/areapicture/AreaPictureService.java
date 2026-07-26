@@ -19,9 +19,7 @@ import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.geodata.ImageryService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -76,7 +74,6 @@ public class AreaPictureService {
         imageryService.downloadFromGeodataSource(mapper.toCrupdatedAreaPictureDetails(areaPicture));
     areaPictureDetails.setId(areaPicture.getId());
     areaPictureDetails.setProspectId(areaPicture.getIdProspect());
-    log.info("Retrieved areaPictureDetails = {}", areaPictureDetails);
     var refreshed =
         mapper.toDomain(
             areaPictureDetails,
@@ -84,10 +81,8 @@ public class AreaPictureService {
             areaPicture.getIdUser(),
             areaPicture.getIdProspect());
     areaPicture = refreshed;
-    log.info("Refreshed supposed to be saved = {}", refreshed);
     String filePresignedUrl =
         Objects.requireNonNull(areaPictureDetails.getImagePresignedUrl()).getValue();
-    assert filePresignedUrl != null;
     var downloadedFile = fileDownloader.get(areaPicture.getFilename(), new URI(filePresignedUrl));
     fileService.upload(
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
@@ -130,19 +125,8 @@ public class AreaPictureService {
     return picture;
   }
 
-  public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude)
-      throws IOException, InterruptedException, URISyntaxException {
-    var guessedMaps = mapLayerService.getAvailableLayersFrom(longitude, latitude);
-    //    TODO : mapLayerService already return the correct availableLayersFrom coordinates ordered
-    // by latest to oldest
-    //    Collections.sort(guessedMaps, Comparator.reverseOrder());
-    //    guessedMaps.addAll(
-    //        List.of(
-    //            mapLayerService.getPCRSLayer(),
-    //            mapLayerService.getRhonePCRSLayer(),
-    //            mapLayerService.getDefaultIGNLayer(),
-    //            mapLayerService.getAirbusLayer()));
-    return guessedMaps;
+  public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude) {
+    return mapLayerService.getAvailableLayersFrom(longitude, latitude);
   }
 
   @Transactional

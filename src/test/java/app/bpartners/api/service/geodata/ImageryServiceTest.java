@@ -26,9 +26,18 @@ class ImageryServiceTest {
                 .isExtended(true)
                 .isOpaque(false));
 
-    log.info("Actual={}", actual);
-
     assertEquals(272351, actual.getxTile());
     assertEquals(191548, actual.getyTile());
+  }
+
+  @Test
+  void retrieve_area_picture_by_id_from_geodata_api_ok() {
+    var actualPcrs = subject.getById("726f5b3b-d23b-40c3-b38e-68a43d7ae155");
+    var actualCharente2025 = subject.getById("4b8e79bd-12ac-4c1b-8195-f9575d5fc4c8");
+
+    assertEquals("PCRS", actualPcrs.getName());
+    assertEquals("ALL", actualPcrs.getDepartementName());
+    assertEquals("CHARENTE_2025", actualCharente2025.getName());
+    assertEquals("Charente", actualCharente2025.getDepartementName());
   }
 }

@@ -78,6 +78,7 @@ Globals:
         GOOGLE_CAPTCHA_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/google/captcha/url}}'
         GEO_JOBS_ADMIN_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/geo-jobs/admin/api-key}}'
         GEO_JOBS_BASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/geo-jobs/base-url}}'
+        GEODATA_IMAGERY_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/geodata/base-url}}'
 
 Parameters:
   Env:

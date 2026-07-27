@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @AllArgsConstructor
 public class AreaPictureAnnotationController {
+
   private final AreaPictureAnnotationService service;
   private final AreaPictureAnnotationRestMapper mapper;
   private final AreaPictureAnnotationConverter areaPictureAnnotationConverter;
@@ -87,7 +88,6 @@ public class AreaPictureAnnotationController {
       throws IOException {
     var userId = AuthProvider.getAuthenticatedUserId();
     byte[] globalImageBytes = globalImage3D != null ? globalImage3D.getBytes() : null;
-
     return service.exportAreaPictureAnnotationToPdf(userId, annotation, globalImageBytes);
   }
 
@@ -95,7 +95,6 @@ public class AreaPictureAnnotationController {
   public Map<String, ConverterAnnotation> convertLatLonPolygonToPixel(
       @PathVariable(name = "aId") String ignored,
       @RequestBody Map<String, ConverterAnnotation> converterAnnotationMap) {
-
     converterValidator.accept(converterAnnotationMap);
     return areaPictureAnnotationConverter.toPixel(converterAnnotationMap);
   }
@@ -104,7 +103,6 @@ public class AreaPictureAnnotationController {
   public Map<String, ConverterAnnotation> convertPixelToLatLon(
       @PathVariable(name = "aId") String ignored,
       @RequestBody Map<String, ConverterAnnotation> converterAnnotationMap) {
-
     converterValidator.accept(converterAnnotationMap);
     return areaPictureAnnotationConverter.toLatLong(converterAnnotationMap);
   }

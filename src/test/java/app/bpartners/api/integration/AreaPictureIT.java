@@ -2,15 +2,16 @@ package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.AIRBUS;
 import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER;
-import static app.bpartners.api.endpoint.rest.model.AreaPictureImageSource.GEOSERVER_IGN;
 import static app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer.TOUS_FR;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.lang.Boolean.TRUE;
+import static java.time.Month.JANUARY;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -19,19 +20,23 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.api.AreaPictureApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
+import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.endpoint.rest.model.Tile;
 import app.bpartners.api.endpoint.rest.model.Zoom;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
+import app.bpartners.api.file.FileDownloaderImpl;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.mapper.AreaPictureMapLayerMapper;
+import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.repository.AccountHolderRepository;
 import app.bpartners.api.repository.AccountRepository;
-import app.bpartners.api.repository.AreaPictureMapLayerRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.ban.response.GeoJsonProperty;
@@ -39,16 +44,18 @@ import app.bpartners.api.repository.ban.response.GeoJsonResponse;
 import app.bpartners.api.repository.google.geocode.GeoCodeApi;
 import app.bpartners.api.service.areapicture.AreaPictureZoomValidator;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
+import app.bpartners.api.service.geodata.ImageryService;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.wms.ArcgisZoom;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
-import app.bpartners.api.service.wms.imageSource.WmsImageSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,48 +96,137 @@ public class AreaPictureIT extends S3MockedThirdParties {
                   .build())
           .build();
   @Autowired ObjectMapper om;
-  @Autowired AreaPictureMapLayerService mapLayerService;
-  @Autowired AreaPictureMapLayerRepository areaPictureMapLayerRepositoryMock;
+  @MockBean AreaPictureMapLayerService mapLayerServiceMock;
   @MockBean BanApi banApiMock;
-  @MockBean WmsImageSource wmsImageSourceMock;
   @Autowired AccountRepository accountRepository;
   @MockBean AccountHolderRepository accountHolderRepository;
   @MockBean GeoCodeApi geoCodeApiMock;
   @MockBean MetaDataComponent metaDataComponentMock;
   @MockBean AreaPictureZoomValidator areaPictureZoomValidatorMock;
+  @MockBean ImageryService imageryServiceMock;
+  @Autowired AreaPictureMapper areaPictureMapper;
+  @Autowired AreaPictureRestMapper areaPictureRestMapper;
+  @Autowired AreaPictureMapLayerMapper areaPictureMapLayerMapper;
+  @MockBean FileDownloaderImpl fileDownloaderImplMock;
 
-  static AreaPictureMapLayer geoserverCharenteLayer() {
+  static AreaPictureMapLayer charenteLayer() {
     return new AreaPictureMapLayer()
-        .id("area_picture_map_1_id")
-        .name("area_picture_map_1_name")
-        .year(2023)
-        .precisionLevelInCm(20)
+        .id("08af0028-69ae-43a4-879a-a1950508ae6c")
+        .name("CHARENTE_2019_5cm")
+        .year(2019)
+        .precisionLevelInCm(5)
         .maximumZoomLevel(HOUSES_0)
-        .departementName("charente")
-        .lastUpdatedAt(LocalDate.of(2023, 1, 1))
+        .departementName("Charente")
+        .lastUpdatedAt(LocalDate.parse("2019-01-01"))
+        .creationDateTime(null)
+        .expiredAt(null)
         .maximumZoom(new Zoom().level(HOUSES_0).number(20))
         .source(GEOSERVER);
+  }
+
+  static app.bpartners.api.model.AreaPictureMapLayer domainCharenteLayer() {
+    return app.bpartners.api.model.AreaPictureMapLayer.builder()
+        .id("08af0028-69ae-43a4-879a-a1950508ae6c")
+        .name("CHARENTE_2019_5cm")
+        .year(2019)
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("Charente")
+        .lastUpdatedAt(LocalDate.parse("2019-01-01"))
+        .precisionLevelInCm(5)
+        .source(GEOSERVER)
+        .build();
+  }
+
+  static AreaPictureMapLayer angouleme2019() {
+    return new AreaPictureMapLayer()
+        .id("5c80c22a-b5a4-4a34-8a5a-4f8fd9028a2a")
+        .name("Angouleme_2019")
+        .year(2019)
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("Charente")
+        .lastUpdatedAt(LocalDate.parse("2019-01-01"))
+        .creationDateTime(null)
+        .expiredAt(null)
+        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
+        .source(GEOSERVER);
+  }
+
+  static app.bpartners.api.model.AreaPictureMapLayer domainIGN2025() {
+
+    return app.bpartners.api.model.AreaPictureMapLayer.builder()
+        .id("1cccfc17-cbef-4320-bdfa-0d1920b91f11")
+        .name("FLUX_IGN_2025_20CM")
+        .year(2025)
+        .precisionLevelInCm(20)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("ALL")
+        .lastUpdatedAt(LocalDate.parse("2025-01-01"))
+        .source(GEOSERVER)
+        .build();
+  }
+
+  static app.bpartners.api.model.AreaPictureMapLayer domainAirbus2025() {
+
+    return app.bpartners.api.model.AreaPictureMapLayer.builder()
+        .id("532ea7da-918e-4bb7-bc34-e167a3829e19")
+        .name("AIRBUS_PNEO")
+        .year(2025)
+        .precisionLevelInCm(30)
+        .maximumZoomLevel(BUILDING)
+        .departementName("ALL")
+        .lastUpdatedAt(LocalDate.parse("2025-01-01"))
+        .source(AIRBUS)
+        .build();
+  }
+
+  static app.bpartners.api.model.AreaPictureMapLayer domainPCRS2025() {
+    return app.bpartners.api.model.AreaPictureMapLayer.builder()
+        .id("726f5b3b-d23b-40c3-b38e-68a43d7ae155")
+        .name("PCRS")
+        .year(2025)
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("ALL")
+        .lastUpdatedAt(LocalDate.parse("2025-01-01"))
+        .source(GEOSERVER)
+        .build();
+  }
+
+  static app.bpartners.api.model.AreaPictureMapLayer domainAngouleme2019() {
+    return app.bpartners.api.model.AreaPictureMapLayer.builder()
+        .id("5c80c22a-b5a4-4a34-8a5a-4f8fd9028a2a")
+        .name("Angouleme_2019")
+        .year(2019)
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("Charente")
+        .lastUpdatedAt(LocalDate.parse("2019-01-01"))
+        .source(GEOSERVER)
+        .build();
   }
 
   static AreaPictureMapLayer geoserverIGNPrimaryDefaultServerLayer() {
     return new AreaPictureMapLayer()
         .id("1cccfc17-cbef-4320-bdfa-0d1920b91f11")
-        .name("ORTHOIMAGERY.ORTHOPHOTOS")
-        .year(2023)
+        .name("FLUX_IGN_2025_20CM")
+        .year(2025)
         .lastUpdatedAt(LocalDate.of(2023, 1, 1))
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
         .maximumZoom(new Zoom().level(HOUSES_0).number(20))
-        .source(GEOSERVER_IGN);
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
+        .source(GEOSERVER);
   }
 
   static AreaPictureMapLayer airbusDefaultServerLayer() {
     return new AreaPictureMapLayer()
         .id("532ea7da-918e-4bb7-bc34-e167a3829e19")
-        .name("AIRBUS.PNEO")
+        .name("AIRBUS_PNEO")
         .year(2025)
-        .lastUpdatedAt(LocalDate.of(2025, 1, 1))
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
         .precisionLevelInCm(30)
         .maximumZoomLevel(BUILDING)
         .departementName("ALL")
@@ -141,9 +237,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
   static AreaPictureMapLayer geoserverPCRSLayer() {
     return new AreaPictureMapLayer()
         .id("726f5b3b-d23b-40c3-b38e-68a43d7ae155")
-        .name("cite:PCRS.LAMB93")
-        .year(2024)
-        .lastUpdatedAt(LocalDate.of(2024, 1, 1))
+        .name("PCRS")
+        .year(2025)
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
         .precisionLevelInCm(5)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -151,13 +247,26 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .source(GEOSERVER);
   }
 
+  static app.bpartners.api.model.AreaPictureMapLayer domainRhonePCRS2025() {
+    return app.bpartners.api.model.AreaPictureMapLayer.builder()
+        .id("2f343dba-dd5f-4895-9006-49472f576c02")
+        .name("Auvergne_Rhone_Alpes_PCRS_5cm")
+        .year(2025)
+        .precisionLevelInCm(5)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("ALL")
+        .lastUpdatedAt(LocalDate.parse("2025-01-01"))
+        .source(GEOSERVER)
+        .build();
+  }
+
   static AreaPictureMapLayer geoserverRhonePCRSLayer() {
     return new AreaPictureMapLayer()
         .id("2f343dba-dd5f-4895-9006-49472f576c02")
-        .name("cite:PHOTO_AERIENNE")
-        .year(2024)
-        .lastUpdatedAt(LocalDate.of(2024, 1, 1))
-        .precisionLevelInCm(20)
+        .name("Auvergne_Rhone_Alpes_PCRS_5cm")
+        .year(2025)
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
+        .precisionLevelInCm(5)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
         .maximumZoom(new Zoom().level(HOUSES_0).number(20))
@@ -168,8 +277,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return new AreaPictureMapLayer()
         .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
         .name("FLUX_IGN_2023_20CM")
-        .year(2023)
-        .lastUpdatedAt(LocalDate.of(2023, 1, 1))
+        .year(2020)
+        .lastUpdatedAt(LocalDate.of(2020, JANUARY, 1))
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -177,28 +286,42 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .source(GEOSERVER);
   }
 
-  static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverCharenteLayer() {
+  static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverIGNServerLayer() {
     return app.bpartners.api.model.AreaPictureMapLayer.builder()
-        .id("area_picture_map_1_id")
-        .name("area_picture_map_1_name")
-        .year(2023)
-        .departementName("charente")
-        .source(GEOSERVER)
-        .maximumZoomLevel(HOUSES_0)
+        .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
+        .name("FLUX_IGN_2023_20CM")
+        .year(2020)
+        .lastUpdatedAt(LocalDate.of(2020, JANUARY, 1))
         .precisionLevelInCm(20)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("ALL")
+        .source(GEOSERVER)
         .build();
   }
 
-  static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverIGNLayer() {
-    return app.bpartners.api.model.AreaPictureMapLayer.builder()
-        .id("1cccfc17-cbef-4320-bdfa-0d1920b91f11")
-        .name("ORTHOIMAGERY.ORTHOPHOTOS")
-        .year(2023)
-        .lastUpdatedAt(LocalDate.of(2023, 1, 1))
-        .departementName("ALL")
-        .source(GEOSERVER_IGN)
+  static AreaPictureMapLayer restGeoserverCharenteLayerLatest() {
+    return new AreaPictureMapLayer()
+        .id("4b8e79bd-12ac-4c1b-8195-f9575d5fc4c8")
+        .name("CHARENTE_2025")
+        .year(2025)
+        .departementName("Charente")
+        .source(GEOSERVER)
         .maximumZoomLevel(HOUSES_0)
-        .precisionLevelInCm(20)
+        .maximumZoom(new Zoom().level(HOUSES_0).number(20))
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
+        .precisionLevelInCm(5);
+  }
+
+  static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverCharenteLayerLatest() {
+    return app.bpartners.api.model.AreaPictureMapLayer.builder()
+        .id("4b8e79bd-12ac-4c1b-8195-f9575d5fc4c8")
+        .name("CHARENTE_2025")
+        .year(2025)
+        .departementName("Charente")
+        .source(GEOSERVER)
+        .maximumZoomLevel(HOUSES_0)
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
+        .precisionLevelInCm(5)
         .build();
   }
 
@@ -222,9 +345,11 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .prospectId(PROSPECT_1_ID)
         .otherLayers(
             List.of(
-                geoserverCharenteLayer(),
-                geoserverRhonePCRSLayer(),
+                restGeoserverCharenteLayerLatest(),
+                charenteLayer(),
+                angouleme2019(),
                 geoserverPCRSLayer(),
+                geoserverRhonePCRSLayer(),
                 geoserverIGNPrimaryDefaultServerLayer(),
                 airbusDefaultServerLayer()))
         .layer(DEFAULT_OSM_LAYER)
@@ -284,9 +409,11 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .layer(DEFAULT_OSM_LAYER)
         .otherLayers(
             List.of(
-                geoserverCharenteLayer(),
-                geoserverRhonePCRSLayer(),
+                restGeoserverCharenteLayerLatest(),
+                charenteLayer(),
+                angouleme2019(),
                 geoserverPCRSLayer(),
+                geoserverRhonePCRSLayer(),
                 geoserverIGNPrimaryDefaultServerLayer(),
                 airbusDefaultServerLayer()))
         .createdAt(Instant.parse("2022-01-08T01:00:00Z"))
@@ -334,34 +461,30 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   static CrupdateAreaPictureDetails crupdatableAreaPictureDetails() {
-    String fileId = randomUUID().toString();
     return new CrupdateAreaPictureDetails()
         .address("Angoulême")
-        .fileId(fileId)
-        .prospectId(PROSPECT_1_ID)
+        .fileId("43bc1920-1d55-4106-8229-c12fe1a24b8c")
+        .prospectId("prospect1_id")
         .zoomLevel(HOUSES_0)
         .createdAt(null)
         .shiftNb(0)
-        .layerId("area_picture_map_1_id")
+        .isExtended(true)
         .updatedAt(null);
   }
 
   static AreaPictureDetails createFrom(CrupdateAreaPictureDetails crupdate, String payloadId) {
-    var tile = DEFAULT_KNOWN_TILE;
     ZoomLevel zoomLevel = crupdate.getZoomLevel();
     var isExtended = TRUE.equals(crupdate.getIsExtended());
-    int xTile = tile.getX();
-    int yTile = tile.getY();
     Zoom zoom = new Zoom().level(zoomLevel).number(ArcgisZoom.from(zoomLevel).getZoomLevel());
-    Tile currentTile = new Tile().x(xTile).y(yTile).zoom(zoom);
+    Tile currentTile = new Tile().x(524744).y(374510).zoom(zoom);
     return new AreaPictureDetails()
         .id(payloadId)
-        .xTile(xTile)
-        .yTile(yTile)
+        .xTile(524744)
+        .yTile(374510)
         .address(crupdate.getAddress())
         .prospectId(crupdate.getProspectId())
         .fileId(crupdate.getFileId())
-        .actualLayer(geoserverCharenteLayer())
+        .actualLayer(charenteLayer())
         .zoomLevel(zoomLevel)
         .otherLayers(
             List.of(
@@ -369,7 +492,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 geoserverRhonePCRSLayer(),
                 geoserverIGNPrimaryDefaultServerLayer()))
         .filename(null)
-        .layer(TOUS_FR)
+        .layer(null)
         .currentTile(currentTile)
         .referenceTile(getReferenceTile(currentTile, isExtended))
         // need to update or nullify createdAt and updatedAt during equality check
@@ -377,8 +500,8 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .zoom(zoom)
         .isExtended(isExtended)
         .shiftNb(0)
-        .xOffset(1234)
-        .yOffset(123)
+        .xOffset(1030)
+        .yOffset(1410)
         .isOpaque(false)
         .updatedAt(null);
   }
@@ -387,25 +510,24 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return TestUtils.anApiClient(null, JOE_DOE_API_KEY, localPort);
   }
 
+  private @NotNull File getMockJpegFile() {
+    FileSystemResource mockJpegResource =
+        new FileSystemResource(
+            this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
+    return mockJpegResource.getFile();
+  }
+
   @BeforeEach
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpBanApiMock(banApiMock);
-    setUpWmsImageSourceMock(wmsImageSourceMock);
     setUpUserSubscription(subscriptionService);
     when(metaDataComponentMock.getXOffset()).thenReturn(1234);
     when(metaDataComponentMock.getYOffset()).thenReturn(123);
     when(metaDataComponentMock.getAirbusYear()).thenReturn(2025);
-    when(metaDataComponentMock.getLastUpdatedAt()).thenReturn(LocalDate.of(2025, 1, 1));
+    when(metaDataComponentMock.getLastUpdatedAt()).thenReturn(LocalDate.of(2025, JANUARY, 1));
     doNothing().when(areaPictureZoomValidatorMock).accept(any());
-  }
-
-  private void setUpWmsImageSourceMock(WmsImageSource wmsImageSource) {
-    FileSystemResource mockJpegFile =
-        new FileSystemResource(
-            this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
-    when(wmsImageSource.downloadImage(any())).thenReturn(mockJpegFile.getFile());
   }
 
   void setUpBanApiMock(BanApi banApi) {
@@ -435,6 +557,28 @@ public class AreaPictureIT extends S3MockedThirdParties {
 
   @Test
   void joe_doe_read_his_pictures_ok() throws ApiException {
+    when(mapLayerServiceMock.getById(any()))
+        .thenReturn(
+            app.bpartners.api.model.AreaPictureMapLayer.builder()
+                .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
+                .name("FLUX_IGN_2023_20CM")
+                .year(2020)
+                .lastUpdatedAt(LocalDate.of(2020, JANUARY, 1))
+                .precisionLevelInCm(20)
+                .maximumZoomLevel(HOUSES_0)
+                .departementName("ALL")
+                .source(GEOSERVER)
+                .build());
+    when(mapLayerServiceMock.getAvailableLayersFrom(any()))
+        .thenReturn(
+            List.of(
+                domainGeoserverCharenteLayerLatest(),
+                domainCharenteLayer(),
+                domainAngouleme2019(),
+                domainPCRS2025(),
+                domainRhonePCRS2025(),
+                domainIGN2025(),
+                domainAirbus2025()));
     ApiClient joeDoeClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(joeDoeClient);
 
@@ -495,26 +639,65 @@ public class AreaPictureIT extends S3MockedThirdParties {
                 .score(0.0));
     when(accountHolderRepository.findById(any()))
         .thenReturn(AccountHolder.builder().id("accountHolderId").build());
+    when(mapLayerServiceMock.getById(payload.getLayerId()))
+        .thenReturn(app.bpartners.api.model.AreaPictureMapLayer.builder().build());
+    when(imageryServiceMock.downloadFromGeodataSource(any()))
+        .thenReturn(expectedAreaPictureDetails());
+    when(fileDownloaderImplMock.get(any(), any())).thenReturn(getMockJpegFile());
 
     var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
 
-    log.info("AreaPictureDetails={}", actual);
     AreaPictureDetails expected = removeAvailableLayers(createFrom(payload, payloadId));
     expected.setGeoPositions(actual.getGeoPositions());
     expected.setCurrentGeoPosition(actual.getCurrentGeoPosition());
+    assertNotNull(actual.getImagePresignedUrl().getValue());
+    actual.setImagePresignedUrl(null);
     assertEquals(expected, removeAvailableLayers(ignoreGeneratedDataOf(actual)));
   }
 
-  @Test
-  void map_layer_guesser_ok() {
-    GeoUtils.Coordinate coordinates = SOMEWHERE_IN_CHARENTE_KNOWN_COORDINATES;
-
-    var guessedLayers =
-        mapLayerService.getAvailableLayersFrom(
+  public AreaPictureDetails expectedAreaPictureDetails() {
+    Zoom zoom = new Zoom().level(HOUSES_0).number(20);
+    Tile currentTile = new Tile().x(524744).y(374510).zoom(zoom);
+    Tile referenceTile = new Tile().x(524741).y(374507).zoom(zoom);
+    return new AreaPictureDetails()
+        .id("05caa230-4f29-4461-bbee-7d48a97e9e39")
+        .xTile(524744)
+        .yTile(374510)
+        .xOffset(1030)
+        .yOffset(1410)
+        .zoom(zoom)
+        .currentTile(currentTile)
+        .referenceTile(referenceTile)
+        .currentGeoPosition(
             new app.bpartners.api.endpoint.rest.model.GeoPosition()
-                .longitude(coordinates.getLongitude())
-                .latitude(coordinates.getLatitude()));
-
-    assertEquals(List.of(domainGeoserverCharenteLayer()), guessedLayers);
+                .score(0.0)
+                .longitude(0.1567288)
+                .latitude(45.6488766))
+        .geoPositions(
+            List.of(
+                new app.bpartners.api.endpoint.rest.model.GeoPosition()
+                    .score(0.0)
+                    .longitude(0.1567288)
+                    .latitude(45.6488766)))
+        .imagePresignedUrl(
+            new PreSignedURL()
+                .value(
+                    "https://preprod-storage-bucket-geodata-b0fc7615-bucket-o0beeg6cdla6.s3.eu-west-3.amazonaws.com/CHARENTE_2019_5cm_HOUSES_0_524741_374507_extended?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEG8aCWV1LXdlc3QtMyJHMEUCIEFDPSI7SjoLSLsrxShXRpB7NlLgnIUFhMC9cyFpXNjRAiEAyWlz4kMxVOlsZ%2FeGxQ3d423eYOCrvCXQNxr6iRXOA68qxwQIOBAAGgwxOTQ3MjI0MjcyMTMiDE75ogE4i09BIlRpTyqkBAM8HkbfL07leD6cuUaIH3RgEDwZJfYP%2FvVvN4gfJBfmzsx8DrXxk9AdBPGycBrkjUT53sCCUBTsqlAZqP%2FyA6Le6xXXDTyBBVgoATGuiIV8mmJ3oRzG%2BTWnazpr9hAOgRxRltnPhJT8PqgYfik27f0SbPpEO9V09lXF2FKptNyJur72FyATO95JPPeVCE8jxXxp1mPxkR6xZ3mJqenYkt0fnPVcxQPb2FxWDfP4JX37uqeQCJfFPa5c5XAIDtts%2Bzv36SxHL01Z%2BswrKNwBcbsTPMC6nWz0z%2FK9EtHupZ1Y56Xx1tUNE1eRJaSHXMztUrp7qW%2BAHoES6iP%2BmtKqcb6WMD9yFRY5ZlIzaGtjApt432y6%2FKXVNlyk1jy1e%2F1t8PjIpTYld9dAqpcEUlFFNLNeVZXQC4jByzl2xw8%2FmElAwg8YrXUNmdWIsz%2BWJq%2FVaKMw%2Fj%2FHv%2FyS3c4MUgOyMmkmFyfEaEFJUb%2BueIpLKun0M19AbmscUCSDF0%2BY16tBA6mvRd%2BV5dwZmXnjlY4iQQn4qNJpZo6DhS2P%2B9J6WHVtOVAjOm7JGwWkoWf9MLOs4wo%2FDy1cn6uX%2Baxt1ubw5FA1r4OxZkfXMizkQ8nSRdJs9MqbAi0X1wWEZ8kT64EmDdoqamCbfCJLxsa8k2lU0IZAwiF2MeiHIFSWNlcFWUmzYif9L6BQH4gcJfTWB9xiE6soWe7pSeYUTFxuoDg52F0rkBxEMMK4mNMGOqMB1hb%2BrjSZolt0lws8Utw16CAQtK7oi8fQnquDti6DcW6VDiPxMykcUD4UzB0r4xIULB99wTOIP6kN6ASj8Ku0jHQ8kwgFQvXmXuNGkmZgLcVek73hSzHdOi6taGxbIBAFWKMnLHptcwdeLU91MXFZpR4s78H4BvpLOlphPCz8VMK8%2BsRkq3FzeZRFYS23sGV9Oz4brZbiGjrLnNTk4S9JgGgmQQ%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260726T144040Z&X-Amz-SignedHeaders=host&X-Amz-Credential=ASIAS2VS4OFGVTDFQCIJ%2F20260726%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Expires=86400&X-Amz-Signature=b8e4286348326834defdee13187593d41c3480a614bfbcdc72b04ae056a2efdb")
+                .expirationDelay(86400)
+                .updatedAt(Instant.parse("2026-07-26T14:40:40.887298304Z")))
+        .availableLayers(null)
+        .actualLayer(charenteLayer())
+        .address("Angoulême")
+        .zoomLevel(HOUSES_0)
+        .fileId("43bc1920-1d55-4106-8229-c12fe1a24b8c")
+        .filename("CHARENTE_2019_5cm_HOUSES_0_524741_374507_extended")
+        .prospectId(null)
+        .createdAt(null)
+        .updatedAt(null)
+        .layer(null)
+        .isExtended(true)
+        .shiftNb(0)
+        .isOpaque(false)
+        .shiftDirection(null);
   }
 }

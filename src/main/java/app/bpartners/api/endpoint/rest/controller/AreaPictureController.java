@@ -7,7 +7,6 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.service.areapicture.AreaPictureService;
-import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -47,8 +46,7 @@ public class AreaPictureController {
   public AreaPictureDetails crupdateAreaPictureDetails(
       @PathVariable(name = "accountId") String accountId,
       @PathVariable(name = "id") String areaPictureId,
-      @RequestBody CrupdateAreaPictureDetails toCrupdate)
-      throws IOException, InterruptedException {
+      @RequestBody CrupdateAreaPictureDetails toCrupdate) {
     String userId = AuthProvider.getAuthenticatedUserId();
     var areaPicture = mapper.toDomain(toCrupdate, areaPictureId, userId);
     return service.downloadFromExternalSource(areaPicture);

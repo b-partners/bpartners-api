@@ -14,7 +14,6 @@ import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
-import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,8 +69,7 @@ public class AreaPictureRestMapper {
         .isOpaque(domain.isOpaque());
   }
 
-  public AreaPicture toDomain(CrupdateAreaPictureDetails rest, String id, String userId)
-      throws IOException, InterruptedException {
+  public AreaPicture toDomain(CrupdateAreaPictureDetails rest, String id, String userId) {
     AreaPictureMapLayer mapLayer;
     validator.accept(rest);
     mapLayer = rest.getLayerId() == null ? null : layerRestMapper.toDomain(rest.getLayerId());

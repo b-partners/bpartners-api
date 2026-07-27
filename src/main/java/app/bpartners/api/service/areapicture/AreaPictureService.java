@@ -129,7 +129,6 @@ public class AreaPictureService {
     return mapLayerService.getAvailableLayersFrom(longitude, latitude);
   }
 
-  @Transactional
   public AreaPicture save(AreaPicture areaPicture) {
     return mapper.toDomain(jpaRepository.save(mapper.toEntity(areaPicture)));
   }

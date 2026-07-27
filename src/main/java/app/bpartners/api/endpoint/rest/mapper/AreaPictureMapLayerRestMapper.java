@@ -6,7 +6,6 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.Zoom;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
-import java.io.IOException;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -40,8 +39,7 @@ public class AreaPictureMapLayerRestMapper {
         .source(domain.getSource());
   }
 
-  public app.bpartners.api.model.AreaPictureMapLayer toDomain(String restId)
-      throws IOException, InterruptedException {
+  public app.bpartners.api.model.AreaPictureMapLayer toDomain(String restId) {
     return mapLayerService.getById(restId);
   }
 }

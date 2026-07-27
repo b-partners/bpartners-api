@@ -17,7 +17,6 @@ import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
-import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -218,8 +217,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   }
 
   @Test
-  void joe_doe_read_his_draft_annotations_for_specific_area_picture()
-      throws ApiException, IOException, InterruptedException {
+  void joe_doe_read_his_draft_annotations_for_specific_area_picture() throws ApiException {
     when(areaPictureMapLayerServiceMock.getById(any())).thenReturn(domainGeoserverIGNServerLayer());
     when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
         .thenReturn(
@@ -244,8 +242,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   }
 
   @Test
-  void joe_doe_read_all_draft_annotations_ok()
-      throws ApiException, IOException, InterruptedException {
+  void joe_doe_read_all_draft_annotations_ok() throws ApiException {
     when(areaPictureMapLayerServiceMock.getById(any())).thenReturn(domainGeoserverIGNServerLayer());
     when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
         .thenReturn(

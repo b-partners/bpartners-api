@@ -4,7 +4,6 @@ import app.bpartners.api.endpoint.rest.model.GeoPosition;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.mapper.AreaPictureMapLayerMapper;
 import app.bpartners.api.service.geodata.ImageryService;
-import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,7 @@ public class AreaPictureMapLayerService {
         .toList();
   }
 
-  public AreaPictureMapLayer getById(String id) throws IOException, InterruptedException {
+  public AreaPictureMapLayer getById(String id) {
     return areaPictureMapLayerMapper.toDomain(imageryService.getById(id));
   }
 }

@@ -29,9 +29,7 @@ import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.geodata.ImageryService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
-import app.bpartners.api.service.wms.Tile;
 import java.io.File;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -65,11 +63,10 @@ class AreaPictureServiceTest extends MockedThirdParties {
           fileDownloaderMock);
 
   @Test
-  void save_area_picture_and_add_log() throws URISyntaxException {
+  void save_area_picture_and_add_log() {
     doNothing().when(areaPictureZoomValidatorMock).accept(any());
     var areaPictureMock = mock(AreaPicture.class);
     var geoPositionMock = mock(GeoPosition.class);
-    var tileMock = mock(Tile.class);
     var areaPictureMapLayerMock = mock(AreaPictureMapLayer.class);
     var fileMock = mock(File.class);
     var prospectMock = mock(HProspect.class);
@@ -128,7 +125,6 @@ class AreaPictureServiceTest extends MockedThirdParties {
   @Disabled
   void return_service_unavailable() {
     var areaPictureMock = mock(AreaPicture.class);
-    var downloadedFileMock = mock(File.class);
     var randomAddress = "random address " + randomUUID();
 
     when(areaPictureMock.getAddress()).thenReturn(randomAddress);
@@ -156,7 +152,6 @@ class AreaPictureServiceTest extends MockedThirdParties {
   @Disabled
   void return_not_implemented() {
     var areaPictureMock = mock(AreaPicture.class);
-    var downloadedFileMock = mock(File.class);
     var randomAddress = "random address " + randomUUID();
 
     when(areaPictureMock.getAddress()).thenReturn(randomAddress);

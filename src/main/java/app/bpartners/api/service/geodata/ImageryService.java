@@ -26,13 +26,15 @@ public class ImageryService {
   private static final String AREA_PICTURE_ENDPOINT = "/areaPicture";
   private static final String AREA_PICTURE_MAP_LAYER_ENDPOINT = "/areaPictureMapLayer";
   private static final String AREA_PICTURE_MAP_LAYERS_ENDPOINT = "/areaPictureMapLayers";
-  private final String GEODATA_IMAGERY_BASEURL;
+  private static final String JSON_CONTENT_TYPE = "application/json";
+  private static final String ACCEPT = "Accept";
+  private final String geodataImageryBaseurl;
   private final ObjectMapper om;
   private final HttpClient httpClient;
 
   public ImageryService(
       @Value("${geodata.imagery.baseurl}") String geoDataBaseUrl, HttpClient httpClient) {
-    this.GEODATA_IMAGERY_BASEURL = geoDataBaseUrl;
+    this.geodataImageryBaseurl = geoDataBaseUrl;
     this.om = new ObjectMapper().registerModule(new JavaTimeModule());
     this.httpClient = httpClient;
   }
@@ -43,8 +45,8 @@ public class ImageryService {
       HttpRequest request =
           HttpRequest.newBuilder()
               .uri(buildUri(AREA_PICTURE_ENDPOINT))
-              .header("Content-Type", "application/json")
-              .header("Accept", "application/json")
+              .header("Content-Type", JSON_CONTENT_TYPE)
+              .header(ACCEPT, JSON_CONTENT_TYPE)
               .POST(HttpRequest.BodyPublishers.ofString(requestBody))
               .build();
 
@@ -65,7 +67,7 @@ public class ImageryService {
     HttpRequest request =
         HttpRequest.newBuilder()
             .uri(buildUri(AREA_PICTURE_MAP_LAYER_ENDPOINT + "/" + encodePathSegment(id)))
-            .header("Accept", "application/json")
+            .header(ACCEPT, JSON_CONTENT_TYPE)
             .GET()
             .build();
 
@@ -90,7 +92,7 @@ public class ImageryService {
     HttpRequest request =
         HttpRequest.newBuilder()
             .uri(buildUri(queryParams))
-            .header("Accept", "application/json")
+            .header(ACCEPT, JSON_CONTENT_TYPE)
             .GET()
             .build();
 
@@ -138,7 +140,7 @@ public class ImageryService {
 
   private URI buildUri(String endpoint) {
     return URI.create(
-        removeTrailingSlash(GEODATA_IMAGERY_BASEURL) + "/" + removeLeadingSlash(endpoint));
+        removeTrailingSlash(geodataImageryBaseurl) + "/" + removeLeadingSlash(endpoint));
   }
 
   private URI buildUri(Map<String, Double> queryParams) {

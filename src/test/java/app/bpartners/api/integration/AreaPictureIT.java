@@ -7,6 +7,7 @@ import static app.bpartners.api.endpoint.rest.model.ZoomLevel.BUILDING;
 import static app.bpartners.api.endpoint.rest.model.ZoomLevel.HOUSES_0;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.lang.Boolean.TRUE;
+import static java.time.Month.JANUARY;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -216,7 +217,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
         .maximumZoom(new Zoom().level(HOUSES_0).number(20))
-        .lastUpdatedAt(LocalDate.of(2025, 1, 1))
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
         .source(GEOSERVER);
   }
 
@@ -225,7 +226,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("532ea7da-918e-4bb7-bc34-e167a3829e19")
         .name("AIRBUS_PNEO")
         .year(2025)
-        .lastUpdatedAt(LocalDate.of(2025, 1, 1))
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
         .precisionLevelInCm(30)
         .maximumZoomLevel(BUILDING)
         .departementName("ALL")
@@ -238,7 +239,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("726f5b3b-d23b-40c3-b38e-68a43d7ae155")
         .name("PCRS")
         .year(2025)
-        .lastUpdatedAt(LocalDate.of(2025, 1, 1))
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
         .precisionLevelInCm(5)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -264,7 +265,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("2f343dba-dd5f-4895-9006-49472f576c02")
         .name("Auvergne_Rhone_Alpes_PCRS_5cm")
         .year(2025)
-        .lastUpdatedAt(LocalDate.of(2025, 1, 1))
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
         .precisionLevelInCm(5)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -277,7 +278,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
         .name("FLUX_IGN_2023_20CM")
         .year(2020)
-        .lastUpdatedAt(LocalDate.of(2020, 1, 1))
+        .lastUpdatedAt(LocalDate.of(2020, JANUARY, 1))
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -290,7 +291,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
         .name("FLUX_IGN_2023_20CM")
         .year(2020)
-        .lastUpdatedAt(LocalDate.of(2020, 1, 1))
+        .lastUpdatedAt(LocalDate.of(2020, JANUARY, 1))
         .precisionLevelInCm(20)
         .maximumZoomLevel(HOUSES_0)
         .departementName("ALL")
@@ -307,7 +308,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .source(GEOSERVER)
         .maximumZoomLevel(HOUSES_0)
         .maximumZoom(new Zoom().level(HOUSES_0).number(20))
-        .lastUpdatedAt(LocalDate.of(2025, 1, 1))
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
         .precisionLevelInCm(5);
   }
 
@@ -319,7 +320,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .departementName("Charente")
         .source(GEOSERVER)
         .maximumZoomLevel(HOUSES_0)
-        .lastUpdatedAt(LocalDate.of(2025, 1, 1))
+        .lastUpdatedAt(LocalDate.of(2025, JANUARY, 1))
         .precisionLevelInCm(5)
         .build();
   }
@@ -513,8 +514,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     FileSystemResource mockJpegResource =
         new FileSystemResource(
             this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
-    File mockJpegFile = mockJpegResource.getFile();
-    return mockJpegFile;
+    return mockJpegResource.getFile();
   }
 
   @BeforeEach
@@ -526,7 +526,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
     when(metaDataComponentMock.getXOffset()).thenReturn(1234);
     when(metaDataComponentMock.getYOffset()).thenReturn(123);
     when(metaDataComponentMock.getAirbusYear()).thenReturn(2025);
-    when(metaDataComponentMock.getLastUpdatedAt()).thenReturn(LocalDate.of(2025, 1, 1));
+    when(metaDataComponentMock.getLastUpdatedAt()).thenReturn(LocalDate.of(2025, JANUARY, 1));
     doNothing().when(areaPictureZoomValidatorMock).accept(any());
   }
 
@@ -556,14 +556,14 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   @Test
-  void joe_doe_read_his_pictures_ok() throws ApiException, IOException, InterruptedException {
+  void joe_doe_read_his_pictures_ok() throws ApiException {
     when(mapLayerServiceMock.getById(any()))
         .thenReturn(
             app.bpartners.api.model.AreaPictureMapLayer.builder()
                 .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
                 .name("FLUX_IGN_2023_20CM")
                 .year(2020)
-                .lastUpdatedAt(LocalDate.of(2020, 1, 1))
+                .lastUpdatedAt(LocalDate.of(2020, JANUARY, 1))
                 .precisionLevelInCm(20)
                 .maximumZoomLevel(HOUSES_0)
                 .departementName("ALL")

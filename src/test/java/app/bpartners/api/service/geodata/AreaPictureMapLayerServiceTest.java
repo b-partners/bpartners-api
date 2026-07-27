@@ -4,11 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import app.bpartners.api.model.mapper.AreaPictureMapLayerMapper;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
-import java.io.IOException;
 import java.net.http.HttpClient;
 import org.junit.jupiter.api.Test;
 
-public class AreaPictureMapLayerServiceTest {
+class AreaPictureMapLayerServiceTest {
   private final HttpClient httpClient = HttpClient.newHttpClient();
   ImageryService imageryService =
       new ImageryService(System.getenv("GEODATA_IMAGERY_BASEURL"), httpClient);
@@ -25,7 +24,7 @@ public class AreaPictureMapLayerServiceTest {
   }
 
   @Test
-  void getById_ok() throws IOException, InterruptedException {
+  void getById_ok() {
     String pcrsId = "726f5b3b-d23b-40c3-b38e-68a43d7ae155";
     var actual = subject.getById(pcrsId);
 

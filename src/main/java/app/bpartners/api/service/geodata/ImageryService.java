@@ -30,10 +30,11 @@ public class ImageryService {
   private final ObjectMapper om;
   private final HttpClient httpClient;
 
-  public ImageryService(@Value("${geodata.imagery.baseurl}") String geoDataBaseUrl) {
+  public ImageryService(
+      @Value("${geodata.imagery.baseurl}") String geoDataBaseUrl, HttpClient httpClient) {
     this.GEODATA_IMAGERY_BASEURL = geoDataBaseUrl;
     this.om = new ObjectMapper().registerModule(new JavaTimeModule());
-    this.httpClient = HttpClient.newHttpClient();
+    this.httpClient = httpClient;
   }
 
   public AreaPictureDetails downloadFromGeodataSource(CrupdateAreaPictureDetails areaPicture) {

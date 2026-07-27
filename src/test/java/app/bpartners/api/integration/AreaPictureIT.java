@@ -28,6 +28,7 @@ import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.endpoint.rest.model.Tile;
 import app.bpartners.api.endpoint.rest.model.Zoom;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
+import app.bpartners.api.file.FileDownloaderImpl;
 import app.bpartners.api.integration.conf.S3MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.AccountHolder;
@@ -47,15 +48,18 @@ import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.wms.ArcgisZoom;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.FileSystemResource;
 
 @Slf4j
 public class AreaPictureIT extends S3MockedThirdParties {
@@ -102,6 +106,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @Autowired AreaPictureMapper areaPictureMapper;
   @Autowired AreaPictureRestMapper areaPictureRestMapper;
   @Autowired AreaPictureMapLayerMapper areaPictureMapLayerMapper;
+  @MockBean FileDownloaderImpl fileDownloaderImplMock;
 
   static AreaPictureMapLayer charenteLayer() {
     return new AreaPictureMapLayer()
@@ -176,7 +181,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   static app.bpartners.api.model.AreaPictureMapLayer domainPCRS2025() {
-
     return app.bpartners.api.model.AreaPictureMapLayer.builder()
         .id("726f5b3b-d23b-40c3-b38e-68a43d7ae155")
         .name("PCRS")
@@ -243,7 +247,6 @@ public class AreaPictureIT extends S3MockedThirdParties {
   }
 
   static app.bpartners.api.model.AreaPictureMapLayer domainRhonePCRS2025() {
-
     return app.bpartners.api.model.AreaPictureMapLayer.builder()
         .id("2f343dba-dd5f-4895-9006-49472f576c02")
         .name("Auvergne_Rhone_Alpes_PCRS_5cm")
@@ -280,6 +283,19 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .departementName("ALL")
         .maximumZoom(new Zoom().level(HOUSES_0).number(20))
         .source(GEOSERVER);
+  }
+
+  static app.bpartners.api.model.AreaPictureMapLayer domainGeoserverIGNServerLayer() {
+    return app.bpartners.api.model.AreaPictureMapLayer.builder()
+        .id("9a4bd8b7-556b-49a1-bea0-c35e961dab64")
+        .name("FLUX_IGN_2023_20CM")
+        .year(2020)
+        .lastUpdatedAt(LocalDate.of(2020, 1, 1))
+        .precisionLevelInCm(20)
+        .maximumZoomLevel(HOUSES_0)
+        .departementName("ALL")
+        .source(GEOSERVER)
+        .build();
   }
 
   static AreaPictureMapLayer restGeoserverCharenteLayerLatest() {
@@ -493,6 +509,14 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return TestUtils.anApiClient(null, JOE_DOE_API_KEY, localPort);
   }
 
+  private @NotNull File getMockJpegFile() {
+    FileSystemResource mockJpegResource =
+        new FileSystemResource(
+            this.getClass().getClassLoader().getResource("files/downloaded.jpeg").getFile());
+    File mockJpegFile = mockJpegResource.getFile();
+    return mockJpegFile;
+  }
+
   @BeforeEach
   public void setUp() {
     setUpLegalFileRepository(legalFileRepositoryMock);
@@ -619,6 +643,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .thenReturn(app.bpartners.api.model.AreaPictureMapLayer.builder().build());
     when(imageryServiceMock.downloadFromGeodataSource(any()))
         .thenReturn(expectedAreaPictureDetails());
+    when(fileDownloaderImplMock.get(any(), any())).thenReturn(getMockJpegFile());
 
     var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
 

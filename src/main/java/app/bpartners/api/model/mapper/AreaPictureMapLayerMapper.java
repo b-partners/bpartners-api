@@ -28,6 +28,7 @@ public class AreaPictureMapLayerMapper {
         .departementName(rest.getDepartementName())
         .maximumZoomLevel(rest.getMaximumZoomLevel())
         .precisionLevelInCm(rest.getPrecisionLevelInCm())
+        .lastUpdatedAt(rest.getLastUpdatedAt())
         .build();
   }
 }

@@ -29,7 +29,6 @@ public class AreaPictureMapper {
 
   @SneakyThrows
   public AreaPicture toDomain(HAreaPicture entity) {
-    areaPictureMapLayerService.getById(entity.getIdLayer());
     log.info("Entinty layer id = {}", entity.getIdLayer());
     AreaPictureMapLayer layer = areaPictureMapLayerService.getById(entity.getIdLayer());
     var domain =

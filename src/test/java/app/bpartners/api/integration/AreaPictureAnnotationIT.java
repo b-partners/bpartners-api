@@ -6,6 +6,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.AreaPictureApi;
@@ -15,6 +16,8 @@ import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
+import app.bpartners.api.service.wms.AreaPictureMapLayerService;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +35,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   private static final String DRAFT_AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_5_id";
 
   @MockBean MetaDataComponent metaDataComponentMock;
+  @MockBean AreaPictureMapLayerService areaPictureMapLayerServiceMock;
 
   static AreaPictureAnnotation createAreaPictureAnnotation(String payloadId, String areaPictureId) {
     return new AreaPictureAnnotation()
@@ -214,7 +218,19 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   }
 
   @Test
-  void joe_doe_read_his_draft_annotations_for_specific_area_picture() throws ApiException {
+  void joe_doe_read_his_draft_annotations_for_specific_area_picture()
+      throws ApiException, IOException, InterruptedException {
+    when(areaPictureMapLayerServiceMock.getById(any())).thenReturn(domainGeoserverIGNServerLayer());
+    when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
+        .thenReturn(
+            List.of(
+                domainGeoserverCharenteLayerLatest(),
+                domainCharenteLayer(),
+                domainAngouleme2019(),
+                domainPCRS2025(),
+                domainRhonePCRS2025(),
+                domainIGN2025(),
+                domainAirbus2025()));
     ApiClient apiClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(apiClient);
 
@@ -228,7 +244,20 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   }
 
   @Test
-  void joe_doe_read_all_draft_annotations_ok() throws ApiException {
+  void joe_doe_read_all_draft_annotations_ok()
+      throws ApiException, IOException, InterruptedException {
+    when(areaPictureMapLayerServiceMock.getById(any())).thenReturn(domainGeoserverIGNServerLayer());
+    when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
+        .thenReturn(
+            List.of(
+                domainGeoserverCharenteLayerLatest(),
+                domainCharenteLayer(),
+                domainAngouleme2019(),
+                domainPCRS2025(),
+                domainRhonePCRS2025(),
+                domainIGN2025(),
+                domainAirbus2025()));
+
     ApiClient apiClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(apiClient);
 

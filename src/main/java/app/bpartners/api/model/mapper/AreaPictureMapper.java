@@ -12,6 +12,7 @@ import app.bpartners.api.repository.jpa.model.HAreaPicture;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import app.bpartners.api.service.wms.Tile;
 import app.bpartners.api.service.wms.imageSource.TileExtenderRequestBody;
+import java.time.Instant;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -124,6 +125,7 @@ public class AreaPictureMapper {
             areaPicture.getShiftDirection() == null
                 ? null
                 : toRest(areaPicture.getShiftDirection()))
+        .createdAt(Instant.now())
         .isOpaque(areaPicture.isOpaque());
   }
 

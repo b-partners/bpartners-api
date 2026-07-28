@@ -126,6 +126,8 @@ public class AreaPictureMapper {
                 ? null
                 : toRest(areaPicture.getShiftDirection()))
         .createdAt(Instant.now())
+        .layerId(
+            areaPicture.getCurrentLayer() != null ? areaPicture.getCurrentLayer().getId() : null)
         .isOpaque(areaPicture.isOpaque());
   }
 

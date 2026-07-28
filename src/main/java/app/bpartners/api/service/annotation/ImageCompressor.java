@@ -1,5 +1,6 @@
 package app.bpartners.api.service.annotation;
 
+import app.bpartners.api.service.annotation.export.CompressionParameters;
 import app.bpartners.api.service.annotation.factory.CompressionParametersFactory;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;

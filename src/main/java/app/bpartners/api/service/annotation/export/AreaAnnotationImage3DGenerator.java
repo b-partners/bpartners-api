@@ -1,4 +1,4 @@
-package app.bpartners.api.service.annotation;
+package app.bpartners.api.service.annotation.export;
 
 import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory.selectPolygon;
 import static app.bpartners.api.service.annotation.model.Drawer.*;
@@ -6,9 +6,9 @@ import static java.awt.Color.*;
 import static java.awt.Font.PLAIN;
 import static java.util.Objects.requireNonNull;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
 import app.bpartners.api.model.annotation.IntXY;
+import app.bpartners.api.service.annotation.AreaAnnotation3DPan;
+import app.bpartners.api.service.annotation.AreaAnnotationInstanceInfo;
 import app.bpartners.api.service.annotation.factory.AnnotationSummaryFactory;
 import app.bpartners.api.service.annotation.factory.BufferedImageFactory;
 import app.bpartners.api.service.annotation.factory.Graphics2DFactory;
@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ExportAreaPictureAnnotationImage3DGenerator {
+public class AreaAnnotationImage3DGenerator {
   private static final int TARGET_SIZE = 550;
   private static final int SUMMARY_IMAGE_SIZE = 1080;
   private static final int CONTENT_SIZE = 500;
@@ -40,8 +40,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
           .font(new Font(FONT_NAME, PLAIN, 35))
           .build();
 
-  public Pair<Transform, BufferedImage> generateBaseImage(
-      List<ExportAreaPictureAnnotation3DPan> pans) {
+  public Pair<Transform, BufferedImage> generateBaseImage(List<AreaAnnotation3DPan> pans) {
     var allPoints = extractPoints(pans);
 
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
@@ -66,7 +65,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   }
 
   public Pair<Transform, BufferedImage> generateBaseImageWithSlopeBoundariesWithMeasurement(
-      List<ExportAreaPictureAnnotation3DPan> pans) {
+      List<AreaAnnotation3DPan> pans) {
     var allPoints = extractPoints(pans);
 
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
@@ -97,7 +96,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return new Pair<>(transform, baseImage);
   }
 
-  public BufferedImage generateBaseImageWithAreas(List<ExportAreaPictureAnnotation3DPan> pans) {
+  public BufferedImage generateBaseImageWithAreas(List<AreaAnnotation3DPan> pans) {
     var allPoints = extractPoints(pans);
 
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
@@ -113,10 +112,10 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
           var area = "-";
           var optionalArea =
               pan.getInfos().stream()
-                  .filter(m -> m.getLabel().toLowerCase().startsWith("surface rampant"))
+                  .filter(m -> m.label().toLowerCase().startsWith("surface rampant"))
                   .findFirst();
           if (optionalArea.isPresent()) {
-            area = optionalArea.get().getValue().replace("m²", "").replace("m", "");
+            area = optionalArea.get().value().replace("m²", "").replace("m", "");
           }
 
           var coordinates = Coordinates.from(pan.getPolygon());
@@ -136,7 +135,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return baseImage;
   }
 
-  public BufferedImage generateBaseImageWithPitches(List<ExportAreaPictureAnnotation3DPan> pans) {
+  public BufferedImage generateBaseImageWithPitches(List<AreaAnnotation3DPan> pans) {
     var allPoints = extractPoints(pans);
 
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
@@ -152,8 +151,8 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
           var pitch = "-";
           var optionalPitch =
               pan.getInfos().stream()
-                  .filter(m -> m.getLabel().toLowerCase().startsWith("pente"))
-                  .map(ExportAreaPictureAnnotationInstanceInfo::getValue)
+                  .filter(m -> m.label().toLowerCase().startsWith("pente"))
+                  .map(AreaAnnotationInstanceInfo::value)
                   .map(AnnotationSummaryFactory::formatPitch)
                   .findFirst();
           if (optionalPitch.isPresent()) {
@@ -177,7 +176,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return baseImage;
   }
 
-  public BufferedImage generateBaseImageWithNames(List<ExportAreaPictureAnnotation3DPan> pans) {
+  public BufferedImage generateBaseImageWithNames(List<AreaAnnotation3DPan> pans) {
     var allPoints = extractPoints(pans);
 
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
@@ -210,19 +209,17 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return baseImage;
   }
 
-  private static @NotNull List<IntXY> extractPoints(List<ExportAreaPictureAnnotation3DPan> pans) {
+  private static @NotNull List<IntXY> extractPoints(List<AreaAnnotation3DPan> pans) {
     return pans.stream()
-        .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
-        .map(
-            p ->
-                new IntXY(requireNonNull(p.getX()).intValue(), requireNonNull(p.getY()).intValue()))
+        .flatMap(
+            pan ->
+                requireNonNull(pan.getPolygon()).points().stream()
+                    .map(p -> new IntXY((int) Math.round(p.x()), (int) Math.round(p.y()))))
         .toList();
   }
 
   public BufferedImage generateBaseImageWithHighlightedPanWithSlopeBoundary(
-      BufferedImage baseImage,
-      Transform transform,
-      ExportAreaPictureAnnotation3DPan panToHighlight) {
+      BufferedImage baseImage, Transform transform, AreaAnnotation3DPan panToHighlight) {
     var panImage = BufferedImageFactory.make(baseImage);
     var g2d = Graphics2DFactory.make(panImage);
 
@@ -234,7 +231,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   }
 
   private static void drawPan(
-      Graphics2D g2d, Transform transform, Color fillColor, ExportAreaPictureAnnotation3DPan pan) {
+      Graphics2D g2d, Transform transform, Color fillColor, AreaAnnotation3DPan pan) {
     var polygon = Coordinates.from(requireNonNull(pan.getPolygon()));
     polygon = transform.apply(polygon);
 
@@ -243,9 +240,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   }
 
   public BufferedImage generateBaseImageWithHighlightedPan(
-      BufferedImage baseImage,
-      Transform transform,
-      ExportAreaPictureAnnotation3DPan panToHighlight) {
+      BufferedImage baseImage, Transform transform, AreaAnnotation3DPan panToHighlight) {
     var panImage = BufferedImageFactory.make(baseImage);
     var g2d = Graphics2DFactory.make(panImage);
 
@@ -260,7 +255,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return panImage;
   }
 
-  public BufferedImage generatePanImageWithMeasurements(ExportAreaPictureAnnotation3DPan pan) {
+  public BufferedImage generatePanImageWithMeasurements(AreaAnnotation3DPan pan) {
     var panImageWithMeasurements = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
     var g2d = Graphics2DFactory.make(panImageWithMeasurements);
 

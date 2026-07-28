@@ -1,4 +1,4 @@
-package app.bpartners.api.service.annotation;
+package app.bpartners.api.service.annotation.export;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

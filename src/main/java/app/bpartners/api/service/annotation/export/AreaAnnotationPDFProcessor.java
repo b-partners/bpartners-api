@@ -1,17 +1,19 @@
-package app.bpartners.api.service.annotation;
+package app.bpartners.api.service.annotation.export;
 
 import static app.bpartners.api.file.FileWriter.base64Image;
-import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.adjustAnnotation;
-import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
+import static app.bpartners.api.service.annotation.export.AreaAnnotationAdjustment.adjustAnnotation;
+import static app.bpartners.api.service.annotation.export.AreaAnnotationImageConf.*;
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64;
 import static app.bpartners.api.service.utils.UserUtils.getUserLogo;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator.GroupedByKey;
+import app.bpartners.api.service.annotation.AreaAnnotation3D;
+import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
+import app.bpartners.api.service.annotation.AreaAnnotationInstance;
+import app.bpartners.api.service.annotation.ImageCompressor;
+import app.bpartners.api.service.annotation.export.AreaAnnotationAdjustment.AdjustedAnnotationResult;
+import app.bpartners.api.service.annotation.export.AreaAnnotationPDFGenerator.GroupedByKey;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
@@ -28,20 +30,19 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ExportAreaPictureAnnotationPDFProcessor {
-  private final ExportAreaPictureAnnotationPDFGenerator exportAreaPictureAnnotationPDFGenerator;
-  private final ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGenerator;
-  private final ExportAreaPictureAnnotationImage3DGenerator
-      exportAreaPictureAnnotationImage3DGenerator;
+public class AreaAnnotationPDFProcessor {
+  private final AreaAnnotationPDFGenerator areaAnnotationPDFGenerator;
+  private final AreaAnnotationImageGenerator areaAnnotationImageGenerator;
+  private final AreaAnnotationImage3DGenerator areaAnnotationImage3DGenerator;
   private final FileService fileService;
   private final ImageCompressor imageCompressor;
 
-  private static ExportAreaPictureAnnotationImageConf mainConf() {
-    return new ExportAreaPictureAnnotationImageConf();
+  private static AreaAnnotationImageConf mainConf() {
+    return new AreaAnnotationImageConf();
   }
 
-  private static ExportAreaPictureAnnotationImageConf subImageConf() {
-    return new ExportAreaPictureAnnotationImageConf(
+  private static AreaAnnotationImageConf subImageConf() {
+    return new AreaAnnotationImageConf(
         2,
         DEFAULT_POINT_SIZE,
         DEFAULT_STROKE,
@@ -52,13 +53,13 @@ public class ExportAreaPictureAnnotationPDFProcessor {
         DEFAULT_MEASUREMENT_FONT);
   }
 
-  public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation)
+  public byte[] process(User user, AreaAnnotationExportPayload exportAnnotation)
       throws IOException {
     return process(user, exportAnnotation, null);
   }
 
   public byte[] process(
-      User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
+      User user, AreaAnnotationExportPayload exportAnnotation, byte[] globalImage3D)
       throws IOException {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
     return process(user, exportAnnotation, downloadedImage, globalImage3D);
@@ -66,51 +67,54 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
   public byte[] process(
       User user,
-      ExportAreaPictureAnnotation exportAnnotation,
+      AreaAnnotationExportPayload exportAnnotation,
       BufferedImage downloadedImage,
       byte[] globalImage3D)
       throws IOException {
     BufferedImage compressedImage =
         downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage);
-    var annotationRescale = adjustAnnotation(exportAnnotation, downloadedImage, compressedImage);
+    AdjustedAnnotationResult adjustmentResult =
+        adjustAnnotation(exportAnnotation, downloadedImage, compressedImage);
+    var adjustedAnnotation = adjustmentResult.adjustedAnnotation();
+    var rescaleValue = adjustmentResult.rescaleValue();
+
     Pair<String, List<String>> annotationImages =
         generateAnnotationImages(
-            exportAnnotation, compressedImage, annotationRescale.x(), annotationRescale.y());
+            adjustedAnnotation, compressedImage, rescaleValue.x(), rescaleValue.y());
+
     Pair<String, List<String>> annotation3DImages = null;
     BufferedImage logo = getUserLogo(user.getId(), user.getLogoFileId(), fileService);
     String logoBase64 =
         logo == null
             ? null
             : generateAnnotationImageAsBase64(
-                logo,
-                subImageConf().rescale(annotationRescale.x(), annotationRescale.y()),
-                List.of());
+                logo, subImageConf().rescale(rescaleValue.x(), rescaleValue.y()), List.of());
 
     Pair<String, List<String>> annotation3DFacadeImages = null;
 
-    if (exportAnnotation.get3d() != null && globalImage3D != null) {
-      annotation3DImages = generateAnnotation3DImages(exportAnnotation.get3d(), globalImage3D);
+    if (adjustedAnnotation.getAnnotation3d() != null && globalImage3D != null) {
+      annotation3DImages =
+          generateAnnotation3DImages(adjustedAnnotation.getAnnotation3d(), globalImage3D);
       annotation3DFacadeImages =
-          generateAnnotation3DFacadeImages(exportAnnotation.get3d(), globalImage3D);
+          generateAnnotation3DFacadeImages(adjustedAnnotation.getAnnotation3d(), globalImage3D);
     }
 
-    return exportAreaPictureAnnotationPDFGenerator.apply(
+    return areaAnnotationPDFGenerator.apply(
         user,
         logoBase64,
-        exportAnnotation,
+        adjustedAnnotation,
         annotationImages,
         annotation3DImages,
         annotation3DFacadeImages);
   }
 
   private Pair<String, List<String>> generateAnnotation3DImages(
-      ExportAreaPictureAnnotation3D annotation3D, byte[] globalImage3D) {
+      AreaAnnotation3D annotation3D, byte[] globalImage3D) {
     var mainImage3D = base64Image(globalImage3D);
     var subImages3D = new ArrayList<String>();
 
     for (var pan : annotation3D.getPans()) {
-      var panImage =
-          exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(pan);
+      var panImage = areaAnnotationImage3DGenerator.generatePanImageWithMeasurements(pan);
       subImages3D.add(base64(panImage));
     }
 
@@ -118,14 +122,13 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   }
 
   private Pair<String, List<String>> generateAnnotation3DFacadeImages(
-      ExportAreaPictureAnnotation3D annotation3D, byte[] globalImage3D) {
+      AreaAnnotation3D annotation3D, byte[] globalImage3D) {
     var mainImage3D = base64Image(globalImage3D);
     var subImages3D = new ArrayList<String>();
 
     if (annotation3D.getFacades() != null) {
       for (var facade : annotation3D.getFacades()) {
-        var facadeImage =
-            exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(facade);
+        var facadeImage = areaAnnotationImage3DGenerator.generatePanImageWithMeasurements(facade);
         subImages3D.add(base64(facadeImage));
       }
     }
@@ -134,7 +137,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   }
 
   private Pair<String, List<String>> generateAnnotationImages(
-      ExportAreaPictureAnnotation annotation,
+      AreaAnnotationExportPayload annotation,
       BufferedImage baseImage,
       double rescaleXValue,
       double rescaleYValue)
@@ -157,10 +160,8 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   }
 
   private String generateAnnotationImageAsBase64(
-      BufferedImage image,
-      ExportAreaPictureAnnotationImageConf conf,
-      List<ExportAreaPictureAnnotationInstance> annotations) {
-    var generatedImage = exportAreaPictureAnnotationImageGenerator.apply(image, conf, annotations);
+      BufferedImage image, AreaAnnotationImageConf conf, List<AreaAnnotationInstance> annotations) {
+    var generatedImage = areaAnnotationImageGenerator.apply(image, conf, annotations);
     return base64(generatedImage);
   }
 

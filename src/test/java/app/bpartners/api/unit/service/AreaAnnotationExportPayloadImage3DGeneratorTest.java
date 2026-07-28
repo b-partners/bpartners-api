@@ -2,33 +2,32 @@ package app.bpartners.api.unit.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.Point;
-import app.bpartners.api.endpoint.rest.model.Polygon;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
+import app.bpartners.api.service.annotation.AreaAnnotation3DPan;
+import app.bpartners.api.service.annotation.Point;
+import app.bpartners.api.service.annotation.Polygon;
+import app.bpartners.api.service.annotation.export.AreaAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.Coordinates;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class ExportAreaPictureAnnotationImage3DGeneratorTest {
+class AreaAnnotationExportPayloadImage3DGeneratorTest {
 
-  private final ExportAreaPictureAnnotationImage3DGenerator subject =
-      new ExportAreaPictureAnnotationImage3DGenerator();
+  private final AreaAnnotationImage3DGenerator subject = new AreaAnnotationImage3DGenerator();
 
   @Test
   void generateBaseImage_should_draw_pans_in_red() {
     var pan =
-        new ExportAreaPictureAnnotation3DPan()
+        AreaAnnotation3DPan.builder()
             .polygon(
-                new Polygon()
-                    .points(
-                        List.of(
-                            new Point().x(100d).y(100d),
-                            new Point().x(200d).y(100d),
-                            new Point().x(200d).y(200d),
-                            new Point().x(100d).y(100d))));
+                new Polygon(
+                    List.of(
+                        new Point(100, 100),
+                        new Point(200, 100),
+                        new Point(200, 200),
+                        new Point(100, 100))))
+            .build();
 
     var result = subject.generateBaseImage(List.of(pan));
     BufferedImage image = result.second();

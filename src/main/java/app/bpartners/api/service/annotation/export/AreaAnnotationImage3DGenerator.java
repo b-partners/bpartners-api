@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AreaAnnotationImage3DGenerator {
   private static final int TARGET_SIZE = 550;
-  private static final int SUMMARY_IMAGE_SIZE = 600;
+  private static final int SUMMARY_IMAGE_SIZE = 1080;
   private static final int CONTENT_SIZE = 500;
 
   private static final int POLYGON_POINTS_SIZE = 10;

@@ -52,7 +52,7 @@ public class AreaAnnotationImageConf {
             Math.max(1, (int) round(this.measurementFont.getSize() * factor))));
   }
 
-  public static final int DEFAULT_SCALE = 3;
+  public static final int DEFAULT_SCALE = 2;
   public static final int DEFAULT_POINT_SIZE = 30;
   public static final float DEFAULT_STROKE_WIDTH = 3.2f;
   public static final Stroke DEFAULT_STROKE = new BasicStroke(DEFAULT_STROKE_WIDTH);

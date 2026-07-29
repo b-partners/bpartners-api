@@ -1,5 +1,7 @@
 package app.bpartners.api.service.annotation.utils;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,8 +11,8 @@ import java.util.Base64;
 import javax.imageio.ImageIO;
 
 public final class ImageUriUtils {
-  private static final String BASE_64_URI_PREFIX = "data:image/png;base64,";
-  public static final String IMAGE_FORMAT = "png";
+  private static final String BASE_64_URI_PREFIX = "data:image/jpeg;base64,";
+  public static final String IMAGE_FORMAT = "jpg";
 
   private ImageUriUtils() {}
 
@@ -19,9 +21,28 @@ public final class ImageUriUtils {
   }
 
   public static String base64(BufferedImage image) {
+    // JPEG does not support alpha channel; convert ARGB/ABGR images to RGB
+    BufferedImage encodeImage = image;
+    if ("jpg".equals(IMAGE_FORMAT) || "jpeg".equals(IMAGE_FORMAT)) {
+      int type = image.getType();
+      if (type == BufferedImage.TYPE_INT_ARGB
+          || type == BufferedImage.TYPE_4BYTE_ABGR
+          || type == BufferedImage.TYPE_INT_ARGB_PRE
+          || type == BufferedImage.TYPE_4BYTE_ABGR_PRE) {
+        var rgb =
+            new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D g2d = rgb.createGraphics();
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g2d.drawImage(image, 0, 0, null);
+        g2d.dispose();
+        encodeImage = rgb;
+      }
+    }
+
     try (ByteArrayOutputStream out = new ByteArrayOutputStream();
         OutputStream b64 = Base64.getEncoder().wrap(out)) {
-      ImageIO.write(image, IMAGE_FORMAT, b64);
+      ImageIO.write(encodeImage, IMAGE_FORMAT, b64);
       b64.flush();
       return out.toString(StandardCharsets.ISO_8859_1);
     } catch (IOException e) {

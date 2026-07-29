@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AreaAnnotationImage3DGenerator {
   private static final int TARGET_SIZE = 550;
-  private static final int SUMMARY_IMAGE_SIZE = 1080;
+  private static final int SUMMARY_IMAGE_SIZE = 600;
   private static final int CONTENT_SIZE = 500;
 
   private static final int POLYGON_POINTS_SIZE = 10;
@@ -71,7 +71,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -102,7 +102,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -141,7 +141,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -182,7 +182,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);

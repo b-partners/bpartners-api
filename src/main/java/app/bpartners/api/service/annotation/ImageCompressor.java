@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @RequiredArgsConstructor
 public class ImageCompressor {
-  private static final int DEFAULT_IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
+  private static final int DEFAULT_IMAGE_TARGET_SIZE = 100 * 1024; // 100 KB
   private static final int DEFAULT_MAX_IMAGE_WIDTH = 1180;
   private static final int DEFAULT_MAX_IMAGE_HEIGHT = 1180;
   private static final String IMAGE_COMPRESSION_FORMAT = "jpg";

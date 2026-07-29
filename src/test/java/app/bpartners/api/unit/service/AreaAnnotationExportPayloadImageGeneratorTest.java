@@ -28,7 +28,7 @@ class AreaAnnotationExportPayloadImageGeneratorTest {
   AreaAnnotationImageGenerator subject = new AreaAnnotationImageGenerator();
   AreaAnnotationImageConf conf = new AreaAnnotationImageConf();
   private static BufferedImage mockImage;
-  private static final int IMAGE_SCALE = 3;
+  private static final int IMAGE_SCALE = 2;
 
   @BeforeAll
   static void createMockImage() throws IOException {

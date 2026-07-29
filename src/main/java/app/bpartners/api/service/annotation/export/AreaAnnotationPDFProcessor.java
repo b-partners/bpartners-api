@@ -18,8 +18,10 @@ import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -142,18 +144,32 @@ public class AreaAnnotationPDFProcessor {
       double rescaleXValue,
       double rescaleYValue)
       throws IOException {
+    var mainConf = mainConf().rescale(rescaleXValue, rescaleYValue);
+    var subConf = subImageConf().rescale(rescaleXValue, rescaleYValue);
+
+    // Pre-scale once at each scale level, then reuse for all annotation groups.
+    // Use the ORIGINAL scale in the conf (3 for main, 2 for sub) so that annotation
+    // coordinates map correctly onto the pre-scaled image.
+    var scaledMain = areaAnnotationImageGenerator.apply(baseImage, mainConf, List.of());
+    var scaledSub = areaAnnotationImageGenerator.apply(baseImage, subConf, List.of());
+
     var mainImage =
-        generateAnnotationImageAsBase64(
-            baseImage,
-            mainConf().rescale(rescaleXValue, rescaleYValue),
-            annotation.getAnnotations());
+        base64(
+            areaAnnotationImageGenerator.drawOnScaled(
+                scaledMain, mainConf, annotation.getAnnotations()));
     var subImages = new ArrayList<String>();
     var annotationsByKey = GroupedByKey.from(annotation.getAnnotations());
 
     for (var item : annotationsByKey) {
+      // Clone the pre-scaled image for each group to avoid mutation bleed
+      var copy =
+          new BufferedImage(
+              scaledSub.getColorModel(),
+              scaledSub.copyData(null),
+              scaledSub.isAlphaPremultiplied(),
+              null);
       subImages.add(
-          generateAnnotationImageAsBase64(
-              baseImage, subImageConf().rescale(rescaleXValue, rescaleYValue), item.instances()));
+          base64(areaAnnotationImageGenerator.drawOnScaled(copy, subConf, item.instances())));
     }
 
     return new Pair<>(mainImage, subImages);
@@ -165,9 +181,14 @@ public class AreaAnnotationPDFProcessor {
     return base64(generatedImage);
   }
 
-  private static BufferedImage downloadImage(String imageUrl) {
+  public BufferedImage downloadImage(String imageUrl) {
     try {
-      return ImageIO.read(new URI(imageUrl).toURL());
+      URL url = new URI(imageUrl).toURL();
+      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+      connection.setConnectTimeout(10_000);
+      connection.setReadTimeout(30_000);
+      connection.connect();
+      return ImageIO.read(connection.getInputStream());
     } catch (IOException | URISyntaxException e) {
       throw new BadRequestException("Cannot read the image from the url");
     }

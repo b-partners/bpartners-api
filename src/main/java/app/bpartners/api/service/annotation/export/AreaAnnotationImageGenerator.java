@@ -26,6 +26,18 @@ public class AreaAnnotationImageGenerator
     return drawAnnotations(scaledImage, conf, annotations);
   }
 
+  /**
+   * Draw annotations on an already-scaled image, skipping the scaling step. Use this when you
+   * pre-scaled the image once and reuse it across multiple annotation groups to avoid redundant
+   * image resampling.
+   */
+  public BufferedImage drawOnScaled(
+      BufferedImage scaledImage,
+      AreaAnnotationImageConf conf,
+      List<AreaAnnotationInstance> annotations) {
+    return drawAnnotations(scaledImage, conf, annotations);
+  }
+
   private BufferedImage scaleImage(BufferedImage image, AreaAnnotationImageConf conf) {
     int newWidth = image.getWidth() * conf.getScale();
     int newHeight = image.getHeight() * conf.getScale();

@@ -18,12 +18,10 @@ import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URL;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 import org.springframework.core.io.ClassPathResource;
 
 class AreaAnnotationExportPayloadPdfProcessorTest {
@@ -60,6 +58,7 @@ class AreaAnnotationExportPayloadPdfProcessorTest {
   @BeforeEach
   void setup() throws IOException {
     when(areaAnnotationImageGeneratorMock.apply(any(), any(), any())).thenReturn(mockImage);
+    when(areaAnnotationImageGeneratorMock.drawOnScaled(any(), any(), any())).thenReturn(mockImage);
     when(areaAnnotationImage3DGeneratorMock.generateBaseImage(any()))
         .thenReturn(new Pair<>(mock(), mockImage));
 
@@ -71,28 +70,27 @@ class AreaAnnotationExportPayloadPdfProcessorTest {
 
   @Test
   void process_pdf_ok() throws IOException {
-    try (MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class)) {
-      mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenReturn(mockImage);
-      var expected = fileMock;
+    var spy = spy(subject);
+    doReturn(mockImage).when(spy).downloadImage(anyString());
+    var expected = fileMock;
 
-      var actual = subject.process(user(), areaAnnotationExportPayload);
+    var actual = spy.process(user(), areaAnnotationExportPayload);
 
-      assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
   }
 
   @Test
   void should_throw_if_cannot_read_the_image() {
-    try (MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class)) {
-      mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenThrow(new IOException());
+    var spy = spy(subject);
+    doThrow(new BadRequestException("Cannot read the image from the url"))
+        .when(spy)
+        .downloadImage(anyString());
 
-      var error =
-          assertThrows(
-              BadRequestException.class,
-              () -> subject.process(user(), areaAnnotationExportPayload));
+    var error =
+        assertThrows(
+            BadRequestException.class, () -> spy.process(user(), areaAnnotationExportPayload));
 
-      assertEquals("Cannot read the image from the url", error.getMessage());
-    }
+    assertEquals("Cannot read the image from the url", error.getMessage());
   }
 
   User user() {

@@ -48,10 +48,25 @@ jobs:
 
       - name: Run Individual Discovered Test
         run: |
-            ./gradlew test \
-            -Dorg.gradle.jvmargs="-Xmx4g -XX:+PrintGCDetails" \
-            --info \
-                --tests "app.bpartners.api.unit.service.AreaAnnotationExportPayloadPdfVisualTest.${{ matrix.test-method }}"
+          ./gradlew test \
+            -x jacocoTestReport \
+            -x jacocoTestCoverageVerification \
+            --tests "app.bpartners.api.unit.service.AreaAnnotationExportPayloadPdfVisualTest.${{ matrix.test-method }}"
+
+      - name: Dedicated RAM Performance Profile
+        if: always()
+        run: |
+          echo "=== System Available RAM Before Benchmark ==="
+          free -h
+          
+          echo "=== Running RAM Performance Profiler ==="
+          /usr/bin/time -v ./gradlew test \
+            -x jacocoTestReport \
+            -x jacocoTestCoverageVerification \
+            --tests "app.bpartners.api.unit.service.AreaAnnotationExportPayloadPdfVisualTest.${{ matrix.test-method }}"
+          
+          echo "=== System Available RAM After Benchmark ==="
+          free -h
 
       - name: Archive Generated Visual PDF Artifact
         if: always()

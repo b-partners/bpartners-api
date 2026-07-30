@@ -8,6 +8,7 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.R
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
+import static com.stripe.param.UsageRecordCreateOnSubscriptionItemParams.Action.SET;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
@@ -131,6 +132,7 @@ public class SubscriptionService {
             var usageRecordCreateOnSubscriptionItemParams =
                 UsageRecordCreateOnSubscriptionItemParams.builder()
                     .setQuantity(payableUsage)
+                    .setAction(SET)
                     .setTimestamp(now().getEpochSecond())
                     .build();
             try {

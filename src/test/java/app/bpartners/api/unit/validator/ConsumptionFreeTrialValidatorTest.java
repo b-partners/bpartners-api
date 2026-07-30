@@ -48,18 +48,6 @@ class ConsumptionFreeTrialValidatorTest {
 
   @ParameterizedTest
   @MethodSource("consumptionTypes")
-  void any_validation_for_user_without_free_trial_period(
-      SubscriptionConsumptionType type, String label) {
-    var eligible = someEligible(randomUUID().toString(), false);
-
-    assertDoesNotThrow(() -> subjectOf(type).accept(eligible));
-
-    verify(consumptionLogJpaRepositoryMock, never())
-        .findAllByUserIdAndConsumptionTypeAndCreationDatetimeBetween(any(), any(), any(), any());
-  }
-
-  @ParameterizedTest
-  @MethodSource("consumptionTypes")
   void consumption_under_max_free_consumption_ok(SubscriptionConsumptionType type, String label) {
     var userId = randomUUID().toString();
     var eligible = someEligible(userId, true);

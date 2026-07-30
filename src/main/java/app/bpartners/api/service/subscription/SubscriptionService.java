@@ -9,7 +9,6 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.U
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static java.time.Instant.now;
-import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
@@ -107,13 +106,8 @@ public class SubscriptionService {
     var consumptionLogs =
         findConsumptionLogsByUserId(
             user.getId(),
-            temporalUtils.startOfLastMonth().atStartOfDay().toInstant(UTC),
-            temporalUtils
-                .endOfLastMonth()
-                .plusDays(1L)
-                .atStartOfDay()
-                .minusSeconds(1L)
-                .toInstant(UTC));
+            temporalUtils.startOfLastMonthInstant(),
+            temporalUtils.endOfLastMonthInstant());
     return computeSubscriptionVariableConsumption(user, consumptionLogs);
   }
 

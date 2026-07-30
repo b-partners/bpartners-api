@@ -232,9 +232,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
 
     var billingPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
     var alreadyComputedInvoice =
         Invoice.builder()
             .customer(Customer.builder().name(customerName).build())
@@ -732,11 +732,11 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
 
   private Invoice computeExpectedInvoice(
       Invoice createdInvoice, User userToCreditMock, Customer customerMock) {
-    var startOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth());
-    var endOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
-    var sendingDate = temporalUtils.endOfActualMonth();
+    var startOfBilledMonthFormatted =
+        customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth());
+    var endOfBilledMonthFormatted =
+        customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
+    var sendingDate = temporalUtils.endOfLastMonth();
     return Invoice.builder()
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)
@@ -746,12 +746,12 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
         .title(
             "Facture pour la période de "
-                + startOfCurrentMonthFormatted
+                + startOfBilledMonthFormatted
                 + " au "
-                + endOfCurrentMonthFormatted)
+                + endOfBilledMonthFormatted)
         .ref(createdInvoice.getRef())
         .validityDate(sendingDate.plusDays(30L))
-        .toPayAt(temporalUtils.fifthOfNextMonth())
+        .toPayAt(temporalUtils.fifthOfActualMonth())
         .sendingDate(sendingDate)
         .createdAt(createdInvoice.getCreatedAt())
         .user(userToCreditMock)

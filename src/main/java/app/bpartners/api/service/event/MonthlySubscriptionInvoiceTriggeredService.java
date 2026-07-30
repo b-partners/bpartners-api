@@ -28,8 +28,8 @@ public class MonthlySubscriptionInvoiceTriggeredService
     var userToCredit = userRepository.getById(userSubscriptionConf.getUserToCreditId());
 
     if (!upcomingUserDebited.isEmpty()) {
-      var actualMonth = YearMonth.now();
-      eventProducer.accept(List.of(new UpcomingDebitedCustomerExportRequested(actualMonth)));
+      var billedMonth = YearMonth.now().minusMonths(1);
+      eventProducer.accept(List.of(new UpcomingDebitedCustomerExportRequested(billedMonth)));
     }
     upcomingUserDebited.forEach(
         userToAttemptDebit ->

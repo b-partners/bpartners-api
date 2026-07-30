@@ -24,20 +24,23 @@ public class MonthlySubscriptionInvoiceTriggeredService
 
   @Override
   public void accept(MonthlySubscriptionInvoiceTriggered event) {
-    var upcomingUserDebited = upcomingUserDebitService.getUpcomingUserDebited();
+    var upcomingDebitedCustomers = upcomingUserDebitService.getUpcomingDebitedCustomers();
     var userToCredit = userRepository.getById(userSubscriptionConf.getUserToCreditId());
 
-    if (!upcomingUserDebited.isEmpty()) {
+    if (!upcomingDebitedCustomers.billedUsers().isEmpty()
+        || !upcomingDebitedCustomers.notBilledCustomers().isEmpty()) {
       var billedMonth = YearMonth.now().minusMonths(1);
       eventProducer.accept(List.of(new UpcomingDebitedCustomerExportRequested(billedMonth)));
     }
-    upcomingUserDebited.forEach(
-        userToAttemptDebit ->
-            eventProducer.accept(
-                List.of(
-                    MonthlySubscriptionInvoiceRequested.builder()
-                        .userToCredit(userToCredit)
-                        .userToAttemptDebit(userToAttemptDebit)
-                        .build())));
+    upcomingDebitedCustomers
+        .billedUsers()
+        .forEach(
+            userToAttemptDebit ->
+                eventProducer.accept(
+                    List.of(
+                        MonthlySubscriptionInvoiceRequested.builder()
+                            .userToCredit(userToCredit)
+                            .userToAttemptDebit(userToAttemptDebit)
+                            .build())));
   }
 }

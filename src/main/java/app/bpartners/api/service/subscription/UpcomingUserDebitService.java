@@ -4,11 +4,13 @@ import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 import app.bpartners.api.model.UnknownStripeCustomer;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.jpa.UnknownStripeCustomerJpaRepository;
 import app.bpartners.api.service.user.UserService;
+import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.model.Customer;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,16 +24,17 @@ public class UpcomingUserDebitService {
   private final StripeCustomerService stripeCustomerService;
   private final UserService userService;
   private final UnknownStripeCustomerJpaRepository unknownStripeCustomerJpaRepository;
+  private final TemporalUtils temporalUtils;
 
-  public List<User> getUpcomingUserDebited() {
+  public UpcomingDebitedCustomers getUpcomingDebitedCustomers() {
     var enabledUsersBySubscriptionId =
         userService.getEnabledUsers().stream()
             .filter(user -> user.getUserSubscriptionId() != null)
             .collect(
                 toMap(User::getUserSubscriptionId, identity(), (existing, duplicate) -> existing));
 
-    var upcomingUsersToDebit = new ArrayList<User>();
-    var unknownCustomers = new ArrayList<Customer>();
+    var billedUsers = new ArrayList<User>();
+    var notBilledStripeCustomers = new ArrayList<Customer>();
 
     for (Customer stripeCustomer : stripeCustomerService.getStripeCustomers()) {
       var hasUpcomingInvoice =
@@ -41,15 +44,15 @@ public class UpcomingUserDebitService {
       }
       var matchedUser = enabledUsersBySubscriptionId.get(stripeCustomer.getId());
       if (matchedUser != null) {
-        upcomingUsersToDebit.add(matchedUser);
+        billedUsers.add(matchedUser);
       } else {
-        unknownCustomers.add(stripeCustomer);
+        notBilledStripeCustomers.add(stripeCustomer);
       }
     }
 
-    saveUnknownCustomersFromStripe(unknownCustomers);
+    saveUnknownCustomersFromStripe(notBilledStripeCustomers);
 
-    return upcomingUsersToDebit;
+    return new UpcomingDebitedCustomers(billedUsers, notBilledStripeCustomers);
   }
 
   private void saveUnknownCustomersFromStripe(List<Customer> unknownStripeCustomers) {
@@ -57,8 +60,17 @@ public class UpcomingUserDebitService {
       return;
     }
 
+    var alreadySavedIdentifiersThisMonth =
+        unknownStripeCustomerJpaRepository
+            .findAllByCreationDatetimeBetween(
+                temporalUtils.startOfMonth(), temporalUtils.endOfMonth())
+            .stream()
+            .map(UnknownStripeCustomer::getStripeCustomerIdentifier)
+            .collect(toSet());
+
     List<UnknownStripeCustomer> toSave =
         unknownStripeCustomers.stream()
+            .filter(customer -> !alreadySavedIdentifiersThisMonth.contains(customer.getId()))
             .map(
                 customer ->
                     UnknownStripeCustomer.builder()
@@ -71,6 +83,10 @@ public class UpcomingUserDebitService {
                         .creationDatetime(now())
                         .build())
             .toList();
+
+    if (toSave.isEmpty()) {
+      return;
+    }
 
     unknownStripeCustomerJpaRepository.saveAll(toSave);
   }

@@ -9,22 +9,22 @@ import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.model.validator.AreaPictureValidator;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.areapicture.AreaPictureConsumptionValidator;
-import app.bpartners.api.service.areapicture.RoofAnalysisConsumptionFreeTrialValidator;
+import app.bpartners.api.service.subscription.ImageAccessConsumptionFreeTrialValidator;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class AreaPictureConsumptionValidatorTest {
   AreaPictureValidator areaPictureValidatorMock = mock();
   UserSubscriptionEligibleJpaRepository subscriptionEligibleRepositoryMock = mock();
-  RoofAnalysisConsumptionFreeTrialValidator roofAnalysisConsumptionFreeTrialValidatorMock = mock();
+  ImageAccessConsumptionFreeTrialValidator imageAccessConsumptionFreeTrialValidatorMock = mock();
   AreaPictureConsumptionValidator subject =
       new AreaPictureConsumptionValidator(
           areaPictureValidatorMock,
           subscriptionEligibleRepositoryMock,
-          roofAnalysisConsumptionFreeTrialValidatorMock);
+          imageAccessConsumptionFreeTrialValidatorMock);
 
   @Test
-  void invoke_roof_analysis_consumption_when_user_subscription_eligible_found() {
+  void invoke_image_access_consumption_when_user_subscription_eligible_found() {
     var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
     doNothing().when(areaPictureValidatorMock).accept(any());
     when(subscriptionEligibleRepositoryMock.findByUserId(any()))
@@ -32,17 +32,17 @@ class AreaPictureConsumptionValidatorTest {
 
     assertDoesNotThrow(() -> subject.accept(new AreaPicture()));
 
-    verify(roofAnalysisConsumptionFreeTrialValidatorMock, only())
+    verify(imageAccessConsumptionFreeTrialValidatorMock, only())
         .accept(userSubscriptionEligibleMock);
   }
 
   @Test
-  void do_not_invoke_roof_analysis_consumption_when_user_subscription_eligible_not_found() {
+  void do_not_invoke_image_access_consumption_when_user_subscription_eligible_not_found() {
     doNothing().when(areaPictureValidatorMock).accept(any());
     when(subscriptionEligibleRepositoryMock.findByUserId(any())).thenReturn(Optional.empty());
 
     assertDoesNotThrow(() -> subject.accept(new AreaPicture()));
 
-    verify(roofAnalysisConsumptionFreeTrialValidatorMock, never()).accept(any());
+    verify(imageAccessConsumptionFreeTrialValidatorMock, never()).accept(any());
   }
 }

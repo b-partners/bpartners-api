@@ -1,6 +1,6 @@
 package app.bpartners.api.unit.service;
 
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.IMAGE_ACCESS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,7 +63,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
           fileDownloaderMock);
 
   @Test
-  void save_area_picture_and_add_log() {
+  void save_area_picture_and_add_image_access_log_not_roof_analysis() {
     doNothing().when(areaPictureZoomValidatorMock).accept(any());
     var areaPictureMock = mock(AreaPicture.class);
     var geoPositionMock = mock(GeoPosition.class);
@@ -110,7 +110,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
         SubscriptionConsumptionLog.builder()
             .id(subscriptionConsumptionLog.getId())
             .userId(areaPictureMock.getIdUser())
-            .consumptionType(ROOF_ANALYSIS)
+            .consumptionType(IMAGE_ACCESS)
             .consumptionUnit(UNIT)
             .usageMetric(1L)
             .comment("Adresse : " + prospectAddress + " - Prospect : " + prospectName)

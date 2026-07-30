@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.mapper;
 
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.IMAGE_ACCESS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.time.Instant.now;
@@ -45,5 +46,24 @@ class SubscriptionConsumptionLogRestMapperTest {
                 .build());
 
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void map_image_access_domain_to_rest_and_back() {
+    var domain =
+        SubscriptionConsumptionLog.builder()
+            .id(randomUUID().toString())
+            .userId(randomUUID().toString())
+            .usageMetric(1L)
+            .consumptionType(IMAGE_ACCESS)
+            .consumptionUnit(UNIT)
+            .comment("Adresse : some address")
+            .creationDatetime(now())
+            .build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(ConsumptionType.IMAGE_ACCESS, actual.getConsumptionType());
+    assertEquals(IMAGE_ACCESS, subject.toDomain(actual).getConsumptionType());
   }
 }

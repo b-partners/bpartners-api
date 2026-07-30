@@ -209,6 +209,54 @@ class SubscriptionServiceTest {
     }
   }
 
+  @Test
+  void get_subscription_product_by_e2id_preserves_catalog_columns_when_remirroring() {
+    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
+        MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {
+      var domainProductId = "planId";
+      var existing =
+          SubscriptionProduct.builder()
+              .id(domainProductId)
+              .e2Id("stripeProductId")
+              .planCode("ESSENTIAL")
+              .billingType(SubscriptionBillingType.COMMITMENT)
+              .freeUsageThreshold(20L)
+              .overageUnitPriceInCents(200L)
+              .trialPeriodDays(7)
+              .build();
+      when(subscriptionProductRepositoryMock.findById(domainProductId))
+          .thenReturn(Optional.of(existing));
+      var product = new Product();
+      product.setDefaultPrice("priceId");
+      product.setMarketingFeatures(List.of());
+      product.setImages(List.of());
+      product.setCreated(1L);
+      var price = new Price();
+      var recurring = new Price.Recurring();
+      recurring.setInterval("month");
+      price.setRecurring(recurring);
+      price.setUnitAmount(5880L);
+      productMockedStatic.when(() -> Product.retrieve(any())).thenReturn(product);
+      priceMockedStatic.when(() -> Price.retrieve(any())).thenReturn(price);
+      when(subscriptionProductRepositoryMock.save(any()))
+          .thenAnswer(invocation -> invocation.getArgument(0));
+
+      subject.getSubscriptionProductByE2Id(domainProductId, "stripeProductId");
+
+      var captor = ArgumentCaptor.forClass(SubscriptionProduct.class);
+      verify(subscriptionProductRepositoryMock).save(captor.capture());
+      var saved = captor.getValue();
+      // Catalog attributes carried over from the existing row, not wiped by the Stripe re-mirror.
+      assertEquals("ESSENTIAL", saved.getPlanCode());
+      assertEquals(SubscriptionBillingType.COMMITMENT, saved.getBillingType());
+      assertEquals(Long.valueOf(20L), saved.getFreeUsageThreshold());
+      assertEquals(Long.valueOf(200L), saved.getOverageUnitPriceInCents());
+      assertEquals(Integer.valueOf(7), saved.getTrialPeriodDays());
+      // Stripe-mirrored price still applied.
+      assertEquals(Long.valueOf(5880L), saved.getPriceInCents());
+    }
+  }
+
   @SneakyThrows
   @Test
   void cancel_subscription_ko() {

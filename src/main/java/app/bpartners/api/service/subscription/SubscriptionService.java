@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
   private static final int DEFAULT_TRIAL_PERIOD_DAYS = 7;
-  public static final long FREE_ROOF_ANALYSIS = 20L;
+  public static final long FREE_ROOF_ANALYSIS = SubscriptionProduct.DEFAULT_FREE_USAGE_THRESHOLD;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -206,6 +206,12 @@ public class SubscriptionService {
         .toList();
   }
 
+  private static long overageUnitPriceInCentsOf(SubscriptionProduct plan) {
+    return plan == null
+        ? SubscriptionProduct.DEFAULT_OVERAGE_UNIT_PRICE_IN_CENTS
+        : plan.overageUnitPriceInCentsOrDefault();
+  }
+
   public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
     if (userSubscriptionType.equals(ESSENTIAL)) {
       var defaultSubscriptionProductId = stripeConf.getEssentialSubscriptionProductId();
@@ -331,6 +337,22 @@ public class SubscriptionService {
         && !createdStripeProduct.getImages().getFirst().isBlank()) {
       subscriptionProductToPersistBuilder.imageUrl(createdStripeProduct.getImages().getFirst());
     }
+
+    // Catalog attributes (plan, pricing thresholds, trial) live only in our DB, not on Stripe :
+    // carry them over so re-mirroring the Stripe product does not wipe them.
+    subscriptionProductRepository
+        .findById(domainProductId)
+        .ifPresent(
+            existing ->
+                subscriptionProductToPersistBuilder
+                    .consumptionTypeAttached(existing.getConsumptionTypeAttached())
+                    .planCode(existing.getPlanCode())
+                    .billingType(existing.getBillingType())
+                    .freeUsageThreshold(existing.getFreeUsageThreshold())
+                    .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
+                    .trialPeriodDays(existing.getTrialPeriodDays())
+                    .annualDiscountPercent(existing.getAnnualDiscountPercent()));
+
     return subscriptionProductRepository.save(subscriptionProductToPersistBuilder.build());
   }
 
@@ -388,7 +410,7 @@ public class SubscriptionService {
                 PriceCreateParams.builder()
                     .setCurrency(defaultCurrency())
                     .setProduct(subscriptionProductRoofAnalysis.getE2Id())
-                    .setUnitAmount(200L)
+                    .setUnitAmount(overageUnitPriceInCentsOf(subscriptionProduct))
                     .setRecurring(
                         PriceCreateParams.Recurring.builder()
                             .setUsageType(PriceCreateParams.Recurring.UsageType.METERED)

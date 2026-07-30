@@ -226,8 +226,12 @@ components:
           format: date-time
     ConsumptionType:
       type: string
+      description: |
+        ROOF_ANALYSIS is the only billable consumption. IMAGE_ACCESS only tracks
+        that an area picture has been read from an external source.
       enum:
         - ROOF_ANALYSIS
+        - IMAGE_ACCESS
     ConsumptionUnit:
       type: string
       enum:

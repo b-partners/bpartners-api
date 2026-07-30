@@ -58,13 +58,14 @@ Resources:
   MonthlySubscriptionInvoiceTriggeredScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:
-      Description: Scheduler that trigger the computing of monthly subscription invoices for users
+      Description: Scheduler that trigger the computing of monthly subscription invoices for users,
+        invoicing the month that has just elapsed
       FlexibleTimeWindow:
         Mode: "OFF"
       Name: !Join ['', [!Ref Env, -TriggerMonthlySubscriptionInvoice]]
       ScheduleExpression: !If
         - IsProd
-        - "cron(0 8 L * ? *)"
+        - "cron(0 8 1 * ? *)"
         - "cron(0 8 20 * ? *)"
       ScheduleExpressionTimezone: "Europe/Paris"
       Target:

@@ -176,9 +176,9 @@ public class MonthlySubscriptionInvoiceRequestedService
     var variableAnalysisConsumptionUsage = getVariableAnalysisConsumptionUsage(userToDebit);
 
     var invoiceId = randomUUID().toString();
-    var actualMonth = YearMonth.from(temporalUtils.startOfActualMonth());
-    var monthPeriod = subscriptionInvoiceTitleComputer.monthPeriodOf(actualMonth);
-    var invoiceTitle = subscriptionInvoiceTitleComputer.apply(actualMonth);
+    var billedMonth = YearMonth.from(temporalUtils.startOfLastMonth());
+    var monthPeriod = subscriptionInvoiceTitleComputer.monthPeriodOf(billedMonth);
+    var invoiceTitle = subscriptionInvoiceTitleComputer.apply(billedMonth);
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
         computeSubscriptionProducts(
@@ -187,7 +187,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
-    var sendingDate = temporalUtils.endOfActualMonth();
+    var sendingDate = temporalUtils.endOfLastMonth();
     LocalDateTime fixedDateTime = LocalDateTime.of(sendingDate, LocalTime.now());
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
@@ -199,7 +199,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfNextMonth())
+        .toPayAt(temporalUtils.fifthOfActualMonth())
         .sendingDate(sendingDate)
         .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)

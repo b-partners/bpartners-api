@@ -3,6 +3,7 @@ package app.bpartners.api.unit.service;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
+import static com.stripe.param.UsageRecordCreateOnSubscriptionItemParams.Action.SET;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
@@ -412,6 +413,7 @@ class SubscriptionServiceTest {
     assertEquals(expected, actual);
     assertEquals(expectedPayableUsage, stripeUsageRecordCreated.getQuantity());
     assertNotNull(stripeUsageRecordCreated.getTimestamp());
+    assertEquals(SET, stripeUsageRecordCreated.getAction());
 
     usageRecordMockedStatic.close();
   }

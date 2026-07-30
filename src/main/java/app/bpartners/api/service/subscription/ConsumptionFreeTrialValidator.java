@@ -10,14 +10,11 @@ import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.jpa.SubscriptionConsumptionLogJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class ConsumptionFreeTrialValidator implements Consumer<UserSubscriptionEligible> {
   protected static final long DEFAULT_MAX_CONSUMPTION_DURING_FREE_TRIAL = 20L;
   private static final ZoneId ZONE_ID_OF_EUROPE_PARIS = ZoneId.of("Europe/Paris");
-  private static final List<String> EXCLUDED_USER_IDS =
-      List.of("6d394379-585e-4471-b42e-213dc7624a55", "2ede5d19-fa49-4ad7-aa90-42c016a3f4f5");
 
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
   private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
@@ -40,11 +37,6 @@ public abstract class ConsumptionFreeTrialValidator implements Consumer<UserSubs
   @Override
   public void accept(UserSubscriptionEligible userSubscriptionEligible) {
     var userId = userSubscriptionEligible.getUserId();
-
-    if (!userSubscriptionEligible.hasFreeTrialPeriodActive()
-        || EXCLUDED_USER_IDS.contains(userId)) {
-      return;
-    }
 
     var actualConsumption = consumptionSinceFreeTrialPeriodStart(userSubscriptionEligible);
     if (actualConsumption >= maxConsumptionDuringFreeTrial() && isRestrictedByFreeTrial(userId)) {

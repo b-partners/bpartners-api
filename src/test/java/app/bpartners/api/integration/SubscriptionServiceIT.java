@@ -315,6 +315,11 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         .subscriptionProduct(
             subject.getSubscriptionProductByE2Id(
                 randomUUID().toString(), defaultSubscriptionProductId()))
+        .meteredProduct(
+            SubscriptionProduct.builder()
+                .e2Id(defaultSubscriptionProductId())
+                .overageUnitPriceInCents(200L)
+                .build())
         .endDatetime(now().plus(1, DAYS))
         .build();
   }

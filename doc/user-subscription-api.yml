@@ -42,6 +42,36 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  subscriptionPlansOperation:
+    get:
+      tags:
+        - User Subscription
+      summary: List the subscribable subscription plans
+      parameters:
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      operationId: getSubscriptionPlans
+      responses:
+        200:
+          description: Available subscription plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionPlan'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   paymentMethodsOperation:
     post:
       tags:
@@ -243,8 +273,50 @@ components:
           $ref: './api.yml/#/components/schemas/RedirectionStatusUrls'
         subscriptionType:
           $ref: '#/components/schemas/UserSubscriptionType'
+        subscriptionPlanIdentifier:
+          type: string
+          description: |
+            Identifier of the chosen plan (see GET /subscriptionPlans). When provided it takes
+            precedence over subscriptionType, enabling data-driven plan selection.
     UserSubscriptionType:
       type: string
       description: for now, only ESSENTIAL subscription is supported
       enum:
         - ESSENTIAL
+    SubscriptionBillingType:
+      type: string
+      enum:
+        - COMMITMENT
+        - USAGE_BASED
+    SubscriptionPlan:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        billingType:
+          $ref: '#/components/schemas/SubscriptionBillingType'
+        priceInCents:
+          type: integer
+          format: int64
+          description: Monthly fixed price, VAT included (TTC), in cents.
+        freeUsageThreshold:
+          type: integer
+          format: int64
+          description: Analyses included each month before the overage price applies.
+        overageUnitPriceInCents:
+          type: integer
+          format: int64
+          description: Price, HT in cents, of each analysis beyond the included quota.
+        trialPeriodDays:
+          type: integer
+        annualDiscountPercent:
+          type: integer
+          description: Discount, in percent, on the yearly prepaid fixed price.

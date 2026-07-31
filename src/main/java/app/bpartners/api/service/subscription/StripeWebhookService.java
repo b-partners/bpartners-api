@@ -9,6 +9,7 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.StripeObject;
 import com.stripe.model.Subscription;
+import com.stripe.model.SubscriptionSchedule;
 import com.stripe.net.Webhook;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,9 @@ import org.springframework.stereotype.Service;
 public class StripeWebhookService {
   private static final String SUBSCRIPTION_CREATED = "customer.subscription.created";
   private static final String SUBSCRIPTION_UPDATED = "customer.subscription.updated";
+  private static final String SUBSCRIPTION_SCHEDULE_CREATED = "subscription_schedule.created";
   private static final String STRIPE_ACTIVE_STATUS = "active";
+  private static final String STRIPE_SCHEDULE_NOT_STARTED_STATUS = "not_started";
 
   private final StripeConf stripeConf;
   private final UserRepository userRepository;
@@ -29,20 +32,10 @@ public class StripeWebhookService {
 
   public void handleEvent(String payload, String signatureHeader) {
     var event = verifySignature(payload, signatureHeader);
-    if (!SUBSCRIPTION_CREATED.equals(event.getType())
-        && !SUBSCRIPTION_UPDATED.equals(event.getType())) {
-      log.info("Ignoring unhandled Stripe event type={}", event.getType());
+    var stripeCustomerId = extractEligibleCustomerId(event);
+    if (stripeCustomerId == null) {
       return;
     }
-    var subscription = extractSubscription(event);
-    if (subscription == null || !STRIPE_ACTIVE_STATUS.equals(subscription.getStatus())) {
-      log.info(
-          "Stripe event={} subscription not active (status={}), skipping",
-          event.getType(),
-          subscription == null ? null : subscription.getStatus());
-      return;
-    }
-    var stripeCustomerId = subscription.getCustomer();
     var optionalUser = userRepository.findByStripeCustomerId(stripeCustomerId);
     if (optionalUser.isEmpty()) {
       log.warn("No user found for Stripe customer id={}, skipping", stripeCustomerId);
@@ -57,6 +50,40 @@ public class StripeWebhookService {
         event.getType());
   }
 
+  private String extractEligibleCustomerId(Event event) {
+    var type = event.getType();
+    if (SUBSCRIPTION_CREATED.equals(type) || SUBSCRIPTION_UPDATED.equals(type)) {
+      var subscription = extractStripeObject(event, Subscription.class);
+      if (subscription == null || !STRIPE_ACTIVE_STATUS.equals(subscription.getStatus())) {
+        log.info(
+            "Stripe event={} subscription not active (status={}), skipping",
+            type,
+            subscription == null ? null : subscription.getStatus());
+        return null;
+      }
+      return subscription.getCustomer();
+    }
+    if (SUBSCRIPTION_SCHEDULE_CREATED.equals(type)) {
+      var schedule = extractStripeObject(event, SubscriptionSchedule.class);
+      if (schedule == null || !isEligibleSchedule(schedule)) {
+        log.info(
+            "Stripe event={} subscription schedule not eligible (status={}), skipping",
+            type,
+            schedule == null ? null : schedule.getStatus());
+        return null;
+      }
+      return schedule.getCustomer();
+    }
+    log.info("Ignoring unhandled Stripe event type={}", type);
+    return null;
+  }
+
+  private boolean isEligibleSchedule(SubscriptionSchedule schedule) {
+    return schedule.getCanceledAt() == null
+        && (STRIPE_SCHEDULE_NOT_STARTED_STATUS.equals(schedule.getStatus())
+            || STRIPE_ACTIVE_STATUS.equals(schedule.getStatus()));
+  }
+
   private Event verifySignature(String payload, String signatureHeader) {
     var webhookSecret = stripeConf.getWebhookSecret();
     if (webhookSecret == null || webhookSecret.isBlank()) {
@@ -69,7 +96,7 @@ public class StripeWebhookService {
     }
   }
 
-  private Subscription extractSubscription(Event event) {
+  private <T extends StripeObject> T extractStripeObject(Event event, Class<T> type) {
     var deserializer = event.getDataObjectDeserializer();
     StripeObject stripeObject = deserializer.getObject().orElse(null);
     if (stripeObject == null) {
@@ -80,10 +107,11 @@ public class StripeWebhookService {
         return null;
       }
     }
-    if (stripeObject instanceof Subscription subscription) {
-      return subscription;
+    if (type.isInstance(stripeObject)) {
+      return type.cast(stripeObject);
     }
-    log.error("Stripe event={} data object is not a Subscription", event.getType());
+    log.error(
+        "Stripe event={} data object is not a {}", event.getType(), type.getSimpleName());
     return null;
   }
 }

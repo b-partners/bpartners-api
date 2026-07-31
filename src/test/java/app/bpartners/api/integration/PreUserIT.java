@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bpartners.api.endpoint.rest.model.CreatePreUser;
 import app.bpartners.api.integration.conf.MockedThirdParties;
-import app.bpartners.api.repository.sendinblue.SendinblueApi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
@@ -14,23 +13,14 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @AutoConfigureMockMvc
 class PreUserIT extends MockedThirdParties {
-  @MockBean private SendinblueApi sendinblueApi;
-
-  @BeforeEach
-  public void setUp() {
-    setUpSendiblueApi(sendinblueApi);
-  }
-
   CreatePreUser validPreUser() {
     CreatePreUser createPreUser = new CreatePreUser();
     createPreUser.setEmail(VALID_EMAIL);

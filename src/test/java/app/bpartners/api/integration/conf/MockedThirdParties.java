@@ -9,7 +9,6 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
 import app.bpartners.api.service.subscription.StripeCustomerService;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
@@ -25,7 +24,6 @@ public class MockedThirdParties extends FacadeIT {
   @MockBean protected PaymentScheduleService paymentScheduleService;
   @MockBean protected BuildingPermitConf buildingPermitConf;
   @MockBean protected SentryConf sentryConf;
-  @MockBean protected SendinblueConf sendinblueConf;
   @MockBean protected CognitoComponent cognitoComponentMock;
   @MockBean protected ProjectTokenManager projectTokenManager;
   @MockBean protected LegalFileRepository legalFileRepositoryMock;

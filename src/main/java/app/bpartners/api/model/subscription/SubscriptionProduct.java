@@ -66,7 +66,6 @@ public class SubscriptionProduct {
   @Column(name = "annual_discount_percent")
   private Integer annualDiscountPercent;
 
-  /** Id of the product billed as overage beyond {@link #freeUsageThreshold} for this plan. */
   @Column(name = "metered_product_id")
   private String meteredProductId;
 

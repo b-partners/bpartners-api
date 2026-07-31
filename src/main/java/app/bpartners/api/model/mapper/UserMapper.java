@@ -54,6 +54,7 @@ public class UserMapper {
             .parentUser(
                 entityUser.getParentUser() == null ? null : toDomain(entityUser.getParentUser()))
             .analysisApiKeys(userAnalysisApiKeys)
+            .subscriptionProducts(entityUser.getUserSubscriptionProducts())
             .build();
     user.addUserAnalysisApiKey(userAnalysisApiKeys);
     return user;

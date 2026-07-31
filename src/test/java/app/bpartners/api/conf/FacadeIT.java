@@ -41,6 +41,7 @@ public class FacadeIT {
     registry.add("sentry.dsn", () -> "https://public@sentry.example.com/1");
     registry.add("sentry.environment", () -> "dummy");
     registry.add("stripe.private.api.key", () -> "dummy");
+    registry.add("stripe.webhook.secret", () -> "dummy");
 
     try {
       var envConfClazz = Class.forName("app.bpartners.api.conf.EnvConf");

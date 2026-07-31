@@ -1,4 +1,4 @@
-package app.bpartners.api.service.annotation;
+package app.bpartners.api.service.annotation.export;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +39,7 @@ public class EmojiReplacer {
   private final Path svgDirectory;
   private final String prefix;
   private final String suffix;
+  private final Map<String, byte[]> svgCache = new HashMap<>();
 
   private static <T> Predicate<T> not(Predicate<T> inner) {
     return (toTest) -> !inner.test(toTest);
@@ -77,6 +78,36 @@ public class EmojiReplacer {
   }
 
   private String getEmoji(List<Integer> codePoints) {
+    String file = buildEmojiFilename(codePoints);
+
+    try {
+      byte[] bytes =
+          svgCache.computeIfAbsent(
+              file,
+              key -> {
+                try {
+                  return Files.readAllBytes(this.svgDirectory.resolve(key));
+                } catch (IOException e) {
+                  log.error("Couldn't read emoji with filename: {}", key, e);
+                  return new byte[0];
+                }
+              });
+
+      if (bytes.length == 0) {
+        return "";
+      }
+
+      return this.prefix
+          + (new String(bytes, StandardCharsets.UTF_8)
+              .replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>", ""))
+          + this.suffix;
+    } catch (Exception e) {
+      log.error("Couldn't read emoji with filename: {}", file, e);
+      return "";
+    }
+  }
+
+  private static String buildEmojiFilename(List<Integer> codePoints) {
     StringBuilder sb = new StringBuilder(codePoints.size() * 8);
 
     if (codePoints.size() == 1) {
@@ -89,18 +120,7 @@ public class EmojiReplacer {
     }
 
     sb.append(".svg");
-    String file = sb.toString();
-
-    try {
-      byte[] bytes = Files.readAllBytes(this.svgDirectory.resolve(file));
-      return this.prefix
-          + (new String(bytes, StandardCharsets.UTF_8)
-              .replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>", ""))
-          + this.suffix;
-    } catch (IOException e) {
-      log.error("Couldn't read emoji with filename: {}", file, e);
-      return "";
-    }
+    return sb.toString();
   }
 
   public String replaceEmoji(String input) {

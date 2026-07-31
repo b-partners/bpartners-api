@@ -3,7 +3,6 @@ package app.bpartners.api.service.areapicture;
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.AreaPictureAnnotation;
@@ -12,7 +11,8 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureAnnotationRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
+import app.bpartners.api.service.annotation.export.AreaAnnotationPDFProcessor;
 import app.bpartners.api.service.aws.S3Service;
 import java.time.Instant;
 import java.util.List;
@@ -32,7 +32,7 @@ public class AreaPictureAnnotationService {
   private final FileWriter fileWriter;
   private final S3Service s3Service;
   private final AreaPictureAnnotationRepository repository;
-  private final ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessor;
+  private final AreaAnnotationPDFProcessor areaAnnotationPDFProcessor;
   private final UserRepository userRepository;
 
   public AreaPictureAnnotation save(AreaPictureAnnotation areaPictureAnnotation) {
@@ -86,11 +86,10 @@ public class AreaPictureAnnotationService {
   }
 
   public PreSignedURL exportAreaPictureAnnotationToPdf(
-      String userId, ExportAreaPictureAnnotation annotation, byte[] globalImage3D) {
+      String userId, AreaAnnotationExportPayload annotation, byte[] globalImage3D) {
     try {
       var user = userRepository.getById(userId);
-      var generatedPDF =
-          exportAreaPictureAnnotationPDFProcessor.process(user, annotation, globalImage3D);
+      var generatedPDF = areaAnnotationPDFProcessor.process(user, annotation, globalImage3D);
 
       var fileToUpload = fileWriter.apply(generatedPDF, null);
       var fileId = "Rapport_d_analyse_" + randomUUID() + PDF_EXTENSION;

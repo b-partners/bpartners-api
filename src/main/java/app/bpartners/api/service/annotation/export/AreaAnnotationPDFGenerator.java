@@ -1,15 +1,14 @@
-package app.bpartners.api.service.annotation;
+package app.bpartners.api.service.annotation.export;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
+import app.bpartners.api.service.annotation.AreaAnnotationInstance;
+import app.bpartners.api.service.annotation.AreaAnnotationInstanceInfo;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -23,11 +22,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ExportAreaPictureAnnotationPDFGenerator {
+public class AreaAnnotationPDFGenerator {
   private final TemplateResolverEngine templateResolverEngine;
   private final EmojiReplacer emojiReplacer;
   private final FileService fileService;
-  private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper;
 
   public static final String KEY_LABEL = "key";
   public static final String FONT_NAME = "Kumbh Sans";
@@ -35,11 +33,8 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private static final String FONT_PATH = "fonts/KumbhSans-Regular.ttf";
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
-  public ExportAreaPictureAnnotationPDFGenerator(
-      TemplateResolverEngine templateResolverEngine,
-      FileService fileService,
-      AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
-    this.areaPictureAnnotationConfRestMapper = areaPictureAnnotationConfRestMapper;
+  public AreaAnnotationPDFGenerator(
+      TemplateResolverEngine templateResolverEngine, FileService fileService) {
     this.templateResolverEngine = templateResolverEngine;
     this.emojiReplacer = getEmojiReplacer();
     this.fileService = fileService;
@@ -49,7 +44,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   public byte[] apply(
       User user,
       String logoBase64,
-      ExportAreaPictureAnnotation annotation,
+      AreaAnnotationExportPayload annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
     return apply(user, logoBase64, annotation, annotationImages, annotation3DImages, null);
@@ -59,7 +54,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   public byte[] apply(
       User user,
       String logoBase64,
-      ExportAreaPictureAnnotation annotation,
+      AreaAnnotationExportPayload annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages,
       Pair<String, List<String>> annotation3DFacadeImages) {
@@ -103,13 +98,13 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private String parseDataToString(
       User user,
       String logoBase64,
-      ExportAreaPictureAnnotation annotation,
+      AreaAnnotationExportPayload annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages,
       Pair<String, List<String>> annotation3DFacadeImages) {
     var templateEngine = templateResolverEngine.getTemplateEngine();
 
-    var exportAreaPictureAnnotation3DGenerator = new ExportAreaPictureAnnotationImage3DGenerator();
+    var exportAreaPictureAnnotation3DGenerator = new AreaAnnotationImage3DGenerator();
     var context =
         createContext(
             user,
@@ -119,35 +114,35 @@ public class ExportAreaPictureAnnotationPDFGenerator {
             annotation3DImages,
             annotation3DFacadeImages,
             fileService,
-            exportAreaPictureAnnotation3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            exportAreaPictureAnnotation3DGenerator);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 
-  public record GroupedByKey(String key, List<ExportAreaPictureAnnotationInstance> instances) {
+  public record GroupedByKey(String key, List<AreaAnnotationInstance> instances) {
     // Used by the template
-    public ExportAreaPictureAnnotationInstance mergedInstance() {
+    public AreaAnnotationInstance mergedInstance() {
       assert !this.instances.isEmpty();
       var instance = this.instances.getFirst();
 
-      return new ExportAreaPictureAnnotationInstance()
+      return AreaAnnotationInstance.builder()
           .labelName(key)
           .fillColor(instance.getFillColor())
           .infos(infos())
           .measurements(instance.getMeasurements())
-          .polygon(instance.getPolygon());
+          .polygon(instance.getPolygon())
+          .build();
     }
 
-    public List<ExportAreaPictureAnnotationInstanceInfo> infos() {
+    public List<AreaAnnotationInstanceInfo> infos() {
       return this.instances.stream()
-          .map(ExportAreaPictureAnnotationInstance::getInfos)
-          .map(infos -> infos.stream().filter(info -> !KEY_LABEL.equals(info.getLabel())).toList())
+          .map(AreaAnnotationInstance::getInfos)
+          .map(infos -> infos.stream().filter(info -> !KEY_LABEL.equals(info.label())).toList())
           .max(Comparator.comparing(List::size))
           .orElse(List.of());
     }
 
-    public static List<GroupedByKey> from(List<ExportAreaPictureAnnotationInstance> instances) {
-      Map<String, List<ExportAreaPictureAnnotationInstance>> grouped = new LinkedHashMap<>();
+    public static List<GroupedByKey> from(List<AreaAnnotationInstance> instances) {
+      Map<String, List<AreaAnnotationInstance>> grouped = new LinkedHashMap<>();
 
       for (var instance : instances) {
         String key = getKey(instance);
@@ -163,10 +158,10 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     }
   }
 
-  public static String getKey(ExportAreaPictureAnnotationInstance instance) {
+  public static String getKey(AreaAnnotationInstance instance) {
     return instance.getInfos().stream()
-        .filter(info -> KEY_LABEL.equals(info.getLabel()))
-        .map(ExportAreaPictureAnnotationInstanceInfo::getValue)
+        .filter(info -> KEY_LABEL.equals(info.label()))
+        .map(AreaAnnotationInstanceInfo::value)
         .findFirst()
         .orElse("generated_key_" + randomUUID());
   }

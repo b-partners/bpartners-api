@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.controller;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
+import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
@@ -48,6 +49,13 @@ public class SubscriptionController {
   public String triggerMonthlySubscriptionInvoice() {
     eventProducer.accept(List.of(new MonthlySubscriptionInvoiceTriggered()));
     return "Monthly subscription invoice triggered successfully";
+  }
+
+  // TODO: temporary endpoint to backfill historical Essential UserSubscriptionProduct for users who
+  @PostMapping("/users/subscriptionProductBackfill")
+  public String triggerUserSubscriptionProductBackfill() {
+    eventProducer.accept(List.of(new UserSubscriptionProductBackfillTriggered()));
+    return "UserSubscriptionProduct backfill triggered successfully";
   }
 
   @GetMapping("/users/{uId}/subscriptionConsumptionLogs")

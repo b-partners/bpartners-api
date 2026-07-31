@@ -36,6 +36,7 @@ public class UserRestMapper {
   private final UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
   private final UserWhiteListedJpaRepository userWhiteListedRepository;
   private final TemporalUtils temporalUtils;
+  private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
 
   public V2User toRestV2(app.bpartners.api.model.User domain) {
     var subscription = subscriptionService.getSubscriptionByUser(domain);
@@ -78,6 +79,11 @@ public class UserRestMapper {
         .subscriptionStatus(subscriptionStatus)
         .subscription(
             new UserSubscription()
+                .plan(
+                    domain.getActualSubscriptionProduct() == null
+                        ? null
+                        : subscriptionPlanRestMapper.toRestDescription(
+                            domain.getActualSubscriptionProduct()))
                 .status(subscriptionStatus)
                 .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
                 .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))

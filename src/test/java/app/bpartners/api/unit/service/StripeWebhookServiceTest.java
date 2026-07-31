@@ -17,6 +17,7 @@ import app.bpartners.api.service.subscription.StripeWebhookService;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.Subscription;
+import com.stripe.model.SubscriptionSchedule;
 import com.stripe.net.Webhook;
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +52,64 @@ class StripeWebhookServiceTest {
     when(event.getType()).thenReturn(type);
     lenient().when(event.getDataObjectDeserializer()).thenReturn(deserializer);
     return event;
+  }
+
+  private Event givenScheduleEvent(String scheduleStatus, Long canceledAt) {
+    var schedule = mock(SubscriptionSchedule.class);
+    lenient().when(schedule.getStatus()).thenReturn(scheduleStatus);
+    lenient().when(schedule.getCanceledAt()).thenReturn(canceledAt);
+    lenient().when(schedule.getCustomer()).thenReturn(CUSTOMER_ID);
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    lenient().when(deserializer.getObject()).thenReturn(Optional.of(schedule));
+    var event = mock(Event.class);
+    when(event.getType()).thenReturn("subscription_schedule.created");
+    lenient().when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+    return event;
+  }
+
+  @Test
+  void not_started_schedule_requests_creation_for_matched_user() {
+    var userId = randomUUID().toString();
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(userId).build()));
+    var event = givenScheduleEvent("not_started", null);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer)
+        .accept(List.of(UserSubscriptionProductBackfillRequested.builder().userId(userId).build()));
+  }
+
+  @Test
+  void canceled_schedule_produces_no_event() {
+    var event = givenScheduleEvent("not_started", 1_700_000_000L);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+    verify(userRepository, never()).findByStripeCustomerId(any());
+  }
+
+  @Test
+  void released_schedule_produces_no_event() {
+    var event = givenScheduleEvent("released", null);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+    verify(userRepository, never()).findByStripeCustomerId(any());
   }
 
   @Test

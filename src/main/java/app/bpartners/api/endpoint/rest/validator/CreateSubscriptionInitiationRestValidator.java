@@ -14,8 +14,9 @@ public class CreateSubscriptionInitiationRestValidator
     if (createSubscriptionInitiation == null) {
       throw new IllegalArgumentException("createSubscriptionInitiation can not be null");
     } else {
-      if (createSubscriptionInitiation.getSubscriptionType() == null) {
-        stringBuilder.append("subscriptionType can not be null. ");
+      if (createSubscriptionInitiation.getSubscriptionType() == null
+          && createSubscriptionInitiation.getSubscriptionPlanIdentifier() == null) {
+        stringBuilder.append("planId or subscriptionType can not be both null. ");
       }
       if (createSubscriptionInitiation.getRedirectionStatusUrls() == null) {
         stringBuilder.append("redirectionStatusUrls can not be null. ");

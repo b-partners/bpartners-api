@@ -12,6 +12,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -42,6 +44,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Pageable;
 
 class SubscriptionServiceTest {
   private static final Logger log = LoggerFactory.getLogger(SubscriptionServiceTest.class);
@@ -150,9 +153,13 @@ class SubscriptionServiceTest {
       when(stripeConfMock.getEssentialSubscriptionProductId())
           .thenReturn("esentialSubscriptionProductId");
       var subscriptionProduct =
-          SubscriptionProduct.builder().id("subscriptionProductId").e2Id("stripeProductId").build();
+          SubscriptionProduct.builder()
+              .id("subscriptionProductId")
+              .e2Id("stripeProductId")
+              .meteredProductId("roofAnalysis")
+              .build();
       when(subscriptionProductRepositoryMock.findById(any()))
-          .thenReturn(Optional.ofNullable(subscriptionProduct));
+          .thenReturn(Optional.of(subscriptionProduct));
       var product = new Product();
       product.setDefaultPrice("");
       product.setMarketingFeatures(List.of(new Product.MarketingFeature()));
@@ -180,6 +187,15 @@ class SubscriptionServiceTest {
 
       productMockedStatic.when(() -> Product.retrieve(any())).thenReturn(product);
       priceMockedStatic.when(() -> Price.retrieve(any())).thenReturn(price);
+      var meteredProduct =
+          SubscriptionProduct.builder()
+              .id("roofAnalysis")
+              .e2Id("roofAnalysisStripeProduct")
+              .consumptionTypeAttached(ROOF_ANALYSIS)
+              .build();
+      // The plan declares its overage product by id ; it is resolved from the DB, not by type.
+      when(subscriptionProductRepositoryMock.findById("roofAnalysis"))
+          .thenReturn(Optional.of(meteredProduct));
 
       var actual = subject.getBySubscriptionType(userSubscriptionType);
       log.info("actual: {}", actual);
@@ -197,15 +213,18 @@ class SubscriptionServiceTest {
               .priceInCents(price.getUnitAmount())
               .imageUrl(product.getImages().getFirst())
               .type(MONTHLY)
+              .meteredProductId("roofAnalysis")
               .creationDatetime(actual.getSubscriptionProduct().getCreationDatetime())
               .build();
       var expected =
           Subscription.builder()
               .subscriptionProduct(subscriptionProductExpected)
+              .meteredProduct(meteredProduct)
               .endDatetime(actual.getEndDatetime())
               .build();
       assertEquals(expected, actual);
-      assertNotNull(subscriptionProduct);
+      // The metered product is the overage product the plan references, distinct from the plan.
+      assertEquals(meteredProduct, actual.getMeteredProduct());
     }
   }
 
@@ -255,6 +274,36 @@ class SubscriptionServiceTest {
       // Stripe-mirrored price still applied.
       assertEquals(Long.valueOf(5880L), saved.getPriceInCents());
     }
+  }
+
+  @Test
+  void get_subscribable_plans_applies_default_pagination_page1_size100() {
+    var plan = SubscriptionProduct.builder().id("essential").build();
+    var pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+    when(subscriptionProductRepositoryMock.findAllByBillingTypeNotNull(any(Pageable.class)))
+        .thenReturn(List.of(plan));
+
+    var actual = subject.getSubscribablePlans(null, null);
+
+    assertEquals(List.of(plan), actual);
+    verify(subscriptionProductRepositoryMock).findAllByBillingTypeNotNull(pageableCaptor.capture());
+    var pageable = pageableCaptor.getValue();
+    assertEquals(0, pageable.getPageNumber()); // page=1 -> 0-indexed offset
+    assertEquals(100, pageable.getPageSize());
+  }
+
+  @Test
+  void get_subscribable_plans_maps_page_from_one_to_zero_indexed() {
+    var pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+    when(subscriptionProductRepositoryMock.findAllByBillingTypeNotNull(any(Pageable.class)))
+        .thenReturn(List.of());
+
+    subject.getSubscribablePlans(new PageFromOne(3), new BoundedPageSize(10));
+
+    verify(subscriptionProductRepositoryMock).findAllByBillingTypeNotNull(pageableCaptor.capture());
+    var pageable = pageableCaptor.getValue();
+    assertEquals(2, pageable.getPageNumber());
+    assertEquals(10, pageable.getPageSize());
   }
 
   @SneakyThrows

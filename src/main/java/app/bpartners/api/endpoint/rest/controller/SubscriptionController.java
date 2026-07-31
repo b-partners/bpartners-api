@@ -4,7 +4,11 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
@@ -20,6 +24,16 @@ public class SubscriptionController {
   private final EventProducer eventProducer;
   private final SubscriptionService service;
   private final SubscriptionConsumptionLogRestMapper subscriptionConsumptionLogRestMapper;
+  private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
+
+  @GetMapping("/subscriptionPlans")
+  public List<SubscriptionPlan> getSubscriptionPlans(
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
+    return service.getSubscribablePlans(page, pageSize).stream()
+        .map(subscriptionPlanRestMapper::toRest)
+        .toList();
+  }
 
   @PostMapping("/monthlyUpcomingDebitedCustomers/{year}/{month}")
   public void upcomingDebitedCustomersExport(@PathVariable int year, @PathVariable int month) {

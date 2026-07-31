@@ -110,8 +110,7 @@ public class StripeWebhookService {
     if (type.isInstance(stripeObject)) {
       return type.cast(stripeObject);
     }
-    log.error(
-        "Stripe event={} data object is not a {}", event.getType(), type.getSimpleName());
+    log.error("Stripe event={} data object is not a {}", event.getType(), type.getSimpleName());
     return null;
   }
 }

@@ -182,6 +182,15 @@ public class UserRepositoryImpl implements UserRepository {
         : Optional.empty();
   }
 
+  @Transactional
+  @Override
+  public Optional<User> findByStripeCustomerId(String stripeCustomerId) {
+    return jpaRepository
+        .findByUserSubscriptionE2Id(stripeCustomerId)
+        .map(userMapper::toDomain)
+        .map(this::retrievePaymentMethod);
+  }
+
   @Override
   public User getById(String id) {
     var fetchedUser =

@@ -39,6 +39,64 @@ class AreaAnnotationExportPayloadImage3DGeneratorTest {
   }
 
   @Test
+  void summary_image_should_not_be_clipped_on_the_right_edge() {
+    var widePan =
+        AreaAnnotation3DPan.builder()
+            .polygon(
+                new Polygon(
+                    List.of(
+                        new Point(0, 0),
+                        new Point(200, 0),
+                        new Point(200, 50),
+                        new Point(0, 50),
+                        new Point(0, 0))))
+            .measurements(List.of())
+            .infos(List.of())
+            .build();
+
+    var result = subject.generateBaseImageWithSlopeBoundariesWithMeasurement(List.of(widePan));
+    BufferedImage image = result.second();
+
+    // The polygon (and its stroke) must not reach the image edge: the rightmost columns
+    // must stay transparent (no drawn pixel). Regression for the clipped base image bug.
+    for (int x = image.getWidth() - 5; x < image.getWidth(); x++) {
+      for (int y = 0; y < image.getHeight(); y++) {
+        int alpha = (image.getRGB(x, y) >>> 24) & 0xFF;
+        assertEquals(0, alpha, "Pixel at (" + x + "," + y + ") should be transparent");
+      }
+    }
+  }
+
+  @Test
+  void summary_image_should_not_be_clipped_on_the_bottom_edge() {
+    var tallPan =
+        AreaAnnotation3DPan.builder()
+            .polygon(
+                new Polygon(
+                    List.of(
+                        new Point(0, 0),
+                        new Point(50, 0),
+                        new Point(50, 200),
+                        new Point(0, 200),
+                        new Point(0, 0))))
+            .measurements(List.of())
+            .infos(List.of())
+            .build();
+
+    var result = subject.generateBaseImageWithSlopeBoundariesWithMeasurement(List.of(tallPan));
+    BufferedImage image = result.second();
+
+    // Height-bound pans must not be clipped at the bottom either: the last rows
+    // must stay transparent (no drawn pixel).
+    for (int y = image.getHeight() - 5; y < image.getHeight(); y++) {
+      for (int x = 0; x < image.getWidth(); x++) {
+        int alpha = (image.getRGB(x, y) >>> 24) & 0xFF;
+        assertEquals(0, alpha, "Pixel at (" + x + "," + y + ") should be transparent");
+      }
+    }
+  }
+
+  @Test
   void mergePanImagesSideBySide_should_work() {
     BufferedImage img1 = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
     BufferedImage img2 = new BufferedImage(200, 150, BufferedImage.TYPE_INT_RGB);

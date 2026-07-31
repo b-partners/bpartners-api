@@ -25,6 +25,11 @@ import org.springframework.stereotype.Component;
 public class AreaAnnotationImage3DGenerator {
   private static final int TARGET_SIZE = 550;
   private static final int SUMMARY_IMAGE_SIZE = 1080;
+  // Content must be smaller than the target image so the drawn stroke (up to 3px, centered on
+  // the path) is not clipped at the image edge: when contentSize == targetSize the padding is 0
+  // and width-bound roofs map their max-X vertex to x == image width (out of bounds).
+  private static final int SUMMARY_IMAGE_MARGIN = 20;
+  private static final int SUMMARY_CONTENT_SIZE = SUMMARY_IMAGE_SIZE - 2 * SUMMARY_IMAGE_MARGIN;
   private static final int CONTENT_SIZE = 500;
 
   private static final int POLYGON_POINTS_SIZE = 10;
@@ -71,7 +76,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -102,7 +107,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -141,7 +146,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -182,7 +187,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);

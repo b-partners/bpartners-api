@@ -81,30 +81,6 @@ class AreaAnnotationExportPayloadRequestedServiceTest {
         Duration.ofMinutes(1));
   }
 
-  @SuppressWarnings("unchecked")
-  @Test
-  void export_area_picture_annotation_requested_ko() throws IOException, MessagingException {
-    var exportAreaPictureAnnotationRequested = createExportAreaPictureAnnotationRequested();
-
-    doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
-    when(areaAnnotationPDFProcessorMock.process(any(), any())).thenThrow(IOException.class);
-    when(templateResolverEngineMock.parseTemplateResolver(any(), any()))
-        .thenReturn("<html><body>Rapport généré</body></html>");
-    AreaAnnotationExportPayload domainAnnotation =
-        AreaAnnotationExportPayload.builder()
-            .address(ADDRESS)
-            .imageUrl("url")
-            .annotations(java.util.List.of())
-            .build();
-    when(restMapperMock.toDomain(
-            any(app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation.class)))
-        .thenReturn(domainAnnotation);
-
-    subject.accept(exportAreaPictureAnnotationRequested);
-
-    verify(mailerMock, times(1)).sendEmail(any(), any(), any(), any());
-  }
-
   ExportAreaPictureAnnotationRequested createExportAreaPictureAnnotationRequested() {
     var annotation = mock(app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation.class);
 

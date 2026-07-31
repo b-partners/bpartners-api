@@ -97,13 +97,12 @@ public class AreaAnnotationImageGenerator
     // Draw all points
     graphics2D.setColor(BLACK);
     coordinates.forEach(
-        coordinate -> {
-          graphics2D.fillOval(
-              coordinate.x() - conf.getPointSize() / 2,
-              coordinate.y() - conf.getPointSize() / 2,
-              conf.getPointSize(),
-              conf.getPointSize());
-        });
+        coordinate ->
+            graphics2D.fillOval(
+                coordinate.x() - conf.getPointSize() / 2,
+                coordinate.y() - conf.getPointSize() / 2,
+                conf.getPointSize(),
+                conf.getPointSize()));
 
     drawMeasurements(graphics2D, imageWidth, imageHeight, conf, annotationInstance, coordinates);
   }

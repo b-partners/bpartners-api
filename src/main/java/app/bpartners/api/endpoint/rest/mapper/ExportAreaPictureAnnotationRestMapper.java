@@ -1,7 +1,5 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
 import app.bpartners.api.service.annotation.AreaAnnotation3D;
 import app.bpartners.api.service.annotation.AreaAnnotation3DPan;
 import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
@@ -32,9 +30,9 @@ public class ExportAreaPictureAnnotationRestMapper {
         .llm(rest.getLlm())
         .annotation3d(toDomain(rest.get3d()))
         .annotations(
-            Optional.ofNullable(rest.getAnnotations()).orElse(List.of()).stream()
+            Optional.of(rest.getAnnotations()).orElse(List.of()).stream()
                 .map(this::toDomain)
-                .collect(toUnmodifiableList()))
+                .toList())
         .conf(
             Optional.ofNullable(rest.getConf())
                 .map(this::toDomainConf)
@@ -47,7 +45,7 @@ public class ExportAreaPictureAnnotationRestMapper {
                             .map(
                                 app.bpartners.api.service.annotation.model.custompage.CustomPage
                                     ::fromRest)
-                            .collect(toUnmodifiableList()))
+                            .toList())
                 .orElse(null))
         .build();
   }
@@ -72,14 +70,11 @@ public class ExportAreaPictureAnnotationRestMapper {
       return null;
     }
     return AreaAnnotation3D.builder()
-        .pans(
-            Optional.ofNullable(rest.getPans()).orElse(List.of()).stream()
-                .map(this::toDomain)
-                .collect(toUnmodifiableList()))
+        .pans(Optional.of(rest.getPans()).orElse(List.of()).stream().map(this::toDomain).toList())
         .facades(
             Optional.ofNullable(rest.getFacades()).orElse(List.of()).stream()
                 .map(this::toDomain)
-                .collect(toUnmodifiableList()))
+                .toList())
         .build();
   }
 
@@ -94,13 +89,10 @@ public class ExportAreaPictureAnnotationRestMapper {
         .polygon(toDomain(rest.getPolygon()))
         .orientedPolygon(toDomain(rest.getOrientedPolygon()))
         .measurements(
-            Optional.ofNullable(rest.getMeasurements()).orElse(List.of()).stream()
+            Optional.of(rest.getMeasurements()).orElse(List.of()).stream()
                 .map(this::toDomain)
-                .collect(toUnmodifiableList()))
-        .infos(
-            Optional.ofNullable(rest.getInfos()).orElse(List.of()).stream()
-                .map(this::toDomain)
-                .collect(toUnmodifiableList()))
+                .toList())
+        .infos(Optional.of(rest.getInfos()).orElse(List.of()).stream().map(this::toDomain).toList())
         .build();
   }
 
@@ -111,13 +103,10 @@ public class ExportAreaPictureAnnotationRestMapper {
     }
     return AreaAnnotationInstance.builder()
         .measurements(
-            Optional.ofNullable(rest.getMeasurements()).orElse(List.of()).stream()
+            Optional.of(rest.getMeasurements()).orElse(List.of()).stream()
                 .map(this::toDomain)
-                .collect(toUnmodifiableList()))
-        .infos(
-            Optional.ofNullable(rest.getInfos()).orElse(List.of()).stream()
-                .map(this::toDomain)
-                .collect(toUnmodifiableList()))
+                .toList())
+        .infos(Optional.of(rest.getInfos()).orElse(List.of()).stream().map(this::toDomain).toList())
         .polygon(toDomain(rest.getPolygon()))
         .fillColor(rest.getFillColor())
         .strokeColor(rest.getStrokeColor())
@@ -132,8 +121,8 @@ public class ExportAreaPictureAnnotationRestMapper {
     }
     return new AreaAnnotationMeasurement(
         rest.getUnit(),
-        Optional.ofNullable(rest.getValue()).orElse(0.0),
-        Optional.ofNullable(rest.getIsInvisible()).orElse(false));
+        Optional.of(rest.getValue()).orElse(0.0),
+        Optional.of(rest.getIsInvisible()).orElse(false));
   }
 
   private AreaAnnotationInstanceInfo toDomain(
@@ -148,10 +137,7 @@ public class ExportAreaPictureAnnotationRestMapper {
     if (rest == null || rest.getPoints() == null) {
       return null;
     }
-    return new Polygon(
-        rest.getPoints().stream()
-            .map(p -> new Point(p.getX(), p.getY()))
-            .collect(toUnmodifiableList()));
+    return new Polygon(rest.getPoints().stream().map(p -> new Point(p.getX(), p.getY())).toList());
   }
 
   private static boolean defaultTrue(Boolean value) {

@@ -15,9 +15,7 @@ import app.bpartners.api.service.annotation.export.AreaAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
-import app.bpartners.api.service.annotation.model.custompage.CustomPage;
-import app.bpartners.api.service.annotation.model.custompage.ImageSection;
-import app.bpartners.api.service.annotation.model.custompage.PageSection;
+import app.bpartners.api.service.annotation.model.custompage.*;
 import app.bpartners.api.service.annotation.utils.ImageUriUtils;
 import app.bpartners.api.service.file.FileService;
 import java.io.IOException;
@@ -332,50 +330,46 @@ public class ExportAnnotationContextFactory {
 
   private static PageSection processSectionImages(PageSection section) {
     if (section instanceof ImageSection imageSection) {
-      var imageUrl = imageSection.getUrl();
-      if (imageUrl != null) {
-        try {
-          URI uri = new URI(imageUrl);
-          String scheme = uri.getScheme();
-          if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
-            var image = ImageIO.read(uri.toURL());
-            if (image != null) {
-              var dataUri = ImageUriUtils.bufferedImageToUri(image);
-              return ImageSection.builder()
-                  .priority(imageSection.getPriority())
-                  .url(dataUri)
-                  .caption(imageSection.getCaption())
-                  .build();
-            } else {
-              log.warn("Could not read image from url: {}", imageUrl);
-            }
-          } else {
-            log.warn("Blocked non-http/https image url: {}", imageUrl);
-          }
-        } catch (IOException | URISyntaxException | IllegalArgumentException e) {
-          log.error("Could not download image from url: {}", imageUrl, e);
-        }
-      }
-      return imageSection;
+      String dataUri = toDataUri(imageSection.getUrl());
+      return (dataUri != null) ? imageSection.toBuilder().url(dataUri).build() : imageSection;
     }
-    if (section
-        instanceof
-        app.bpartners.api.service.annotation.model.custompage.SplitSection splitSection) {
-      return new app.bpartners.api.service.annotation.model.custompage.SplitSection(
+    if (section instanceof SplitSection splitSection) {
+      return new SplitSection(
           splitSection.getPriority(),
           processSectionImages(splitSection.getLeftSection()),
           processSectionImages(splitSection.getRightSection()));
     }
-    if (section
-        instanceof
-        app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection threeSplitSection) {
-      return new app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection(
-          threeSplitSection.getPriority(),
-          processSectionImages(threeSplitSection.getLeftSection()),
-          processSectionImages(threeSplitSection.getMiddleSection()),
-          processSectionImages(threeSplitSection.getRightSection()));
+    if (section instanceof ThreeSplitSection threeSplit) {
+      return new ThreeSplitSection(
+          threeSplit.getPriority(),
+          processSectionImages(threeSplit.getLeftSection()),
+          processSectionImages(threeSplit.getMiddleSection()),
+          processSectionImages(threeSplit.getRightSection()));
     }
     return section;
+  }
+
+  private static String toDataUri(String imageUrl) {
+    if (imageUrl == null) {
+      return null;
+    }
+    try {
+      URI uri = new URI(imageUrl);
+      String scheme = uri.getScheme();
+      if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+        log.warn("Blocked non-http/https image url: {}", imageUrl);
+        return null;
+      }
+      var image = ImageIO.read(uri.toURL());
+      if (image == null) {
+        log.warn("Could not read image from url: {}", imageUrl);
+        return null;
+      }
+      return ImageUriUtils.bufferedImageToUri(image);
+    } catch (IOException | URISyntaxException | IllegalArgumentException e) {
+      log.error("Could not download image from url: {}", imageUrl, e);
+      return null;
+    }
   }
 
   static <T> List<List<T>> groupByFirstPage(List<T> list, int firstPageMax, int limit) {

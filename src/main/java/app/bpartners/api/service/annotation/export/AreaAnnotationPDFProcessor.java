@@ -142,8 +142,7 @@ public class AreaAnnotationPDFProcessor {
       AreaAnnotationExportPayload annotation,
       BufferedImage baseImage,
       double rescaleXValue,
-      double rescaleYValue)
-      throws IOException {
+      double rescaleYValue) {
     var mainConf = mainConf().rescale(rescaleXValue, rescaleYValue);
     var subConf = subImageConf().rescale(rescaleXValue, rescaleYValue);
 

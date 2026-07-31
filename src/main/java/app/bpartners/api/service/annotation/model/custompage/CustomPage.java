@@ -1,7 +1,5 @@
 package app.bpartners.api.service.annotation.model.custompage;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -23,9 +21,9 @@ public class CustomPage {
     return CustomPage.builder()
         .pageTitle(rest.getPageTitle())
         .sections(
-            Optional.ofNullable(rest.getSections()).orElse(List.of()).stream()
+            Optional.of(rest.getSections()).orElse(List.of()).stream()
                 .map(PageSection::fromRest)
-                .collect(toUnmodifiableList()))
+                .toList())
         .build();
   }
 }

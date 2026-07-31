@@ -51,14 +51,13 @@ class AreaAnnotationExportPayloadImageGeneratorTest {
       var badExportAnnotationInstance2 =
           exportInstance().toBuilder().fillColor("#FFFFFFFFFFFF").build();
 
+      var input1 = List.of(badExportAnnotationInstance1);
       var error1 =
-          assertThrows(
-              BadRequestException.class,
-              () -> subject.apply(mockImage, conf, List.of(badExportAnnotationInstance1)));
+          assertThrows(BadRequestException.class, () -> subject.apply(mockImage, conf, input1));
+
+      var input2 = List.of(badExportAnnotationInstance2);
       var error2 =
-          assertThrows(
-              BadRequestException.class,
-              () -> subject.apply(mockImage, conf, List.of(badExportAnnotationInstance2)));
+          assertThrows(BadRequestException.class, () -> subject.apply(mockImage, conf, input2));
 
       assertEquals("Wrong color format was received", error1.getMessage());
       assertEquals("Wrong color format was received", error2.getMessage());

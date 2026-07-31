@@ -86,9 +86,10 @@ class AreaAnnotationExportPayloadPdfProcessorTest {
         .when(spy)
         .downloadImage(anyString());
 
+    var user = user();
     var error =
         assertThrows(
-            BadRequestException.class, () -> spy.process(user(), areaAnnotationExportPayload));
+            BadRequestException.class, () -> spy.process(user, areaAnnotationExportPayload));
 
     assertEquals("Cannot read the image from the url", error.getMessage());
   }

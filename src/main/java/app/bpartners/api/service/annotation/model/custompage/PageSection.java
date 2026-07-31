@@ -59,8 +59,7 @@ public abstract class PageSection {
             fromRest(threeSplitRestSection.getMiddleSection()),
             fromRest(threeSplitRestSection.getRightSection()));
       }
-      default -> {}
+      default -> throw new IllegalArgumentException("Unknown section type: " + rest.getClass());
     }
-    throw new IllegalArgumentException("Unknown section type: " + rest.getClass());
   }
 }

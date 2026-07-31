@@ -55,14 +55,12 @@ public class AreaAnnotationPDFProcessor {
         DEFAULT_MEASUREMENT_FONT);
   }
 
-  public byte[] process(User user, AreaAnnotationExportPayload exportAnnotation)
-      throws IOException {
+  public byte[] process(User user, AreaAnnotationExportPayload exportAnnotation) {
     return process(user, exportAnnotation, null);
   }
 
   public byte[] process(
-      User user, AreaAnnotationExportPayload exportAnnotation, byte[] globalImage3D)
-      throws IOException {
+      User user, AreaAnnotationExportPayload exportAnnotation, byte[] globalImage3D) {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
     return process(user, exportAnnotation, downloadedImage, globalImage3D);
   }
@@ -71,8 +69,7 @@ public class AreaAnnotationPDFProcessor {
       User user,
       AreaAnnotationExportPayload exportAnnotation,
       BufferedImage downloadedImage,
-      byte[] globalImage3D)
-      throws IOException {
+      byte[] globalImage3D) {
     BufferedImage compressedImage =
         downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage);
     AdjustedAnnotationResult adjustmentResult =

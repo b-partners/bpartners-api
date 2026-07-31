@@ -14,14 +14,17 @@ public class StripeConf {
   private final String apiKey;
   private final String essentialSubscriptionProductId;
   private final String basicSubscriptionProductId;
+  private final String webhookSecret;
 
   public StripeConf(
       @Value("${stripe.private.api.key}") String apiKey,
       @Value("${stripe.subscription.product.essential.id}") String essentialSubscriptionProductId,
-      @Value("${stripe.subscription.product.basic.id}") String basicSubscriptionProductId) {
+      @Value("${stripe.subscription.product.basic.id}") String basicSubscriptionProductId,
+      @Value("${stripe.webhook.secret}") String webhookSecret) {
     this.apiKey = apiKey;
     this.essentialSubscriptionProductId = essentialSubscriptionProductId;
     this.basicSubscriptionProductId = basicSubscriptionProductId;
+    this.webhookSecret = webhookSecret;
     Stripe.apiKey = apiKey;
   }
 

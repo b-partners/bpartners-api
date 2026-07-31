@@ -24,6 +24,8 @@ public interface UserRepository {
 
   Optional<User> findByEmail(String email);
 
+  Optional<User> findByStripeCustomerId(String stripeCustomerId);
+
   User getById(String id);
 
   User save(User toSave);

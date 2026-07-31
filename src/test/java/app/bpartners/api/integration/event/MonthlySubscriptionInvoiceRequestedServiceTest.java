@@ -94,7 +94,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenReturn(
             Optional.of(
                 SubscriptionProduct.builder()
-                    .billingType(SubscriptionBillingType.COMMITMENT)
+                    .billingType(
+                        app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT)
                     .priceInCents(5880L)
                     .freeUsageThreshold(20L)
                     .overageUnitPriceInCents(200L)
@@ -225,7 +226,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenReturn(
             Optional.of(
                 SubscriptionProduct.builder()
-                    .billingType(SubscriptionBillingType.COMMITMENT)
+                    .billingType(
+                        app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT)
                     .priceInCents(840L)
                     .freeUsageThreshold(5L)
                     .overageUnitPriceInCents(300L)

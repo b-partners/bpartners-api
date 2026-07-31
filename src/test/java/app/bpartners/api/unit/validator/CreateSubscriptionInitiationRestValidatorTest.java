@@ -32,7 +32,7 @@ class CreateSubscriptionInitiationRestValidatorTest {
             IllegalArgumentException.class, () -> subject.accept(createSubscriptionInitiation2));
 
     assertEquals(
-        "subscriptionType can not be null. redirectionStatusUrls can not be null. ",
+        "planId or subscriptionType can not be both null. redirectionStatusUrls can not be null. ",
         actual.getMessage());
     assertEquals(
         "redirectionStatusUrls.successUrl can not be null. redirectionStatusUrls.failureUrl can not"
@@ -45,6 +45,17 @@ class CreateSubscriptionInitiationRestValidatorTest {
     var createSubscriptionInitiation =
         new CreateSubscriptionInitiation()
             .subscriptionType(ESSENTIAL)
+            .redirectionStatusUrls(
+                new RedirectionStatusUrls().failureUrl("failure URL").successUrl("success URL"));
+
+    assertDoesNotThrow(() -> subject.accept(createSubscriptionInitiation));
+  }
+
+  @Test
+  void accept_ok_with_plan_id_only() {
+    var createSubscriptionInitiation =
+        new CreateSubscriptionInitiation()
+            .subscriptionPlanIdentifier("some-plan-id")
             .redirectionStatusUrls(
                 new RedirectionStatusUrls().failureUrl("failure URL").successUrl("success URL"));
 

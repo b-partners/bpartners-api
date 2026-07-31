@@ -18,6 +18,8 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -44,6 +46,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +57,7 @@ public class SubscriptionService {
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
   private static final int DEFAULT_TRIAL_PERIOD_DAYS = 7;
   public static final long FREE_ROOF_ANALYSIS = SubscriptionProduct.DEFAULT_FREE_USAGE_THRESHOLD;
+  private static final int DEFAULT_PLANS_PAGE_SIZE = 100;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -212,27 +216,47 @@ public class SubscriptionService {
         : plan.overageUnitPriceInCentsOrDefault();
   }
 
+  public List<SubscriptionProduct> getSubscribablePlans(
+      PageFromOne page, BoundedPageSize pageSize) {
+    var pageValue = page != null ? page.getValue() - 1 : 0;
+    var pageSizeValue = pageSize != null ? pageSize.getValue() : DEFAULT_PLANS_PAGE_SIZE;
+    return subscriptionProductRepository.findAllByBillingTypeNotNull(
+        PageRequest.of(pageValue, pageSizeValue));
+  }
+
   public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
     if (userSubscriptionType.equals(ESSENTIAL)) {
-      var defaultSubscriptionProductId = stripeConf.getEssentialSubscriptionProductId();
-      var subscriptionProduct =
-          subscriptionProductRepository
-              .findById(defaultSubscriptionProductId)
-              .orElseThrow(
-                  () ->
-                      new NotFoundException(
-                          "SubscriptionProduct(id="
-                              + defaultSubscriptionProductId
-                              + ") not found"));
-      log.info("subscriprtionProduct: {}", subscriptionProduct);
-      return Subscription.builder()
-          .subscriptionProduct(
-              getSubscriptionProductByE2Id(
-                  subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
-          .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
-          .build();
+      return getByPlanId(stripeConf.getEssentialSubscriptionProductId());
     }
     throw new NotImplementedException("Only ESSENTIAL subscription type is supported");
+  }
+
+  public Subscription getByPlanId(String planId) {
+    var subscriptionProduct =
+        subscriptionProductRepository
+            .findById(planId)
+            .orElseThrow(
+                () -> new NotFoundException("SubscriptionProduct(id=" + planId + ") not found"));
+    return Subscription.builder()
+        .subscriptionProduct(
+            getSubscriptionProductByE2Id(
+                subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
+        .meteredProduct(resolveMeteredProduct(subscriptionProduct))
+        .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
+        .build();
+  }
+
+  private SubscriptionProduct resolveMeteredProduct(SubscriptionProduct plan) {
+    var meteredProductId = plan.getMeteredProductId();
+    if (meteredProductId == null) {
+      return null;
+    }
+    return subscriptionProductRepository
+        .findById(meteredProductId)
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "Metered SubscriptionProduct(id=" + meteredProductId + ") not found"));
   }
 
   @SneakyThrows
@@ -351,7 +375,8 @@ public class SubscriptionService {
                     .freeUsageThreshold(existing.getFreeUsageThreshold())
                     .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
                     .trialPeriodDays(existing.getTrialPeriodDays())
-                    .annualDiscountPercent(existing.getAnnualDiscountPercent()));
+                    .annualDiscountPercent(existing.getAnnualDiscountPercent())
+                    .meteredProductId(existing.getMeteredProductId()));
 
     return subscriptionProductRepository.save(subscriptionProductToPersistBuilder.build());
   }
@@ -401,15 +426,14 @@ public class SubscriptionService {
         Instant.ofEpochSecond(billingCycleAnchor).atZone(ZoneId.of("Europe/Paris")).toLocalDate());
 
     var subscriptionProduct = subscription.getSubscriptionProduct();
-    var subscriptionProductRoofAnalysis =
-        subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
+    var subscriptionMeteredProduct = subscription.getMeteredProduct();
     var newVariableProductPrice =
         stripeClient
             .prices()
             .create(
                 PriceCreateParams.builder()
                     .setCurrency(defaultCurrency())
-                    .setProduct(subscriptionProductRoofAnalysis.getE2Id())
+                    .setProduct(subscriptionMeteredProduct.getE2Id())
                     .setUnitAmount(overageUnitPriceInCentsOf(subscriptionProduct))
                     .setRecurring(
                         PriceCreateParams.Recurring.builder()

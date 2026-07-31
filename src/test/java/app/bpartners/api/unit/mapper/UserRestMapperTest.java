@@ -12,10 +12,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.mapper.AccountRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlanDescription;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.UserWhiteListed;
 import app.bpartners.api.model.subscription.Subscription;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
@@ -39,6 +43,7 @@ class UserRestMapperTest {
   UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock = mock();
   StripeInvoiceService stripeInvoiceServiceMock = mock();
   UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
+  SubscriptionPlanRestMapper subscriptionPlanRestMapperMock = mock();
   TemporalUtils temporalUtils = new TemporalUtils();
   UserRestMapper subject =
       new UserRestMapper(
@@ -47,7 +52,8 @@ class UserRestMapperTest {
           stripeInvoiceServiceMock,
           subscriptionEligibleJpaRepositoryMock,
           userWhiteListedJpaRepositoryMock,
-          temporalUtils);
+          temporalUtils,
+          subscriptionPlanRestMapperMock);
 
   @BeforeEach
   void setUp() {
@@ -79,6 +85,48 @@ class UserRestMapperTest {
     var subscriptionStart =
         subscriptionEligible.getEligibleFrom().atStartOfDay(parisZoneId).toInstant();
     assertEquals(subscriptionStart, actual.getSubscription().getStart());
+  }
+
+  @Test
+  void user_v2_subscription_mapped_with_actual_plan() {
+    var now = now();
+    var actualProduct = SubscriptionProduct.builder().id("plan_id").name("Premium").build();
+    var planDescription = new SubscriptionPlanDescription().id("plan_id").name("Premium");
+    when(subscriptionPlanRestMapperMock.toRestDescription(actualProduct))
+        .thenReturn(planDescription);
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(UserSubscription.builder().subscriptions(List.of()).build());
+
+    var domain =
+        User.builder()
+            .roles(List.of())
+            .paymentMethodExists(true)
+            .subscriptionProducts(
+                List.of(
+                    UserSubscriptionProduct.builder()
+                        .id(randomUUID().toString())
+                        .subscriptionProduct(actualProduct)
+                        .creationDatetime(now)
+                        .subscriptionEndDatetime(null)
+                        .build()))
+            .build();
+
+    var actual = subject.toRestV2(domain);
+
+    assertEquals(planDescription, actual.getSubscription().getPlan());
+  }
+
+  @Test
+  void user_v2_subscription_plan_null_when_no_actual_subscription_product() {
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(UserSubscription.builder().subscriptions(List.of()).build());
+
+    var domain = User.builder().roles(List.of()).paymentMethodExists(true).build();
+
+    var actual = subject.toRestV2(domain);
+
+    assertNull(actual.getSubscription().getPlan());
+    verify(subscriptionPlanRestMapperMock, never()).toRestDescription(any());
   }
 
   @Test

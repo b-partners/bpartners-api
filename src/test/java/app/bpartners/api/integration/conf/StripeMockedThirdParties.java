@@ -8,7 +8,6 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -20,7 +19,6 @@ public class StripeMockedThirdParties extends StripeFacadeIT {
   @MockBean protected PaymentScheduleService paymentScheduleService;
   @MockBean protected BuildingPermitConf buildingPermitConf;
   @MockBean protected SentryConf sentryConf;
-  @MockBean protected SendinblueConf sendinblueConf;
   @MockBean protected CognitoComponent cognitoComponentMock;
   @MockBean protected ProjectTokenManager projectTokenManager;
   @MockBean protected LegalFileRepository legalFileRepositoryMock;

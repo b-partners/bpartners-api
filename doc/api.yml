@@ -86,6 +86,8 @@ paths:
     $ref: './user-subscription-api.yml#/operations/paymentMethodsOperation'
   /users/subscriptionRegistration:
     $ref: './user-subscription-api.yml#/operations/registerUserSubscription'
+  /subscriptionPlans:
+    $ref: './user-subscription-api.yml#/operations/subscriptionPlansOperation'
   /users/{uId}/subscriptionInitiation:
     $ref: './user-subscription-api.yml#/operations/initiateUserSubscription'
   /users/{uId}/subscriptionCancel:

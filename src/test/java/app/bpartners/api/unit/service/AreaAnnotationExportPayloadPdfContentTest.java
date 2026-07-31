@@ -7,11 +7,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
+import app.bpartners.api.service.annotation.AreaAnnotation3D;
+import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
+import app.bpartners.api.service.annotation.export.AreaAnnotationImage3DGenerator;
+import app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -20,13 +21,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.thymeleaf.context.Context;
 
-class ExportAreaPictureAnnotationPdfContentTest {
+class AreaAnnotationExportPayloadPdfContentTest {
   private final TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
   private final FileService fileService = mock();
-  private final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
-      new ExportAreaPictureAnnotationImage3DGenerator();
-  private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
-      new AreaPictureAnnotationConfRestMapper();
+  private final AreaAnnotationImage3DGenerator image3DGenerator =
+      new AreaAnnotationImage3DGenerator();
 
   @BeforeEach
   void setup() {
@@ -35,30 +34,33 @@ class ExportAreaPictureAnnotationPdfContentTest {
 
   @Test
   void html_should_contain_3d_pans_information() {
-    ExportAreaPictureAnnotation annotation =
-        new ExportAreaPictureAnnotation()
+    var annotation3D =
+        AreaAnnotation3D.builder()
+            .pans(
+                List.of(
+                    export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
+                    export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150)))
+            .build();
+    AreaAnnotationExportPayload annotation =
+        AreaAnnotationExportPayload.builder()
             .address("123 Test Street")
-            ._3d(
-                new ExportAreaPictureAnnotation3D()
-                    .pans(
-                        List.of(
-                            export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
-                            export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150))));
+            .imageUrl("url")
+            .annotation3d(annotation3D)
+            .build();
 
     Pair<String, List<String>> annotationImages = new Pair<>("main", List.of());
     Pair<String, List<String>> annotation3DImages =
         new Pair<>("main3d", List.of("pan1_img", "pan2_img"));
 
     Context context =
-        app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
+        ExportAnnotationContextFactory.createContext(
             user(),
             "logo",
             annotation,
             annotationImages,
             annotation3DImages,
             fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            image3DGenerator);
 
     String html =
         templateResolverEngine
@@ -75,28 +77,29 @@ class ExportAreaPictureAnnotationPdfContentTest {
     assertTrue(html.contains("À rénover"));
 
     // Check for images
-    assertTrue(html.contains("data:image/png;base64,main3d"));
-    assertTrue(html.contains("data:image/png;base64,pan1_img"));
-    assertTrue(html.contains("data:image/png;base64,pan2_img"));
+    assertTrue(html.contains("data:image/jpeg;base64,main3d"));
+    assertTrue(html.contains("data:image/jpeg;base64,pan1_img"));
+    assertTrue(html.contains("data:image/jpeg;base64,pan2_img"));
   }
 
   @Test
   void html_should_contain_llm_analysis() {
-    ExportAreaPictureAnnotation annotation =
-        new ExportAreaPictureAnnotation()
+    AreaAnnotationExportPayload annotation =
+        AreaAnnotationExportPayload.builder()
             .address("123 Test Street")
-            .llm("<h2>Analyse LLM</h2><p>Test content with emoji 🛠️</p>");
+            .imageUrl("url")
+            .llm("<h2>Analyse LLM</h2><p>Test content with emoji 🛠️</p>")
+            .build();
 
     Context context =
-        app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
+        ExportAnnotationContextFactory.createContext(
             user(),
             "logo",
             annotation,
             new Pair<>("main", List.of()),
             null,
             fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            image3DGenerator);
 
     String html =
         templateResolverEngine

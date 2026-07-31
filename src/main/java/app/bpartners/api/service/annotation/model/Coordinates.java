@@ -2,18 +2,21 @@ package app.bpartners.api.service.annotation.model;
 
 import static java.util.Objects.requireNonNull;
 
-import app.bpartners.api.endpoint.rest.model.Polygon;
+import app.bpartners.api.service.annotation.Polygon;
 
 public record Coordinates(int[] allX, int[] allY) {
   public static Coordinates from(Polygon polygon) {
-    var coordinates = requireNonNull(polygon.getPoints());
-    var allX = new int[coordinates.size()];
-    var allY = new int[coordinates.size()];
+    if (polygon == null) {
+      return new Coordinates(new int[0], new int[0]);
+    }
+    var points = requireNonNull(polygon.points());
+    var allX = new int[points.size()];
+    var allY = new int[points.size()];
 
-    for (int i = 0; i < coordinates.size(); i++) {
-      var coordinate = coordinates.get(i);
-      allX[i] = requireNonNull(coordinate.getX()).intValue();
-      allY[i] = requireNonNull(coordinate.getY()).intValue();
+    for (int i = 0; i < points.size(); i++) {
+      var coordinate = points.get(i);
+      allX[i] = (int) Math.round(coordinate.x());
+      allY[i] = (int) Math.round(coordinate.y());
     }
 
     return new Coordinates(allX, allY);

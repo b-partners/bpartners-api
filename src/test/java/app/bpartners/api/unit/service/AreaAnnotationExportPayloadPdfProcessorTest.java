@@ -69,7 +69,7 @@ class AreaAnnotationExportPayloadPdfProcessorTest {
   }
 
   @Test
-  void process_pdf_ok() throws IOException {
+  void process_pdf_ok() {
     var spy = spy(subject);
     doReturn(mockImage).when(spy).downloadImage(anyString());
     var expected = fileMock;

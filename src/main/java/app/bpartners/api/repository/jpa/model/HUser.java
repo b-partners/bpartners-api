@@ -9,6 +9,7 @@ import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.BankConnection;
+import app.bpartners.api.model.UserSubscriptionProduct;
 import io.hypersistence.utils.hibernate.type.array.EnumArrayType;
 import jakarta.persistence.*;
 import java.io.Serializable;
@@ -96,6 +97,10 @@ public class HUser implements Serializable {
   @OneToMany(fetch = EAGER, cascade = ALL)
   @JoinColumn(name = "user_id")
   private List<HUserAnalysisApiKey> analysisApiKeys;
+
+  @OneToMany(fetch = EAGER, cascade = ALL)
+  @JoinColumn(name = "user_id")
+  private List<UserSubscriptionProduct> userSubscriptionProducts;
 
   public Instant getBridgeItemLastRefresh() {
     return bridgeItemLastRefresh == null

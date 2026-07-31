@@ -836,6 +836,8 @@ components:
     UserSubscription:
       type: object
       properties:
+        plan:
+          $ref: './user-subscription-api.yml#/components/schemas/SubscriptionPlanDescription'
         status:
           $ref: '#/components/schemas/UserSubscriptionStatus'
         start:

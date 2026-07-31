@@ -89,14 +89,14 @@ operations:
         content:
           application/json:
             schema:
-              $ref: './api.yml/#/components/schemas/RedirectionStatusUrls'
+              $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
       responses:
         200:
           description: Redirection URL to access to setup payment method
           content:
             application/json:
               schema:
-                $ref: './api.yml/#/components/schemas/Redirection'
+                $ref: './api.yml#/components/schemas/Redirection'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -124,14 +124,14 @@ operations:
         content:
           application/json:
             schema:
-              $ref: './api.yml/#/components/schemas/RedirectionStatusUrls'
+              $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
       responses:
         200:
           description: Redirection URL to access to billing portal
           content:
             application/json:
               schema:
-                $ref: './api.yml/#/components/schemas/Redirection'
+                $ref: './api.yml#/components/schemas/Redirection'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -155,7 +155,7 @@ operations:
             schema:
               type: array
               items:
-                $ref: './userAccounts-api.yml/#/components/schemas/User'
+                $ref: './userAccounts-api.yml#/components/schemas/User'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -190,7 +190,7 @@ operations:
           content:
             application/json:
               schema:
-                $ref: './api.yml/#/components/schemas/Redirection'
+                $ref: './api.yml#/components/schemas/Redirection'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -222,7 +222,7 @@ operations:
           content:
             application/json:
               schema:
-                $ref: './userAccounts-api.yml/#/components/schemas/User'
+                $ref: './userAccounts-api.yml#/components/schemas/User'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -270,7 +270,7 @@ components:
       type: object
       properties:
         redirectionStatusUrls:
-          $ref: './api.yml/#/components/schemas/RedirectionStatusUrls'
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
         subscriptionType:
           $ref: '#/components/schemas/UserSubscriptionType'
         subscriptionPlanIdentifier:
@@ -288,7 +288,7 @@ components:
       enum:
         - COMMITMENT
         - USAGE_BASED
-    SubscriptionPlan:
+    SubscriptionPlanDescription:
       type: object
       properties:
         id:
@@ -307,16 +307,21 @@ components:
           type: integer
           format: int64
           description: Monthly fixed price, VAT included (TTC), in cents.
-        freeUsageThreshold:
-          type: integer
-          format: int64
-          description: Analyses included each month before the overage price applies.
-        overageUnitPriceInCents:
-          type: integer
-          format: int64
-          description: Price, HT in cents, of each analysis beyond the included quota.
-        trialPeriodDays:
-          type: integer
-        annualDiscountPercent:
-          type: integer
-          description: Discount, in percent, on the yearly prepaid fixed price.
+    SubscriptionPlan:
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionPlanDescription'
+        - type: object
+          properties:
+            freeUsageThreshold:
+              type: integer
+              format: int64
+              description: Analyses included each month before the overage price applies.
+            overageUnitPriceInCents:
+              type: integer
+              format: int64
+              description: Price, HT in cents, of each analysis beyond the included quota.
+            trialPeriodDays:
+              type: integer
+            annualDiscountPercent:
+              type: integer
+              description: Discount, in percent, on the yearly prepaid fixed price.

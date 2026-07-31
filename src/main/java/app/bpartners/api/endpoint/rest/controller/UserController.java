@@ -70,11 +70,16 @@ public class UserController {
     var authenticatedSelfUser = getAuthUser(request, uId);
     subscriptionInitiationRestValidator.accept(subscriptionInitiation);
     var redirectionStatusUrls = subscriptionInitiation.getRedirectionStatusUrls();
-    var subscriptionType =
-        subscriptionService.getBySubscriptionType(subscriptionInitiation.getSubscriptionType());
-    var user = service.getUserById(authenticatedSelfUser.getId());
 
-    return subscriptionService.initiateSubscription(user, subscriptionType, redirectionStatusUrls);
+    var user = service.getUserById(authenticatedSelfUser.getId());
+    var subscription =
+        subscriptionInitiation.getSubscriptionPlanIdentifier() != null
+            ? subscriptionService.getByPlanId(
+                subscriptionInitiation.getSubscriptionPlanIdentifier())
+            : subscriptionService.getBySubscriptionType(
+                subscriptionInitiation.getSubscriptionType());
+
+    return subscriptionService.initiateSubscription(user, subscription, redirectionStatusUrls);
   }
 
   @PostMapping("/users/subscriptionRegistration")

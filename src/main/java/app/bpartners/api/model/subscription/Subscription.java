@@ -17,6 +17,9 @@ public class Subscription {
   private List<String> paymentMethods;
   private SubscriptionStatus status;
   private SubscriptionProduct subscriptionProduct;
+
+  private SubscriptionProduct meteredProduct;
+
   private Instant endDatetime;
   private Instant startDatetime;
 

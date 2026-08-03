@@ -21,7 +21,7 @@ public class UserSubscriptionProductBackfillRequestedService
 
   @Override
   public void accept(UserSubscriptionProductBackfillRequested event) {
-    var user = userService.getUserById(event.getUserId());
+    var user = userService.getUserByIdWithoutPaymentMethod(event.getUserId());
     if (!hasActiveSubscription(user)) {
       log.info(
           "User(id={}) has no ACTIVE subscription, skipping UserSubscriptionProduct backfill",

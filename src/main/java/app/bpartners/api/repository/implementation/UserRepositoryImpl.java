@@ -206,12 +206,15 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User getById(String id) {
-    var fetchedUser =
-        userMapper.toDomain(
-            jpaRepository
-                .findById(id)
-                .orElseThrow(() -> new NotFoundException("User(id=" + id + " not found)")));
-    return retrievePaymentMethod(fetchedUser);
+    return retrievePaymentMethod(getByIdWithoutPaymentMethod(id));
+  }
+
+  @Override
+  public User getByIdWithoutPaymentMethod(String id) {
+    return userMapper.toDomain(
+        jpaRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("User(id=" + id + " not found)")));
   }
 
   @Override

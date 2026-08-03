@@ -28,7 +28,7 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
   private User givenUserWithSubscriptionStatus(Subscription.SubscriptionStatus status) {
     var userId = randomUUID().toString();
     var user = User.builder().id(userId).build();
-    when(userService.getUserById(userId)).thenReturn(user);
+    when(userService.getUserByIdWithoutPaymentMethod(userId)).thenReturn(user);
     var subscriptions =
         status == null
             ? List.<Subscription>of()

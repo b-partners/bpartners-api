@@ -43,7 +43,7 @@ public class AreaAnnotationImage3DGenerator {
           .build();
 
   public Pair<Transform, BufferedImage> generateBaseImage(List<AreaAnnotation3DPan> pans) {
-    var imageContext = getImageContext(pans);
+    var imageContext = getImageContext(pans, false);
 
     pans.forEach(
         pan -> {
@@ -61,7 +61,7 @@ public class AreaAnnotationImage3DGenerator {
 
   public Pair<Transform, BufferedImage> generateBaseImageWithSlopeBoundariesWithMeasurement(
       List<AreaAnnotation3DPan> pans) {
-    var imageContext = getImageContext(pans);
+    var imageContext = getImageContext(pans, false);
 
     pans.forEach(
         pan -> {
@@ -84,7 +84,7 @@ public class AreaAnnotationImage3DGenerator {
   }
 
   public BufferedImage generateBaseImageWithAreas(List<AreaAnnotation3DPan> pans) {
-    var imageContext = getImageContext(pans);
+    var imageContext = getImageContext(pans, false);
 
     pans.forEach(
         pan -> {
@@ -115,7 +115,7 @@ public class AreaAnnotationImage3DGenerator {
   }
 
   public BufferedImage generateBaseImageWithPitches(List<AreaAnnotation3DPan> pans) {
-    var imageContext = getImageContext(pans);
+    var imageContext = getImageContext(pans, false);
 
     pans.forEach(
         pan -> {
@@ -148,7 +148,7 @@ public class AreaAnnotationImage3DGenerator {
   }
 
   public BufferedImage generateBaseImageWithNames(List<AreaAnnotation3DPan> pans) {
-    ImageContext image = getImageContext(pans);
+    ImageContext image = getImageContext(pans, false);
 
     for (int index = 0; index < pans.size(); index++) {
       var pan = pans.get(index);
@@ -173,8 +173,8 @@ public class AreaAnnotationImage3DGenerator {
   }
 
   private static @NotNull AreaAnnotationImage3DGenerator.ImageContext getImageContext(
-      List<AreaAnnotation3DPan> pans) {
-    var allPoints = extractPoints(pans);
+      List<AreaAnnotation3DPan> pans, boolean orientedPolygons) {
+    var allPoints = extractPoints(pans, orientedPolygons);
 
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
@@ -188,14 +188,15 @@ public class AreaAnnotationImage3DGenerator {
 
   private record ImageContext(Transform transform, BufferedImage baseImage, Graphics2D g2d) {}
 
-  private static @NotNull List<IntXY> extractPoints(List<AreaAnnotation3DPan> pans) {
-  return pans.stream()
-      .flatMap(
-          pan ->
-              requireNonNull(selectPolygon(pan, true)).points().stream()
-                  .map(p -> new IntXY((int) p.x(), (int) p.y())))
-      .toList();
-}
+  private static @NotNull List<IntXY> extractPoints(
+      List<AreaAnnotation3DPan> pans, boolean oriented) {
+    return pans.stream()
+        .flatMap(
+            pan ->
+                requireNonNull(selectPolygon(pan, oriented)).points().stream()
+                    .map(p -> new IntXY((int) p.x(), (int) p.y())))
+        .toList();
+  }
 
   public BufferedImage generateBaseImageWithHighlightedPanWithSlopeBoundary(
       BufferedImage baseImage, Transform transform, AreaAnnotation3DPan panToHighlight) {

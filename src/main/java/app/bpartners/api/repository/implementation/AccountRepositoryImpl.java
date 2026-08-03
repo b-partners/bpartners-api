@@ -8,7 +8,6 @@ import app.bpartners.api.model.UpdateAccountIdentity;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AccountMapper;
 import app.bpartners.api.repository.AccountRepository;
-import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccount;
@@ -27,7 +26,6 @@ public class AccountRepositoryImpl implements AccountRepository {
   private final AccountMapper mapper;
   private final AccountJpaRepository jpaRepository;
   private final UserJpaRepository userJpaRepository;
-  private final BankRepository bankRepository;
 
   /*
   TODO:

@@ -4,21 +4,18 @@ import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFact
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64ToUri;
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
-import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
+import app.bpartners.api.service.annotation.AreaAnnotation3D;
+import app.bpartners.api.service.annotation.AreaAnnotation3DPan;
+import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
+import app.bpartners.api.service.annotation.export.AreaAnnotationExportConf;
+import app.bpartners.api.service.annotation.export.AreaAnnotationImage3DGenerator;
+import app.bpartners.api.service.annotation.export.AreaAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
-import app.bpartners.api.service.annotation.model.custompage.CustomPage;
-import app.bpartners.api.service.annotation.model.custompage.PageSection;
-import app.bpartners.api.service.annotation.model.custompage.SectionPriority;
-import app.bpartners.api.service.annotation.model.custompage.TableData;
+import app.bpartners.api.service.annotation.model.custompage.*;
 import app.bpartners.api.service.annotation.utils.ImageUriUtils;
 import app.bpartners.api.service.file.FileService;
 import java.io.IOException;
@@ -36,12 +33,31 @@ public class ExportAnnotationContextFactory {
   public static Context createContext(
       User user,
       String logoBase64,
-      ExportAreaPictureAnnotation annotation,
+      AreaAnnotationExportPayload annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages,
       FileService fileService,
-      ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator,
-      AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
+      AreaAnnotationImage3DGenerator annotationImage3DGenerator) {
+    return createContext(
+        user,
+        logoBase64,
+        annotation,
+        annotationImages,
+        annotation3DImages,
+        null,
+        fileService,
+        annotationImage3DGenerator);
+  }
+
+  public static Context createContext(
+      User user,
+      String logoBase64,
+      AreaAnnotationExportPayload annotation,
+      Pair<String, List<String>> annotationImages,
+      Pair<String, List<String>> annotation3DImages,
+      Pair<String, List<String>> annotation3DFacadeImages,
+      FileService fileService,
+      AreaAnnotationImage3DGenerator annotationImage3DGenerator) {
     var context = new Context();
 
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
@@ -49,7 +65,8 @@ public class ExportAnnotationContextFactory {
     var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var defaultAccountHolder = user.getDefaultHolder();
     var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
-    var conf = areaPictureAnnotationConfRestMapper.toDomain(annotation.getConf());
+    var conf =
+        annotation.getConf() != null ? annotation.getConf() : AreaAnnotationExportConf.DEFAULT;
 
     context.setVariable("user", user);
     context.setVariable("userWebsite", user.getDefaultWebsite());
@@ -61,9 +78,7 @@ public class ExportAnnotationContextFactory {
     context.setVariable(
         "pages",
         groupByFirstPage(
-            ExportAreaPictureAnnotationPDFGenerator.GroupedByKey.from(annotation.getAnnotations()),
-            3,
-            3));
+            AreaAnnotationPDFGenerator.GroupedByKey.from(annotation.getAnnotations()), 3, 3));
     context.setVariable("subImagesPages", groupByFirstPage(subImagesUris, 3, 3));
 
     if (annotation.getLlm() != null) {
@@ -73,85 +88,25 @@ public class ExportAnnotationContextFactory {
     if (annotation.getGlobalRateValue() != null || annotation.getGlobalRateType() != null) {
       configureGlobalRateContext(context, annotation);
     }
-    if (annotation.get3d() != null) {
-      configureAnnotation3DContext(context, annotation.get3d(), annotation3DImages, fileService);
+    if (annotation.getAnnotation3d() != null) {
+      configureAnnotation3DContext(
+          context, annotation.getAnnotation3d(), annotation3DImages, fileService);
+      configureAnnotationFacade3DContext(
+          context, annotation.getAnnotation3d(), annotation3DFacadeImages, fileService);
       configureAnnotationSummaryContext(context, annotation, annotationImage3DGenerator);
     }
 
     if (annotation.getCustomPages() != null) {
-      context.setVariable("customPages", mapCustomPages(annotation.getCustomPages()));
+      context.setVariable("customPages", downloadCustomPageImages(annotation.getCustomPages()));
     }
 
     return context;
   }
 
-  private static List<CustomPage> mapCustomPages(
-      List<app.bpartners.api.endpoint.rest.model.CustomPage> customPages) {
-    return customPages.stream()
-        .map(
-            page ->
-                CustomPage.builder()
-                    .pageTitle(page.getPageTitle())
-                    .sections(
-                        page.getSections().stream()
-                            .map(ExportAnnotationContextFactory::mapSection)
-                            .toList())
-                    .build())
-        .toList();
-  }
-
-  private static PageSection mapSection(
-      app.bpartners.api.endpoint.rest.model.PageSection restSection) {
-    SectionPriority priority = SectionPriority.valueOf(restSection.getPriority().name());
-    if (restSection instanceof app.bpartners.api.endpoint.rest.model.TextSection textRestSection) {
-      return app.bpartners.api.service.annotation.model.custompage.TextSection.builder()
-          .priority(priority)
-          .text(textRestSection.getText())
-          .build();
-    } else if (restSection
-        instanceof app.bpartners.api.endpoint.rest.model.ImageSection imageRestSection) {
-      String imageUri = String.valueOf(imageRestSection.getUrl());
-      try {
-        URI uri = new URI(imageUri);
-        String scheme = uri.getScheme();
-        if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
-          var image = ImageIO.read(uri.toURL());
-          if (image != null) {
-            imageUri = ImageUriUtils.bufferedImageToUri(image);
-          } else {
-            log.warn("Could not read image from url: {}", imageUri);
-          }
-        } else {
-          log.warn("Blocked non-http/https image url: {}", imageUri);
-        }
-      } catch (IOException | URISyntaxException | IllegalArgumentException e) {
-        log.error("Could not download image from url: {}", imageRestSection.getUrl(), e);
-      }
-      return app.bpartners.api.service.annotation.model.custompage.ImageSection.builder()
-          .priority(priority)
-          .url(imageUri)
-          .caption(imageRestSection.getCaption())
-          .build();
-    } else if (restSection
-        instanceof app.bpartners.api.endpoint.rest.model.TableSection tableRestSection) {
-      app.bpartners.api.endpoint.rest.model.TableData restTableData =
-          tableRestSection.getTableData();
-      return app.bpartners.api.service.annotation.model.custompage.TableSection.builder()
-          .priority(priority)
-          .tableData(
-              TableData.builder()
-                  .headers(restTableData.getHeaders())
-                  .rows(restTableData.getRows())
-                  .build())
-          .build();
-    }
-    throw new IllegalArgumentException("Unknown section type: " + restSection.getClass());
-  }
-
   static void configureAnnotationSummaryContext(
       Context context,
-      ExportAreaPictureAnnotation annotation,
-      ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator) {
+      AreaAnnotationExportPayload annotation,
+      AreaAnnotationImage3DGenerator annotationImage3DGenerator) {
     context.setVariable(
         "roofSummary", AnnotationSummaryFactory.create(annotation, annotationImage3DGenerator));
 
@@ -161,11 +116,11 @@ public class ExportAnnotationContextFactory {
             (Map<Integer, List<String>>) context.getVariable("roofSlopeBoundariesPerPage")));
   }
 
-  static void configureLLMContext(Context context, ExportAreaPictureAnnotation annotation) {
+  static void configureLLMContext(Context context, AreaAnnotationExportPayload annotation) {
     context.setVariable("llm", annotation.getLlm());
   }
 
-  static void configureGlobalRateContext(Context context, ExportAreaPictureAnnotation annotation) {
+  static void configureGlobalRateContext(Context context, AreaAnnotationExportPayload annotation) {
     var degradationLevels = DegradationLevel.values();
     var activeDegradationLevel = DegradationLevel.valueOf(annotation);
 
@@ -179,21 +134,21 @@ public class ExportAnnotationContextFactory {
 
   static void configureAnnotation3DContext(
       Context context,
-      ExportAreaPictureAnnotation3D annotation3D,
+      AreaAnnotation3D annotation3D,
       Pair<String, List<String>> annotation3DImages,
       FileService fileService) {
     var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
     var mainImage3DUri = base64ToUri(annotation3DImages.first());
     var subImages3DUris =
         annotation3DImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
-    var pansImages3D = getPansImages3DContext(annotation3D, fileService);
+    var pansScreenshootImages3D = getPansImages3DContext(annotation3D, fileService);
 
     context.setVariable("pages3D", pages3D);
     context.setVariable("mainImage3D", mainImage3DUri);
     context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
     context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
-    context.setVariable("subImagesPages3D", groupByFirstPage(subImages3DUris, 3, 4));
-    context.setVariable("pansImages3DUris", groupByFirstPage(pansImages3D, 3, 4));
+    context.setVariable("topViewPanImagesUris", groupByFirstPage(subImages3DUris, 3, 4));
+    context.setVariable("pansImages3DUris", groupByFirstPage(pansScreenshootImages3D, 3, 4));
   }
 
   static HashSet<String> allRoofSlopeBoundaryTypes(Map<Integer, List<String>> perPage) {
@@ -204,7 +159,7 @@ public class ExportAnnotationContextFactory {
   }
 
   static Map<Integer, List<String>> getRoofSlopeBoundaryPerPage(
-      List<List<ExportAreaPictureAnnotation3DPan>> paged3DPans) {
+      List<List<AreaAnnotation3DPan>> paged3DPans) {
     var map = new HashMap<Integer, List<String>>();
     for (int i = 0; i < paged3DPans.size(); i++) {
       var page = paged3DPans.get(i);
@@ -229,9 +184,8 @@ public class ExportAnnotationContextFactory {
   }
 
   static List<String> getPansImages3DContext(
-      ExportAreaPictureAnnotation3D annotation3D, FileService fileService) {
-    var exportAreaPictureAnnotationImage3DGenerator =
-        new ExportAreaPictureAnnotationImage3DGenerator();
+      AreaAnnotation3D annotation3D, FileService fileService) {
+    var exportAreaPictureAnnotationImage3DGenerator = new AreaAnnotationImage3DGenerator();
 
     var overallPansTopView =
         exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getPans());
@@ -252,8 +206,8 @@ public class ExportAnnotationContextFactory {
                 var fileInfo = fileService.findById(pan.getImageUri());
                 if (fileInfo == null) {
                   log.warn(
-                      "Can't get image file for pan: {} from file id {}. Falling back to top view"
-                          + " image.",
+                      "Can't get image file for pan: {} from file id {}. Falling back to top"
+                          + " view image.",
                       pan.getName(),
                       pan.getImageUri());
                   return bufferedImageToUri(image);
@@ -280,6 +234,142 @@ public class ExportAnnotationContextFactory {
               return bufferedImageToUri(image);
             })
         .toList();
+  }
+
+  static void configureAnnotationFacade3DContext(
+      Context context,
+      AreaAnnotation3D annotation3D,
+      Pair<String, List<String>> annotation3DFacadeImages,
+      FileService fileService) {
+    if (annotation3D.getFacades() == null) {
+      return;
+    }
+    var pagesFacade3D = groupByFirstPage(annotation3D.getFacades(), 3, 4);
+    var subImages3DUris =
+        annotation3DFacadeImages != null && annotation3DFacadeImages.second() != null
+            ? annotation3DFacadeImages.second().stream().map(ImageUriUtils::base64ToUri).toList()
+            : List.<URI>of();
+    var facadesImages3D = getFacadesImages3DContext(annotation3D, fileService);
+
+    context.setVariable("pagesFacade3D", pagesFacade3D);
+    context.setVariable("topViewFacadeImagesUris", groupByFirstPage(subImages3DUris, 3, 4));
+    context.setVariable("facadesImages3DUris", groupByFirstPage(facadesImages3D, 3, 4));
+  }
+
+  static List<String> getFacadesImages3DContext(
+      AreaAnnotation3D annotation3D, FileService fileService) {
+    if (annotation3D.getFacades() == null) {
+      return List.of();
+    }
+    var exportAreaPictureAnnotationImage3DGenerator = new AreaAnnotationImage3DGenerator();
+
+    var overallFacadesTopView =
+        exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getFacades());
+    return annotation3D.getFacades().stream()
+        .map(
+            facade -> {
+              var image =
+                  exportAreaPictureAnnotationImage3DGenerator
+                      .generateBaseImageWithHighlightedPanWithSlopeBoundary(
+                          overallFacadesTopView.second(), overallFacadesTopView.first(), facade);
+              try {
+                if (facade.getImageUri() == null || facade.getImageUri().isBlank()) {
+                  log.warn(
+                      "No image provided for facade: {}. Falling back to top view image.",
+                      facade.getName());
+                  return bufferedImageToUri(image);
+                }
+                var fileInfo = fileService.findById(facade.getImageUri());
+                if (fileInfo == null) {
+                  log.warn(
+                      "Can't get image file for facade: {} from file id {}. Falling back to top"
+                          + " view image.",
+                      facade.getName(),
+                      facade.getImageUri());
+                  return bufferedImageToUri(image);
+                }
+                var fileFromFileService =
+                    fileService.downloadFile(
+                        FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
+
+                if (fileFromFileService == null) {
+                  log.warn(
+                      "Can't get image file for facade: {}. Falling back to top view image.",
+                      facade.getName());
+                  return bufferedImageToUri(image);
+                }
+
+                image = ImageIO.read(fileFromFileService);
+              } catch (IOException e) {
+                log.error(
+                    "Error while downloading facade image: {}. Falling back to top view image.",
+                    facade.getName(),
+                    e);
+              }
+
+              return bufferedImageToUri(image);
+            })
+        .toList();
+  }
+
+  static List<CustomPage> downloadCustomPageImages(List<CustomPage> customPages) {
+    return customPages.stream()
+        .map(
+            page -> {
+              var processedSections =
+                  page.getSections().stream()
+                      .map(ExportAnnotationContextFactory::processSectionImages)
+                      .toList();
+              return CustomPage.builder()
+                  .pageTitle(page.getPageTitle())
+                  .sections(processedSections)
+                  .build();
+            })
+        .toList();
+  }
+
+  private static PageSection processSectionImages(PageSection section) {
+    if (section instanceof ImageSection imageSection) {
+      String dataUri = toDataUri(imageSection.getUrl());
+      return (dataUri != null) ? imageSection.toBuilder().url(dataUri).build() : imageSection;
+    }
+    if (section instanceof SplitSection splitSection) {
+      return new SplitSection(
+          splitSection.getPriority(),
+          processSectionImages(splitSection.getLeftSection()),
+          processSectionImages(splitSection.getRightSection()));
+    }
+    if (section instanceof ThreeSplitSection threeSplit) {
+      return new ThreeSplitSection(
+          threeSplit.getPriority(),
+          processSectionImages(threeSplit.getLeftSection()),
+          processSectionImages(threeSplit.getMiddleSection()),
+          processSectionImages(threeSplit.getRightSection()));
+    }
+    return section;
+  }
+
+  private static String toDataUri(String imageUrl) {
+    if (imageUrl == null) {
+      return null;
+    }
+    try {
+      URI uri = new URI(imageUrl);
+      String scheme = uri.getScheme();
+      if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+        log.warn("Blocked non-http/https image url: {}", imageUrl);
+        return null;
+      }
+      var image = ImageIO.read(uri.toURL());
+      if (image == null) {
+        log.warn("Could not read image from url: {}", imageUrl);
+        return null;
+      }
+      return ImageUriUtils.bufferedImageToUri(image);
+    } catch (IOException | URISyntaxException | IllegalArgumentException e) {
+      log.error("Could not download image from url: {}", imageUrl, e);
+      return null;
+    }
   }
 
   static <T> List<List<T>> groupByFirstPage(List<T> list, int firstPageMax, int limit) {

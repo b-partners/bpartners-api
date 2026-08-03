@@ -15,10 +15,7 @@ import app.bpartners.api.endpoint.rest.api.UserAccountsApi;
 import app.bpartners.api.endpoint.rest.api.UserSubscriptionApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
-import app.bpartners.api.endpoint.rest.model.OnboardUser;
-import app.bpartners.api.endpoint.rest.model.OnboardedUser;
-import app.bpartners.api.endpoint.rest.model.User;
-import app.bpartners.api.endpoint.rest.model.Whois;
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.subscription.Subscription;
@@ -75,15 +72,14 @@ class UserIT extends MockedThirdParties {
         .id(JANE_DOE_ID)
         .firstName("Jane")
         .lastName("Doe")
-        .idVerified(true)
-        .identificationStatus(VALID_IDENTITY)
         .phone("+261341122334")
-        .monthlySubscriptionAmount(5)
         .logoFileId("logo.jpeg")
         .status(ENABLED)
         .activeAccount(restJaneAccount())
         .roles(List.of())
         .subscriptionStatus(ACTIVE)
+        .identificationStatus(VALID_IDENTITY)
+        .idVerified(true)
         .subscription(
             new app.bpartners.api.endpoint.rest.model.UserSubscription()
                 .status(ACTIVE)

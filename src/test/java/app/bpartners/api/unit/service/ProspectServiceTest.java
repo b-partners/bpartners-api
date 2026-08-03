@@ -43,7 +43,6 @@ import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
 import app.bpartners.api.repository.jpa.model.HProspect;
-import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
@@ -79,7 +78,6 @@ class ProspectServiceTest {
   SesConf sesConfMock = mock(SesConf.class);
   ProspectStatusService prospectStatusService = mock(ProspectStatusService.class);
   UserService userServiceMock = mock(UserService.class);
-  SnsService snsServiceMock = mock(SnsService.class);
   CalendarApi calendarApiMock = mock(CalendarApi.class);
   ProspectJpaRepository prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
   UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
@@ -98,7 +96,6 @@ class ProspectServiceTest {
           eventProducerMock,
           sesConfMock,
           prospectStatusService,
-          snsServiceMock,
           userServiceMock,
           calendarApiMock,
           mock(),

@@ -3,14 +3,11 @@ package app.bpartners.api.repository.implementation;
 import static java.util.stream.Collectors.toList;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.UserMapper;
-import app.bpartners.api.repository.BankRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.bridge.model.User.BridgeUser;
 import app.bpartners.api.repository.jpa.AccountHolderJpaRepository;
 import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
@@ -33,10 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserRepositoryImpl implements UserRepository {
   private final UserJpaRepository jpaRepository;
   private final UserMapper userMapper;
-  private final CognitoComponent cognitoComponent;
   private final AccountHolderJpaRepository holderJpaRepository;
   private final AccountJpaRepository accountJpaRepository;
-  private final BankRepository bankRepository;
   private final EntityManager entityManager;
   private final StripePaymentMethodService stripePaymentMethodService;
 
@@ -159,25 +154,6 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
-  public User getUserByToken(String token) {
-    HUser entityUser;
-    Optional<HUser> entitiesFromBridge = jpaRepository.findByAccessToken(token);
-    if (entitiesFromBridge.isPresent()) {
-      entityUser = entitiesFromBridge.get();
-    } else {
-      String cognitoToken = token;
-      String email = cognitoComponent.getEmailByToken(cognitoToken);
-      entityUser =
-          jpaRepository
-              .findByEmail(email)
-              .orElseThrow(
-                  () -> new NotFoundException("No user with the email " + email + " was found"));
-    }
-    var fetchedUser = userMapper.toDomain(entityUser);
-    return retrievePaymentMethod(fetchedUser);
-  }
-
-  @Override
   public Optional<User> findByApiKey(String apiKey) {
     var user = jpaRepository.findByApiKey(apiKey).orElse(null);
     if (user == null) {
@@ -227,8 +203,7 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User create(User user) {
-    BridgeUser bridgeUser = BridgeUser.builder().email(user.getEmail()).build();
-    HUser entityToSave = userMapper.toEntity(user, bridgeUser);
+    HUser entityToSave = userMapper.toEntity(user);
     HUser savedUser = jpaRepository.save(entityToSave);
     var fetchedUser = userMapper.toDomain(savedUser);
     return retrievePaymentMethod(fetchedUser);

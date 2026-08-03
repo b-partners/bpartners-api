@@ -24,6 +24,7 @@ import app.bpartners.api.model.*;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.model.InvoiceCriteria;
 import app.bpartners.api.service.payment.CreatePaymentRegulationComputing;
 import app.bpartners.api.service.payment.PaymentService;
 import java.time.LocalDate;
@@ -156,6 +157,11 @@ public class InvoiceService {
     }
     return repository.findAllByIdUserAndCriteria(
         idUser, statusList, archiveStatus, keywords, pageValue, pageSizeValue);
+  }
+
+  @Transactional
+  public List<Invoice> findAllByCriteria(InvoiceCriteria criteria) {
+    return repository.findAllByCriteria(criteria);
   }
 
   public Invoice getById(String invoiceId) {

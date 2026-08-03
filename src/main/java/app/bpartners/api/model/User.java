@@ -3,11 +3,8 @@ package app.bpartners.api.model;
 import static app.bpartners.api.service.utils.AccountUtils.filterActive;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
-import com.nimbusds.jose.util.Base64;
 import java.io.Serializable;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -34,25 +31,13 @@ public class User implements Serializable {
   private String firstName;
   private String lastName;
   private String email;
-  private String bridgePassword;
   private String mobilePhoneNumber;
-  private Long bankConnectionId;
-  private Instant bridgeItemUpdatedAt;
-  private Instant bridgeItemLastRefresh;
-  private String accessToken;
-  private int monthlySubscription;
   private EnableStatus status;
-  private Boolean idVerified;
-  private IdentificationStatus identificationStatus;
   private List<AccountHolder> accountHolders;
   private List<Account> accounts;
   private String preferredAccountId;
-  private String externalUserId;
   private String oldS3key;
-  private BankConnection.BankConnectionStatus connectionStatus;
   private List<Role> roles;
-  private String snsArn;
-  private String deviceToken;
   private User parentUser;
   private String apiKey;
   private boolean paymentMethodExists;
@@ -60,14 +45,6 @@ public class User implements Serializable {
 
   public String describe() {
     return "User(id=" + id + ")";
-  }
-
-  public String getEncodedDeviceToken() {
-    return deviceToken == null ? null : Base64.encode(deviceToken).toString();
-  }
-
-  public String getEncodedSnsArn() {
-    return snsArn == null ? null : Base64.encode(snsArn).toString();
   }
 
   public String getName() {

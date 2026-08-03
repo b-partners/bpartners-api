@@ -29,7 +29,6 @@ public class HBank implements Serializable {
   @GeneratedValue(strategy = IDENTITY)
   private String id;
 
-  private Long externalId;
   private String name;
   private String logoUrl;
 }

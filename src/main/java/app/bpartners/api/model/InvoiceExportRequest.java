@@ -32,6 +32,7 @@ public class InvoiceExportRequest {
   @Column(name = "end_date")
   private LocalDate to;
 
+  @JdbcTypeCode(NAMED_ENUM)
   private InvoiceExportOutputFormat outputFormat;
 
   private Integer batchSize;

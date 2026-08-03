@@ -1,7 +1,6 @@
 package app.bpartners.api.service.user;
 
-import static app.bpartners.api.endpoint.rest.model.AccountStatus.OPENED;
-import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static java.util.UUID.randomUUID;
 
@@ -10,10 +9,6 @@ import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.PojaEvent;
 import app.bpartners.api.endpoint.event.model.UserOnboarded;
 import app.bpartners.api.endpoint.event.model.UserUpserted;
-import app.bpartners.api.endpoint.rest.model.AccountStatus;
-import app.bpartners.api.endpoint.rest.model.EnableStatus;
-import app.bpartners.api.endpoint.rest.model.IdentificationStatus;
-import app.bpartners.api.endpoint.rest.model.VerificationStatus;
 import app.bpartners.api.endpoint.rest.model.VisitorEmail;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.AccountHolder;
@@ -34,7 +29,6 @@ import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -44,19 +38,13 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @AllArgsConstructor
 @Slf4j
 public class OnboardingService {
-  public static final boolean DEFAULT_SUBJECT_TO_VAT = true;
-  public static final VerificationStatus DEFAULT_VERIFICATION_STATUS = VerificationStatus.VERIFIED;
-  public static final AccountStatus DEFAULT_STATUS = OPENED;
-  public static final Money DEFAULT_BALANCE = new Money();
-  public static final Fraction DEFAULT_CASH_FLOW = new Fraction();
-  public static final boolean DEFAULT_VERIFIED = true;
-  public static final EnableStatus DEFAULT_USER_STATUS = EnableStatus.ENABLED;
-  public static final IdentificationStatus DEFAULT_USER_IDENTIFICATION = VALID_IDENTITY;
+  private static final boolean DEFAULT_SUBJECT_TO_VAT = true;
+  private static final Fraction DEFAULT_CASH_FLOW = new Fraction();
+
   private final UserRepository userRepository;
   private final AccountRepository accountRepository;
   private final AccountHolderRepository accountHolderRepository;
   private final EventProducer eventProducer;
-  private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
   private final SesConf sesConf;
   private final SesService mailer;
   private final ApplicationContext applicationContext;
@@ -67,8 +55,7 @@ public class OnboardingService {
     String companyName = onboardUser.getCompanyName();
     boolean usercreateCognitoUser = onboardUser.isCreateCognitoUser();
     String id = String.valueOf(randomUUID());
-    String bridgePassword = encryptSequence(id);
-    User savedUser = userRepository.create(userDefaultValues(toSave, id, bridgePassword));
+    User savedUser = userRepository.create(userDefaultValues(toSave, id));
 
     if (usercreateCognitoUser) {
       publishAfterCommit(List.of(toTypedUser(savedUser)));
@@ -118,14 +105,10 @@ public class OnboardingService {
     return new UserOnboarded().onboardedUser(onboardedUser);
   }
 
-  private User userDefaultValues(User user, String id, String bridgePassword) {
+  private User userDefaultValues(User user, String id) {
     return user.toBuilder()
         .id(user.getId() == null ? id : user.getId())
-        .bridgePassword(
-            user.getBridgePassword() == null ? bridgePassword : user.getBridgePassword())
-        .identificationStatus(DEFAULT_USER_IDENTIFICATION) // default value
-        .status(DEFAULT_USER_STATUS) // default value
-        .idVerified(DEFAULT_VERIFIED) // default value
+        .status(ENABLED)
         .accounts(List.of())
         .build();
   }
@@ -139,8 +122,7 @@ public class OnboardingService {
         .email(user.getEmail())
         .website(null)
         .mobilePhoneNumber(user.getMobilePhoneNumber())
-        .verificationStatus(DEFAULT_VERIFICATION_STATUS) // default value
-        .subjectToVat(DEFAULT_SUBJECT_TO_VAT) // default value
+        .subjectToVat(DEFAULT_SUBJECT_TO_VAT)
         .build();
   }
 
@@ -150,8 +132,7 @@ public class OnboardingService {
         .userId(savedUser.getId())
         .idAccountHolder(savedAccountHolder.getId())
         .name(savedUser.getName())
-        .availableBalance(DEFAULT_BALANCE)
-        .status(DEFAULT_STATUS)
+        .availableBalance(new Money())
         .active(true)
         .build();
   }
@@ -171,9 +152,5 @@ public class OnboardingService {
       throw new ApiException(SERVER_EXCEPTION, e.getMessage());
     }
     return toSend;
-  }
-
-  private String encryptSequence(String sequence) {
-    return encoder.encode(sequence);
   }
 }

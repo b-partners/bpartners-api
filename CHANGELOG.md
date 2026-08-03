@@ -1,3 +1,57 @@
+# [0.85.0](https://github.com/b-partners/bpartners-api/compare/v0.84.0...v0.85.0) (2026-07-21)
+
+
+### Features
+
+* use translated polygon on pdf export if available ([2be0716](https://github.com/b-partners/bpartners-api/commit/2be0716d65d2686031ee61c345709fb8ff3f94d0))
+
+
+
+# [0.84.0](https://github.com/b-partners/bpartners-api/compare/v0.83.0...v0.84.0) (2026-07-21)
+
+
+### Bug Fixes
+
+* **UserSubscription:** compute year month using zone ID ([ec902b1](https://github.com/b-partners/bpartners-api/commit/ec902b1ef5487f9d6b73c4cb1ebb2c17dffd864d))
+
+
+### Features
+
+* get user subscription invoices ([a5da20e](https://github.com/b-partners/bpartners-api/commit/a5da20e7cf3f23971f4d08b7ac41388f5ca0709e))
+
+
+
+# [0.83.0](https://github.com/b-partners/bpartners-api/compare/v0.82.0...v0.83.0) (2026-07-17)
+
+
+### Bug Fixes
+
+* **SecurityConf:** allow authenticated users to request invoice export not only ADMIN ([460053f](https://github.com/b-partners/bpartners-api/commit/460053f2fb8a9ae4ddfa8e83825fc76bc086da1a))
+* **User:** keep identification=VALID_IDENTITY for retro-compatibility ([90d1cee](https://github.com/b-partners/bpartners-api/commit/90d1cee44edfebf3dac3646021bd186e2619dd78))
+* **User:** keep idVerified=true for retro-compatibility ([7a63f6b](https://github.com/b-partners/bpartners-api/commit/7a63f6bb8196edc7eb9ae5a3f0a10b9b1c1f6cf8))
+
+
+### Features
+
+* handle invoice export asynchronously ([d9e54e3](https://github.com/b-partners/bpartners-api/commit/d9e54e3c032f9247a2c9413b2ce105bb5761de3a))
+
+
+
+# [0.82.0](https://github.com/b-partners/bpartners-api/compare/v0.81.0...v0.82.0) (2026-07-15)
+
+
+### Bug Fixes
+
+* download image from current layer on first iteration ([ddbf444](https://github.com/b-partners/bpartners-api/commit/ddbf444983ae9a115d6b535a6320971021d76aba))
+* **WmsImageSourceFacade:** iterate over all available layers ([874dc44](https://github.com/b-partners/bpartners-api/commit/874dc44d46cb8be6776d308b0bdf2f0c2eb29b2d))
+
+
+### Features
+
+* add facade measurements to pdf ([75c961a](https://github.com/b-partners/bpartners-api/commit/75c961aec63d73e897d08b70966b5fa30a3ad66a))
+
+
+
 # [0.81.0](https://github.com/b-partners/bpartners-api/compare/v0.80.0...v0.81.0) (2026-07-09)
 
 
@@ -173,74 +227,6 @@
 ### Reverts
 
 * Revert "chore: add tech email as bcc on customer crupdate event triggered" ([732b2c4](https://github.com/b-partners/bpartners-api/commit/732b2c4124790af830248ea750ebc0b00ddd493a))
-
-
-
-# [0.76.0](https://github.com/b-partners/bpartners-api/compare/v0.75.0...v0.76.0) (2026-01-09)
-
-
-### Bug Fixes
-
-* **area-picture:** set zoom level to BUILDING(19) when ign the image source ([a750542](https://github.com/b-partners/bpartners-api/commit/a7505421d82d23cdb26572a5dd608ca3eaa074f1))
-* handle attachment on prospect notification as binary file ([f4da301](https://github.com/b-partners/bpartners-api/commit/f4da3015216b3a9d1f5880ad7e6ec03be5a95e41))
-* **SubscriptionService:** handle not_found stripe customer when retrieving stripe subscriptions ([8ebc681](https://github.com/b-partners/bpartners-api/commit/8ebc68137f64fbe9bb127dad22e58d302f06c718))
-* use multipart-file instead of binary on prospect notification ([f7a8298](https://github.com/b-partners/bpartners-api/commit/f7a82981ba8981e3f22785c4c7331826b64faf46))
-* **UserController:** add missing @RequestBody annotation on redirectionStatusUrls ([e66d704](https://github.com/b-partners/bpartners-api/commit/e66d704d36e7067e36d102bdf351dd98fbc8eb26))
-
-
-### Features
-
-* notify prospects creation with attachment ([18ac453](https://github.com/b-partners/bpartners-api/commit/18ac453c7aedc19ec668afad63a116937ec31fa2))
-* use POST /prospects/*/accountHolders for creation and PUT for save ([08c03f5](https://github.com/b-partners/bpartners-api/commit/08c03f584d6ecee07a35f8cdcc34503a89eca513))
-
-
-### Reverts
-
-* Revert "test(debug): commment WhoamiIT and SubscriptionServiceIT" ([d9519e7](https://github.com/b-partners/bpartners-api/commit/d9519e7dd6a2e0c281ebfbb17c3d5a3ba1fdd83d))
-
-
-
-# [0.75.0](https://github.com/b-partners/bpartners-api/compare/v0.74.0...v0.75.0) (2025-12-17)
-
-
-### Bug Fixes
-
-* handle UNPAID status on stripe ([a622f13](https://github.com/b-partners/bpartners-api/commit/a622f138236cbfc25c59cb614dc69e639d637427))
-* handle user whitelisted for prospect update ([a292a53](https://github.com/b-partners/bpartners-api/commit/a292a535c633ce615b343b516de2c69946aa0284))
-* notify account holder new prospects ([c81011c](https://github.com/b-partners/bpartners-api/commit/c81011c2a1b3e03af39864ba2ea081cf77c2c382))
-* prospect must have unique mail ([4624f3d](https://github.com/b-partners/bpartners-api/commit/4624f3ded56ba5fe6341d9fc9f5ef216fdb3dcae))
-* **ProspectService:** reverse condition when prospect is new ([bb8fddb](https://github.com/b-partners/bpartners-api/commit/bb8fddb4bf55b23ea7e79ed9cb219d90309c3932))
-* retrieve roof analysis subscription from detection tracking ([30f6314](https://github.com/b-partners/bpartners-api/commit/30f6314fc3bfba25b786fe832ab30e56aa2a322e))
-* **Subscription:** handle Exception when UNPAID subscription found ([176a533](https://github.com/b-partners/bpartners-api/commit/176a533d62efdf989f8ba158a84c266283b92140))
-* **SubscriptionService:** handle active scheduled subscription as domain active subscription ([c4ad0cc](https://github.com/b-partners/bpartners-api/commit/c4ad0ccd1a030a23a3fd311e1adbd3fd5b2cc9f6))
-
-
-### Features
-
-* access to user billing portal ([8b2da38](https://github.com/b-partners/bpartners-api/commit/8b2da383504a1ac2230b9ade95f496f35fdb2c27))
-
-
-
-# [0.74.0](https://github.com/b-partners/bpartners-api/compare/v0.73.1...v0.74.0) (2025-12-05)
-
-
-### Bug Fixes
-
-* deployment without test ([5de528c](https://github.com/b-partners/bpartners-api/commit/5de528c2eb1723aadc309309e2f899a6220c360d))
-
-
-### Features
-
-* convert area picture annotation pixel to latlon ([36119d1](https://github.com/b-partners/bpartners-api/commit/36119d1f84cd1bb8ab4dde3e30addabeba2edd8c))
-
-
-
-## [0.73.1](https://github.com/b-partners/bpartners-api/compare/v0.73.0...v0.73.1) (2025-12-02)
-
-
-### Bug Fixes
-
-* sync release version & publish client ([883dbc9](https://github.com/b-partners/bpartners-api/commit/883dbc9339dddceb73c372ae2df83327f74af22d))
 
 
 

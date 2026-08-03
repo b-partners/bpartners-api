@@ -1383,6 +1383,11 @@ operations:
           schema:
             type: string
           required: true
+        - in: path
+          name: requestId
+          schema:
+            type: string
+          required: true
       responses:
         200:
           description: Retrieved invoice export request
@@ -1390,6 +1395,44 @@ operations:
             application/json:
               schema:
                 $ref: '#/components/schemas/InvoiceExportRequest'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  userSubscriptionInvoiceOperations:
+    get:
+      tags:
+        - Paying
+      summary: Get provided user subscription invoices
+      description: |
+
+      operationId: getUserSubscriptionInvoices
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: yearMonth
+          schema:
+            $ref: './api.yml#/components/schemas/YearMonth'
+          required: true
+      responses:
+        200:
+          description:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionInvoice'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -2030,4 +2073,10 @@ components:
           type: integer
         count:
           type: integer
-
+    SubscriptionInvoice:
+      type: object
+      properties:
+        fileUrl:
+          $ref: './api.yml#/components/schemas/PreSignedURL'
+        invoice:
+          $ref: '#/components/schemas/Invoice'

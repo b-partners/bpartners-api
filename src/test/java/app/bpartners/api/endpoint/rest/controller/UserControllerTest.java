@@ -32,7 +32,6 @@ class UserControllerTest {
           mock(),
           mock(),
           mock(),
-          mock(),
           stripeSetupServiceMock);
 
   @BeforeEach

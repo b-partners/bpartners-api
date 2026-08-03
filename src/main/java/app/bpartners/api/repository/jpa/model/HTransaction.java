@@ -34,7 +34,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 public class HTransaction {
   @Id private String id;
   private String idAccount;
-  private Long idBridge;
 
   @ManyToOne
   @JoinColumn(name = "id_invoice")
@@ -59,15 +58,6 @@ public class HTransaction {
   private Instant paymentDateTime;
 
   public String describe() {
-    return "Transaction("
-        + "id='"
-        + id
-        + '\''
-        + ", idBridge="
-        + idBridge
-        + ", label='"
-        + label
-        + '\''
-        + ')';
+    return "Transaction(" + "id='" + id + '\'' + ", label='" + label + '\'' + ')';
   }
 }

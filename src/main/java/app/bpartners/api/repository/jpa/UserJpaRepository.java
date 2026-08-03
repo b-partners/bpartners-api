@@ -18,9 +18,6 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
 
   Optional<HUser> findByApiKey(String apiKey);
 
-  @Lock(PESSIMISTIC_WRITE)
-  Optional<HUser> findByAccessToken(String token);
-
   Optional<HUser> findByEmail(String email);
 
   HUser getByEmail(String email);

@@ -14,10 +14,6 @@ paths:
   #############################################
   /ping:
     $ref: './security-api.yml#/operations/ping'
-  /authInitiation:
-    $ref: './security-api.yml#/operations/initiateAuth'
-  /token:
-    $ref: './security-api.yml#/operations/createToken'
   /whoami:
     $ref: './security-api.yml#/operations/whoami'
   /whois/{id}:
@@ -154,6 +150,8 @@ paths:
     $ref: './paying-api.yml#/operations/invoiceExportRequestSingleOperations'
   /users/{uId}/invoiceExportRequests:
     $ref: './paying-api.yml#/operations/invoiceExportRequestOperations'
+  /users/{uId}/subscriptionInvoices:
+    $ref: './paying-api.yml#/operations/userSubscriptionInvoiceOperations'
 
   #############################################
   ################# Files API #################
@@ -226,12 +224,6 @@ paths:
     $ref: './prospecting-api.yml#/operations/prospectEvaluationJobs'
   /accountHolders/{ahId}/prospects/evaluationJobs/{jId}:
     $ref: './prospecting-api.yml#/operations/prospectEvaluationJobDetails'
-
-  #############################################
-  ################# AWS SNS API ##############
-  #############################################
-  /users/{uId}/deviceRegistration:
-    $ref: './userAccounts-api.yml#/operations/deviceRegistrationOperations'
 
   #############################################
   ################# Google Sheet API ##############
@@ -394,6 +386,10 @@ components:
         updatedAt:
           type: string
           format: date-time
+    YearMonth:
+      type: string
+      pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+      example: '2026-01'
     Page:
       type: integer
       description: Start at `1`

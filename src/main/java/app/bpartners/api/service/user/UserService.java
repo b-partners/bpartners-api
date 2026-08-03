@@ -21,7 +21,6 @@ import app.bpartners.api.repository.jpa.AccountJpaRepository;
 import app.bpartners.api.repository.jpa.InvoiceSummaryJpaRepository;
 import app.bpartners.api.repository.jpa.UserJpaRepository;
 import app.bpartners.api.repository.jpa.model.HUser;
-import app.bpartners.api.service.SnsService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UserService {
   private final UserRepository userRepository;
-  private final SnsService snsService;
   private final CognitoComponent cognitoComponent;
   private final UserJpaRepository userJpaRepository;
   private final AccountJpaRepository accountJpaRepository;
@@ -54,21 +52,6 @@ public class UserService {
   @Transactional
   public List<User> findSubordinatesUsersByParentId(String parentId) {
     return userRepository.findSubordinatesUsersByParentId(parentId);
-  }
-
-  @Transactional
-  public User registerDevice(String idUser, String token) {
-    User user = userRepository.getById(idUser);
-    String actualToken = user.getDeviceToken();
-    if (actualToken != null && actualToken.equals(token)) {
-      return user;
-    }
-    String actualArn = user.getSnsArn();
-    if (actualArn != null) {
-      snsService.deleteEndpointArn(actualArn);
-    }
-    String snsArn = snsService.createEndpointArn(token);
-    return save(user.toBuilder().snsArn(snsArn).deviceToken(token).build());
   }
 
   @Transactional
@@ -103,11 +86,6 @@ public class UserService {
   }
 
   @Transactional
-  public User getUserByToken(String token) {
-    return userRepository.getUserByToken(token);
-  }
-
-  @Transactional
   public List<User> findAll() {
     return userRepository.findAll();
   }
@@ -126,7 +104,7 @@ public class UserService {
     }
     invoiceSummaryJpaRepository.deleteByIdUser(user.getId());
     accountJpaRepository.deleteHAccountByUserId(user.getId());
-    accountHolderJpaRepository.deleteByIdUser(user.getBridgeUserId());
+    accountHolderJpaRepository.deleteByIdUser(user.getId());
     userRepository.deleteById(user.getId());
     cognitoComponent.deleteUserByUsername(email);
   }

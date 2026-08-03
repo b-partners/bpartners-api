@@ -30,6 +30,7 @@ import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedServic
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.subscription.StripeFactory;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
+import app.bpartners.api.service.subscription.SubscriptionInvoiceTitleComputer;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -74,7 +75,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
           stripeConfMock,
           stripeFactoryMock,
           stripeInvoiceServiceMock,
-          userStripeCustomerEmailCorrespondenceJpaRepositoryMock);
+          userStripeCustomerEmailCorrespondenceJpaRepositoryMock,
+          new SubscriptionInvoiceTitleComputer(customDateFormatter));
 
   @BeforeEach
   void setUp() {

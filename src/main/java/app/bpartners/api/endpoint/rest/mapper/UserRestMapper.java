@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
 import static app.bpartners.api.endpoint.rest.mapper.AccountHolderRestMapper.toRestCompanyInfo;
+import static app.bpartners.api.endpoint.rest.model.IdentificationStatus.VALID_IDENTITY;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.*;
 import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
@@ -109,20 +110,18 @@ public class UserRestMapper {
         .firstName(domain.getFirstName())
         .lastName(domain.getLastName())
         .phone(domain.getMobilePhoneNumber())
-        .monthlySubscriptionAmount(domain.getMonthlySubscription())
         .status(domain.getStatus())
-        .idVerified(domain.getIdVerified())
-        .identificationStatus(domain.getIdentificationStatus())
         .logoFileId(domain.getLogoFileId())
         .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()))
         .roles(toRest(domain.getRoles()))
-        .snsArn(domain.getEncodedSnsArn())
         .subscriptionStatus(subscriptionStatus)
         .subscription(
             new UserSubscription()
                 .status(subscriptionStatus)
                 .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
-                .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)));
+                .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))
+        .identificationStatus(VALID_IDENTITY)
+        .idVerified(true);
   }
 
   private UserSubscriptionStatus getSubscriptionStatus(

@@ -34,7 +34,6 @@ import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.ProspectEvalInfo;
 import app.bpartners.api.repository.expressif.ProspectResult;
 import app.bpartners.api.repository.expressif.fact.NewIntervention;
-import app.bpartners.api.service.SnsService;
 import app.bpartners.api.service.accountholder.AccountHolderService;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.google.calendar.CalendarService;
@@ -75,7 +74,6 @@ public class ProspectEvaluationJobInitiatedService
   private final SesConf sesConf;
   private final ProspectRestMapper prospectRestMapper;
   private final UserService userService;
-  private final SnsService snsService;
   private final TemplateResolverEngine templateResolverEngine;
   private final CustomDateFormatter customDateFormatter;
 
@@ -266,19 +264,8 @@ public class ProspectEvaluationJobInitiatedService
             FINISHED,
             getJobMessage(evaluatedProspects, durationMinutes, durationSeconds));
     if (finishedJob.getJobStatus().getValue() == FINISHED) {
-      if (!results.isEmpty()) {
-        notifyResultToDevice(results, user);
-      }
       sendJobResultThroughEmail(runningHolder, finishedJob, emailSubject, emailBody);
     }
-  }
-
-  private void notifyResultToDevice(List<Prospect> prospects, User user) {
-    String message =
-        prospects.size() == 1
-            ? "1 nouveau prospect a été ajouté sur votre dashboard"
-            : prospects.size() + " nouveaux prospects ont été ajoutés sur votre dashboard";
-    snsService.pushNotification(message, user);
   }
 
   private String eventConversionEmailBody(

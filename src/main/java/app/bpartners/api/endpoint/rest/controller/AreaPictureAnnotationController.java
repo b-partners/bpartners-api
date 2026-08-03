@@ -3,6 +3,7 @@ package app.bpartners.api.endpoint.rest.controller;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import app.bpartners.api.endpoint.rest.mapper.AreaPictureAnnotationRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.ExportAreaPictureAnnotationRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.ConverterValidator;
@@ -22,8 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @AllArgsConstructor
 public class AreaPictureAnnotationController {
+
   private final AreaPictureAnnotationService service;
   private final AreaPictureAnnotationRestMapper mapper;
+  private final ExportAreaPictureAnnotationRestMapper exportMapper;
   private final AreaPictureAnnotationConverter areaPictureAnnotationConverter;
   private final ConverterValidator converterValidator;
 
@@ -87,15 +90,14 @@ public class AreaPictureAnnotationController {
       throws IOException {
     var userId = AuthProvider.getAuthenticatedUserId();
     byte[] globalImageBytes = globalImage3D != null ? globalImage3D.getBytes() : null;
-
-    return service.exportAreaPictureAnnotationToPdf(userId, annotation, globalImageBytes);
+    var domainAnnotation = exportMapper.toDomain(annotation);
+    return service.exportAreaPictureAnnotationToPdf(userId, domainAnnotation, globalImageBytes);
   }
 
   @PostMapping("/accounts/{aId}/annotations/convert")
   public Map<String, ConverterAnnotation> convertLatLonPolygonToPixel(
       @PathVariable(name = "aId") String ignored,
       @RequestBody Map<String, ConverterAnnotation> converterAnnotationMap) {
-
     converterValidator.accept(converterAnnotationMap);
     return areaPictureAnnotationConverter.toPixel(converterAnnotationMap);
   }
@@ -104,7 +106,6 @@ public class AreaPictureAnnotationController {
   public Map<String, ConverterAnnotation> convertPixelToLatLon(
       @PathVariable(name = "aId") String ignored,
       @RequestBody Map<String, ConverterAnnotation> converterAnnotationMap) {
-
     converterValidator.accept(converterAnnotationMap);
     return areaPictureAnnotationConverter.toLatLong(converterAnnotationMap);
   }

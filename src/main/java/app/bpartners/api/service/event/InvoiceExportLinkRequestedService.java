@@ -1,15 +1,13 @@
 package app.bpartners.api.service.event;
 
-import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE_ZIP;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.invoice.InvoiceService.MAX_PAGE;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.InvoiceExportLinkRequested;
 import app.bpartners.api.file.FileZipper;
+import app.bpartners.api.file.InvoicesFileDownloader;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -18,17 +16,12 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.mail.MessagingException;
 import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -41,6 +34,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   public static final String INVOICE_EXPORT_LINK_REQUESTED_BODY = "invoice_export_link_requested";
   private static final long EXPIRATION_IN_SECONDS = 3600L;
   private final FileZipper fileZipper;
+  private final InvoicesFileDownloader invoicesFileDownloader;
   private final SesService mailer;
   private final UserRepository userRepository;
   private final InvoiceRepository invoiceRepository;
@@ -93,7 +87,7 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
   }
 
   private @NotNull String accept(String userId, List<Invoice> invoices) {
-    var invoicesFiles = downloadInvoicesFiles(userId, invoices);
+    var invoicesFiles = invoicesFileDownloader.apply(userId, invoices);
     var invoicesZipFile = fileZipper.apply(invoicesFiles);
     var zipFileId = invoicesZipFile.getName();
     s3Service.uploadFile(INVOICE_ZIP, zipFileId, userId, invoicesZipFile);
@@ -108,64 +102,5 @@ public class InvoiceExportLinkRequestedService implements Consumer<InvoiceExport
     context.setVariable("to", to);
     context.setVariable("exportedLink", preSignedURL);
     return context;
-  }
-
-  @NotNull
-  private List<File> downloadInvoicesFiles(String userId, List<Invoice> invoicesBetweenDates) {
-    Path destinationDirectory = getTempDirectory();
-    var fileExtension = ".pdf";
-    return invoicesBetweenDates.stream()
-        .map(
-            invoice -> {
-              File file = s3Service.downloadFile(INVOICE, invoice.getFileId(), userId);
-              try {
-                var invoiceCustomer = invoice.getCustomer();
-                var customerName =
-                    invoiceCustomer.getName() == null
-                        ? invoiceCustomer.getFullName()
-                        : invoiceCustomer.getName();
-                Path destinationPath =
-                    destinationDirectory.resolve(
-                        invoice.getRef()
-                            + " "
-                            + customerName
-                            + " "
-                            + getInvoiceYearMonth(invoice.getSendingDate())
-                            + fileExtension);
-                Files.copy(file.toPath(), destinationPath, REPLACE_EXISTING);
-                file.deleteOnExit();
-                return destinationPath.toFile();
-              } catch (IOException e) {
-                throw new ApiException(SERVER_EXCEPTION, e);
-              }
-            })
-        .toList();
-  }
-
-  private String getInvoiceYearMonth(LocalDate sendingDate) {
-    return getMonthFrenchTranslation(sendingDate.getMonth()) + " " + sendingDate.getYear();
-  }
-
-  private String getMonthFrenchTranslation(Month month) {
-    return switch (month) {
-      case JANUARY -> "Janvier";
-      case FEBRUARY -> "Février";
-      case MARCH -> "Mars";
-      case APRIL -> "Avril";
-      case MAY -> "Mai";
-      case JUNE -> "Juin";
-      case JULY -> "Juillet";
-      case AUGUST -> "Août";
-      case SEPTEMBER -> "Septembre";
-      case OCTOBER -> "Octobre";
-      case NOVEMBER -> "Novembre";
-      case DECEMBER -> "Décembre";
-      case null -> throw new IllegalArgumentException("Invalid month");
-    };
-  }
-
-  @SneakyThrows
-  private static Path getTempDirectory() {
-    return Files.createTempDirectory("tmp" + randomUUID());
   }
 }

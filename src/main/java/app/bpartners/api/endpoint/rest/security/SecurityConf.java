@@ -80,8 +80,6 @@ public class SecurityConf {
                     new OrRequestMatcher(
                         new AntPathRequestMatcher("/ping"),
                         new AntPathRequestMatcher("/preUsers", POST.name()),
-                        new AntPathRequestMatcher("/authInitiation"),
-                        new AntPathRequestMatcher("/token"),
                         new AntPathRequestMatcher("/onboarding"),
                         new AntPathRequestMatcher("/sendEmail", POST.name()),
                         new AntPathRequestMatcher("/whoami", GET.name()),
@@ -108,10 +106,6 @@ public class SecurityConf {
             (authorize) ->
                 authorize
                     .requestMatchers("/ping")
-                    .permitAll()
-                    .requestMatchers("/authInitiation")
-                    .permitAll()
-                    .requestMatchers("/token")
                     .permitAll()
                     .requestMatchers(GET, "/whoami")
                     .permitAll()
@@ -203,8 +197,6 @@ public class SecurityConf {
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/monthlyUpcomingDebitedCustomers/*/*")
                     .hasAnyRole(ADMIN_ROLE.getRole())
-                    .requestMatchers(POST, "/users/accounts/refresh")
-                    .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/customers/export", authResourceProvider))
@@ -324,9 +316,15 @@ public class SecurityConf {
                     .requestMatchers(GET, "/accounts/*/invoices/exportLink")
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole(), EVAL_PROSPECT.getRole())
                     .requestMatchers(GET, "/users/*/invoiceExportRequests/*")
-                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .authenticated()
                     .requestMatchers(PUT, "/users/*/invoiceExportRequests")
-                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .authenticated()
+                    .requestMatchers(PUT, "/users/*/invoiceExportRequests")
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/subscriptionInvoices", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider))
                     .authenticated()

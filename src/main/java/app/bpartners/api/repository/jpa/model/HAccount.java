@@ -2,7 +2,6 @@ package app.bpartners.api.repository.jpa.model;
 
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
-import app.bpartners.api.endpoint.rest.model.AccountStatus;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
@@ -41,20 +40,18 @@ public class HAccount implements Serializable {
   @JsonIgnore
   private HUser user;
 
-  private String idBank;
-  private String externalId;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "id_bank")
+  private HBank bank;
 
   @Column(name = "\"name\"")
   private String name;
 
   private String iban;
-  private String bic;
-  // TODO: It should be updated each time an account is persisted
-  private String availableBalance;
 
-  @JdbcTypeCode(NAMED_ENUM)
-  @Enumerated(EnumType.STRING)
-  private AccountStatus status;
+  private String bic;
+
+  private String availableBalance;
 
   @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)

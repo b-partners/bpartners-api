@@ -1,8 +1,6 @@
 package app.bpartners.api.service.utils;
 
 import app.bpartners.api.model.Account;
-import app.bpartners.api.repository.jpa.AccountJpaRepository;
-import app.bpartners.api.repository.jpa.model.HAccount;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -13,21 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 public class AccountUtils {
   private AccountUtils() {}
 
-  public static Optional<HAccount> findByExternalId(
-      String externalId, AccountJpaRepository jpaRepository) {
-    List<HAccount> accountsWithSameId = jpaRepository.findAllByExternalId(externalId);
-    if (accountsWithSameId.isEmpty()) {
-      return Optional.empty();
-    }
-    if (accountsWithSameId.size() > 1) {
-      log.warn("Multiple accounts with same externalID=" + externalId + " detected");
-    }
-    return Optional.of(accountsWithSameId.get(0));
-  }
-
   public static String describeAccountList(List<Account> accounts) {
     StringBuilder builder = new StringBuilder();
-    accounts.forEach(account -> builder.append(account.describeInfos()).append(". "));
+    accounts.forEach(account -> builder.append(account.describeMinInfos()).append(". "));
     return builder.toString();
   }
 

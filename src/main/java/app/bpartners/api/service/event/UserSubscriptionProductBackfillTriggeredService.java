@@ -20,7 +20,8 @@ public class UserSubscriptionProductBackfillTriggeredService
 
   @Override
   public void accept(UserSubscriptionProductBackfillTriggered event) {
-    var billedUsers = upcomingUserDebitService.getUpcomingDebitedCustomers().billedUsers();
+    log.info("UserSubscriptionProduct backfill triggered, computing billed users...");
+    var billedUsers = upcomingUserDebitService.getUpcomingBilledUsers();
     log.info(
         "UserSubscriptionProduct backfill triggered for {} billed user(s)", billedUsers.size());
     billedUsers.forEach(

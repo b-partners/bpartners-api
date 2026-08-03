@@ -33,16 +33,6 @@ public class UpcomingUserDebitService {
   private final TemporalUtils temporalUtils;
   private static final int MAX_STRIPE_CONCURRENCY = 10;
 
-  public List<User> getUpcomingBilledUsers() {
-    var enabledUsersBySubscriptionId = getEnabledUsersBySubscriptionId();
-    return mapBounded(
-            List.copyOf(enabledUsersBySubscriptionId.values()),
-            user -> hasUpcomingInvoice(user.getUserSubscriptionId()) ? user : null)
-        .stream()
-        .filter(Objects::nonNull)
-        .toList();
-  }
-
   public UpcomingDebitedCustomers getUpcomingDebitedCustomers() {
     var enabledUsersBySubscriptionId = getEnabledUsersBySubscriptionId();
 

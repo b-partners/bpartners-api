@@ -189,13 +189,13 @@ public class AreaAnnotationImage3DGenerator {
   private record ImageContext(Transform transform, BufferedImage baseImage, Graphics2D g2d) {}
 
   private static @NotNull List<IntXY> extractPoints(List<AreaAnnotation3DPan> pans) {
-    return pans.stream()
-        .flatMap(
-            pan ->
-                requireNonNull(pan.getPolygon()).points().stream()
-                    .map(p -> new IntXY((int) p.x(), (int) p.y())))
-        .toList();
-  }
+  return pans.stream()
+      .flatMap(
+          pan ->
+              requireNonNull(selectPolygon(pan, true)).points().stream()
+                  .map(p -> new IntXY((int) p.x(), (int) p.y())))
+      .toList();
+}
 
   public BufferedImage generateBaseImageWithHighlightedPanWithSlopeBoundary(
       BufferedImage baseImage, Transform transform, AreaAnnotation3DPan panToHighlight) {

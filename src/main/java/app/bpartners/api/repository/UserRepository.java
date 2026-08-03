@@ -18,6 +18,8 @@ public interface UserRepository {
 
   List<User> findAllByCriteria(HashMap<String, Object> criteria);
 
+  List<String> findEnabledUserIdsWithSubscription();
+
   Optional<User> findByApiKey(String apiKey);
 
   User getByEmail(String email);

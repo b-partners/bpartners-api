@@ -7,23 +7,22 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillTriggered;
-import app.bpartners.api.model.User;
-import app.bpartners.api.service.subscription.UpcomingUserDebitService;
+import app.bpartners.api.repository.UserRepository;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class UserSubscriptionProductBackfillTriggeredServiceTest {
-  UpcomingUserDebitService upcomingUserDebitService = mock();
+  UserRepository userRepository = mock();
   EventProducer eventProducer = mock();
   UserSubscriptionProductBackfillTriggeredService subject =
-      new UserSubscriptionProductBackfillTriggeredService(upcomingUserDebitService, eventProducer);
+      new UserSubscriptionProductBackfillTriggeredService(userRepository, eventProducer);
 
   @Test
-  void fans_out_one_request_event_per_billed_user() {
-    var firstUser = User.builder().id(randomUUID().toString()).build();
-    var secondUser = User.builder().id(randomUUID().toString()).build();
-    when(upcomingUserDebitService.getUpcomingBilledUsers())
-        .thenReturn(List.of(firstUser, secondUser));
+  void fans_out_one_request_event_per_enabled_user_with_subscription() {
+    var firstUserId = randomUUID().toString();
+    var secondUserId = randomUUID().toString();
+    when(userRepository.findEnabledUserIdsWithSubscription())
+        .thenReturn(List.of(firstUserId, secondUserId));
     doNothing().when(eventProducer).accept(anyList());
 
     subject.accept(new UserSubscriptionProductBackfillTriggered());
@@ -31,20 +30,13 @@ class UserSubscriptionProductBackfillTriggeredServiceTest {
     verify(eventProducer)
         .accept(
             List.of(
-                UserSubscriptionProductBackfillRequested.builder()
-                    .userId(firstUser.getId())
-                    .build()));
-    verify(eventProducer)
-        .accept(
-            List.of(
-                UserSubscriptionProductBackfillRequested.builder()
-                    .userId(secondUser.getId())
-                    .build()));
+                UserSubscriptionProductBackfillRequested.builder().userId(firstUserId).build(),
+                UserSubscriptionProductBackfillRequested.builder().userId(secondUserId).build()));
   }
 
   @Test
-  void produces_no_event_when_no_billed_user() {
-    when(upcomingUserDebitService.getUpcomingBilledUsers()).thenReturn(List.of());
+  void produces_no_event_when_no_enabled_user_with_subscription() {
+    when(userRepository.findEnabledUserIdsWithSubscription()).thenReturn(List.of());
 
     subject.accept(new UserSubscriptionProductBackfillTriggered());
 

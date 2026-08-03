@@ -125,6 +125,19 @@ public class UserRepositoryImpl implements UserRepository {
         .toList();
   }
 
+  @Override
+  public List<String> findEnabledUserIdsWithSubscription() {
+    // Projection on id only: avoids hydrating the whole HUser graph (accounts, holders, banks,
+    // subscription products, parent user...) which triggers a heavy N+1 over the full user base.
+    return entityManager
+        .createQuery(
+            "SELECT u.id FROM HUser u "
+                + "WHERE u.status = :status AND u.userSubscriptionE2Id IS NOT NULL",
+            String.class)
+        .setParameter("status", EnableStatus.ENABLED)
+        .getResultList();
+  }
+
   private static Integer computeDefaultPage(HashMap<String, Object> criteria) {
     if (criteria.containsKey("page")) {
       Object pageObject = criteria.get("page");

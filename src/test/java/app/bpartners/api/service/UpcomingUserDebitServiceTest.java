@@ -100,39 +100,6 @@ class UpcomingUserDebitServiceTest {
   }
 
   @Test
-  void get_upcoming_billed_users_returns_only_enabled_users_with_an_upcoming_invoice() {
-    var billedUser = mock(User.class);
-    var notBilledUser = mock(User.class);
-    var billedSubscriptionId = randomUUID().toString();
-    var notBilledSubscriptionId = randomUUID().toString();
-    when(billedUser.getUserSubscriptionId()).thenReturn(billedSubscriptionId);
-    when(notBilledUser.getUserSubscriptionId()).thenReturn(notBilledSubscriptionId);
-    when(userServiceMock.getEnabledUsers())
-        .thenReturn(new ArrayList<>(List.of(billedUser, notBilledUser)));
-    when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(billedSubscriptionId))
-        .thenReturn(mock(Invoice.class));
-    when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(notBilledSubscriptionId))
-        .thenReturn(null);
-
-    var actual = subject.getUpcomingBilledUsers();
-
-    assertEquals(List.of(billedUser), actual);
-    verify(stripeCustomerServiceMock, never()).getStripeCustomers();
-  }
-
-  @Test
-  void get_upcoming_billed_users_ignores_users_without_subscription() {
-    var userWithoutSubscription = mock(User.class);
-    when(userWithoutSubscription.getUserSubscriptionId()).thenReturn(null);
-    when(userServiceMock.getEnabledUsers())
-        .thenReturn(new ArrayList<>(List.of(userWithoutSubscription)));
-
-    var actual = subject.getUpcomingBilledUsers();
-
-    assertEquals(List.of(), actual);
-  }
-
-  @Test
   void does_not_resave_unknown_customer_already_persisted_this_month() {
     var userMock = mock(User.class);
     var stripeCustomerMock = mock(Customer.class);

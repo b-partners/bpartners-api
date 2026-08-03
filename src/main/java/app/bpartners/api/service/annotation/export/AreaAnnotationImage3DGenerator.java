@@ -173,18 +173,23 @@ public class AreaAnnotationImage3DGenerator {
   }
 
   private static @NotNull AreaAnnotationImage3DGenerator.ImageContext getImageContext(
-      List<AreaAnnotation3DPan> pans) {
-    var allPoints = extractPoints(pans);
+    List<AreaAnnotation3DPan> pans) {
+  var allPoints = extractPoints(pans);
 
-    var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
-    var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
-    var transform =
-        Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
+  var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
+  var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
+  var transform =
+      Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
 
-    var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
-    var g2d = Graphics2DFactory.make(baseImage);
-    return new ImageContext(transform, baseImage, g2d);
-  }
+  var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
+  var g2d = Graphics2DFactory.make(baseImage);
+
+  // Flip Y axis vertically and offset back into viewable bounds
+  g2d.translate(0, SUMMARY_IMAGE_SIZE);
+  g2d.scale(1.0, -1.0);
+
+  return new ImageContext(transform, baseImage, g2d);
+}
 
   private record ImageContext(Transform transform, BufferedImage baseImage, Graphics2D g2d) {}
 

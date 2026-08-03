@@ -164,6 +164,7 @@ public class ProspectRestMapper {
                     .updatedAt(Instant.now())
                     .build()))
         .townCode(rest.getTownCode())
+        .comment(rest.getComment())
         .build();
   }
 
@@ -178,6 +179,7 @@ public class ProspectRestMapper {
         .managerName(rest.getManagerName())
         .phone(rest.getPhone())
         .address(rest.getAddress())
+        .comment(rest.getComment())
         .statusHistories(
             List.of(
                 ProspectStatusHistory.builder()

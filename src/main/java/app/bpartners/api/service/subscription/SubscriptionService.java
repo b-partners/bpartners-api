@@ -737,6 +737,16 @@ public class SubscriptionService {
               + " does not have userSubscriptionId");
     }
 
+    var activeScheduledSubscriptions = getActiveSubscriptionSchedules(user.getUserSubscriptionId());
+
+    if (!activeScheduledSubscriptions.isEmpty()) {
+      var scheduledSubscription = activeScheduledSubscriptions.getFirst();
+      scheduledSubscription.cancel();
+      cancelRelatedSetupSession(user, scheduledSubscription.getId());
+      var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
+      return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
+    }
+
     var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
     if (subscriptions.isEmpty()) {
       throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");
@@ -751,30 +761,6 @@ public class SubscriptionService {
           "Only active subscription can be cancelled but actual status is "
               + latestSubscription.getStatus());
     }
-    List<UserSubscriptionSession> userSubscriptionSessions =
-        userSubscriptionSessionRepository.findAllByUserId(user.getId()).stream()
-            .filter(
-                userSubscriptionSession -> userSubscriptionSession.getSessionMode().equals(SETUP))
-            .filter(
-                userSubscriptionSession ->
-                    userSubscriptionSession.getTrialUntil().isAfter(LocalDate.now()))
-            .filter(userSubscriptionSession -> !userSubscriptionSession.isCancelled())
-            .toList();
-    if (!userSubscriptionSessions.isEmpty()) {
-      UserSubscriptionSession userInSetUpMode =
-          userSubscriptionSessions.stream()
-              .findFirst()
-              .orElseThrow(
-                  () ->
-                      new IllegalStateException(
-                          "Aucune session trouvée pour l'utilisateur " + user.getId()));
-
-      userSubscriptionSessionRepository.save(userInSetUpMode.toBuilder().isCancelled(true).build());
-      SubscriptionSchedule resource =
-          SubscriptionSchedule.retrieve(userInSetUpMode.getSubscriptionScheduleId());
-      resource.cancel();
-      return UserSubscription.builder().user(user).build();
-    }
     stripeClient
         .subscriptions()
         .update(
@@ -783,6 +769,18 @@ public class SubscriptionService {
 
     var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
     return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
+  }
+
+  private void cancelRelatedSetupSession(User user, String subscriptionScheduleId) {
+    userSubscriptionSessionRepository.findAllByUserId(user.getId()).stream()
+        .filter(session -> SETUP.equals(session.getSessionMode()))
+        .filter(session -> !session.isCancelled())
+        .filter(session -> subscriptionScheduleId.equals(session.getSubscriptionScheduleId()))
+        .findFirst()
+        .ifPresent(
+            session ->
+                userSubscriptionSessionRepository.save(
+                    session.toBuilder().isCancelled(true).build()));
   }
 
   @SneakyThrows

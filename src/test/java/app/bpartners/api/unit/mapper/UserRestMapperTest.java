@@ -130,6 +130,48 @@ class UserRestMapperTest {
   }
 
   @Test
+  void user_subscription_mapped_with_actual_plan() {
+    var now = now();
+    var actualProduct = SubscriptionProduct.builder().id("plan_id").name("Premium").build();
+    var planDescription = new SubscriptionPlanDescription().id("plan_id").name("Premium");
+    when(subscriptionPlanRestMapperMock.toRestDescription(actualProduct))
+        .thenReturn(planDescription);
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(UserSubscription.builder().subscriptions(List.of()).build());
+
+    var domain =
+        User.builder()
+            .roles(List.of())
+            .paymentMethodExists(true)
+            .subscriptionProducts(
+                List.of(
+                    UserSubscriptionProduct.builder()
+                        .id(randomUUID().toString())
+                        .subscriptionProduct(actualProduct)
+                        .creationDatetime(now)
+                        .subscriptionEndDatetime(null)
+                        .build()))
+            .build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(planDescription, actual.getSubscription().getPlan());
+  }
+
+  @Test
+  void user_subscription_plan_null_when_no_actual_subscription_product() {
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(UserSubscription.builder().subscriptions(List.of()).build());
+
+    var domain = User.builder().roles(List.of()).paymentMethodExists(true).build();
+
+    var actual = subject.toRest(domain);
+
+    assertNull(actual.getSubscription().getPlan());
+    verify(subscriptionPlanRestMapperMock, never()).toRestDescription(any());
+  }
+
+  @Test
   void user_subscription_mapped_with_subscription_values() {
     Instant now = now();
     Instant expectedEndDatetime = now.plus(30L, DAYS);

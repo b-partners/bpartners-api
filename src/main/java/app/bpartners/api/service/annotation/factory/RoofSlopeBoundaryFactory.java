@@ -1,7 +1,6 @@
 package app.bpartners.api.service.annotation.factory;
 
-import app.bpartners.api.service.annotation.AreaAnnotation3DPan;
-import app.bpartners.api.service.annotation.Polygon;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.service.annotation.model.Coordinates;
 import app.bpartners.api.service.annotation.model.RoofSlopBoundary;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
@@ -18,23 +17,18 @@ public class RoofSlopeBoundaryFactory {
   private RoofSlopeBoundaryFactory() {}
 
   public static List<RoofSlopBoundary> create(
-      Transform transform, AreaAnnotation3DPan pan, boolean oriented) {
+      Transform transform, ExportAreaPictureAnnotation3DPan pan, boolean oriented) {
     var boundaries = new ArrayList<RoofSlopBoundary>();
     var boundariesTypesNames = getRoofSlopeBoundaryTypeNames(pan);
     var polygon = selectPolygon(pan, oriented);
 
-    if (polygon == null) {
-      return boundaries;
-    }
-
-    var points = polygon.points();
-    for (int i = 1; i < points.size(); i++) {
-      var startPoint = points.get(i - 1);
-      var endPoint = points.get(i);
+    for (int i = 1; i < polygon.getPoints().size(); i++) {
+      var startPoint = polygon.getPoints().get(i - 1);
+      var endPoint = polygon.getPoints().get(i);
       var boundaryCoordinates =
           new Coordinates(
-              new int[] {(int) Math.round(startPoint.x()), (int) Math.round(endPoint.x())},
-              new int[] {(int) Math.round(startPoint.y()), (int) Math.round(endPoint.y())});
+              new int[] {startPoint.getX().intValue(), endPoint.getX().intValue()},
+              new int[] {startPoint.getY().intValue(), endPoint.getY().intValue()});
       var transformedBoundaryCoordinates = transform.apply(boundaryCoordinates);
       var boundary =
           new RoofSlopBoundary(
@@ -47,7 +41,8 @@ public class RoofSlopeBoundaryFactory {
     return boundaries;
   }
 
-  public static Polygon selectPolygon(AreaAnnotation3DPan pan, boolean useOriented) {
+  public static app.bpartners.api.endpoint.rest.model.Polygon selectPolygon(
+      ExportAreaPictureAnnotation3DPan pan, boolean useOriented) {
     if (useOriented && pan.getOrientedPolygon() != null) {
       return pan.getOrientedPolygon();
     }
@@ -64,15 +59,17 @@ public class RoofSlopeBoundaryFactory {
     return RoofSlopeBoundaryType.fromLabel(typeName);
   }
 
-  public static List<String> getRoofSlopeBoundaryTypeNames(AreaAnnotation3DPan pan) {
+  public static List<String> getRoofSlopeBoundaryTypeNames(ExportAreaPictureAnnotation3DPan pan) {
     try {
       var mapper = new ObjectMapper();
       var rawTypeNames =
-          pan.getInfos().stream().filter(info -> TYPE_NAME_LABEL.equals(info.label())).findFirst();
+          pan.getInfos().stream()
+              .filter(info -> TYPE_NAME_LABEL.equals(info.getLabel()))
+              .findFirst();
       if (rawTypeNames.isEmpty()) {
         return List.of();
       }
-      return mapper.readValue(rawTypeNames.get().value(), new TypeReference<List<String>>() {});
+      return mapper.readValue(rawTypeNames.get().getValue(), new TypeReference<List<String>>() {});
     } catch (JsonProcessingException e) {
       throw new IllegalStateException("Failed to read types from pan info. " + e);
     }

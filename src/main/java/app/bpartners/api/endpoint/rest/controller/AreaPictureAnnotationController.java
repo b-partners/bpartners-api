@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.controller;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 import app.bpartners.api.endpoint.rest.mapper.AreaPictureAnnotationRestMapper;
-import app.bpartners.api.endpoint.rest.mapper.ExportAreaPictureAnnotationRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.ConverterValidator;
@@ -26,7 +25,6 @@ public class AreaPictureAnnotationController {
 
   private final AreaPictureAnnotationService service;
   private final AreaPictureAnnotationRestMapper mapper;
-  private final ExportAreaPictureAnnotationRestMapper exportMapper;
   private final AreaPictureAnnotationConverter areaPictureAnnotationConverter;
   private final ConverterValidator converterValidator;
 
@@ -90,8 +88,7 @@ public class AreaPictureAnnotationController {
       throws IOException {
     var userId = AuthProvider.getAuthenticatedUserId();
     byte[] globalImageBytes = globalImage3D != null ? globalImage3D.getBytes() : null;
-    var domainAnnotation = exportMapper.toDomain(annotation);
-    return service.exportAreaPictureAnnotationToPdf(userId, domainAnnotation, globalImageBytes);
+    return service.exportAreaPictureAnnotationToPdf(userId, annotation, globalImageBytes);
   }
 
   @PostMapping("/accounts/{aId}/annotations/convert")

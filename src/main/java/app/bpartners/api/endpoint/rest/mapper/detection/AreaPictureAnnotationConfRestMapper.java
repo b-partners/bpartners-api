@@ -1,19 +1,19 @@
 package app.bpartners.api.endpoint.rest.mapper.detection;
 
-import app.bpartners.api.service.annotation.export.AreaAnnotationExportConf;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AreaPictureAnnotationConfRestMapper {
 
-  public AreaAnnotationExportConf toDomain(
+  public ExportAreaPictureAnnotationConf toDomain(
       app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf rest) {
 
     if (rest == null) {
-      return AreaAnnotationExportConf.DEFAULT;
+      return ExportAreaPictureAnnotationConf.DEFAULT;
     }
 
-    return AreaAnnotationExportConf.builder()
+    return ExportAreaPictureAnnotationConf.builder()
         .showTitlePage(defaultTrue(rest.getShowTitlePage()))
         .showAnnotationPages(defaultTrue(rest.getShowAnnotationPages()))
         .showAnnotation3dPages(defaultTrue(rest.getShowAnnotation3dPages()))

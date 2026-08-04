@@ -1,6 +1,6 @@
 package app.bpartners.api.service.annotation.factory;
 
-import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -22,7 +22,7 @@ public enum DegradationLevel {
   private final String icon;
   private final String color;
 
-  public static DegradationLevel valueOf(AreaAnnotationExportPayload annotation) {
+  public static DegradationLevel valueOf(ExportAreaPictureAnnotation annotation) {
     var type = annotation.getGlobalRateType();
 
     if (type == null) return null;

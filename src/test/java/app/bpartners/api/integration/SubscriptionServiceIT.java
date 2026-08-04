@@ -226,7 +226,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         SubscriptionProduct.builder()
             .e2Id(defaultSubscriptionProductId())
             .type(MONTHLY)
-            .priceInCents(5880L)
+            .priceInCentsWithoutVat(4900L)
+            .vatPercent(2000L)
             .build();
     when(subscriptionProductRepositoryMock.save(any())).thenReturn(product);
     when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
@@ -390,7 +391,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                 "Sans engagement - Idéal pour les artisans couvreurs. "
                     + String.join(" ", subscriptionProductFeatures()))
             .features(subscriptionProductFeatures())
-            .priceInCents(5880L)
+            .priceInCentsWithoutVat(4900L)
+            .vatPercent(2000L)
             .type(MONTHLY)
             .build());
 

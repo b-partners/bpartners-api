@@ -51,7 +51,8 @@ class SubscriptionControllerTest {
                     .features(List.of("f1"))
                     .billingType(
                         app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT)
-                    .priceInCents(5880L)
+                    .priceInCentsWithoutVat(4900L)
+                    .vatPercent(2000L)
                     .freeUsageThreshold(20L)
                     .overageUnitPriceInCents(200L)
                     .trialPeriodDays(7)
@@ -67,7 +68,9 @@ class SubscriptionControllerTest {
                 .description("desc")
                 .features(List.of("f1"))
                 .billingType(SubscriptionBillingType.COMMITMENT)
-                .priceInCents(5880L)
+                .priceInCentsWithVat(5880L)
+                .priceInCentsWithoutVat(4900L)
+                .vatPercent(2000L)
                 .freeUsageThreshold(20L)
                 .overageUnitPriceInCents(200L)
                 .trialPeriodDays(7)),

@@ -20,7 +20,8 @@ class SubscriptionPlanRestMapperTest {
         .description("Premium plan")
         .features(List.of("feature_1", "feature_2"))
         .billingType(billingType)
-        .priceInCents(4900L)
+        .priceInCentsWithoutVat(4900L)
+        .vatPercent(2000L)
         .build();
   }
 
@@ -37,7 +38,8 @@ class SubscriptionPlanRestMapperTest {
     assertEquals("Premium plan", actual.getDescription());
     assertEquals(List.of("feature_1", "feature_2"), actual.getFeatures());
     assertEquals(SubscriptionBillingType.COMMITMENT, actual.getBillingType());
-    assertEquals(4900L, actual.getPriceInCents());
+    assertEquals(4900L, actual.getPriceInCentsWithoutVat());
+    assertEquals(5880L, actual.getPriceInCentsWithVat());
   }
 
   @Test

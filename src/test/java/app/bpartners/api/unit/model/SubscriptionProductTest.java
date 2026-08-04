@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import org.junit.jupiter.api.Test;
@@ -8,14 +9,39 @@ import org.junit.jupiter.api.Test;
 class SubscriptionProductTest {
 
   @Test
-  void fixed_price_ht_is_derived_from_the_stored_ttc_price_and_vat_as_integer_cents() {
+  void price_ttc_is_derived_from_the_stored_ht_price_and_vat_as_integer_cents() {
     assertEquals(
-        4900L, SubscriptionProduct.builder().priceInCents(5880L).build().fixedPriceHtInCents(2000));
+        5880L,
+        SubscriptionProduct.builder()
+            .priceInCentsWithoutVat(4900L)
+            .vatPercent(2000L)
+            .build()
+            .getPriceInCentsWithVat());
     assertEquals(
-        700L, SubscriptionProduct.builder().priceInCents(840L).build().fixedPriceHtInCents(2000));
-    // Non-divisible TTC is rounded half up to whole cents, never a floating amount.
+        840L,
+        SubscriptionProduct.builder()
+            .priceInCentsWithoutVat(700L)
+            .vatPercent(2000L)
+            .build()
+            .getPriceInCentsWithVat());
+    // Non-divisible HT is rounded half up to whole cents, never a floating amount.
     assertEquals(
-        842L, SubscriptionProduct.builder().priceInCents(1010L).build().fixedPriceHtInCents(2000));
+        1010L,
+        SubscriptionProduct.builder()
+            .priceInCentsWithoutVat(842L)
+            .vatPercent(2000L)
+            .build()
+            .getPriceInCentsWithVat());
+  }
+
+  @Test
+  void price_ttc_is_null_when_ht_price_or_vat_is_unset() {
+    assertNull(SubscriptionProduct.builder().vatPercent(2000L).build().getPriceInCentsWithVat());
+    assertNull(
+        SubscriptionProduct.builder()
+            .priceInCentsWithoutVat(4900L)
+            .build()
+            .getPriceInCentsWithVat());
   }
 
   @Test

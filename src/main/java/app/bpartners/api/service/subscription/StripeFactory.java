@@ -126,7 +126,7 @@ public class StripeFactory {
                         SessionCreateParams.LineItem.PriceData.builder()
                             .setProduct(subscriptionProduct.getE2Id())
                             .setCurrency(defaultCurrency())
-                            .setUnitAmount(subscriptionProduct.getPriceInCents())
+                            .setUnitAmount(subscriptionProduct.getPriceInCentsWithVat())
                             .setRecurring(
                                 computeRecurringFromSubscriptionProductForSubscriptionMode(
                                     subscriptionProduct))
@@ -194,7 +194,8 @@ public class StripeFactory {
                         .setCurrency(defaultCurrency())
                         .setProduct(subscription.getSubscriptionProduct().getE2Id())
                         .setRecurring(recurringParams)
-                        .setUnitAmount(subscription.getSubscriptionProduct().getPriceInCents())
+                        .setUnitAmount(
+                            subscription.getSubscriptionProduct().getPriceInCentsWithVat())
                         .build())
                 .build(),
             SubscriptionScheduleCreateParams.Phase.Item.builder().setPrice(meteredPriceId).build());

@@ -2,6 +2,7 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered;
+import app.bpartners.api.endpoint.event.model.SubscriptionProductStripeVatBackfillTriggered;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
@@ -56,6 +57,13 @@ public class SubscriptionController {
   public String triggerUserSubscriptionProductBackfill() {
     eventProducer.accept(List.of(new UserSubscriptionProductBackfillTriggered()));
     return "UserSubscriptionProduct backfill triggered successfully";
+  }
+
+  // TODO: temporary endpoint to backfill the VAT rate onto existing Stripe products' metadata.
+  @PostMapping("/subscriptionProducts/stripeVatBackfill")
+  public String triggerSubscriptionProductStripeVatBackfill() {
+    eventProducer.accept(List.of(new SubscriptionProductStripeVatBackfillTriggered()));
+    return "SubscriptionProduct Stripe VAT metadata backfill triggered successfully";
   }
 
   @GetMapping("/users/{uId}/subscriptionConsumptionLogs")

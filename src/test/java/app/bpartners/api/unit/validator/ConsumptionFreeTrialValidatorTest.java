@@ -88,6 +88,22 @@ class ConsumptionFreeTrialValidatorTest {
     assertDoesNotThrow(() -> subjectOf(type).accept(eligible));
   }
 
+  @ParameterizedTest
+  @MethodSource("consumptionTypes")
+  void consumption_over_max_free_consumption_with_subscribed_user_ok(
+      SubscriptionConsumptionType type, String label) {
+    var userId = randomUUID().toString();
+    var eligible = someEligible(userId, false);
+    givenConsumption(userId, type, 42);
+
+    assertDoesNotThrow(() -> subjectOf(type).accept(eligible));
+
+    verify(userWhiteListedJpaRepositoryMock, never()).findByUserId(any());
+    verify(consumptionLogJpaRepositoryMock, never())
+        .findAllByUserIdAndConsumptionTypeAndCreationDatetimeBetween(
+            any(), any(), any(), any());
+  }
+
   @Test
   void image_access_and_roof_analysis_have_their_own_free_trial_quota() {
     var userId = randomUUID().toString();

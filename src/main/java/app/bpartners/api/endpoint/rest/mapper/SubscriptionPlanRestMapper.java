@@ -16,7 +16,9 @@ public class SubscriptionPlanRestMapper {
         .description(domain.getDescription())
         .features(domain.getFeatures())
         .billingType(billingTypeToRest(domain.getBillingType()))
-        .priceInCents(domain.getPriceInCents())
+        .priceInCentsWithVat(domain.getPriceInCentsWithVat())
+        .priceInCentsWithoutVat(domain.getPriceInCentsWithoutVat())
+        .vatPercent(domain.getVatPercent())
         .freeUsageThreshold(domain.getFreeUsageThreshold())
         .overageUnitPriceInCents(domain.getOverageUnitPriceInCents())
         .trialPeriodDays(domain.getTrialPeriodDays())
@@ -30,7 +32,9 @@ public class SubscriptionPlanRestMapper {
         .description(domain.getDescription())
         .features(domain.getFeatures())
         .billingType(billingTypeToRest(domain.getBillingType()))
-        .priceInCents(domain.getPriceInCents());
+        .priceInCentsWithVat(domain.getPriceInCentsWithVat())
+        .priceInCentsWithoutVat(domain.getPriceInCentsWithoutVat())
+        .vatPercent(domain.getVatPercent());
   }
 
   private SubscriptionBillingType billingTypeToRest(

@@ -58,6 +58,7 @@ public class SubscriptionService {
   private static final int DEFAULT_TRIAL_PERIOD_DAYS = 7;
   public static final long FREE_ROOF_ANALYSIS = SubscriptionProduct.DEFAULT_FREE_USAGE_THRESHOLD;
   private static final int DEFAULT_PLANS_PAGE_SIZE = 100;
+  private static final String VAT_PERCENT_METADATA_KEY = "vat_percent";
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -317,10 +318,13 @@ public class SubscriptionService {
                             ProductCreateParams.MarketingFeature.builder().setName(feature).build())
                     .toList())
             .setActive(true)
+            .putMetadata(
+                VAT_PERCENT_METADATA_KEY,
+                String.valueOf(vatPercentOrDefault(subscriptionProduct.getVatPercent())))
             .setDefaultPriceData(
                 ProductCreateParams.DefaultPriceData.builder()
                     .setCurrency(defaultCurrency())
-                    .setUnitAmount(subscriptionProduct.getPriceInCents())
+                    .setUnitAmount(subscriptionProduct.getPriceInCentsWithVat())
                     .setRecurring(
                         ProductCreateParams.DefaultPriceData.Recurring.builder()
                             .setInterval(
@@ -337,11 +341,59 @@ public class SubscriptionService {
     return fromStripeProduct(randomUUID().toString(), createdStripeProduct);
   }
 
+  private static long vatPercentOrDefault(Long vatPercent) {
+    return vatPercent == null ? SubscriptionProduct.DEFAULT_VAT_PERCENT : vatPercent;
+  }
+
+  public void backfillStripeProductsVatMetadata() {
+    var products = subscriptionProductRepository.findAll();
+    log.info(
+        "Stripe VAT metadata backfill starting for {} subscription product(s)", products.size());
+    for (var product : products) {
+      if (product.getE2Id() == null || product.getVatPercent() == null) {
+        continue;
+      }
+      try {
+        Product.retrieve(product.getE2Id())
+            .update(
+                ProductUpdateParams.builder()
+                    .putMetadata(VAT_PERCENT_METADATA_KEY, String.valueOf(product.getVatPercent()))
+                    .build());
+        log.info(
+            "Backfilled VAT metadata (vat_percent={}) on Stripe product {}",
+            product.getVatPercent(),
+            product.getE2Id());
+      } catch (StripeException e) {
+        log.error(
+            "Failed to backfill VAT metadata on Stripe product {}, skipping", product.getE2Id(), e);
+      }
+    }
+  }
+
+  private static long vatPercentFromMetadata(Product stripeProduct) {
+    var metadata = stripeProduct.getMetadata();
+    var rawVatPercent = metadata == null ? null : metadata.get(VAT_PERCENT_METADATA_KEY);
+    if (rawVatPercent == null) {
+      return SubscriptionProduct.DEFAULT_VAT_PERCENT;
+    }
+    try {
+      return Long.parseLong(rawVatPercent);
+    } catch (NumberFormatException e) {
+      log.warn(
+          "Unparseable {} metadata '{}' on Stripe product {}, falling back to default VAT",
+          VAT_PERCENT_METADATA_KEY,
+          rawVatPercent,
+          stripeProduct.getId());
+      return SubscriptionProduct.DEFAULT_VAT_PERCENT;
+    }
+  }
+
   @SneakyThrows
   private SubscriptionProduct fromStripeProduct(
       String domainProductId, Product createdStripeProduct) {
     var createdDefaultPriceId = createdStripeProduct.getDefaultPrice();
     var price = Price.retrieve(createdDefaultPriceId);
+    var vatPercent = vatPercentFromMetadata(createdStripeProduct);
     var subscriptionProductToPersistBuilder =
         SubscriptionProduct.builder()
             .id(domainProductId)
@@ -352,7 +404,9 @@ public class SubscriptionService {
                 createdStripeProduct.getMarketingFeatures().stream()
                     .map(Product.MarketingFeature::getName)
                     .toList())
-            .priceInCents(price.getUnitAmount())
+            .priceInCentsWithoutVat(
+                SubscriptionProduct.priceInCentsWithoutVatFrom(price.getUnitAmount(), vatPercent))
+            .vatPercent(vatPercent)
             .type(computeTypeFromRecurring(price.getRecurring().getInterval()))
             .creationDatetime(Instant.ofEpochSecond(createdStripeProduct.getCreated()));
 
@@ -362,8 +416,6 @@ public class SubscriptionService {
       subscriptionProductToPersistBuilder.imageUrl(createdStripeProduct.getImages().getFirst());
     }
 
-    // Catalog attributes (plan, pricing thresholds, trial) live only in our DB, not on Stripe :
-    // carry them over so re-mirroring the Stripe product does not wipe them.
     subscriptionProductRepository
         .findById(domainProductId)
         .ifPresent(

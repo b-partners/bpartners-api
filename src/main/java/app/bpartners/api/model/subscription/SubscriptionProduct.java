@@ -21,6 +21,8 @@ public class SubscriptionProduct {
 
   public static final long DEFAULT_OVERAGE_UNIT_PRICE_IN_CENTS = 200L;
 
+  public static final long DEFAULT_VAT_PERCENT = 2000L;
+
   @Id private String id;
 
   @Column(name = "e2_id")
@@ -42,7 +44,9 @@ public class SubscriptionProduct {
   @Enumerated(EnumType.STRING)
   private SubscriptionConsumptionType consumptionTypeAttached;
 
-  private Long priceInCents;
+  private Long vatPercent;
+
+  private Long priceInCentsWithoutVat;
 
   private Instant creationDatetime;
 
@@ -69,9 +73,22 @@ public class SubscriptionProduct {
   @Column(name = "metered_product_id")
   private String meteredProductId;
 
-  public long fixedPriceHtInCents(int vatPercent) {
+  public Long getPriceInCentsWithVat() {
+    if (priceInCentsWithoutVat == null || vatPercent == null) {
+      return null;
+    }
+    // vatPercent is expressed in basis points of 10_000 (2000 = 20%).
+    // TTC = HT * (10_000 + vatPercent) / 10_000, rounded half up to whole cents.
+    var numerator = priceInCentsWithoutVat * (10_000L + vatPercent);
+    return (numerator + 5_000L) / 10_000L;
+  }
+
+  public static Long priceInCentsWithoutVatFrom(Long priceInCentsWithVat, Long vatPercent) {
+    if (priceInCentsWithVat == null || vatPercent == null) {
+      return null;
+    }
     var denominator = 10_000L + vatPercent;
-    var numerator = priceInCents * 10_000L;
+    var numerator = priceInCentsWithVat * 10_000L;
     return (numerator + denominator / 2) / denominator;
   }
 

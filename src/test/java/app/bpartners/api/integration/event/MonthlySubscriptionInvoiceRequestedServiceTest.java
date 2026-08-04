@@ -96,7 +96,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 SubscriptionProduct.builder()
                     .billingType(
                         app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT)
-                    .priceInCents(5880L)
+                    .priceInCentsWithoutVat(4900L)
+                    .vatPercent(2000L)
                     .freeUsageThreshold(20L)
                     .overageUnitPriceInCents(200L)
                     .build()));
@@ -124,7 +125,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
             .build();
     var users = List.of(subscribedUser);
     when(userRepositoryMock.findAllByCriteria(any())).thenReturn(users);
-    var subscriptionProduct = SubscriptionProduct.builder().priceInCents(5L).build();
+    var subscriptionProduct = SubscriptionProduct.builder().priceInCentsWithoutVat(5L).build();
 
     var latestSubscription =
         Subscription.builder()
@@ -228,7 +229,8 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 SubscriptionProduct.builder()
                     .billingType(
                         app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT)
-                    .priceInCents(840L)
+                    .priceInCentsWithoutVat(700L)
+                    .vatPercent(2000L)
                     .freeUsageThreshold(5L)
                     .overageUnitPriceInCents(300L)
                     .build()));
@@ -290,7 +292,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn("subscriptionProductName");
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
@@ -383,7 +385,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(subscriptionMock.getEndDatetime())
@@ -481,7 +483,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(subscriptionMock.getEndDatetime())
@@ -600,7 +602,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(subscriptionMock.getEndDatetime())
         .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
@@ -704,7 +706,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(subscriptionMock.getEndDatetime())
         .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));

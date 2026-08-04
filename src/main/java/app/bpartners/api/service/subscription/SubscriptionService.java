@@ -59,6 +59,8 @@ public class SubscriptionService {
   public static final long FREE_ROOF_ANALYSIS = SubscriptionProduct.DEFAULT_FREE_USAGE_THRESHOLD;
   private static final int DEFAULT_PLANS_PAGE_SIZE = 100;
   private static final String VAT_PERCENT_METADATA_KEY = "vat_percent";
+  private static final String CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY =
+      "cancel_after_first_invoice";
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -72,6 +74,7 @@ public class SubscriptionService {
   private final StripeInvoiceService stripeInvoiceService;
   private final StripeCustomerService stripeCustomerService;
   private final StripeSubscriptionService stripeSubscriptionService;
+  private final UserSubscriptionProductService userSubscriptionProductService;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -741,8 +744,12 @@ public class SubscriptionService {
 
     if (!activeScheduledSubscriptions.isEmpty()) {
       var scheduledSubscription = activeScheduledSubscriptions.getFirst();
-      scheduledSubscription.cancel();
+      var scheduledStartDate = cancelScheduleAfterUpcomingPayment(scheduledSubscription);
       cancelRelatedSetupSession(user, scheduledSubscription.getId());
+
+      userSubscriptionProductService.endActiveSubscriptionProducts(
+          user.getId(), Instant.ofEpochSecond(scheduledStartDate));
+
       var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
       return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
     }
@@ -766,9 +773,73 @@ public class SubscriptionService {
         .update(
             latestSubscription.getE2Id(),
             SubscriptionUpdateParams.builder().setCancelAtPeriodEnd(true).build());
+    var periodEnd =
+        latestSubscription.getEndDatetime() != null ? latestSubscription.getEndDatetime() : now();
+
+    userSubscriptionProductService.endActiveSubscriptionProducts(user.getId(), periodEnd);
 
     var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
     return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
+  }
+
+  private long cancelScheduleAfterUpcomingPayment(SubscriptionSchedule scheduledSubscription)
+      throws StripeException {
+    var upcomingPhase = scheduledSubscription.getPhases().getFirst();
+    var scheduledStartDate = upcomingPhase.getStartDate();
+    var phaseItems =
+        upcomingPhase.getItems().stream()
+            .map(
+                item ->
+                    SubscriptionScheduleUpdateParams.Phase.Item.builder()
+                        .setPrice(item.getPrice())
+                        .build())
+            .toList();
+    scheduledSubscription.update(
+        SubscriptionScheduleUpdateParams.builder()
+            .setEndBehavior(SubscriptionScheduleUpdateParams.EndBehavior.CANCEL)
+            .addPhase(
+                SubscriptionScheduleUpdateParams.Phase.builder()
+                    .addAllItem(phaseItems)
+                    .setStartDate(scheduledStartDate)
+                    .setIterations(1L)
+                    .build())
+            .putMetadata(CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY, "true")
+            .build());
+    return scheduledStartDate;
+  }
+
+  @SneakyThrows
+  public void cancelScheduledSubscriptionAfterInvoicePaid(String stripeSubscriptionId) {
+    if (stripeSubscriptionId == null) {
+      return;
+    }
+    var subscription = stripeClient.subscriptions().retrieve(stripeSubscriptionId);
+    var scheduleId = subscription.getSchedule();
+    if (scheduleId == null) {
+      return;
+    }
+    var schedule = stripeClient.subscriptionSchedules().retrieve(scheduleId);
+    var metadata = schedule.getMetadata();
+    var flaggedForCancellation =
+        metadata != null && "true".equals(metadata.get(CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY));
+    if (!flaggedForCancellation) {
+      return;
+    }
+    if ("canceled".equalsIgnoreCase(schedule.getStatus())) {
+      log.info("Scheduled subscription {} already canceled, skipping", scheduleId);
+      return;
+    }
+    stripeClient
+        .subscriptionSchedules()
+        .cancel(
+            scheduleId,
+            SubscriptionScheduleCancelParams.builder()
+                .setProrate(false)
+                .setInvoiceNow(false)
+                .build());
+    log.info(
+        "Cancelled scheduled subscription {} immediately after its first invoice was paid",
+        scheduleId);
   }
 
   private void cancelRelatedSetupSession(User user, String subscriptionScheduleId) {

@@ -1,7 +1,6 @@
 package app.bpartners.api.service.annotation.model.custompage;
 
 import java.util.List;
-import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,14 +15,4 @@ import lombok.Setter;
 public class CustomPage {
   private String pageTitle;
   private List<PageSection> sections;
-
-  public static CustomPage fromRest(app.bpartners.api.endpoint.rest.model.CustomPage rest) {
-    return CustomPage.builder()
-        .pageTitle(rest.getPageTitle())
-        .sections(
-            Optional.of(rest.getSections()).orElse(List.of()).stream()
-                .map(PageSection::fromRest)
-                .toList())
-        .build();
-  }
 }

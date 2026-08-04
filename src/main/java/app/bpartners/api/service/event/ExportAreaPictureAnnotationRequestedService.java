@@ -5,9 +5,8 @@ import static java.util.Objects.nonNull;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.model.ExportAreaPictureAnnotationRequested;
-import app.bpartners.api.endpoint.rest.mapper.ExportAreaPictureAnnotationRestMapper;
 import app.bpartners.api.file.FileWriter;
-import app.bpartners.api.service.annotation.export.AreaAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.user.UserService;
@@ -30,8 +29,7 @@ public class ExportAreaPictureAnnotationRequestedService
   private final FileWriter fileWriter;
   private final UserService userService;
   private final TemplateResolverEngine templateResolverEngine;
-  private final AreaAnnotationPDFProcessor processor;
-  private final ExportAreaPictureAnnotationRestMapper restMapper;
+  private final ExportAreaPictureAnnotationPDFProcessor processor;
   private static final String TEMPLATE_SUCCESS_NAME =
       "export-area-picture-annotations-mail-success";
   private static final String TEMPLATE_FAILED_NAME = "export-area-picture-annotations-mail-failed";
@@ -42,13 +40,12 @@ public class ExportAreaPictureAnnotationRequestedService
   public void accept(ExportAreaPictureAnnotationRequested requested) {
     var userId = requested.getUserId();
     var user = userService.getUserById(userId);
-    var domainAnnotation = restMapper.toDomain(requested.getAnnotation());
-    var address = domainAnnotation.getAddress();
+    var address = requested.getAnnotation().getAddress();
     var subject = String.format("Rapport d'analyse de l'adresse %s", address);
 
     try {
       log.info("Export rapport d'analyse de l'adresse: {}", address);
-      var generatedPDF = this.processor.process(user, domainAnnotation);
+      var generatedPDF = this.processor.process(user, requested.getAnnotation());
 
       var fileToUpload = fileWriter.apply(generatedPDF, null);
 
@@ -58,7 +55,7 @@ public class ExportAreaPictureAnnotationRequestedService
       var fileUrl = s3Service.presignURL(ATTACHMENT, fileId, userId, ONE_HOUR_IN_SECONDS);
 
       notifySuccess(user.getEmail(), subject, address, fileUrl);
-    } catch (Exception e) {
+    } catch (IOException e) {
       log.error(e.getMessage());
       notifyError(user.getEmail(), subject, address);
     }

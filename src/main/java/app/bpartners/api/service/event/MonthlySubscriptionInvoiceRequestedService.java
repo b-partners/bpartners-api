@@ -283,11 +283,17 @@ public class MonthlySubscriptionInvoiceRequestedService
         () -> userCustomerConverter.apply(userToDebit));
   }
 
+  private long vatPercentOf(SubscriptionProduct subscriptionProduct) {
+    return subscriptionProduct == null || subscriptionProduct.getVatPercent() == null
+        ? VAT_PERCENT
+        : subscriptionProduct.getVatPercent();
+  }
+
   private long getProductUnitPrice(
       Optional<SubscriptionProduct> commitmentPlan, List<String> productIds) {
     return commitmentPlan
-        .filter(plan -> plan.getPriceInCents() != null)
-        .map(plan -> plan.fixedPriceHtInCents(VAT_PERCENT))
+        .filter(plan -> plan.getPriceInCentsWithoutVat() != null)
+        .map(SubscriptionProduct::getPriceInCentsWithoutVat)
         .orElseGet(
             () ->
                 productIds.stream()
@@ -345,7 +351,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             .unitPrice(
                 new Fraction(
                     BigInteger.valueOf(getProductUnitPrice(commitmentPlan, subscriptions))))
-            .vatPercent(new Fraction(BigInteger.valueOf(VAT_PERCENT)))
+            .vatPercent(new Fraction(BigInteger.valueOf(vatPercentOf(subscriptionProduct))))
             .status(ProductStatus.ENABLED)
             .build());
 
@@ -360,7 +366,7 @@ public class MonthlySubscriptionInvoiceRequestedService
               .description("Analyse de toîtures supplémentaire")
               .quantity((int) analysisPayableUsage)
               .unitPrice(new Fraction(BigInteger.valueOf(overageUnitPriceOf(commitmentPlan))))
-              .vatPercent(new Fraction(BigInteger.valueOf(VAT_PERCENT)))
+              .vatPercent(new Fraction(BigInteger.valueOf(vatPercentOf(subscriptionProduct))))
               .status(ProductStatus.ENABLED)
               .build());
     }

@@ -1,4 +1,4 @@
-package app.bpartners.api.service.annotation.export;
+package app.bpartners.api.service.annotation;
 
 import static java.awt.Color.BLACK;
 import static java.awt.Color.WHITE;
@@ -12,7 +12,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AreaAnnotationImageConf {
+public class ExportAreaPictureAnnotationImageConf {
   private int scale;
   private int pointSize;
   private Stroke stroke;
@@ -22,7 +22,7 @@ public class AreaAnnotationImageConf {
   private IntXY measurementOffset;
   private Font measurementFont;
 
-  public AreaAnnotationImageConf() {
+  public ExportAreaPictureAnnotationImageConf() {
     this.stroke = DEFAULT_STROKE;
     this.scale = DEFAULT_SCALE;
     this.pointSize = DEFAULT_POINT_SIZE;
@@ -33,10 +33,10 @@ public class AreaAnnotationImageConf {
     this.measurementFont = DEFAULT_MEASUREMENT_FONT;
   }
 
-  public AreaAnnotationImageConf rescale(double xFactor, double yFactor) {
+  public ExportAreaPictureAnnotationImageConf rescale(double xFactor, double yFactor) {
     var currentStroke = (BasicStroke) this.stroke;
     var factor = (xFactor + yFactor) / 2;
-    return new AreaAnnotationImageConf(
+    return new ExportAreaPictureAnnotationImageConf(
         this.scale,
         Math.max(1, (int) round(this.pointSize * factor)),
         new BasicStroke(Math.max(1f, currentStroke.getLineWidth() * (float) factor)),
@@ -52,7 +52,7 @@ public class AreaAnnotationImageConf {
             Math.max(1, (int) round(this.measurementFont.getSize() * factor))));
   }
 
-  public static final int DEFAULT_SCALE = 2;
+  public static final int DEFAULT_SCALE = 3;
   public static final int DEFAULT_POINT_SIZE = 30;
   public static final float DEFAULT_STROKE_WIDTH = 3.2f;
   public static final Stroke DEFAULT_STROKE = new BasicStroke(DEFAULT_STROKE_WIDTH);

@@ -10,7 +10,7 @@ public class ImageSection extends PageSection {
   private String url;
   private String caption;
 
-  @Builder(toBuilder = true)
+  @Builder
   public ImageSection(SectionPriority priority, String url, String caption) {
     super(SectionType.IMAGE, priority);
     this.url = url;

@@ -123,6 +123,11 @@ public class UserRestMapper {
         .subscriptionStatus(subscriptionStatus)
         .subscription(
             new UserSubscription()
+                .plan(
+                    domain.getActualSubscriptionProduct() == null
+                        ? null
+                        : subscriptionPlanRestMapper.toRestDescription(
+                            domain.getActualSubscriptionProduct()))
                 .status(subscriptionStatus)
                 .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
                 .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))

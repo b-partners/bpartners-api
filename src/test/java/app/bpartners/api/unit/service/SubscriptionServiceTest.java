@@ -26,7 +26,6 @@ import app.bpartners.api.repository.jpa.model.detection.HDetectionTracking;
 import app.bpartners.api.service.subscription.*;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
-import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.param.*;
 import com.stripe.service.CustomerService;
@@ -405,15 +404,126 @@ class SubscriptionServiceTest {
         actualEmptySubscriptionException.getMessage());
   }
 
+  @SneakyThrows
   @Test
-  void cancel_subscription_in_set_up_ok() throws StripeException {
-    var user = User.builder().userSubscriptionId("user_subscription_id").build();
-    var subscriptionService = mock(com.stripe.service.SubscriptionService.class);
-    when(stripeClientMock.subscriptions()).thenReturn(subscriptionService);
-    var stripeCollection = mock(StripeCollection.class);
-    when(subscriptionService.list(any(SubscriptionListParams.class))).thenReturn(stripeCollection);
-    var stripeSubscription = mock(com.stripe.model.Subscription.class);
-    when(stripeCollection.getData()).thenReturn(List.of(stripeSubscription));
+  void cancel_scheduled_subscription_ok() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+
+    // A scheduled subscription (not yet started) exists -> it is the one to cancel.
+    var schedule = mock(SubscriptionSchedule.class);
+    when(schedule.getId()).thenReturn("schedule_id");
+    when(schedule.getStatus()).thenReturn("not_started");
+    when(schedule.getCanceledAt()).thenReturn(null);
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of(schedule));
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    // A running active subscription also exists so the schedule is not mirrored as synthetic.
+    var activeStripeSubscription = new com.stripe.model.Subscription();
+    activeStripeSubscription.setId("sub_active");
+    activeStripeSubscription.setStatus("active");
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(activeStripeSubscription));
+
+    var matchingSession =
+        UserSubscriptionSession.builder()
+            .id("session_id")
+            .userId("user_id")
+            .sessionMode(SessionMode.SETUP)
+            .subscriptionScheduleId("schedule_id")
+            .isCancelled(false)
+            .build();
+    when(sessionRepositoryMock.findAllByUserId("user_id")).thenReturn(List.of(matchingSession));
+    when(sessionRepositoryMock.save(any()))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+
+    var actual = subject.cancelLatestUserSubscription(user);
+
+    // The schedule is cancelled and the related SETUP session is flagged as cancelled.
+    verify(schedule).cancel();
+    var sessionCaptor = ArgumentCaptor.forClass(UserSubscriptionSession.class);
+    verify(sessionRepositoryMock).save(sessionCaptor.capture());
+    assertTrue(sessionCaptor.getValue().isCancelled());
+    // The running subscription is left untouched in the scheduled case.
+    verify(stripeClientMock, never()).subscriptions();
+    assertNotNull(actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void cancel_scheduled_subscription_without_matching_session_ok() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+
+    var schedule = mock(SubscriptionSchedule.class);
+    when(schedule.getId()).thenReturn("schedule_id");
+    when(schedule.getStatus()).thenReturn("not_started");
+    when(schedule.getCanceledAt()).thenReturn(null);
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of(schedule));
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    var activeStripeSubscription = new com.stripe.model.Subscription();
+    activeStripeSubscription.setId("sub_active");
+    activeStripeSubscription.setStatus("active");
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(activeStripeSubscription));
+
+    // Session already cancelled -> filtered out, so nothing is persisted.
+    var alreadyCancelledSession =
+        UserSubscriptionSession.builder()
+            .id("session_id")
+            .userId("user_id")
+            .sessionMode(SessionMode.SETUP)
+            .subscriptionScheduleId("schedule_id")
+            .isCancelled(true)
+            .build();
+    when(sessionRepositoryMock.findAllByUserId("user_id"))
+        .thenReturn(List.of(alreadyCancelledSession));
+
+    var actual = subject.cancelLatestUserSubscription(user);
+
+    verify(schedule).cancel();
+    verify(sessionRepositoryMock, never()).save(any());
+    assertNotNull(actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void cancel_current_subscription_ok() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+
+    // No scheduled subscription -> the current running subscription is the one to cancel.
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of());
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    var activeStripeSubscription = new com.stripe.model.Subscription();
+    activeStripeSubscription.setId("sub_active");
+    activeStripeSubscription.setStatus("active");
+    activeStripeSubscription.setCurrentPeriodStart(now().getEpochSecond());
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(activeStripeSubscription));
+
+    var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
+
+    var actual = subject.cancelLatestUserSubscription(user);
+
+    var idCaptor = ArgumentCaptor.forClass(String.class);
+    var paramsCaptor = ArgumentCaptor.forClass(SubscriptionUpdateParams.class);
+    verify(subscriptionServiceMock).update(idCaptor.capture(), paramsCaptor.capture());
+    assertEquals("sub_active", idCaptor.getValue());
+    assertEquals(true, paramsCaptor.getValue().getCancelAtPeriodEnd());
+    assertNotNull(actual);
   }
 
   @SneakyThrows

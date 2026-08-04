@@ -7,6 +7,7 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
+import com.stripe.model.Invoice;
 import com.stripe.model.StripeObject;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionSchedule;
@@ -23,15 +24,21 @@ public class StripeWebhookService {
   private static final String SUBSCRIPTION_CREATED = "customer.subscription.created";
   private static final String SUBSCRIPTION_UPDATED = "customer.subscription.updated";
   private static final String SUBSCRIPTION_SCHEDULE_CREATED = "subscription_schedule.created";
+  private static final String INVOICE_PAID = "invoice.paid";
   private static final String STRIPE_ACTIVE_STATUS = "active";
   private static final String STRIPE_SCHEDULE_NOT_STARTED_STATUS = "not_started";
 
   private final StripeConf stripeConf;
   private final UserRepository userRepository;
   private final EventProducer eventProducer;
+  private final SubscriptionService subscriptionService;
 
   public void handleEvent(String payload, String signatureHeader) {
     var event = verifySignature(payload, signatureHeader);
+    if (INVOICE_PAID.equals(event.getType())) {
+      handleInvoicePaid(event);
+      return;
+    }
     var stripeCustomerId = extractEligibleCustomerId(event);
     if (stripeCustomerId == null) {
       return;
@@ -48,6 +55,14 @@ public class StripeWebhookService {
         "Requested UserSubscriptionProduct creation for User(id={}) from Stripe event={}",
         userId,
         event.getType());
+  }
+
+  private void handleInvoicePaid(Event event) {
+    var invoice = extractStripeObject(event, Invoice.class);
+    if (invoice == null) {
+      return;
+    }
+    subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoice.getSubscription());
   }
 
   private String extractEligibleCustomerId(Event event) {

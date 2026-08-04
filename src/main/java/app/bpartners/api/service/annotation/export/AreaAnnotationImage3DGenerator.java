@@ -76,7 +76,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -107,7 +107,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -146,7 +146,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -187,7 +187,7 @@ public class AreaAnnotationImage3DGenerator {
     var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
     var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
     var transform =
-        Transform.from(new Coordinates(allX, allY), SUMMARY_CONTENT_SIZE, SUMMARY_IMAGE_SIZE);
+        Transform.from(new Coordinates(allX, allY), CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);

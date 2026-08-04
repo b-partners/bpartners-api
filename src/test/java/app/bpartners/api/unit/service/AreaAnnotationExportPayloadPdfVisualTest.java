@@ -342,6 +342,24 @@ class AreaAnnotationExportPayloadPdfVisualTest {
   }
 
   @Test
+  void generate_from_heavy_payload_toulouse() throws IOException {
+    var restAnnotation = restAnnotationFromToulousePayload();
+    var domainAnnotation = exportMapper.toDomain(restAnnotation);
+    mockImage =
+        ImageIO.read(
+            new ClassPathResource("files/17 Rue Pierre Bénech, 31100 Toulouse.png")
+                .getInputStream());
+    mockImageBytes = toByteStream(mockImage);
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), domainAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "toulouse-payload");
+  }
+
+  @Test
   void generate_visual_pdf() throws IOException {
     var restAnnotation = fullRestExportAreaPictureAnnotation();
     var domainAnnotation = exportMapper.toDomain(restAnnotation);
@@ -371,6 +389,15 @@ class AreaAnnotationExportPayloadPdfVisualTest {
     String now = now().format(DateTimeFormatter.ISO_DATE_TIME).replace(":", "-");
     Files.write(
         Paths.get(String.format("build/annotation-export-%s-%s.pdf", now, suffix)), pdfBytes);
+  }
+
+  private app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation
+      restAnnotationFromToulousePayload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return objectMapper.readValue(
+        new ClassPathResource("payload/export/17 Rue Pierre Bénech, 31100 Toulouse.json")
+            .getInputStream(),
+        app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation.class);
   }
 
   private app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation

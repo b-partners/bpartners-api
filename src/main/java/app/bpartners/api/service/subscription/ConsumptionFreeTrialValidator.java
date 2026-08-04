@@ -38,6 +38,10 @@ public abstract class ConsumptionFreeTrialValidator implements Consumer<UserSubs
   public void accept(UserSubscriptionEligible userSubscriptionEligible) {
     var userId = userSubscriptionEligible.getUserId();
 
+    if (!userSubscriptionEligible.hasFreeTrialPeriodActive()) {
+      return;
+    }
+
     var actualConsumption = consumptionSinceFreeTrialPeriodStart(userSubscriptionEligible);
     if (actualConsumption >= maxConsumptionDuringFreeTrial() && isRestrictedByFreeTrial(userId)) {
       throw new BadRequestException(

@@ -4,7 +4,7 @@ import static java.lang.System.currentTimeMillis;
 
 import app.bpartners.api.endpoint.event.model.ProspectCreated;
 import app.bpartners.api.file.FileWriter;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.AccountHolderRepository;
@@ -26,7 +26,7 @@ public class ProspectCreatedService implements Consumer<ProspectCreated> {
   private final AccountHolderRepository holderRepository;
   private final SesService sesService;
   private final TemplateResolverEngine templateResolverEngine;
-  private final BucketComponent bucketComponent;
+  private final CustomBucketComponent customBucketComponent;
   private final FileWriter fileWriter;
 
   @SneakyThrows
@@ -40,7 +40,7 @@ public class ProspectCreatedService implements Consumer<ProspectCreated> {
       var bucketKey =
           String.format(
               "prospects/%s/notifications/attachments/%s", prospect.getId(), attachmentFileKey);
-      var attachmentFile = bucketComponent.download(bucketKey, true);
+      var attachmentFile = customBucketComponent.download(bucketKey, true);
       var providedAttachment =
           Attachment.builder()
               .name(currentTimeMillis() + ".pdf")

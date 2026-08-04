@@ -1,6 +1,5 @@
 package app.bpartners.api.file.bucket;
 
-import app.bpartners.api.PojaGenerated;
 import app.bpartners.api.service.aws.AWSProviderConf;
 import java.net.URI;
 import lombok.Getter;
@@ -15,10 +14,9 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
-@PojaGenerated
 @SuppressWarnings("all")
 @Configuration
-public class BucketConf implements BucketAccess {
+public class CustomBucketConf implements BucketAccess {
 
   @Getter private final String bucketName;
   private final S3TransferManager s3TransferManager;
@@ -27,7 +25,7 @@ public class BucketConf implements BucketAccess {
   private final AWSProviderConf awsProviderConf;
 
   @SneakyThrows
-  public BucketConf(
+  public CustomBucketConf(
       @Value("${aws.region}") String regionString,
       @Value("${aws.s3.bucket}") String bucketName,
       @Value("${aws.endpoint.override}") String endpointOverride,

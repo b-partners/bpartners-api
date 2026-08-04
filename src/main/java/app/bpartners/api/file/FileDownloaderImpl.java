@@ -7,7 +7,7 @@ import static java.util.UUID.randomUUID;
 import static org.springframework.http.MediaType.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-import app.bpartners.api.file.bucket.BucketConf;
+import app.bpartners.api.file.bucket.CustomBucketConf;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.areapicture.MetaDataComponent;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -48,7 +48,7 @@ public final class FileDownloaderImpl implements FileDownloader {
   private static final String TEMP_FOLDER_PERMISSION = "rwx------";
   private final RestTemplate restTemplate;
   private final ObjectMapper om;
-  private final BucketConf bucketConf;
+  private final CustomBucketConf customBucketConf;
   private final MetaDataComponent metaDataComponent;
 
   @Override
@@ -80,7 +80,7 @@ public final class FileDownloaderImpl implements FileDownloader {
                   tempDir.toPath(), prefixFromBucketKey(bucketKey), suffixFromBucketKey(bucketKey))
               .toFile();
       FileDownload download =
-          bucketConf
+          customBucketConf
               .getS3TransferManager()
               .downloadFile(
                   DownloadFileRequest.builder()

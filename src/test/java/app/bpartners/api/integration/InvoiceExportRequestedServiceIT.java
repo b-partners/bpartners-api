@@ -16,7 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.event.model.InvoiceExportRequested;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.InvoiceExportRequest;
 import app.bpartners.api.service.aws.S3Service;
@@ -41,7 +41,7 @@ class InvoiceExportRequestedServiceIT extends MockedThirdParties {
   @Autowired InvoiceExportRequestedService subject;
   @Autowired InvoiceExportRequestService invoiceExportRequestService;
   @MockBean S3Service s3ServiceMock;
-  @MockBean BucketComponent bucketComponentMock;
+  @MockBean CustomBucketComponent customBucketComponentMock;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -72,7 +72,7 @@ class InvoiceExportRequestedServiceIT extends MockedThirdParties {
     assertEquals(2, firstBatch.getContentSize());
     assertNotNull(firstBatch.getFileKey());
     assertEquals(0, firstBatch.getProperties().get("page"));
-    verify(bucketComponentMock).upload(any(File.class), any(), any(Boolean.class));
+    verify(customBucketComponentMock).upload(any(File.class), any(), any(Boolean.class));
 
     subject.accept(exportOf(request, 1));
 

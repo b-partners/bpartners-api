@@ -36,6 +36,7 @@ import com.stripe.service.SubscriptionScheduleService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
@@ -179,7 +180,7 @@ class SubscriptionServiceTest {
                       product.getMarketingFeatures().stream()
                           .map(Product.MarketingFeature::getName)
                           .toList())
-                  .priceInCents(price.getUnitAmount())
+                  .priceInCentsWithoutVat(price.getUnitAmount())
                   .imageUrl(product.getImages().getFirst())
                   .type(MONTHLY)
                   .creationDatetime(now())
@@ -210,7 +211,7 @@ class SubscriptionServiceTest {
                   product.getMarketingFeatures().stream()
                       .map(Product.MarketingFeature::getName)
                       .toList())
-              .priceInCents(price.getUnitAmount())
+              .priceInCentsWithoutVat(price.getUnitAmount())
               .imageUrl(product.getImages().getFirst())
               .type(MONTHLY)
               .meteredProductId("roofAnalysis")
@@ -240,6 +241,7 @@ class SubscriptionServiceTest {
               .planCode("ESSENTIAL")
               .billingType(SubscriptionBillingType.COMMITMENT)
               .freeUsageThreshold(20L)
+              .vatPercent(2000L)
               .overageUnitPriceInCents(200L)
               .trialPeriodDays(7)
               .build();
@@ -265,14 +267,73 @@ class SubscriptionServiceTest {
       var captor = ArgumentCaptor.forClass(SubscriptionProduct.class);
       verify(subscriptionProductRepositoryMock).save(captor.capture());
       var saved = captor.getValue();
-      // Catalog attributes carried over from the existing row, not wiped by the Stripe re-mirror.
       assertEquals("ESSENTIAL", saved.getPlanCode());
       assertEquals(SubscriptionBillingType.COMMITMENT, saved.getBillingType());
       assertEquals(Long.valueOf(20L), saved.getFreeUsageThreshold());
       assertEquals(Long.valueOf(200L), saved.getOverageUnitPriceInCents());
       assertEquals(Integer.valueOf(7), saved.getTrialPeriodDays());
-      // Stripe-mirrored price still applied.
-      assertEquals(Long.valueOf(5880L), saved.getPriceInCents());
+      assertEquals(Long.valueOf(5880L), saved.getPriceInCentsWithVat());
+    }
+  }
+
+  @Test
+  void get_subscription_product_by_e2id_reads_vat_from_stripe_metadata() {
+    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
+        MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {
+      var domainProductId = "planId";
+      when(subscriptionProductRepositoryMock.findById(domainProductId))
+          .thenReturn(Optional.empty());
+      var product = new Product();
+      product.setDefaultPrice("priceId");
+      product.setMarketingFeatures(List.of());
+      product.setImages(List.of());
+      product.setCreated(1L);
+      // VAT mirrored in the Stripe product metadata (5.5% here, not the default 20%).
+      product.setMetadata(Map.of("vat_percent", "550"));
+      var price = new Price();
+      var recurring = new Price.Recurring();
+      recurring.setInterval("month");
+      price.setRecurring(recurring);
+      price.setUnitAmount(1055L); // TTC
+      productMockedStatic.when(() -> Product.retrieve(any())).thenReturn(product);
+      priceMockedStatic.when(() -> Price.retrieve(any())).thenReturn(price);
+      when(subscriptionProductRepositoryMock.save(any()))
+          .thenAnswer(invocation -> invocation.getArgument(0));
+
+      subject.getSubscriptionProductByE2Id(domainProductId, "stripeProductId");
+
+      var captor = ArgumentCaptor.forClass(SubscriptionProduct.class);
+      verify(subscriptionProductRepositoryMock).save(captor.capture());
+      var saved = captor.getValue();
+      // VAT rate and HT price come from the metadata rate, not the hard-coded default.
+      assertEquals(Long.valueOf(550L), saved.getVatPercent());
+      assertEquals(Long.valueOf(1000L), saved.getPriceInCentsWithoutVat());
+      assertEquals(Long.valueOf(1055L), saved.getPriceInCentsWithVat());
+    }
+  }
+
+  @Test
+  void backfill_stripe_vat_metadata_updates_only_products_with_e2id_and_vat() throws Exception {
+    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class)) {
+      var withVat =
+          SubscriptionProduct.builder().id("p1").e2Id("stripe1").vatPercent(2000L).build();
+      var withoutE2Id = SubscriptionProduct.builder().id("p2").vatPercent(550L).build();
+      var withoutVat = SubscriptionProduct.builder().id("p3").e2Id("stripe3").build();
+      when(subscriptionProductRepositoryMock.findAll())
+          .thenReturn(List.of(withVat, withoutE2Id, withoutVat));
+      var stripeProduct = mock(Product.class);
+      productMockedStatic.when(() -> Product.retrieve("stripe1")).thenReturn(stripeProduct);
+
+      subject.backfillStripeProductsVatMetadata();
+
+      // Only the product that has both a Stripe id and a VAT rate is pushed to Stripe.
+      productMockedStatic.verify(() -> Product.retrieve("stripe1"));
+      productMockedStatic.verify(() -> Product.retrieve("stripe3"), never());
+      var captor = ArgumentCaptor.forClass(ProductUpdateParams.class);
+      verify(stripeProduct).update(captor.capture());
+      @SuppressWarnings("unchecked")
+      var metadata = (Map<String, String>) captor.getValue().getMetadata();
+      assertEquals("2000", metadata.get("vat_percent"));
     }
   }
 

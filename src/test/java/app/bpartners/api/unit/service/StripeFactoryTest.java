@@ -66,7 +66,7 @@ public class StripeFactoryTest {
     when(price.getId()).thenReturn("price_id");
     when(subscription.getSubscriptionProduct()).thenReturn(product);
     when(product.getE2Id()).thenReturn("e2id");
-    when(product.getPriceInCents()).thenReturn(5880L);
+    when(product.getPriceInCentsWithVat()).thenReturn(5880L);
     when(product.getType()).thenReturn(MONTHLY);
     com.stripe.model.SubscriptionSchedule fakeSchedule =
         new com.stripe.model.SubscriptionSchedule();
@@ -88,7 +88,7 @@ public class StripeFactoryTest {
     var billingCycleAnchor = 123456L;
     var subscriptionProduct = mock(SubscriptionProduct.class);
     when(subscriptionProduct.getE2Id()).thenReturn("e2id");
-    when(subscriptionProduct.getPriceInCents()).thenReturn(5880L);
+    when(subscriptionProduct.getPriceInCentsWithVat()).thenReturn(5880L);
     when(subscriptionProduct.getType()).thenReturn(MONTHLY);
     var subscription = mock(Subscription.class);
     when(subscription.getSubscriptionProduct()).thenReturn(subscriptionProduct);

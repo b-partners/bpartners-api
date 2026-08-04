@@ -8,6 +8,8 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,5 +55,30 @@ public class UserSubscriptionProductService {
         created.getId(),
         userId);
     return Optional.of(created);
+  }
+
+  @Transactional
+  public List<UserSubscriptionProduct> endActiveSubscriptionProducts(
+      String userId, Instant subscriptionEndDatetime) {
+    var activeProducts =
+        userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
+            userId);
+    if (activeProducts.isEmpty()) {
+      log.info("User(id={}) has no active UserSubscriptionProduct to end, skipping", userId);
+      return List.of();
+    }
+    var ended =
+        activeProducts.stream()
+            .map(
+                product ->
+                    product.toBuilder().subscriptionEndDatetime(subscriptionEndDatetime).build())
+            .toList();
+    var saved = userSubscriptionProductJpaRepository.saveAll(ended);
+    log.info(
+        "Ended {} UserSubscriptionProduct(s) for User(id={}) with subscriptionEndDatetime={}",
+        saved.size(),
+        userId,
+        subscriptionEndDatetime);
+    return saved;
   }
 }

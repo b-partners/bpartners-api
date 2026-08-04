@@ -12,6 +12,8 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,5 +81,47 @@ class UserSubscriptionProductServiceTest {
     assertThrows(
         NotFoundException.class, () -> subject.ensureActiveEssentialSubscriptionProduct(userId));
     verify(userSubscriptionProductJpaRepository, never()).save(any());
+  }
+
+  @Test
+  void ends_active_products_with_given_end_datetime() {
+    var userId = randomUUID().toString();
+    var endDatetime = Instant.parse("2026-09-05T00:00:00Z");
+    var activeProduct =
+        UserSubscriptionProduct.builder()
+            .id("product_id")
+            .userId(userId)
+            .subscriptionStartDatetime(Instant.parse("2026-08-05T00:00:00Z"))
+            .subscriptionEndDatetime(null)
+            .build();
+    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
+            userId))
+        .thenReturn(List.of(activeProduct));
+    when(userSubscriptionProductJpaRepository.saveAll(any()))
+        .thenAnswer(i -> i.getArgument(0, List.class));
+
+    var actual = subject.endActiveSubscriptionProducts(userId, endDatetime);
+
+    @SuppressWarnings("unchecked")
+    var captor = ArgumentCaptor.forClass(List.class);
+    verify(userSubscriptionProductJpaRepository).saveAll(captor.capture());
+    var savedProducts = (List<UserSubscriptionProduct>) captor.getValue();
+    assertEquals(1, savedProducts.size());
+    assertEquals(endDatetime, savedProducts.getFirst().getSubscriptionEndDatetime());
+    assertEquals(1, actual.size());
+    assertEquals(endDatetime, actual.getFirst().getSubscriptionEndDatetime());
+  }
+
+  @Test
+  void does_nothing_when_no_active_product_to_end() {
+    var userId = randomUUID().toString();
+    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
+            userId))
+        .thenReturn(List.of());
+
+    var actual = subject.endActiveSubscriptionProducts(userId, Instant.now());
+
+    assertTrue(actual.isEmpty());
+    verify(userSubscriptionProductJpaRepository, never()).saveAll(any());
   }
 }

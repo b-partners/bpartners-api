@@ -14,8 +14,10 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.subscription.StripeWebhookService;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
+import com.stripe.model.Invoice;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionSchedule;
 import com.stripe.net.Webhook;
@@ -34,8 +36,9 @@ class StripeWebhookServiceTest {
   StripeConf stripeConf = mock();
   UserRepository userRepository = mock();
   EventProducer eventProducer = mock();
+  SubscriptionService subscriptionService = mock();
   StripeWebhookService subject =
-      new StripeWebhookService(stripeConf, userRepository, eventProducer);
+      new StripeWebhookService(stripeConf, userRepository, eventProducer, subscriptionService);
 
   @BeforeEach
   void setUp() {
@@ -145,8 +148,7 @@ class StripeWebhookServiceTest {
 
   @Test
   void unhandled_event_type_produces_no_event() {
-    var event = givenEvent("invoice.paid", "active");
-
+    var event = givenEvent("customer.updated", "active");
     try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
       webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
 
@@ -154,6 +156,45 @@ class StripeWebhookServiceTest {
     }
 
     verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
+  void invoice_paid_delegates_cancellation_and_produces_no_backfill_event() {
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    when(deserializer.getObject()).thenReturn(Optional.of(invoice));
+    var event = mock(Event.class);
+    when(event.getType()).thenReturn("invoice.paid");
+    when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionService).cancelScheduledSubscriptionAfterInvoicePaid("sub_123");
+    verify(eventProducer, never()).accept(anyList());
+    verify(userRepository, never()).findByStripeCustomerId(any());
+  }
+
+  @Test
+  void invoice_paid_without_deserializable_object_is_noop() throws Exception {
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    when(deserializer.getObject()).thenReturn(Optional.empty());
+    when(deserializer.deserializeUnsafe()).thenReturn(mock(Subscription.class));
+    var event = mock(Event.class);
+    when(event.getType()).thenReturn("invoice.paid");
+    when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionService, never()).cancelScheduledSubscriptionAfterInvoicePaid(any());
   }
 
   @Test

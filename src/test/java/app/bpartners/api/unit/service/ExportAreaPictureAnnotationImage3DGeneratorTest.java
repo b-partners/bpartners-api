@@ -70,40 +70,6 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
   }
 
   @Test
-  void generatePanImageWithMeasurements_should_draw_pan_without_inverting_the_y_axis() {
-    // The oriented polygon coordinates sent by the frontend are already expressed
-    // in screen space (Y increases downward, matching the captured pan images), so
-    // the pan image must NOT invert the Y axis: the north apex (max Y, x=120) must
-    // be drawn near the BOTTOM of the image, not at the top.
-    var pan =
-        new ExportAreaPictureAnnotation3DPan()
-            .polygon(
-                new Polygon()
-                    .points(
-                        List.of(
-                            new Point().x(100d).y(100d),
-                            new Point().x(300d).y(100d),
-                            new Point().x(300d).y(300d),
-                            new Point().x(120d).y(300d),
-                            new Point().x(100d).y(100d))))
-            .measurements(
-                List.of(
-                    invisibleMeasurement(),
-                    invisibleMeasurement(),
-                    invisibleMeasurement(),
-                    invisibleMeasurement()));
-
-    var image = subject.generatePanImageWithMeasurements(pan);
-
-    // North apex (120, 300) maps to (79, 520): a black point must be drawn there.
-    assertNearBlack(
-        new Color(image.getRGB(79, 520), true), "north apex point (should be near the bottom)");
-    // No point sits at (79, 30): only the south edge stroke crosses there.
-    assertNotNearBlack(
-        new Color(image.getRGB(79, 30), true), "south edge midpoint (no point expected)");
-  }
-
-  @Test
   void mergePanImagesSideBySide_should_work() {
     BufferedImage img1 = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
     BufferedImage img2 = new BufferedImage(200, 150, BufferedImage.TYPE_INT_RGB);

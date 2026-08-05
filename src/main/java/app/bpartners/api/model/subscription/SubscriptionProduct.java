@@ -52,6 +52,8 @@ public class SubscriptionProduct {
 
   private boolean deprecated;
 
+  private Integer displayPosition;
+
   private Instant creationDatetime;
 
   @Column(name = "plan_code")

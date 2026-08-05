@@ -904,4 +904,61 @@ public class SubscriptionService {
   public SubscriptionProduct getSubscriptionProductByE2Id(String domainProductId, String e2Id) {
     return fromStripeProduct(domainProductId, Product.retrieve(e2Id));
   }
+
+  /**
+   * Resolves the domain id of the actually-subscribed plan from a Stripe subscription. A
+   * subscription carries several items (the base plan plus the metered/usage product); only the
+   * subscribable plan (billingType != null) is returned so the metered product is never mistaken
+   * for the plan.
+   */
+  public Optional<String> resolveSubscribedPlanId(
+      com.stripe.model.Subscription stripeSubscription) {
+    if (stripeSubscription.getItems() == null) {
+      return Optional.empty();
+    }
+    var productE2Ids =
+        stripeSubscription.getItems().getData().stream()
+            .map(SubscriptionItem::getPrice)
+            .filter(Objects::nonNull)
+            .map(Price::getProduct)
+            .filter(Objects::nonNull)
+            .toList();
+    return firstSubscribablePlanId(productE2Ids);
+  }
+
+  /**
+   * Same as {@link #resolveSubscribedPlanId(com.stripe.model.Subscription)} but for a scheduled
+   * subscription, whose phase items only reference price ids and therefore require the prices to be
+   * retrieved to reach their products.
+   */
+  @SneakyThrows
+  public Optional<String> resolveSubscribedPlanId(SubscriptionSchedule schedule) {
+    if (schedule.getPhases() == null || schedule.getPhases().isEmpty()) {
+      return Optional.empty();
+    }
+    var priceIds =
+        schedule.getPhases().stream()
+            .flatMap(phase -> phase.getItems().stream())
+            .map(SubscriptionSchedule.Phase.Item::getPrice)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+    var productE2Ids = new ArrayList<String>();
+    for (var priceId : priceIds) {
+      var product = stripeClient.prices().retrieve(priceId).getProduct();
+      if (product != null) {
+        productE2Ids.add(product);
+      }
+    }
+    return firstSubscribablePlanId(productE2Ids);
+  }
+
+  private Optional<String> firstSubscribablePlanId(List<String> productE2Ids) {
+    return productE2Ids.stream()
+        .map(subscriptionProductRepository::findByE2Id)
+        .flatMap(Optional::stream)
+        .filter(product -> product.getBillingType() != null)
+        .map(SubscriptionProduct::getId)
+        .findFirst();
+  }
 }

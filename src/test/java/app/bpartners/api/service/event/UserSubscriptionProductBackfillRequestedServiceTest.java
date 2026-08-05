@@ -40,12 +40,18 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
   }
 
   @Test
-  void creates_subscription_product_when_status_active() {
+  void creates_subscription_product_with_resolved_plan_when_status_active() {
     var user = givenUserWithSubscriptionStatus(ACTIVE);
+    var planId = "usage_based_plan_id";
 
-    subject.accept(UserSubscriptionProductBackfillRequested.builder().userId(user.getId()).build());
+    subject.accept(
+        UserSubscriptionProductBackfillRequested.builder()
+            .userId(user.getId())
+            .subscriptionProductId(planId)
+            .build());
 
-    verify(userSubscriptionProductService).ensureActiveEssentialSubscriptionProduct(user.getId());
+    verify(userSubscriptionProductService)
+        .ensureActiveSubscriptionProduct(user.getId(), planId);
   }
 
   @Test
@@ -54,7 +60,7 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
 
     subject.accept(UserSubscriptionProductBackfillRequested.builder().userId(user.getId()).build());
 
-    verify(userSubscriptionProductService, never()).ensureActiveEssentialSubscriptionProduct(any());
+    verify(userSubscriptionProductService, never()).ensureActiveSubscriptionProduct(any(), any());
   }
 
   @Test
@@ -63,6 +69,6 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
 
     subject.accept(UserSubscriptionProductBackfillRequested.builder().userId(user.getId()).build());
 
-    verify(userSubscriptionProductService, never()).ensureActiveEssentialSubscriptionProduct(any());
+    verify(userSubscriptionProductService, never()).ensureActiveSubscriptionProduct(any(), any());
   }
 }

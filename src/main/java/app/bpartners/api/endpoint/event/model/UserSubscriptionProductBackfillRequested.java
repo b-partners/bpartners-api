@@ -14,6 +14,9 @@ public class UserSubscriptionProductBackfillRequested extends PojaEvent {
   @JsonProperty("userId")
   private String userId;
 
+  @JsonProperty("subscriptionProductId")
+  private String subscriptionProductId;
+
   @Override
   public Duration maxConsumerDuration() {
     return Duration.ofMinutes(2);

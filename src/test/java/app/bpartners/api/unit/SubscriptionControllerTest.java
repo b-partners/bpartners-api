@@ -57,6 +57,7 @@ class SubscriptionControllerTest {
                     .overageUnitPriceInCents(200L)
                     .trialPeriodDays(7)
                     .mostChosen(true)
+                    .deprecated(true)
                     .build()));
 
     var actual = subject.getSubscriptionPlans(page, pageSize);
@@ -75,7 +76,8 @@ class SubscriptionControllerTest {
                 .freeUsageThreshold(20L)
                 .overageUnitPriceInCents(200L)
                 .trialPeriodDays(7)
-                .isMostChosen(true)),
+                .isMostChosen(true)
+                .isDeprecated(true)),
         actual);
   }
 

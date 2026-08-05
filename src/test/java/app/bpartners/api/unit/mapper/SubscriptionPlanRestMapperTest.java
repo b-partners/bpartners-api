@@ -121,4 +121,30 @@ class SubscriptionPlanRestMapperTest {
     assertFalse(subject.toRest(domain).getIsDeprecated());
     assertFalse(subject.toRestDescription(domain).getIsDeprecated());
   }
+
+  @Test
+  void to_rest_maps_display_position() {
+    var domain = subscriptionProduct(COMMITMENT).toBuilder().displayPosition(3).build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(3, actual.getDisplayPosition());
+  }
+
+  @Test
+  void to_rest_description_maps_display_position() {
+    var domain = subscriptionProduct(COMMITMENT).toBuilder().displayPosition(3).build();
+
+    var actual = subject.toRestDescription(domain);
+
+    assertEquals(3, actual.getDisplayPosition());
+  }
+
+  @Test
+  void to_rest_maps_null_display_position_by_default() {
+    var domain = subscriptionProduct(COMMITMENT);
+
+    assertNull(subject.toRest(domain).getDisplayPosition());
+    assertNull(subject.toRestDescription(domain).getDisplayPosition());
+  }
 }

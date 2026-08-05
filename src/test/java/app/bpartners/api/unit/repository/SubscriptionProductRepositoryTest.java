@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.repository;
 
 import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -58,5 +59,23 @@ class SubscriptionProductRepositoryTest extends MockedThirdParties {
     var reloaded = subject.findById(id).orElseThrow();
 
     assertTrue(reloaded.isDeprecated());
+  }
+
+  @Test
+  void reads_display_position_set_by_migration() {
+    var plan = subject.findById(MOST_CHOSEN_PLAN_ID).orElseThrow();
+
+    assertEquals(3, plan.getDisplayPosition());
+  }
+
+  @Test
+  void persists_and_reads_back_display_position() {
+    var id = randomUUID().toString();
+    subject.save(
+        SubscriptionProduct.builder().id(id).name("Positioned plan").displayPosition(7).build());
+
+    var reloaded = subject.findById(id).orElseThrow();
+
+    assertEquals(7, reloaded.getDisplayPosition());
   }
 }

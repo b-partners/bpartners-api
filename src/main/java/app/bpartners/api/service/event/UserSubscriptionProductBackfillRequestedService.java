@@ -28,7 +28,8 @@ public class UserSubscriptionProductBackfillRequestedService
           user.getId());
       return;
     }
-    userSubscriptionProductService.ensureActiveEssentialSubscriptionProduct(user.getId());
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        user.getId(), event.getSubscriptionProductId());
   }
 
   private boolean hasActiveSubscription(User user) {

@@ -39,18 +39,22 @@ public class StripeWebhookService {
       handleInvoicePaid(event);
       return;
     }
-    var stripeCustomerId = extractEligibleCustomerId(event);
-    if (stripeCustomerId == null) {
+    var eligible = extractEligibleSubscription(event);
+    if (eligible == null || eligible.customerId() == null) {
       return;
     }
-    var optionalUser = userRepository.findByStripeCustomerId(stripeCustomerId);
+    var optionalUser = userRepository.findByStripeCustomerId(eligible.customerId());
     if (optionalUser.isEmpty()) {
-      log.warn("No user found for Stripe customer id={}, skipping", stripeCustomerId);
+      log.warn("No user found for Stripe customer id={}, skipping", eligible.customerId());
       return;
     }
     var userId = optionalUser.get().getId();
     eventProducer.accept(
-        List.of(UserSubscriptionProductBackfillRequested.builder().userId(userId).build()));
+        List.of(
+            UserSubscriptionProductBackfillRequested.builder()
+                .userId(userId)
+                .subscriptionProductId(eligible.subscriptionPlanIdentifier())
+                .build()));
     log.info(
         "Requested UserSubscriptionProduct creation for User(id={}) from Stripe event={}",
         userId,
@@ -65,8 +69,9 @@ public class StripeWebhookService {
     subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoice.getSubscription());
   }
 
-  private String extractEligibleCustomerId(Event event) {
+  private EligibleSubscription extractEligibleSubscription(Event event) {
     var type = event.getType();
+
     if (SUBSCRIPTION_CREATED.equals(type) || SUBSCRIPTION_UPDATED.equals(type)) {
       var subscription = extractStripeObject(event, Subscription.class);
       if (subscription == null || !STRIPE_ACTIVE_STATUS.equals(subscription.getStatus())) {
@@ -76,8 +81,10 @@ public class StripeWebhookService {
             subscription == null ? null : subscription.getStatus());
         return null;
       }
-      return subscription.getCustomer();
+      var subscriptionPlanIdentifier = subscriptionService.resolveSubscribedPlanId(subscription).orElse(null);
+      return new EligibleSubscription(subscription.getCustomer(), subscriptionPlanIdentifier);
     }
+
     if (SUBSCRIPTION_SCHEDULE_CREATED.equals(type)) {
       var schedule = extractStripeObject(event, SubscriptionSchedule.class);
       if (schedule == null || !isEligibleSchedule(schedule)) {
@@ -87,7 +94,8 @@ public class StripeWebhookService {
             schedule == null ? null : schedule.getStatus());
         return null;
       }
-      return schedule.getCustomer();
+      var planId = subscriptionService.resolveSubscribedPlanId(schedule).orElse(null);
+      return new EligibleSubscription(schedule.getCustomer(), planId);
     }
     log.info("Ignoring unhandled Stripe event type={}", type);
     return null;
@@ -128,4 +136,7 @@ public class StripeWebhookService {
     log.error("Stripe event={} data object is not a {}", event.getType(), type.getSimpleName());
     return null;
   }
+
+  private record EligibleSubscription(String customerId, String subscriptionPlanIdentifier) {}
+
 }

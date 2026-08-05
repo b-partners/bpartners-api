@@ -5,7 +5,7 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.payment.StripeConf;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import java.time.Instant;
@@ -22,39 +22,46 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserSubscriptionProductService {
   private final UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
-  private final StripeConf stripeConf;
 
   @Transactional
-  public Optional<UserSubscriptionProduct> ensureActiveEssentialSubscriptionProduct(String userId) {
+  public Optional<UserSubscriptionProduct> ensureActiveSubscriptionProduct(
+      String userId, String subscriptionProductId) {
     if (userSubscriptionProductJpaRepository.existsByUserIdAndSubscriptionEndDatetimeIsNull(
         userId)) {
       log.info("User(id={}) already has an active UserSubscriptionProduct, skipping", userId);
       return Optional.empty();
     }
-    var essentialProductId = stripeConf.getEssentialSubscriptionProductId();
-    var essentialProduct =
-        subscriptionProductRepository
-            .findById(essentialProductId)
-            .orElseThrow(
-                () ->
-                    new NotFoundException(
-                        "Essential SubscriptionProduct(id=" + essentialProductId + ") not found"));
+    var subscriptionProduct = getSubscribedProduct(subscriptionProductId);
     var now = now();
     var created =
         userSubscriptionProductJpaRepository.save(
             UserSubscriptionProduct.builder()
                 .id(randomUUID().toString())
                 .userId(userId)
-                .subscriptionProduct(essentialProduct)
+                .subscriptionProduct(subscriptionProduct)
                 .subscriptionStartDatetime(now)
                 .subscriptionEndDatetime(null)
                 .creationDatetime(now)
                 .build());
     log.info(
-        "Created UserSubscriptionProduct(id={}) for User(id={}) with Essential plan",
+        "Created UserSubscriptionProduct(id={}) for User(id={}) with SubscriptionProduct(id={})",
         created.getId(),
-        userId);
+        userId,
+        subscriptionProduct.getId());
     return Optional.of(created);
+  }
+
+  private SubscriptionProduct getSubscribedProduct(String subscriptionProductId) {
+    if (subscriptionProductId == null) {
+      throw new NotFoundException(
+          "No subscribed SubscriptionProduct could be resolved from the Stripe subscription");
+    }
+    return subscriptionProductRepository
+        .findById(subscriptionProductId)
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "SubscriptionProduct(id=" + subscriptionProductId + ") not found"));
   }
 
   @Transactional

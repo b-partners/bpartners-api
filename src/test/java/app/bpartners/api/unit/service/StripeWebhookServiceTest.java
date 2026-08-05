@@ -43,6 +43,12 @@ class StripeWebhookServiceTest {
   @BeforeEach
   void setUp() {
     when(stripeConf.getWebhookSecret()).thenReturn(SECRET);
+    lenient()
+        .when(subscriptionService.resolveSubscribedPlanId(any(Subscription.class)))
+        .thenReturn(Optional.empty());
+    lenient()
+        .when(subscriptionService.resolveSubscribedPlanId(any(SubscriptionSchedule.class)))
+        .thenReturn(Optional.empty());
   }
 
   private Event givenEvent(String type, String subscriptionStatus) {
@@ -73,8 +79,11 @@ class StripeWebhookServiceTest {
   @Test
   void not_started_schedule_requests_creation_for_matched_user() {
     var userId = randomUUID().toString();
+    var planId = "usage_based_plan_id";
     when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
         .thenReturn(Optional.of(User.builder().id(userId).build()));
+    when(subscriptionService.resolveSubscribedPlanId(any(SubscriptionSchedule.class)))
+        .thenReturn(Optional.of(planId));
     var event = givenScheduleEvent("not_started", null);
 
     try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
@@ -84,7 +93,12 @@ class StripeWebhookServiceTest {
     }
 
     verify(eventProducer)
-        .accept(List.of(UserSubscriptionProductBackfillRequested.builder().userId(userId).build()));
+        .accept(
+            List.of(
+                UserSubscriptionProductBackfillRequested.builder()
+                    .userId(userId)
+                    .subscriptionProductId(planId)
+                    .build()));
   }
 
   @Test
@@ -118,8 +132,11 @@ class StripeWebhookServiceTest {
   @Test
   void active_subscription_requests_creation_for_matched_user() {
     var userId = randomUUID().toString();
+    var planId = "usage_based_plan_id";
     when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
         .thenReturn(Optional.of(User.builder().id(userId).build()));
+    when(subscriptionService.resolveSubscribedPlanId(any(Subscription.class)))
+        .thenReturn(Optional.of(planId));
     var event = givenEvent("customer.subscription.updated", "active");
 
     try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
@@ -129,7 +146,12 @@ class StripeWebhookServiceTest {
     }
 
     verify(eventProducer)
-        .accept(List.of(UserSubscriptionProductBackfillRequested.builder().userId(userId).build()));
+        .accept(
+            List.of(
+                UserSubscriptionProductBackfillRequested.builder()
+                    .userId(userId)
+                    .subscriptionProductId(planId)
+                    .build()));
   }
 
   @Test

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
-import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
@@ -20,38 +19,35 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class UserSubscriptionProductServiceTest {
-  static final String ESSENTIAL_PRODUCT_ID = "essential_id";
-
   UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository = mock();
   SubscriptionProductRepository subscriptionProductRepository = mock();
-  StripeConf stripeConf = mock();
   UserSubscriptionProductService subject =
       new UserSubscriptionProductService(
-          userSubscriptionProductJpaRepository, subscriptionProductRepository, stripeConf);
+          userSubscriptionProductJpaRepository, subscriptionProductRepository);
 
   @BeforeEach
   void setUp() {
-    when(stripeConf.getEssentialSubscriptionProductId()).thenReturn(ESSENTIAL_PRODUCT_ID);
-    when(subscriptionProductRepository.findById(ESSENTIAL_PRODUCT_ID))
-        .thenReturn(Optional.of(SubscriptionProduct.builder().id(ESSENTIAL_PRODUCT_ID).build()));
     when(userSubscriptionProductJpaRepository.save(any())).thenAnswer(i -> i.getArgument(0));
   }
 
   @Test
-  void creates_essential_product_with_null_end_datetime_when_no_active_one() {
+  void creates_subscribed_product_with_null_end_datetime_when_no_active_one() {
     var userId = randomUUID().toString();
+    var subscribedPlanId = "usage_based_plan_id";
+    when(subscriptionProductRepository.findById(subscribedPlanId))
+        .thenReturn(Optional.of(SubscriptionProduct.builder().id(subscribedPlanId).build()));
     when(userSubscriptionProductJpaRepository.existsByUserIdAndSubscriptionEndDatetimeIsNull(
             userId))
         .thenReturn(false);
 
-    var actual = subject.ensureActiveEssentialSubscriptionProduct(userId);
+    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId);
 
     var captor = ArgumentCaptor.forClass(UserSubscriptionProduct.class);
     verify(userSubscriptionProductJpaRepository).save(captor.capture());
     var saved = captor.getValue();
     assertTrue(actual.isPresent());
     assertEquals(userId, saved.getUserId());
-    assertEquals(ESSENTIAL_PRODUCT_ID, saved.getSubscriptionProduct().getId());
+    assertEquals(subscribedPlanId, saved.getSubscriptionProduct().getId());
     assertNull(saved.getSubscriptionEndDatetime());
     assertNotNull(saved.getSubscriptionStartDatetime());
     assertNotNull(saved.getCreationDatetime());
@@ -64,22 +60,36 @@ class UserSubscriptionProductServiceTest {
             userId))
         .thenReturn(true);
 
-    var actual = subject.ensureActiveEssentialSubscriptionProduct(userId);
+    var actual = subject.ensureActiveSubscriptionProduct(userId, "any_plan_id");
 
     assertTrue(actual.isEmpty());
     verify(userSubscriptionProductJpaRepository, never()).save(any());
   }
 
   @Test
-  void throws_when_essential_product_not_found() {
+  void throws_when_plan_id_null() {
     var userId = randomUUID().toString();
     when(userSubscriptionProductJpaRepository.existsByUserIdAndSubscriptionEndDatetimeIsNull(
             userId))
         .thenReturn(false);
-    when(subscriptionProductRepository.findById(ESSENTIAL_PRODUCT_ID)).thenReturn(Optional.empty());
 
     assertThrows(
-        NotFoundException.class, () -> subject.ensureActiveEssentialSubscriptionProduct(userId));
+        NotFoundException.class, () -> subject.ensureActiveSubscriptionProduct(userId, null));
+    verify(userSubscriptionProductJpaRepository, never()).save(any());
+  }
+
+  @Test
+  void throws_when_plan_id_unknown() {
+    var userId = randomUUID().toString();
+    var unknownPlanId = "unknown_plan_id";
+    when(subscriptionProductRepository.findById(unknownPlanId)).thenReturn(Optional.empty());
+    when(userSubscriptionProductJpaRepository.existsByUserIdAndSubscriptionEndDatetimeIsNull(
+            userId))
+        .thenReturn(false);
+
+    assertThrows(
+        NotFoundException.class,
+        () -> subject.ensureActiveSubscriptionProduct(userId, unknownPlanId));
     verify(userSubscriptionProductJpaRepository, never()).save(any());
   }
 

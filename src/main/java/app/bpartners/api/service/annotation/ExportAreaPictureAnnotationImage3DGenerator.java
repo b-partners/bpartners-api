@@ -99,7 +99,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   private static @NotNull ImageContext getImageContext(ExportAreaPictureAnnotation3DPan pan) {
     var coordinates = Coordinates.from(selectPolygon(pan, true));
-    var transform = Transform.from(coordinates, PAN_CONTENT_SIZE, TARGET_SIZE);
+    var transform = Transform.from(coordinates, PAN_CONTENT_SIZE, TARGET_SIZE, true);
 
     var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);

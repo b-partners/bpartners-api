@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.endpoint.rest.model.Point;
@@ -37,6 +38,34 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     var center = transform.apply(new Coordinates(new int[] {150}, new int[] {125}));
 
     assertColorEquals(Color.RED, image.getRGB(center.allX()[0], center.allY()[0]));
+  }
+
+  @Test
+  void generateBaseImage_should_not_invert_the_y_axis() {
+    // The input coordinates are world coordinates where Y increases upward
+    // (e.g. northing for pans), while the image Y axis increases downward.
+    // A source point at the top of the polygon (min Y) must be drawn at the
+    // bottom of the image, and a source point at the bottom (max Y) at the top.
+    var pan =
+        new ExportAreaPictureAnnotation3DPan()
+            .polygon(
+                new Polygon()
+                    .points(
+                        List.of(
+                            new Point().x(100d).y(100d),
+                            new Point().x(200d).y(100d),
+                            new Point().x(200d).y(200d),
+                            new Point().x(100d).y(100d))));
+
+    var result = subject.generateBaseImage(List.of(pan));
+    var transform = result.first();
+
+    var sourceTop = transform.apply(new Coordinates(new int[] {150}, new int[] {100}));
+    var sourceBottom = transform.apply(new Coordinates(new int[] {150}, new int[] {200}));
+
+    assertTrue(
+        sourceTop.allY()[0] > sourceBottom.allY()[0],
+        "Y axis should be flipped: source top (min Y) must be drawn below source bottom (max Y)");
   }
 
   @Test

@@ -64,6 +64,9 @@ jobs:
       - name: Publish Typescript client
         run: |
           cd build/gen-ts/
+          # fix TS2527: axios >=1.9 fuit un `unique symbol` (AxiosResponseResult)
+          sed -i 's#basePath: string = BASE_PATH) => {#basePath: string = BASE_PATH): import("axios").AxiosPromise<T> => {#' common.ts
+          sed -i 's#return axios.request<T, R>(axiosRequestArgs);#return axios.request<T, R>(axiosRequestArgs) as import("axios").AxiosPromise<T>;#' common.ts
           sed -i "s/\"https:\/\/api.prod.bpartners.app\"/\(process.env.REACT_APP_BPARTNERS_API_URL || \"\"\)/g" base.ts
           sed -i "s/\"dependencies\"/\"peerDependencies\"/g" package.json
           sed -i '11d' tsconfig.json && sed -i "s/\"es6\",/\"es6\",\"DOM\"/g" tsconfig.json

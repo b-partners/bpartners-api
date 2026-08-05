@@ -48,6 +48,8 @@ public class SubscriptionProduct {
 
   private Long priceInCentsWithoutVat;
 
+  private boolean mostChosen;
+
   private Instant creationDatetime;
 
   @Column(name = "plan_code")

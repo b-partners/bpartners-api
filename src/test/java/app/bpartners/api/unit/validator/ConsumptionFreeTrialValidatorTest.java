@@ -100,8 +100,7 @@ class ConsumptionFreeTrialValidatorTest {
 
     verify(userWhiteListedJpaRepositoryMock, never()).findByUserId(any());
     verify(consumptionLogJpaRepositoryMock, never())
-        .findAllByUserIdAndConsumptionTypeAndCreationDatetimeBetween(
-            any(), any(), any(), any());
+        .findAllByUserIdAndConsumptionTypeAndCreationDatetimeBetween(any(), any(), any(), any());
   }
 
   @Test

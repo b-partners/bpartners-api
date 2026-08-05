@@ -34,7 +34,12 @@ class RoofSlopeBoundaryFactoryTest {
                         .label("edgeTypes")
                         .value("[\"faitage\", \"egout\", \"rive\", \"noue\"]")));
     var transform =
-        Transform.builder().min(new IntXY(0, 0)).offset(new IntXY(0, 0)).scale(1.0).build();
+        Transform.builder()
+            .min(new IntXY(0, 0))
+            .max(new IntXY(10, 10))
+            .offset(new IntXY(0, 0))
+            .scale(1.0)
+            .build();
 
     var boundaries = RoofSlopeBoundaryFactory.create(transform, pan, false);
 
@@ -58,7 +63,12 @@ class RoofSlopeBoundaryFactoryTest {
                             new Point().x(0d).y(0d))))
             .infos(List.of());
     var transform =
-        Transform.builder().min(new IntXY(0, 0)).offset(new IntXY(0, 0)).scale(1.0).build();
+        Transform.builder()
+            .min(new IntXY(0, 0))
+            .max(new IntXY(10, 0))
+            .offset(new IntXY(0, 0))
+            .scale(1.0)
+            .build();
 
     var boundaries = RoofSlopeBoundaryFactory.create(transform, pan, false);
 

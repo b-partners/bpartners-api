@@ -324,9 +324,44 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
+  void generate_from_mysterious_payload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation =
+        objectMapper.readValue(
+            new ClassPathResource("payload/export/payload.json").getInputStream(),
+            ExportAreaPictureAnnotation.class);
+    mockImage = ImageIO.read(new ClassPathResource("files/rue_de_la_vau.png").getInputStream());
+    mockImageBytes = toByteStream(mockImage);
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "mysterious-payload");
+  }
+
+  @Test
   void generate_from_heavy_payload() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
     mockImage = ImageIO.read(new ClassPathResource("files/rue_de_la_vau.png").getInputStream());
+    mockImageBytes = toByteStream(mockImage);
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "heavy-payload");
+  }
+
+  @Test
+  void generate_from_heavy_payload_toulouse() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromToulousePayload();
+    mockImage =
+        ImageIO.read(
+            new ClassPathResource("files/17 Rue Pierre Bénech, 31100 Toulouse.png")
+                .getInputStream());
     mockImageBytes = toByteStream(mockImage);
 
     byte[] pdfBytes =
@@ -371,6 +406,14 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     return objectMapper.readValue(
         new ClassPathResource("payload/export-pdf-payload.json").getInputStream(),
+        ExportAreaPictureAnnotation.class);
+  }
+
+  private ExportAreaPictureAnnotation annotationFromToulousePayload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return objectMapper.readValue(
+        new ClassPathResource("payload/export/17 Rue Pierre Bénech, 31100 Toulouse.json")
+            .getInputStream(),
         ExportAreaPictureAnnotation.class);
   }
 

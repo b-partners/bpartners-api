@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Transform {
   private final IntXY min;
+  private final IntXY max;
   private final IntXY offset;
   private final double scale;
 
@@ -26,7 +27,11 @@ public class Transform {
       var y = allY[i];
 
       int nx = (int) Math.round((x - min.x()) * scale + offset.x());
-      int ny = (int) Math.round((y - min.y()) * scale + offset.y());
+      // The input coordinates are world coordinates where Y increases upward
+      // (e.g. northing for pans, height for facades), while the drawing surface
+      // uses pixel coordinates where Y increases downward. Flip the Y axis so
+      // the generated image is not vertically inverted.
+      int ny = (int) Math.round((max.y() - y) * scale + offset.y());
 
       resultAllX[i] = nx;
       resultAllY[i] = ny;
@@ -58,6 +63,7 @@ public class Transform {
     return Transform.builder()
         .scale(scale)
         .min(new IntXY(minX, minY))
+        .max(new IntXY(maxX, maxY))
         .offset(new IntXY(paddingX, paddingY))
         .build();
   }

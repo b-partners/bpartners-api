@@ -23,6 +23,7 @@ public class SubscriptionPlanRestMapper {
         .overageUnitPriceInCents(domain.getOverageUnitPriceInCents())
         .trialPeriodDays(domain.getTrialPeriodDays())
         .isMostChosen(domain.isMostChosen())
+        .isDeprecated(domain.isDeprecated())
         .annualDiscountPercent(domain.getAnnualDiscountPercent());
   }
 
@@ -36,6 +37,7 @@ public class SubscriptionPlanRestMapper {
         .priceInCentsWithVat(domain.getPriceInCentsWithVat())
         .priceInCentsWithoutVat(domain.getPriceInCentsWithoutVat())
         .isMostChosen(domain.isMostChosen())
+        .isDeprecated(domain.isDeprecated())
         .vatPercent(domain.getVatPercent());
   }
 

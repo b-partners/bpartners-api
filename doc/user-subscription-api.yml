@@ -317,6 +317,9 @@ components:
           description: VAT rate in basis points of 10_000 (2000 = 20%), values between 0 and 10_000.
         isMostChosen:
           type: boolean
+        isDeprecated:
+          type: boolean
+          description: For deprecated plans to not be shown in consumer usage.
     SubscriptionPlan:
       allOf:
         - $ref: '#/components/schemas/SubscriptionPlanDescription'

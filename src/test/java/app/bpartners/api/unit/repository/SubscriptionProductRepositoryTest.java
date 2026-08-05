@@ -41,4 +41,22 @@ class SubscriptionProductRepositoryTest extends MockedThirdParties {
 
     assertTrue(reloaded.isMostChosen());
   }
+
+  @Test
+  void reads_deprecated_flag_defaulting_to_false() {
+    var plan = subject.findById(MOST_CHOSEN_PLAN_ID).orElseThrow();
+
+    assertFalse(plan.isDeprecated());
+  }
+
+  @Test
+  void persists_and_reads_back_deprecated_flag() {
+    var id = randomUUID().toString();
+    subject.save(
+        SubscriptionProduct.builder().id(id).name("Deprecated plan").deprecated(true).build());
+
+    var reloaded = subject.findById(id).orElseThrow();
+
+    assertTrue(reloaded.isDeprecated());
+  }
 }

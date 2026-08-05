@@ -50,6 +50,8 @@ public class SubscriptionProduct {
 
   private boolean mostChosen;
 
+  private boolean deprecated;
+
   private Instant creationDatetime;
 
   @Column(name = "plan_code")

@@ -12,6 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.rest.model.Redirection;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
@@ -27,6 +29,7 @@ import app.bpartners.api.repository.jpa.model.detection.HDetectionTracking;
 import app.bpartners.api.service.subscription.*;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
+import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.param.*;
 import com.stripe.service.CustomerService;
@@ -34,6 +37,7 @@ import com.stripe.service.ProductService;
 import com.stripe.service.SubscriptionItemService;
 import com.stripe.service.SubscriptionScheduleService;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -741,6 +745,114 @@ class SubscriptionServiceTest {
     assertEquals(
         "Only active subscription can be cancelled but actual status is UNKNOWN",
         actualInactiveSubscriptionException.getMessage());
+  }
+
+  @SneakyThrows
+  @Test
+  void initiate_subscription_allowed_when_current_schedule_is_pending_cancellation() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    // The user still has an active (not-yet-started) schedule, but it has already been flagged for
+    // cancellation after its first invoice, so it must not block a new subscription initiation.
+    var scheduledStartEpoch = now().plus(1L, DAYS).getEpochSecond();
+    var flaggedSchedule = someNotStartedSchedule("schedule_id", scheduledStartEpoch, "price_base");
+    when(flaggedSchedule.getCreated()).thenReturn(now().getEpochSecond());
+    when(flaggedSchedule.getMetadata())
+        .thenReturn(Map.of("cancel_after_first_invoice", "true"));
+    mockActiveSchedules(flaggedSchedule);
+    // No running Stripe subscription: the only thing surfacing as active is the flagged schedule.
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of());
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .userId("user_id")
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(10L))
+                    .build()));
+
+    var expectedRedirection = mockInitiateSubscriptionDependencies(user);
+
+    var actual =
+        subject.initiateSubscription(
+            user, someSubscriptionToInitiate(), getRedirectionStatusUrls());
+
+    assertSame(expectedRedirection, actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void initiate_subscription_blocked_when_current_schedule_is_not_pending_cancellation() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    var scheduledStartEpoch = now().plus(1L, DAYS).getEpochSecond();
+    var activeSchedule = someNotStartedSchedule("schedule_id", scheduledStartEpoch, "price_base");
+    when(activeSchedule.getCreated()).thenReturn(now().getEpochSecond());
+    when(activeSchedule.getMetadata()).thenReturn(Map.of()); // not flagged for cancellation
+    mockActiveSchedules(activeSchedule);
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of());
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .userId("user_id")
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(10L))
+                    .build()));
+    when(stripeInvoiceServiceMock.getUnpaidStripeInvoices("customer_id")).thenReturn(List.of());
+    when(stripeCustomerServiceMock.getCustomer(user)).thenReturn(mock(Customer.class));
+
+    var subscriptionToInitiate = someSubscriptionToInitiate();
+    var redirectionUrls = getRedirectionStatusUrls();
+    var actual =
+        assertThrows(
+            BadRequestException.class,
+            () -> subject.initiateSubscription(user, subscriptionToInitiate, redirectionUrls));
+
+    assertTrue(actual.getMessage().startsWith("User.id=user_id has active subscription until "));
+    verify(sessionFactoryMock, never())
+        .initiateSubscriptionWorkflow(
+            any(), any(), any(), any(), any(), any(), anyLong(), any());
+  }
+
+  private void mockActiveSchedules(SubscriptionSchedule... schedules) throws StripeException {
+    var scheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleCollectionMock = mock();
+    when(scheduleCollectionMock.getData()).thenReturn(List.of(schedules));
+    when(scheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(scheduleServiceMock);
+  }
+
+  private Redirection mockInitiateSubscriptionDependencies(User user) throws StripeException {
+    when(stripeInvoiceServiceMock.getUnpaidStripeInvoices("customer_id")).thenReturn(List.of());
+    when(stripeCustomerServiceMock.getCustomer(user)).thenReturn(mock(Customer.class));
+    var priceServiceMock = mock(com.stripe.service.PriceService.class);
+    when(priceServiceMock.create(any(PriceCreateParams.class))).thenReturn(mock(Price.class));
+    when(stripeClientMock.prices()).thenReturn(priceServiceMock);
+    var expectedRedirection = new Redirection();
+    when(sessionFactoryMock.initiateSubscriptionWorkflow(
+            any(), any(), any(), any(), any(), any(), anyLong(), any()))
+        .thenReturn(expectedRedirection);
+    return expectedRedirection;
+  }
+
+  private static Subscription someSubscriptionToInitiate() {
+    return Subscription.builder()
+        .subscriptionProduct(SubscriptionProduct.builder().e2Id("plan_e2_id").build())
+        .meteredProduct(
+            SubscriptionProduct.builder()
+                .e2Id("metered_e2_id")
+                .overageUnitPriceInCents(200L)
+                .build())
+        .endDatetime(now().plus(30L, DAYS))
+        .build();
+  }
+
+  private static RedirectionStatusUrls getRedirectionStatusUrls() {
+    return new RedirectionStatusUrls()
+        .successUrl("http://localhost/success")
+        .failureUrl("http://localhost/failure");
   }
 
   @SneakyThrows

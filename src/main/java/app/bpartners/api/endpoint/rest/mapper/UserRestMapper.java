@@ -7,6 +7,7 @@ import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
 import static app.bpartners.api.model.WhiteListScope.*;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELED;
 import static java.time.LocalTime.MAX;
 
 import app.bpartners.api.endpoint.rest.model.*;
@@ -170,7 +171,9 @@ public class UserRestMapper {
     }
     if (subscription.hasValidSubscription()
         && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
-      return UserSubscriptionStatus.ACTIVE;
+      return CANCELED.equals(subscription.getLatestSubscription().getStatus())
+          ? CANCELLED
+          : UserSubscriptionStatus.ACTIVE;
     }
     if (subscription.hasValidSubscription()
         && userSubscriptionEligible.hasFreeTrialPeriodActive()

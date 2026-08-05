@@ -201,6 +201,38 @@ class UserRestMapperTest {
   }
 
   @Test
+  void user_subscription_mapped_as_cancelled_when_latest_subscription_is_cancelled() {
+    Instant now = now();
+    Instant expectedEndDatetime = now.plus(30L, DAYS);
+    // A subscription left but still served until period end (real cancel-at-period-end, or a
+    // schedule flagged for cancellation after its first invoice) is still active until endDatetime.
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(
+            UserSubscription.builder()
+                .subscriptions(
+                    List.of(
+                        Subscription.builder()
+                            .status(Subscription.SubscriptionStatus.CANCELED)
+                            .active(true)
+                            .startDatetime(now)
+                            .endDatetime(expectedEndDatetime)
+                            .build()))
+                .build());
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
+
+    var actual = subject.toRest(User.builder().roles(List.of()).paymentMethodExists(true).build());
+
+    var actualSubscription = actual.getSubscription();
+    assertEquals(CANCELLED, actual.getSubscriptionStatus());
+    assertEquals(CANCELLED, actualSubscription.getStatus());
+    assertEquals(now, actualSubscription.getStart());
+    assertEquals(expectedEndDatetime, actualSubscription.getEnd());
+  }
+
+  @Test
   void user_subscription_mapped_with_null_values() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(Optional.of(mock(UserSubscriptionEligible.class)));

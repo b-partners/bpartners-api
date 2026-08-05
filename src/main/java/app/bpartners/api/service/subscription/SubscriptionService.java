@@ -465,6 +465,7 @@ public class SubscriptionService {
     if (latestSubscription != null
         && latestSubscription.isActive()
         && !(TRIALING).equals(latestSubscription.getStatus())
+        && !(CANCELED).equals(latestSubscription.getStatus())
         && !hasPendingCancellationAfterFirstInvoice(user.getUserSubscriptionId())) {
       throw new BadRequestException(
           "User.id="
@@ -636,13 +637,17 @@ public class SubscriptionService {
         && stripeSubscriptions.stream()
             .noneMatch(
                 stripeSubscription -> stripeSubscription.getStatus().equalsIgnoreCase("active"))) {
+      var firstScheduledSubscription = activeScheduledSubscriptions.getFirst();
       var scheduledStripeSubscriptionStartDate =
-          activeScheduledSubscriptions.getFirst().getPhases().getFirst().getStartDate();
+          firstScheduledSubscription.getPhases().getFirst().getStartDate();
       var domainSubscriptionStartDate =
-          Instant.ofEpochSecond(activeScheduledSubscriptions.getFirst().getCreated());
+          Instant.ofEpochSecond(firstScheduledSubscription.getCreated());
       var domainSubscriptionEndDate = Instant.ofEpochSecond(scheduledStripeSubscriptionStartDate);
+      var scheduledSubscriptionStatus =
+          isFlaggedForCancelAfterFirstInvoice(firstScheduledSubscription) ? CANCELED : ACTIVE;
       var subscriptionsFromSchedule =
-          defaultActiveSubscription(ACTIVE, domainSubscriptionStartDate, domainSubscriptionEndDate);
+          defaultActiveSubscription(
+              scheduledSubscriptionStatus, domainSubscriptionStartDate, domainSubscriptionEndDate);
       initialSubscription.addAll(subscriptionsFromSchedule);
       log.info("Return subscriptions {}", initialSubscription);
       return initialSubscription;
@@ -689,8 +694,7 @@ public class SubscriptionService {
 
   private static boolean isFlaggedForCancelAfterFirstInvoice(SubscriptionSchedule schedule) {
     var metadata = schedule.getMetadata();
-    return metadata != null
-        && "true".equals(metadata.get(CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY));
+    return metadata != null && "true".equals(metadata.get(CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY));
   }
 
   private Subscription mapToDomain(com.stripe.model.Subscription stripeSubscription) {

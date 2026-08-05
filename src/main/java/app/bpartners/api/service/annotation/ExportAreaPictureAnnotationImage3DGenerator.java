@@ -99,7 +99,10 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   private static @NotNull ImageContext getImageContext(ExportAreaPictureAnnotation3DPan pan) {
     var coordinates = Coordinates.from(selectPolygon(pan, true));
-    var transform = Transform.from(coordinates, PAN_CONTENT_SIZE, TARGET_SIZE);
+    // The oriented polygon sent by the frontend is already expressed in screen space
+    // (Y increases downward, matching the captured pan images), so the Y axis must
+    // not be inverted here, otherwise the pan image is rendered upside down.
+    var transform = Transform.from(coordinates, PAN_CONTENT_SIZE, TARGET_SIZE, false);
 
     var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);

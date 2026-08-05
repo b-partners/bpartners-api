@@ -70,12 +70,11 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
   }
 
   @Test
-  void generatePanImageWithMeasurements_should_flip_points_consistently_with_polygon() {
-    // The raw pan polygon coordinates are world coordinates where Y increases
-    // upward (northing). The polygon outline is drawn flipped by the Transform
-    // (source max Y rendered near the top of the image). Points and measurement
-    // anchors must undergo the SAME single flip: the north apex (max Y, x=120)
-    // must be drawn near the TOP of the image, not mirrored at the bottom.
+  void generatePanImageWithMeasurements_should_draw_pan_without_inverting_the_y_axis() {
+    // The oriented polygon coordinates sent by the frontend are already expressed
+    // in screen space (Y increases downward, matching the captured pan images), so
+    // the pan image must NOT invert the Y axis: the north apex (max Y, x=120) must
+    // be drawn near the BOTTOM of the image, not at the top.
     var pan =
         new ExportAreaPictureAnnotation3DPan()
             .polygon(
@@ -96,12 +95,12 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
 
     var image = subject.generatePanImageWithMeasurements(pan);
 
-    // North apex (120, 300) maps to (79, 30): a black point must be drawn there.
+    // North apex (120, 300) maps to (79, 520): a black point must be drawn there.
     assertNearBlack(
-        new Color(image.getRGB(79, 30), true), "north apex point (should be near the top)");
-    // No point sits at (79, 520): only the south edge stroke crosses there.
+        new Color(image.getRGB(79, 520), true), "north apex point (should be near the bottom)");
+    // No point sits at (79, 30): only the south edge stroke crosses there.
     assertNotNearBlack(
-        new Color(image.getRGB(79, 520), true), "south edge midpoint (no point expected)");
+        new Color(image.getRGB(79, 30), true), "south edge midpoint (no point expected)");
   }
 
   @Test

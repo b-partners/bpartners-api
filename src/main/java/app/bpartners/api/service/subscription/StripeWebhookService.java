@@ -81,7 +81,8 @@ public class StripeWebhookService {
             subscription == null ? null : subscription.getStatus());
         return null;
       }
-      var subscriptionPlanIdentifier = subscriptionService.resolveSubscribedPlanId(subscription).orElse(null);
+      var subscriptionPlanIdentifier =
+          subscriptionService.resolveSubscribedPlanId(subscription).orElse(null);
       return new EligibleSubscription(subscription.getCustomer(), subscriptionPlanIdentifier);
     }
 
@@ -138,5 +139,4 @@ public class StripeWebhookService {
   }
 
   private record EligibleSubscription(String customerId, String subscriptionPlanIdentifier) {}
-
 }

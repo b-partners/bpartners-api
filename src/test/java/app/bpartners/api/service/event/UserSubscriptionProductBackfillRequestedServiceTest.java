@@ -50,8 +50,7 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
             .subscriptionProductId(planId)
             .build());
 
-    verify(userSubscriptionProductService)
-        .ensureActiveSubscriptionProduct(user.getId(), planId);
+    verify(userSubscriptionProductService).ensureActiveSubscriptionProduct(user.getId(), planId);
   }
 
   @Test

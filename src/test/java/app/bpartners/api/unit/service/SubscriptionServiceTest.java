@@ -749,6 +749,58 @@ class SubscriptionServiceTest {
 
   @SneakyThrows
   @Test
+  void get_subscription_reports_cancelled_status_for_flagged_schedule() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    var scheduledStartEpoch = now().plus(1L, DAYS).getEpochSecond();
+    var flaggedSchedule = someNotStartedSchedule("schedule_id", scheduledStartEpoch, "price_base");
+    when(flaggedSchedule.getCreated()).thenReturn(now().getEpochSecond());
+    when(flaggedSchedule.getMetadata()).thenReturn(Map.of("cancel_after_first_invoice", "true"));
+    mockActiveSchedules(flaggedSchedule);
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of());
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .userId("user_id")
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(10L))
+                    .build()));
+
+    var latest = subject.getSubscriptionByUser(user).getLatestSubscription();
+
+    assertEquals(Subscription.SubscriptionStatus.CANCELED, latest.getStatus());
+    assertTrue(latest.isActive()); // still served until the schedule start date
+  }
+
+  @SneakyThrows
+  @Test
+  void get_subscription_reports_active_status_for_unflagged_schedule() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    var scheduledStartEpoch = now().plus(1L, DAYS).getEpochSecond();
+    var schedule = someNotStartedSchedule("schedule_id", scheduledStartEpoch, "price_base");
+    when(schedule.getCreated()).thenReturn(now().getEpochSecond());
+    when(schedule.getMetadata()).thenReturn(Map.of()); // not flagged for cancellation
+    mockActiveSchedules(schedule);
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of());
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .userId("user_id")
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(10L))
+                    .build()));
+
+    var latest = subject.getSubscriptionByUser(user).getLatestSubscription();
+
+    assertEquals(Subscription.SubscriptionStatus.ACTIVE, latest.getStatus());
+    assertTrue(latest.isActive());
+  }
+
+  @SneakyThrows
+  @Test
   void initiate_subscription_allowed_when_current_schedule_is_pending_cancellation() {
     var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
     // The user still has an active (not-yet-started) schedule, but it has already been flagged for
@@ -756,12 +808,45 @@ class SubscriptionServiceTest {
     var scheduledStartEpoch = now().plus(1L, DAYS).getEpochSecond();
     var flaggedSchedule = someNotStartedSchedule("schedule_id", scheduledStartEpoch, "price_base");
     when(flaggedSchedule.getCreated()).thenReturn(now().getEpochSecond());
-    when(flaggedSchedule.getMetadata())
-        .thenReturn(Map.of("cancel_after_first_invoice", "true"));
+    when(flaggedSchedule.getMetadata()).thenReturn(Map.of("cancel_after_first_invoice", "true"));
     mockActiveSchedules(flaggedSchedule);
     // No running Stripe subscription: the only thing surfacing as active is the flagged schedule.
     when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
         .thenReturn(List.of());
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .userId("user_id")
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(10L))
+                    .build()));
+
+    var expectedRedirection = mockInitiateSubscriptionDependencies(user);
+
+    var actual =
+        subject.initiateSubscription(
+            user, someSubscriptionToInitiate(), getRedirectionStatusUrls());
+
+    assertSame(expectedRedirection, actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void initiate_subscription_allowed_when_active_subscription_is_cancelled_at_period_end() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    // No schedule, but a running Stripe subscription already set to cancel at period end: it
+    // surfaces
+    // as CANCELED (still active until period end) and must not block a new subscription initiation.
+    mockActiveSchedules(); // no scheduled subscription
+    var cancelledStripeSubscription = new com.stripe.model.Subscription();
+    cancelledStripeSubscription.setId("sub_cancelled");
+    cancelledStripeSubscription.setStatus("active");
+    cancelledStripeSubscription.setCancelAtPeriodEnd(true);
+    cancelledStripeSubscription.setCurrentPeriodStart(now().getEpochSecond());
+    cancelledStripeSubscription.setCurrentPeriodEnd(now().plus(20L, DAYS).getEpochSecond());
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(cancelledStripeSubscription));
     when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
         .thenReturn(
             Optional.of(
@@ -811,8 +896,7 @@ class SubscriptionServiceTest {
 
     assertTrue(actual.getMessage().startsWith("User.id=user_id has active subscription until "));
     verify(sessionFactoryMock, never())
-        .initiateSubscriptionWorkflow(
-            any(), any(), any(), any(), any(), any(), anyLong(), any());
+        .initiateSubscriptionWorkflow(any(), any(), any(), any(), any(), any(), anyLong(), any());
   }
 
   private void mockActiveSchedules(SubscriptionSchedule... schedules) throws StripeException {

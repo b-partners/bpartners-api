@@ -464,7 +464,8 @@ public class SubscriptionService {
     var latestSubscription = actualUserSubscription.getLatestSubscription();
     if (latestSubscription != null
         && latestSubscription.isActive()
-        && !(TRIALING).equals(latestSubscription.getStatus())) {
+        && !(TRIALING).equals(latestSubscription.getStatus())
+        && !hasPendingCancellationAfterFirstInvoice(user.getUserSubscriptionId())) {
       throw new BadRequestException(
           "User.id="
               + user.getId()
@@ -675,6 +676,23 @@ public class SubscriptionService {
         .toList();
   }
 
+  private boolean hasPendingCancellationAfterFirstInvoice(String stripeCustomerId)
+      throws StripeException {
+    if (stripeCustomerId == null) {
+      return false;
+    }
+    var activeScheduledSubscriptions = getActiveSubscriptionSchedules(stripeCustomerId);
+    return !activeScheduledSubscriptions.isEmpty()
+        && activeScheduledSubscriptions.stream()
+            .allMatch(SubscriptionService::isFlaggedForCancelAfterFirstInvoice);
+  }
+
+  private static boolean isFlaggedForCancelAfterFirstInvoice(SubscriptionSchedule schedule) {
+    var metadata = schedule.getMetadata();
+    return metadata != null
+        && "true".equals(metadata.get(CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY));
+  }
+
   private Subscription mapToDomain(com.stripe.model.Subscription stripeSubscription) {
     var currentPeriodStartLongValue = stripeSubscription.getCurrentPeriodStart();
     var startDatetime =
@@ -819,10 +837,7 @@ public class SubscriptionService {
       return;
     }
     var schedule = stripeClient.subscriptionSchedules().retrieve(scheduleId);
-    var metadata = schedule.getMetadata();
-    var flaggedForCancellation =
-        metadata != null && "true".equals(metadata.get(CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY));
-    if (!flaggedForCancellation) {
+    if (!isFlaggedForCancelAfterFirstInvoice(schedule)) {
       return;
     }
     if ("canceled".equalsIgnoreCase(schedule.getStatus())) {

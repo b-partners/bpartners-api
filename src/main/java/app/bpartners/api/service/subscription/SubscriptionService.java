@@ -422,16 +422,24 @@ public class SubscriptionService {
     subscriptionProductRepository
         .findById(domainProductId)
         .ifPresent(
-            existing ->
-                subscriptionProductToPersistBuilder
-                    .consumptionTypeAttached(existing.getConsumptionTypeAttached())
-                    .planCode(existing.getPlanCode())
-                    .billingType(existing.getBillingType())
-                    .freeUsageThreshold(existing.getFreeUsageThreshold())
-                    .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
-                    .trialPeriodDays(existing.getTrialPeriodDays())
-                    .annualDiscountPercent(existing.getAnnualDiscountPercent())
-                    .meteredProductId(existing.getMeteredProductId()));
+            existing -> {
+              subscriptionProductToPersistBuilder
+                  .consumptionTypeAttached(existing.getConsumptionTypeAttached())
+                  .planCode(existing.getPlanCode())
+                  .billingType(existing.getBillingType())
+                  .freeUsageThreshold(existing.getFreeUsageThreshold())
+                  .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
+                  .trialPeriodDays(existing.getTrialPeriodDays())
+                  .annualDiscountPercent(existing.getAnnualDiscountPercent())
+                  .meteredProductId(existing.getMeteredProductId())
+                  .mostChosen(existing.isMostChosen())
+                  .deprecated(existing.isDeprecated())
+                  .displayPosition(existing.getDisplayPosition());
+              if (createdStripeProduct.getMarketingFeatures() == null
+                  || createdStripeProduct.getMarketingFeatures().isEmpty()) {
+                subscriptionProductToPersistBuilder.features(existing.getFeatures());
+              }
+            });
 
     return subscriptionProductRepository.save(subscriptionProductToPersistBuilder.build());
   }

@@ -251,6 +251,10 @@ class SubscriptionServiceTest {
               .vatPercent(2000L)
               .overageUnitPriceInCents(200L)
               .trialPeriodDays(7)
+              .features(List.of("feature-a", "feature-b"))
+              .mostChosen(true)
+              .deprecated(true)
+              .displayPosition(3)
               .build();
       when(subscriptionProductRepositoryMock.findById(domainProductId))
           .thenReturn(Optional.of(existing));
@@ -280,6 +284,12 @@ class SubscriptionServiceTest {
       assertEquals(Long.valueOf(200L), saved.getOverageUnitPriceInCents());
       assertEquals(Integer.valueOf(7), saved.getTrialPeriodDays());
       assertEquals(Long.valueOf(5880L), saved.getPriceInCentsWithVat());
+      // Catalog-only columns must survive a re-mirror even though Stripe does not carry them.
+      assertTrue(saved.isMostChosen());
+      assertTrue(saved.isDeprecated());
+      assertEquals(Integer.valueOf(3), saved.getDisplayPosition());
+      // Stripe has no marketing features here, so the catalog-defined features must be kept.
+      assertEquals(List.of("feature-a", "feature-b"), saved.getFeatures());
     }
   }
 

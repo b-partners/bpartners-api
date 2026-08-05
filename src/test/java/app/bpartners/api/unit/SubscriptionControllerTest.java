@@ -58,6 +58,7 @@ class SubscriptionControllerTest {
                     .trialPeriodDays(7)
                     .mostChosen(true)
                     .deprecated(true)
+                    .displayPosition(3)
                     .build()));
 
     var actual = subject.getSubscriptionPlans(page, pageSize);
@@ -77,7 +78,8 @@ class SubscriptionControllerTest {
                 .overageUnitPriceInCents(200L)
                 .trialPeriodDays(7)
                 .isMostChosen(true)
-                .isDeprecated(true)),
+                .isDeprecated(true)
+                .displayPosition(3)),
         actual);
   }
 

@@ -320,6 +320,11 @@ components:
         isDeprecated:
           type: boolean
           description: For deprecated plans to not be shown in consumer usage.
+        displayPosition:
+          type: integer
+          minimum: 1
+          maximum: 4
+          description: Corresponds to the left-to-right position to be displayed at the consumer end
     SubscriptionPlan:
       allOf:
         - $ref: '#/components/schemas/SubscriptionPlanDescription'

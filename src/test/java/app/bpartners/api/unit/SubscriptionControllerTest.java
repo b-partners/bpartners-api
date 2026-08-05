@@ -56,6 +56,7 @@ class SubscriptionControllerTest {
                     .freeUsageThreshold(20L)
                     .overageUnitPriceInCents(200L)
                     .trialPeriodDays(7)
+                    .mostChosen(true)
                     .build()));
 
     var actual = subject.getSubscriptionPlans(page, pageSize);
@@ -73,7 +74,8 @@ class SubscriptionControllerTest {
                 .vatPercent(2000L)
                 .freeUsageThreshold(20L)
                 .overageUnitPriceInCents(200L)
-                .trialPeriodDays(7)),
+                .trialPeriodDays(7)
+                .isMostChosen(true)),
         actual);
   }
 

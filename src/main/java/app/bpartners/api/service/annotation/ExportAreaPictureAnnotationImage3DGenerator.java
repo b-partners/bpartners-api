@@ -26,6 +26,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   private static final int TARGET_SIZE = 550;
   private static final int SUMMARY_IMAGE_SIZE = 1080;
   private static final int CONTENT_SIZE = 500;
+  private static final int PAN_CONTENT_SIZE = CONTENT_SIZE - 10;
 
   private static final int POLYGON_POINTS_SIZE = 10;
   private static final Stroke POLYGON_STROKE = new BasicStroke(3f);
@@ -47,15 +48,15 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     pans.forEach(
         pan -> {
           var rawData = Coordinates.from(requireNonNull(pan.getPolygon()));
-          var mapped = imageContext.transform.apply(rawData);
+          var mapped = imageContext.transform().apply(rawData);
 
-          drawFillPolygon(imageContext.g2d, RED, mapped);
-          drawStrokePolygon(imageContext.g2d, WHITE, POLYGON_STROKE, mapped);
+          drawFillPolygon(imageContext.g2d(), RED, mapped);
+          drawStrokePolygon(imageContext.g2d(), WHITE, POLYGON_STROKE, mapped);
         });
 
-    imageContext.g2d.dispose();
+    imageContext.g2d().dispose();
 
-    return new Pair<>(imageContext.transform, imageContext.baseImage);
+    return new Pair<>(imageContext.transform(), imageContext.baseImage());
   }
 
   public Pair<Transform, BufferedImage> generateBaseImageWithSlopeBoundariesWithMeasurement(
@@ -96,6 +97,15 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return new ImageContext(transform, baseImage, g2d);
   }
 
+  private static @NotNull ImageContext getImageContext(ExportAreaPictureAnnotation3DPan pan) {
+    var coordinates = pixelCoordinatesToCartesian(pan);
+    var transform = Transform.from(coordinates, PAN_CONTENT_SIZE, TARGET_SIZE);
+
+    var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
+    var g2d = Graphics2DFactory.make(baseImage);
+    return new ImageContext(transform, baseImage, g2d);
+  }
+
   private record ImageContext(Transform transform, BufferedImage baseImage, Graphics2D g2d) {}
 
   public BufferedImage generateBaseImageWithAreas(List<ExportAreaPictureAnnotation3DPan> pans) {
@@ -115,23 +125,23 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
           drawPolygonWithCenteredText(imageContext, pan, area);
         });
 
-    imageContext.g2d.dispose();
+    imageContext.g2d().dispose();
 
-    return imageContext.baseImage;
+    return imageContext.baseImage();
   }
 
   private void drawPolygonWithCenteredText(
       ImageContext imageContext, ExportAreaPictureAnnotation3DPan pan, String area) {
     var coordinates = Coordinates.from(pan.getPolygon());
-    var mapped = imageContext.transform.apply(coordinates);
-    drawStrokePolygon(imageContext.g2d, BLACK, POLYGON_STROKE, mapped);
+    var mapped = imageContext.transform().apply(coordinates);
+    drawStrokePolygon(imageContext.g2d(), BLACK, POLYGON_STROKE, mapped);
     drawTextInPolygonCentroid(
-        imageContext.g2d,
+        imageContext.g2d(),
         MEASUREMENT_CONF.toBuilder().bgColor(null).font(SUMMARY_IMAGE_FONT).build(),
         mapped,
         area,
-        imageContext.baseImage.getWidth(),
-        imageContext.baseImage.getHeight());
+        imageContext.baseImage().getWidth(),
+        imageContext.baseImage().getHeight());
   }
 
   public BufferedImage generateBaseImageWithPitches(List<ExportAreaPictureAnnotation3DPan> pans) {
@@ -153,9 +163,9 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
           drawPolygonWithCenteredText(imageContext, pan, pitch);
         });
 
-    imageContext.g2d.dispose();
+    imageContext.g2d().dispose();
 
-    return imageContext.baseImage;
+    return imageContext.baseImage();
   }
 
   public BufferedImage generateBaseImageWithNames(List<ExportAreaPictureAnnotation3DPan> pans) {
@@ -166,29 +176,38 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
       var name = "P" + (index + 1);
 
       var coordinates = Coordinates.from(pan.getPolygon());
-      var mapped = imageContext.transform.apply(coordinates);
+      var mapped = imageContext.transform().apply(coordinates);
       var font = new Font(FONT_NAME, PLAIN, SUMMARY_IMAGE_FONT.getSize() * 2);
-      drawStrokePolygon(imageContext.g2d, BLACK, POLYGON_STROKE, mapped);
+      drawStrokePolygon(imageContext.g2d(), BLACK, POLYGON_STROKE, mapped);
       drawTextInPolygonCentroid(
-          imageContext.g2d,
+          imageContext.g2d(),
           MEASUREMENT_CONF.toBuilder().bgColor(null).font(font).build(),
           mapped,
           name,
-          imageContext.baseImage.getWidth(),
-          imageContext.baseImage.getHeight());
+          imageContext.baseImage().getWidth(),
+          imageContext.baseImage().getHeight());
     }
 
-    imageContext.g2d.dispose();
+    imageContext.g2d().dispose();
 
-    return imageContext.baseImage;
+    return imageContext.baseImage();
   }
 
   private static @NotNull List<IntXY> extractPoints(List<ExportAreaPictureAnnotation3DPan> pans) {
-    return pans.stream()
-        .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
+    var rawPoints =
+        pans.stream()
+            .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
+            .toList();
+
+    int maxY =
+        rawPoints.stream().mapToInt(p -> requireNonNull(p.getY()).intValue()).max().orElse(0);
+
+    return rawPoints.stream()
         .map(
             p ->
-                new IntXY(requireNonNull(p.getX()).intValue(), requireNonNull(p.getY()).intValue()))
+                new IntXY(
+                    requireNonNull(p.getX()).intValue(),
+                    maxY - requireNonNull(p.getY()).intValue()))
         .toList();
   }
 
@@ -234,27 +253,42 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   }
 
   public BufferedImage generatePanImageWithMeasurements(ExportAreaPictureAnnotation3DPan pan) {
-    var panImageWithMeasurements = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
-    var g2d = Graphics2DFactory.make(panImageWithMeasurements);
+    var imageContext = getImageContext(pan);
+    Coordinates coordinates = pixelCoordinatesToCartesian(pan);
+    var mapped = imageContext.transform().apply(coordinates);
 
-    var polygon = selectPolygon(pan, true);
-    var coordinates = Coordinates.from(polygon);
-    var transform = Transform.from(coordinates, CONTENT_SIZE - 10, TARGET_SIZE);
-    var mapped = transform.apply(coordinates);
-
-    drawStrokePolygon(g2d, transform, pan, 3.5f, true);
-    drawPolygonPoints(g2d, BLACK, POLYGON_POINTS_SIZE, mapped);
+    drawStrokePolygon(imageContext.g2d(), imageContext.transform(), pan, 3.5f, true);
+    drawPolygonPoints(imageContext.g2d(), BLACK, POLYGON_POINTS_SIZE, mapped);
     drawPolygonMeasurements(
-        g2d,
+        imageContext.g2d(),
         MEASUREMENT_CONF,
         mapped,
         pan.getMeasurements(),
-        panImageWithMeasurements.getWidth(),
-        panImageWithMeasurements.getHeight(),
+        imageContext.baseImage().getWidth(),
+        imageContext.baseImage().getHeight(),
         true);
 
-    g2d.dispose();
-    return panImageWithMeasurements;
+    imageContext.g2d().dispose();
+    return imageContext.baseImage();
+  }
+
+  private static Coordinates pixelCoordinatesToCartesian(ExportAreaPictureAnnotation3DPan pan) {
+    var polygon = selectPolygon(pan, true);
+    var rawCoordinates = Coordinates.from(polygon);
+
+    int maxY = 0;
+    for (int y : rawCoordinates.allY()) {
+      if (y > maxY) {
+        maxY = y;
+      }
+    }
+
+    int[] invertedY = new int[rawCoordinates.allY().length];
+    for (int i = 0; i < rawCoordinates.allY().length; i++) {
+      invertedY[i] = maxY - rawCoordinates.allY()[i];
+    }
+
+    return new Coordinates(rawCoordinates.allX(), invertedY);
   }
 
   public BufferedImage mergePanImagesSideBySide(

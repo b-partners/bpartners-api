@@ -1,7 +1,10 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
+
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import com.stripe.model.billingportal.Session;
 import com.stripe.param.billingportal.SessionCreateParams;
@@ -16,6 +19,11 @@ public class StripePortalService {
   @SneakyThrows
   public Redirection initiateBillingPortalSession(
       String stripeCustomerIdentifier, RedirectionStatusUrls redirectionStatusUrls) {
+    if (stripeCustomerIdentifier == null) {
+      throw new ApiException(
+          SERVER_EXCEPTION,
+          "Unable to initiate billing portal session as user not associated to stripe customer");
+    }
     validateRedirectionStatusUrls(redirectionStatusUrls);
     SessionCreateParams params =
         SessionCreateParams.builder()

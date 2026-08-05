@@ -22,6 +22,7 @@ public class SubscriptionPlanRestMapper {
         .freeUsageThreshold(domain.getFreeUsageThreshold())
         .overageUnitPriceInCents(domain.getOverageUnitPriceInCents())
         .trialPeriodDays(domain.getTrialPeriodDays())
+        .isMostChosen(domain.isMostChosen())
         .annualDiscountPercent(domain.getAnnualDiscountPercent());
   }
 
@@ -34,6 +35,7 @@ public class SubscriptionPlanRestMapper {
         .billingType(billingTypeToRest(domain.getBillingType()))
         .priceInCentsWithVat(domain.getPriceInCentsWithVat())
         .priceInCentsWithoutVat(domain.getPriceInCentsWithoutVat())
+        .isMostChosen(domain.isMostChosen())
         .vatPercent(domain.getVatPercent());
   }
 

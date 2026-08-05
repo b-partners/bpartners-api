@@ -1,7 +1,9 @@
 package app.bpartners.api.unit.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.model.SubscriptionBillingType;
@@ -14,6 +16,12 @@ class SubscriptionPlanRestMapperTest {
 
   private static SubscriptionProduct subscriptionProduct(
       app.bpartners.api.model.subscription.SubscriptionBillingType billingType) {
+    return subscriptionProduct(billingType, false);
+  }
+
+  private static SubscriptionProduct subscriptionProduct(
+      app.bpartners.api.model.subscription.SubscriptionBillingType billingType,
+      boolean mostChosen) {
     return SubscriptionProduct.builder()
         .id("plan_id")
         .name("Premium")
@@ -22,6 +30,7 @@ class SubscriptionPlanRestMapperTest {
         .billingType(billingType)
         .priceInCentsWithoutVat(4900L)
         .vatPercent(2000L)
+        .mostChosen(mostChosen)
         .build();
   }
 
@@ -60,5 +69,37 @@ class SubscriptionPlanRestMapperTest {
     var actual = subject.toRestDescription(domain);
 
     assertNull(actual.getBillingType());
+  }
+
+  @Test
+  void to_rest_maps_is_most_chosen() {
+    var domain =
+        subscriptionProduct(
+            app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT, true);
+
+    var actual = subject.toRest(domain);
+
+    assertTrue(actual.getIsMostChosen());
+  }
+
+  @Test
+  void to_rest_description_maps_is_most_chosen() {
+    var domain =
+        subscriptionProduct(
+            app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT, true);
+
+    var actual = subject.toRestDescription(domain);
+
+    assertTrue(actual.getIsMostChosen());
+  }
+
+  @Test
+  void to_rest_maps_is_most_chosen_false_by_default() {
+    var domain =
+        subscriptionProduct(
+            app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT);
+
+    assertFalse(subject.toRest(domain).getIsMostChosen());
+    assertFalse(subject.toRestDescription(domain).getIsMostChosen());
   }
 }

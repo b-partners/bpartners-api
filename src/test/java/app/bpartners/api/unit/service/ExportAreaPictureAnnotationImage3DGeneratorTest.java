@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationMeasurement;
 import app.bpartners.api.endpoint.rest.model.Point;
 import app.bpartners.api.endpoint.rest.model.Polygon;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
@@ -69,6 +70,41 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
   }
 
   @Test
+  void generatePanImageWithMeasurements_should_flip_points_consistently_with_polygon() {
+    // The raw pan polygon coordinates are world coordinates where Y increases
+    // upward (northing). The polygon outline is drawn flipped by the Transform
+    // (source max Y rendered near the top of the image). Points and measurement
+    // anchors must undergo the SAME single flip: the north apex (max Y, x=120)
+    // must be drawn near the TOP of the image, not mirrored at the bottom.
+    var pan =
+        new ExportAreaPictureAnnotation3DPan()
+            .polygon(
+                new Polygon()
+                    .points(
+                        List.of(
+                            new Point().x(100d).y(100d),
+                            new Point().x(300d).y(100d),
+                            new Point().x(300d).y(300d),
+                            new Point().x(120d).y(300d),
+                            new Point().x(100d).y(100d))))
+            .measurements(
+                List.of(
+                    invisibleMeasurement(),
+                    invisibleMeasurement(),
+                    invisibleMeasurement(),
+                    invisibleMeasurement()));
+
+    var image = subject.generatePanImageWithMeasurements(pan);
+
+    // North apex (120, 300) maps to (79, 30): a black point must be drawn there.
+    assertNearBlack(
+        new Color(image.getRGB(79, 30), true), "north apex point (should be near the top)");
+    // No point sits at (79, 520): only the south edge stroke crosses there.
+    assertNotNearBlack(
+        new Color(image.getRGB(79, 520), true), "south edge midpoint (no point expected)");
+  }
+
+  @Test
   void mergePanImagesSideBySide_should_work() {
     BufferedImage img1 = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
     BufferedImage img2 = new BufferedImage(200, 150, BufferedImage.TYPE_INT_RGB);
@@ -77,6 +113,22 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
 
     assertEquals(300, result.getWidth());
     assertEquals(150, result.getHeight());
+  }
+
+  private static ExportAreaPictureAnnotationMeasurement invisibleMeasurement() {
+    return new ExportAreaPictureAnnotationMeasurement().value(2.0).unit("m").isInvisible(true);
+  }
+
+  private static void assertNearBlack(Color color, String what) {
+    assertTrue(
+        color.getRed() < 25 && color.getGreen() < 25 && color.getBlue() < 25,
+        what + " should be near black but was " + color);
+  }
+
+  private static void assertNotNearBlack(Color color, String what) {
+    assertTrue(
+        color.getRed() >= 25 || color.getGreen() >= 25 || color.getBlue() >= 25,
+        what + " should not be near black but was " + color);
   }
 
   private void assertColorEquals(Color expected, int actualRgb) {

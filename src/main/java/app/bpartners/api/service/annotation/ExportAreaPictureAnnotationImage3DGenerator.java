@@ -98,7 +98,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   }
 
   private static @NotNull ImageContext getImageContext(ExportAreaPictureAnnotation3DPan pan) {
-    var coordinates = pixelCoordinatesToCartesian(pan);
+    var coordinates = Coordinates.from(selectPolygon(pan, true));
     var transform = Transform.from(coordinates, PAN_CONTENT_SIZE, TARGET_SIZE);
 
     var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
@@ -194,20 +194,11 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   }
 
   private static @NotNull List<IntXY> extractPoints(List<ExportAreaPictureAnnotation3DPan> pans) {
-    var rawPoints =
-        pans.stream()
-            .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
-            .toList();
-
-    int maxY =
-        rawPoints.stream().mapToInt(p -> requireNonNull(p.getY()).intValue()).max().orElse(0);
-
-    return rawPoints.stream()
+    return pans.stream()
+        .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
         .map(
             p ->
-                new IntXY(
-                    requireNonNull(p.getX()).intValue(),
-                    maxY - requireNonNull(p.getY()).intValue()))
+                new IntXY(requireNonNull(p.getX()).intValue(), requireNonNull(p.getY()).intValue()))
         .toList();
   }
 
@@ -254,7 +245,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   public BufferedImage generatePanImageWithMeasurements(ExportAreaPictureAnnotation3DPan pan) {
     var imageContext = getImageContext(pan);
-    Coordinates coordinates = pixelCoordinatesToCartesian(pan);
+    Coordinates coordinates = Coordinates.from(selectPolygon(pan, true));
     var mapped = imageContext.transform().apply(coordinates);
 
     drawStrokePolygon(imageContext.g2d(), imageContext.transform(), pan, 3.5f, true);
@@ -270,25 +261,6 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
     imageContext.g2d().dispose();
     return imageContext.baseImage();
-  }
-
-  private static Coordinates pixelCoordinatesToCartesian(ExportAreaPictureAnnotation3DPan pan) {
-    var polygon = selectPolygon(pan, true);
-    var rawCoordinates = Coordinates.from(polygon);
-
-    int maxY = 0;
-    for (int y : rawCoordinates.allY()) {
-      if (y > maxY) {
-        maxY = y;
-      }
-    }
-
-    int[] invertedY = new int[rawCoordinates.allY().length];
-    for (int i = 0; i < rawCoordinates.allY().length; i++) {
-      invertedY[i] = maxY - rawCoordinates.allY()[i];
-    }
-
-    return new Coordinates(rawCoordinates.allX(), invertedY);
   }
 
   public BufferedImage mergePanImagesSideBySide(

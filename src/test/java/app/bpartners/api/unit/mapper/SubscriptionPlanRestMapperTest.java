@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.mapper;
 
+import static app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -36,9 +37,7 @@ class SubscriptionPlanRestMapperTest {
 
   @Test
   void to_rest_description_maps_all_fields() {
-    var domain =
-        subscriptionProduct(
-            app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT);
+    var domain = subscriptionProduct(COMMITMENT);
 
     var actual = subject.toRestDescription(domain);
 
@@ -73,9 +72,7 @@ class SubscriptionPlanRestMapperTest {
 
   @Test
   void to_rest_maps_is_most_chosen() {
-    var domain =
-        subscriptionProduct(
-            app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT, true);
+    var domain = subscriptionProduct(COMMITMENT, true);
 
     var actual = subject.toRest(domain);
 
@@ -84,9 +81,7 @@ class SubscriptionPlanRestMapperTest {
 
   @Test
   void to_rest_description_maps_is_most_chosen() {
-    var domain =
-        subscriptionProduct(
-            app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT, true);
+    var domain = subscriptionProduct(COMMITMENT, true);
 
     var actual = subject.toRestDescription(domain);
 
@@ -95,11 +90,35 @@ class SubscriptionPlanRestMapperTest {
 
   @Test
   void to_rest_maps_is_most_chosen_false_by_default() {
-    var domain =
-        subscriptionProduct(
-            app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT);
+    var domain = subscriptionProduct(COMMITMENT);
 
     assertFalse(subject.toRest(domain).getIsMostChosen());
     assertFalse(subject.toRestDescription(domain).getIsMostChosen());
+  }
+
+  @Test
+  void to_rest_maps_is_deprecated() {
+    var domain = subscriptionProduct(COMMITMENT).toBuilder().deprecated(true).build();
+
+    var actual = subject.toRest(domain);
+
+    assertTrue(actual.getIsDeprecated());
+  }
+
+  @Test
+  void to_rest_description_maps_is_deprecated() {
+    var domain = subscriptionProduct(COMMITMENT).toBuilder().deprecated(true).build();
+
+    var actual = subject.toRestDescription(domain);
+
+    assertTrue(actual.getIsDeprecated());
+  }
+
+  @Test
+  void to_rest_maps_is_deprecated_false_by_default() {
+    var domain = subscriptionProduct(COMMITMENT);
+
+    assertFalse(subject.toRest(domain).getIsDeprecated());
+    assertFalse(subject.toRestDescription(domain).getIsDeprecated());
   }
 }

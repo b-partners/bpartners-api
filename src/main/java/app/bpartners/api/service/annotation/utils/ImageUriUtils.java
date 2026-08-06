@@ -1,5 +1,7 @@
 package app.bpartners.api.service.annotation.utils;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,8 +11,8 @@ import java.util.Base64;
 import javax.imageio.ImageIO;
 
 public final class ImageUriUtils {
-  private static final String BASE_64_URI_PREFIX = "data:image/png;base64,";
-  public static final String IMAGE_FORMAT = "png";
+  private static final String BASE_64_URI_PREFIX = "data:image/jpeg;base64,";
+  public static final String IMAGE_FORMAT = "jpg";
 
   private ImageUriUtils() {}
 
@@ -18,10 +20,26 @@ public final class ImageUriUtils {
     return base64ToUri(base64(image));
   }
 
+  /**
+   * JPEG does not support an alpha channel. Transparent pixels are replaced by a white background
+   * so they do not render as black once the image is encoded into JPEG.
+   */
+  public static BufferedImage toJpegCompatible(BufferedImage image) {
+    BufferedImage compatible =
+        new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+    Graphics2D graphics = compatible.createGraphics();
+    graphics.setColor(Color.WHITE);
+    graphics.fillRect(0, 0, compatible.getWidth(), compatible.getHeight());
+    graphics.drawImage(image, 0, 0, null);
+    graphics.dispose();
+    return compatible;
+  }
+
   public static String base64(BufferedImage image) {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream();
         OutputStream b64 = Base64.getEncoder().wrap(out)) {
-      ImageIO.write(image, IMAGE_FORMAT, b64);
+      var imageToWrite = image.getColorModel().hasAlpha() ? toJpegCompatible(image) : image;
+      ImageIO.write(imageToWrite, IMAGE_FORMAT, b64);
       b64.flush();
       return out.toString(StandardCharsets.ISO_8859_1);
     } catch (IOException e) {

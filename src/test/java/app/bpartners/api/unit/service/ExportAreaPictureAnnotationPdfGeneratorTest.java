@@ -71,7 +71,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
 
   String bufferedImageToBase64(BufferedImage image) throws IOException {
     var outputStream = new ByteArrayOutputStream();
-    ImageIO.write(image, "png", outputStream);
+    ImageIO.write(image, "jpg", outputStream);
     return base64Image(outputStream.toByteArray());
   }
 

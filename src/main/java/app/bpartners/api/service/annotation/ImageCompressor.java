@@ -1,5 +1,7 @@
 package app.bpartners.api.service.annotation;
 
+import static app.bpartners.api.service.annotation.utils.ImageUriUtils.toJpegCompatible;
+
 import app.bpartners.api.service.annotation.factory.CompressionParametersFactory;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -150,11 +152,7 @@ public class ImageCompressor {
   }
 
   private BufferedImage convertToJPEGCompatibleType(BufferedImage image) {
-    BufferedImage compatible =
-        new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-    compatible.getGraphics().drawImage(image, 0, 0, null);
-
-    return compatible;
+    return toJpegCompatible(image);
   }
 
   private long getImageSizeBytes(BufferedImage image) throws IOException {

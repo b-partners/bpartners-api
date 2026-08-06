@@ -1,4 +1,43 @@
 operations:
+  subscriptionCommitmentsOperations:
+    post:
+      tags:
+        - User Subscription
+      summary: Save user subscription commitments
+      operationId: saveUserSubscriptionCommitments
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateUserSubscriptionCommitment'
+      responses:
+        '200':
+          description: List of user subscription commitment consent saved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSubscriptionCommitment'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
   subscriptionConsumptionLogsOperation:
     get:
       tags:
@@ -343,3 +382,32 @@ components:
             annualDiscountPercent:
               type: integer
               description: Discount, in percent, on the yearly prepaid fixed price.
+    UserSubscriptionCommitmentDetails:
+      type: object
+      properties:
+        commitmentStart:
+          type: string
+          format: date-time
+        duration:
+          type: string
+          enum: ['12_MONTHS']
+        approvalDatetime:
+          type: string
+          format: date-time
+    CreateUserSubscriptionCommitment:
+      allOf:
+        - $ref: '#/components/schemas/UserSubscriptionCommitmentDetails'
+        - type: object
+          properties:
+            subscriptionPlanIdentifier:
+              type: string
+    UserSubscriptionCommitment:
+      allOf:
+        - $ref: '#/components/schemas/UserSubscriptionCommitmentDetails'
+        - type: object
+          properties:
+            subscriptionPlan:
+              $ref: '#/components/schemas/SubscriptionPlanDescription'
+            commitmentEnd:
+              type: string
+              format: date-time

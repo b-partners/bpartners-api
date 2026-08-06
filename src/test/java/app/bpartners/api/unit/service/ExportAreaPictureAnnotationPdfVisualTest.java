@@ -324,6 +324,25 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
+  void generate_from_angelina_faity_payload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation =
+        objectMapper.readValue(
+            new ClassPathResource("payload/export/63 rue angelina faity.json").getInputStream(),
+            ExportAreaPictureAnnotation.class);
+    mockImage =
+        ImageIO.read(new ClassPathResource("files/63 rue angelina faity.jpeg").getInputStream());
+    mockImageBytes = toByteStream(mockImage);
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "mysterious-payload");
+  }
+
+  @Test
   void generate_from_mysterious_payload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     ExportAreaPictureAnnotation exportAreaPictureAnnotation =

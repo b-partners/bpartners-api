@@ -10,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.User;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.model.Drawer;
@@ -106,7 +107,46 @@ public class ExportAnnotationContextFactory {
       context.setVariable("customPages", mapCustomPages(annotation.getCustomPages()));
     }
 
+    configureLastSectionContext(context, annotation, conf);
+
     return context;
+  }
+
+  private static void configureLastSectionContext(
+      Context context,
+      ExportAreaPictureAnnotation annotation,
+      ExportAreaPictureAnnotationConf conf) {
+    boolean has3D = annotation.get3d() != null;
+    boolean show3dPages = has3D && conf.isShowAnnotation3dPages();
+    boolean showFacades3D =
+        show3dPages && annotation.get3d() != null && annotation.get3d().getFacades() != null;
+    boolean showMeasurement = has3D && conf.isShowMeasurementSummary();
+    boolean showPitch = has3D && conf.isShowPitchSummary();
+    boolean showArea = has3D && conf.isShowAreaSummary();
+    boolean showOverall = has3D && conf.isShowOverallSummary();
+    boolean showCustomPages =
+        annotation.getCustomPages() != null && !annotation.getCustomPages().isEmpty();
+    boolean showLlm = annotation.getLlm() != null && conf.isShowLlmSummary();
+    boolean anySummary = showMeasurement || showPitch || showArea || showOverall;
+
+    context.setVariable(
+        "annotationPagesIsLast", !show3dPages && !anySummary && !showCustomPages && !showLlm);
+    context.setVariable(
+        "pans3DIsLast",
+        show3dPages && !showFacades3D && !anySummary && !showCustomPages && !showLlm);
+    context.setVariable(
+        "facades3DIsLast", showFacades3D && !anySummary && !showCustomPages && !showLlm);
+    context.setVariable(
+        "measurementSummaryIsLast",
+        showMeasurement && !showPitch && !showArea && !showOverall && !showCustomPages && !showLlm);
+    context.setVariable(
+        "pitchSummaryIsLast",
+        showPitch && !showArea && !showOverall && !showCustomPages && !showLlm);
+    context.setVariable(
+        "areaSummaryIsLast", showArea && !showOverall && !showCustomPages && !showLlm);
+    context.setVariable("overallSummaryIsLast", showOverall && !showCustomPages && !showLlm);
+    context.setVariable("facesSummaryIsLast", showOverall && !showCustomPages && !showLlm);
+    context.setVariable("customPagesIsLast", showCustomPages && !showLlm);
   }
 
   private static List<CustomPage> mapCustomPages(

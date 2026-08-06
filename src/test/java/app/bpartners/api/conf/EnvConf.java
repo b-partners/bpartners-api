@@ -2,6 +2,7 @@ package app.bpartners.api.conf;
 
 import static app.bpartners.api.endpoint.event.AwsConf.TEST_ENV;
 import static app.bpartners.api.integration.conf.utils.TestUtils.MOCK_SERVER_URL;
+import static java.lang.System.getenv;
 
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -50,7 +51,8 @@ public class EnvConf {
     registry.add("geo.jobs.admin.api.key", () -> "dummy");
     registry.add("geo.jobs.base.url", () -> "https://dum.my");
     registry.add("geodata.imagery.baseurl", () -> "https://dummy.com");
-    registry.add("stripe.private.api.key", () -> "dummy");
+    registry.add(
+        "stripe.private.api.key", () -> getenv().getOrDefault("STRIPE_PRIVATE_API_KEY", "dummy"));
     registry.add("stripe.webhook.secret", () -> "dummy");
   }
 }

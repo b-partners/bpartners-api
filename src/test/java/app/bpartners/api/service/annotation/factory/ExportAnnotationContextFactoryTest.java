@@ -63,7 +63,7 @@ public class ExportAnnotationContextFactoryTest {
     assertEquals(1, actual.size());
     String dataUri = actual.get(0);
     assertNotNull(dataUri);
-    assertTrue(dataUri.startsWith("data:image/png;base64,"));
+    assertTrue(dataUri.startsWith("data:image/jpeg;base64,"));
   }
 
   @Test
@@ -80,7 +80,7 @@ public class ExportAnnotationContextFactoryTest {
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
-    assertTrue(actual.get(0).startsWith("data:image/png;base64,"));
+    assertTrue(actual.get(0).startsWith("data:image/jpeg;base64,"));
   }
 
   @Test
@@ -101,7 +101,7 @@ public class ExportAnnotationContextFactoryTest {
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
-    assertTrue(actual.get(0).startsWith("data:image/png;base64,"));
+    assertTrue(actual.get(0).startsWith("data:image/jpeg;base64,"));
   }
 
   @Test
@@ -141,12 +141,12 @@ public class ExportAnnotationContextFactoryTest {
   void base64_to_uri_should_prefix_when_missing() {
     String result = base64ToUri("abc");
 
-    assertEquals("data:image/png;base64,abc", result);
+    assertEquals("data:image/jpeg;base64,abc", result);
   }
 
   @Test
   void base64_to_uri_should_not_prefix_when_already_uri() {
-    String input = "data:image/png;base64,abc";
+    String input = "data:image/jpeg;base64,abc";
 
     String result = base64ToUri(input);
 
@@ -209,13 +209,13 @@ public class ExportAnnotationContextFactoryTest {
 
     ExportAnnotationContextFactory.configureAnnotation3DContext(
         context, annotation3D, images, fileService);
-    assertEquals("data:image/png;base64,main3d", context.getVariable("mainImage3D"));
+    assertEquals("data:image/jpeg;base64,main3d", context.getVariable("mainImage3D"));
     List<List<String>> subImagesPages =
         (List<List<String>>) context.getVariable("topViewPanImagesUris");
     assertEquals(1, subImagesPages.size());
     assertEquals(2, subImagesPages.get(0).size());
-    assertEquals("data:image/png;base64,a", subImagesPages.get(0).get(0));
-    assertEquals("data:image/png;base64,b", subImagesPages.get(0).get(1));
+    assertEquals("data:image/jpeg;base64,a", subImagesPages.get(0).get(0));
+    assertEquals("data:image/jpeg;base64,b", subImagesPages.get(0).get(1));
 
     List<List<ExportAreaPictureAnnotation3DPan>> pages3D =
         (List<List<ExportAreaPictureAnnotation3DPan>>) context.getVariable("pages3D");
@@ -283,9 +283,9 @@ public class ExportAnnotationContextFactoryTest {
 
     assertEquals(user, context.getVariable("user"));
     assertEquals("https://example.com", context.getVariable("userWebsite"));
-    assertEquals("data:image/png;base64,logo", context.getVariable("logo"));
+    assertEquals("data:image/jpeg;base64,logo", context.getVariable("logo"));
     assertEquals("Paris", context.getVariable("address"));
-    assertEquals("data:image/png;base64,main", context.getVariable("mainImage"));
+    assertEquals("data:image/jpeg;base64,main", context.getVariable("mainImage"));
   }
 
   @Test
@@ -501,7 +501,7 @@ public class ExportAnnotationContextFactoryTest {
               customPages.get(0).getSections().get(0);
       assertEquals(SectionPriority.SMALL, mapped.getPriority());
       assertEquals("A caption", mapped.getCaption());
-      assertTrue(mapped.getUrl().startsWith("data:image/png;base64,"));
+      assertTrue(mapped.getUrl().startsWith("data:image/jpeg;base64,"));
     }
   }
 
@@ -850,7 +850,7 @@ public class ExportAnnotationContextFactoryTest {
     assertEquals(1, actual.size());
     String dataUri = actual.get(0);
     assertNotNull(dataUri);
-    assertTrue(dataUri.startsWith("data:image/png;base64,"));
+    assertTrue(dataUri.startsWith("data:image/jpeg;base64,"));
   }
 
   @Test
@@ -867,7 +867,7 @@ public class ExportAnnotationContextFactoryTest {
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
-    assertTrue(actual.get(0).startsWith("data:image/png;base64,"));
+    assertTrue(actual.get(0).startsWith("data:image/jpeg;base64,"));
   }
 
   @Test
@@ -921,7 +921,7 @@ public class ExportAnnotationContextFactoryTest {
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
-    assertTrue(actual.get(0).startsWith("data:image/png;base64,"));
+    assertTrue(actual.get(0).startsWith("data:image/jpeg;base64,"));
   }
 
   @Test
@@ -947,7 +947,7 @@ public class ExportAnnotationContextFactoryTest {
 
       assertNotNull(actual);
       assertEquals(1, actual.size());
-      assertTrue(actual.get(0).startsWith("data:image/png;base64,"));
+      assertTrue(actual.get(0).startsWith("data:image/jpeg;base64,"));
     }
   }
 

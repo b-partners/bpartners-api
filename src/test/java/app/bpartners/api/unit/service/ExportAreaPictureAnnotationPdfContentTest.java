@@ -75,9 +75,9 @@ class ExportAreaPictureAnnotationPdfContentTest {
     assertTrue(html.contains("À rénover"));
 
     // Check for images
-    assertTrue(html.contains("data:image/png;base64,main3d"));
-    assertTrue(html.contains("data:image/png;base64,pan1_img"));
-    assertTrue(html.contains("data:image/png;base64,pan2_img"));
+    assertTrue(html.contains("data:image/jpeg;base64,main3d"));
+    assertTrue(html.contains("data:image/jpeg;base64,pan1_img"));
+    assertTrue(html.contains("data:image/jpeg;base64,pan2_img"));
   }
 
   @Test

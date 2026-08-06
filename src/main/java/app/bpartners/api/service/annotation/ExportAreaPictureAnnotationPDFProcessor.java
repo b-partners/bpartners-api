@@ -89,9 +89,11 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     Pair<String, List<String>> annotation3DFacadeImages = null;
 
     if (exportAnnotation.get3d() != null && globalImage3D != null) {
-      annotation3DImages = generateAnnotation3DImages(exportAnnotation.get3d(), globalImage3D);
+      byte[] compressedGlobalImage3D = imageCompressor.compressImage(globalImage3D);
+      annotation3DImages =
+          generateAnnotation3DImages(exportAnnotation.get3d(), compressedGlobalImage3D);
       annotation3DFacadeImages =
-          generateAnnotation3DFacadeImages(exportAnnotation.get3d(), globalImage3D);
+          generateAnnotation3DFacadeImages(exportAnnotation.get3d(), compressedGlobalImage3D);
     }
 
     return exportAreaPictureAnnotationPDFGenerator.apply(
@@ -137,8 +139,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       ExportAreaPictureAnnotation annotation,
       BufferedImage baseImage,
       double rescaleXValue,
-      double rescaleYValue)
-      throws IOException {
+      double rescaleYValue) {
     var mainImage =
         generateAnnotationImageAsBase64(
             baseImage,

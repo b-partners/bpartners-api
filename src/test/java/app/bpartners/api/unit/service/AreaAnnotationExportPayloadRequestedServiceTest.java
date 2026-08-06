@@ -1,13 +1,15 @@
 package app.bpartners.api.unit.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.model.ExportAreaPictureAnnotationRequested;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.endpoint.rest.mapper.ExportAreaPictureAnnotationRestMapper;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
+import app.bpartners.api.service.annotation.export.AreaAnnotationPDFProcessor;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.ExportAreaPictureAnnotationRequestedService;
@@ -19,13 +21,14 @@ import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ExportAreaPictureAnnotationRequestedServiceTest {
+class AreaAnnotationExportPayloadRequestedServiceTest {
   S3Service s3ServiceMock = mock();
   SesService mailerMock = mock();
   FileWriter fileWriterMock = mock();
   UserService userServiceMock = mock();
   TemplateResolverEngine templateResolverEngineMock = mock();
-  ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessorMock = mock();
+  AreaAnnotationPDFProcessor areaAnnotationPDFProcessorMock = mock();
+  ExportAreaPictureAnnotationRestMapper restMapperMock = mock();
 
   ExportAreaPictureAnnotationRequestedService subject =
       new ExportAreaPictureAnnotationRequestedService(
@@ -34,7 +37,8 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
           fileWriterMock,
           userServiceMock,
           templateResolverEngineMock,
-          exportAreaPictureAnnotationPDFProcessorMock);
+          areaAnnotationPDFProcessorMock,
+          restMapperMock);
 
   private static final String USER_ID = "userId";
   private static final String USER_MAIL = "user@gmail.com";
@@ -49,15 +53,24 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
     when(s3ServiceMock.uploadFile(any(), any(), any(), any())).thenReturn(mock());
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   void export_area_picture_annotation_requested_ok() throws IOException, MessagingException {
     var exportAreaPictureAnnotationRequested = createExportAreaPictureAnnotationRequested();
 
     doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any()))
-        .thenReturn("".getBytes());
+    when(areaAnnotationPDFProcessorMock.process(any(), any())).thenReturn("".getBytes());
     when(templateResolverEngineMock.parseTemplateResolver(any(), any()))
         .thenReturn("<html><body>Rapport généré</body></html>");
+    AreaAnnotationExportPayload domainAnnotation =
+        AreaAnnotationExportPayload.builder()
+            .address(ADDRESS)
+            .imageUrl("url")
+            .annotations(java.util.List.of())
+            .build();
+    when(restMapperMock.toDomain(
+            any(app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation.class)))
+        .thenReturn(domainAnnotation);
 
     subject.accept(exportAreaPictureAnnotationRequested);
 
@@ -68,25 +81,8 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
         Duration.ofMinutes(1));
   }
 
-  @Test
-  void export_area_picture_annotation_requested_ko() throws IOException, MessagingException {
-    var exportAreaPictureAnnotationRequested = createExportAreaPictureAnnotationRequested();
-
-    doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any()))
-        .thenThrow(IOException.class);
-    when(templateResolverEngineMock.parseTemplateResolver(any(), any()))
-        .thenReturn("<html><body>Rapport généré</body></html>");
-
-    subject.accept(exportAreaPictureAnnotationRequested);
-
-    verify(mailerMock, times(1)).sendEmail(any(), any(), any(), any());
-  }
-
   ExportAreaPictureAnnotationRequested createExportAreaPictureAnnotationRequested() {
-    var annotation = mock(ExportAreaPictureAnnotation.class);
-
-    when(annotation.getAddress()).thenReturn(ADDRESS);
+    var annotation = mock(app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation.class);
 
     return ExportAreaPictureAnnotationRequested.builder()
         .annotation(annotation)

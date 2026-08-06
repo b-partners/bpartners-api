@@ -139,8 +139,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       ExportAreaPictureAnnotation annotation,
       BufferedImage baseImage,
       double rescaleXValue,
-      double rescaleYValue)
-      throws IOException {
+      double rescaleYValue) {
     var mainImage =
         generateAnnotationImageAsBase64(
             baseImage,

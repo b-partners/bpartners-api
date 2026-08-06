@@ -20,10 +20,6 @@ public final class ImageUriUtils {
     return base64ToUri(base64(image));
   }
 
-  /**
-   * JPEG does not support an alpha channel. Transparent pixels are replaced by a white background
-   * so they do not render as black once the image is encoded into JPEG.
-   */
   public static BufferedImage toJpegCompatible(BufferedImage image) {
     BufferedImage compatible =
         new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);

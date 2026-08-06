@@ -330,7 +330,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         objectMapper.readValue(
             new ClassPathResource("payload/export/63 rue angelina faity.json").getInputStream(),
             ExportAreaPictureAnnotation.class);
-    mockImage = ImageIO.read(new ClassPathResource("files/63 rue angelina faity.jpeg").getInputStream());
+    mockImage =
+        ImageIO.read(new ClassPathResource("files/63 rue angelina faity.jpeg").getInputStream());
     mockImageBytes = toByteStream(mockImage);
 
     byte[] pdfBytes =

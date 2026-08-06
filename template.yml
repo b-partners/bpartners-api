@@ -91,7 +91,7 @@ Resources:
     Properties:
       Handler: app.bpartners.api.handler.LambdaHandler::handleRequest
       MemorySize: 2048
-      Timeout: 300
+      Timeout: 900
       Role: !Sub '{{resolve:ssm:/bpartners/${Env}/execution/role-arn}}'
       
       FunctionUrlConfig:

@@ -2,10 +2,10 @@ package app.bpartners.api.service.annotation.factory;
 
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
+import app.bpartners.api.service.annotation.AreaAnnotation3DPan;
+import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
+import app.bpartners.api.service.annotation.AreaAnnotationInstanceInfo;
+import app.bpartners.api.service.annotation.export.AreaAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.summary.AnnotationMeasurementSummary;
 import app.bpartners.api.service.annotation.model.summary.AnnotationPitch;
 import app.bpartners.api.service.annotation.model.summary.AnnotationRoofSlopeSummary;
@@ -25,19 +25,22 @@ public class AnnotationSummaryFactory {
   private static final String UNKNOWN_VALUE_PLACEHOLDER = "-";
 
   public static AnnotationSummary create(
-      ExportAreaPictureAnnotation annotation,
-      ExportAreaPictureAnnotationImage3DGenerator generator) {
-    if (annotation.get3d() == null) {
+      AreaAnnotationExportPayload annotation, AreaAnnotationImage3DGenerator generator) {
+    if (annotation.getAnnotation3d() == null) {
       return null;
     }
 
     var diagramImage =
         generator
-            .generateBaseImageWithSlopeBoundariesWithMeasurement(annotation.get3d().getPans())
+            .generateBaseImageWithSlopeBoundariesWithMeasurement(
+                annotation.getAnnotation3d().getPans())
             .second();
-    var baseImageWithAreas = generator.generateBaseImageWithAreas(annotation.get3d().getPans());
-    var baseImageWithNames = generator.generateBaseImageWithNames(annotation.get3d().getPans());
-    var baseImageWithPitches = generator.generateBaseImageWithPitches(annotation.get3d().getPans());
+    var baseImageWithAreas =
+        generator.generateBaseImageWithAreas(annotation.getAnnotation3d().getPans());
+    var baseImageWithNames =
+        generator.generateBaseImageWithNames(annotation.getAnnotation3d().getPans());
+    var baseImageWithPitches =
+        generator.generateBaseImageWithPitches(annotation.getAnnotation3d().getPans());
 
     String baseImageWithRoofSlopeBoundariesUri = bufferedImageToUri(diagramImage);
     String baseImageWithAreasUri = bufferedImageToUri(baseImageWithAreas);
@@ -60,7 +63,7 @@ public class AnnotationSummaryFactory {
   }
 
   private static List<AnnotationMeasurementSummary> getMeasurementsSummary(
-      List<AnnotationRoofSlopeSummary> roofSlopes, ExportAreaPictureAnnotation annotation) {
+      List<AnnotationRoofSlopeSummary> roofSlopes, AreaAnnotationExportPayload annotation) {
     var measurementSummaries = new ArrayList<AnnotationMeasurementSummary>();
 
     // Sum all pan areas — faces() stores clean "%.2f" numeric strings, no unit suffix
@@ -110,12 +113,12 @@ public class AnnotationSummaryFactory {
   }
 
   private static List<AnnotationMeasurementSummary> slopeBoundariesSummary(
-      ExportAreaPictureAnnotation annotation) {
+      AreaAnnotationExportPayload annotation) {
     var edgeTypesCount = new HashMap<String, Integer>();
     var edgeTypesSize = new HashMap<String, Double>();
 
     annotation
-        .get3d()
+        .getAnnotation3d()
         .getPans()
         .forEach(
             pan -> {
@@ -123,11 +126,11 @@ public class AnnotationSummaryFactory {
               var panMeasurements = pan.getMeasurements();
               for (int index = 0; index < typeNames.size(); index++) {
                 var name = typeNames.get(index);
-                var measurements = panMeasurements.get(index);
+                var measurement = panMeasurements.get(index);
                 var count = edgeTypesCount.getOrDefault(name, 0);
                 var size = edgeTypesSize.getOrDefault(name, 0d);
                 edgeTypesCount.put(name, count + 1);
-                edgeTypesSize.put(name, size + measurements.getValue());
+                edgeTypesSize.put(name, size + measurement.value());
               }
             });
 
@@ -186,8 +189,8 @@ public class AnnotationSummaryFactory {
         .toList();
   }
 
-  private static List<AnnotationRoofSlopeSummary> faces(ExportAreaPictureAnnotation annotation) {
-    List<ExportAreaPictureAnnotation3DPan> pans = annotation.get3d().getPans();
+  private static List<AnnotationRoofSlopeSummary> faces(AreaAnnotationExportPayload annotation) {
+    List<AreaAnnotation3DPan> pans = annotation.getAnnotation3d().getPans();
 
     record RawFace(String name, String pitchFormatted, double areaParsed) {}
 
@@ -197,18 +200,18 @@ public class AnnotationSummaryFactory {
 
       String pitchFormatted =
           pan.getInfos().stream()
-              .filter(info -> info.getLabel().toLowerCase().startsWith("pente"))
+              .filter(info -> info.label().toLowerCase().startsWith("pente"))
               .findFirst()
-              .map(ExportAreaPictureAnnotationInstanceInfo::getValue)
+              .map(AreaAnnotationInstanceInfo::value)
               .map(AnnotationSummaryFactory::formatPitch)
               .orElse(UNKNOWN_VALUE_PLACEHOLDER);
 
       int finalIndex = index;
       double areaParsed =
           pan.getInfos().stream()
-              .filter(info -> info.getLabel().toLowerCase().startsWith("surface rampant"))
+              .filter(info -> info.label().toLowerCase().startsWith("surface rampant"))
               .findFirst()
-              .map(ExportAreaPictureAnnotationInstanceInfo::getValue)
+              .map(AreaAnnotationInstanceInfo::value)
               .map(
                   v -> {
                     try {

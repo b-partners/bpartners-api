@@ -1,6 +1,7 @@
 package app.bpartners.api.service.annotation;
 
-import app.bpartners.api.service.annotation.export.CompressionParameters;
+import static app.bpartners.api.service.annotation.utils.ImageUriUtils.toJpegCompatible;
+
 import app.bpartners.api.service.annotation.factory.CompressionParametersFactory;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @RequiredArgsConstructor
 public class ImageCompressor {
-  private static final int DEFAULT_IMAGE_TARGET_SIZE = 100 * 1024; // 100 KB
+  private static final int DEFAULT_IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
   private static final int DEFAULT_MAX_IMAGE_WIDTH = 1180;
   private static final int DEFAULT_MAX_IMAGE_HEIGHT = 1180;
   private static final String IMAGE_COMPRESSION_FORMAT = "jpg";
@@ -151,11 +152,7 @@ public class ImageCompressor {
   }
 
   private BufferedImage convertToJPEGCompatibleType(BufferedImage image) {
-    BufferedImage compatible =
-        new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-    compatible.getGraphics().drawImage(image, 0, 0, null);
-
-    return compatible;
+    return toJpegCompatible(image);
   }
 
   private long getImageSizeBytes(BufferedImage image) throws IOException {

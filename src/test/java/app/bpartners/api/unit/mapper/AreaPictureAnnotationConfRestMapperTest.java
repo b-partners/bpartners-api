@@ -25,28 +25,28 @@ class AreaPictureAnnotationConfRestMapperTest {
 
     var domain = subject.toDomain(rest);
 
-    assertTrue(domain.isShowTitlePage());
-    assertFalse(domain.isShowAnnotationPages());
-    assertTrue(domain.isShowAnnotation3dPages());
-    assertFalse(domain.isShowMeasurementSummary());
-    assertTrue(domain.isShowPitchSummary());
-    assertFalse(domain.isShowAreaSummary());
-    assertTrue(domain.isShowOverallSummary());
-    assertFalse(domain.isShowLlmSummary());
+    assertTrue(domain.showTitlePage());
+    assertFalse(domain.showAnnotationPages());
+    assertTrue(domain.showAnnotation3dPages());
+    assertFalse(domain.showMeasurementSummary());
+    assertTrue(domain.showPitchSummary());
+    assertFalse(domain.showAreaSummary());
+    assertTrue(domain.showOverallSummary());
+    assertFalse(domain.showLlmSummary());
   }
 
   @Test
   void to_domain_null_defaults_to_true() {
     var domain = subject.toDomain(null);
 
-    assertTrue(domain.isShowTitlePage());
-    assertTrue(domain.isShowAnnotationPages());
-    assertTrue(domain.isShowAnnotation3dPages());
-    assertTrue(domain.isShowMeasurementSummary());
-    assertTrue(domain.isShowPitchSummary());
-    assertTrue(domain.isShowAreaSummary());
-    assertTrue(domain.isShowOverallSummary());
-    assertTrue(domain.isShowLlmSummary());
+    assertTrue(domain.showTitlePage());
+    assertTrue(domain.showAnnotationPages());
+    assertTrue(domain.showAnnotation3dPages());
+    assertTrue(domain.showMeasurementSummary());
+    assertTrue(domain.showPitchSummary());
+    assertTrue(domain.showAreaSummary());
+    assertTrue(domain.showOverallSummary());
+    assertTrue(domain.showLlmSummary());
   }
 
   @Test
@@ -56,13 +56,13 @@ class AreaPictureAnnotationConfRestMapperTest {
 
     var domain = subject.toDomain(rest);
 
-    assertFalse(domain.isShowTitlePage());
-    assertTrue(domain.isShowAnnotationPages());
-    assertTrue(domain.isShowAnnotation3dPages());
-    assertTrue(domain.isShowMeasurementSummary());
-    assertTrue(domain.isShowPitchSummary());
-    assertTrue(domain.isShowAreaSummary());
-    assertTrue(domain.isShowOverallSummary());
-    assertTrue(domain.isShowLlmSummary());
+    assertFalse(domain.showTitlePage());
+    assertTrue(domain.showAnnotationPages());
+    assertTrue(domain.showAnnotation3dPages());
+    assertTrue(domain.showMeasurementSummary());
+    assertTrue(domain.showPitchSummary());
+    assertTrue(domain.showAreaSummary());
+    assertTrue(domain.showOverallSummary());
+    assertTrue(domain.showLlmSummary());
   }
 }

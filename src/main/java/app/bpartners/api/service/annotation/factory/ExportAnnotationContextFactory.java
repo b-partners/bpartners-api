@@ -113,7 +113,9 @@ public class ExportAnnotationContextFactory {
   }
 
   private static void configureLastSectionContext(
-      Context context, ExportAreaPictureAnnotation annotation, ExportAreaPictureAnnotationConf conf) {
+      Context context,
+      ExportAreaPictureAnnotation annotation,
+      ExportAreaPictureAnnotationConf conf) {
     boolean has3D = annotation.get3d() != null;
     boolean show3dPages = has3D && conf.isShowAnnotation3dPages();
     boolean showFacades3D =
@@ -128,10 +130,10 @@ public class ExportAnnotationContextFactory {
     boolean anySummary = showMeasurement || showPitch || showArea || showOverall;
 
     context.setVariable(
-        "annotationPagesIsLast",
-        !show3dPages && !anySummary && !showCustomPages && !showLlm);
+        "annotationPagesIsLast", !show3dPages && !anySummary && !showCustomPages && !showLlm);
     context.setVariable(
-        "pans3DIsLast", show3dPages && !showFacades3D && !anySummary && !showCustomPages && !showLlm);
+        "pans3DIsLast",
+        show3dPages && !showFacades3D && !anySummary && !showCustomPages && !showLlm);
     context.setVariable(
         "facades3DIsLast", showFacades3D && !anySummary && !showCustomPages && !showLlm);
     context.setVariable(
@@ -142,10 +144,8 @@ public class ExportAnnotationContextFactory {
         showPitch && !showArea && !showOverall && !showCustomPages && !showLlm);
     context.setVariable(
         "areaSummaryIsLast", showArea && !showOverall && !showCustomPages && !showLlm);
-    context.setVariable(
-        "overallSummaryIsLast", showOverall && !showCustomPages && !showLlm);
-    context.setVariable(
-        "facesSummaryIsLast", showOverall && !showCustomPages && !showLlm);
+    context.setVariable("overallSummaryIsLast", showOverall && !showCustomPages && !showLlm);
+    context.setVariable("facesSummaryIsLast", showOverall && !showCustomPages && !showLlm);
     context.setVariable("customPagesIsLast", showCustomPages && !showLlm);
   }
 

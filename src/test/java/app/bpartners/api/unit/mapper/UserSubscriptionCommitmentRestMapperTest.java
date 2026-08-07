@@ -1,6 +1,6 @@
 package app.bpartners.api.unit.mapper;
 
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration._12_MONTHS;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration.TWELVE_MONTHS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -48,7 +48,7 @@ class UserSubscriptionCommitmentRestMapperTest {
   private static CreateUserSubscriptionCommitment validCreateCommitment() {
     return new CreateUserSubscriptionCommitment()
         .subscriptionPlanIdentifier(PLAN_ID)
-        .duration(_12_MONTHS)
+        .duration(TWELVE_MONTHS)
         .commitmentStart(COMMITMENT_START)
         .approvalDatetime(APPROVAL_DATETIME);
   }
@@ -61,7 +61,7 @@ class UserSubscriptionCommitmentRestMapperTest {
 
     assertEquals(USER_ID, actual.getUserId());
     assertEquals(PLAN_ID, actual.getSubscriptionPlanIdentifier());
-    assertEquals(_12_MONTHS, actual.getDuration());
+    assertEquals(TWELVE_MONTHS, actual.getDuration());
     assertEquals(APPROVAL_DATETIME, actual.getApprovalDatetime());
     assertEquals(COMMITMENT_START, actual.getCommitmentStartDatetime());
     assertEquals(
@@ -122,7 +122,7 @@ class UserSubscriptionCommitmentRestMapperTest {
             .id("commitment_id")
             .userId(USER_ID)
             .subscriptionPlanIdentifier(PLAN_ID)
-            .duration(_12_MONTHS)
+            .duration(TWELVE_MONTHS)
             .approvalDatetime(APPROVAL_DATETIME)
             .commitmentStartDatetime(COMMITMENT_START)
             .commitmentEndDatetime(commitmentEnd)
@@ -132,7 +132,7 @@ class UserSubscriptionCommitmentRestMapperTest {
 
     assertEquals("commitment_id", actual.getId());
     assertEquals(subscriptionPlanDescription, actual.getSubscriptionPlan());
-    assertEquals(_12_MONTHS, actual.getDuration());
+    assertEquals(TWELVE_MONTHS, actual.getDuration());
     assertEquals(APPROVAL_DATETIME, actual.getApprovalDatetime());
     assertEquals(COMMITMENT_START, actual.getCommitmentStart());
     assertEquals(commitmentEnd, actual.getCommitmentEnd());

@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration._12_MONTHS;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration.TWELVE_MONTHS;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
@@ -53,7 +53,7 @@ public class UserSubscriptionCommitmentRestMapper {
 
   private Instant computeCommitmentEndDatetime(
       CreateUserSubscriptionCommitment createUserSubscriptionCommitment) {
-    if (_12_MONTHS.equals(createUserSubscriptionCommitment.getDuration())) {
+    if (TWELVE_MONTHS.equals(createUserSubscriptionCommitment.getDuration())) {
       return createUserSubscriptionCommitment
           .getCommitmentStart()
           .atZone(ZoneId.of("Europe/Paris"))

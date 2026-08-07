@@ -168,6 +168,68 @@ class UserControllerTest {
     verifyNoInteractions(subscriptionServiceMock);
   }
 
+  @Test
+  void get_user_subscription_commitments_ok() {
+    var httpServletRequestMock = authenticatedRequest();
+    var planId = randomUUID().toString();
+    var commitmentId = randomUUID().toString();
+    var commitmentStart = Instant.parse("2026-01-01T00:00:00Z");
+    var commitmentEnd = Instant.parse("2027-01-01T00:00:00Z");
+    var approvalDatetime = Instant.parse("2025-12-31T00:00:00Z");
+    var subscriptionProduct =
+        SubscriptionProduct.builder()
+            .id(planId)
+            .name("Essentiel")
+            .description("desc")
+            .features(List.of("f1"))
+            .billingType(SubscriptionBillingType.COMMITMENT)
+            .priceInCentsWithoutVat(4900L)
+            .vatPercent(2000L)
+            .mostChosen(true)
+            .deprecated(false)
+            .displayPosition(1)
+            .build();
+    when(subscriptionProductRepositoryMock.findById(planId))
+        .thenReturn(Optional.of(subscriptionProduct));
+    when(subscriptionServiceMock.getUserSubscriptionCommitments(any()))
+        .thenReturn(
+            List.of(
+                app.bpartners.api.model.UserSubscriptionCommitment.builder()
+                    .id(commitmentId)
+                    .userId(randomUUID().toString())
+                    .subscriptionPlanIdentifier(planId)
+                    .duration(_12_MONTHS)
+                    .approvalDatetime(approvalDatetime)
+                    .commitmentStartDatetime(commitmentStart)
+                    .commitmentEndDatetime(commitmentEnd)
+                    .build()));
+
+    var actual =
+        subject.getUserSubscriptionCommitments(httpServletRequestMock, randomUUID().toString());
+
+    assertEquals(
+        List.of(
+            new app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitment()
+                .id(commitmentId)
+                .subscriptionPlan(subscriptionPlanRestMapper.toRestDescription(subscriptionProduct))
+                .duration(_12_MONTHS)
+                .approvalDatetime(approvalDatetime)
+                .commitmentStart(commitmentStart)
+                .commitmentEnd(commitmentEnd)),
+        actual);
+  }
+
+  @Test
+  void get_user_subscription_commitments_ok_when_empty() {
+    var httpServletRequestMock = authenticatedRequest();
+    when(subscriptionServiceMock.getUserSubscriptionCommitments(any())).thenReturn(List.of());
+
+    var actual =
+        subject.getUserSubscriptionCommitments(httpServletRequestMock, randomUUID().toString());
+
+    assertEquals(List.of(), actual);
+  }
+
   private HttpServletRequest authenticatedRequest() {
     var httpServletRequestMock = mock(HttpServletRequest.class);
     when(httpServletRequestMock.getHeader("Authorization"))

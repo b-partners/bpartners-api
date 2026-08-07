@@ -479,7 +479,7 @@ components:
     UpdateUserSubscriptionCommitmentAutoRenewalStatus:
       type: object
       properties:
-        autoRenewalStatus:
+        automaticRenewalStatus:
           $ref: './api.yml#/components/schemas/EnableStatus'
     CreateUserSubscriptionCommitment:
       allOf:

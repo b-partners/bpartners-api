@@ -265,7 +265,8 @@ class UserControllerTest {
             httpServletRequestMock,
             randomUUID().toString(),
             commitmentId,
-            new UpdateUserSubscriptionCommitmentAutoRenewalStatus().autoRenewalStatus(ENABLED));
+            new UpdateUserSubscriptionCommitmentAutoRenewalStatus()
+                .automaticRenewalStatus(ENABLED));
 
     assertEquals(commitmentId, actual.getId());
     assertEquals(ENABLED, actual.getAutomaticRenewalStatus());

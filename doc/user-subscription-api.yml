@@ -389,11 +389,13 @@ components:
           type: string
           format: date-time
         duration:
-          type: string
-          enum: ['12_MONTHS']
+          $ref: '#/components/schemas/UserSubscriptionCommitmentDuration'
         approvalDatetime:
           type: string
           format: date-time
+    UserSubscriptionCommitmentDuration:
+      type: string
+      enum: [ '12_MONTHS' ]
     CreateUserSubscriptionCommitment:
       allOf:
         - $ref: '#/components/schemas/UserSubscriptionCommitmentDetails'
@@ -406,6 +408,8 @@ components:
         - $ref: '#/components/schemas/UserSubscriptionCommitmentDetails'
         - type: object
           properties:
+            id:
+              type: string
             subscriptionPlan:
               $ref: '#/components/schemas/SubscriptionPlanDescription'
             commitmentEnd:

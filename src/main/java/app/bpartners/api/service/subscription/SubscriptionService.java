@@ -21,6 +21,7 @@ import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -29,6 +30,7 @@ import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
@@ -75,6 +77,7 @@ public class SubscriptionService {
   private final StripeCustomerService stripeCustomerService;
   private final StripeSubscriptionService stripeSubscriptionService;
   private final UserSubscriptionProductService userSubscriptionProductService;
+  private final UserSubscriptionCommitmentJpaRepository userSubscriptionCommitmentJpaRepository;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -261,6 +264,11 @@ public class SubscriptionService {
             () ->
                 new NotFoundException(
                     "Metered SubscriptionProduct(id=" + meteredProductId + ") not found"));
+  }
+
+  public List<UserSubscriptionCommitment> saveUserSubscriptionCommitments(
+      List<UserSubscriptionCommitment> userSubscriptionCommitments) {
+    return userSubscriptionCommitmentJpaRepository.saveAll(userSubscriptionCommitments);
   }
 
   @SneakyThrows

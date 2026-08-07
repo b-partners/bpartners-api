@@ -1,20 +1,36 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration._12_MONTHS;
 import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionCommitmentRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreateUserSubscriptionCommitment;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.subscription.SubscriptionBillingType;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.service.subscription.StripeSetupService;
+import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,16 +39,23 @@ class UserControllerTest {
   StripeSetupService stripeSetupServiceMock = mock();
   CognitoComponent cognitoComponentMock = mock();
   UserService userServiceMock = mock();
+  SubscriptionService subscriptionServiceMock = mock();
+  SubscriptionProductRepository subscriptionProductRepositoryMock = mock();
+  SubscriptionPlanRestMapper subscriptionPlanRestMapper = new SubscriptionPlanRestMapper();
+  UserSubscriptionCommitmentRestMapper userSubscriptionCommitmentRestMapper =
+      new UserSubscriptionCommitmentRestMapper(
+          subscriptionProductRepositoryMock, subscriptionPlanRestMapper);
   UserController subject =
       new UserController(
           mock(),
           cognitoComponentMock,
           userServiceMock,
+          subscriptionServiceMock,
           mock(),
           mock(),
           mock(),
-          mock(),
-          stripeSetupServiceMock);
+          stripeSetupServiceMock,
+          userSubscriptionCommitmentRestMapper);
 
   @BeforeEach
   void setUp() {
@@ -72,5 +95,83 @@ class UserControllerTest {
             .redirectionUrl(redirectionUrl)
             .redirectionStatusUrls(redirectionStatusUrls),
         actual);
+  }
+
+  @Test
+  void save_user_subscription_commitments_ok() {
+    var httpServletRequestMock = authenticatedRequest();
+    var planId = randomUUID().toString();
+    var commitmentStart = Instant.parse("2026-01-01T00:00:00Z");
+    var approvalDatetime = Instant.parse("2025-12-31T00:00:00Z");
+    var subscriptionProduct =
+        SubscriptionProduct.builder()
+            .id(planId)
+            .name("Essentiel")
+            .description("desc")
+            .features(List.of("f1"))
+            .billingType(SubscriptionBillingType.COMMITMENT)
+            .priceInCentsWithoutVat(4900L)
+            .vatPercent(2000L)
+            .mostChosen(true)
+            .deprecated(false)
+            .displayPosition(1)
+            .build();
+    when(subscriptionProductRepositoryMock.findById(planId))
+        .thenReturn(Optional.of(subscriptionProduct));
+    when(subscriptionServiceMock.saveUserSubscriptionCommitments(anyList()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    var actual =
+        subject.saveUserSubscriptionCommitments(
+            httpServletRequestMock,
+            randomUUID().toString(),
+            List.of(
+                new CreateUserSubscriptionCommitment()
+                    .subscriptionPlanIdentifier(planId)
+                    .duration(_12_MONTHS)
+                    .commitmentStart(commitmentStart)
+                    .approvalDatetime(approvalDatetime)));
+
+    assertEquals(1, actual.size());
+    var actualCommitment = actual.getFirst();
+    assertNotNull(actualCommitment.getId());
+    assertEquals(
+        subscriptionPlanRestMapper.toRestDescription(subscriptionProduct),
+        actualCommitment.getSubscriptionPlan());
+    assertEquals(_12_MONTHS, actualCommitment.getDuration());
+    assertEquals(approvalDatetime, actualCommitment.getApprovalDatetime());
+    assertEquals(commitmentStart, actualCommitment.getCommitmentStart());
+    assertEquals(
+        commitmentStart.atZone(ZoneId.of("Europe/Paris")).plusMonths(12).toInstant(),
+        actualCommitment.getCommitmentEnd());
+  }
+
+  @Test
+  void save_user_subscription_commitments_ko_when_mandatory_fields_missing() {
+    var httpServletRequestMock = authenticatedRequest();
+
+    var error =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                subject.saveUserSubscriptionCommitments(
+                    httpServletRequestMock,
+                    randomUUID().toString(),
+                    List.of(new CreateUserSubscriptionCommitment())));
+
+    assertEquals(
+        "subscriptionPlanIdentifier is mandatory. "
+            + "duration is mandatory. "
+            + "commitmentStart is mandatory. "
+            + "approvalDatetime is mandatory. ",
+        error.getMessage());
+    verifyNoInteractions(subscriptionServiceMock);
+  }
+
+  private HttpServletRequest authenticatedRequest() {
+    var httpServletRequestMock = mock(HttpServletRequest.class);
+    when(httpServletRequestMock.getHeader("Authorization"))
+        .thenReturn("Bearer " + randomUUID().toString().replace("-", ""));
+    return httpServletRequestMock;
   }
 }

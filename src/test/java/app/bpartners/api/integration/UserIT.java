@@ -280,7 +280,7 @@ class UserIT extends MockedThirdParties {
   private static CreateUserSubscriptionCommitment aCreateUserSubscriptionCommitment() {
     return new CreateUserSubscriptionCommitment()
         .subscriptionPlanIdentifier("essential")
-        .duration(UserSubscriptionCommitmentDuration._12_MONTHS)
+        .duration(UserSubscriptionCommitmentDuration.TWELVE_MONTHS)
         .commitmentStart(now())
         .approvalDatetime(now());
   }

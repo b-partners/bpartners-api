@@ -771,7 +771,7 @@ components:
         email:
           type: string
         status:
-          $ref: '#/components/schemas/EnableStatus'
+          $ref: './api.yml#/components/schemas/EnableStatus'
         activeAccount:
           $ref: '#/components/schemas/Account'
         activeAccountHolder:
@@ -811,7 +811,7 @@ components:
         logoFileId:
           type: string
         status:
-          $ref: '#/components/schemas/EnableStatus'
+          $ref: './api.yml#/components/schemas/EnableStatus'
         activeAccount:
           $ref: '#/components/schemas/Account'
         roles:
@@ -854,11 +854,6 @@ components:
         - INVALID_IDENTITY
         - INSUFFICIENT_DOCUMENT_QUALITY
         - UNINITIATED
-    EnableStatus:
-      type: string
-      enum:
-        - ENABLED
-        - DISABLED
     Bank:
       type: object
       properties:

@@ -8,6 +8,7 @@ import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.api.SecurityApi;
@@ -279,7 +280,8 @@ class UserIT extends MockedThirdParties {
 
   private static CreateUserSubscriptionCommitment aCreateUserSubscriptionCommitment() {
     return new CreateUserSubscriptionCommitment()
-        .subscriptionPlanIdentifier("essential")
+        // must reference an existing SubscriptionProduct, otherwise the mapper rejects it
+        .subscriptionPlanIdentifier("aef20fa7-5d85-4900-bad5-ee121be69ef3")
         .duration(UserSubscriptionCommitmentDuration.TWELVE_MONTHS)
         .commitmentStart(now())
         .approvalDatetime(now());
@@ -326,6 +328,56 @@ class UserIT extends MockedThirdParties {
         () ->
             api.saveUserSubscriptionCommitments(
                 JANE_DOE_ID, List.of(aCreateUserSubscriptionCommitment())));
+  }
+
+  @Test
+  void update_user_subscription_commitment_auto_renewal_status_by_self_user_ok()
+      throws ApiException {
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    UserSubscriptionApi api = new UserSubscriptionApi(janeDoeClient);
+    var commitmentId = "commitment_id";
+    var subscriptionProductId = "aef20fa7-5d85-4900-bad5-ee121be69ef3";
+    when(subscriptionService.updateUserSubscriptionCommitmentAutoRenewalStatus(
+            eq(JANE_DOE_ID), eq(commitmentId), eq(ENABLED)))
+        .thenReturn(
+            app.bpartners.api.model.UserSubscriptionCommitment.builder()
+                .id(commitmentId)
+                .userId(JANE_DOE_ID)
+                .subscriptionPlanIdentifier(subscriptionProductId)
+                .duration(UserSubscriptionCommitmentDuration.TWELVE_MONTHS)
+                .autoRenewalStatusHistory(
+                    List.of(
+                        app.bpartners.api.model.UserSubscriptionCommitmentAutoRenewalStatusHistory
+                            .builder()
+                            .id("history_id")
+                            .userSubscriptionCommitmentId(commitmentId)
+                            .autoRenewalStatus(ENABLED)
+                            .creationDatetime(now())
+                            .build()))
+                .build());
+
+    UserSubscriptionCommitment actual =
+        api.updateUserSubscriptionCommitmentAutoRenewalStatus(
+            JANE_DOE_ID,
+            commitmentId,
+            new UpdateUserSubscriptionCommitmentAutoRenewalStatus().autoRenewalStatus(ENABLED));
+
+    assertEquals(commitmentId, actual.getId());
+    assertEquals(ENABLED, actual.getAutomaticRenewalStatus());
+  }
+
+  @Test
+  void update_user_subscription_commitment_auto_renewal_status_by_other_user_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserSubscriptionApi api = new UserSubscriptionApi(joeDoeClient);
+
+    assertThrowsForbiddenException(
+        () ->
+            api.updateUserSubscriptionCommitmentAutoRenewalStatus(
+                JANE_DOE_ID,
+                "commitment_id",
+                new UpdateUserSubscriptionCommitmentAutoRenewalStatus()
+                    .autoRenewalStatus(ENABLED)));
   }
 
   public OnboardUser onboardUser() {

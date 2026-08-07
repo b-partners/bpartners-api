@@ -7,10 +7,12 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.rest.model.CreateUserSubscriptionCommitment;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserSubscriptionCommitmentAutoRenewalStatusHistory;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,7 @@ public class UserSubscriptionCommitmentRestMapper {
         .id(userSubscriptionCommitment.getId())
         .subscriptionPlan(subscriptionPlanRestMapper.toRestDescription(subscriptionProduct))
         .duration(userSubscriptionCommitment.getDuration())
+        .automaticRenewalStatus(userSubscriptionCommitment.getAutomaticRenewalStatus())
         .approvalDatetime(userSubscriptionCommitment.getApprovalDatetime())
         .commitmentStart(userSubscriptionCommitment.getCommitmentStartDatetime())
         .commitmentEnd(userSubscriptionCommitment.getCommitmentEndDatetime());
@@ -38,8 +41,9 @@ public class UserSubscriptionCommitmentRestMapper {
   public app.bpartners.api.model.UserSubscriptionCommitment toDomain(
       User user, CreateUserSubscriptionCommitment createUserSubscriptionCommitment) {
     accept(createUserSubscriptionCommitment);
+    var userSubscriptionCommitmentIdentifier = randomUUID().toString();
     return app.bpartners.api.model.UserSubscriptionCommitment.builder()
-        .id(randomUUID().toString())
+        .id(userSubscriptionCommitmentIdentifier)
         .userId(user.getId())
         .subscriptionPlanIdentifier(
             createUserSubscriptionCommitment.getSubscriptionPlanIdentifier())
@@ -47,6 +51,14 @@ public class UserSubscriptionCommitmentRestMapper {
         .approvalDatetime(createUserSubscriptionCommitment.getApprovalDatetime())
         .commitmentStartDatetime(createUserSubscriptionCommitment.getCommitmentStart())
         .commitmentEndDatetime(computeCommitmentEndDatetime(createUserSubscriptionCommitment))
+        .autoRenewalStatusHistory(
+            List.of(
+                UserSubscriptionCommitmentAutoRenewalStatusHistory.builder()
+                    .id(randomUUID().toString())
+                    .userSubscriptionCommitmentId(userSubscriptionCommitmentIdentifier)
+                    .autoRenewalStatus(createUserSubscriptionCommitment.getAutomaticRenewalStatus())
+                    .creationDatetime(now())
+                    .build()))
         .creationDatetime(now())
         .build();
   }

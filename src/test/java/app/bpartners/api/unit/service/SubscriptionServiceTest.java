@@ -24,6 +24,7 @@ import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.UserSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository;
 import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.repository.jpa.model.detection.HDetectionTracking;
@@ -75,6 +76,8 @@ class SubscriptionServiceTest {
   UserSubscriptionProductService userSubscriptionProductServiceMock =
       mock(UserSubscriptionProductService.class);
   UserSubscriptionCommitmentJpaRepository userSubscriptionCommitmentJpaRepositoryMock = mock();
+  UserSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository
+      userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepositoryMock = mock();
   SubscriptionService subject =
       new SubscriptionService(
           stripeConfMock,
@@ -91,7 +94,8 @@ class SubscriptionServiceTest {
           stripeCustomerServiceMock,
           stripeSubscriptionServiceMock,
           userSubscriptionProductServiceMock,
-          userSubscriptionCommitmentJpaRepositoryMock);
+          userSubscriptionCommitmentJpaRepositoryMock,
+          userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepositoryMock);
 
   @Test
   void get_subscription_consumption_logs_ok() {
@@ -1255,5 +1259,68 @@ class SubscriptionServiceTest {
       logs.add(someDetectionTracking(userId, now()));
     }
     return logs;
+  }
+
+  @Test
+  void update_auto_renewal_status_persists_a_new_history_entry() {
+    var userId = randomUUID().toString();
+    var commitmentId = randomUUID().toString();
+    var commitment =
+        app.bpartners.api.model.UserSubscriptionCommitment.builder()
+            .id(commitmentId)
+            .userId(userId)
+            .build();
+    when(userSubscriptionCommitmentJpaRepositoryMock.findById(commitmentId))
+        .thenReturn(Optional.of(commitment));
+
+    subject.updateUserSubscriptionCommitmentAutoRenewalStatus(
+        userId, commitmentId, app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED);
+
+    var historyCaptor =
+        ArgumentCaptor.forClass(
+            app.bpartners.api.model.UserSubscriptionCommitmentAutoRenewalStatusHistory.class);
+    verify(userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepositoryMock)
+        .save(historyCaptor.capture());
+    var savedHistory = historyCaptor.getValue();
+    assertNotNull(savedHistory.getId());
+    assertEquals(commitmentId, savedHistory.getUserSubscriptionCommitmentId());
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED,
+        savedHistory.getAutoRenewalStatus());
+    assertNotNull(savedHistory.getCreationDatetime());
+    // the commitment row itself is never mutated: history is append-only
+    verify(userSubscriptionCommitmentJpaRepositoryMock, never()).save(any());
+  }
+
+  @Test
+  void update_auto_renewal_status_ko_when_status_is_null() {
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            subject.updateUserSubscriptionCommitmentAutoRenewalStatus(
+                randomUUID().toString(), randomUUID().toString(), null));
+    verifyNoInteractions(
+        userSubscriptionCommitmentJpaRepositoryMock,
+        userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepositoryMock);
+  }
+
+  @Test
+  void update_auto_renewal_status_ko_when_commitment_not_owned_by_user() {
+    var userId = randomUUID().toString();
+    var commitmentId = randomUUID().toString();
+    var commitment =
+        app.bpartners.api.model.UserSubscriptionCommitment.builder()
+            .id(commitmentId)
+            .userId(randomUUID().toString())
+            .build();
+    when(userSubscriptionCommitmentJpaRepositoryMock.findById(commitmentId))
+        .thenReturn(Optional.of(commitment));
+
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            subject.updateUserSubscriptionCommitmentAutoRenewalStatus(
+                userId, commitmentId, app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED));
+    verifyNoInteractions(userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepositoryMock);
   }
 }

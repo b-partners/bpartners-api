@@ -185,6 +185,12 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             POST, "/users/*/subscriptionCommitments", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST,
+                            "/users/*/subscriptionCommitments/*/autoRenewalStatus",
+                            authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/users/*/keys")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(GET, "/users/*/keys")

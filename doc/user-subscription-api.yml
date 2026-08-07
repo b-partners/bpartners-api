@@ -38,7 +38,6 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-
     post:
       tags:
         - User Subscription
@@ -66,6 +65,46 @@ operations:
                 type: array
                 items:
                   $ref: '#/components/schemas/UserSubscriptionCommitment'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+  subscriptionCommitmentAutoRenewalStatusOperation:
+    post:
+      tags:
+        - User Subscription
+      summary: Update the automatic renewal status of a user subscription commitment
+      operationId: updateUserSubscriptionCommitmentAutoRenewalStatus
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: sId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserSubscriptionCommitmentAutoRenewalStatus'
+      responses:
+        '200':
+          description: User subscription commitment with its updated automatic renewal status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionCommitment'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -432,9 +471,16 @@ components:
         approvalDatetime:
           type: string
           format: date-time
+        automaticRenewalStatus:
+          $ref: './api.yml#/components/schemas/EnableStatus'
     UserSubscriptionCommitmentDuration:
       type: string
       enum: [ 'TWELVE_MONTHS' ]
+    UpdateUserSubscriptionCommitmentAutoRenewalStatus:
+      type: object
+      properties:
+        autoRenewalStatus:
+          $ref: './api.yml#/components/schemas/EnableStatus'
     CreateUserSubscriptionCommitment:
       allOf:
         - $ref: '#/components/schemas/UserSubscriptionCommitmentDetails'

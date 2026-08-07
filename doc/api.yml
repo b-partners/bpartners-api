@@ -96,6 +96,8 @@ paths:
     $ref: './user-subscription-api.yml#/operations/subscriptionConsumptionLogsOperation'
   /users/{uId}/subscriptionCommitments:
     $ref: './user-subscription-api.yml#/operations/subscriptionCommitmentsOperations'
+  /users/{uId}/subscriptionCommitments/{sId}/autoRenewalStatus:
+    $ref: './user-subscription-api.yml#/operations/subscriptionCommitmentAutoRenewalStatusOperation'
 
 
   #############################################
@@ -349,6 +351,11 @@ components:
           description: HTML is waited
         attachments:
           $ref: '#/components/schemas/CreateAttachment'
+    EnableStatus:
+      type: string
+      enum:
+        - ENABLED
+        - DISABLED
     JobStatus:
       type: object
       properties:

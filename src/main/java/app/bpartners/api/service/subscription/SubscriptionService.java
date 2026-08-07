@@ -15,6 +15,7 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
@@ -22,6 +23,7 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionCommitment;
+import app.bpartners.api.model.UserSubscriptionCommitmentAutoRenewalStatusHistory;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -30,6 +32,7 @@ import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.UserSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository;
 import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -78,6 +81,8 @@ public class SubscriptionService {
   private final StripeSubscriptionService stripeSubscriptionService;
   private final UserSubscriptionProductService userSubscriptionProductService;
   private final UserSubscriptionCommitmentJpaRepository userSubscriptionCommitmentJpaRepository;
+  private final UserSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository
+      userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -273,6 +278,33 @@ public class SubscriptionService {
 
   public List<UserSubscriptionCommitment> getUserSubscriptionCommitments(String userIdentifier) {
     return userSubscriptionCommitmentJpaRepository.findAllByUserId(userIdentifier);
+  }
+
+  @Transactional
+  public UserSubscriptionCommitment updateUserSubscriptionCommitmentAutoRenewalStatus(
+      String userId, String commitmentId, EnableStatus autoRenewalStatus) {
+    if (autoRenewalStatus == null) {
+      throw new BadRequestException("autoRenewalStatus is mandatory.");
+    }
+    var commitment =
+        userSubscriptionCommitmentJpaRepository
+            .findById(commitmentId)
+            .filter(it -> userId.equals(it.getUserId()))
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "UserSubscriptionCommitment.id="
+                            + commitmentId
+                            + " not found for User.id="
+                            + userId));
+    userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository.save(
+        UserSubscriptionCommitmentAutoRenewalStatusHistory.builder()
+            .id(randomUUID().toString())
+            .userSubscriptionCommitmentId(commitmentId)
+            .autoRenewalStatus(autoRenewalStatus)
+            .creationDatetime(now())
+            .build());
+    return userSubscriptionCommitmentJpaRepository.findById(commitmentId).orElseThrow();
   }
 
   @SneakyThrows

@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration.TWELVE_MONTHS;
 import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static java.util.UUID.randomUUID;
@@ -8,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -17,6 +19,7 @@ import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionCommitmentRestMapp
 import app.bpartners.api.endpoint.rest.model.CreateUserSubscriptionCommitment;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.model.UpdateUserSubscriptionCommitmentAutoRenewalStatus;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -228,6 +231,44 @@ class UserControllerTest {
         subject.getUserSubscriptionCommitments(httpServletRequestMock, randomUUID().toString());
 
     assertEquals(List.of(), actual);
+  }
+
+  @Test
+  void update_user_subscription_commitment_auto_renewal_status_ok() {
+    var httpServletRequestMock = authenticatedRequest();
+    var planId = randomUUID().toString();
+    var commitmentId = randomUUID().toString();
+    var subscriptionProduct = SubscriptionProduct.builder().id(planId).name("Essentiel").build();
+    when(subscriptionProductRepositoryMock.findById(planId))
+        .thenReturn(Optional.of(subscriptionProduct));
+    when(subscriptionServiceMock.updateUserSubscriptionCommitmentAutoRenewalStatus(
+            any(), eq(commitmentId), eq(ENABLED)))
+        .thenReturn(
+            app.bpartners.api.model.UserSubscriptionCommitment.builder()
+                .id(commitmentId)
+                .userId(randomUUID().toString())
+                .subscriptionPlanIdentifier(planId)
+                .duration(TWELVE_MONTHS)
+                .autoRenewalStatusHistory(
+                    List.of(
+                        app.bpartners.api.model.UserSubscriptionCommitmentAutoRenewalStatusHistory
+                            .builder()
+                            .id(randomUUID().toString())
+                            .userSubscriptionCommitmentId(commitmentId)
+                            .autoRenewalStatus(ENABLED)
+                            .creationDatetime(Instant.parse("2026-01-01T00:00:00Z"))
+                            .build()))
+                .build());
+
+    var actual =
+        subject.updateUserSubscriptionCommitmentAutoRenewalStatus(
+            httpServletRequestMock,
+            randomUUID().toString(),
+            commitmentId,
+            new UpdateUserSubscriptionCommitmentAutoRenewalStatus().autoRenewalStatus(ENABLED));
+
+    assertEquals(commitmentId, actual.getId());
+    assertEquals(ENABLED, actual.getAutomaticRenewalStatus());
   }
 
   private HttpServletRequest authenticatedRequest() {

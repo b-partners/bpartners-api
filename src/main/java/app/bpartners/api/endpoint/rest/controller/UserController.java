@@ -93,6 +93,18 @@ public class UserController {
         .toList();
   }
 
+  @PostMapping("/users/{uId}/subscriptionCommitments/{sId}/autoRenewalStatus")
+  public UserSubscriptionCommitment updateUserSubscriptionCommitmentAutoRenewalStatus(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @PathVariable String sId,
+      @RequestBody UpdateUserSubscriptionCommitmentAutoRenewalStatus autoRenewalStatus) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    return userSubscriptionCommitmentRestMapper.toRest(
+        subscriptionService.updateUserSubscriptionCommitmentAutoRenewalStatus(
+            authenticatedSelfUser.getId(), sId, autoRenewalStatus.getAutoRenewalStatus()));
+  }
+
   @PostMapping("/users/{uId}/subscriptionInitiation")
   public Redirection initiateUserSubscription(
       HttpServletRequest request,

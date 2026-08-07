@@ -277,6 +277,57 @@ class UserIT extends MockedThirdParties {
     assertTrue(exceptionBadUser.getMessage().contains("User(id=bad_user_id not found)"));
   }
 
+  private static CreateUserSubscriptionCommitment aCreateUserSubscriptionCommitment() {
+    return new CreateUserSubscriptionCommitment()
+        .subscriptionPlanIdentifier("essential")
+        .duration(UserSubscriptionCommitmentDuration._12_MONTHS)
+        .commitmentStart(now())
+        .approvalDatetime(now());
+  }
+
+  @Test
+  void get_user_subscription_commitments_by_self_user_ok() throws ApiException {
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    UserSubscriptionApi api = new UserSubscriptionApi(janeDoeClient);
+
+    List<UserSubscriptionCommitment> actual =
+        api.getUserSubscriptionCommitments(JANE_DOE_ID, null, null);
+
+    assertEquals(List.of(), actual);
+  }
+
+  @Test
+  void get_user_subscription_commitments_by_other_user_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserSubscriptionApi api = new UserSubscriptionApi(joeDoeClient);
+
+    assertThrowsForbiddenException(
+        () -> api.getUserSubscriptionCommitments(JANE_DOE_ID, null, null));
+  }
+
+  @Test
+  void save_user_subscription_commitments_by_self_user_ok() throws ApiException {
+    ApiClient janeDoeClient = anApiClient(JANE_DOE_TOKEN);
+    UserSubscriptionApi api = new UserSubscriptionApi(janeDoeClient);
+
+    List<UserSubscriptionCommitment> actual =
+        api.saveUserSubscriptionCommitments(
+            JANE_DOE_ID, List.of(aCreateUserSubscriptionCommitment()));
+
+    assertEquals(List.of(), actual);
+  }
+
+  @Test
+  void save_user_subscription_commitments_by_other_user_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserSubscriptionApi api = new UserSubscriptionApi(joeDoeClient);
+
+    assertThrowsForbiddenException(
+        () ->
+            api.saveUserSubscriptionCommitments(
+                JANE_DOE_ID, List.of(aCreateUserSubscriptionCommitment())));
+  }
+
   public OnboardUser onboardUser() {
     return new OnboardUser()
         .firstName("Bernard")

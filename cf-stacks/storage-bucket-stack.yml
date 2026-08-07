@@ -17,6 +17,14 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: AutomaticExpireTempFiles
+            Status: Enabled
+            ExpirationInDays: 1
+            TagFilters:
+              - Key: temporary
+                Value: true
 
   BucketSSM:
     Type: AWS::SSM::Parameter

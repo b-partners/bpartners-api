@@ -4,14 +4,14 @@ compute:
   frontal_function_timeout: 900
   frontal_memory: 2048
   workers:
-    - batch: 1
-      memory: 1024
-      reserved_concurrent_executions_nb: 30
-      timeout: 600
-    - batch: 1
-      memory: 2048
-      reserved_concurrent_executions_nb: 30
-      timeout: 600
+  - batch: 1
+    memory: 1024
+    reserved_concurrent_executions_nb: 30
+    timeout: 600
+  - batch: 1
+    memory: 2048
+    reserved_concurrent_executions_nb: 30
+    timeout: 600
 concurrency:
   frontal_reserved_concurrent_executions_nb: 20
 database:
@@ -56,6 +56,6 @@ testing:
   custom_java_test_env_vars: poja-custom-java-test-env-vars.txt
   jacoco_min_coverage: '0.4'
   java_facade_it: app.bpartners.api.integration.conf.MockedThirdParties
-  max_heap_size: '2g'
-  min_heap_size: '512m'
+  max_heap_size: 2g
+  min_heap_size: 512m
   stack_size: null

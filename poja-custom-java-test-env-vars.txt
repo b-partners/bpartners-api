@@ -1,18 +1,18 @@
 STRIPE_PRIVATE_API_KEY: ${{
-              (github.event_name == 'pull_request' && github.base_ref == 'prod') && secrets.PROD_STRIPE_PRIVATE_API_KEY ||
-              (github.event_name == 'pull_request' && github.base_ref == 'preprod') && secrets.PREPROD_STRIPE_PRIVATE_API_KEY ||
-              (github.ref == 'refs/heads/prod') && secrets.PROD_STRIPE_PRIVATE_API_KEY ||
-              (github.ref == 'refs/heads/preprod') && secrets.PREPROD_STRIPE_PRIVATE_API_KEY
-              }}
+(github.event_name == 'pull_request' && github.base_ref == 'prod') && secrets.PROD_STRIPE_PRIVATE_API_KEY ||
+(github.event_name == 'pull_request' && github.base_ref == 'preprod') && secrets.PREPROD_STRIPE_PRIVATE_API_KEY ||
+(github.ref == 'refs/heads/prod') && secrets.PROD_STRIPE_PRIVATE_API_KEY ||
+(github.ref == 'refs/heads/preprod') && secrets.PREPROD_STRIPE_PRIVATE_API_KEY
+}}
 GOOGLE_GEOCODE_API_KEY: ${{
-              (github.event_name == 'pull_request' && github.base_ref == 'prod') && secrets.PROD_GOOGLE_GEOCODE_API_KEY ||
-              (github.event_name == 'pull_request' && github.base_ref == 'preprod') && secrets.PREPROD_GOOGLE_GEOCODE_API_KEY ||
-              (github.ref == 'refs/heads/prod') && secrets.PROD_GOOGLE_GEOCODE_API_KEY ||
-              (github.ref == 'refs/heads/preprod') && secrets.PREPROD_GOOGLE_GEOCODE_API_KEY
-              }}
+(github.event_name == 'pull_request' && github.base_ref == 'prod') && secrets.PROD_GOOGLE_GEOCODE_API_KEY ||
+(github.event_name == 'pull_request' && github.base_ref == 'preprod') && secrets.PREPROD_GOOGLE_GEOCODE_API_KEY ||
+(github.ref == 'refs/heads/prod') && secrets.PROD_GOOGLE_GEOCODE_API_KEY ||
+(github.ref == 'refs/heads/preprod') && secrets.PREPROD_GOOGLE_GEOCODE_API_KEY
+}}
 GEODATA_IMAGERY_BASEURL: ${{
-              (github.event_name == 'pull_request' && github.base_ref == 'prod') && secrets.PROD_GEODATA_IMAGERY_BASEURL ||
-              (github.event_name == 'pull_request' && github.base_ref == 'preprod') && secrets.PREPROD_GEODATA_IMAGERY_BASEURL ||
-              (github.ref == 'refs/heads/prod') && secrets.PROD_GEODATA_IMAGERY_BASEURL ||
-              (github.ref == 'refs/heads/preprod') && secrets.PREPROD_GEODATA_IMAGERY_BASEURL
-              }}
+(github.event_name == 'pull_request' && github.base_ref == 'prod') && secrets.PROD_GEODATA_IMAGERY_BASEURL ||
+(github.event_name == 'pull_request' && github.base_ref == 'preprod') && secrets.PREPROD_GEODATA_IMAGERY_BASEURL ||
+(github.ref == 'refs/heads/prod') && secrets.PROD_GEODATA_IMAGERY_BASEURL ||
+(github.ref == 'refs/heads/preprod') && secrets.PREPROD_GEODATA_IMAGERY_BASEURL
+}}

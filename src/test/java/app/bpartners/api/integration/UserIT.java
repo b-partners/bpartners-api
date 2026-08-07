@@ -360,7 +360,8 @@ class UserIT extends MockedThirdParties {
         api.updateUserSubscriptionCommitmentAutoRenewalStatus(
             JANE_DOE_ID,
             commitmentId,
-            new UpdateUserSubscriptionCommitmentAutoRenewalStatus().autoRenewalStatus(ENABLED));
+            new UpdateUserSubscriptionCommitmentAutoRenewalStatus()
+                .automaticRenewalStatus(ENABLED));
 
     assertEquals(commitmentId, actual.getId());
     assertEquals(ENABLED, actual.getAutomaticRenewalStatus());
@@ -377,7 +378,7 @@ class UserIT extends MockedThirdParties {
                 JANE_DOE_ID,
                 "commitment_id",
                 new UpdateUserSubscriptionCommitmentAutoRenewalStatus()
-                    .autoRenewalStatus(ENABLED)));
+                    .automaticRenewalStatus(ENABLED)));
   }
 
   public OnboardUser onboardUser() {

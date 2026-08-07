@@ -99,7 +99,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   private static @NotNull ImageContext getImageContext(ExportAreaPictureAnnotation3DPan pan) {
     var coordinates = Coordinates.from(selectPolygon(pan, true));
-    var transform = Transform.from(coordinates, PAN_CONTENT_SIZE, TARGET_SIZE, true);
+    var transform = Transform.yFlippedFrom(coordinates, PAN_CONTENT_SIZE, TARGET_SIZE, true);
 
     var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -243,12 +243,14 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return panImage;
   }
 
-  public BufferedImage generatePanImageWithMeasurements(ExportAreaPictureAnnotation3DPan pan) {
+  public BufferedImage generatePanImageWithMeasurements(
+      ExportAreaPictureAnnotation3DPan pan, boolean flipX) {
     var imageContext = getImageContext(pan);
     Coordinates coordinates = Coordinates.from(selectPolygon(pan, true));
-    var mapped = imageContext.transform().apply(coordinates);
+    var transform = imageContext.transform().toBuilder().flipX(flipX).build();
+    var mapped = transform.apply(coordinates);
 
-    drawStrokePolygon(imageContext.g2d(), imageContext.transform(), pan, 3.5f, true);
+    drawStrokePolygon(imageContext.g2d(), transform, pan, 3.5f, true);
     drawPolygonPoints(imageContext.g2d(), BLACK, POLYGON_POINTS_SIZE, mapped);
     drawPolygonMeasurements(
         imageContext.g2d(),

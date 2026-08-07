@@ -1,3 +1,32 @@
+# [0.87.0](https://github.com/b-partners/bpartners-api/compare/v0.86.1...v0.87.0) (2026-08-07)
+
+
+### Bug Fixes
+
+* 3d annotation inverted ([354793f](https://github.com/b-partners/bpartners-api/commit/354793fb29fc7a807e188a8d14eebb08b1446050))
+* add /users/*/subscriptionCommitments in securityConf ([bb10c44](https://github.com/b-partners/bpartners-api/commit/bb10c4484e602d0d58096d7deac37444082920fa))
+* avoid erasing existing subscription data from empty stripe data ([8946244](https://github.com/b-partners/bpartners-api/commit/8946244301453a19bd07fce9c6ef041adf3a92bd))
+* blank page after facade section in export pdf ([ad09070](https://github.com/b-partners/bpartners-api/commit/ad0907075f4b12a7f9f61c97f90f7f4f8594c94a))
+* **db:** rename commitment_duration _12_MONTHS to TWELVE_MONTHS ([ee0bb7c](https://github.com/b-partners/bpartners-api/commit/ee0bb7c96881a580b8332a1afa1f3c707b45e4b6))
+* rename commitment duration enum value 12_MONTHS to TWELVE_MONTHS ([19f2ff8](https://github.com/b-partners/bpartners-api/commit/19f2ff8f29ce8cf1cc9c9c987161ef7f82d3bf01))
+* reversed facade image ([645a50d](https://github.com/b-partners/bpartners-api/commit/645a50de94a9e4184f4ac755ed8c02e6ad2325b8))
+* **UpdateUserSubscriptionCommitment:** rename autoRenewalStatus into automaticRenewalStatus ([3f2f38d](https://github.com/b-partners/bpartners-api/commit/3f2f38d1687b3233883f16c63bbb9d4d23c9b836))
+* **UserSubscriptionCommitmentRestMapper:** verify subscription plan existence ([9d3f7ed](https://github.com/b-partners/bpartners-api/commit/9d3f7ed2fbe411b00818394b311afcadfc0151a7))
+
+
+### Features
+
+* retrieve user subscription commitments ([655aadd](https://github.com/b-partners/bpartners-api/commit/655aadd5158873ee57b09a3ff560be407f5f9896))
+* save user subscription commitments ([4e80959](https://github.com/b-partners/bpartners-api/commit/4e8095953fab1e0086b0b6d848e1fe23e1eb3cfc))
+* update user subscription commitment auto renewal status ([19e1598](https://github.com/b-partners/bpartners-api/commit/19e159831117923032747b1b79273d9d10653532))
+
+
+### Reverts
+
+* pdf optimization prod ([a91b3ee](https://github.com/b-partners/bpartners-api/commit/a91b3ee1ac45bd2cd6fb6709e8c0e10816375a74))
+
+
+
 ## [0.86.1](https://github.com/b-partners/bpartners-api/compare/v0.86.0...v0.86.1) (2026-08-05)
 
 
@@ -200,15 +229,6 @@
 ### Reverts
 
 * **Drawer:** from 35cd87b6628921741dd144eeb23ddd94b4e73245 into a627df37f635edf843d646a65f53335a5acb79a3 ([#1680](https://github.com/b-partners/bpartners-api/issues/1680)) ([6ce8de8](https://github.com/b-partners/bpartners-api/commit/6ce8de8db548b85cc2db7147facccec8268e9a7e))
-
-
-
-## [0.78.1](https://github.com/b-partners/bpartners-api/compare/v0.78.0...v0.78.1) (2026-02-03)
-
-
-### Bug Fixes
-
-* commit untracked files on releases-version ([489aa75](https://github.com/b-partners/bpartners-api/commit/489aa7534da183c9ae0ad544d4e9ffabce878087))
 
 
 

@@ -82,6 +82,17 @@ public class UserController {
         .toList();
   }
 
+  @GetMapping("/users/{uId}/subscriptionCommitments")
+  public List<UserSubscriptionCommitment> getUserSubscriptionCommitments(
+      HttpServletRequest request, @PathVariable String uId) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    return subscriptionService
+        .getUserSubscriptionCommitments(authenticatedSelfUser.getId())
+        .stream()
+        .map(userSubscriptionCommitmentRestMapper::toRest)
+        .toList();
+  }
+
   @PostMapping("/users/{uId}/subscriptionInitiation")
   public Redirection initiateUserSubscription(
       HttpServletRequest request,

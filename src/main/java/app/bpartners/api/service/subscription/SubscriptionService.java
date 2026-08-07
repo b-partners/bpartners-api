@@ -271,6 +271,10 @@ public class SubscriptionService {
     return userSubscriptionCommitmentJpaRepository.saveAll(userSubscriptionCommitments);
   }
 
+  public List<UserSubscriptionCommitment> getUserSubscriptionCommitments(String userIdentifier) {
+    return userSubscriptionCommitmentJpaRepository.findAllByUserId(userIdentifier);
+  }
+
   @SneakyThrows
   public UserSubscription getSubscriptionByUserId(String userId) {
     var user = userRepository.getById(userId);

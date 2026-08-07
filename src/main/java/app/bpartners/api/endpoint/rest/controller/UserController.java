@@ -9,6 +9,7 @@ import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static java.time.Instant.now;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionCommitmentRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
@@ -38,6 +39,7 @@ public class UserController {
   private final StripePortalService stripePortalService;
   private final ApiKeyService apiKeyService;
   private final StripeSetupService stripeSetupService;
+  private final UserSubscriptionCommitmentRestMapper userSubscriptionCommitmentRestMapper;
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
@@ -60,6 +62,24 @@ public class UserController {
     var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
 
     return stripeSetupService.setupCheckoutSession(userSubscriptionId, redirectionStatusUrls);
+  }
+
+  @PostMapping("/users/{uId}/subscriptionCommitments")
+  public List<UserSubscriptionCommitment> saveUserSubscriptionCommitments(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestBody List<CreateUserSubscriptionCommitment> createUserSubscriptionCommitments) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    var userSubscriptionCommitments =
+        createUserSubscriptionCommitments.stream()
+            .map(
+                createUserSubscriptionCommitment ->
+                    userSubscriptionCommitmentRestMapper.toDomain(
+                        authenticatedSelfUser, createUserSubscriptionCommitment))
+            .toList();
+    return subscriptionService.saveUserSubscriptionCommitments(userSubscriptionCommitments).stream()
+        .map(userSubscriptionCommitmentRestMapper::toRest)
+        .toList();
   }
 
   @PostMapping("/users/{uId}/subscriptionInitiation")

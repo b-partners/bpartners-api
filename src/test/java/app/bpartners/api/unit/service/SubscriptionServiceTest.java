@@ -24,6 +24,7 @@ import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.repository.jpa.model.detection.HDetectionTracking;
 import app.bpartners.api.service.subscription.*;
@@ -73,6 +74,7 @@ class SubscriptionServiceTest {
   StripeSubscriptionService stripeSubscriptionServiceMock = mock();
   UserSubscriptionProductService userSubscriptionProductServiceMock =
       mock(UserSubscriptionProductService.class);
+  UserSubscriptionCommitmentJpaRepository userSubscriptionCommitmentJpaRepositoryMock = mock();
   SubscriptionService subject =
       new SubscriptionService(
           stripeConfMock,
@@ -88,7 +90,8 @@ class SubscriptionServiceTest {
           stripeInvoiceServiceMock,
           stripeCustomerServiceMock,
           stripeSubscriptionServiceMock,
-          userSubscriptionProductServiceMock);
+          userSubscriptionProductServiceMock,
+          userSubscriptionCommitmentJpaRepositoryMock);
 
   @Test
   void get_subscription_consumption_logs_ok() {

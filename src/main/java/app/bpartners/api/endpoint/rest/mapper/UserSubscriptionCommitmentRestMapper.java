@@ -69,6 +69,16 @@ public class UserSubscriptionCommitmentRestMapper {
     StringBuilder exceptionBuilder = new StringBuilder();
     if (createUserSubscriptionCommitment.getSubscriptionPlanIdentifier() == null) {
       exceptionBuilder.append("subscriptionPlanIdentifier is mandatory. ");
+    } else {
+      var optionalSubscriptionProduct =
+          subscriptionProductRepository.findById(
+              createUserSubscriptionCommitment.getSubscriptionPlanIdentifier());
+      if (optionalSubscriptionProduct.isEmpty()) {
+        exceptionBuilder
+            .append("SubscriptionPlan.id=")
+            .append(createUserSubscriptionCommitment.getSubscriptionPlanIdentifier())
+            .append(" not found. ");
+      }
     }
     if (createUserSubscriptionCommitment.getDuration() == null) {
       exceptionBuilder.append("duration is mandatory. ");

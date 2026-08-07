@@ -31,8 +31,8 @@ public class Transform {
 
       int nx =
           flipX
-              ? (int) Math.round((max.x() - x) * scale * offset.x())
-              : (int) Math.round((x - min.x()) * scale * offset.x());
+              ? (int) Math.round((max.x() - x) * scale + offset.x())
+              : (int) Math.round((x - min.x()) * scale + offset.x());
 
       int ny =
           flipY

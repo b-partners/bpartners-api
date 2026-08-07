@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.rest.controller;
 
-import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration._12_MONTHS;
+import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration.TWELVE_MONTHS;
 import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -128,7 +128,7 @@ class UserControllerTest {
             List.of(
                 new CreateUserSubscriptionCommitment()
                     .subscriptionPlanIdentifier(planId)
-                    .duration(_12_MONTHS)
+                    .duration(TWELVE_MONTHS)
                     .commitmentStart(commitmentStart)
                     .approvalDatetime(approvalDatetime)));
 
@@ -138,7 +138,7 @@ class UserControllerTest {
     assertEquals(
         subscriptionPlanRestMapper.toRestDescription(subscriptionProduct),
         actualCommitment.getSubscriptionPlan());
-    assertEquals(_12_MONTHS, actualCommitment.getDuration());
+    assertEquals(TWELVE_MONTHS, actualCommitment.getDuration());
     assertEquals(approvalDatetime, actualCommitment.getApprovalDatetime());
     assertEquals(commitmentStart, actualCommitment.getCommitmentStart());
     assertEquals(
@@ -198,7 +198,7 @@ class UserControllerTest {
                     .id(commitmentId)
                     .userId(randomUUID().toString())
                     .subscriptionPlanIdentifier(planId)
-                    .duration(_12_MONTHS)
+                    .duration(TWELVE_MONTHS)
                     .approvalDatetime(approvalDatetime)
                     .commitmentStartDatetime(commitmentStart)
                     .commitmentEndDatetime(commitmentEnd)
@@ -212,7 +212,7 @@ class UserControllerTest {
             new app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitment()
                 .id(commitmentId)
                 .subscriptionPlan(subscriptionPlanRestMapper.toRestDescription(subscriptionProduct))
-                .duration(_12_MONTHS)
+                .duration(TWELVE_MONTHS)
                 .approvalDatetime(approvalDatetime)
                 .commitmentStart(commitmentStart)
                 .commitmentEnd(commitmentEnd)),

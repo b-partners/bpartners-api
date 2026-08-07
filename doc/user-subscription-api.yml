@@ -434,7 +434,7 @@ components:
           format: date-time
     UserSubscriptionCommitmentDuration:
       type: string
-      enum: [ '12_MONTHS' ]
+      enum: [ 'TWELVE_MONTHS' ]
     CreateUserSubscriptionCommitment:
       allOf:
         - $ref: '#/components/schemas/UserSubscriptionCommitmentDetails'

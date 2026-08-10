@@ -1,5 +1,7 @@
 package app.bpartners.api.model.subscription;
 
+import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+
 import java.time.Instant;
 import java.util.List;
 import lombok.*;
@@ -19,6 +21,8 @@ public class Subscription {
   private SubscriptionProduct subscriptionProduct;
 
   private SubscriptionProduct meteredProduct;
+
+  @Builder.Default private BillingInterval billingInterval = MONTHLY;
 
   private Instant endDatetime;
   private Instant startDatetime;

@@ -7,11 +7,13 @@ import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.model.Account;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscriptionSession;
@@ -165,14 +167,14 @@ public class StripeFactoryTest {
     var user = User.builder().id(userIdentifier).build();
     doReturn(mockSession)
         .when(subject)
-        .createSessionSubscription(customer, product, price, urls, billingCycleAnchor);
+        .createSessionSubscription(customer, subscription, price, urls, billingCycleAnchor);
 
     var actual =
         subject.initiateSubscriptionWorkflow(
             user, trialEnd, customer, product, price, urls, billingCycleAnchor, subscription);
 
     verify(subject, times(1))
-        .createSessionSubscription(customer, product, price, urls, billingCycleAnchor);
+        .createSessionSubscription(customer, subscription, price, urls, billingCycleAnchor);
     verify(subject, never()).scheduleSubscription(any(), any(), any(), any(), any());
     assertEquals(urls, actual.getRedirectionStatusUrls());
   }
@@ -238,6 +240,144 @@ public class StripeFactoryTest {
     verify(subject, times(1))
         .scheduleSubscription(customer, subscription, price, billingCycleAnchor, user);
     verify(subject, never()).createSessionSubscription(any(), any(), any(), any(), any());
+  }
+
+  @Test
+  void subscription_schedule_creation_yearly_uses_annual_price_and_no_metered() {
+    var customerId = randomUUID().toString();
+    var billingCycleAnchor = 123456L;
+    var subscriptionProduct = mock(SubscriptionProduct.class);
+    when(subscriptionProduct.getAnnualE2PriceId()).thenReturn("annual_price_id");
+    var subscription = mock(Subscription.class);
+    when(subscription.getSubscriptionProduct()).thenReturn(subscriptionProduct);
+    when(subscription.getBillingInterval()).thenReturn(BillingInterval.YEARLY);
+    var fakeSchedule = new SubscriptionSchedule();
+    fakeSchedule.setId(randomUUID().toString());
+    try (MockedStatic<SubscriptionSchedule> mockedSchedule =
+        mockStatic(SubscriptionSchedule.class)) {
+      mockedSchedule
+          .when(() -> SubscriptionSchedule.create(any(SubscriptionScheduleCreateParams.class)))
+          .thenReturn(fakeSchedule);
+
+      subject.subscriptionScheduleCreation(
+          customerId, subscription, randomUUID().toString(), billingCycleAnchor);
+
+      var captor = ArgumentCaptor.forClass(SubscriptionScheduleCreateParams.class);
+      mockedSchedule.verify(() -> SubscriptionSchedule.create(captor.capture()));
+      var items = captor.getValue().getPhases().getFirst().getItems();
+      assertEquals(1, items.size());
+      assertEquals("annual_price_id", items.getFirst().getPrice());
+      assertNull(items.getFirst().getPriceData());
+    }
+  }
+
+  @Test
+  void overage_schedule_creation_is_monthly_with_twelve_iterations_then_cancels() {
+    var customerId = randomUUID().toString();
+    var meteredPriceId = randomUUID().toString();
+    var billingCycleAnchor = 123456L;
+    var fakeSchedule = new SubscriptionSchedule();
+    fakeSchedule.setId(randomUUID().toString());
+    try (MockedStatic<SubscriptionSchedule> mockedSchedule =
+        mockStatic(SubscriptionSchedule.class)) {
+      mockedSchedule
+          .when(() -> SubscriptionSchedule.create(any(SubscriptionScheduleCreateParams.class)))
+          .thenReturn(fakeSchedule);
+
+      subject.overageScheduleCreation(customerId, meteredPriceId, billingCycleAnchor);
+
+      var captor = ArgumentCaptor.forClass(SubscriptionScheduleCreateParams.class);
+      mockedSchedule.verify(() -> SubscriptionSchedule.create(captor.capture()));
+      var params = captor.getValue();
+      assertEquals(SubscriptionScheduleCreateParams.EndBehavior.CANCEL, params.getEndBehavior());
+      var phase = params.getPhases().getFirst();
+      assertEquals(12L, phase.getIterations());
+      assertEquals(1, phase.getItems().size());
+      assertEquals(meteredPriceId, phase.getItems().getFirst().getPrice());
+    }
+  }
+
+  @Test
+  void schedule_subscription_yearly_creates_base_and_overage_schedules() {
+    var customer = mock(Customer.class);
+    when(customer.getId()).thenReturn("customer_id");
+    var subscription = mock(Subscription.class);
+    when(subscription.getBillingInterval()).thenReturn(BillingInterval.YEARLY);
+    var price = mock(Price.class);
+    when(price.getId()).thenReturn("metered_price_id");
+    var billingCycleAnchor = 123456L;
+    var user = User.builder().id("user_id").build();
+    var baseSchedule = new SubscriptionSchedule();
+    baseSchedule.setId("base_schedule_id");
+    var overageSchedule = new SubscriptionSchedule();
+    overageSchedule.setId("overage_schedule_id");
+    doReturn(baseSchedule)
+        .when(subject)
+        .subscriptionScheduleCreation(anyString(), any(Subscription.class), anyString(), anyLong());
+    doReturn(overageSchedule)
+        .when(subject)
+        .overageScheduleCreation(anyString(), anyString(), anyLong());
+
+    subject.scheduleSubscription(customer, subscription, price, billingCycleAnchor, user);
+
+    verify(subject, times(1)).overageScheduleCreation("customer_id", "metered_price_id", 123456L);
+    verify(userSubscriptionSessionRepositoryMock, times(2))
+        .save(any(UserSubscriptionSession.class));
+  }
+
+  @Test
+  void schedule_subscription_monthly_does_not_create_overage_schedule() {
+    var customer = mock(Customer.class);
+    when(customer.getId()).thenReturn("customer_id");
+    var subscription = mock(Subscription.class);
+    when(subscription.getBillingInterval()).thenReturn(BillingInterval.MONTHLY);
+    var price = mock(Price.class);
+    when(price.getId()).thenReturn("metered_price_id");
+    var billingCycleAnchor = 123456L;
+    var user = User.builder().id("user_id").build();
+    var baseSchedule = new SubscriptionSchedule();
+    baseSchedule.setId("base_schedule_id");
+    doReturn(baseSchedule)
+        .when(subject)
+        .subscriptionScheduleCreation(anyString(), any(Subscription.class), anyString(), anyLong());
+
+    subject.scheduleSubscription(customer, subscription, price, billingCycleAnchor, user);
+
+    verify(subject, never()).overageScheduleCreation(anyString(), anyString(), anyLong());
+    verify(userSubscriptionSessionRepositoryMock, times(1))
+        .save(any(UserSubscriptionSession.class));
+  }
+
+  @Test
+  void create_session_subscription_yearly_uses_annual_price_and_no_metered_line_item()
+      throws StripeException {
+    var customer = mock(Customer.class);
+    when(customer.getId()).thenReturn("customer_id");
+    var urls = mock(RedirectionStatusUrls.class);
+    when(urls.getSuccessUrl()).thenReturn("success_url");
+    when(urls.getFailureUrl()).thenReturn("failure_url");
+    var product = mock(SubscriptionProduct.class);
+    when(product.getAnnualE2PriceId()).thenReturn("annual_price_id");
+    var subscription = mock(Subscription.class);
+    when(subscription.getSubscriptionProduct()).thenReturn(product);
+    when(subscription.getBillingInterval()).thenReturn(BillingInterval.YEARLY);
+    var meteredPrice = mock(Price.class);
+    var billingCycleAnchor = 123456L;
+    try (MockedStatic<Session> mockedSession = mockStatic(Session.class)) {
+      mockedSession
+          .when(() -> Session.create(any(SessionCreateParams.class)))
+          .thenReturn(stripeSessionMock);
+
+      subject.createSessionSubscription(
+          customer, subscription, meteredPrice, urls, billingCycleAnchor);
+
+      var captor = ArgumentCaptor.forClass(SessionCreateParams.class);
+      mockedSession.verify(() -> Session.create(captor.capture()));
+      var lineItems = captor.getValue().getLineItems();
+      assertEquals(1, lineItems.size());
+      assertEquals("annual_price_id", lineItems.getFirst().getPrice());
+      assertNull(lineItems.getFirst().getPriceData());
+    }
   }
 
   private void mockTemporalWindow() {

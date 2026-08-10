@@ -76,6 +76,12 @@ public class SubscriptionProduct {
   @Column(name = "annual_discount_percent")
   private Integer annualDiscountPercent;
 
+  @Column(name = "annual_e2_price_id")
+  private String annualE2PriceId;
+
+  @Column(name = "annual_price_in_cents_with_vat")
+  private Long annualPriceInCentsWithVat;
+
   @Column(name = "metered_product_id")
   private String meteredProductId;
 
@@ -87,6 +93,14 @@ public class SubscriptionProduct {
     // TTC = HT * (10_000 + vatPercent) / 10_000, rounded half up to whole cents.
     var numerator = priceInCentsWithoutVat * (10_000L + vatPercent);
     return (numerator + 5_000L) / 10_000L;
+  }
+
+  public Long getAnnualPriceInCentsWithoutVat() {
+    return priceInCentsWithoutVatFrom(annualPriceInCentsWithVat, vatPercent);
+  }
+
+  public boolean hasAnnualPricing() {
+    return annualE2PriceId != null && annualPriceInCentsWithVat != null;
   }
 
   public static Long priceInCentsWithoutVatFrom(Long priceInCentsWithVat, Long vatPercent) {

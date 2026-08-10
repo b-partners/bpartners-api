@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.validator;
 
+import app.bpartners.api.endpoint.rest.model.BillingInterval;
 import app.bpartners.api.endpoint.rest.model.CreateSubscriptionInitiation;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,11 @@ public class CreateSubscriptionInitiationRestValidator
       if (createSubscriptionInitiation.getSubscriptionType() == null
           && createSubscriptionInitiation.getSubscriptionPlanIdentifier() == null) {
         stringBuilder.append("planId or subscriptionType can not be both null. ");
+      }
+      if (createSubscriptionInitiation.getBillingInterval() == BillingInterval.YEARLY
+          && createSubscriptionInitiation.getSubscriptionPlanIdentifier() == null) {
+        stringBuilder.append(
+            "subscriptionPlanIdentifier is required when billingInterval is YEARLY. ");
       }
       if (createSubscriptionInitiation.getRedirectionStatusUrls() == null) {
         stringBuilder.append("redirectionStatusUrls can not be null. ");

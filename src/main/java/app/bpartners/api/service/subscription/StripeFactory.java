@@ -1,5 +1,6 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class StripeFactory {
+  private static final long ANNUAL_OVERAGE_MONTHLY_ITERATIONS = 12L;
   private final TemporalUtils temporalUtils;
   private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
 
@@ -82,7 +84,10 @@ public class StripeFactory {
         && !isTodayBeforeFifthOfActualMonth) {
       var sessionSubscription =
           createSessionSubscription(
-              stripeCustomer, subscriptionProduct, price, redirectionUrls, billingCycleAnchor);
+              stripeCustomer, subscription, price, redirectionUrls, billingCycleAnchor);
+      if (subscription.getBillingInterval() == YEARLY) {
+        scheduleOverageSubscription(stripeCustomer, price, billingCycleAnchor, user);
+      }
       return mapFromSession(sessionSubscription, redirectionUrls);
     }
     scheduleSubscription(stripeCustomer, subscription, price, billingCycleAnchor, user);
@@ -109,33 +114,42 @@ public class StripeFactory {
 
   public Session createSessionSubscription(
       Customer stripeCustomer,
-      SubscriptionProduct subscriptionProduct,
+      Subscription subscription,
       Price newVariableProductPrice,
       RedirectionStatusUrls redirectionUrls,
       Long billingCycleAnchor)
       throws StripeException {
-    return Session.create(
+    var subscriptionProduct = subscription.getSubscriptionProduct();
+    var basePlanLineItem =
+        subscription.getBillingInterval() == YEARLY
+            ? SessionCreateParams.LineItem.builder()
+                .setQuantity(1L)
+                .setPrice(subscriptionProduct.getAnnualE2PriceId())
+                .build()
+            : SessionCreateParams.LineItem.builder()
+                .setQuantity(1L)
+                .setPriceData(
+                    SessionCreateParams.LineItem.PriceData.builder()
+                        .setProduct(subscriptionProduct.getE2Id())
+                        .setCurrency(defaultCurrency())
+                        .setUnitAmount(subscriptionProduct.getPriceInCentsWithVat())
+                        .setRecurring(
+                            computeRecurringFromSubscriptionProductForSubscriptionMode(
+                                subscriptionProduct))
+                        .build())
+                .build();
+    var sessionParamsBuilder =
         SessionCreateParams.builder()
             .setMode(SUBSCRIPTION)
             .setCustomer(stripeCustomer.getId())
             .setCurrency(defaultCurrency())
-            .addLineItem(
-                SessionCreateParams.LineItem.builder()
-                    .setQuantity(1L)
-                    .setPriceData(
-                        SessionCreateParams.LineItem.PriceData.builder()
-                            .setProduct(subscriptionProduct.getE2Id())
-                            .setCurrency(defaultCurrency())
-                            .setUnitAmount(subscriptionProduct.getPriceInCentsWithVat())
-                            .setRecurring(
-                                computeRecurringFromSubscriptionProductForSubscriptionMode(
-                                    subscriptionProduct))
-                            .build())
-                    .build())
-            .addLineItem(
-                SessionCreateParams.LineItem.builder()
-                    .setPrice(newVariableProductPrice.getId())
-                    .build())
+            .addLineItem(basePlanLineItem);
+    if (subscription.getBillingInterval() != YEARLY) {
+      sessionParamsBuilder.addLineItem(
+          SessionCreateParams.LineItem.builder().setPrice(newVariableProductPrice.getId()).build());
+    }
+    return Session.create(
+        sessionParamsBuilder
             .setSuccessUrl(redirectionUrls.getSuccessUrl())
             .setCancelUrl(redirectionUrls.getFailureUrl())
             .setUiMode(HOSTED)
@@ -162,11 +176,28 @@ public class StripeFactory {
             newVariableProductPrice.getId(),
             billingCycleAnchor);
 
+    saveSubscriptionSession(user, subscriptionSchedule.getId(), billingCycleAnchor);
+
+    if (subscription.getBillingInterval() == YEARLY) {
+      scheduleOverageSubscription(
+          stripeCustomer, newVariableProductPrice, billingCycleAnchor, user);
+    }
+  }
+
+  public void scheduleOverageSubscription(
+      Customer stripeCustomer, Price meteredPrice, Long billingCycleAnchor, User user) {
+    SubscriptionSchedule overageSchedule =
+        overageScheduleCreation(stripeCustomer.getId(), meteredPrice.getId(), billingCycleAnchor);
+    saveSubscriptionSession(user, overageSchedule.getId(), billingCycleAnchor);
+  }
+
+  private void saveSubscriptionSession(
+      User user, String subscriptionScheduleId, long billingCycleAnchor) {
     userSubscriptionSessionRepository.save(
         UserSubscriptionSession.builder()
             .id(randomUUID().toString())
             .userId(user.getId())
-            .subscriptionScheduleId(subscriptionSchedule.getId())
+            .subscriptionScheduleId(subscriptionScheduleId)
             .isCancelled(false)
             .trialUntil(
                 Instant.ofEpochSecond(billingCycleAnchor)
@@ -182,24 +213,34 @@ public class StripeFactory {
       String meteredPriceId,
       long billingCycleAnchor) {
 
+    var subscriptionProduct = subscription.getSubscriptionProduct();
+    List<SubscriptionScheduleCreateParams.Phase.Item> basePlanItems;
+    if (subscription.getBillingInterval() == YEARLY) {
+      basePlanItems =
+          List.of(
+              SubscriptionScheduleCreateParams.Phase.Item.builder()
+                  .setPrice(subscriptionProduct.getAnnualE2PriceId())
+                  .build());
+    } else {
+      var recurringParams =
+          computeRecurringFromSubscriptionProductForSetUpMode(subscriptionProduct);
+      basePlanItems =
+          List.of(
+              SubscriptionScheduleCreateParams.Phase.Item.builder()
+                  .setPriceData(
+                      SubscriptionScheduleCreateParams.Phase.Item.PriceData.builder()
+                          .setCurrency(defaultCurrency())
+                          .setProduct(subscriptionProduct.getE2Id())
+                          .setRecurring(recurringParams)
+                          .setUnitAmount(subscriptionProduct.getPriceInCentsWithVat())
+                          .build())
+                  .build(),
+              SubscriptionScheduleCreateParams.Phase.Item.builder()
+                  .setPrice(meteredPriceId)
+                  .build());
+    }
+
     var phases = new ArrayList<SubscriptionScheduleCreateParams.Phase>();
-    var recurringParams =
-        computeRecurringFromSubscriptionProductForSetUpMode(subscription.getSubscriptionProduct());
-
-    var basePlanItems =
-        List.of(
-            SubscriptionScheduleCreateParams.Phase.Item.builder()
-                .setPriceData(
-                    SubscriptionScheduleCreateParams.Phase.Item.PriceData.builder()
-                        .setCurrency(defaultCurrency())
-                        .setProduct(subscription.getSubscriptionProduct().getE2Id())
-                        .setRecurring(recurringParams)
-                        .setUnitAmount(
-                            subscription.getSubscriptionProduct().getPriceInCentsWithVat())
-                        .build())
-                .build(),
-            SubscriptionScheduleCreateParams.Phase.Item.builder().setPrice(meteredPriceId).build());
-
     phases.add(SubscriptionScheduleCreateParams.Phase.builder().addAllItem(basePlanItems).build());
 
     return SubscriptionSchedule.create(
@@ -207,6 +248,26 @@ public class StripeFactory {
             .setCustomer(customerId)
             .setStartDate(billingCycleAnchor)
             .addAllPhase(phases)
+            .build());
+  }
+
+  @SneakyThrows
+  public SubscriptionSchedule overageScheduleCreation(
+      String customerId, String meteredPriceId, long billingCycleAnchor) {
+    var phase =
+        SubscriptionScheduleCreateParams.Phase.builder()
+            .addItem(
+                SubscriptionScheduleCreateParams.Phase.Item.builder()
+                    .setPrice(meteredPriceId)
+                    .build())
+            .setIterations(ANNUAL_OVERAGE_MONTHLY_ITERATIONS)
+            .build();
+    return SubscriptionSchedule.create(
+        SubscriptionScheduleCreateParams.builder()
+            .setCustomer(customerId)
+            .setStartDate(billingCycleAnchor)
+            .setEndBehavior(SubscriptionScheduleCreateParams.EndBehavior.CANCEL)
+            .addPhase(phase)
             .build());
   }
 

@@ -5,6 +5,8 @@ import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATIO
 import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
+import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static java.time.Instant.now;
 
@@ -117,14 +119,26 @@ public class UserController {
     var redirectionStatusUrls = subscriptionInitiation.getRedirectionStatusUrls();
 
     var user = service.getUserById(authenticatedSelfUser.getId());
+    var billingInterval = billingIntervalToDomain(subscriptionInitiation.getBillingInterval());
     var subscription =
         subscriptionInitiation.getSubscriptionPlanIdentifier() != null
             ? subscriptionService.getByPlanId(
-                subscriptionInitiation.getSubscriptionPlanIdentifier())
+                subscriptionInitiation.getSubscriptionPlanIdentifier(), billingInterval)
             : subscriptionService.getBySubscriptionType(
                 subscriptionInitiation.getSubscriptionType());
 
     return subscriptionService.initiateSubscription(user, subscription, redirectionStatusUrls);
+  }
+
+  private static app.bpartners.api.model.subscription.BillingInterval billingIntervalToDomain(
+      BillingInterval billingInterval) {
+    if (billingInterval == null) {
+      return MONTHLY;
+    }
+    return switch (billingInterval) {
+      case MONTHLY -> MONTHLY;
+      case YEARLY -> YEARLY;
+    };
   }
 
   @PostMapping("/users/subscriptionRegistration")

@@ -244,6 +244,101 @@ class SubscriptionServiceTest {
   }
 
   @Test
+  void get_by_plan_id_yearly_without_annual_pricing_ko() {
+    var planId = "planId";
+    var product = SubscriptionProduct.builder().id(planId).e2Id("stripeProductId").build();
+    when(subscriptionProductRepositoryMock.findById(planId)).thenReturn(Optional.of(product));
+
+    assertThrows(
+        BadRequestException.class, () -> subject.getByPlanId(planId, BillingInterval.YEARLY));
+  }
+
+  @Test
+  void get_by_plan_id_yearly_ok_sets_billing_interval() {
+    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
+        MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {
+      var planId = "planId";
+      var product =
+          SubscriptionProduct.builder()
+              .id(planId)
+              .e2Id("stripeProductId")
+              .vatPercent(2000L)
+              .annualE2PriceId("annual_price_id")
+              .annualPriceInCentsWithVat(63504L)
+              .meteredProductId("roofAnalysis")
+              .build();
+      when(subscriptionProductRepositoryMock.findById(planId)).thenReturn(Optional.of(product));
+      var meteredProduct =
+          SubscriptionProduct.builder()
+              .id("roofAnalysis")
+              .e2Id("roofAnalysisStripeProduct")
+              .consumptionTypeAttached(ROOF_ANALYSIS)
+              .build();
+      when(subscriptionProductRepositoryMock.findById("roofAnalysis"))
+          .thenReturn(Optional.of(meteredProduct));
+      var stripeProduct = new Product();
+      stripeProduct.setDefaultPrice("priceId");
+      stripeProduct.setMarketingFeatures(List.of());
+      stripeProduct.setImages(List.of());
+      stripeProduct.setCreated(1L);
+      var stripePrice = new Price();
+      var recurring = new Price.Recurring();
+      recurring.setInterval("month");
+      stripePrice.setRecurring(recurring);
+      stripePrice.setUnitAmount(5880L);
+      productMockedStatic.when(() -> Product.retrieve(any())).thenReturn(stripeProduct);
+      priceMockedStatic.when(() -> Price.retrieve(any())).thenReturn(stripePrice);
+      when(subscriptionProductRepositoryMock.save(any()))
+          .thenAnswer(invocation -> invocation.getArgument(0));
+
+      var actual = subject.getByPlanId(planId, BillingInterval.YEARLY);
+
+      assertEquals(BillingInterval.YEARLY, actual.getBillingInterval());
+      assertEquals(meteredProduct, actual.getMeteredProduct());
+    }
+  }
+
+  @Test
+  void get_subscription_product_by_e2id_preserves_annual_columns_when_remirroring() {
+    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
+        MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {
+      var domainProductId = "planId";
+      var existing =
+          SubscriptionProduct.builder()
+              .id(domainProductId)
+              .e2Id("stripeProductId")
+              .vatPercent(2000L)
+              .annualE2PriceId("annual_price_id")
+              .annualPriceInCentsWithVat(63504L)
+              .build();
+      when(subscriptionProductRepositoryMock.findById(domainProductId))
+          .thenReturn(Optional.of(existing));
+      var product = new Product();
+      product.setDefaultPrice("priceId");
+      product.setMarketingFeatures(List.of());
+      product.setImages(List.of());
+      product.setCreated(1L);
+      var price = new Price();
+      var recurring = new Price.Recurring();
+      recurring.setInterval("month");
+      price.setRecurring(recurring);
+      price.setUnitAmount(5880L);
+      productMockedStatic.when(() -> Product.retrieve(any())).thenReturn(product);
+      priceMockedStatic.when(() -> Price.retrieve(any())).thenReturn(price);
+      when(subscriptionProductRepositoryMock.save(any()))
+          .thenAnswer(invocation -> invocation.getArgument(0));
+
+      subject.getSubscriptionProductByE2Id(domainProductId, "stripeProductId");
+
+      var captor = ArgumentCaptor.forClass(SubscriptionProduct.class);
+      verify(subscriptionProductRepositoryMock).save(captor.capture());
+      var saved = captor.getValue();
+      assertEquals("annual_price_id", saved.getAnnualE2PriceId());
+      assertEquals(Long.valueOf(63504L), saved.getAnnualPriceInCentsWithVat());
+    }
+  }
+
+  @Test
   void get_subscription_product_by_e2id_preserves_catalog_columns_when_remirroring() {
     try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
         MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {
@@ -760,7 +855,7 @@ class SubscriptionServiceTest {
                         .build()));
 
     assertEquals(
-        "Only active subscription can be cancelled but actual status is UNKNOWN",
+        "Only active subscription can be cancelled but none of the 1 subscription(s) is active",
         actualInactiveSubscriptionException.getMessage());
   }
 

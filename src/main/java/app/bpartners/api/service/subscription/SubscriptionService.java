@@ -6,13 +6,13 @@ import static app.bpartners.api.model.subscription.SessionMode.SETUP;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
-import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.UsageRecordCreateOnSubscriptionItemParams.Action.SET;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
@@ -172,31 +172,41 @@ public class SubscriptionService {
             .list(
                 SubscriptionListParams.builder().setCustomer(user.getUserSubscriptionId()).build())
             .getData();
-    var latestSubscription =
+    if (stripeSubscriptions.isEmpty()) {
+      throw new NotFoundException("Any subscription found for User.id=" + user.getId());
+    }
+    var subscriptionsMostRecentFirst =
         stripeSubscriptions.stream()
-            .max(comparing(com.stripe.model.Subscription::getCurrentPeriodStart))
-            .orElseThrow(
-                () -> new NotFoundException("Any subscription found for User.id=" + user.getId()));
-    var latestSubscriptionId = latestSubscription.getId();
-    var subscriptionItems =
-        stripeClient
-            .subscriptionItems()
-            .list(
-                SubscriptionItemListParams.builder().setSubscription(latestSubscriptionId).build())
-            .getData();
-    return subscriptionItems.stream()
-        .filter(
-            subscriptionItem -> {
-              var price = subscriptionItem.getPrice();
-              var product = getProductById(price.getProduct());
-              return product.getId().equals(subscriptionProduct.getE2Id());
-            })
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new NotFoundException(
-                    "Any SubscriptionItem matches to SubscriptionProduct for User.id="
-                        + user.getId()));
+            .sorted(
+                comparing(
+                        com.stripe.model.Subscription::getCurrentPeriodStart,
+                        nullsLast(naturalOrder()))
+                    .reversed())
+            .toList();
+    for (var stripeSubscription : subscriptionsMostRecentFirst) {
+      var subscriptionItems =
+          stripeClient
+              .subscriptionItems()
+              .list(
+                  SubscriptionItemListParams.builder()
+                      .setSubscription(stripeSubscription.getId())
+                      .build())
+              .getData();
+      var matchingItem =
+          subscriptionItems.stream()
+              .filter(
+                  subscriptionItem -> {
+                    var price = subscriptionItem.getPrice();
+                    var product = getProductById(price.getProduct());
+                    return product.getId().equals(subscriptionProduct.getE2Id());
+                  })
+              .findFirst();
+      if (matchingItem.isPresent()) {
+        return matchingItem.get();
+      }
+    }
+    throw new NotFoundException(
+        "Any SubscriptionItem matches to SubscriptionProduct for User.id=" + user.getId());
   }
 
   @SneakyThrows
@@ -238,22 +248,28 @@ public class SubscriptionService {
 
   public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
     if (userSubscriptionType.equals(ESSENTIAL)) {
-      return getByPlanId(stripeConf.getEssentialSubscriptionProductId());
+      return getByPlanId(stripeConf.getEssentialSubscriptionProductId(), BillingInterval.MONTHLY);
     }
     throw new NotImplementedException("Only ESSENTIAL subscription type is supported");
   }
 
-  public Subscription getByPlanId(String planId) {
+  public Subscription getByPlanId(String planId, BillingInterval billingInterval) {
+    var interval = billingInterval == null ? BillingInterval.MONTHLY : billingInterval;
     var subscriptionProduct =
         subscriptionProductRepository
             .findById(planId)
             .orElseThrow(
                 () -> new NotFoundException("SubscriptionProduct(id=" + planId + ") not found"));
+    if (interval == BillingInterval.YEARLY && !subscriptionProduct.hasAnnualPricing()) {
+      throw new BadRequestException(
+          "SubscriptionProduct(id=" + planId + ") has no annual pricing, YEARLY is not available");
+    }
     return Subscription.builder()
         .subscriptionProduct(
             getSubscriptionProductByE2Id(
                 subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
         .meteredProduct(resolveMeteredProduct(subscriptionProduct))
+        .billingInterval(interval)
         .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
         .build();
   }
@@ -475,6 +491,8 @@ public class SubscriptionService {
                   .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
                   .trialPeriodDays(existing.getTrialPeriodDays())
                   .annualDiscountPercent(existing.getAnnualDiscountPercent())
+                  .annualE2PriceId(existing.getAnnualE2PriceId())
+                  .annualPriceInCentsWithVat(existing.getAnnualPriceInCentsWithVat())
                   .meteredProductId(existing.getMeteredProductId())
                   .mostChosen(existing.isMostChosen())
                   .deprecated(existing.isDeprecated())
@@ -490,7 +508,7 @@ public class SubscriptionService {
 
   private ProductCreateParams.DefaultPriceData.Recurring.Interval intervalFromSubscriptionType(
       SubscriptionType subscriptionType) {
-    if (Objects.requireNonNull(subscriptionType) == MONTHLY) {
+    if (Objects.requireNonNull(subscriptionType) == SubscriptionType.MONTHLY) {
       return ProductCreateParams.DefaultPriceData.Recurring.Interval.MONTH;
     }
     throw new IllegalArgumentException("Unknown subscription type " + subscriptionType);
@@ -817,12 +835,15 @@ public class SubscriptionService {
     var activeScheduledSubscriptions = getActiveSubscriptionSchedules(user.getUserSubscriptionId());
 
     if (!activeScheduledSubscriptions.isEmpty()) {
-      var scheduledSubscription = activeScheduledSubscriptions.getFirst();
-      var scheduledStartDate = cancelScheduleAfterUpcomingPayment(scheduledSubscription);
-      cancelRelatedSetupSession(user, scheduledSubscription.getId());
+      var earliestScheduledStartDate = Long.MAX_VALUE;
+      for (var scheduledSubscription : activeScheduledSubscriptions) {
+        var scheduledStartDate = cancelScheduleAfterUpcomingPayment(scheduledSubscription);
+        cancelRelatedSetupSession(user, scheduledSubscription.getId());
+        earliestScheduledStartDate = Math.min(earliestScheduledStartDate, scheduledStartDate);
+      }
 
       userSubscriptionProductService.endActiveSubscriptionProducts(
-          user.getId(), Instant.ofEpochSecond(scheduledStartDate));
+          user.getId(), Instant.ofEpochSecond(earliestScheduledStartDate));
 
       var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
       return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
@@ -832,21 +853,29 @@ public class SubscriptionService {
     if (subscriptions.isEmpty()) {
       throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");
     }
-    var latestSubscription =
+    var activeSubscriptions =
         subscriptions.stream()
-            .sorted(comparing(Subscription::getStartDatetime, naturalOrder()).reversed())
+            .filter(Subscription::isActive)
+            .filter(subscription -> subscription.getE2Id() != null)
+            .toList();
+    if (activeSubscriptions.isEmpty()) {
+      throw new IllegalStateException(
+          "Only active subscription can be cancelled but none of the "
+              + subscriptions.size()
+              + " subscription(s) is active");
+    }
+    for (var activeSubscription : activeSubscriptions) {
+      stripeClient
+          .subscriptions()
+          .update(
+              activeSubscription.getE2Id(),
+              SubscriptionUpdateParams.builder().setCancelAtPeriodEnd(true).build());
+    }
+    var latestSubscription =
+        activeSubscriptions.stream()
+            .sorted(comparing(Subscription::getStartDatetime, nullsLast(naturalOrder())).reversed())
             .toList()
             .getFirst();
-    if (!latestSubscription.isActive()) {
-      throw new IllegalStateException(
-          "Only active subscription can be cancelled but actual status is "
-              + latestSubscription.getStatus());
-    }
-    stripeClient
-        .subscriptions()
-        .update(
-            latestSubscription.getE2Id(),
-            SubscriptionUpdateParams.builder().setCancelAtPeriodEnd(true).build());
     var periodEnd =
         latestSubscription.getEndDatetime() != null ? latestSubscription.getEndDatetime() : now();
 
@@ -941,7 +970,7 @@ public class SubscriptionService {
 
   private SubscriptionType computeTypeFromRecurring(String intervalValue) {
     if (intervalValue.equals("month")) {
-      return MONTHLY;
+      return SubscriptionType.MONTHLY;
     }
     throw new IllegalArgumentException(
         "Unknown or not supported subscription type: " + intervalValue);

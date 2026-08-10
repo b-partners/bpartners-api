@@ -25,7 +25,9 @@ public class SubscriptionPlanRestMapper {
         .isMostChosen(domain.isMostChosen())
         .isDeprecated(domain.isDeprecated())
         .displayPosition(domain.getDisplayPosition())
-        .annualDiscountPercent(domain.getAnnualDiscountPercent());
+        .annualDiscountPercent(domain.getAnnualDiscountPercent())
+        .annualPriceInCentsWithVat(domain.getAnnualPriceInCentsWithVat())
+        .annualPriceInCentsWithoutVat(domain.getAnnualPriceInCentsWithoutVat());
   }
 
   public SubscriptionPlanDescription toRestDescription(SubscriptionProduct domain) {

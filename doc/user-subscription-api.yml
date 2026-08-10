@@ -395,6 +395,17 @@ components:
           description: |
             Identifier of the chosen plan (see GET /subscriptionPlans). When provided it takes
             precedence over subscriptionType, enabling data-driven plan selection.
+        billingInterval:
+          $ref: '#/components/schemas/BillingInterval'
+    BillingInterval:
+      type: string
+      default: MONTHLY
+      enum:
+        - MONTHLY
+        - YEARLY
+      description: |
+        Billing interval for the fixed subscription. Defaults to MONTHLY when omitted.
+        YEARLY requires subscriptionPlanIdentifier and a plan that exposes an annual price.
     UserSubscriptionType:
       type: string
       description: for now, only ESSENTIAL subscription is supported
@@ -460,6 +471,18 @@ components:
             annualDiscountPercent:
               type: integer
               description: Discount, in percent, on the yearly prepaid fixed price.
+            annualPriceInCentsWithVat:
+              type: integer
+              format: int64
+              description: |
+                Yearly prepaid fixed price, VAT included (TTC), in cents, discount already applied.
+                Null when the plan has no annual pricing.
+            annualPriceInCentsWithoutVat:
+              type: integer
+              format: int64
+              description: |
+                Yearly prepaid fixed price, VAT excluded (HT), in cents, discount already applied.
+                Null when the plan has no annual pricing.
     UserSubscriptionCommitmentDetails:
       type: object
       properties:

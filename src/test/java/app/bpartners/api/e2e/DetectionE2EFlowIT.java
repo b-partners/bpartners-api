@@ -79,11 +79,15 @@ class DetectionE2EFlowIT {
   private static final int IMAGE_SIZE = 3072;
   // Taille de tuile (px) pour la conversion lon/lat -> pixels areaPicture (cf. convention front).
   private static final int TILE_SIZE_PX = 1024;
-  private static final String GEO_SERVER_URL = "http://35.181.83.111/geoserver/cite/wms";
 
   // Polling des roof properties (pente/hauteur) après déclenchement du calcul (step C4).
   private static final Duration ROOF_POLL_INTERVAL = Duration.ofSeconds(5);
   private static final Duration ROOF_POLL_MAX = Duration.ofSeconds(120);
+
+  // Génération 3D (CityJSON) de l'emprise : OPTIONNELLE. false par défaut ; passer à true pour
+  // l'activer. Si activée, elle s'exécute APRÈS le calcul des pentes (évite un conflit de
+  // concurrence).
+  private static final boolean GENERATE_3D = true;
 
   // Couleur du polygone de toiture (contour vert transparent), alignée sur la palette du front.
   private static final String ROOF_FILL_COLOR = "#00ff0000";
@@ -140,6 +144,7 @@ class DetectionE2EFlowIT {
     var draftAnnotationId = randomUUID().toString();
     var detectionId = randomUUID().toString();
     var zoneId = randomUUID().toString();
+    var threeDGenerationId = randomUUID().toString(); // id de la city-json (ThreeD) request
     var email = env("BP_EMAIL", "e2e+" + prospectId.substring(0, 8) + "@birdia.fr");
 
     // ========================================================= PHASE A : Setup
@@ -308,7 +313,11 @@ class DetectionE2EFlowIT {
             // false -> image de fond = areaPicture 2D (fileId), pas l'image d'analyse : c'est le
             // repère dans lequel on a converti le polygone (cf. Annotator.tsx sourceFileId).
             .put("analyseImageGenerated", false)
-            .put("roofAnalyseId", detectionId));
+            .put("roofAnalyseId", detectionId)
+            // 3D : mode de segmentation off ; l'id de la ThreeD request associe la génération au
+            // projet (lu par le front via properties, cf. useRetrievePolygons).
+            .put("threeDGenerationMode", false)
+            .put("threeDGenerationId", threeDGenerationId));
     bpPut(annotationsPath, draftWithResults);
     var reloadedCount = bpGet(annotationsPath).path("annotations").size();
     assertTrue(reloadedCount > 0, "le draft rechargé ne contient aucune annotation");
@@ -360,6 +369,16 @@ class DetectionE2EFlowIT {
           ROOF_POLL_MAX.toSeconds());
     }
 
+    // C2 — GÉNÉRATION 3D (CityJSON) OPTIONNELLE de l'emprise. Exécutée APRÈS le calcul des pentes
+    // (poll ci-dessus) pour éviter tout conflit de concurrence. Désactivée par défaut
+    // (GENERATE_3D).
+    if (GENERATE_3D) {
+      generate3d(threeDGenerationId, roofPolygon, tileX, tileY, zoomNumber);
+      log.info("C2 ✔ génération 3D déclenchée (threeDGenerationId={})", threeDGenerationId);
+    } else {
+      log.info("C2 génération 3D désactivée (GENERATE_3D=false)");
+    }
+
     log.info(
         "✅ E2E OK — projet='{}' adresse='{}' pente={}° hauteur={} m régions={}"
             + " (prospect={}, areaPicture={}, detection={})",
@@ -371,6 +390,37 @@ class DetectionE2EFlowIT {
         prospectId,
         pictureId,
         detectionId);
+  }
+
+  /**
+   * Génère le 3D (CityJSON) de l'emprise via {@code PUT /city-jsons/{id}/process} (step C2 du
+   * flow). {@code cityJsonRequestId} = threeDGenerationId (associé au projet dans les properties).
+   * La délimitation est l'emprise lon/lat ; threeDTextureInfo porte la tuile + tailles d'image.
+   */
+  private void generate3d(
+      String cityJsonRequestId, ArrayNode roofPolygon, int tileX, int tileY, int zoom)
+      throws Exception {
+    var geometry = om.createObjectNode();
+    geometry.put("type", "Polygon");
+    geometry.set("coordinates", roofPolygon);
+    var delimitation = om.createObjectNode();
+    delimitation.put("type", "Feature");
+    delimitation.set("properties", om.createObjectNode());
+    delimitation.set("geometry", geometry);
+    var threeDTextureInfo = om.createObjectNode();
+    threeDTextureInfo.put("tileX", tileX);
+    threeDTextureInfo.put("tileY", tileY);
+    threeDTextureInfo.put("tileImageSizePx", TILE_SIZE_PX);
+    threeDTextureInfo.put("imageWidth", IMAGE_SIZE);
+    threeDTextureInfo.put("imageHeight", IMAGE_SIZE);
+    threeDTextureInfo.put("zoom", zoom);
+    threeDTextureInfo.putNull("imageUri");
+    var body = om.createObjectNode();
+    body.put("id", cityJsonRequestId);
+    body.put("delimitationObjectType", "BUILDING_ROOF");
+    body.set("delimitations", om.createArrayNode().add(delimitation));
+    body.set("threeDTextureInfo", threeDTextureInfo);
+    geoPut("/city-jsons/" + cityJsonRequestId + "/process", body);
   }
 
   /** Metadata de l'instance toiture (labelType "Toit") dans la liste d'annotations, ou null. */
@@ -633,10 +683,6 @@ class DetectionE2EFlowIT {
     }
     int i = 0;
     for (var feature : root.path("features")) {
-      if (i == 0) {
-        i++;
-        continue;
-      }
       var props = feature.path("properties");
       var address = props.path("adresse").asText(null);
       var refBat = props.path("ref_bat").asText(null);

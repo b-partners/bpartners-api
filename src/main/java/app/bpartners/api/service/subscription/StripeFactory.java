@@ -101,24 +101,24 @@ public class StripeFactory {
             .setCustomer(stripeCustomer.getId())
             .setCurrency(defaultCurrency())
             .addLineItem(basePlanLineItem);
-    if (subscription.getBillingInterval() != YEARLY) {
+    var isBilledOnCalendarMonths = subscription.getBillingInterval() != YEARLY;
+    if (isBilledOnCalendarMonths) {
       sessionParamsBuilder.addLineItem(
           SessionCreateParams.LineItem.builder().setPrice(newVariableProductPrice.getId()).build());
     }
-    var subscriptionDataBuilder =
-        SessionCreateParams.SubscriptionData.builder()
-            .setProrationBehavior(
-                SessionCreateParams.SubscriptionData.ProrationBehavior.CREATE_PRORATIONS);
-    var isBilledOnCalendarMonths = subscription.getBillingInterval() != YEARLY;
     if (isBilledOnCalendarMonths && startsAfterToday(billingCycleAnchor)) {
-      subscriptionDataBuilder.setBillingCycleAnchor(billingCycleAnchor);
+      sessionParamsBuilder.setSubscriptionData(
+          SessionCreateParams.SubscriptionData.builder()
+              .setBillingCycleAnchor(billingCycleAnchor)
+              .setProrationBehavior(
+                  SessionCreateParams.SubscriptionData.ProrationBehavior.CREATE_PRORATIONS)
+              .build());
     }
     return Session.create(
         sessionParamsBuilder
             .setSuccessUrl(redirectionUrls.getSuccessUrl())
             .setCancelUrl(redirectionUrls.getFailureUrl())
             .setUiMode(HOSTED)
-            .setSubscriptionData(subscriptionDataBuilder.build())
             .setPaymentMethodCollection(IF_REQUIRED)
             .build());
   }

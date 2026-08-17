@@ -40,6 +40,7 @@ import com.stripe.service.SubscriptionItemService;
 import com.stripe.service.SubscriptionScheduleService;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -979,6 +980,64 @@ class SubscriptionServiceTest {
 
   @SneakyThrows
   @Test
+  void initiate_subscription_anchors_billing_cycle_on_first_day_of_next_month() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    mockActiveSchedules();
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of());
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .userId("user_id")
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(10L))
+                    .build()));
+    mockInitiateSubscriptionDependencies(user);
+
+    subject.initiateSubscription(user, someSubscriptionToInitiate(), getRedirectionStatusUrls());
+
+    assertEquals(expectedBillingCycleAnchor(), capturedBillingCycleAnchor());
+  }
+
+  @SneakyThrows
+  @Test
+  void initiate_subscription_starts_today_even_when_trial_period_is_still_running() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    mockActiveSchedules();
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of());
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .userId("user_id")
+                    .trialPeriodDays(40)
+                    .eligibleFrom(LocalDate.now())
+                    .build()));
+    mockInitiateSubscriptionDependencies(user);
+
+    subject.initiateSubscription(user, someSubscriptionToInitiate(), getRedirectionStatusUrls());
+
+    assertEquals(expectedBillingCycleAnchor(), capturedBillingCycleAnchor());
+  }
+
+  private Long capturedBillingCycleAnchor() throws StripeException {
+    var anchorCaptor = ArgumentCaptor.forClass(Long.class);
+    verify(sessionFactoryMock)
+        .initiateSubscriptionWorkflow(any(), any(), any(), any(), anchorCaptor.capture(), any());
+    return anchorCaptor.getValue();
+  }
+
+  private static long expectedBillingCycleAnchor() {
+    var today = LocalDate.now();
+    var firstFullBillingPeriodStart =
+        today.getDayOfMonth() == 1 ? today : today.withDayOfMonth(1).plusMonths(1);
+    return firstFullBillingPeriodStart.atStartOfDay(ZoneId.of("Europe/Paris")).toEpochSecond();
+  }
+
+  @SneakyThrows
+  @Test
   void initiate_subscription_blocked_when_current_schedule_is_not_pending_cancellation() {
     var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
     var scheduledStartEpoch = now().plus(1L, DAYS).getEpochSecond();
@@ -1008,7 +1067,7 @@ class SubscriptionServiceTest {
 
     assertTrue(actual.getMessage().startsWith("User.id=user_id has active subscription until "));
     verify(sessionFactoryMock, never())
-        .initiateSubscriptionWorkflow(any(), any(), any(), any(), any(), any(), anyLong(), any());
+        .initiateSubscriptionWorkflow(any(), any(), any(), any(), anyLong(), any());
   }
 
   private void mockActiveSchedules(SubscriptionSchedule... schedules) throws StripeException {
@@ -1028,7 +1087,7 @@ class SubscriptionServiceTest {
     when(stripeClientMock.prices()).thenReturn(priceServiceMock);
     var expectedRedirection = new Redirection();
     when(sessionFactoryMock.initiateSubscriptionWorkflow(
-            any(), any(), any(), any(), any(), any(), anyLong(), any()))
+            any(), any(), any(), any(), anyLong(), any()))
         .thenReturn(expectedRedirection);
     return expectedRedirection;
   }

@@ -112,7 +112,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
 
     for (var pan : annotation3D.getPans()) {
       var panImage =
-          exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(pan);
+          exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(pan, true);
       subImages3D.add(base64(panImage));
     }
 
@@ -127,7 +127,8 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     if (annotation3D.getFacades() != null) {
       for (var facade : annotation3D.getFacades()) {
         var facadeImage =
-            exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(facade);
+            exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(
+                facade, false);
         subImages3D.add(base64(facadeImage));
       }
     }

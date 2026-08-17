@@ -362,7 +362,7 @@ public class SubscriptionService {
         TRIALING,
         now,
         new TemporalUtils()
-            .fifthOfNextMonth()
+            .startOfNextMonth()
             .atStartOfDay(ZoneId.of("Europe/Paris"))
             .minusSeconds(1L)
             .toInstant());
@@ -543,11 +543,7 @@ public class SubscriptionService {
               + " has active subscription until "
               + latestSubscription.getEndDatetime());
     }
-    var endOfTrialPeriod = computeEndOfTrialPeriod(user);
-    var today = LocalDate.now();
-    var dateFromWhenSubscriptionPeriodStart =
-        endOfTrialPeriod.isAfter(today) ? endOfTrialPeriod : today;
-    long billingCycleAnchor = computeBillingCycleAnchor(dateFromWhenSubscriptionPeriodStart);
+    long billingCycleAnchor = computeBillingCycleAnchor();
     log.info(
         "Schedule start date = {}",
         Instant.ofEpochSecond(billingCycleAnchor).atZone(ZoneId.of("Europe/Paris")).toLocalDate());
@@ -571,28 +567,18 @@ public class SubscriptionService {
 
     return stripeFactory.initiateSubscriptionWorkflow(
         user,
-        dateFromWhenSubscriptionPeriodStart,
         stripeCustomer,
-        subscriptionProduct,
         newVariableProductPrice,
         redirectionUrls,
         billingCycleAnchor,
         subscription);
   }
 
-  private LocalDate computeEndOfTrialPeriod(User user) {
-    var userEligibility =
-        subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
-    return userEligibility.getLatestTrialPeriodDate();
-  }
-
-  private Long computeBillingCycleAnchor(LocalDate latestTrialPeriodDate) {
-    var nextBillingDate = temporalUtils.fifthOfNextMonth();
-    if (latestTrialPeriodDate.isAfter(temporalUtils.endOfActualMonth())) {
-      nextBillingDate = temporalUtils.fifthOfMonthAfter(2);
-    }
-    return Date.from(nextBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
-        / 1000L;
+  private Long computeBillingCycleAnchor() {
+    var today = temporalUtils.today();
+    var firstFullBillingPeriodStart =
+        today.getDayOfMonth() == 1 ? today : temporalUtils.startOfMonthAfter(today);
+    return firstFullBillingPeriodStart.atStartOfDay(ZoneId.of("Europe/Paris")).toEpochSecond();
   }
 
   @SneakyThrows

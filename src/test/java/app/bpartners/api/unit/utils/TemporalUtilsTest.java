@@ -46,7 +46,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(1);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -59,7 +61,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(2);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -72,7 +76,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(3);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -85,7 +91,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(4);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -98,7 +106,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(5);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -111,7 +121,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(6);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -124,7 +136,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(7);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -137,7 +151,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(8);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -150,7 +166,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(9);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -163,7 +181,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(10);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -176,7 +196,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(11);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 
@@ -189,7 +211,9 @@ class TemporalUtilsTest {
     var localDateMockedStatic = mockStatic(LocalDate.class);
     var localDateMock = mock(LocalDate.class);
     when(localDateMock.getMonthValue()).thenReturn(12);
-    localDateMockedStatic.when(LocalDate::now).thenReturn(localDateMock);
+    localDateMockedStatic
+        .when(() -> LocalDate.now(ZONE_ID_OF_EUROPE_PARIS))
+        .thenReturn(localDateMock);
 
     var actual = actualMonthValue();
 

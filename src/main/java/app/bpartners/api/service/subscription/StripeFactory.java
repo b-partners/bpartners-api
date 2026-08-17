@@ -109,7 +109,8 @@ public class StripeFactory {
         SessionCreateParams.SubscriptionData.builder()
             .setProrationBehavior(
                 SessionCreateParams.SubscriptionData.ProrationBehavior.CREATE_PRORATIONS);
-    if (startsAfterToday(billingCycleAnchor)) {
+    var isBilledOnCalendarMonths = subscription.getBillingInterval() != YEARLY;
+    if (isBilledOnCalendarMonths && startsAfterToday(billingCycleAnchor)) {
       subscriptionDataBuilder.setBillingCycleAnchor(billingCycleAnchor);
     }
     return Session.create(

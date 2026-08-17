@@ -171,6 +171,36 @@ public class StripeFactoryTest {
   }
 
   @Test
+  void create_session_subscription_yearly_charges_the_whole_year_at_checkout()
+      throws StripeException {
+    mockToday();
+    var customer = mock(Customer.class);
+    when(customer.getId()).thenReturn("customer_id");
+    var urls = mock(RedirectionStatusUrls.class);
+    when(urls.getSuccessUrl()).thenReturn("success_url");
+    when(urls.getFailureUrl()).thenReturn("failure_url");
+    var product = mock(SubscriptionProduct.class);
+    when(product.getAnnualE2PriceId()).thenReturn("annual_price_id");
+    var subscription = mock(Subscription.class);
+    when(subscription.getSubscriptionProduct()).thenReturn(product);
+    when(subscription.getBillingInterval()).thenReturn(BillingInterval.YEARLY);
+    var meteredPrice = mock(Price.class);
+    var firstOfNextMonth = parisMidnight(LocalDate.of(2025, MAY, 1));
+    try (MockedStatic<Session> mockedSession = mockStatic(Session.class)) {
+      mockedSession
+          .when(() -> Session.create(any(SessionCreateParams.class)))
+          .thenReturn(stripeSessionMock);
+
+      subject.createSessionSubscription(
+          customer, subscription, meteredPrice, urls, firstOfNextMonth);
+
+      var captor = ArgumentCaptor.forClass(SessionCreateParams.class);
+      mockedSession.verify(() -> Session.create(captor.capture()));
+      assertNull(captor.getValue().getSubscriptionData().getBillingCycleAnchor());
+    }
+  }
+
+  @Test
   void create_session_subscription_yearly_uses_annual_price_and_no_metered_line_item()
       throws StripeException {
     mockToday();

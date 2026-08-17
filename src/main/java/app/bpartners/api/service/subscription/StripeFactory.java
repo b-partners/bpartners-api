@@ -23,9 +23,7 @@ import com.stripe.param.SubscriptionListParams;
 import com.stripe.param.SubscriptionScheduleCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -50,60 +48,19 @@ public class StripeFactory {
 
   public Redirection initiateSubscriptionWorkflow(
       User user,
-      LocalDate dateFromWhenSubscriptionPeriodStart,
       Customer stripeCustomer,
-      SubscriptionProduct subscriptionProduct,
       Price price,
       RedirectionStatusUrls redirectionUrls,
       long billingCycleAnchor,
       Subscription subscription)
       throws StripeException {
-    var today = LocalDate.now();
-    boolean isTodayBeforeFifthOfActualMonth = today.isBefore(temporalUtils.fifthOfActualMonth());
-    boolean isTrialEndBetweenFirstAndFifthOfActualMonth =
-        (dateFromWhenSubscriptionPeriodStart.isAfter(temporalUtils.startOfActualMonth())
-                || dateFromWhenSubscriptionPeriodStart.isEqual(temporalUtils.startOfActualMonth()))
-            && (dateFromWhenSubscriptionPeriodStart.isBefore(temporalUtils.fifthOfActualMonth())
-                || dateFromWhenSubscriptionPeriodStart.isEqual(temporalUtils.fifthOfActualMonth()));
-    boolean isTrialEndBetweenFirstAndFifthOfNextMonth =
-        (dateFromWhenSubscriptionPeriodStart.isAfter(temporalUtils.startOfNextMonth())
-                || dateFromWhenSubscriptionPeriodStart.isEqual(temporalUtils.startOfNextMonth()))
-            && (dateFromWhenSubscriptionPeriodStart.isBefore(temporalUtils.fifthOfNextMonth())
-                || dateFromWhenSubscriptionPeriodStart.isBefore(temporalUtils.fifthOfNextMonth()));
-    if (isTrialEndBetweenFirstAndFifthOfNextMonth || isTrialEndBetweenFirstAndFifthOfActualMonth) {
-      scheduleSubscription(stripeCustomer, subscription, price, billingCycleAnchor, user);
-      return new Redirection()
-          .redirectionUrl(
-              getDashboardUrl()
-                  + "/account/"
-                  + user.getDefaultAccount().getId()
-                  + "?stripeStatus=done")
-          .redirectionStatusUrls(redirectionUrls);
-    } else if (dateFromWhenSubscriptionPeriodStart.isAfter(temporalUtils.fifthOfActualMonth())
-        && dateFromWhenSubscriptionPeriodStart.isBefore(temporalUtils.endOfActualMonth())
-        && !isTodayBeforeFifthOfActualMonth) {
-      var sessionSubscription =
-          createSessionSubscription(
-              stripeCustomer, subscription, price, redirectionUrls, billingCycleAnchor);
-      if (subscription.getBillingInterval() == YEARLY) {
-        scheduleOverageSubscription(stripeCustomer, price, billingCycleAnchor, user);
-      }
-      return mapFromSession(sessionSubscription, redirectionUrls);
+    var sessionSubscription =
+        createSessionSubscription(
+            stripeCustomer, subscription, price, redirectionUrls, billingCycleAnchor);
+    if (subscription.getBillingInterval() == YEARLY) {
+      scheduleOverageSubscription(stripeCustomer, price, billingCycleAnchor, user);
     }
-    scheduleSubscription(stripeCustomer, subscription, price, billingCycleAnchor, user);
-    return new Redirection()
-        .redirectionUrl(
-            getDashboardUrl()
-                + "/account/"
-                + user.getDefaultAccount().getId()
-                + "?stripeStatus=done")
-        .redirectionStatusUrls(redirectionUrls);
-  }
-
-  private String getDashboardUrl() {
-    return System.getenv("ENV") != null && System.getenv("ENV").equals("preprod")
-        ? "https://preprod.dashboard.birdia.fr"
-        : "https://dashboard.birdia.fr";
+    return mapFromSession(sessionSubscription, redirectionUrls);
   }
 
   private Redirection mapFromSession(Session session, RedirectionStatusUrls redirectionUrls) {
@@ -148,40 +105,28 @@ public class StripeFactory {
       sessionParamsBuilder.addLineItem(
           SessionCreateParams.LineItem.builder().setPrice(newVariableProductPrice.getId()).build());
     }
+    var subscriptionDataBuilder =
+        SessionCreateParams.SubscriptionData.builder()
+            .setProrationBehavior(
+                SessionCreateParams.SubscriptionData.ProrationBehavior.CREATE_PRORATIONS);
+    if (startsAfterToday(billingCycleAnchor)) {
+      subscriptionDataBuilder.setBillingCycleAnchor(billingCycleAnchor);
+    }
     return Session.create(
         sessionParamsBuilder
             .setSuccessUrl(redirectionUrls.getSuccessUrl())
             .setCancelUrl(redirectionUrls.getFailureUrl())
             .setUiMode(HOSTED)
-            .setSubscriptionData(
-                SessionCreateParams.SubscriptionData.builder()
-                    .setProrationBehavior(
-                        SessionCreateParams.SubscriptionData.ProrationBehavior.NONE)
-                    .setBillingCycleAnchor(billingCycleAnchor)
-                    .build())
+            .setSubscriptionData(subscriptionDataBuilder.build())
             .setPaymentMethodCollection(IF_REQUIRED)
             .build());
   }
 
-  public void scheduleSubscription(
-      Customer stripeCustomer,
-      Subscription subscription,
-      Price newVariableProductPrice,
-      Long billingCycleAnchor,
-      User user) {
-    SubscriptionSchedule subscriptionSchedule =
-        subscriptionScheduleCreation(
-            stripeCustomer.getId(),
-            subscription,
-            newVariableProductPrice.getId(),
-            billingCycleAnchor);
-
-    saveSubscriptionSession(user, subscriptionSchedule.getId(), billingCycleAnchor);
-
-    if (subscription.getBillingInterval() == YEARLY) {
-      scheduleOverageSubscription(
-          stripeCustomer, newVariableProductPrice, billingCycleAnchor, user);
-    }
+  private boolean startsAfterToday(Long billingCycleAnchor) {
+    return Instant.ofEpochSecond(billingCycleAnchor)
+        .atZone(ZoneId.of("Europe/Paris"))
+        .toLocalDate()
+        .isAfter(temporalUtils.today());
   }
 
   public void scheduleOverageSubscription(
@@ -207,51 +152,6 @@ public class StripeFactory {
   }
 
   @SneakyThrows
-  public SubscriptionSchedule subscriptionScheduleCreation(
-      String customerId,
-      Subscription subscription,
-      String meteredPriceId,
-      long billingCycleAnchor) {
-
-    var subscriptionProduct = subscription.getSubscriptionProduct();
-    List<SubscriptionScheduleCreateParams.Phase.Item> basePlanItems;
-    if (subscription.getBillingInterval() == YEARLY) {
-      basePlanItems =
-          List.of(
-              SubscriptionScheduleCreateParams.Phase.Item.builder()
-                  .setPrice(subscriptionProduct.getAnnualE2PriceId())
-                  .build());
-    } else {
-      var recurringParams =
-          computeRecurringFromSubscriptionProductForSetUpMode(subscriptionProduct);
-      basePlanItems =
-          List.of(
-              SubscriptionScheduleCreateParams.Phase.Item.builder()
-                  .setPriceData(
-                      SubscriptionScheduleCreateParams.Phase.Item.PriceData.builder()
-                          .setCurrency(defaultCurrency())
-                          .setProduct(subscriptionProduct.getE2Id())
-                          .setRecurring(recurringParams)
-                          .setUnitAmount(subscriptionProduct.getPriceInCentsWithVat())
-                          .build())
-                  .build(),
-              SubscriptionScheduleCreateParams.Phase.Item.builder()
-                  .setPrice(meteredPriceId)
-                  .build());
-    }
-
-    var phases = new ArrayList<SubscriptionScheduleCreateParams.Phase>();
-    phases.add(SubscriptionScheduleCreateParams.Phase.builder().addAllItem(basePlanItems).build());
-
-    return SubscriptionSchedule.create(
-        SubscriptionScheduleCreateParams.builder()
-            .setCustomer(customerId)
-            .setStartDate(billingCycleAnchor)
-            .addAllPhase(phases)
-            .build());
-  }
-
-  @SneakyThrows
   public SubscriptionSchedule overageScheduleCreation(
       String customerId, String meteredPriceId, long billingCycleAnchor) {
     var phase =
@@ -269,18 +169,6 @@ public class StripeFactory {
             .setEndBehavior(SubscriptionScheduleCreateParams.EndBehavior.CANCEL)
             .addPhase(phase)
             .build());
-  }
-
-  public SubscriptionScheduleCreateParams.Phase.Item.PriceData.Recurring
-      computeRecurringFromSubscriptionProductForSetUpMode(SubscriptionProduct subscriptionProduct) {
-    if (Objects.requireNonNull(subscriptionProduct.getType()) == MONTHLY) {
-      return SubscriptionScheduleCreateParams.Phase.Item.PriceData.Recurring.builder()
-          .setInterval(
-              SubscriptionScheduleCreateParams.Phase.Item.PriceData.Recurring.Interval.MONTH)
-          .build();
-    }
-    throw new IllegalArgumentException(
-        "Unknown subscription type: " + subscriptionProduct.getType());
   }
 
   private SessionCreateParams.LineItem.PriceData.Recurring

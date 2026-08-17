@@ -20,7 +20,6 @@ import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -203,13 +202,8 @@ public class UserRestMapper {
     }
     if (userWhiteListed != null
         && userWhiteListed.getScopes().contains(SUBSCRIPTION_VALIDATION_NOT_REQUIRED)) {
-      var today = LocalDate.now();
-      var fifthOfActualMonth = temporalUtils.fifthOfActualMonth();
-      if (today.isBefore(fifthOfActualMonth)) {
-        return fifthOfActualMonth.atStartOfDay(parisZoneId).minusSeconds(1L).toInstant();
-      }
       return temporalUtils
-          .fifthOfNextMonth()
+          .startOfNextMonth()
           .atStartOfDay(parisZoneId)
           .minusSeconds(1L)
           .toInstant();
@@ -237,12 +231,7 @@ public class UserRestMapper {
     }
     if (userWhiteListed != null
         && userWhiteListed.getScopes().contains(SUBSCRIPTION_VALIDATION_NOT_REQUIRED)) {
-      var today = LocalDate.now();
-      var fifthOfActualMonth = temporalUtils.fifthOfActualMonth();
-      if (today.isBefore(fifthOfActualMonth)) {
-        return temporalUtils.fifthOfLastMonth().atStartOfDay(parisZoneId).toInstant();
-      }
-      return fifthOfActualMonth.atStartOfDay(parisZoneId).toInstant();
+      return temporalUtils.startOfActualMonth().atStartOfDay(parisZoneId).toInstant();
     }
     if (subscription.getLatestSubscription() != null) {
       if (subscription.getLatestSubscription().getStartDatetime() != null

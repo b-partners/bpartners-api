@@ -86,7 +86,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   void setUp() {
     var stripeInvoiceMock = mock(com.stripe.model.Invoice.class);
     when(stripeInvoiceMock.getNextPaymentAttempt())
-        .thenReturn(temporalUtils.getSixthOfMonthAt2359(now(), 0).minus(1L, DAYS).getEpochSecond());
+        .thenReturn(temporalUtils.getFirstOfMonthAt2359(now(), 0).minus(1L, DAYS).getEpochSecond());
     when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(any())).thenReturn(stripeInvoiceMock);
     when(userStripeCustomerEmailCorrespondenceJpaRepositoryMock.findByUserId(any()))
         .thenReturn(Optional.empty());
@@ -132,7 +132,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
             .subscriptionProduct(subscriptionProduct)
             .active(true)
             .status(ACTIVE)
-            .endDatetime(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS))
+            .endDatetime(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS))
             .build();
     var user = User.builder().id(userToDebitId).userSubscriptionId("subscriptionId").build();
     when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
@@ -206,7 +206,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         Subscription.builder()
             .active(true)
             .status(ACTIVE)
-            .endDatetime(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS))
+            .endDatetime(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS))
             .build();
     var userSubscription =
         UserSubscription.builder()
@@ -389,7 +389,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(customerRepositoryMock.findByIdUserAndCriteria(
             any(),
@@ -487,7 +487,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(customerRepositoryMock.findByIdUserAndCriteria(
             any(),
@@ -605,7 +605,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(adminUserMock.getId()).thenReturn(adminUserId);
@@ -709,7 +709,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(adminUserMock.getId()).thenReturn(adminUserId);
@@ -837,7 +837,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
                 + endOfBilledMonthFormatted)
         .ref(createdInvoice.getRef())
         .validityDate(sendingDate.plusDays(30L))
-        .toPayAt(temporalUtils.fifthOfActualMonth())
+        .toPayAt(temporalUtils.startOfActualMonth())
         .sendingDate(sendingDate)
         .createdAt(createdInvoice.getCreatedAt())
         .user(userToCreditMock)

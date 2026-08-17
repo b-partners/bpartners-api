@@ -92,7 +92,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     log.info("Upcoming Stripe Invoice {} for user(id={})", nextInvoiceDate, userToDebit.getId());
 
     if (nextInvoiceDate != null
-        && nextInvoiceDate.isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 1))) {
+        && nextInvoiceDate.isBefore(temporalUtils.getFirstOfMonthAt2359(now(), 1))) {
       Invoice monthlySubscriptionInvoice;
       try {
         monthlySubscriptionInvoice =
@@ -164,7 +164,7 @@ public class MonthlySubscriptionInvoiceRequestedService
                         .equalsIgnoreCase(monthlySubscriptionInvoice.getTitle())
                     && existingInvoice
                         .getCreatedAt()
-                        .isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 1))
+                        .isBefore(temporalUtils.getFirstOfMonthAt2359(now(), 1))
                     && existingInvoice
                         .getCreatedAt()
                         .isAfter(
@@ -204,7 +204,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfActualMonth())
+        .toPayAt(temporalUtils.startOfActualMonth())
         .sendingDate(sendingDate)
         .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)

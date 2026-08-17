@@ -1022,10 +1022,68 @@ class SubscriptionServiceTest {
     assertEquals(expectedBillingCycleAnchor(), capturedBillingCycleAnchor());
   }
 
+  @SneakyThrows
+  @Test
+  void overage_subscription_is_scheduled_once_the_annual_invoice_is_paid() {
+    var user = User.builder().id("user_id").build();
+    var invoice = someAnnualInvoicePaid("subscription_create");
+    mockStripeSubscription(
+        "sub_annual",
+        Map.of(
+            "overage_metered_price_id",
+            "metered_price_id",
+            "overage_billing_cycle_anchor",
+            "123456"));
+    when(userRepositoryMock.findByStripeCustomerId("customer_id")).thenReturn(Optional.of(user));
+
+    subject.scheduleOverageSubscriptionAfterAnnualInvoicePaid(invoice);
+
+    verify(sessionFactoryMock, times(1))
+        .scheduleOverageSubscription("customer_id", "metered_price_id", 123456L, user);
+  }
+
+  @SneakyThrows
+  @Test
+  void overage_subscription_is_not_scheduled_again_on_annual_renewal() {
+    var invoice = someAnnualInvoicePaid("subscription_cycle");
+
+    subject.scheduleOverageSubscriptionAfterAnnualInvoicePaid(invoice);
+
+    verify(sessionFactoryMock, never()).scheduleOverageSubscription(any(), any(), anyLong(), any());
+  }
+
+  @SneakyThrows
+  @Test
+  void overage_subscription_is_not_scheduled_when_subscription_has_no_overage_metadata() {
+    var invoice = someAnnualInvoicePaid("subscription_create");
+    mockStripeSubscription("sub_annual", Map.of());
+
+    subject.scheduleOverageSubscriptionAfterAnnualInvoicePaid(invoice);
+
+    verify(sessionFactoryMock, never()).scheduleOverageSubscription(any(), any(), anyLong(), any());
+  }
+
+  private static Invoice someAnnualInvoicePaid(String billingReason) {
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_annual");
+    when(invoice.getBillingReason()).thenReturn(billingReason);
+    return invoice;
+  }
+
+  private void mockStripeSubscription(String stripeSubscriptionId, Map<String, String> metadata)
+      throws StripeException {
+    var stripeSubscription = mock(com.stripe.model.Subscription.class);
+    when(stripeSubscription.getCustomer()).thenReturn("customer_id");
+    when(stripeSubscription.getMetadata()).thenReturn(metadata);
+    var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    when(subscriptionServiceMock.retrieve(stripeSubscriptionId)).thenReturn(stripeSubscription);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
+  }
+
   private Long capturedBillingCycleAnchor() throws StripeException {
     var anchorCaptor = ArgumentCaptor.forClass(Long.class);
     verify(sessionFactoryMock)
-        .initiateSubscriptionWorkflow(any(), any(), any(), any(), anchorCaptor.capture(), any());
+        .initiateSubscriptionWorkflow(any(), any(), any(), anchorCaptor.capture(), any());
     return anchorCaptor.getValue();
   }
 
@@ -1067,7 +1125,7 @@ class SubscriptionServiceTest {
 
     assertTrue(actual.getMessage().startsWith("User.id=user_id has active subscription until "));
     verify(sessionFactoryMock, never())
-        .initiateSubscriptionWorkflow(any(), any(), any(), any(), anyLong(), any());
+        .initiateSubscriptionWorkflow(any(), any(), any(), anyLong(), any());
   }
 
   private void mockActiveSchedules(SubscriptionSchedule... schedules) throws StripeException {
@@ -1086,8 +1144,7 @@ class SubscriptionServiceTest {
     when(priceServiceMock.create(any(PriceCreateParams.class))).thenReturn(mock(Price.class));
     when(stripeClientMock.prices()).thenReturn(priceServiceMock);
     var expectedRedirection = new Redirection();
-    when(sessionFactoryMock.initiateSubscriptionWorkflow(
-            any(), any(), any(), any(), anyLong(), any()))
+    when(sessionFactoryMock.initiateSubscriptionWorkflow(any(), any(), any(), anyLong(), any()))
         .thenReturn(expectedRedirection);
     return expectedRedirection;
   }

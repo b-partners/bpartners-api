@@ -7,6 +7,8 @@ import static app.bpartners.api.model.subscription.Subscription.SubscriptionStat
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
+import static app.bpartners.api.service.subscription.StripeFactory.OVERAGE_BILLING_CYCLE_ANCHOR_METADATA_KEY;
+import static app.bpartners.api.service.subscription.StripeFactory.OVERAGE_METERED_PRICE_ID_METADATA_KEY;
 import static com.stripe.param.UsageRecordCreateOnSubscriptionItemParams.Action.SET;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -66,6 +68,7 @@ public class SubscriptionService {
   private static final String VAT_PERCENT_METADATA_KEY = "vat_percent";
   private static final String CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY =
       "cancel_after_first_invoice";
+  private static final String SUBSCRIPTION_CREATE_BILLING_REASON = "subscription_create";
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -566,12 +569,7 @@ public class SubscriptionService {
                     .build());
 
     return stripeFactory.initiateSubscriptionWorkflow(
-        user,
-        stripeCustomer,
-        newVariableProductPrice,
-        redirectionUrls,
-        billingCycleAnchor,
-        subscription);
+        stripeCustomer, newVariableProductPrice, redirectionUrls, billingCycleAnchor, subscription);
   }
 
   private Long computeBillingCycleAnchor() {
@@ -926,6 +924,40 @@ public class SubscriptionService {
     log.info(
         "Cancelled scheduled subscription {} immediately after its first invoice was paid",
         scheduleId);
+  }
+
+  @SneakyThrows
+  public void scheduleOverageSubscriptionAfterAnnualInvoicePaid(Invoice paidInvoice) {
+    var stripeSubscriptionId = paidInvoice.getSubscription();
+    if (stripeSubscriptionId == null
+        || !SUBSCRIPTION_CREATE_BILLING_REASON.equals(paidInvoice.getBillingReason())) {
+      return;
+    }
+    var stripeSubscription = stripeClient.subscriptions().retrieve(stripeSubscriptionId);
+    var metadata = stripeSubscription.getMetadata();
+    var meteredPriceId =
+        metadata == null ? null : metadata.get(OVERAGE_METERED_PRICE_ID_METADATA_KEY);
+    var billingCycleAnchor =
+        metadata == null ? null : metadata.get(OVERAGE_BILLING_CYCLE_ANCHOR_METADATA_KEY);
+    if (meteredPriceId == null || billingCycleAnchor == null) {
+      return;
+    }
+    var stripeCustomerId = stripeSubscription.getCustomer();
+    var optionalUser = userRepository.findByStripeCustomerId(stripeCustomerId);
+    if (optionalUser.isEmpty()) {
+      log.warn(
+          "No user found for StripeCustomer.id={}, unable to schedule overage subscription",
+          stripeCustomerId);
+      return;
+    }
+    stripeFactory.scheduleOverageSubscription(
+        stripeCustomerId, meteredPriceId, Long.valueOf(billingCycleAnchor), optionalUser.get());
+    log.info(
+        "Scheduled overage subscription on Price.id={} for StripeCustomer.id={} after annual"
+            + " Subscription.id={} was paid",
+        meteredPriceId,
+        stripeCustomerId,
+        stripeSubscriptionId);
   }
 
   private void cancelRelatedSetupSession(User user, String subscriptionScheduleId) {

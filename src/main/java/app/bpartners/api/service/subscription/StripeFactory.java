@@ -21,6 +21,7 @@ import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.SubscriptionListParams;
 import com.stripe.param.SubscriptionScheduleCreateParams;
+import com.stripe.param.SubscriptionScheduleListParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -35,6 +36,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class StripeFactory {
+  public static final String OVERAGE_METERED_PRICE_ID_METADATA_KEY = "overage_metered_price_id";
+  public static final String OVERAGE_BILLING_CYCLE_ANCHOR_METADATA_KEY =
+      "overage_billing_cycle_anchor";
   private static final long ANNUAL_OVERAGE_MONTHLY_ITERATIONS = 12L;
   private final TemporalUtils temporalUtils;
   private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
@@ -47,7 +51,6 @@ public class StripeFactory {
   }
 
   public Redirection initiateSubscriptionWorkflow(
-      User user,
       Customer stripeCustomer,
       Price price,
       RedirectionStatusUrls redirectionUrls,
@@ -57,9 +60,6 @@ public class StripeFactory {
     var sessionSubscription =
         createSessionSubscription(
             stripeCustomer, subscription, price, redirectionUrls, billingCycleAnchor);
-    if (subscription.getBillingInterval() == YEARLY) {
-      scheduleOverageSubscription(stripeCustomer, price, billingCycleAnchor, user);
-    }
     return mapFromSession(sessionSubscription, redirectionUrls);
   }
 
@@ -114,6 +114,14 @@ public class StripeFactory {
                   SessionCreateParams.SubscriptionData.ProrationBehavior.CREATE_PRORATIONS)
               .build());
     }
+    if (!isBilledOnCalendarMonths) {
+      sessionParamsBuilder.setSubscriptionData(
+          SessionCreateParams.SubscriptionData.builder()
+              .putMetadata(OVERAGE_METERED_PRICE_ID_METADATA_KEY, newVariableProductPrice.getId())
+              .putMetadata(
+                  OVERAGE_BILLING_CYCLE_ANCHOR_METADATA_KEY, String.valueOf(billingCycleAnchor))
+              .build());
+    }
     return Session.create(
         sessionParamsBuilder
             .setSuccessUrl(redirectionUrls.getSuccessUrl())
@@ -131,10 +139,29 @@ public class StripeFactory {
   }
 
   public void scheduleOverageSubscription(
-      Customer stripeCustomer, Price meteredPrice, Long billingCycleAnchor, User user) {
+      String stripeCustomerId, String meteredPriceId, Long billingCycleAnchor, User user) {
+    if (hasScheduleOn(stripeCustomerId, meteredPriceId)) {
+      log.info(
+          "Overage schedule already created for StripeCustomer.id={} on Price.id={}, skipping",
+          stripeCustomerId,
+          meteredPriceId);
+      return;
+    }
     SubscriptionSchedule overageSchedule =
-        overageScheduleCreation(stripeCustomer.getId(), meteredPrice.getId(), billingCycleAnchor);
+        overageScheduleCreation(stripeCustomerId, meteredPriceId, billingCycleAnchor);
     saveSubscriptionSession(user, overageSchedule.getId(), billingCycleAnchor);
+  }
+
+  @SneakyThrows
+  private boolean hasScheduleOn(String stripeCustomerId, String meteredPriceId) {
+    return SubscriptionSchedule.list(
+            SubscriptionScheduleListParams.builder().setCustomer(stripeCustomerId).build())
+        .getData()
+        .stream()
+        .filter(schedule -> schedule.getCanceledAt() == null)
+        .flatMap(schedule -> schedule.getPhases().stream())
+        .flatMap(phase -> phase.getItems().stream())
+        .anyMatch(item -> meteredPriceId.equals(item.getPrice()));
   }
 
   private void saveSubscriptionSession(

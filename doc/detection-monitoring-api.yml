@@ -4,6 +4,10 @@ operations:
       tags:
         - Detection Tracking
       summary: Register detection for tracking
+      description: |
+        Each registered detection debits `SubscriptionPlan.creditCostPerAnalysis` credits from the
+        user wallet and appends a `CONSUMPTION` credit transaction. Nothing is registered when the
+        wallet cannot cover the whole batch.
       parameters:
         - in: path
           name: userId
@@ -30,6 +34,8 @@ operations:
                   $ref: "#/components/schemas/DetectionTracking"
         400:
           $ref: './api.yml#/components/responses/400'
+        402:
+          $ref: './api.yml#/components/responses/402'
         403:
           $ref: './api.yml#/components/responses/403'
         404:

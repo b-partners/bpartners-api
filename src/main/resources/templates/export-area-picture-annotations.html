@@ -21,11 +21,9 @@
         }
 
         /* Prevent trailing blank page at the end of document rendering */
-        .page:last-of-type,
         body > .page:last-child,
         body > section:last-child {
             page-break-after: avoid !important;
-            break-after: avoid !important;
         }
 
         /* Standard page blocks using structural margins rather than flex/table constraints */
@@ -34,13 +32,7 @@
             display: block;
             position: relative;
             page-break-after: always;
-            break-after: page;
             page-break-inside: avoid;
-        }
-
-        .page:last-of-type {
-            page-break-after: avoid !important;
-            break-after: avoid !important;
         }
 
         /* Clearfix utility to fix floated containers without using display:table */
@@ -64,7 +56,6 @@
             display: block;
             width: 100%;
             max-height: 480px;
-            object-fit: contain;
             margin: 0 auto;
         }
 
@@ -72,7 +63,6 @@
             page-break-after: avoid !important;
         }
 
-        body > .page:last-of-type,
         body > section.page:last-child {
             page-break-after: avoid !important;
         }
@@ -84,7 +74,6 @@
             width: auto;
             height: auto;
             margin: 16px auto 0 auto;
-            object-fit: contain;
         }
 
         .title {
@@ -163,7 +152,6 @@
             max-width: 100%;
             height: 140px;
             width: 100%;
-            object-fit: contain;
         }
 
         .annotation-blank-item-image-3d {
@@ -546,7 +534,6 @@
         .custom-section-image {
             max-width: 100%;
             height: auto;
-            object-fit: contain;
         }
 
         .custom-section-caption {
@@ -698,7 +685,7 @@
         <div class="legend-item" th:each="type : ${roofSlopeBoundariesPerPage[pageStat.index]}">
             <img th:src="${roofSlopeBoundariesImages[type]}"
                  th:alt="${type}"
-                 style="width: 32px; height: 16px; object-fit: contain;" />
+                 style="width: 32px; height: 16px;" />
             <span th:text="${type}"></span>
         </div>
     </div>
@@ -845,7 +832,7 @@
             <div class="legend-item" th:each="type : ${allEdgeTypes}">
                 <img th:src="${roofSlopeBoundariesImages[type]}"
                      th:alt="${type}"
-                     style="width: 32px; height: 16px; object-fit: contain;" />
+                     style="width: 32px; height: 16px;" />
                 <span th:text="${type}"></span>
             </div>
         </div>

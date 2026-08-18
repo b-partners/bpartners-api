@@ -99,6 +99,27 @@ paths:
   /users/{uId}/subscriptionCommitments/{sId}/autoRenewalStatus:
     $ref: './user-subscription-api.yml#/operations/subscriptionCommitmentAutoRenewalStatusOperation'
 
+  #############################################
+  ################ Credits API ################
+  #############################################
+  /creditPacks:
+    $ref: './credits-api.yml#/operations/creditPacksOperation'
+  /creditPacks/{packId}:
+    $ref: './credits-api.yml#/operations/creditPackSingleOperation'
+  /users/{uId}/creditBalance:
+    $ref: './credits-api.yml#/operations/creditBalanceOperation'
+  /users/{uId}/creditPurchases:
+    $ref: './credits-api.yml#/operations/creditPurchasesOperation'
+  /users/{uId}/creditPurchases/{purchaseId}:
+    $ref: './credits-api.yml#/operations/creditPurchaseSingleOperation'
+  /users/{uId}/creditTransactions:
+    $ref: './credits-api.yml#/operations/creditTransactionsOperation'
+  /users/{uId}/creditTransactions/{transactionId}:
+    $ref: './credits-api.yml#/operations/creditTransactionSingleOperation'
+  /users/{uId}/creditAutoRechargeConf:
+    $ref: './credits-api.yml#/operations/creditAutoRechargeConfOperations'
+  /users/{uId}/creditAdjustments/{adjustmentId}:
+    $ref: './credits-api.yml#/operations/creditAdjustmentSingleOperation'
 
   #############################################
   ################ Paying API #################
@@ -293,12 +314,24 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/NotAuthorizedException'
+    402:
+      description: Not enough credits to pay for the requested usage
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InsufficientCreditsException'
     404:
       description: Not found
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ResourceNotFoundException'
+    409:
+      description: Conflict with the current state of the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConflictException'
     429:
       description: Too many requests to the API
       content:
@@ -433,6 +466,28 @@ components:
       example:
         type: ResourceNotFoundException
         message: Resource of type <T> identified by <I> not found
+    ConflictException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+      example:
+        type: ConflictException
+        message: Resource of type <T> identified by <I> conflicts with the current state
+    InsufficientCreditsException:
+      allOf:
+        - $ref: '#/components/schemas/Exception'
+        - type: object
+          properties:
+            requiredCredits:
+              type: integer
+              format: int64
+            availableCredits:
+              type: integer
+              format: int64
+      example:
+        type: InsufficientCreditsException
+        message: Insufficient credits, 10 required but 4 available
+        requiredCredits: 10
+        availableCredits: 4
     TooManyRequestsException:
       allOf:
         - $ref: '#/components/schemas/Exception'

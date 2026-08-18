@@ -121,6 +121,10 @@ operations:
       tags:
         - User Subscription
       summary: Get user Subscription log
+      deprecated: true
+      description: |
+        Replaced by GET /users/{uId}/creditTransactions, which reports the same consumptions as
+        ledger entries carrying the credits actually debited.
       operationId: getConsumptionLogsByUserId
       parameters:
         - in: path
@@ -413,6 +417,9 @@ components:
         - ESSENTIAL
     SubscriptionBillingType:
       type: string
+      description: |
+        COMMITMENT is the only billing type of the prepaid model. USAGE_BASED is deprecated, no
+        plan is post-paid anymore, and the value is kept only until the metered plans are migrated.
       enum:
         - COMMITMENT
         - USAGE_BASED
@@ -458,14 +465,33 @@ components:
         - $ref: '#/components/schemas/SubscriptionPlanDescription'
         - type: object
           properties:
+            includedCreditsPerBillingPeriod:
+              type: integer
+              format: int64
+              description: |
+                Credits granted to the wallet at the start of every billing period. They expire at
+                the end of that period and are never carried over.
+            creditCostPerAnalysis:
+              type: integer
+              format: int64
+              description: |
+                Credits debited by one roof analysis on this plan. The lever that makes a better
+                plan consume the same wallet more slowly.
             freeUsageThreshold:
               type: integer
               format: int64
-              description: Analyses included each month before the overage price applies.
+              deprecated: true
+              description: |
+                Post-paid leftover, replaced by `includedCreditsPerBillingPeriod`.
+                Removed once every consumer reads the prepaid credit fields.
             overageUnitPriceInCents:
               type: integer
               format: int64
-              description: Price, HT in cents, of each analysis beyond the included quota.
+              deprecated: true
+              description: |
+                Post-paid leftover, there is no overage anymore. Extra analyses are paid upfront
+                through credit packs, see GET /creditPacks.
+                Removed once every consumer reads the prepaid credit fields.
             trialPeriodDays:
               type: integer
             annualDiscountPercent:

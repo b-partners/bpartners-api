@@ -43,6 +43,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     this.templateResolverEngine = templateResolverEngine;
     this.emojiReplacer = getEmojiReplacer();
     this.fileService = fileService;
+    SymbolFontFallbackMapper.installOnce(FONT_PATH);
   }
 
   @SneakyThrows

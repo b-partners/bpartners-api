@@ -14,6 +14,7 @@ import app.bpartners.api.model.credit.*;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.CreditPackRepository;
+import app.bpartners.api.repository.jpa.CreditPurchaseRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 public class CreditService {
   private static final int DEFAULT_CREDIT_PACKS_PAGE_SIZE = 100;
   private static final int DEFAULT_CREDIT_TRANSACTIONS_PAGE_SIZE = 100;
+  private static final int DEFAULT_CREDIT_PURCHASES_PAGE_SIZE = 100;
   private static final ZoneId EUROPE_PARIS = ZoneId.of("Europe/Paris");
   private static final Instant LEDGER_START = EPOCH;
   private static final Instant LEDGER_END = Instant.parse("9999-12-31T23:59:59Z");
@@ -38,6 +40,7 @@ public class CreditService {
   private final UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final CreditTransactionRepository creditTransactionRepository;
+  private final CreditPurchaseRepository creditPurchaseRepository;
   private final CreditLedgerService creditLedgerService;
   private final TemporalUtils temporalUtils;
 
@@ -115,6 +118,27 @@ public class CreditService {
         : creditTransactionRepository
             .findByUserIdAndTypeInAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
                 userId, types, fromBound, toBound, pageable);
+  }
+
+  public List<CreditPurchase> getCreditPurchases(
+      String userId,
+      List<CreditPurchaseStatus> statuses,
+      Instant from,
+      Instant to,
+      PageFromOne page,
+      BoundedPageSize pageSize) {
+    var pageValue = page != null ? page.getValue() - 1 : 0;
+    var pageSizeValue = pageSize != null ? pageSize.getValue() : DEFAULT_CREDIT_PURCHASES_PAGE_SIZE;
+    var pageable = PageRequest.of(pageValue, pageSizeValue);
+    var fromBound = from != null ? from : LEDGER_START;
+    var toBound = to != null ? to : LEDGER_END;
+    return statuses == null || statuses.isEmpty()
+        ? creditPurchaseRepository
+            .findByUserIdAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+                userId, fromBound, toBound, pageable)
+        : creditPurchaseRepository
+            .findByUserIdAndStatusInAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+                userId, statuses, fromBound, toBound, pageable);
   }
 
   public CreditTransaction getCreditTransaction(String userId, String transactionId) {

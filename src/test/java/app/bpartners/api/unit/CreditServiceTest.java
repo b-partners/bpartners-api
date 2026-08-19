@@ -12,7 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.model.User;
@@ -26,12 +28,14 @@ import app.bpartners.api.repository.jpa.CreditPackRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
+import app.bpartners.api.service.credit.CreditLedgerService;
 import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class CreditServiceTest {
   CreditPackRepository creditPackRepository = mock(CreditPackRepository.class);
@@ -40,6 +44,7 @@ class CreditServiceTest {
   SubscriptionProductRepository subscriptionProductRepository =
       mock(SubscriptionProductRepository.class);
   CreditTransactionRepository creditTransactionRepository = mock(CreditTransactionRepository.class);
+  CreditLedgerService creditLedgerService = mock(CreditLedgerService.class);
   TemporalUtils temporalUtils = new TemporalUtils();
 
   CreditService subject =
@@ -48,6 +53,7 @@ class CreditServiceTest {
           userSubscriptionProductJpaRepository,
           subscriptionProductRepository,
           creditTransactionRepository,
+          creditLedgerService,
           temporalUtils);
 
   User user = User.builder().id("user_id").build();
@@ -194,5 +200,63 @@ class CreditServiceTest {
     assertEquals(15L, actual.getExpirations().getFirst().getCredits());
     assertEquals(grantExpiry, actual.getExpirations().getFirst().getExpirationDatetime());
     assertEquals(SUBSCRIPTION_GRANT, actual.getExpirations().getFirst().getOrigin());
+  }
+
+  @Test
+  void consume_roof_analysis_debits_plan_cost_and_appends_consumption() {
+    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
+            "user_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionProduct.builder()
+                    .subscriptionProduct(
+                        SubscriptionProduct.builder().creditCostPerAnalysis(3L).build())
+                    .build()));
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+    when(creditLedgerService.append(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    subject.consumeRoofAnalysis("user_id", "Analyse de toiture");
+
+    verify(creditLedgerService).append(captor.capture());
+    var appended = captor.getValue();
+    assertEquals("user_id", appended.getUserId());
+    assertEquals(CONSUMPTION, appended.getType());
+    assertEquals(DEBIT, appended.getMovementType());
+    assertEquals(3L, appended.getCredits());
+    assertEquals("Analyse de toiture", appended.getLabel());
+  }
+
+  @Test
+  void consume_roof_analysis_falls_back_to_default_cost_when_no_active_plan() {
+    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
+            "user_id"))
+        .thenReturn(List.of());
+    var appended = CreditTransaction.builder().id("appended_id").build();
+    when(creditLedgerService.append(any())).thenReturn(appended);
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+
+    var actual = subject.consumeRoofAnalysis("user_id", "Analyse toiture : dummyAddress");
+
+    verify(creditLedgerService).append(captor.capture());
+    assertEquals(1L, captor.getValue().getCredits());
+    assertEquals(appended, actual);
+  }
+
+  @Test
+  void consume_roof_analysis_falls_back_to_default_cost_when_active_plan_has_no_credit_cost() {
+    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
+            "user_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionProduct.builder()
+                    .subscriptionProduct(SubscriptionProduct.builder().build())
+                    .build()));
+    when(creditLedgerService.append(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+
+    subject.consumeRoofAnalysis("user_id", "Analyse toiture : dummyAddress");
+
+    verify(creditLedgerService).append(captor.capture());
+    assertEquals(1L, captor.getValue().getCredits());
   }
 }

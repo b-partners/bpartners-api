@@ -5,8 +5,9 @@ operations:
         - Credits
       summary: List the purchasable prepaid credit packs
       description: |
-        Public catalog of the prepaid credit packs. A pack grants `credits` to the buyer wallet
-        once its purchase is `COMPLETED`. Deprecated packs are never returned.
+        Catalog of the prepaid credit packs, priced against the caller active subscription plan,
+        so the returned prices vary from one plan to another. A pack grants `credits` to the buyer
+        wallet once its purchase is `COMPLETED`. Deprecated packs are never returned.
       operationId: getCreditPacks
       parameters:
         - in: query
@@ -456,9 +457,9 @@ components:
     CreditPackDescription:
       type: object
       description: |
-        Credit packs are sold prepaid. `credits` is what the wallet receives, the money side is
-        `priceInCents*`, and the per-analysis cost is carried by the subscription plan, not by the
-        pack, so the same pack lasts longer on a better plan.
+        Credit packs are sold prepaid. `credits` is what the wallet receives. The money side is
+        priced against the caller active subscription plan, whose per-credit unit price varies by
+        offer, so the very same pack costs less on a better plan.
       properties:
         id:
           type: string
@@ -472,7 +473,35 @@ components:
         credits:
           type: integer
           format: int64
-          description: Credits granted to the wallet when the purchase is completed.
+          description: |
+            Credits granted to the wallet when the purchase is completed. Null on a `CUSTOM` pack,
+            whose amount is chosen by the consumer at purchase time.
+        creditUnitPriceInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: |
+            Price of one credit, VAT excluded (HT), in cents, as it applies to the caller active
+            plan. Set on every pack, and the only price a `CUSTOM` pack carries since its total
+            depends on the amount the consumer will choose.
+        creditUnitPriceInCentsWithVat:
+          type: integer
+          format: int64
+          description: Price of one credit, VAT included (TTC), in cents, for the caller active plan.
+        priceInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: |
+            Total pack price, VAT excluded (HT), in cents, that is `credits *
+            creditUnitPriceInCentsWithoutVat`. Null on a `CUSTOM` pack.
+        priceInCentsWithVat:
+          type: integer
+          format: int64
+          description: |
+            Total pack price, VAT included (TTC), in cents. Null on a `CUSTOM` pack.
+        vatPercent:
+          type: integer
+          format: int64
+          description: VAT rate in basis points of 10_000 (2000 = 20%), values between 0 and 10_000.
     CreditPack:
       allOf:
         - $ref: '#/components/schemas/CreditPackDescription'

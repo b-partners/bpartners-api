@@ -21,6 +21,8 @@ public class SubscriptionProduct {
 
   public static final long DEFAULT_OVERAGE_UNIT_PRICE_IN_CENTS = 200L;
 
+  public static final long DEFAULT_CREDIT_UNIT_PRICE_IN_CENTS = 1000L;
+
   public static final long DEFAULT_VAT_PERCENT = 2000L;
 
   @Id private String id;
@@ -85,6 +87,9 @@ public class SubscriptionProduct {
   @Column(name = "metered_product_id")
   private String meteredProductId;
 
+  @Column(name = "credit_unit_price_in_cents_without_vat")
+  private Long creditUnitPriceInCentsWithoutVat;
+
   public Long getPriceInCentsWithVat() {
     if (priceInCentsWithoutVat == null || vatPercent == null) {
       return null;
@@ -120,5 +125,11 @@ public class SubscriptionProduct {
     return overageUnitPriceInCents == null
         ? DEFAULT_OVERAGE_UNIT_PRICE_IN_CENTS
         : overageUnitPriceInCents;
+  }
+
+  public long creditUnitPriceInCentsWithoutVatOrDefault() {
+    return creditUnitPriceInCentsWithoutVat == null
+        ? DEFAULT_CREDIT_UNIT_PRICE_IN_CENTS
+        : creditUnitPriceInCentsWithoutVat;
   }
 }

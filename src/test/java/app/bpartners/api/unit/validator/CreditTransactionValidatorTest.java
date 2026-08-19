@@ -24,39 +24,53 @@ class CreditTransactionValidatorTest {
 
   @Test
   void accepts_a_valid_transaction() {
-    assertDoesNotThrow(() -> subject.accept(valid().build()));
+    var creditTransaction = valid().build();
+
+    assertDoesNotThrow(() -> subject.accept(creditTransaction));
   }
 
   @Test
   void rejects_missing_user_id() {
+    var creditTransaction = valid().userId(null).build();
+
     var exception =
-        assertThrows(BadRequestException.class, () -> subject.accept(valid().userId(null).build()));
+        assertThrows(BadRequestException.class, () -> subject.accept(creditTransaction));
+
     assertEquals("CreditTransaction.userId is mandatory.", exception.getMessage());
   }
 
   @Test
   void rejects_missing_type() {
-    assertThrows(BadRequestException.class, () -> subject.accept(valid().type(null).build()));
+    var creditTransaction = valid().type(null).build();
+
+    assertThrows(BadRequestException.class, () -> subject.accept(creditTransaction));
   }
 
   @Test
   void rejects_missing_movement_type() {
-    assertThrows(
-        BadRequestException.class, () -> subject.accept(valid().movementType(null).build()));
+    var creditTransaction = valid().movementType(null).build();
+
+    assertThrows(BadRequestException.class, () -> subject.accept(creditTransaction));
   }
 
   @Test
   void rejects_non_positive_credits() {
-    assertThrows(BadRequestException.class, () -> subject.accept(valid().credits(0L).build()));
-    assertThrows(BadRequestException.class, () -> subject.accept(valid().credits(-5L).build()));
-    assertThrows(BadRequestException.class, () -> subject.accept(valid().credits(null).build()));
+    var creditTransactionZeroCredits = valid().credits(0L).build();
+    var creditTransactionNegativeCredits = valid().credits(-5L).build();
+    var creditTransactionNullCredits = valid().credits(null).build();
+
+    assertThrows(BadRequestException.class, () -> subject.accept(creditTransactionZeroCredits));
+    assertThrows(BadRequestException.class, () -> subject.accept(creditTransactionNegativeCredits));
+    assertThrows(BadRequestException.class, () -> subject.accept(creditTransactionNullCredits));
   }
 
   @Test
   void accumulates_multiple_errors() {
+    var creditTransaction = CreditTransaction.builder().build();
+
     var exception =
-        assertThrows(
-            BadRequestException.class, () -> subject.accept(CreditTransaction.builder().build()));
+        assertThrows(BadRequestException.class, () -> subject.accept(creditTransaction));
+
     assertEquals(
         "CreditTransaction.userId is mandatory. CreditTransaction.type is mandatory."
             + " CreditTransaction.movementType is mandatory."

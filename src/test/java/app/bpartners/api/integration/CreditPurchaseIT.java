@@ -161,7 +161,9 @@ class CreditPurchaseIT extends MockedThirdParties {
             app.bpartners.api.endpoint.rest.model.CreditPurchaseStatus.FAILED,
             app.bpartners.api.endpoint.rest.model.CreditPurchaseStatus.PENDING,
             app.bpartners.api.endpoint.rest.model.CreditPurchaseStatus.COMPLETED),
-        actual.stream().map(purchase -> purchase.getStatus()).toList());
+        actual.stream()
+            .map(app.bpartners.api.endpoint.rest.model.CreditPurchase::getStatus)
+            .toList());
   }
 
   @SneakyThrows
@@ -352,61 +354,62 @@ class CreditPurchaseIT extends MockedThirdParties {
     joeCreditsApi()
         .submitCreditPurchase(JOE_DOE_ID, "purchase_1", packPayload(ANALYSES_10_PACK_ID, 2));
 
+    var api = joeCreditsApi();
+    var anotherPayload = packPayload(ANALYSES_10_PACK_ID, 3);
+
     assertThrowsApiException(
         "{\"type\":\"409 CONFLICT\",\"message\":\"CreditPurchase.id=purchase_1 was already"
             + " submitted with a different payload, a purchase is immutable\"}",
-        () ->
-            joeCreditsApi()
-                .submitCreditPurchase(
-                    JOE_DOE_ID, "purchase_1", packPayload(ANALYSES_10_PACK_ID, 3)));
+        () -> api.submitCreditPurchase(JOE_DOE_ID, "purchase_1", anotherPayload));
 
     assertEquals(1, creditPurchaseRepository.findAll().size());
   }
 
   @Test
   void submit_a_pack_purchase_on_an_unknown_pack_is_not_found() {
+    var api = joeCreditsApi();
+    var unknownPackPayload = packPayload("unknown", 1);
+
     assertThrowsApiException(
         "{\"type\":\"404 NOT_FOUND\",\"message\":\"CreditPack(id=unknown) not found\"}",
-        () ->
-            joeCreditsApi()
-                .submitCreditPurchase(JOE_DOE_ID, "purchase_1", packPayload("unknown", 1)));
+        () -> api.submitCreditPurchase(JOE_DOE_ID, "purchase_1", unknownPackPayload));
 
     assertEquals(0, creditPurchaseRepository.findAll().size());
   }
 
   @Test
   void submit_a_pack_purchase_on_the_custom_pack_is_rejected() {
+    var api = joeCreditsApi();
+    var customPackAsPackPayload = packPayload(PACK_CUSTOM_ID, 1);
+
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"CreditPack(id="
             + PACK_CUSTOM_ID
             + ") carries no fixed credits amount, submit a CUSTOM purchase instead\"}",
-        () ->
-            joeCreditsApi()
-                .submitCreditPurchase(JOE_DOE_ID, "purchase_1", packPayload(PACK_CUSTOM_ID, 1)));
+        () -> api.submitCreditPurchase(JOE_DOE_ID, "purchase_1", customPackAsPackPayload));
   }
 
   @Test
   void submit_an_incomplete_payload_is_a_bad_request() {
+    var api = joeCreditsApi();
+    var payloadWithoutRedirectionUrls =
+        new CreateCustomCreditPurchase()
+            .credits(7L)
+            .type(app.bpartners.api.endpoint.rest.model.CreditPurchaseType.CUSTOM);
+
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"CreateCreditPurchase"
             + ".redirectionStatusUrls is mandatory.\"}",
-        () ->
-            joeCreditsApi()
-                .submitCreditPurchase(
-                    JOE_DOE_ID,
-                    "purchase_1",
-                    new CreateCustomCreditPurchase()
-                        .credits(7L)
-                        .type(app.bpartners.api.endpoint.rest.model.CreditPurchaseType.CUSTOM)));
+        () -> api.submitCreditPurchase(JOE_DOE_ID, "purchase_1", payloadWithoutRedirectionUrls));
   }
 
   @Test
   void another_user_purchase_cannot_be_submitted() {
+    var api = joeCreditsApi();
+    var payload = packPayload(ANALYSES_10_PACK_ID, 1);
+
     assertThrowsForbiddenException(
-        () ->
-            joeCreditsApi()
-                .submitCreditPurchase(
-                    JANE_DOE_ID, "purchase_1", packPayload(ANALYSES_10_PACK_ID, 1)));
+        () -> api.submitCreditPurchase(JANE_DOE_ID, "purchase_1", payload));
   }
 
   @SneakyThrows
@@ -496,7 +499,9 @@ class CreditPurchaseIT extends MockedThirdParties {
 
   @Test
   void another_user_purchases_are_not_readable() {
+    var api = joeCreditsApi();
+
     assertThrowsForbiddenException(
-        () -> joeCreditsApi().getCreditPurchases(JANE_DOE_ID, null, null, null, null, null));
+        () -> api.getCreditPurchases(JANE_DOE_ID, null, null, null, null, null));
   }
 }

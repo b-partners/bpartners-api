@@ -2,9 +2,12 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.CreditPurchaseRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditTransactionRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreditBalance;
 import app.bpartners.api.endpoint.rest.model.CreditPack;
+import app.bpartners.api.endpoint.rest.model.CreditPurchase;
+import app.bpartners.api.endpoint.rest.model.CreditPurchaseStatus;
 import app.bpartners.api.endpoint.rest.model.CreditTransaction;
 import app.bpartners.api.endpoint.rest.model.CreditTransactionType;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
@@ -27,6 +30,7 @@ public class CreditController {
   private final CreditPackRestMapper creditPackRestMapper;
   private final CreditBalanceRestMapper creditBalanceRestMapper;
   private final CreditTransactionRestMapper creditTransactionRestMapper;
+  private final CreditPurchaseRestMapper creditPurchaseRestMapper;
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
 
   @GetMapping("/creditPacks")
@@ -48,6 +52,25 @@ public class CreditController {
   @GetMapping("/users/{uId}/creditBalance")
   public CreditBalance getCreditBalance(@PathVariable String uId) {
     return creditBalanceRestMapper.toRest(service.getCreditBalance(uId));
+  }
+
+  @GetMapping("/users/{uId}/creditPurchases")
+  public List<CreditPurchase> getCreditPurchases(
+      @PathVariable String uId,
+      @RequestParam(required = false) List<CreditPurchaseStatus> statuses,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant from,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant to,
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
+    var domainStatuses =
+        statuses == null
+            ? null
+            : statuses.stream().map(creditPurchaseRestMapper::toDomainStatus).toList();
+    return service.getCreditPurchases(uId, domainStatuses, from, to, page, pageSize).stream()
+        .map(creditPurchaseRestMapper::toRest)
+        .toList();
   }
 
   @GetMapping("/users/{uId}/creditTransactions")

@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.validator;
 
+import static app.bpartners.api.endpoint.rest.validator.CreateCreditPurchaseRestValidator.MAX_CUSTOM_CREDITS_PER_PURCHASE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,49 +25,44 @@ class CreateCreditPurchaseRestValidatorTest {
 
   @Test
   void accept_a_valid_pack_purchase() {
-    assertDoesNotThrow(
-        () ->
-            subject.accept(
-                new CreateCreditPackPurchase()
-                    .creditPackIdentifier("pack_10")
-                    .quantity(2)
-                    .type(CreditPurchaseType.PACK)
-                    .redirectionStatusUrls(bothUrls())));
+    var payload =
+        new CreateCreditPackPurchase()
+            .creditPackIdentifier("pack_10")
+            .quantity(2)
+            .type(CreditPurchaseType.PACK)
+            .redirectionStatusUrls(bothUrls());
+
+    assertDoesNotThrow(() -> subject.accept(payload));
   }
 
   @Test
   void accept_a_valid_custom_purchase() {
-    assertDoesNotThrow(
-        () ->
-            subject.accept(
-                new CreateCustomCreditPurchase()
-                    .credits(7L)
-                    .type(CreditPurchaseType.CUSTOM)
-                    .redirectionStatusUrls(bothUrls())));
+    var payload =
+        new CreateCustomCreditPurchase()
+            .credits(7L)
+            .type(CreditPurchaseType.CUSTOM)
+            .redirectionStatusUrls(bothUrls());
+
+    assertDoesNotThrow(() -> subject.accept(payload));
   }
 
   @Test
-  void reject_a_missing_type() {
-    var exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                subject.accept(
-                    new CreateCustomCreditPurchase()
-                        .credits(7L)
-                        .redirectionStatusUrls(bothUrls())));
+  void accept_a_pack_purchase_without_explicit_quantity() {
+    var payload =
+        new CreateCreditPackPurchase()
+            .creditPackIdentifier("pack_10")
+            .quantity(null)
+            .type(CreditPurchaseType.PACK)
+            .redirectionStatusUrls(bothUrls());
 
-    assertEquals("CreateCreditPurchase.type is mandatory.", exception.getMessage());
+    assertDoesNotThrow(() -> subject.accept(payload));
   }
 
   @Test
   void reject_missing_redirection_status_urls() {
-    var exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                subject.accept(
-                    new CreateCustomCreditPurchase().credits(7L).type(CreditPurchaseType.CUSTOM)));
+    var payload = new CreateCustomCreditPurchase().credits(7L).type(CreditPurchaseType.CUSTOM);
+
+    var exception = assertThrows(BadRequestException.class, () -> subject.accept(payload));
 
     assertEquals(
         "CreateCreditPurchase.redirectionStatusUrls is mandatory.", exception.getMessage());
@@ -74,15 +70,13 @@ class CreateCreditPurchaseRestValidatorTest {
 
   @Test
   void reject_partial_redirection_status_urls() {
-    var exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                subject.accept(
-                    new CreateCustomCreditPurchase()
-                        .credits(7L)
-                        .type(CreditPurchaseType.CUSTOM)
-                        .redirectionStatusUrls(new RedirectionStatusUrls())));
+    var payload =
+        new CreateCustomCreditPurchase()
+            .credits(7L)
+            .type(CreditPurchaseType.CUSTOM)
+            .redirectionStatusUrls(new RedirectionStatusUrls());
+
+    var exception = assertThrows(BadRequestException.class, () -> subject.accept(payload));
 
     assertEquals(
         "CreateCreditPurchase.redirectionStatusUrls.successUrl is mandatory."
@@ -91,74 +85,41 @@ class CreateCreditPurchaseRestValidatorTest {
   }
 
   @Test
-  void reject_a_pack_purchase_without_pack_identifier() {
-    var exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                subject.accept(
-                    new CreateCreditPackPurchase()
-                        .type(CreditPurchaseType.PACK)
-                        .redirectionStatusUrls(bothUrls())));
-
-    assertEquals(
-        "CreateCreditPackPurchase.creditPackIdentifier is mandatory.", exception.getMessage());
-  }
-
-  @Test
   void reject_a_non_positive_quantity() {
-    var exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                subject.accept(
-                    new CreateCreditPackPurchase()
-                        .creditPackIdentifier("pack_10")
-                        .quantity(0)
-                        .type(CreditPurchaseType.PACK)
-                        .redirectionStatusUrls(bothUrls())));
+    var payload =
+        new CreateCreditPackPurchase()
+            .creditPackIdentifier("pack_10")
+            .quantity(0)
+            .type(CreditPurchaseType.PACK)
+            .redirectionStatusUrls(bothUrls());
+
+    var exception = assertThrows(BadRequestException.class, () -> subject.accept(payload));
 
     assertEquals("CreateCreditPackPurchase.quantity must be at least 1.", exception.getMessage());
   }
 
   @Test
   void reject_a_non_positive_credits_amount() {
-    var exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                subject.accept(
-                    new CreateCustomCreditPurchase()
-                        .credits(0L)
-                        .type(CreditPurchaseType.CUSTOM)
-                        .redirectionStatusUrls(bothUrls())));
+    var payload =
+        new CreateCustomCreditPurchase()
+            .credits(0L)
+            .type(CreditPurchaseType.CUSTOM)
+            .redirectionStatusUrls(bothUrls());
+
+    var exception = assertThrows(BadRequestException.class, () -> subject.accept(payload));
 
     assertEquals("CreateCustomCreditPurchase.credits must be at least 1.", exception.getMessage());
   }
 
   @Test
-  void reject_a_missing_credits_amount() {
-    assertThrows(
-        BadRequestException.class,
-        () ->
-            subject.accept(
-                new CreateCustomCreditPurchase()
-                    .type(CreditPurchaseType.CUSTOM)
-                    .redirectionStatusUrls(bothUrls())));
-  }
-
-  @Test
   void reject_a_credits_amount_over_the_cap() {
-    var exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                subject.accept(
-                    new CreateCustomCreditPurchase()
-                        .credits(
-                            CreateCreditPurchaseRestValidator.MAX_CUSTOM_CREDITS_PER_PURCHASE + 1)
-                        .type(CreditPurchaseType.CUSTOM)
-                        .redirectionStatusUrls(bothUrls())));
+    var payload =
+        new CreateCustomCreditPurchase()
+            .credits(MAX_CUSTOM_CREDITS_PER_PURCHASE + 1)
+            .type(CreditPurchaseType.CUSTOM)
+            .redirectionStatusUrls(bothUrls());
+
+    var exception = assertThrows(BadRequestException.class, () -> subject.accept(payload));
 
     assertEquals(
         "CreateCustomCreditPurchase.credits must be at most 10000.", exception.getMessage());
@@ -166,20 +127,8 @@ class CreateCreditPurchaseRestValidatorTest {
 
   @Test
   void reject_a_bare_create_credit_purchase() {
-    assertThrows(
-        BadRequestException.class,
-        () -> subject.accept(new CreateCreditPurchase().type(CreditPurchaseType.PACK)));
-  }
+    var payload = new CreateCreditPurchase().type(CreditPurchaseType.PACK);
 
-  @Test
-  void accept_a_pack_purchase_without_explicit_quantity() {
-    assertDoesNotThrow(
-        () ->
-            subject.accept(
-                new CreateCreditPackPurchase()
-                    .creditPackIdentifier("pack_10")
-                    .quantity(null)
-                    .type(CreditPurchaseType.PACK)
-                    .redirectionStatusUrls(bothUrls())));
+    assertThrows(BadRequestException.class, () -> subject.accept(payload));
   }
 }

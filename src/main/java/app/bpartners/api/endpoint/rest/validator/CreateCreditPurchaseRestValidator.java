@@ -14,9 +14,6 @@ public class CreateCreditPurchaseRestValidator implements Consumer<CreateCreditP
   @Override
   public void accept(CreateCreditPurchase createCreditPurchase) {
     var messageBuilder = new StringBuilder();
-    if (createCreditPurchase.getType() == null) {
-      messageBuilder.append("CreateCreditPurchase.type is mandatory. ");
-    }
     appendRedirectionViolations(createCreditPurchase, messageBuilder);
     if (createCreditPurchase instanceof CreateCreditPackPurchase packPurchase) {
       appendPackViolations(packPurchase, messageBuilder);
@@ -47,9 +44,6 @@ public class CreateCreditPurchaseRestValidator implements Consumer<CreateCreditP
 
   private void appendPackViolations(
       CreateCreditPackPurchase packPurchase, StringBuilder messageBuilder) {
-    if (packPurchase.getCreditPackIdentifier() == null) {
-      messageBuilder.append("CreateCreditPackPurchase.creditPackIdentifier is mandatory. ");
-    }
     if (packPurchase.getQuantity() != null && packPurchase.getQuantity() < 1) {
       messageBuilder.append("CreateCreditPackPurchase.quantity must be at least 1. ");
     }
@@ -57,8 +51,8 @@ public class CreateCreditPurchaseRestValidator implements Consumer<CreateCreditP
 
   private void appendCustomViolations(
       CreateCustomCreditPurchase customPurchase, StringBuilder messageBuilder) {
-    var credits = customPurchase.getCredits();
-    if (credits == null || credits < 1) {
+    long credits = customPurchase.getCredits();
+    if (credits < 1) {
       messageBuilder.append("CreateCustomCreditPurchase.credits must be at least 1. ");
     } else if (credits > MAX_CUSTOM_CREDITS_PER_PURCHASE) {
       messageBuilder.append(

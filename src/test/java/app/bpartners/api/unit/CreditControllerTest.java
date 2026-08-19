@@ -476,14 +476,12 @@ class CreditControllerTest {
 
   @Test
   void submit_an_invalid_payload_is_rejected_before_reaching_the_service() {
+    var payloadWithoutPack =
+        (CreateCreditPurchase) new CreateCreditPackPurchase().type(CreditPurchaseType.PACK);
+
     assertThrows(
         BadRequestException.class,
-        () ->
-            subject.submitCreditPurchase(
-                "user_id",
-                "purchase_1",
-                (CreateCreditPurchase)
-                    new CreateCreditPackPurchase().type(CreditPurchaseType.PACK)));
+        () -> subject.submitCreditPurchase("user_id", "purchase_1", payloadWithoutPack));
 
     verify(creditPurchaseServiceMock, never()).submit(any(), any());
   }

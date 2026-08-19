@@ -216,8 +216,9 @@ class CreditPurchaseServiceTest {
                     .quantity(1)
                     .build()));
 
-    var exception =
-        assertThrows(ConflictException.class, () -> subject.submit(user, packSubmission(2)));
+    var submission = packSubmission(2);
+
+    var exception = assertThrows(ConflictException.class, () -> subject.submit(user, submission));
 
     assertEquals(
         "CreditPurchase.id=purchase_1 was already submitted with a different payload,"
@@ -239,7 +240,9 @@ class CreditPurchaseServiceTest {
                     .quantity(2)
                     .build()));
 
-    assertThrows(ConflictException.class, () -> subject.submit(user, packSubmission(2)));
+    var submission = packSubmission(2);
+
+    assertThrows(ConflictException.class, () -> subject.submit(user, submission));
   }
 
   @Test
@@ -249,7 +252,9 @@ class CreditPurchaseServiceTest {
             Optional.of(
                 CreditPurchase.builder().id("purchase_1").userId("user_id").type(PACK).build()));
 
-    assertThrows(ConflictException.class, () -> subject.submit(user, packSubmission(2)));
+    var submission = packSubmission(2);
+
+    assertThrows(ConflictException.class, () -> subject.submit(user, submission));
   }
 
   @Test
@@ -264,7 +269,9 @@ class CreditPurchaseServiceTest {
                     .credits(20L)
                     .build()));
 
-    assertThrows(ConflictException.class, () -> subject.submit(user, packSubmission(2)));
+    var submission = packSubmission(2);
+
+    assertThrows(ConflictException.class, () -> subject.submit(user, submission));
   }
 
   @Test
@@ -279,7 +286,9 @@ class CreditPurchaseServiceTest {
                     .credits(9L)
                     .build()));
 
-    assertThrows(ConflictException.class, () -> subject.submit(user, customSubmission(7L)));
+    var submission = customSubmission(7L);
+
+    assertThrows(ConflictException.class, () -> subject.submit(user, submission));
   }
 
   @Test
@@ -295,8 +304,9 @@ class CreditPurchaseServiceTest {
                     .quantity(2)
                     .build()));
 
-    var exception =
-        assertThrows(ConflictException.class, () -> subject.submit(user, packSubmission(2)));
+    var submission = packSubmission(2);
+
+    var exception = assertThrows(ConflictException.class, () -> subject.submit(user, submission));
 
     assertEquals("CreditPurchase.id=purchase_1 already exists", exception.getMessage());
   }
@@ -307,8 +317,9 @@ class CreditPurchaseServiceTest {
     when(creditService.getCreditPack("pack_10"))
         .thenReturn(analyses10Pack().toBuilder().deprecated(true).build());
 
-    var exception =
-        assertThrows(BadRequestException.class, () -> subject.submit(user, packSubmission(1)));
+    var submission = packSubmission(1);
+
+    var exception = assertThrows(BadRequestException.class, () -> subject.submit(user, submission));
 
     assertEquals(
         "CreditPack(id=pack_10) is deprecated and can not be purchased", exception.getMessage());
@@ -326,8 +337,9 @@ class CreditPurchaseServiceTest {
                 .creditPurchaseType(CUSTOM)
                 .build());
 
-    var exception =
-        assertThrows(BadRequestException.class, () -> subject.submit(user, packSubmission(1)));
+    var submission = packSubmission(1);
+
+    var exception = assertThrows(BadRequestException.class, () -> subject.submit(user, submission));
 
     assertEquals(
         "CreditPack(id=pack_10) carries no fixed credits amount,"
@@ -341,17 +353,21 @@ class CreditPurchaseServiceTest {
     when(creditService.getCreditPack("pack_10"))
         .thenThrow(new NotFoundException("CreditPack(id=pack_10) not found"));
 
-    assertThrows(NotFoundException.class, () -> subject.submit(user, packSubmission(1)));
+    var submission = packSubmission(1);
+
+    assertThrows(NotFoundException.class, () -> subject.submit(user, submission));
   }
 
   @Test
   void submit_rejects_a_user_without_stripe_customer() {
     when(creditPurchaseRepository.findById("purchase_1")).thenReturn(Optional.empty());
 
+    var userWithoutStripeCustomer = User.builder().id("user_id").build();
+    var submission = customSubmission(7L);
+
     var exception =
         assertThrows(
-            BadRequestException.class,
-            () -> subject.submit(User.builder().id("user_id").build(), customSubmission(7L)));
+            BadRequestException.class, () -> subject.submit(userWithoutStripeCustomer, submission));
 
     assertEquals(
         "User.id=user_id is not associated to a stripe customer yet", exception.getMessage());

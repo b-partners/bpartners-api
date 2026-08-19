@@ -8,9 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -78,35 +76,32 @@ class CreditLedgerServiceTest {
     when(creditTransactionRepository.findAllByUserId("user_id"))
         .thenReturn(List.of(CreditTransaction.builder().movementType(CREDIT).credits(3L).build()));
 
-    var exception =
-        assertThrows(
-            InsufficientCreditsException.class,
-            () ->
-                subject.append(
-                    CreditTransaction.builder()
-                        .userId("user_id")
-                        .type(CONSUMPTION)
-                        .movementType(DEBIT)
-                        .credits(5L)
-                        .build()));
+    var draft =
+        CreditTransaction.builder()
+            .userId("user_id")
+            .type(CONSUMPTION)
+            .movementType(DEBIT)
+            .credits(5L)
+            .build();
+
+    var exception = assertThrows(InsufficientCreditsException.class, () -> subject.append(draft));
 
     assertEquals(5L, exception.getRequiredCredits());
     assertEquals(3L, exception.getAvailableCredits());
-    verify(creditTransactionRepository, Mockito.never()).save(any());
+    verify(creditTransactionRepository, never()).save(any());
   }
 
   @Test
   void append_rejects_non_positive_credits() {
-    assertThrows(
-        BadRequestException.class,
-        () ->
-            subject.append(
-                CreditTransaction.builder()
-                    .userId("user_id")
-                    .type(PURCHASE)
-                    .movementType(CREDIT)
-                    .credits(0L)
-                    .build()));
+    var draft =
+        CreditTransaction.builder()
+            .userId("user_id")
+            .type(PURCHASE)
+            .movementType(CREDIT)
+            .credits(0L)
+            .build();
+
+    assertThrows(BadRequestException.class, () -> subject.append(draft));
   }
 
   @Test
@@ -117,20 +112,18 @@ class CreditLedgerServiceTest {
                 CreditTransaction.builder().movementType(CREDIT).credits(10L).build(),
                 CreditTransaction.builder().movementType(DEBIT).credits(8L).build()));
 
-    var exception =
-        assertThrows(
-            InsufficientCreditsException.class,
-            () ->
-                subject.append(
-                    CreditTransaction.builder()
-                        .userId("user_id")
-                        .type(CONSUMPTION)
-                        .movementType(DEBIT)
-                        .credits(5L)
-                        .build()));
+    var draft =
+        CreditTransaction.builder()
+            .userId("user_id")
+            .type(CONSUMPTION)
+            .movementType(DEBIT)
+            .credits(5L)
+            .build();
+
+    var exception = assertThrows(InsufficientCreditsException.class, () -> subject.append(draft));
 
     assertEquals(2L, exception.getAvailableCredits());
-    verify(creditTransactionRepository, Mockito.never()).save(any());
+    verify(creditTransactionRepository, never()).save(any());
   }
 
   @Test

@@ -2,6 +2,7 @@ package app.bpartners.api.unit;
 
 import static app.bpartners.api.model.credit.CreditCode.ANALYSES_10;
 import static app.bpartners.api.model.credit.CreditOrigin.SUBSCRIPTION_GRANT;
+import static app.bpartners.api.model.credit.CreditPurchaseStatus.COMPLETED;
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDIT;
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.DEBIT;
 import static app.bpartners.api.model.credit.CreditTransactionType.CONSUMPTION;
@@ -13,18 +14,24 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.credit.CreditPack;
+import app.bpartners.api.model.credit.CreditPurchase;
 import app.bpartners.api.model.credit.CreditPurchaseType;
 import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.CreditPackRepository;
+import app.bpartners.api.repository.jpa.CreditPurchaseRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
@@ -36,6 +43,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.PageRequest;
 
 class CreditServiceTest {
   CreditPackRepository creditPackRepository = mock(CreditPackRepository.class);
@@ -44,6 +52,7 @@ class CreditServiceTest {
   SubscriptionProductRepository subscriptionProductRepository =
       mock(SubscriptionProductRepository.class);
   CreditTransactionRepository creditTransactionRepository = mock(CreditTransactionRepository.class);
+  CreditPurchaseRepository creditPurchaseRepository = mock(CreditPurchaseRepository.class);
   CreditLedgerService creditLedgerService = mock(CreditLedgerService.class);
   TemporalUtils temporalUtils = new TemporalUtils();
 
@@ -53,6 +62,7 @@ class CreditServiceTest {
           userSubscriptionProductJpaRepository,
           subscriptionProductRepository,
           creditTransactionRepository,
+          creditPurchaseRepository,
           creditLedgerService,
           temporalUtils);
 
@@ -258,5 +268,65 @@ class CreditServiceTest {
 
     verify(creditLedgerService).append(captor.capture());
     assertEquals(1L, captor.getValue().getCredits());
+  }
+
+  @Test
+  void get_credit_purchases_defaults_page_and_unbounded_period_when_no_filter() {
+    var purchase = CreditPurchase.builder().id("purchase_1").build();
+    var pageableCaptor = ArgumentCaptor.forClass(PageRequest.class);
+    when(creditPurchaseRepository.findByUserIdAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+            eq("user_id"), any(), any(), any()))
+        .thenReturn(List.of(purchase));
+
+    var actual = subject.getCreditPurchases("user_id", null, null, null, null, null);
+
+    assertEquals(List.of(purchase), actual);
+    var fromCaptor = ArgumentCaptor.forClass(Instant.class);
+    var toCaptor = ArgumentCaptor.forClass(Instant.class);
+    verify(creditPurchaseRepository)
+        .findByUserIdAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+            eq("user_id"), fromCaptor.capture(), toCaptor.capture(), pageableCaptor.capture());
+    assertEquals(Instant.EPOCH, fromCaptor.getValue());
+    assertEquals(Instant.parse("9999-12-31T23:59:59Z"), toCaptor.getValue());
+    assertEquals(0, pageableCaptor.getValue().getPageNumber());
+    assertEquals(100, pageableCaptor.getValue().getPageSize());
+    verifyNoMoreInteractions(creditPurchaseRepository);
+  }
+
+  @Test
+  void get_credit_purchases_honours_empty_statuses_as_no_status_filter() {
+    when(creditPurchaseRepository.findByUserIdAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+            eq("user_id"), any(), any(), any()))
+        .thenReturn(List.of());
+
+    subject.getCreditPurchases("user_id", List.of(), null, null, null, null);
+
+    verify(creditPurchaseRepository)
+        .findByUserIdAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+            eq("user_id"), any(), any(), any());
+    verifyNoMoreInteractions(creditPurchaseRepository);
+  }
+
+  @Test
+  void get_credit_purchases_filters_by_status_page_and_period() {
+    var from = Instant.parse("2026-08-01T00:00:00Z");
+    var to = Instant.parse("2026-08-31T00:00:00Z");
+    var purchase = CreditPurchase.builder().id("purchase_1").status(COMPLETED).build();
+    var pageableCaptor = ArgumentCaptor.forClass(PageRequest.class);
+    when(creditPurchaseRepository
+            .findByUserIdAndStatusInAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+                "user_id", List.of(COMPLETED), from, to, PageRequest.of(1, 5)))
+        .thenReturn(List.of(purchase));
+
+    var actual =
+        subject.getCreditPurchases(
+            "user_id", List.of(COMPLETED), from, to, new PageFromOne(2), new BoundedPageSize(5));
+
+    assertEquals(List.of(purchase), actual);
+    verify(creditPurchaseRepository)
+        .findByUserIdAndStatusInAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+            eq("user_id"), eq(List.of(COMPLETED)), eq(from), eq(to), pageableCaptor.capture());
+    assertEquals(1, pageableCaptor.getValue().getPageNumber());
+    assertEquals(5, pageableCaptor.getValue().getPageSize());
   }
 }

@@ -643,6 +643,9 @@ public class SecurityConf {
                         new SelfUserMatcher(GET, "/users/*/creditBalance", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/creditPurchases", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
                         new SelfUserMatcher(
                             GET, "/users/*/creditTransactions", authResourceProvider))
                     .authenticated()

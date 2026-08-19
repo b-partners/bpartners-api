@@ -635,6 +635,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(POST, "/address/autocomplete")
                     .authenticated()
+                    .requestMatchers(GET, "/creditPacks")
+                    .authenticated()
+                    .requestMatchers(GET, "/creditPacks/*")
+                    .authenticated()
                     .requestMatchers("/**")
                     .denyAll())
 

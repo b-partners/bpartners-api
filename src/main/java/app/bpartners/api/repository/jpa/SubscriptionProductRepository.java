@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa;
 
+import app.bpartners.api.model.subscription.SubscriptionBillingType;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import java.util.List;
@@ -15,4 +16,6 @@ public interface SubscriptionProductRepository extends JpaRepository<Subscriptio
   Optional<SubscriptionProduct> findByE2Id(String e2Id);
 
   List<SubscriptionProduct> findAllByBillingTypeNotNull(Pageable pageable);
+
+  Optional<SubscriptionProduct> findFirstByBillingType(SubscriptionBillingType billingType);
 }

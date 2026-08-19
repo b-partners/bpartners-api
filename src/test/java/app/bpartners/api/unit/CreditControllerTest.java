@@ -11,8 +11,16 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.controller.CreditController;
 import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.CreditPurchaseRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditTransactionRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreditPackDescription;
+import app.bpartners.api.endpoint.rest.model.CreditPackPurchase;
+import app.bpartners.api.endpoint.rest.model.CreditPurchaseOrigin;
+import app.bpartners.api.endpoint.rest.model.CreditPurchaseStatus;
 import app.bpartners.api.endpoint.rest.model.CreditPurchaseType;
+import app.bpartners.api.endpoint.rest.model.CustomCreditPurchase;
+import app.bpartners.api.endpoint.rest.model.Redirection1;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
@@ -31,6 +39,8 @@ class CreditControllerTest {
   CreditPackRestMapper creditPackRestMapper = new CreditPackRestMapper();
   CreditBalanceRestMapper creditBalanceRestMapper = new CreditBalanceRestMapper();
   CreditTransactionRestMapper creditTransactionRestMapper = new CreditTransactionRestMapper();
+  CreditPurchaseRestMapper creditPurchaseRestMapper =
+      new CreditPurchaseRestMapper(creditPackRestMapper);
   CreditService creditServiceMock = mock(CreditService.class);
   AuthenticatedResourceProvider authenticatedResourceProviderMock =
       mock(AuthenticatedResourceProvider.class);
@@ -41,6 +51,7 @@ class CreditControllerTest {
           creditPackRestMapper,
           creditBalanceRestMapper,
           creditTransactionRestMapper,
+          creditPurchaseRestMapper,
           authenticatedResourceProviderMock);
 
   @Test
@@ -226,6 +237,134 @@ class CreditControllerTest {
             .movementType(app.bpartners.api.endpoint.rest.model.CreditTransactionMovementType.DEBIT)
             .credits(5L)
             .creationDatetime(creation),
+        actual);
+  }
+
+  @Test
+  void get_credit_purchases_maps_a_pack_purchase_priced_as_paid() {
+    var creation = java.time.Instant.parse("2026-08-01T00:00:00Z");
+    var completion = java.time.Instant.parse("2026-08-01T00:05:00Z");
+    var expiration = java.time.Instant.parse("2027-08-01T00:00:00Z");
+    when(creditServiceMock.getCreditPurchases(
+            "user_id",
+            List.of(app.bpartners.api.model.credit.CreditPurchaseStatus.COMPLETED),
+            null,
+            null,
+            null,
+            null))
+        .thenReturn(
+            List.of(
+                app.bpartners.api.model.credit.CreditPurchase.builder()
+                    .id("purchase_1")
+                    .userId("user_id")
+                    .type(PACK)
+                    .creditPack(
+                        CreditPack.builder()
+                            .id("pack_10")
+                            .code(ANALYSES_10)
+                            .description("10 analyses de toiture")
+                            .creditPurchaseType(PACK)
+                            .credits(10L)
+                            .validityDays(365)
+                            .build())
+                    .quantity(2)
+                    .credits(20L)
+                    .creditUnitPriceInCentsWithoutVat(400L)
+                    .amountInCentsWithoutVat(8000L)
+                    .amountInCentsWithVat(9600L)
+                    .vatPercent(2000L)
+                    .status(app.bpartners.api.model.credit.CreditPurchaseStatus.COMPLETED)
+                    .origin(app.bpartners.api.model.credit.CreditPurchaseOrigin.SELF_SERVICE)
+                    .redirectionUrl("https://pay.stripe.com/session")
+                    .redirectionSuccessUrl("https://birdia.fr/success")
+                    .redirectionFailureUrl("https://birdia.fr/failure")
+                    .creditTransactionId("tx_1")
+                    .invoiceId("invoice_1")
+                    .creationDatetime(creation)
+                    .completionDatetime(completion)
+                    .creditsExpirationDatetime(expiration)
+                    .build()));
+
+    var actual =
+        subject.getCreditPurchases(
+            "user_id", List.of(CreditPurchaseStatus.COMPLETED), null, null, null, null);
+
+    assertEquals(
+        List.of(
+            new app.bpartners.api.endpoint.rest.model.CreditPurchase()
+                .id("purchase_1")
+                .type(CreditPurchaseType.PACK)
+                .packPurchase(
+                    new CreditPackPurchase()
+                        .creditPack(
+                            new CreditPackDescription()
+                                .id("pack_10")
+                                .code("ANALYSES_10")
+                                .description("10 analyses de toiture")
+                                .creditPurchaseType(CreditPurchaseType.PACK)
+                                .credits(10L)
+                                .creditUnitPriceInCentsWithoutVat(400L)
+                                .creditUnitPriceInCentsWithVat(480L)
+                                .priceInCentsWithoutVat(4000L)
+                                .priceInCentsWithVat(4800L)
+                                .vatPercent(2000L))
+                        .quantity(2))
+                .credits(20L)
+                .amountInCentsWithoutVat(8000L)
+                .amountInCentsWithVat(9600L)
+                .vatPercent(2000L)
+                .status(CreditPurchaseStatus.COMPLETED)
+                .origin(CreditPurchaseOrigin.SELF_SERVICE)
+                .redirection(
+                    new Redirection1()
+                        .redirectionUrl("https://pay.stripe.com/session")
+                        .redirectionStatusUrls(
+                            new RedirectionStatusUrls()
+                                .successUrl("https://birdia.fr/success")
+                                .failureUrl("https://birdia.fr/failure")))
+                .creditTransactionId("tx_1")
+                .invoiceId("invoice_1")
+                .creationDatetime(creation)
+                .completionDatetime(completion)
+                .creditsExpirationDatetime(expiration)),
+        actual);
+  }
+
+  @Test
+  void get_credit_purchases_maps_a_custom_purchase_without_pack() {
+    var creation = java.time.Instant.parse("2026-08-02T00:00:00Z");
+    when(creditServiceMock.getCreditPurchases("user_id", null, null, null, null, null))
+        .thenReturn(
+            List.of(
+                app.bpartners.api.model.credit.CreditPurchase.builder()
+                    .id("purchase_2")
+                    .userId("user_id")
+                    .type(CUSTOM)
+                    .credits(7L)
+                    .creditUnitPriceInCentsWithoutVat(500L)
+                    .amountInCentsWithoutVat(3500L)
+                    .amountInCentsWithVat(4200L)
+                    .vatPercent(2000L)
+                    .status(app.bpartners.api.model.credit.CreditPurchaseStatus.PENDING)
+                    .origin(app.bpartners.api.model.credit.CreditPurchaseOrigin.AUTO_RECHARGE)
+                    .creationDatetime(creation)
+                    .build()));
+
+    var actual = subject.getCreditPurchases("user_id", null, null, null, null, null);
+
+    assertEquals(
+        List.of(
+            new app.bpartners.api.endpoint.rest.model.CreditPurchase()
+                .id("purchase_2")
+                .type(CreditPurchaseType.CUSTOM)
+                .customPurchase(new CustomCreditPurchase().creditUnitPriceInCentsWithoutVat(500L))
+                .credits(7L)
+                .amountInCentsWithoutVat(3500L)
+                .amountInCentsWithVat(4200L)
+                .vatPercent(2000L)
+                .status(CreditPurchaseStatus.PENDING)
+                .origin(CreditPurchaseOrigin.AUTO_RECHARGE)
+                .creationDatetime(creation)),
         actual);
   }
 }

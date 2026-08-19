@@ -1,5 +1,7 @@
 package app.bpartners.api.service.credit;
 
+import static app.bpartners.api.model.credit.CreditTransactionMovementType.DEBIT;
+import static app.bpartners.api.model.credit.CreditTransactionType.CONSUMPTION;
 import static app.bpartners.api.model.subscription.SubscriptionBillingType.USAGE_BASED;
 import static java.time.Instant.EPOCH;
 import static java.time.Instant.now;
@@ -36,7 +38,19 @@ public class CreditService {
   private final UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final CreditTransactionRepository creditTransactionRepository;
+  private final CreditLedgerService creditLedgerService;
   private final TemporalUtils temporalUtils;
+
+  public CreditTransaction consumeRoofAnalysis(String userId, String label) {
+    return creditLedgerService.append(
+        CreditTransaction.builder()
+            .userId(userId)
+            .type(CONSUMPTION)
+            .movementType(DEBIT)
+            .credits(creditCostPerAnalysis(userId))
+            .label(label)
+            .build());
+  }
 
   public List<CreditPack> getCreditPacks(PageFromOne page, BoundedPageSize pageSize) {
     var pageValue = page != null ? page.getValue() - 1 : 0;

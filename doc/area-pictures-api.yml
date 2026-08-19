@@ -366,6 +366,14 @@ operations:
           name: pageSize
           schema:
             $ref: './api.yml#/components/schemas/PageSize'
+        - in: query
+          name: prospectName
+          schema:
+            type: string
+        - in: query
+          name: address
+          schema:
+            type: string
       responses:
         200:
           description: draft annotations made on the area picture, ordered by creation date-time

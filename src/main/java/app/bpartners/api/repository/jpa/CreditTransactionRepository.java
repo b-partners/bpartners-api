@@ -4,6 +4,7 @@ import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.model.credit.CreditTransactionType;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CreditTransactionRepository extends JpaRepository<CreditTransaction, String> {
   List<CreditTransaction> findAllByUserId(String userId);
+
+  Optional<CreditTransaction> findFirstByCreditPurchaseId(String creditPurchaseId);
 
   @Query(
       value = "select 1 from (select pg_advisory_xact_lock(hashtext(:userId), 0)) as lock_acquired",

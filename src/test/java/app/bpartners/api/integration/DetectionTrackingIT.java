@@ -170,16 +170,14 @@ class DetectionTrackingIT extends MockedThirdParties {
     var api = new DetectionTrackingApi(anApiClient());
     final var now = now().truncatedTo(ChronoUnit.MILLIS);
     var payload = someCreateDetectionTracking(now);
+    var joeDoeId = restJoeDoeUser().getId();
 
     assertThrowsApiException(
         "{\"type\":\"402 PAYMENT_REQUIRED\",\"message\":\"Insufficient credits,"
             + " 1 required but 0 available\"}",
-        () -> api.registerDetection(restJoeDoeUser().getId(), payload));
+        () -> api.registerDetection(joeDoeId, payload));
 
-    assertTrue(
-        detectionTrackingService
-            .findAllByIdUserBetween(restJoeDoeUser().getId(), now, now)
-            .isEmpty());
+    assertTrue(detectionTrackingService.findAllByIdUserBetween(joeDoeId, now, now).isEmpty());
     assertTrue(creditTransactionRepository.findAllByUserId(JOE_DOE_ID).isEmpty());
   }
 

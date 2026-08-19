@@ -9,6 +9,7 @@ import static app.bpartners.api.model.credit.CreditTransactionType.CONSUMPTION;
 import static app.bpartners.api.model.credit.CreditTransactionType.PURCHASE;
 import static app.bpartners.api.model.subscription.SubscriptionBillingType.USAGE_BASED;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -165,7 +166,7 @@ class CreditServiceTest {
 
   @Test
   void get_credit_balance_splits_origins_debits_soonest_expiry_and_lists_expirations() {
-    var now = Instant.now();
+    var now = Instant.now().truncatedTo(MILLIS);
     var grantExpiry = now.plus(10, DAYS);
     when(creditTransactionRepository.findAllByUserId("user_id"))
         .thenReturn(

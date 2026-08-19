@@ -5,7 +5,12 @@ import static app.bpartners.api.model.credit.CreditCode.PACK_CUSTOM;
 import static app.bpartners.api.model.credit.CreditPurchaseType.CUSTOM;
 import static app.bpartners.api.model.credit.CreditPurchaseType.PACK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.controller.CreditController;
@@ -13,6 +18,9 @@ import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPurchaseRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditTransactionRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreateCreditPackPurchase;
+import app.bpartners.api.endpoint.rest.model.CreateCreditPurchase;
+import app.bpartners.api.endpoint.rest.model.CreateCustomCreditPurchase;
 import app.bpartners.api.endpoint.rest.model.CreditPackDescription;
 import app.bpartners.api.endpoint.rest.model.CreditPackPurchase;
 import app.bpartners.api.endpoint.rest.model.CreditPurchaseOrigin;
@@ -22,18 +30,23 @@ import app.bpartners.api.endpoint.rest.model.CustomCreditPurchase;
 import app.bpartners.api.endpoint.rest.model.Redirection1;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
+import app.bpartners.api.endpoint.rest.validator.CreateCreditPurchaseRestValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.credit.CreditBalance;
 import app.bpartners.api.model.credit.CreditPack;
+import app.bpartners.api.model.credit.CreditPurchaseSubmission;
 import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.model.credit.CreditTransactionMovementType;
 import app.bpartners.api.model.credit.CreditTransactionType;
 import app.bpartners.api.model.credit.CreditUnitPrice;
+import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.service.credit.CreditPurchaseService;
 import app.bpartners.api.service.credit.CreditService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class CreditControllerTest {
   CreditPackRestMapper creditPackRestMapper = new CreditPackRestMapper();
@@ -42,6 +55,9 @@ class CreditControllerTest {
   CreditPurchaseRestMapper creditPurchaseRestMapper =
       new CreditPurchaseRestMapper(creditPackRestMapper);
   CreditService creditServiceMock = mock(CreditService.class);
+  CreditPurchaseService creditPurchaseServiceMock = mock(CreditPurchaseService.class);
+  CreateCreditPurchaseRestValidator createCreditPurchaseRestValidator =
+      new CreateCreditPurchaseRestValidator();
   AuthenticatedResourceProvider authenticatedResourceProviderMock =
       mock(AuthenticatedResourceProvider.class);
 
@@ -52,6 +68,8 @@ class CreditControllerTest {
           creditBalanceRestMapper,
           creditTransactionRestMapper,
           creditPurchaseRestMapper,
+          creditPurchaseServiceMock,
+          createCreditPurchaseRestValidator,
           authenticatedResourceProviderMock);
 
   @Test
@@ -366,5 +384,107 @@ class CreditControllerTest {
                 .origin(CreditPurchaseOrigin.AUTO_RECHARGE)
                 .creationDatetime(creation)),
         actual);
+  }
+
+  @Test
+  void submit_a_pack_purchase_maps_the_payload_and_the_submitted_purchase() {
+    var creation = java.time.Instant.parse("2026-08-01T00:00:00Z");
+    var user = User.builder().id("user_id").userSubscriptionId("cus_1").build();
+    when(authenticatedResourceProviderMock.getUser()).thenReturn(user);
+    var submissionCaptor = ArgumentCaptor.forClass(CreditPurchaseSubmission.class);
+    when(creditPurchaseServiceMock.submit(eq(user), any()))
+        .thenReturn(
+            app.bpartners.api.model.credit.CreditPurchase.builder()
+                .id("purchase_1")
+                .userId("user_id")
+                .type(PACK)
+                .credits(20L)
+                .creditUnitPriceInCentsWithoutVat(400L)
+                .amountInCentsWithoutVat(8000L)
+                .amountInCentsWithVat(9600L)
+                .vatPercent(2000L)
+                .status(app.bpartners.api.model.credit.CreditPurchaseStatus.PENDING)
+                .origin(app.bpartners.api.model.credit.CreditPurchaseOrigin.SELF_SERVICE)
+                .redirectionUrl("https://pay.stripe.com/session")
+                .creationDatetime(creation)
+                .build());
+
+    var actual =
+        subject.submitCreditPurchase(
+            "user_id",
+            "purchase_1",
+            (CreateCreditPurchase)
+                new CreateCreditPackPurchase()
+                    .creditPackIdentifier("pack_10")
+                    .quantity(2)
+                    .type(CreditPurchaseType.PACK)
+                    .redirectionStatusUrls(
+                        new RedirectionStatusUrls()
+                            .successUrl("https://birdia.fr/success")
+                            .failureUrl("https://birdia.fr/failure")));
+
+    verify(creditPurchaseServiceMock).submit(eq(user), submissionCaptor.capture());
+    assertEquals(
+        new CreditPurchaseSubmission(
+            "purchase_1",
+            PACK,
+            "pack_10",
+            2,
+            null,
+            "https://birdia.fr/success",
+            "https://birdia.fr/failure"),
+        submissionCaptor.getValue());
+    assertEquals("purchase_1", actual.getId());
+    assertEquals(CreditPurchaseStatus.PENDING, actual.getStatus());
+    assertEquals(9600L, actual.getAmountInCentsWithVat());
+    assertEquals("https://pay.stripe.com/session", actual.getRedirection().getRedirectionUrl());
+  }
+
+  @Test
+  void submit_a_custom_purchase_maps_the_chosen_credits() {
+    var user = User.builder().id("user_id").userSubscriptionId("cus_1").build();
+    when(authenticatedResourceProviderMock.getUser()).thenReturn(user);
+    var submissionCaptor = ArgumentCaptor.forClass(CreditPurchaseSubmission.class);
+    when(creditPurchaseServiceMock.submit(eq(user), any()))
+        .thenReturn(
+            app.bpartners.api.model.credit.CreditPurchase.builder().id("purchase_2").build());
+
+    subject.submitCreditPurchase(
+        "user_id",
+        "purchase_2",
+        (CreateCreditPurchase)
+            new CreateCustomCreditPurchase()
+                .credits(7L)
+                .type(CreditPurchaseType.CUSTOM)
+                .redirectionStatusUrls(
+                    new RedirectionStatusUrls()
+                        .successUrl("https://birdia.fr/success")
+                        .failureUrl("https://birdia.fr/failure")));
+
+    verify(creditPurchaseServiceMock).submit(eq(user), submissionCaptor.capture());
+    assertEquals(
+        new CreditPurchaseSubmission(
+            "purchase_2",
+            CUSTOM,
+            null,
+            null,
+            7L,
+            "https://birdia.fr/success",
+            "https://birdia.fr/failure"),
+        submissionCaptor.getValue());
+  }
+
+  @Test
+  void submit_an_invalid_payload_is_rejected_before_reaching_the_service() {
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            subject.submitCreditPurchase(
+                "user_id",
+                "purchase_1",
+                (CreateCreditPurchase)
+                    new CreateCreditPackPurchase().type(CreditPurchaseType.PACK)));
+
+    verify(creditPurchaseServiceMock, never()).submit(any(), any());
   }
 }

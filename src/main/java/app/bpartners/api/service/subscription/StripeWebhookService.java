@@ -1,18 +1,24 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.service.subscription.StripeCreditPurchaseService.CREDIT_PURCHASE_ID_METADATA_KEY;
+
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.service.credit.CreditPurchaseService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.Invoice;
+import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionSchedule;
+import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +31,9 @@ public class StripeWebhookService {
   private static final String SUBSCRIPTION_UPDATED = "customer.subscription.updated";
   private static final String SUBSCRIPTION_SCHEDULE_CREATED = "subscription_schedule.created";
   private static final String INVOICE_PAID = "invoice.paid";
+  private static final String PAYMENT_INTENT_SUCCEEDED = "payment_intent.succeeded";
+  private static final String CHECKOUT_SESSION_COMPLETED = "checkout.session.completed";
+  private static final String STRIPE_CHECKOUT_PAID_STATUS = "paid";
   private static final String STRIPE_ACTIVE_STATUS = "active";
   private static final String STRIPE_SCHEDULE_NOT_STARTED_STATUS = "not_started";
 
@@ -32,11 +41,20 @@ public class StripeWebhookService {
   private final UserRepository userRepository;
   private final EventProducer eventProducer;
   private final SubscriptionService subscriptionService;
+  private final CreditPurchaseService creditPurchaseService;
 
   public void handleEvent(String payload, String signatureHeader) {
     var event = verifySignature(payload, signatureHeader);
     if (INVOICE_PAID.equals(event.getType())) {
       handleInvoicePaid(event);
+      return;
+    }
+    if (PAYMENT_INTENT_SUCCEEDED.equals(event.getType())) {
+      handlePaymentIntentSucceeded(event);
+      return;
+    }
+    if (CHECKOUT_SESSION_COMPLETED.equals(event.getType())) {
+      handleCheckoutSessionCompleted(event);
       return;
     }
     var eligible = extractEligibleSubscription(event);
@@ -68,6 +86,46 @@ public class StripeWebhookService {
     }
     subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoice.getSubscription());
     subscriptionService.scheduleOverageSubscriptionAfterAnnualInvoicePaid(invoice);
+  }
+
+  private void handlePaymentIntentSucceeded(Event event) {
+    var paymentIntent = extractStripeObject(event, PaymentIntent.class);
+    if (paymentIntent == null) {
+      return;
+    }
+    completeCreditPurchase(paymentIntent.getMetadata(), event.getType());
+  }
+
+  private void handleCheckoutSessionCompleted(Event event) {
+    var session = extractStripeObject(event, Session.class);
+    if (session == null) {
+      return;
+    }
+    if (!STRIPE_CHECKOUT_PAID_STATUS.equals(session.getPaymentStatus())) {
+      log.info(
+          "Stripe checkout session={} is not paid (paymentStatus={}), skipping",
+          session.getId(),
+          session.getPaymentStatus());
+      return;
+    }
+    completeCreditPurchase(session.getMetadata(), event.getType());
+  }
+
+  private void completeCreditPurchase(Map<String, String> metadata, String eventType) {
+    var creditPurchaseId = metadata == null ? null : metadata.get(CREDIT_PURCHASE_ID_METADATA_KEY);
+    if (creditPurchaseId == null) {
+      log.info("Stripe event={} carries no credit purchase metadata, skipping", eventType);
+      return;
+    }
+    creditPurchaseService
+        .complete(creditPurchaseId)
+        .ifPresent(
+            completed ->
+                log.info(
+                    "CreditPurchase.id={} completed from Stripe event={}, CreditTransaction.id={}",
+                    completed.getId(),
+                    eventType,
+                    completed.getCreditTransactionId()));
   }
 
   private EligibleSubscription extractEligibleSubscription(Event event) {

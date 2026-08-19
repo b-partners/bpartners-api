@@ -4,11 +4,17 @@ import static app.bpartners.api.model.credit.CreditCode.ANALYSES_10;
 import static app.bpartners.api.model.credit.CreditPurchaseType.PACK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPurchaseRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreateCreditPackPurchase;
+import app.bpartners.api.endpoint.rest.model.CreateCreditPurchase;
+import app.bpartners.api.endpoint.rest.model.CreditPurchaseType;
 import app.bpartners.api.model.credit.CreditPack;
 import app.bpartners.api.model.credit.CreditPurchase;
+import app.bpartners.api.model.credit.CreditPurchaseSubmission;
+import app.bpartners.api.model.exception.BadRequestException;
 import org.junit.jupiter.api.Test;
 
 class CreditPurchaseRestMapperTest {
@@ -102,5 +108,41 @@ class CreditPurchaseRestMapperTest {
   @Test
   void map_a_null_status_to_no_domain_status() {
     assertNull(subject.toDomainStatus(null));
+  }
+
+  @Test
+  void map_a_pack_payload_to_a_submission_without_redirection_urls() {
+    var actual =
+        subject.toDomain(
+            "purchase_1",
+            new CreateCreditPackPurchase()
+                .creditPackIdentifier("pack_10")
+                .quantity(3)
+                .type(CreditPurchaseType.PACK));
+
+    assertEquals(
+        new CreditPurchaseSubmission(
+            "purchase_1",
+            app.bpartners.api.model.credit.CreditPurchaseType.PACK,
+            "pack_10",
+            3,
+            null,
+            null,
+            null),
+        actual);
+  }
+
+  @Test
+  void map_a_bare_create_credit_purchase_is_rejected() {
+    var rest = new CreateCreditPurchase().type(CreditPurchaseType.PACK);
+
+    var exception = assertThrows(BadRequestException.class, () -> subject.toDomain("p_1", rest));
+
+    assertEquals("CreateCreditPurchase.type=PACK is not supported", exception.getMessage());
+  }
+
+  @Test
+  void map_a_null_type_to_no_domain_type() {
+    assertNull(subject.toDomainType(null));
   }
 }

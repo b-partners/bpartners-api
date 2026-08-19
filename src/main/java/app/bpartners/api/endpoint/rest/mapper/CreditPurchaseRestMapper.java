@@ -3,6 +3,9 @@ package app.bpartners.api.endpoint.rest.mapper;
 import static app.bpartners.api.model.credit.CreditPurchaseType.CUSTOM;
 import static app.bpartners.api.model.credit.CreditPurchaseType.PACK;
 
+import app.bpartners.api.endpoint.rest.model.CreateCreditPackPurchase;
+import app.bpartners.api.endpoint.rest.model.CreateCreditPurchase;
+import app.bpartners.api.endpoint.rest.model.CreateCustomCreditPurchase;
 import app.bpartners.api.endpoint.rest.model.CreditPackPurchase;
 import app.bpartners.api.endpoint.rest.model.CreditPurchase;
 import app.bpartners.api.endpoint.rest.model.CreditPurchaseOrigin;
@@ -11,6 +14,8 @@ import app.bpartners.api.endpoint.rest.model.CreditPurchaseType;
 import app.bpartners.api.endpoint.rest.model.CustomCreditPurchase;
 import app.bpartners.api.endpoint.rest.model.Redirection1;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.model.credit.CreditPurchaseSubmission;
+import app.bpartners.api.model.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +42,41 @@ public class CreditPurchaseRestMapper {
         .creationDatetime(domain.getCreationDatetime())
         .completionDatetime(domain.getCompletionDatetime())
         .creditsExpirationDatetime(domain.getCreditsExpirationDatetime());
+  }
+
+  public CreditPurchaseSubmission toDomain(String purchaseId, CreateCreditPurchase rest) {
+    var statusUrls = rest.getRedirectionStatusUrls();
+    var successUrl = statusUrls == null ? null : statusUrls.getSuccessUrl();
+    var failureUrl = statusUrls == null ? null : statusUrls.getFailureUrl();
+    if (rest instanceof CreateCreditPackPurchase packPurchase) {
+      return new CreditPurchaseSubmission(
+          purchaseId,
+          toDomainType(rest.getType()),
+          packPurchase.getCreditPackIdentifier(),
+          packPurchase.getQuantity(),
+          null,
+          successUrl,
+          failureUrl);
+    }
+    if (rest instanceof CreateCustomCreditPurchase customPurchase) {
+      return new CreditPurchaseSubmission(
+          purchaseId,
+          toDomainType(rest.getType()),
+          null,
+          null,
+          customPurchase.getCredits(),
+          successUrl,
+          failureUrl);
+    }
+    throw new BadRequestException(
+        "CreateCreditPurchase.type=" + rest.getType() + " is not supported");
+  }
+
+  public app.bpartners.api.model.credit.CreditPurchaseType toDomainType(
+      CreditPurchaseType restType) {
+    return restType == null
+        ? null
+        : app.bpartners.api.model.credit.CreditPurchaseType.valueOf(restType.name());
   }
 
   public app.bpartners.api.model.credit.CreditPurchaseStatus toDomainStatus(

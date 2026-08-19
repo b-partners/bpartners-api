@@ -80,6 +80,17 @@ class CreditLedgerIT extends MockedThirdParties {
   }
 
   @Test
+  void append_debit_is_rejected_once_previous_debits_drained_the_balance() {
+    append(SUBSCRIPTION_GRANT, CREDIT, 10L);
+    append(CONSUMPTION, DEBIT, 8L);
+
+    assertThrows(InsufficientCreditsException.class, () -> append(CONSUMPTION, DEBIT, 5L));
+
+    assertEquals(2L, spendableCredits());
+    assertEquals(2, creditTransactionRepository.findAllByUserId(JOE_DOE_ID).size());
+  }
+
+  @Test
   void append_round_trips_adjustment_reason() {
     var appended =
         creditLedgerService.append(

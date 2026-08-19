@@ -160,13 +160,17 @@ operations:
       description: |
         A `PACK` purchase buys one of the catalog packs, a `CUSTOM` one buys the exact number of
         credits the consumer asks for, priced server side at the unit price in force. The returned
-        purchase carries the resulting `amountInCentsWithVat`, which the consumer can display
-        before sending the buyer to the payment redirection.
+        purchase carries the resulting `amountInCentsWithVat`, which the consumer can display.
         The consumer chooses `purchaseId`, which makes the call safely retryable: submitting an
         already known identifier returns the existing purchase instead of buying twice.
-        The purchase is created `PENDING` and carries the payment redirection to follow. Credits
-        are added to the wallet only once the payment provider confirms the payment, which moves
-        the purchase to `COMPLETED` and appends a `PURCHASE` credit transaction.
+        The buyer is charged without leaving the consumer whenever a valid card is already
+        registered: the returned purchase is then `COMPLETED`, carries no `redirection` and its
+        `creditTransactionId` points at the credits already added to the wallet.
+        Otherwise, when no card is registered or when the card needs the buyer to authenticate,
+        the purchase is `PENDING` and carries the payment redirection to follow. Credits are then
+        added only once the payment provider confirms the payment, which moves the purchase to
+        `COMPLETED` and appends a `PURCHASE` credit transaction. `redirectionStatusUrls` is
+        therefore required even when the charge is expected to succeed without redirection.
         A purchase is immutable, submitting a known identifier with a different payload is
         rejected.
       operationId: submitCreditPurchase
@@ -190,7 +194,9 @@ operations:
               $ref: '#/components/schemas/CreateCreditPurchase'
       responses:
         200:
-          description: The submitted purchase, pending payment
+          description: |
+            The submitted purchase, `COMPLETED` when it could be charged on a registered card,
+            `PENDING` and carrying its payment redirection otherwise
           content:
             application/json:
               schema:

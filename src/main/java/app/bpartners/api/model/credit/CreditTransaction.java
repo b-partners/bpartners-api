@@ -9,6 +9,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -59,6 +60,10 @@ public class CreditTransaction {
 
   @Column(updatable = false)
   private Instant creationDatetime;
+
+  public Instant getCreationDatetime() {
+    return creationDatetime == null ? null : creationDatetime.truncatedTo(ChronoUnit.MILLIS);
+  }
 
   public boolean isCredit() {
     return CREDIT.equals(movementType);

@@ -7,6 +7,7 @@ import com.stripe.param.PaymentMethodListParams;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,13 @@ import org.springframework.stereotype.Service;
 public class StripePaymentMethodService {
   private final StripeCustomerService stripeCustomerService;
   private final StripeSubscriptionService stripeSubscriptionService;
+
+  public Optional<PaymentMethod> chargeableCard(String stripeCustomerIdentifier)
+      throws StripeException {
+    return getPaymentMethods(stripeCustomerIdentifier, PaymentMethodListParams.Type.CARD).stream()
+        .filter(StripePaymentMethodService::isPaymentMethodValid)
+        .findFirst();
+  }
 
   public List<PaymentMethod> getPaymentMethod(String stripeCustomerIdentifier)
       throws StripeException {

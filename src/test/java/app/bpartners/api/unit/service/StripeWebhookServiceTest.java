@@ -10,18 +10,23 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.credit.CreditPurchase;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.service.credit.CreditPurchaseService;
 import app.bpartners.api.service.subscription.StripeWebhookService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.Invoice;
+import com.stripe.model.PaymentIntent;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionSchedule;
+import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,8 +42,10 @@ class StripeWebhookServiceTest {
   UserRepository userRepository = mock();
   EventProducer eventProducer = mock();
   SubscriptionService subscriptionService = mock();
+  CreditPurchaseService creditPurchaseService = mock();
   StripeWebhookService subject =
-      new StripeWebhookService(stripeConf, userRepository, eventProducer, subscriptionService);
+      new StripeWebhookService(
+          stripeConf, userRepository, eventProducer, subscriptionService, creditPurchaseService);
 
   @BeforeEach
   void setUp() {
@@ -251,5 +258,118 @@ class StripeWebhookServiceTest {
       assertThrows(BadRequestException.class, () -> subject.handleEvent(PAYLOAD, SIGNATURE));
     }
     verify(eventProducer, never()).accept(anyList());
+  }
+
+  private Event givenStripeObjectEvent(String type, Object stripeObject) {
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    lenient()
+        .when(deserializer.getObject())
+        .thenReturn(Optional.of((com.stripe.model.StripeObject) stripeObject));
+    var event = mock(Event.class);
+    lenient().when(event.getType()).thenReturn(type);
+    lenient().when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+    return event;
+  }
+
+  @Test
+  void payment_intent_succeeded_completes_the_credit_purchase() {
+    var paymentIntent = mock(PaymentIntent.class);
+    when(paymentIntent.getMetadata()).thenReturn(Map.of("credit_purchase_id", "purchase_1"));
+    when(creditPurchaseService.complete("purchase_1"))
+        .thenReturn(
+            Optional.of(
+                CreditPurchase.builder().id("purchase_1").creditTransactionId("tx_1").build()));
+    var event = givenStripeObjectEvent("payment_intent.succeeded", paymentIntent);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(creditPurchaseService, times(1)).complete("purchase_1");
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
+  void payment_intent_succeeded_without_credit_purchase_metadata_is_ignored() {
+    var paymentIntent = mock(PaymentIntent.class);
+    when(paymentIntent.getMetadata()).thenReturn(Map.of());
+    var event = givenStripeObjectEvent("payment_intent.succeeded", paymentIntent);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(creditPurchaseService, never()).complete(any());
+  }
+
+  @Test
+  void paid_checkout_session_completes_the_credit_purchase() {
+    var session = mock(Session.class);
+    when(session.getPaymentStatus()).thenReturn("paid");
+    when(session.getMetadata()).thenReturn(Map.of("credit_purchase_id", "purchase_1"));
+    when(creditPurchaseService.complete("purchase_1"))
+        .thenReturn(Optional.of(CreditPurchase.builder().id("purchase_1").build()));
+    var event = givenStripeObjectEvent("checkout.session.completed", session);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(creditPurchaseService, times(1)).complete("purchase_1");
+  }
+
+  @Test
+  void unpaid_checkout_session_does_not_complete_the_credit_purchase() {
+    var session = mock(Session.class);
+    when(session.getPaymentStatus()).thenReturn("unpaid");
+    var event = givenStripeObjectEvent("checkout.session.completed", session);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(creditPurchaseService, never()).complete(any());
+  }
+
+  @Test
+  void an_undeserializable_payment_intent_is_ignored() {
+    var event = givenStripeObjectEvent("payment_intent.succeeded", mock(Invoice.class));
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(creditPurchaseService, never()).complete(any());
+  }
+
+  @Test
+  void an_undeserializable_checkout_session_is_ignored() {
+    var event = givenStripeObjectEvent("checkout.session.completed", mock(Invoice.class));
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(creditPurchaseService, never()).complete(any());
+  }
+
+  @Test
+  void a_payment_intent_without_metadata_at_all_is_ignored() {
+    var paymentIntent = mock(PaymentIntent.class);
+    when(paymentIntent.getMetadata()).thenReturn(null);
+    var event = givenStripeObjectEvent("payment_intent.succeeded", paymentIntent);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(creditPurchaseService, never()).complete(any());
   }
 }

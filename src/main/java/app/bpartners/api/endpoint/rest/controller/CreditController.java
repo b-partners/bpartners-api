@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPurchaseRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditTransactionRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreateCreditPurchase;
 import app.bpartners.api.endpoint.rest.model.CreditBalance;
 import app.bpartners.api.endpoint.rest.model.CreditPack;
 import app.bpartners.api.endpoint.rest.model.CreditPurchase;
@@ -11,8 +12,10 @@ import app.bpartners.api.endpoint.rest.model.CreditPurchaseStatus;
 import app.bpartners.api.endpoint.rest.model.CreditTransaction;
 import app.bpartners.api.endpoint.rest.model.CreditTransactionType;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
+import app.bpartners.api.endpoint.rest.validator.CreateCreditPurchaseRestValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.service.credit.CreditPurchaseService;
 import app.bpartners.api.service.credit.CreditService;
 import java.time.Instant;
 import java.util.List;
@@ -20,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,6 +36,8 @@ public class CreditController {
   private final CreditBalanceRestMapper creditBalanceRestMapper;
   private final CreditTransactionRestMapper creditTransactionRestMapper;
   private final CreditPurchaseRestMapper creditPurchaseRestMapper;
+  private final CreditPurchaseService creditPurchaseService;
+  private final CreateCreditPurchaseRestValidator createCreditPurchaseRestValidator;
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
 
   @GetMapping("/creditPacks")
@@ -71,6 +78,18 @@ public class CreditController {
     return service.getCreditPurchases(uId, domainStatuses, from, to, page, pageSize).stream()
         .map(creditPurchaseRestMapper::toRest)
         .toList();
+  }
+
+  @PutMapping("/users/{uId}/creditPurchases/{purchaseId}")
+  public CreditPurchase submitCreditPurchase(
+      @PathVariable String uId,
+      @PathVariable String purchaseId,
+      @RequestBody CreateCreditPurchase createCreditPurchase) {
+    createCreditPurchaseRestValidator.accept(createCreditPurchase);
+    return creditPurchaseRestMapper.toRest(
+        creditPurchaseService.submit(
+            authenticatedResourceProvider.getUser(),
+            creditPurchaseRestMapper.toDomain(purchaseId, createCreditPurchase)));
   }
 
   @GetMapping("/users/{uId}/creditTransactions")

@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -87,6 +88,20 @@ public class CreditPurchase {
 
   @Column(updatable = false)
   private Instant creationDatetime;
+
+  public Instant getCreationDatetime() {
+    return creationDatetime == null ? null : creationDatetime.truncatedTo(ChronoUnit.MILLIS);
+  }
+
+  public Instant getCompletionDatetime() {
+    return completionDatetime == null ? null : completionDatetime.truncatedTo(ChronoUnit.MILLIS);
+  }
+
+  public String paymentLabel() {
+    return creditPack == null || creditPack.getDescription() == null
+        ? credits + " crédits d'analyse"
+        : creditPack.getDescription();
+  }
 
   public CreditUnitPrice unitPriceApplied() {
     return new CreditUnitPrice(

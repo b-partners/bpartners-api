@@ -2,14 +2,19 @@ package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.CreditTransactionRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreditBalance;
 import app.bpartners.api.endpoint.rest.model.CreditPack;
+import app.bpartners.api.endpoint.rest.model.CreditTransaction;
+import app.bpartners.api.endpoint.rest.model.CreditTransactionType;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.credit.CreditService;
+import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,6 +26,7 @@ public class CreditController {
   private final CreditService service;
   private final CreditPackRestMapper creditPackRestMapper;
   private final CreditBalanceRestMapper creditBalanceRestMapper;
+  private final CreditTransactionRestMapper creditTransactionRestMapper;
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
 
   @GetMapping("/creditPacks")
@@ -42,5 +48,30 @@ public class CreditController {
   @GetMapping("/users/{uId}/creditBalance")
   public CreditBalance getCreditBalance(@PathVariable String uId) {
     return creditBalanceRestMapper.toRest(service.getCreditBalance(uId));
+  }
+
+  @GetMapping("/users/{uId}/creditTransactions")
+  public List<CreditTransaction> getCreditTransactions(
+      @PathVariable String uId,
+      @RequestParam(required = false) List<CreditTransactionType> types,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant from,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant to,
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
+    var domainTypes =
+        types == null
+            ? null
+            : types.stream().map(creditTransactionRestMapper::toDomainType).toList();
+    return service.getCreditTransactions(uId, domainTypes, from, to, page, pageSize).stream()
+        .map(creditTransactionRestMapper::toRest)
+        .toList();
+  }
+
+  @GetMapping("/users/{uId}/creditTransactions/{transactionId}")
+  public CreditTransaction getCreditTransactionById(
+      @PathVariable String uId, @PathVariable String transactionId) {
+    return creditTransactionRestMapper.toRest(service.getCreditTransaction(uId, transactionId));
   }
 }

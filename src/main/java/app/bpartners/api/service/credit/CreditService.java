@@ -1,6 +1,7 @@
 package app.bpartners.api.service.credit;
 
 import static app.bpartners.api.model.subscription.SubscriptionBillingType.USAGE_BASED;
+import static java.time.Instant.EPOCH;
 import static java.time.Instant.now;
 
 import app.bpartners.api.model.BoundedPageSize;
@@ -27,7 +28,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CreditService {
   private static final int DEFAULT_CREDIT_PACKS_PAGE_SIZE = 100;
+  private static final int DEFAULT_CREDIT_TRANSACTIONS_PAGE_SIZE = 100;
   private static final ZoneId EUROPE_PARIS = ZoneId.of("Europe/Paris");
+  private static final Instant LEDGER_START = EPOCH;
+  private static final Instant LEDGER_END = Instant.parse("9999-12-31T23:59:59Z");
   private final CreditPackRepository creditPackRepository;
   private final UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
@@ -75,6 +79,38 @@ public class CreditService {
         .expirations(wallet.upcomingExpirations())
         .updatedAt(wallet.updatedAt())
         .build();
+  }
+
+  public List<CreditTransaction> getCreditTransactions(
+      String userId,
+      List<CreditTransactionType> types,
+      Instant from,
+      Instant to,
+      PageFromOne page,
+      BoundedPageSize pageSize) {
+    var pageValue = page != null ? page.getValue() - 1 : 0;
+    var pageSizeValue =
+        pageSize != null ? pageSize.getValue() : DEFAULT_CREDIT_TRANSACTIONS_PAGE_SIZE;
+    var pageable = PageRequest.of(pageValue, pageSizeValue);
+    var fromBound = from != null ? from : LEDGER_START;
+    var toBound = to != null ? to : LEDGER_END;
+    return types == null || types.isEmpty()
+        ? creditTransactionRepository
+            .findByUserIdAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+                userId, fromBound, toBound, pageable)
+        : creditTransactionRepository
+            .findByUserIdAndTypeInAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
+                userId, types, fromBound, toBound, pageable);
+  }
+
+  public CreditTransaction getCreditTransaction(String userId, String transactionId) {
+    return creditTransactionRepository
+        .findById(transactionId)
+        .filter(transaction -> userId.equals(transaction.getUserId()))
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "CreditTransaction(id=" + transactionId + ") not found for User.id=" + userId));
   }
 
   private long creditCostPerAnalysis(String userId) {

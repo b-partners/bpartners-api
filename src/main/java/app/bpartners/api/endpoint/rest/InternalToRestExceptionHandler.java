@@ -108,6 +108,14 @@ public class InternalToRestExceptionHandler {
     return new ResponseEntity<>(toRest(e, HttpStatus.NOT_FOUND), HttpStatus.NOT_FOUND);
   }
 
+  @ExceptionHandler(value = {InsufficientCreditsException.class})
+  ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleInsufficientCredits(
+      InsufficientCreditsException e) {
+    log.info("Insufficient credits", e);
+    return new ResponseEntity<>(
+        toRest(e, HttpStatus.PAYMENT_REQUIRED), HttpStatus.PAYMENT_REQUIRED);
+  }
+
   @ExceptionHandler(value = {NotImplementedException.class})
   ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleNotImplemented(
       NotImplementedException e) {

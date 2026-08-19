@@ -41,6 +41,19 @@ public class CreditTransaction {
 
   private Long credits;
 
+  private String label;
+
+  @Column(name = "credit_purchase_id")
+  private String creditPurchaseId;
+
+  @JdbcTypeCode(NAMED_ENUM)
+  @Enumerated(EnumType.STRING)
+  @Column(name = "adjustment_reason")
+  private CreditAdjustmentReason adjustmentReason;
+
+  @Column(name = "reversed_transaction_id")
+  private String reversedTransactionId;
+
   @Column(name = "expiration_datetime")
   private Instant expirationDatetime;
 

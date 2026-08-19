@@ -6,11 +6,18 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CreditTransactionRepository extends JpaRepository<CreditTransaction, String> {
   List<CreditTransaction> findAllByUserId(String userId);
+
+  @Query(
+      value = "select 1 from (select pg_advisory_xact_lock(hashtext(:userId), 0)) as lock_acquired",
+      nativeQuery = true)
+  Integer acquireWalletLock(@Param("userId") String userId);
 
   List<CreditTransaction> findByUserIdAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
       String userId, Instant from, Instant to, Pageable pageable);

@@ -642,6 +642,14 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfUserMatcher(GET, "/users/*/creditBalance", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/creditTransactions", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/creditTransactions/*", authResourceProvider))
+                    .authenticated()
                     .requestMatchers("/**")
                     .denyAll())
 

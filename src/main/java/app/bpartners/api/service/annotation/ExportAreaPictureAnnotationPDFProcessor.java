@@ -76,7 +76,6 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     Pair<String, List<String>> annotationImages =
         generateAnnotationImages(
             exportAnnotation, compressedImage, annotationRescale.x(), annotationRescale.y());
-    Pair<String, List<String>> annotation3DImages = null;
     BufferedImage logo = getUserLogo(user.getId(), user.getLogoFileId(), fileService);
     String logoBase64 =
         logo == null
@@ -86,6 +85,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
                 subImageConf().rescale(annotationRescale.x(), annotationRescale.y()),
                 List.of());
 
+    Pair<String, List<String>> annotation3DImages = null;
     Pair<String, List<String>> annotation3DFacadeImages = null;
 
     if (exportAnnotation.get3d() != null && globalImage3D != null) {
@@ -113,7 +113,8 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     for (var pan : annotation3D.getPans()) {
       var panImage =
           exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(pan, true);
-      subImages3D.add(base64(panImage));
+      var compressedPanImage = imageCompressor.compressImage(panImage);
+      subImages3D.add(base64(compressedPanImage));
     }
 
     return new Pair<>(mainImage3D, subImages3D);
@@ -129,7 +130,8 @@ public class ExportAreaPictureAnnotationPDFProcessor {
         var facadeImage =
             exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(
                 facade, false);
-        subImages3D.add(base64(facadeImage));
+        var compressedFacadeImage = imageCompressor.compressImage(facadeImage);
+        subImages3D.add(base64(compressedFacadeImage));
       }
     }
 

@@ -1,6 +1,8 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreditBalance;
 import app.bpartners.api.endpoint.rest.model.CreditPack;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.BoundedPageSize;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CreditController {
   private final CreditService service;
   private final CreditPackRestMapper creditPackRestMapper;
+  private final CreditBalanceRestMapper creditBalanceRestMapper;
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
 
   @GetMapping("/creditPacks")
@@ -34,5 +37,10 @@ public class CreditController {
   public CreditPack getCreditPackById(@PathVariable String packId) {
     var unitPrice = service.resolveCreditUnitPrice(authenticatedResourceProvider.getUser());
     return creditPackRestMapper.toRest(service.getCreditPack(packId), unitPrice);
+  }
+
+  @GetMapping("/users/{uId}/creditBalance")
+  public CreditBalance getCreditBalance(@PathVariable String uId) {
+    return creditBalanceRestMapper.toRest(service.getCreditBalance(uId));
   }
 }

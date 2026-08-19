@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import app.bpartners.api.endpoint.rest.model.CreditAdjustmentReason;
 import app.bpartners.api.endpoint.rest.model.CreditTransaction;
 import app.bpartners.api.endpoint.rest.model.CreditTransactionMovementType;
 import app.bpartners.api.endpoint.rest.model.CreditTransactionType;
@@ -14,8 +15,17 @@ public class CreditTransactionRestMapper {
         .type(typeToRest(domain.getType()))
         .movementType(movementTypeToRest(domain.getMovementType()))
         .credits(domain.getCredits())
+        .label(domain.getLabel())
+        .creditPurchaseId(domain.getCreditPurchaseId())
+        .adjustmentReason(adjustmentReasonToRest(domain.getAdjustmentReason()))
+        .reversedTransactionId(domain.getReversedTransactionId())
         .expirationDatetime(domain.getExpirationDatetime())
         .creationDatetime(domain.getCreationDatetime());
+  }
+
+  private CreditAdjustmentReason adjustmentReasonToRest(
+      app.bpartners.api.model.credit.CreditAdjustmentReason domainReason) {
+    return domainReason == null ? null : CreditAdjustmentReason.valueOf(domainReason.name());
   }
 
   public app.bpartners.api.model.credit.CreditTransactionType toDomainType(

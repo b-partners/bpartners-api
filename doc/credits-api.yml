@@ -744,7 +744,7 @@ components:
           minimum: 1
           description: |
             Credits moved by this transaction, always a positive magnitude. Whether they enter or
-            leave the wallet is carried by `direction`.
+            leave the wallet is carried by `movementType`.
         label:
           type: string
           description: Human readable wording, displayable as is in the consumer history.
@@ -760,7 +760,7 @@ components:
           type: string
           format: date-time
           description: |
-            When the credits added by this transaction expire. Only set when `direction` is
+            When the credits added by this transaction expire. Only set when `movementType` is
             `CREDIT`.
         creationDatetime:
           type: string
@@ -835,19 +835,19 @@ components:
     CreateCreditAdjustment:
       type: object
       required:
-        - direction
+        - movementType
         - credits
         - reason
       properties:
-        direction:
+        movementType:
           $ref: '#/components/schemas/CreditTransactionMovementType'
         credits:
           type: integer
           format: int64
           minimum: 1
           description: |
-            Credits to move, always a positive magnitude. `CREDIT` grants them, `DEBIT` takes them
-            back.
+            Credits to move, always a positive magnitude. A `CREDIT` `movementType` grants them, a
+            `DEBIT` one takes them back.
         reason:
           $ref: '#/components/schemas/CreditAdjustmentReason'
         comment:
@@ -856,7 +856,8 @@ components:
           type: string
           format: date-time
           description: |
-            When granted credits expire. Null for no expiry. Ignored when `direction` is `DEBIT`.
+            When granted credits expire. Null for no expiry. Ignored when `movementType` is
+            `DEBIT`.
     CreditAdjustmentReason:
       type: string
       enum:

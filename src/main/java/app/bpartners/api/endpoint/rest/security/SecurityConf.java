@@ -639,6 +639,9 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(GET, "/creditPacks/*")
                     .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/creditBalance", authResourceProvider))
+                    .authenticated()
                     .requestMatchers("/**")
                     .denyAll())
 

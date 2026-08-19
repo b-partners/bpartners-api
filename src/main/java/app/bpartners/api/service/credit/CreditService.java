@@ -1,17 +1,22 @@
 package app.bpartners.api.service.credit;
 
 import static app.bpartners.api.model.subscription.SubscriptionBillingType.USAGE_BASED;
+import static java.time.Instant.now;
 
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.credit.CreditPack;
-import app.bpartners.api.model.credit.CreditUnitPrice;
+import app.bpartners.api.model.UserSubscriptionProduct;
+import app.bpartners.api.model.credit.*;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.CreditPackRepository;
+import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
+import app.bpartners.api.service.utils.TemporalUtils;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +27,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CreditService {
   private static final int DEFAULT_CREDIT_PACKS_PAGE_SIZE = 100;
+  private static final ZoneId EUROPE_PARIS = ZoneId.of("Europe/Paris");
   private final CreditPackRepository creditPackRepository;
   private final UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
+  private final CreditTransactionRepository creditTransactionRepository;
+  private final TemporalUtils temporalUtils;
 
   public List<CreditPack> getCreditPacks(PageFromOne page, BoundedPageSize pageSize) {
     var pageValue = page != null ? page.getValue() - 1 : 0;
@@ -40,7 +48,7 @@ public class CreditService {
   }
 
   public CreditUnitPrice resolveCreditUnitPrice(User user) {
-    return activePlan(user)
+    return activePlan(user.getId())
         .or(this::usageBasedPlan)
         .map(
             plan ->
@@ -53,12 +61,40 @@ public class CreditService {
                     SubscriptionProduct.DEFAULT_VAT_PERCENT));
   }
 
-  private Optional<SubscriptionProduct> activePlan(User user) {
+  public CreditBalance getCreditBalance(String userId) {
+    var userCreditTransactions = creditTransactionRepository.findAllByUserId(userId);
+    var wallet = CreditWallet.of(userCreditTransactions, now());
+    var creditCostPerAnalysis = creditCostPerAnalysis(userId);
+    return CreditBalance.builder()
+        .spendableCredits(wallet.spendableCredits())
+        .grantedCredits(wallet.grantedCredits())
+        .purchasedCredits(wallet.purchasedCredits())
+        .creditCostPerAnalysis(creditCostPerAnalysis)
+        .estimatedRemainingAnalyses(wallet.estimatedAnalyses(creditCostPerAnalysis))
+        .nextGrantDatetime(nextGrantDatetime(userId))
+        .expirations(wallet.upcomingExpirations())
+        .updatedAt(wallet.updatedAt())
+        .build();
+  }
+
+  private long creditCostPerAnalysis(String userId) {
+    return activePlan(userId)
+        .map(SubscriptionProduct::creditCostPerAnalysisOrDefault)
+        .orElse(SubscriptionProduct.DEFAULT_CREDIT_COST_PER_ANALYSIS);
+  }
+
+  private Instant nextGrantDatetime(String userId) {
+    return activePlan(userId).isPresent()
+        ? temporalUtils.startOfNextMonth().atStartOfDay(EUROPE_PARIS).toInstant()
+        : null;
+  }
+
+  private Optional<SubscriptionProduct> activePlan(String userId) {
     return userSubscriptionProductJpaRepository
-        .findAllByUserIdAndSubscriptionEndDatetimeIsNull(user.getId())
+        .findAllByUserIdAndSubscriptionEndDatetimeIsNull(userId)
         .stream()
         .findFirst()
-        .map(userSubscriptionProduct -> userSubscriptionProduct.getSubscriptionProduct());
+        .map(UserSubscriptionProduct::getSubscriptionProduct);
   }
 
   private Optional<SubscriptionProduct> usageBasedPlan() {

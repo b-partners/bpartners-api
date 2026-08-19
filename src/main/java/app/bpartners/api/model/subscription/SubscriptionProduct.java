@@ -23,6 +23,8 @@ public class SubscriptionProduct {
 
   public static final long DEFAULT_CREDIT_UNIT_PRICE_IN_CENTS = 1000L;
 
+  public static final long DEFAULT_CREDIT_COST_PER_ANALYSIS = 1L;
+
   public static final long DEFAULT_VAT_PERCENT = 2000L;
 
   @Id private String id;
@@ -90,6 +92,9 @@ public class SubscriptionProduct {
   @Column(name = "credit_unit_price_in_cents_without_vat")
   private Long creditUnitPriceInCentsWithoutVat;
 
+  @Column(name = "credit_cost_per_analysis")
+  private Long creditCostPerAnalysis;
+
   public Long getPriceInCentsWithVat() {
     if (priceInCentsWithoutVat == null || vatPercent == null) {
       return null;
@@ -131,5 +136,9 @@ public class SubscriptionProduct {
     return creditUnitPriceInCentsWithoutVat == null
         ? DEFAULT_CREDIT_UNIT_PRICE_IN_CENTS
         : creditUnitPriceInCentsWithoutVat;
+  }
+
+  public long creditCostPerAnalysisOrDefault() {
+    return creditCostPerAnalysis == null ? DEFAULT_CREDIT_COST_PER_ANALYSIS : creditCostPerAnalysis;
   }
 }

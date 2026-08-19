@@ -13,6 +13,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
+import app.bpartners.api.service.annotation.ImageCompressor;
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
@@ -309,6 +310,7 @@ public class ExportAnnotationContextFactory {
       ExportAreaPictureAnnotation3D annotation3D, FileService fileService) {
     var exportAreaPictureAnnotationImage3DGenerator =
         new ExportAreaPictureAnnotationImage3DGenerator();
+    var imageCompressor = new ImageCompressor();
 
     var overallPansTopView =
         exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getPans());
@@ -354,6 +356,7 @@ public class ExportAnnotationContextFactory {
                     e);
               }
 
+              image = imageCompressor.compressImage(image);
               return bufferedImageToUri(image);
             })
         .toList();
@@ -386,6 +389,7 @@ public class ExportAnnotationContextFactory {
     }
     var exportAreaPictureAnnotationImage3DGenerator =
         new ExportAreaPictureAnnotationImage3DGenerator();
+    var imageCompressor = new ImageCompressor();
 
     var overallFacadesTopView =
         exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getFacades());
@@ -431,6 +435,7 @@ public class ExportAnnotationContextFactory {
                     e);
               }
 
+              image = imageCompressor.compressImage(image);
               return bufferedImageToUri(image);
             })
         .toList();

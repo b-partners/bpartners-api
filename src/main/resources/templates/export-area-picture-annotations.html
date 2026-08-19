@@ -89,9 +89,8 @@
         }
 
         .main-image {
-            display: block;
+            display: inline-block;
             width: 550px;
-            margin: 20px auto 0px auto;
         }
 
         .image-wrapper {
@@ -581,7 +580,9 @@
         <br />
         <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
     </h1>
-    <img alt="annotation" class="main-image" th:src="${mainImage}"/>
+    <div class="image-wrapper" style="margin-top: 20px;">
+        <img alt="annotation" class="main-image" th:src="${mainImage}"/>
+    </div>
     <div class="degradation-container clearfix" th:if="${globalRateType != null}">
         <p class="degradation-section-title">ÉTAT APPARENT DE LA TOITURE</p>
 

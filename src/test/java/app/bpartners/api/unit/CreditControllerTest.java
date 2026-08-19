@@ -9,12 +9,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.controller.CreditController;
+import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreditPurchaseType;
 import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.credit.CreditBalance;
 import app.bpartners.api.model.credit.CreditPack;
 import app.bpartners.api.model.credit.CreditUnitPrice;
 import app.bpartners.api.service.credit.CreditService;
@@ -23,13 +25,17 @@ import org.junit.jupiter.api.Test;
 
 class CreditControllerTest {
   CreditPackRestMapper creditPackRestMapper = new CreditPackRestMapper();
+  CreditBalanceRestMapper creditBalanceRestMapper = new CreditBalanceRestMapper();
   CreditService creditServiceMock = mock(CreditService.class);
   AuthenticatedResourceProvider authenticatedResourceProviderMock =
       mock(AuthenticatedResourceProvider.class);
 
   CreditController subject =
       new CreditController(
-          creditServiceMock, creditPackRestMapper, authenticatedResourceProviderMock);
+          creditServiceMock,
+          creditPackRestMapper,
+          creditBalanceRestMapper,
+          authenticatedResourceProviderMock);
 
   @Test
   void get_credit_packs_priced_for_the_caller_active_plan() {
@@ -125,6 +131,32 @@ class CreditControllerTest {
             .isMostChosen(false)
             .isDeprecated(false)
             .displayPosition(2),
+        actual);
+  }
+
+  @Test
+  void get_credit_balance() {
+    when(creditServiceMock.getCreditBalance("user_id"))
+        .thenReturn(
+            CreditBalance.builder()
+                .spendableCredits(45L)
+                .grantedCredits(15L)
+                .purchasedCredits(30L)
+                .creditCostPerAnalysis(2L)
+                .estimatedRemainingAnalyses(22L)
+                .expirations(List.of())
+                .build());
+
+    var actual = subject.getCreditBalance("user_id");
+
+    assertEquals(
+        new app.bpartners.api.endpoint.rest.model.CreditBalance()
+            .spendableCredits(45L)
+            .grantedCredits(15L)
+            .purchasedCredits(30L)
+            .creditCostPerAnalysis(2L)
+            .estimatedRemainingAnalyses(22L)
+            .expirations(List.of()),
         actual);
   }
 }

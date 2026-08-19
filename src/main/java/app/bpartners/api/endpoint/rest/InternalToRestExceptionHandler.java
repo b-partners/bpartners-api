@@ -116,6 +116,13 @@ public class InternalToRestExceptionHandler {
         toRest(e, HttpStatus.PAYMENT_REQUIRED), HttpStatus.PAYMENT_REQUIRED);
   }
 
+  @ExceptionHandler(value = {ConflictException.class})
+  ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleConflict(
+      ConflictException e) {
+    log.info("Conflict", e);
+    return new ResponseEntity<>(toRest(e, HttpStatus.CONFLICT), HttpStatus.CONFLICT);
+  }
+
   @ExceptionHandler(value = {NotImplementedException.class})
   ResponseEntity<app.bpartners.api.endpoint.rest.model.Exception> handleNotImplemented(
       NotImplementedException e) {

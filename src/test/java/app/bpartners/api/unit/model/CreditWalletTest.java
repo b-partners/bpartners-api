@@ -18,7 +18,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class CreditWalletTest {
-  Instant now = Instant.now();
+  Instant now = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
 
   private static CreditTransaction tx(
       CreditTransactionType type,

@@ -18,6 +18,7 @@ import app.bpartners.api.model.exception.InsufficientCreditsException;
 import app.bpartners.api.model.validator.CreditTransactionValidator;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.service.credit.CreditLedgerService;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -106,5 +107,70 @@ class CreditLedgerServiceTest {
                     .movementType(CREDIT)
                     .credits(0L)
                     .build()));
+  }
+
+  @Test
+  void append_debit_takes_previous_debits_into_account() {
+    when(creditTransactionRepository.findAllByUserId("user_id"))
+        .thenReturn(
+            List.of(
+                CreditTransaction.builder().movementType(CREDIT).credits(10L).build(),
+                CreditTransaction.builder().movementType(DEBIT).credits(8L).build()));
+
+    var exception =
+        assertThrows(
+            InsufficientCreditsException.class,
+            () ->
+                subject.append(
+                    CreditTransaction.builder()
+                        .userId("user_id")
+                        .type(CONSUMPTION)
+                        .movementType(DEBIT)
+                        .credits(5L)
+                        .build()));
+
+    assertEquals(2L, exception.getAvailableCredits());
+    verify(creditTransactionRepository, Mockito.never()).save(any());
+  }
+
+  @Test
+  void append_debit_draining_the_whole_balance_is_saved() {
+    when(creditTransactionRepository.findAllByUserId("user_id"))
+        .thenReturn(
+            List.of(
+                CreditTransaction.builder().movementType(CREDIT).credits(10L).build(),
+                CreditTransaction.builder().movementType(DEBIT).credits(8L).build()));
+
+    var actual =
+        subject.append(
+            CreditTransaction.builder()
+                .userId("user_id")
+                .type(CONSUMPTION)
+                .movementType(DEBIT)
+                .credits(2L)
+                .build());
+
+    assertEquals(2L, actual.getCredits());
+    verify(creditTransactionRepository).save(any());
+  }
+
+  @Test
+  void append_preserves_provided_id_and_creation_datetime() {
+    var creationDatetime = Instant.parse("2025-01-01T10:00:00Z");
+    when(creditTransactionRepository.findAllByUserId("user_id")).thenReturn(List.of());
+
+    var actual =
+        subject.append(
+            CreditTransaction.builder()
+                .id("provided_id")
+                .userId("user_id")
+                .type(PURCHASE)
+                .movementType(CREDIT)
+                .credits(30L)
+                .creationDatetime(creationDatetime)
+                .build());
+
+    assertEquals("provided_id", actual.getId());
+    assertEquals(creationDatetime, actual.getCreationDatetime());
   }
 }

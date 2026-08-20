@@ -397,6 +397,48 @@ class SubscriptionServiceTest {
   }
 
   @Test
+  void get_subscription_product_by_e2id_preserves_credit_columns_when_remirroring() {
+    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
+        MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {
+      var domainProductId = "planId";
+      var existing =
+          SubscriptionProduct.builder()
+              .id(domainProductId)
+              .e2Id("stripeProductId")
+              .vatPercent(2000L)
+              .creditUnitPriceInCentsWithoutVat(1500L)
+              .creditCostPerAnalysis(3L)
+              .includedCreditsPerBillingPeriod(50L)
+              .build();
+      when(subscriptionProductRepositoryMock.findById(domainProductId))
+          .thenReturn(Optional.of(existing));
+      var product = new Product();
+      product.setDefaultPrice("priceId");
+      product.setMarketingFeatures(List.of());
+      product.setImages(List.of());
+      product.setCreated(1L);
+      var price = new Price();
+      var recurring = new Price.Recurring();
+      recurring.setInterval("month");
+      price.setRecurring(recurring);
+      price.setUnitAmount(5880L);
+      productMockedStatic.when(() -> Product.retrieve(any())).thenReturn(product);
+      priceMockedStatic.when(() -> Price.retrieve(any())).thenReturn(price);
+      when(subscriptionProductRepositoryMock.save(any()))
+          .thenAnswer(invocation -> invocation.getArgument(0));
+
+      subject.getSubscriptionProductByE2Id(domainProductId, "stripeProductId");
+
+      var captor = ArgumentCaptor.forClass(SubscriptionProduct.class);
+      verify(subscriptionProductRepositoryMock).save(captor.capture());
+      var saved = captor.getValue();
+      assertEquals(Long.valueOf(1500L), saved.getCreditUnitPriceInCentsWithoutVat());
+      assertEquals(Long.valueOf(3L), saved.getCreditCostPerAnalysis());
+      assertEquals(Long.valueOf(50L), saved.getIncludedCreditsPerBillingPeriod());
+    }
+  }
+
+  @Test
   void get_subscription_product_by_e2id_reads_vat_from_stripe_metadata() {
     try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
         MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {

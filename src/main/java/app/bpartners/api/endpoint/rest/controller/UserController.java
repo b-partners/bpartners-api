@@ -12,6 +12,7 @@ import static java.time.Instant.now;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionCommitmentRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionPaymentMethodRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
@@ -19,6 +20,7 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.StripeSetupService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -28,6 +30,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -42,6 +45,8 @@ public class UserController {
   private final ApiKeyService apiKeyService;
   private final StripeSetupService stripeSetupService;
   private final UserSubscriptionCommitmentRestMapper userSubscriptionCommitmentRestMapper;
+  private final StripePaymentMethodService stripePaymentMethodService;
+  private final UserSubscriptionPaymentMethodRestMapper userSubscriptionPaymentMethodRestMapper;
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
@@ -53,6 +58,22 @@ public class UserController {
 
     return stripePortalService.initiateBillingPortalSession(
         userSubscriptionId, redirectionStatusUrls);
+  }
+
+  @GetMapping("/users/{uId}/paymentMethods")
+  public List<UserSubscriptionPaymentMethod> getUserPaymentMethods(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestParam(name = "defaultPaymentMethod", required = false, defaultValue = "true")
+          boolean defaultPaymentMethod) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
+
+    return stripePaymentMethodService
+        .getCardPaymentMethods(userSubscriptionId, defaultPaymentMethod)
+        .stream()
+        .map(userSubscriptionPaymentMethodRestMapper::toRest)
+        .toList();
   }
 
   @PostMapping("/users/{uId}/paymentMethods")

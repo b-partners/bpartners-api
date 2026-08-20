@@ -231,6 +231,46 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - User Subscription
+      summary: Initiate payment method replacement for later subscription
+      description: |
+        Same setup flow as POST /users/{uId}/paymentMethods, except the newly registered payment
+        method replaces the existing ones instead of being added alongside them. The replacement is
+        only carried out once the user completes the Stripe setup flow, through the
+        checkout.session.completed webhook: the new card becomes the customer default payment
+        method and every other card is detached.
+      operationId: initiatePaymentMethodReplacement
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+      responses:
+        200:
+          description: Redirection URL to access to setup payment method
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/Redirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
     post:
       tags:
         - User Subscription

@@ -15,6 +15,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.credit.CreditPurchaseService;
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripeWebhookService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import com.stripe.model.Event;
@@ -43,9 +44,15 @@ class StripeWebhookServiceTest {
   EventProducer eventProducer = mock();
   SubscriptionService subscriptionService = mock();
   CreditPurchaseService creditPurchaseService = mock();
+  StripePaymentMethodService stripePaymentMethodService = mock();
   StripeWebhookService subject =
       new StripeWebhookService(
-          stripeConf, userRepository, eventProducer, subscriptionService, creditPurchaseService);
+          stripeConf,
+          userRepository,
+          eventProducer,
+          subscriptionService,
+          creditPurchaseService,
+          stripePaymentMethodService);
 
   @BeforeEach
   void setUp() {
@@ -302,6 +309,56 @@ class StripeWebhookServiceTest {
     }
 
     verify(creditPurchaseService, never()).complete(any());
+  }
+
+  private Session setupSession(Map<String, String> metadata, String setupIntentId) {
+    var session = mock(Session.class);
+    when(session.getMode()).thenReturn("setup");
+    lenient().when(session.getMetadata()).thenReturn(metadata);
+    lenient().when(session.getCustomer()).thenReturn(CUSTOMER_ID);
+    lenient().when(session.getSetupIntent()).thenReturn(setupIntentId);
+    return session;
+  }
+
+  @Test
+  void completed_setup_session_flagged_for_replacement_replaces_the_payment_method() {
+    var session = setupSession(Map.of("payment_method_replacement", "true"), "seti_1");
+    var event = givenStripeObjectEvent("checkout.session.completed", session);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(stripePaymentMethodService, times(1))
+        .replaceCardPaymentMethodsFromSetupIntent(CUSTOMER_ID, "seti_1");
+    verify(creditPurchaseService, never()).complete(any());
+  }
+
+  @Test
+  void completed_setup_session_without_replacement_flag_keeps_the_payment_methods() {
+    var session = setupSession(Map.of(), "seti_1");
+    var event = givenStripeObjectEvent("checkout.session.completed", session);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verifyNoInteractions(stripePaymentMethodService);
+  }
+
+  @Test
+  void setup_session_without_setup_intent_does_not_replace_the_payment_method() {
+    var session = setupSession(Map.of("payment_method_replacement", "true"), null);
+    var event = givenStripeObjectEvent("checkout.session.completed", session);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verifyNoInteractions(stripePaymentMethodService);
   }
 
   @Test

@@ -113,6 +113,32 @@ class UserControllerTest {
   }
 
   @Test
+  void initiate_payment_method_replacement_url() {
+    var httpServletRequestMock = authenticatedRequest();
+    var redirectionUrl = "https://checkout.stripe.com/pay/c/" + randomUUID();
+    var redirectionStatusUrls =
+        new RedirectionStatusUrls()
+            .successUrl("http://localhost/" + randomUUID())
+            .failureUrl("http://localhost/" + randomUUID());
+    when(stripeSetupServiceMock.setupReplacementCheckoutSession(
+            STRIPE_CUSTOMER_IDENTIFIER, redirectionStatusUrls))
+        .thenReturn(
+            new Redirection()
+                .redirectionStatusUrls(redirectionStatusUrls)
+                .redirectionUrl(redirectionUrl));
+
+    var actual =
+        subject.initiatePaymentMethodReplacement(
+            httpServletRequestMock, randomUUID().toString(), redirectionStatusUrls);
+
+    assertEquals(
+        new Redirection()
+            .redirectionUrl(redirectionUrl)
+            .redirectionStatusUrls(redirectionStatusUrls),
+        actual);
+  }
+
+  @Test
   void get_user_payment_methods_ok() throws Exception {
     var httpServletRequestMock = authenticatedRequest();
     var visaCards = List.of(visaCard());

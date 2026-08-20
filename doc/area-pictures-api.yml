@@ -374,6 +374,16 @@ operations:
           name: address
           schema:
             type: string
+        - in: query
+          name: creationFrom
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: creationTo
+          schema:
+            type: string
+            format: date-time
       responses:
         200:
           description: draft annotations made on the area picture, ordered by creation date-time

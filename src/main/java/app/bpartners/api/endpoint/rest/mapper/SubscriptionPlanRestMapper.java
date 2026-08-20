@@ -19,6 +19,8 @@ public class SubscriptionPlanRestMapper {
         .priceInCentsWithVat(domain.getPriceInCentsWithVat())
         .priceInCentsWithoutVat(domain.getPriceInCentsWithoutVat())
         .vatPercent(domain.getVatPercent())
+        .includedCreditsPerBillingPeriod(domain.includedCreditsPerBillingPeriodOrDefault())
+        .creditCostPerAnalysis(domain.creditCostPerAnalysisOrDefault())
         .freeUsageThreshold(domain.getFreeUsageThreshold())
         .overageUnitPriceInCents(domain.getOverageUnitPriceInCents())
         .trialPeriodDays(domain.getTrialPeriodDays())

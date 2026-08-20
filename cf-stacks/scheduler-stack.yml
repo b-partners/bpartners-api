@@ -76,6 +76,24 @@ Resources:
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered'
           Source: 'app.bpartners.api.event2'
+  MonthlySubscriptionCreditGrantTriggeredScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Description: Scheduler that trigger the granting of the credits included in the subscription
+        plans, at the start of every billing period
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Name: !Join ['', [!Ref Env, -TriggerMonthlySubscriptionCreditGrant]]
+      ScheduleExpression: "cron(15 0 1 * ? *)"
+      ScheduleExpressionTimezone: "Europe/Paris"
+      Target:
+        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
+        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
+        DeadLetterConfig:
+          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/2/sqs/dead-letter-queue-arn}}'
+        EventBridgeParameters:
+          DetailType: 'app.bpartners.api.endpoint.event.model.MonthlySubscriptionCreditGrantTriggered'
+          Source: 'app.bpartners.api.event2'
   RelaunchProspectsScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:

@@ -90,6 +90,7 @@ public class UserRestMapper {
                         ? null
                         : subscriptionPlanRestMapper.toRestDescription(
                             domain.getActualSubscriptionProduct()))
+                .billingInterval(getBillingInterval(domain, subscription))
                 .status(subscriptionStatus)
                 .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
                 .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))
@@ -140,11 +141,36 @@ public class UserRestMapper {
                         ? null
                         : subscriptionPlanRestMapper.toRestDescription(
                             domain.getActualSubscriptionProduct()))
+                .billingInterval(getBillingInterval(domain, subscription))
                 .status(subscriptionStatus)
                 .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
                 .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))
         .identificationStatus(VALID_IDENTITY)
         .idVerified(true);
+  }
+
+  private static @Nullable BillingInterval getBillingInterval(
+      app.bpartners.api.model.User domain,
+      app.bpartners.api.model.subscription.UserSubscription subscription) {
+    var persistedBillingInterval = domain.getActualBillingInterval();
+    if (persistedBillingInterval != null) {
+      return toRest(persistedBillingInterval);
+    }
+    var latestSubscription = subscription.getLatestSubscription();
+    return latestSubscription == null || latestSubscription.getE2Id() == null
+        ? null
+        : toRest(latestSubscription.getBillingInterval());
+  }
+
+  private static @Nullable BillingInterval toRest(
+      app.bpartners.api.model.subscription.BillingInterval domain) {
+    if (domain == null) {
+      return null;
+    }
+    return switch (domain) {
+      case MONTHLY -> BillingInterval.MONTHLY;
+      case YEARLY -> BillingInterval.YEARLY;
+    };
   }
 
   private UserSubscriptionStatus getSubscriptionStatus(

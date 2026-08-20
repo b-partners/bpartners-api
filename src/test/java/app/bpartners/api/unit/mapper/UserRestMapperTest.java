@@ -14,6 +14,7 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.rest.mapper.AccountRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
+import app.bpartners.api.endpoint.rest.model.BillingInterval;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanDescription;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionProduct;
@@ -114,6 +115,65 @@ class UserRestMapperTest {
     var actual = subject.toRestV2(domain);
 
     assertEquals(planDescription, actual.getSubscription().getPlan());
+  }
+
+  @Test
+  void user_v2_subscription_reports_the_persisted_billing_interval() {
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(UserSubscription.builder().subscriptions(List.of()).build());
+    var domain =
+        User.builder()
+            .roles(List.of())
+            .paymentMethodExists(true)
+            .subscriptionProducts(
+                List.of(
+                    UserSubscriptionProduct.builder()
+                        .id(randomUUID().toString())
+                        .subscriptionProduct(SubscriptionProduct.builder().id("plan_id").build())
+                        .billingInterval(
+                            app.bpartners.api.model.subscription.BillingInterval.YEARLY)
+                        .creationDatetime(now())
+                        .build()))
+            .build();
+
+    var actual = subject.toRestV2(domain);
+
+    assertEquals(BillingInterval.YEARLY, actual.getSubscription().getBillingInterval());
+  }
+
+  @Test
+  void user_v2_subscription_falls_back_on_the_stripe_billing_interval() {
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(
+            UserSubscription.builder()
+                .subscriptions(
+                    List.of(
+                        Subscription.builder()
+                            .e2Id("stripe_subscription_id")
+                            .startDatetime(now())
+                            .billingInterval(
+                                app.bpartners.api.model.subscription.BillingInterval.YEARLY)
+                            .build()))
+                .build());
+    var domain = User.builder().roles(List.of()).paymentMethodExists(true).build();
+
+    var actual = subject.toRestV2(domain);
+
+    assertEquals(BillingInterval.YEARLY, actual.getSubscription().getBillingInterval());
+  }
+
+  @Test
+  void user_v2_subscription_billing_interval_null_while_nothing_has_been_paid() {
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(
+            UserSubscription.builder()
+                .subscriptions(List.of(Subscription.builder().startDatetime(now()).build()))
+                .build());
+    var domain = User.builder().roles(List.of()).paymentMethodExists(true).build();
+
+    var actual = subject.toRestV2(domain);
+
+    assertNull(actual.getSubscription().getBillingInterval());
   }
 
   @Test

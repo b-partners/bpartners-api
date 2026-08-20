@@ -1648,4 +1648,113 @@ class SubscriptionServiceTest {
                 userId, commitmentId, app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED));
     verifyNoInteractions(userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepositoryMock);
   }
+
+  private static Price somePrice(String priceId, String productE2Id, String recurringInterval) {
+    Price price = mock(Price.class);
+    lenient().when(price.getId()).thenReturn(priceId);
+    lenient().when(price.getProduct()).thenReturn(productE2Id);
+    if (recurringInterval != null) {
+      var recurring = mock(Price.Recurring.class);
+      lenient().when(recurring.getInterval()).thenReturn(recurringInterval);
+      lenient().when(price.getRecurring()).thenReturn(recurring);
+    }
+    return price;
+  }
+
+  private static com.stripe.model.Subscription someStripeSubscriptionBilling(Price... prices) {
+    var items = new ArrayList<SubscriptionItem>();
+    for (var price : prices) {
+      var item = mock(SubscriptionItem.class);
+      lenient().when(item.getPrice()).thenReturn(price);
+      items.add(item);
+    }
+    SubscriptionItemCollection itemCollectionMock = mock();
+    lenient().when(itemCollectionMock.getData()).thenReturn(items);
+    var stripeSubscription = mock(com.stripe.model.Subscription.class);
+    lenient().when(stripeSubscription.getItems()).thenReturn(itemCollectionMock);
+    return stripeSubscription;
+  }
+
+  private void mockSubscribablePlanAndMeteredProduct() {
+    when(subscriptionProductRepositoryMock.findByE2Id("plan_e2_id"))
+        .thenReturn(
+            Optional.of(
+                SubscriptionProduct.builder()
+                    .id("plan_id")
+                    .e2Id("plan_e2_id")
+                    .billingType(SubscriptionBillingType.COMMITMENT)
+                    .annualE2PriceId("annual_price_id")
+                    .build()));
+    lenient()
+        .when(subscriptionProductRepositoryMock.findByE2Id("metered_e2_id"))
+        .thenReturn(
+            Optional.of(
+                SubscriptionProduct.builder().id("metered_id").e2Id("metered_e2_id").build()));
+  }
+
+  @Test
+  void resolve_subscribed_plan_reports_monthly_billing_interval() {
+    mockSubscribablePlanAndMeteredProduct();
+    var stripeSubscription =
+        someStripeSubscriptionBilling(
+            somePrice("metered_price_id", "metered_e2_id", "month"),
+            somePrice("monthly_price_id", "plan_e2_id", "month"));
+
+    var actual = subject.resolveSubscribedPlan(stripeSubscription).orElseThrow();
+
+    assertEquals("plan_id", actual.planId());
+    assertEquals(BillingInterval.MONTHLY, actual.billingInterval());
+  }
+
+  @Test
+  void resolve_subscribed_plan_reports_yearly_billing_interval() {
+    mockSubscribablePlanAndMeteredProduct();
+    var stripeSubscription =
+        someStripeSubscriptionBilling(somePrice("annual_price_id", "plan_e2_id", "year"));
+
+    var actual = subject.resolveSubscribedPlan(stripeSubscription).orElseThrow();
+
+    assertEquals("plan_id", actual.planId());
+    assertEquals(BillingInterval.YEARLY, actual.billingInterval());
+  }
+
+  @Test
+  void resolve_subscribed_plan_reports_yearly_billing_interval_from_plan_annual_price() {
+    mockSubscribablePlanAndMeteredProduct();
+    var stripeSubscription =
+        someStripeSubscriptionBilling(somePrice("annual_price_id", "plan_e2_id", null));
+
+    var actual = subject.resolveSubscribedPlan(stripeSubscription).orElseThrow();
+
+    assertEquals(BillingInterval.YEARLY, actual.billingInterval());
+  }
+
+  @Test
+  void resolve_subscribed_plan_of_a_schedule_reports_its_billing_interval() throws StripeException {
+    mockSubscribablePlanAndMeteredProduct();
+    var scheduleItem = mock(SubscriptionSchedule.Phase.Item.class);
+    when(scheduleItem.getPrice()).thenReturn("annual_price_id");
+    var phase = mock(SubscriptionSchedule.Phase.class);
+    when(phase.getItems()).thenReturn(List.of(scheduleItem));
+    var schedule = mock(SubscriptionSchedule.class);
+    when(schedule.getPhases()).thenReturn(List.of(phase));
+    var annualPrice = somePrice("annual_price_id", "plan_e2_id", "year");
+    var priceServiceMock = mock(com.stripe.service.PriceService.class);
+    when(priceServiceMock.retrieve("annual_price_id")).thenReturn(annualPrice);
+    when(stripeClientMock.prices()).thenReturn(priceServiceMock);
+
+    var actual = subject.resolveSubscribedPlan(schedule).orElseThrow();
+
+    assertEquals("plan_id", actual.planId());
+    assertEquals(BillingInterval.YEARLY, actual.billingInterval());
+  }
+
+  @Test
+  void resolve_subscribed_plan_is_empty_without_subscribable_plan() {
+    mockSubscribablePlanAndMeteredProduct();
+    var stripeSubscription =
+        someStripeSubscriptionBilling(somePrice("metered_price_id", "metered_e2_id", "month"));
+
+    assertTrue(subject.resolveSubscribedPlan(stripeSubscription).isEmpty());
+  }
 }

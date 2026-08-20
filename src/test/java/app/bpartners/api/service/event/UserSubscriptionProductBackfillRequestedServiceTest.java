@@ -1,5 +1,6 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELED;
 import static java.time.Instant.now;
@@ -40,7 +41,7 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
   }
 
   @Test
-  void creates_subscription_product_with_resolved_plan_when_status_active() {
+  void creates_subscription_product_with_resolved_plan_and_billing_interval_when_status_active() {
     var user = givenUserWithSubscriptionStatus(ACTIVE);
     var planId = "usage_based_plan_id";
 
@@ -48,9 +49,11 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
         UserSubscriptionProductBackfillRequested.builder()
             .userId(user.getId())
             .subscriptionProductId(planId)
+            .billingInterval(YEARLY)
             .build());
 
-    verify(userSubscriptionProductService).ensureActiveSubscriptionProduct(user.getId(), planId);
+    verify(userSubscriptionProductService)
+        .ensureActiveSubscriptionProduct(user.getId(), planId, YEARLY);
   }
 
   @Test
@@ -59,7 +62,8 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
 
     subject.accept(UserSubscriptionProductBackfillRequested.builder().userId(user.getId()).build());
 
-    verify(userSubscriptionProductService, never()).ensureActiveSubscriptionProduct(any(), any());
+    verify(userSubscriptionProductService, never())
+        .ensureActiveSubscriptionProduct(any(), any(), any());
   }
 
   @Test
@@ -68,6 +72,7 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
 
     subject.accept(UserSubscriptionProductBackfillRequested.builder().userId(user.getId()).build());
 
-    verify(userSubscriptionProductService, never()).ensureActiveSubscriptionProduct(any(), any());
+    verify(userSubscriptionProductService, never())
+        .ensureActiveSubscriptionProduct(any(), any(), any());
   }
 }

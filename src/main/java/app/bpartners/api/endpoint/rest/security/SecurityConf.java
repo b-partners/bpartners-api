@@ -181,6 +181,9 @@ public class SecurityConf {
                         new SelfUserMatcher(GET, "/users/*/paymentMethods", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
+                        new SelfUserMatcher(PUT, "/users/*/paymentMethods", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
                         new SelfUserMatcher(
                             GET, "/users/*/subscriptionCommitments", authResourceProvider))
                     .authenticated()

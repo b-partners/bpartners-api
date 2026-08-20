@@ -30,7 +30,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -74,6 +73,18 @@ public class UserController {
         .stream()
         .map(userSubscriptionPaymentMethodRestMapper::toRest)
         .toList();
+  }
+
+  @PutMapping("/users/{uId}/paymentMethods")
+  public Redirection initiatePaymentMethodReplacement(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestBody RedirectionStatusUrls redirectionStatusUrls) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
+
+    return stripeSetupService.setupReplacementCheckoutSession(
+        userSubscriptionId, redirectionStatusUrls);
   }
 
   @PostMapping("/users/{uId}/paymentMethods")

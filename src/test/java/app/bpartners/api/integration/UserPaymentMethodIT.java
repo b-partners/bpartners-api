@@ -16,19 +16,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.UserSubscriptionApi;
+import app.bpartners.api.endpoint.rest.model.Redirection;
+import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.model.SubscriptionCard;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionPaymentMethod;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.service.subscription.StripeSetupService;
 import com.stripe.model.PaymentMethod;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 class UserPaymentMethodIT extends MockedThirdParties {
   private static final String JOE_DOE_STRIPE_CUSTOMER_ID = "cus_REyMbSpHZjHftA";
+
+  @MockBean private StripeSetupService stripeSetupServiceMock;
 
   private UserSubscriptionApi joeUserSubscriptionApi() {
     return new UserSubscriptionApi(TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort));
@@ -115,6 +121,36 @@ class UserPaymentMethodIT extends MockedThirdParties {
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Unable to retrieve payment methods as user is"
             + " not associated to a stripe customer yet\"}",
         () -> joeUserSubscriptionApi().getUserPaymentMethods(JOE_DOE_ID, true));
+  }
+
+  @SneakyThrows
+  @Test
+  void initiate_payment_method_replacement_ok() {
+    var redirectionStatusUrls =
+        new RedirectionStatusUrls()
+            .successUrl("http://localhost/success")
+            .failureUrl("http://localhost/failure");
+    when(stripeSetupServiceMock.setupReplacementCheckoutSession(
+            JOE_DOE_STRIPE_CUSTOMER_ID, redirectionStatusUrls))
+        .thenReturn(
+            new Redirection()
+                .redirectionUrl("https://checkout.stripe.com/c/pay/seti_1")
+                .redirectionStatusUrls(redirectionStatusUrls));
+
+    var actual =
+        joeUserSubscriptionApi()
+            .initiatePaymentMethodReplacement(JOE_DOE_ID, redirectionStatusUrls);
+
+    assertEquals("https://checkout.stripe.com/c/pay/seti_1", actual.getRedirectionUrl());
+  }
+
+  @Test
+  void initiate_other_user_payment_method_replacement_ko() {
+    assertThrowsForbiddenException(
+        () ->
+            joeUserSubscriptionApi()
+                .initiatePaymentMethodReplacement(
+                    BERNARD_DOE_ID, new RedirectionStatusUrls().successUrl("http://localhost")));
   }
 
   @Test

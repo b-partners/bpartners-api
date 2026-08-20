@@ -20,7 +20,6 @@ import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,6 @@ public class CreditService {
   private static final int DEFAULT_CREDIT_PACKS_PAGE_SIZE = 100;
   private static final int DEFAULT_CREDIT_TRANSACTIONS_PAGE_SIZE = 100;
   private static final int DEFAULT_CREDIT_PURCHASES_PAGE_SIZE = 100;
-  private static final ZoneId EUROPE_PARIS = ZoneId.of("Europe/Paris");
   private static final Instant LEDGER_START = EPOCH;
   private static final Instant LEDGER_END = Instant.parse("9999-12-31T23:59:59Z");
   private final CreditPackRepository creditPackRepository;
@@ -158,9 +156,7 @@ public class CreditService {
   }
 
   private Instant nextGrantDatetime(String userId) {
-    return activePlan(userId).isPresent()
-        ? temporalUtils.startOfNextMonth().atStartOfDay(EUROPE_PARIS).toInstant()
-        : null;
+    return activePlan(userId).isPresent() ? temporalUtils.startOfNextMonthInstant() : null;
   }
 
   private Optional<SubscriptionProduct> activePlan(String userId) {

@@ -3,6 +3,7 @@ package app.bpartners.api.repository.jpa;
 import app.bpartners.api.model.UserSubscriptionProduct;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -11,4 +12,9 @@ public interface UserSubscriptionProductJpaRepository
   boolean existsByUserIdAndSubscriptionEndDatetimeIsNull(String userId);
 
   List<UserSubscriptionProduct> findAllByUserIdAndSubscriptionEndDatetimeIsNull(String userId);
+
+  @Query(
+      "select distinct usp.userId from user_subscription_product usp"
+          + " where usp.subscriptionEndDatetime is null")
+  List<String> findUserIdsWithActiveSubscriptionProduct();
 }

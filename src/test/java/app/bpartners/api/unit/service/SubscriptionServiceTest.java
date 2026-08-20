@@ -723,6 +723,78 @@ class SubscriptionServiceTest {
 
   @SneakyThrows
   @Test
+  void cancel_current_subscription_skips_stripe_canceled_subscription() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of());
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    var periodEndEpoch = now().plusSeconds(3600).getEpochSecond();
+    var canceledStripeSubscription = new com.stripe.model.Subscription();
+    canceledStripeSubscription.setId("sub_canceled");
+    canceledStripeSubscription.setStatus("canceled");
+    canceledStripeSubscription.setCurrentPeriodStart(now().minusSeconds(7200).getEpochSecond());
+    canceledStripeSubscription.setCurrentPeriodEnd(periodEndEpoch);
+    var activeStripeSubscription = new com.stripe.model.Subscription();
+    activeStripeSubscription.setId("sub_active");
+    activeStripeSubscription.setStatus("active");
+    activeStripeSubscription.setCurrentPeriodStart(now().getEpochSecond());
+    activeStripeSubscription.setCurrentPeriodEnd(periodEndEpoch);
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(canceledStripeSubscription, activeStripeSubscription));
+
+    var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
+
+    var actual = subject.cancelLatestUserSubscription(user);
+
+    var idCaptor = ArgumentCaptor.forClass(String.class);
+    verify(subscriptionServiceMock).update(idCaptor.capture(), any(SubscriptionUpdateParams.class));
+    assertEquals("sub_active", idCaptor.getValue());
+    assertNotNull(actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void cancel_stripe_canceled_subscription_only_ko() {
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of());
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    var canceledStripeSubscription = new com.stripe.model.Subscription();
+    canceledStripeSubscription.setId("sub_canceled");
+    canceledStripeSubscription.setStatus("canceled");
+    canceledStripeSubscription.setCurrentPeriodStart(now().getEpochSecond());
+    canceledStripeSubscription.setCurrentPeriodEnd(now().plusSeconds(3600).getEpochSecond());
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(canceledStripeSubscription));
+
+    var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
+
+    var actual =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                subject.cancelLatestUserSubscription(
+                    User.builder().id("user_id").userSubscriptionId("customer_id").build()));
+
+    assertEquals(
+        "Only active subscription can be cancelled but none of the 1 subscription(s) is active",
+        actual.getMessage());
+    verify(subscriptionServiceMock, never())
+        .update(anyString(), any(SubscriptionUpdateParams.class));
+  }
+
+  @SneakyThrows
+  @Test
   void cancel_current_subscription_without_period_end_falls_back_to_now() {
     var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
 

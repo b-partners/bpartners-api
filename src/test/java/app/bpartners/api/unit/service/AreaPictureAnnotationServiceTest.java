@@ -2,6 +2,7 @@ package app.bpartners.api.unit.service;
 
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.model.*;
@@ -50,5 +51,35 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
             randomUUID().toString(), exportAreaPictureAnnotationMock, new byte[] {1, 2, 3, 4});
 
     assertEquals(expectedUrl, actual.getValue());
+  }
+
+  @Test
+  void export_area_picture_annotation_ko() throws IOException {
+    var exportAreaPictureAnnotationMock = mock(ExportAreaPictureAnnotation.class);
+    var userId = randomUUID().toString();
+    var errorMessage = "unable to process image";
+
+    when(userRepository.getById(anyString()))
+        .thenReturn(
+            User.builder()
+                .id(randomUUID().toString())
+                .logoFileId(randomUUID().toString())
+                .firstName("John")
+                .lastName("Doe")
+                .email("john@mail.com")
+                .mobilePhoneNumber("0000000000")
+                .build());
+    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any(), any()))
+        .thenThrow(new IOException(errorMessage));
+
+    var actualException =
+        assertThrows(
+            RuntimeException.class,
+            () ->
+                subject.exportAreaPictureAnnotationToPdf(
+                    userId, exportAreaPictureAnnotationMock, new byte[] {1, 2, 3, 4}));
+
+    assertEquals(errorMessage, actualException.getMessage());
+    verifyNoInteractions(fileWriterMock, s3ServiceMock);
   }
 }

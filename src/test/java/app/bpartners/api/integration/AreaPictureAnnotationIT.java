@@ -218,6 +218,96 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
 
   @Test
   void joe_doe_read_his_draft_annotations_for_specific_area_picture() throws ApiException {
+    mockAreaPictureLayers();
+    ApiClient apiClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+
+    var actualAnnotations =
+        api.getDraftAnnotationsByAccountIdAndAreaPictureId(
+            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, null, null, null, null);
+
+    assertEquals(draftAreaPictureAnnotation2(), actualAnnotations.getFirst());
+    assertEquals(draftAreaPictureAnnotation1(), actualAnnotations.getLast());
+    assertTrue(actualAnnotations.stream().allMatch(DraftAreaPictureAnnotation::getIsDraft));
+  }
+
+  @Test
+  void joe_doe_read_his_draft_annotations_filtered_by_prospect_name_ok() throws ApiException {
+    mockAreaPictureLayers();
+    ApiClient apiClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+
+    var matching =
+        api.getDraftAnnotationsByAccountIdAndAreaPictureId(
+            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, "John", null, null, null);
+    var notMatching =
+        api.getDraftAnnotationsByAccountIdAndAreaPictureId(
+            JOE_DOE_ACCOUNT_ID,
+            AREA_PICTURE_1_ID,
+            null,
+            null,
+            "Unknown prospect",
+            null,
+            null,
+            null);
+
+    assertTrue(
+        matching.containsAll(
+            List.of(draftAreaPictureAnnotation1(), draftAreaPictureAnnotation2())));
+    assertTrue(notMatching.isEmpty());
+  }
+
+  @Test
+  void joe_doe_read_his_draft_annotations_filtered_by_address_ok() throws ApiException {
+    mockAreaPictureLayers();
+    ApiClient apiClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+
+    var matching =
+        api.getDraftAnnotationsByAccountIdAndAreaPictureId(
+            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, null, "Montauban", null, null);
+    var notMatching =
+        api.getDraftAnnotationsByAccountIdAndAreaPictureId(
+            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, null, "Unknown address", null, null);
+
+    assertTrue(
+        matching.containsAll(
+            List.of(draftAreaPictureAnnotation1(), draftAreaPictureAnnotation2())));
+    assertTrue(notMatching.isEmpty());
+  }
+
+  @Test
+  void joe_doe_read_his_draft_annotations_filtered_by_creation_date_range_ok() throws ApiException {
+    mockAreaPictureLayers();
+    ApiClient apiClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+
+    var fromAfterFirstDraft =
+        api.getDraftAnnotationsByAccountIdAndAreaPictureId(
+            JOE_DOE_ACCOUNT_ID,
+            AREA_PICTURE_1_ID,
+            null,
+            null,
+            null,
+            null,
+            Instant.parse("2024-01-08T01:03:00.00Z"),
+            null);
+    var toBeforeSecondDraft =
+        api.getDraftAnnotationsByAccountIdAndAreaPictureId(
+            JOE_DOE_ACCOUNT_ID,
+            AREA_PICTURE_1_ID,
+            null,
+            null,
+            null,
+            null,
+            null,
+            Instant.parse("2024-01-08T01:02:00.00Z"));
+
+    assertEquals(List.of(draftAreaPictureAnnotation2()), fromAfterFirstDraft);
+    assertEquals(List.of(draftAreaPictureAnnotation1()), toBeforeSecondDraft);
+  }
+
+  private void mockAreaPictureLayers() {
     when(areaPictureMapLayerServiceMock.getById(any())).thenReturn(domainGeoserverIGNServerLayer());
     when(areaPictureMapLayerServiceMock.getAvailableLayersFrom(any()))
         .thenReturn(
@@ -229,16 +319,6 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 domainRhonePCRS2025(),
                 domainIGN2025(),
                 domainAirbus2025()));
-    ApiClient apiClient = joeDoeClient();
-    AreaPictureApi api = new AreaPictureApi(apiClient);
-
-    var actualAnnotations =
-        api.getDraftAnnotationsByAccountIdAndAreaPictureId(
-            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null);
-
-    assertEquals(draftAreaPictureAnnotation2(), actualAnnotations.getFirst());
-    assertEquals(draftAreaPictureAnnotation1(), actualAnnotations.getLast());
-    assertTrue(actualAnnotations.stream().allMatch(DraftAreaPictureAnnotation::getIsDraft));
   }
 
   @Test

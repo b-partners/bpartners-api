@@ -50,14 +50,6 @@ public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotatio
   }
 
   @Override
-  public List<AreaPictureAnnotation> findAllByIsDraftAndAccountId(
-      String idUser, Boolean isDraft, Pageable pageable) {
-    return jpaRepository.findAllByIdUserAndIsDraft(idUser, isDraft, pageable).stream()
-        .map(mapper::toDomain)
-        .toList();
-  }
-
-  @Override
   public List<AreaPictureAnnotation> findAllByCriteria(AreaPictureAnnotationCriteria criteria) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<HAreaPictureAnnotation> query = builder.createQuery(HAreaPictureAnnotation.class);
@@ -83,6 +75,9 @@ public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotatio
     predicates.add(builder.equal(root.get(ID_USER_CRITERIA), criteria.idUser()));
     if (criteria.idAreaPicture() != null) {
       predicates.add(builder.equal(root.get(ID_AREA_PICTURE_CRITERIA), criteria.idAreaPicture()));
+    }
+    if (criteria.idAreaPictureIds() != null) {
+      predicates.add(root.get(ID_AREA_PICTURE_CRITERIA).in(criteria.idAreaPictureIds()));
     }
     if (criteria.isDraft() != null) {
       predicates.add(builder.equal(root.get(IS_DRAFT_CRITERIA), criteria.isDraft()));

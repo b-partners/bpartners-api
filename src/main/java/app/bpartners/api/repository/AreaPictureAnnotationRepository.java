@@ -12,9 +12,6 @@ public interface AreaPictureAnnotationRepository {
 
   List<AreaPictureAnnotation> findAllByCriteria(AreaPictureAnnotationCriteria criteria);
 
-  List<AreaPictureAnnotation> findAllByIsDraftAndAccountId(
-      String idUser, Boolean isDraft, Pageable pageable);
-
   Optional<AreaPictureAnnotation> findBy(String idUser, String idAreaPicture, String id);
 
   AreaPictureAnnotation save(AreaPictureAnnotation areaPictureAnnotation);

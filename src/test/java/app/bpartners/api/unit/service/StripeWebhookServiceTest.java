@@ -68,8 +68,13 @@ class StripeWebhookServiceTest {
   }
 
   private Event givenEvent(String type, String subscriptionStatus) {
+    return givenEvent(type, subscriptionStatus, false);
+  }
+
+  private Event givenEvent(String type, String subscriptionStatus, boolean cancelAtPeriodEnd) {
     var subscription = mock(Subscription.class);
     lenient().when(subscription.getStatus()).thenReturn(subscriptionStatus);
+    lenient().when(subscription.getCancelAtPeriodEnd()).thenReturn(cancelAtPeriodEnd);
     lenient().when(subscription.getCustomer()).thenReturn(CUSTOMER_ID);
     var deserializer = mock(EventDataObjectDeserializer.class);
     lenient().when(deserializer.getObject()).thenReturn(Optional.of(subscription));
@@ -175,6 +180,20 @@ class StripeWebhookServiceTest {
   @Test
   void non_active_subscription_produces_no_event() {
     var event = givenEvent("customer.subscription.updated", "trialing");
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+    verify(userRepository, never()).findByStripeCustomerId(any());
+  }
+
+  @Test
+  void subscription_cancelled_at_period_end_produces_no_event() {
+    var event = givenEvent("customer.subscription.updated", "active", true);
 
     try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
       webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);

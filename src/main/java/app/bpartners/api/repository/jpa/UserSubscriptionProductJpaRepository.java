@@ -19,6 +19,12 @@ public interface UserSubscriptionProductJpaRepository
       @Param("userId") String userId, @Param("now") Instant now);
 
   @Query(
+      "select usp from user_subscription_product usp where usp.userId = :userId"
+          + " and usp.subscriptionEndDatetime is null"
+          + " order by usp.subscriptionStartDatetime desc")
+  List<UserSubscriptionProduct> findAllNotCancelledByUserId(@Param("userId") String userId);
+
+  @Query(
       "select distinct usp.userId from user_subscription_product usp"
           + " where usp.subscriptionEndDatetime is null or usp.subscriptionEndDatetime > :now")
   List<String> findUserIdsWithActiveSubscriptionProduct(@Param("now") Instant now);

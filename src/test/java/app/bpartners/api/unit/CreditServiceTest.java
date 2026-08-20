@@ -70,8 +70,8 @@ class CreditServiceTest {
   User user = User.builder().id("user_id").build();
 
   @Test
-  void resolve_unit_price_from_active_plan() {
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
+  void resolve_unit_price_from_not_cancelled_plan() {
+    when(userSubscriptionProductJpaRepository.findAllNotCancelledByUserId("user_id"))
         .thenReturn(
             List.of(
                 UserSubscriptionProduct.builder()
@@ -91,7 +91,7 @@ class CreditServiceTest {
 
   @Test
   void resolve_unit_price_falls_back_to_usage_based_plan_when_no_active_plan() {
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotCancelledByUserId("user_id"))
         .thenReturn(List.of());
     when(subscriptionProductRepository.findFirstByBillingType(USAGE_BASED))
         .thenReturn(
@@ -110,7 +110,7 @@ class CreditServiceTest {
 
   @Test
   void resolve_unit_price_falls_back_to_default_usage_baseline_when_no_plan_at_all() {
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotCancelledByUserId("user_id"))
         .thenReturn(List.of());
     when(subscriptionProductRepository.findFirstByBillingType(USAGE_BASED))
         .thenReturn(Optional.empty());
@@ -120,6 +120,32 @@ class CreditServiceTest {
     assertEquals(1000L, actual.inCentsWithoutVat());
     assertEquals(1200L, actual.inCentsWithVat());
     assertEquals(2000L, actual.vatPercent());
+  }
+
+  @Test
+  void resolve_unit_price_ignores_a_cancelled_plan_still_running_until_its_period_end() {
+    var cancelledPlan =
+        UserSubscriptionProduct.builder()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .creditUnitPriceInCentsWithoutVat(500L)
+                    .vatPercent(2000L)
+                    .build())
+            .subscriptionEndDatetime(Instant.now().plus(10, DAYS))
+            .build();
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
+        .thenReturn(List.of(cancelledPlan));
+    when(userSubscriptionProductJpaRepository.findAllNotCancelledByUserId("user_id"))
+        .thenReturn(List.of());
+    when(subscriptionProductRepository.findFirstByBillingType(USAGE_BASED))
+        .thenReturn(Optional.empty());
+
+    var actual = subject.resolveCreditUnitPrice(user);
+
+    assertEquals(1000L, actual.inCentsWithoutVat());
+    assertEquals(1200L, actual.inCentsWithVat());
+    assertEquals(10_000L, actual.totalInCentsWithoutVat(10L));
+    assertEquals(12_000L, actual.totalInCentsWithVat(10L));
   }
 
   @Test

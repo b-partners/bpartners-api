@@ -230,8 +230,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
             .vatPercent(2000L)
             .build();
     when(subscriptionProductRepositoryMock.save(any())).thenReturn(product);
-    when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
-        .thenReturn(product);
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(
             Optional.of(
@@ -316,11 +314,6 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         .subscriptionProduct(
             subject.getSubscriptionProductByE2Id(
                 randomUUID().toString(), defaultSubscriptionProductId()))
-        .meteredProduct(
-            SubscriptionProduct.builder()
-                .e2Id(defaultSubscriptionProductId())
-                .overageUnitPriceInCents(200L)
-                .build())
         .endDatetime(now().plus(1, DAYS))
         .build();
   }

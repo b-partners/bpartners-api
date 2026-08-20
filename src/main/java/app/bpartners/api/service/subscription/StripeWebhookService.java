@@ -90,7 +90,6 @@ public class StripeWebhookService {
       return;
     }
     subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoice.getSubscription());
-    subscriptionService.scheduleOverageSubscriptionAfterAnnualInvoicePaid(invoice);
   }
 
   private void handlePaymentIntentSucceeded(Event event) {

@@ -1,6 +1,7 @@
 package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.service.subscription.StripeCreditPurchaseService.CREDIT_PURCHASE_ID_METADATA_KEY;
+import static app.bpartners.api.service.subscription.StripeSetupService.isPaymentMethodReplacement;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
@@ -34,6 +35,7 @@ public class StripeWebhookService {
   private static final String PAYMENT_INTENT_SUCCEEDED = "payment_intent.succeeded";
   private static final String CHECKOUT_SESSION_COMPLETED = "checkout.session.completed";
   private static final String STRIPE_CHECKOUT_PAID_STATUS = "paid";
+  private static final String STRIPE_CHECKOUT_SETUP_MODE = "setup";
   private static final String STRIPE_ACTIVE_STATUS = "active";
   private static final String STRIPE_SCHEDULE_NOT_STARTED_STATUS = "not_started";
 
@@ -42,6 +44,7 @@ public class StripeWebhookService {
   private final EventProducer eventProducer;
   private final SubscriptionService subscriptionService;
   private final CreditPurchaseService creditPurchaseService;
+  private final StripePaymentMethodService stripePaymentMethodService;
 
   public void handleEvent(String payload, String signatureHeader) {
     var event = verifySignature(payload, signatureHeader);
@@ -101,6 +104,10 @@ public class StripeWebhookService {
     if (session == null) {
       return;
     }
+    if (STRIPE_CHECKOUT_SETUP_MODE.equals(session.getMode())) {
+      replacePaymentMethod(session);
+      return;
+    }
     if (!STRIPE_CHECKOUT_PAID_STATUS.equals(session.getPaymentStatus())) {
       log.info(
           "Stripe checkout session={} is not paid (paymentStatus={}), skipping",
@@ -109,6 +116,31 @@ public class StripeWebhookService {
       return;
     }
     completeCreditPurchase(session.getMetadata(), event.getType());
+  }
+
+  private void replacePaymentMethod(Session session) {
+    if (!isPaymentMethodReplacement(session.getMetadata())) {
+      log.info(
+          "Stripe setup session={} is not a payment method replacement, skipping", session.getId());
+      return;
+    }
+    var stripeCustomerId = session.getCustomer();
+    var setupIntentId = session.getSetupIntent();
+    if (stripeCustomerId == null || setupIntentId == null) {
+      log.warn(
+          "Stripe setup session={} carries no customer (={}) or no setup intent (={}), unable to"
+              + " replace payment method",
+          session.getId(),
+          stripeCustomerId,
+          setupIntentId);
+      return;
+    }
+    stripePaymentMethodService.replaceCardPaymentMethodsFromSetupIntent(
+        stripeCustomerId, setupIntentId);
+    log.info(
+        "Replaced payment methods of StripeCustomer.id={} from Stripe setup session={}",
+        stripeCustomerId,
+        session.getId());
   }
 
   private void completeCreditPurchase(Map<String, String> metadata, String eventType) {

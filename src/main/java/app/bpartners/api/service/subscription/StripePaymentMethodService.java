@@ -1,10 +1,13 @@
 package app.bpartners.api.service.subscription;
 
 import app.bpartners.api.model.exception.BadRequestException;
+import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentMethod;
 import com.stripe.model.Subscription;
+import com.stripe.param.CustomerUpdateParams;
 import com.stripe.param.PaymentMethodListParams;
+import com.stripe.param.SubscriptionUpdateParams;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +17,89 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StripePaymentMethodService {
   private static final String CARD_TYPE = "card";
   private static final String CANCELED_SUBSCRIPTION_STATUS = "canceled";
   private final StripeCustomerService stripeCustomerService;
   private final StripeSubscriptionService stripeSubscriptionService;
+  private final StripeClient stripeClient;
+
+  @SneakyThrows
+  public void replaceCardPaymentMethodsFromSetupIntent(
+      String stripeCustomerIdentifier, String setupIntentId) {
+    var newPaymentMethodId = stripeClient.setupIntents().retrieve(setupIntentId).getPaymentMethod();
+    if (newPaymentMethodId == null) {
+      log.warn(
+          "Stripe SetupIntent.id={} carries no payment method, skipping replacement for"
+              + " StripeCustomer.id={}",
+          setupIntentId,
+          stripeCustomerIdentifier);
+      return;
+    }
+    setAsCustomerDefault(stripeCustomerIdentifier, newPaymentMethodId);
+    setAsSubscriptionsDefault(stripeCustomerIdentifier, newPaymentMethodId);
+    detachOtherCards(stripeCustomerIdentifier, newPaymentMethodId);
+  }
+
+  private void setAsCustomerDefault(String stripeCustomerIdentifier, String newPaymentMethodId)
+      throws StripeException {
+    stripeClient
+        .customers()
+        .update(
+            stripeCustomerIdentifier,
+            CustomerUpdateParams.builder()
+                .setInvoiceSettings(
+                    CustomerUpdateParams.InvoiceSettings.builder()
+                        .setDefaultPaymentMethod(newPaymentMethodId)
+                        .build())
+                .build());
+  }
+
+  private void setAsSubscriptionsDefault(String stripeCustomerIdentifier, String newPaymentMethodId)
+      throws StripeException {
+    for (var subscription :
+        stripeSubscriptionService.getStripeSubscriptionsFromStripeCustomerId(
+            stripeCustomerIdentifier)) {
+      if (CANCELED_SUBSCRIPTION_STATUS.equals(subscription.getStatus())) {
+        continue;
+      }
+      stripeClient
+          .subscriptions()
+          .update(
+              subscription.getId(),
+              SubscriptionUpdateParams.builder()
+                  .setDefaultPaymentMethod(newPaymentMethodId)
+                  .build());
+      log.info(
+          "Set PaymentMethod.id={} as default of Subscription.id={} of StripeCustomer.id={}",
+          newPaymentMethodId,
+          subscription.getId(),
+          stripeCustomerIdentifier);
+    }
+  }
+
+  private void detachOtherCards(String stripeCustomerIdentifier, String newPaymentMethodId)
+      throws StripeException {
+    for (var attachedCard :
+        getPaymentMethods(stripeCustomerIdentifier, PaymentMethodListParams.Type.CARD)) {
+      if (!newPaymentMethodId.equals(attachedCard.getId())) {
+        stripeClient.paymentMethods().detach(attachedCard.getId());
+        log.info(
+            "Detached PaymentMethod.id={} from StripeCustomer.id={}, replaced by"
+                + " PaymentMethod.id={}",
+            attachedCard.getId(),
+            stripeCustomerIdentifier,
+            newPaymentMethodId);
+      }
+    }
+  }
 
   public List<PaymentMethod> getCardPaymentMethods(
       String stripeCustomerIdentifier, boolean onlyDefaultPaymentMethod) {
@@ -35,16 +111,16 @@ public class StripePaymentMethodService {
       try {
         return getPaymentMethods(stripeCustomerIdentifier, PaymentMethodListParams.Type.CARD);
       } catch (StripeException e) {
-          throw new RuntimeException(e);
+        throw new RuntimeException(e);
       }
     }
-      try {
-          return defaultPaymentMethod(stripeCustomerIdentifier).stream()
-              .filter(paymentMethod -> CARD_TYPE.equalsIgnoreCase(paymentMethod.getType()))
-              .toList();
-      } catch (StripeException e) {
-          throw new RuntimeException(e);
-      }
+    try {
+      return defaultPaymentMethod(stripeCustomerIdentifier).stream()
+          .filter(paymentMethod -> CARD_TYPE.equalsIgnoreCase(paymentMethod.getType()))
+          .toList();
+    } catch (StripeException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private Optional<PaymentMethod> defaultPaymentMethod(String stripeCustomerIdentifier)

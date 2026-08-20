@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.implementation;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 import app.bpartners.api.model.AreaPictureAnnotation;
 import app.bpartners.api.model.mapper.AreaPictureAnnotationMapper;
@@ -23,6 +22,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotationRepository {
+  private static final String CREATION_DATE_TIME_CRITERIA = "creationDatetime";
+  public static final String IS_DRAFT_CRITERIA = "isDraft";
+  public static final String ID_AREA_PICTURE_CRITERIA = "idAreaPicture";
+  public static final String ID_USER_CRITERIA = "idUser";
   private final AreaPictureAnnotationJpaRepository jpaRepository;
   private final AreaPictureAnnotationMapper mapper;
   private final EntityManager entityManager;
@@ -34,7 +37,7 @@ public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotatio
         .findAllByIdUserAndIdAreaPictureAndIsDraft(idUser, idAreaPicture, isDraft, pageable)
         .stream()
         .map(mapper::toDomain)
-        .collect(toUnmodifiableList());
+        .toList();
   }
 
   @Override
@@ -62,7 +65,7 @@ public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotatio
     Root<HAreaPictureAnnotation> root = query.from(HAreaPictureAnnotation.class);
 
     query.where(criteriaPredicates(builder, root, criteria));
-    query.orderBy(builder.desc(root.get("creationDatetime")));
+    query.orderBy(builder.desc(root.get(CREATION_DATE_TIME_CRITERIA)));
 
     var typedQuery = entityManager.createQuery(query);
     if (criteria.page() != null && criteria.pageSize() != null) {
@@ -70,7 +73,7 @@ public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotatio
           .setFirstResult(criteria.page() * criteria.pageSize())
           .setMaxResults(criteria.pageSize());
     }
-    return typedQuery.getResultList().stream().map(mapper::toDomain).collect(toUnmodifiableList());
+    return typedQuery.getResultList().stream().map(mapper::toDomain).toList();
   }
 
   private Predicate criteriaPredicates(
@@ -78,20 +81,21 @@ public class AreaPictureAnnotationRepositoryImpl implements AreaPictureAnnotatio
       Root<HAreaPictureAnnotation> root,
       AreaPictureAnnotationCriteria criteria) {
     List<Predicate> predicates = new ArrayList<>();
-    predicates.add(builder.equal(root.get("idUser"), criteria.idUser()));
+    predicates.add(builder.equal(root.get(ID_USER_CRITERIA), criteria.idUser()));
     if (criteria.idAreaPicture() != null) {
-      predicates.add(builder.equal(root.get("idAreaPicture"), criteria.idAreaPicture()));
+      predicates.add(builder.equal(root.get(ID_AREA_PICTURE_CRITERIA), criteria.idAreaPicture()));
     }
     if (criteria.isDraft() != null) {
-      predicates.add(builder.equal(root.get("isDraft"), criteria.isDraft()));
+      predicates.add(builder.equal(root.get(IS_DRAFT_CRITERIA), criteria.isDraft()));
     }
     if (criteria.creationFrom() != null) {
       predicates.add(
-          builder.greaterThanOrEqualTo(root.get("creationDatetime"), criteria.creationFrom()));
+          builder.greaterThanOrEqualTo(
+              root.get(CREATION_DATE_TIME_CRITERIA), criteria.creationFrom()));
     }
     if (criteria.creationTo() != null) {
       predicates.add(
-          builder.lessThanOrEqualTo(root.get("creationDatetime"), criteria.creationTo()));
+          builder.lessThanOrEqualTo(root.get(CREATION_DATE_TIME_CRITERIA), criteria.creationTo()));
     }
     return builder.and(predicates.toArray(new Predicate[0]));
   }

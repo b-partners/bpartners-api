@@ -1,3 +1,24 @@
+# [0.89.0](https://github.com/b-partners/bpartners-api/compare/v0.88.0...v0.89.0) (2026-08-20)
+
+
+### Bug Fixes
+
+* handle analysis consumption on stripe event webhook on YEARLY billing interval ([d31992c](https://github.com/b-partners/bpartners-api/commit/d31992cf2d4b00c6a6e23112e4fe2f9f29ce1ad8))
+* ignore png compression if failed ([4ad10ce](https://github.com/b-partners/bpartners-api/commit/4ad10cec0c4ce54780e19a9d496ded48ba1f89f1))
+* **StripeFactory:** allow proration except YEARLY interval ([cba10dc](https://github.com/b-partners/bpartners-api/commit/cba10dc88319d24e381258b5a4b19b90606f6323))
+
+
+### Features
+
+* append credit transaction on analysis consumption through detection tracking ([16d3454](https://github.com/b-partners/bpartners-api/commit/16d3454edd6491dcd51c3cc671e173123494b7c9))
+* purchase credits with existing packs or custom ([c455656](https://github.com/b-partners/bpartners-api/commit/c455656cebc6d24e5948940d61a77aa4d1e5fa9a))
+* retrieve credit packs ([8d12f5e](https://github.com/b-partners/bpartners-api/commit/8d12f5efeac7d66b71a86aabf2eb93c1ea3e551b))
+* retrieve user credit balance ([a6350b2](https://github.com/b-partners/bpartners-api/commit/a6350b280c993d367ab41243e4408e264d4db044))
+* retrieve user credit purchases ([67553fa](https://github.com/b-partners/bpartners-api/commit/67553fa980b5e0debdd33cf04420e715a764357e))
+* retrieve user credit transactions ([55696c0](https://github.com/b-partners/bpartners-api/commit/55696c0649af9d87404a542e175b121e63036b5b))
+
+
+
 # [0.88.0](https://github.com/b-partners/bpartners-api/compare/v0.87.0...v0.88.0) (2026-08-17)
 
 
@@ -178,15 +199,6 @@
 * optional export annotation content ([ede0cfa](https://github.com/b-partners/bpartners-api/commit/ede0cfa362bb27ecfd1e7818649d429cdd2f3c9c))
 * POST /monthlyUpcomingDebitedCustomers/{year}/{month} for ADMIN_ROLE ([ba49f60](https://github.com/b-partners/bpartners-api/commit/ba49f6039b00738486cbe51a229f61bd89762c66))
 * update invoice statuses ([15953e0](https://github.com/b-partners/bpartners-api/commit/15953e07522d476a89de22f07ec6403fa4b02136))
-
-
-
-# [0.80.0](https://github.com/b-partners/bpartners-api/compare/v0.79.0...v0.80.0) (2026-06-04)
-
-
-### Features
-
-* pan edge label in export pdf ([8c84bb7](https://github.com/b-partners/bpartners-api/commit/8c84bb7d99c7ded698d5d16731af9004e3c89d37))
 
 
 

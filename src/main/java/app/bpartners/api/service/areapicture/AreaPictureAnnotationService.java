@@ -88,8 +88,10 @@ public class AreaPictureAnnotationService {
         return List.of();
       }
       if (prospectName != null) {
-        var prospect = prospectRepository.getById(areaPicture.getIdProspect());
-        if (!containsIgnoreCase(prospect.getName(), prospectName)) {
+        var idProspect = areaPicture.getIdProspect();
+        if (idProspect == null
+            || !containsIgnoreCase(
+                prospectRepository.getById(idProspect).getName(), prospectName)) {
           return List.of();
         }
       }
@@ -125,9 +127,10 @@ public class AreaPictureAnnotationService {
               .filter(
                   areaPicture ->
                       prospectName == null
-                          || containsIgnoreCase(
-                              prospectRepository.getById(areaPicture.getIdProspect()).getName(),
-                              prospectName))
+                          || (areaPicture.getIdProspect() != null
+                              && containsIgnoreCase(
+                                  prospectRepository.getById(areaPicture.getIdProspect()).getName(),
+                                  prospectName)))
               .map(AreaPicture::getId)
               .toList();
       if (idAreaPictureIds.isEmpty()) {

@@ -20,8 +20,6 @@ public class Subscription {
   private SubscriptionStatus status;
   private SubscriptionProduct subscriptionProduct;
 
-  private SubscriptionProduct meteredProduct;
-
   @Builder.Default private BillingInterval billingInterval = MONTHLY;
 
   private Instant endDatetime;

@@ -9,6 +9,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,6 +55,12 @@ public class CreditTransaction {
 
   @Column(name = "reversed_transaction_id")
   private String reversedTransactionId;
+
+  @Column(name = "subscription_product_id")
+  private String subscriptionProductId;
+
+  @Column(name = "grant_period_start")
+  private LocalDate grantPeriodStart;
 
   @Column(name = "expiration_datetime")
   private Instant expirationDatetime;

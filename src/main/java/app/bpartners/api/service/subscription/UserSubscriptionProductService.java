@@ -26,21 +26,34 @@ public class UserSubscriptionProductService {
   private final CreditGrantService creditGrantService;
 
   @Transactional
-  public Optional<UserSubscriptionProduct> ensureActiveSubscriptionProduct(
+  public UserSubscriptionProduct ensureActiveSubscriptionProduct(
       String userId, String subscriptionProductId) {
-    if (userSubscriptionProductJpaRepository.existsByUserIdAndSubscriptionEndDatetimeIsNull(
-        userId)) {
-      log.info("User(id={}) already has an active UserSubscriptionProduct, skipping", userId);
-      return Optional.empty();
+    var activeProducts = userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now());
+    if (subscriptionProductId == null) {
+      return grantFromAlreadyActiveProduct(userId, activeProducts);
     }
-    var subscriptionProduct = getSubscribedProduct(subscriptionProductId);
+    var subscribedProduct = getSubscribedProduct(subscriptionProductId);
+    var activeOnSubscribedProduct =
+        activeProducts.stream()
+            .filter(
+                product ->
+                    subscribedProduct.getId().equals(product.getSubscriptionProduct().getId()))
+            .findFirst();
+    if (activeOnSubscribedProduct.isPresent()) {
+      var stillActive = clearScheduledEnd(activeOnSubscribedProduct.get());
+      creditGrantService.grantIncludedCredits(userId, subscribedProduct);
+      return stillActive;
+    }
+    if (!activeProducts.isEmpty()) {
+      endActiveSubscriptionProducts(userId, now());
+    }
     var now = now();
     var created =
         userSubscriptionProductJpaRepository.save(
             UserSubscriptionProduct.builder()
                 .id(randomUUID().toString())
                 .userId(userId)
-                .subscriptionProduct(subscriptionProduct)
+                .subscriptionProduct(subscribedProduct)
                 .subscriptionStartDatetime(now)
                 .subscriptionEndDatetime(null)
                 .creationDatetime(now)
@@ -49,42 +62,25 @@ public class UserSubscriptionProductService {
         "Created UserSubscriptionProduct(id={}) for User(id={}) with SubscriptionProduct(id={})",
         created.getId(),
         userId,
-        subscriptionProduct.getId());
-    creditGrantService.grantIncludedCredits(userId, subscriptionProduct);
-    return Optional.of(created);
+        subscribedProduct.getId());
+    creditGrantService.grantIncludedCredits(userId, subscribedProduct);
+    return created;
   }
 
   public Optional<SubscriptionProduct> findActiveSubscriptionProduct(String userId) {
-    return userSubscriptionProductJpaRepository
-        .findAllByUserIdAndSubscriptionEndDatetimeIsNull(userId)
-        .stream()
+    return userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now()).stream()
         .findFirst()
         .map(UserSubscriptionProduct::getSubscriptionProduct);
   }
 
   public List<String> findUserIdsWithActiveSubscriptionProduct() {
-    return userSubscriptionProductJpaRepository.findUserIdsWithActiveSubscriptionProduct();
-  }
-
-  private SubscriptionProduct getSubscribedProduct(String subscriptionProductId) {
-    if (subscriptionProductId == null) {
-      throw new NotFoundException(
-          "No subscribed SubscriptionProduct could be resolved from the Stripe subscription");
-    }
-    return subscriptionProductRepository
-        .findById(subscriptionProductId)
-        .orElseThrow(
-            () ->
-                new NotFoundException(
-                    "SubscriptionProduct(id=" + subscriptionProductId + ") not found"));
+    return userSubscriptionProductJpaRepository.findUserIdsWithActiveSubscriptionProduct(now());
   }
 
   @Transactional
   public List<UserSubscriptionProduct> endActiveSubscriptionProducts(
       String userId, Instant subscriptionEndDatetime) {
-    var activeProducts =
-        userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
-            userId);
+    var activeProducts = userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now());
     if (activeProducts.isEmpty()) {
       log.info("User(id={}) has no active UserSubscriptionProduct to end, skipping", userId);
       return List.of();
@@ -102,5 +98,55 @@ public class UserSubscriptionProductService {
         userId,
         subscriptionEndDatetime);
     return saved;
+  }
+
+  private UserSubscriptionProduct grantFromAlreadyActiveProduct(
+      String userId, List<UserSubscriptionProduct> activeProducts) {
+    var activeProduct =
+        activeProducts.stream()
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "No subscribed SubscriptionProduct could be resolved from the Stripe"
+                            + " subscription"));
+    log.info(
+        "No SubscriptionProduct could be resolved from the Stripe subscription of User(id={}),"
+            + " granting the credits included in its already active SubscriptionProduct(id={})",
+        userId,
+        activeProduct.getSubscriptionProduct().getId());
+    creditGrantService.grantIncludedCredits(userId, activeProduct.getSubscriptionProduct());
+    return activeProduct;
+  }
+
+  private UserSubscriptionProduct clearScheduledEnd(UserSubscriptionProduct activeProduct) {
+    if (activeProduct.getSubscriptionEndDatetime() == null) {
+      log.info(
+          "User(id={}) is already active on SubscriptionProduct(id={}), only granting its included"
+              + " credits",
+          activeProduct.getUserId(),
+          activeProduct.getSubscriptionProduct().getId());
+      return activeProduct;
+    }
+    var reopened =
+        userSubscriptionProductJpaRepository.save(
+            activeProduct.toBuilder().subscriptionEndDatetime(null).build());
+    log.info(
+        "Cleared the end scheduled on {} for UserSubscriptionProduct(id={}) of User(id={}) as it is"
+            + " subscribed again to SubscriptionProduct(id={})",
+        activeProduct.getSubscriptionEndDatetime(),
+        reopened.getId(),
+        reopened.getUserId(),
+        reopened.getSubscriptionProduct().getId());
+    return reopened;
+  }
+
+  private SubscriptionProduct getSubscribedProduct(String subscriptionProductId) {
+    return subscriptionProductRepository
+        .findById(subscriptionProductId)
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "SubscriptionProduct(id=" + subscriptionProductId + ") not found"));
   }
 }

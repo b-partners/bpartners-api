@@ -71,8 +71,7 @@ class CreditServiceTest {
 
   @Test
   void resolve_unit_price_from_active_plan() {
-    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
-            "user_id"))
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
         .thenReturn(
             List.of(
                 UserSubscriptionProduct.builder()
@@ -92,8 +91,7 @@ class CreditServiceTest {
 
   @Test
   void resolve_unit_price_falls_back_to_usage_based_plan_when_no_active_plan() {
-    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
-            "user_id"))
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
         .thenReturn(List.of());
     when(subscriptionProductRepository.findFirstByBillingType(USAGE_BASED))
         .thenReturn(
@@ -112,8 +110,7 @@ class CreditServiceTest {
 
   @Test
   void resolve_unit_price_falls_back_to_default_usage_baseline_when_no_plan_at_all() {
-    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
-            "user_id"))
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
         .thenReturn(List.of());
     when(subscriptionProductRepository.findFirstByBillingType(USAGE_BASED))
         .thenReturn(Optional.empty());
@@ -148,8 +145,7 @@ class CreditServiceTest {
   @Test
   void get_credit_balance_returns_zeros_on_empty_ledger() {
     when(creditTransactionRepository.findAllByUserId("user_id")).thenReturn(List.of());
-    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
-            "user_id"))
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
         .thenReturn(List.of());
 
     var actual = subject.getCreditBalance("user_id");
@@ -190,8 +186,7 @@ class CreditServiceTest {
                     .credits(5L)
                     .creationDatetime(now)
                     .build()));
-    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
-            "user_id"))
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
         .thenReturn(
             List.of(
                 UserSubscriptionProduct.builder()
@@ -215,8 +210,7 @@ class CreditServiceTest {
 
   @Test
   void consume_roof_analysis_debits_plan_cost_and_appends_consumption() {
-    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
-            "user_id"))
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
         .thenReturn(
             List.of(
                 UserSubscriptionProduct.builder()
@@ -239,8 +233,7 @@ class CreditServiceTest {
 
   @Test
   void consume_roof_analysis_falls_back_to_default_cost_when_no_active_plan() {
-    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
-            "user_id"))
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
         .thenReturn(List.of());
     var appended = CreditTransaction.builder().id("appended_id").build();
     when(creditLedgerService.append(any())).thenReturn(appended);
@@ -255,8 +248,7 @@ class CreditServiceTest {
 
   @Test
   void consume_roof_analysis_falls_back_to_default_cost_when_active_plan_has_no_credit_cost() {
-    when(userSubscriptionProductJpaRepository.findAllByUserIdAndSubscriptionEndDatetimeIsNull(
-            "user_id"))
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
         .thenReturn(
             List.of(
                 UserSubscriptionProduct.builder()

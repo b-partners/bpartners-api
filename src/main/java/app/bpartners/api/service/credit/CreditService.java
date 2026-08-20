@@ -160,9 +160,7 @@ public class CreditService {
   }
 
   private Optional<SubscriptionProduct> activePlan(String userId) {
-    return userSubscriptionProductJpaRepository
-        .findAllByUserIdAndSubscriptionEndDatetimeIsNull(userId)
-        .stream()
+    return userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now()).stream()
         .findFirst()
         .map(UserSubscriptionProduct::getSubscriptionProduct);
   }

@@ -1,6 +1,8 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.ENABLED;
+import static app.bpartners.api.endpoint.rest.model.SubscriptionCardDisplayBrand.VISA;
+import static app.bpartners.api.endpoint.rest.model.SubscriptionMethodType.CARD;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration.TWELVE_MONTHS;
 import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static java.util.UUID.randomUUID;
@@ -16,19 +18,24 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionCommitmentRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionPaymentMethodRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateUserSubscriptionCommitment;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.model.SubscriptionCard;
 import app.bpartners.api.endpoint.rest.model.UpdateUserSubscriptionCommitmentAutoRenewalStatus;
+import app.bpartners.api.endpoint.rest.model.UserSubscriptionPaymentMethod;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.SubscriptionBillingType;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripeSetupService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.UserService;
+import com.stripe.model.PaymentMethod;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -48,6 +55,9 @@ class UserControllerTest {
   UserSubscriptionCommitmentRestMapper userSubscriptionCommitmentRestMapper =
       new UserSubscriptionCommitmentRestMapper(
           subscriptionProductRepositoryMock, subscriptionPlanRestMapper);
+  StripePaymentMethodService stripePaymentMethodServiceMock = mock();
+  UserSubscriptionPaymentMethodRestMapper userSubscriptionPaymentMethodRestMapper =
+      new UserSubscriptionPaymentMethodRestMapper();
   UserController subject =
       new UserController(
           mock(),
@@ -58,7 +68,9 @@ class UserControllerTest {
           mock(),
           mock(),
           stripeSetupServiceMock,
-          userSubscriptionCommitmentRestMapper);
+          userSubscriptionCommitmentRestMapper,
+          stripePaymentMethodServiceMock,
+          userSubscriptionPaymentMethodRestMapper);
 
   @BeforeEach
   void setUp() {
@@ -98,6 +110,65 @@ class UserControllerTest {
             .redirectionUrl(redirectionUrl)
             .redirectionStatusUrls(redirectionStatusUrls),
         actual);
+  }
+
+  @Test
+  void get_user_payment_methods_ok() throws Exception {
+    var httpServletRequestMock = authenticatedRequest();
+    var visaCards = List.of(visaCard());
+    when(stripePaymentMethodServiceMock.getCardPaymentMethods(STRIPE_CUSTOMER_IDENTIFIER, true))
+        .thenReturn(visaCards);
+
+    var actual =
+        subject.getUserPaymentMethods(httpServletRequestMock, randomUUID().toString(), true);
+
+    assertEquals(
+        List.of(
+            new UserSubscriptionPaymentMethod()
+                .type(CARD)
+                .card(
+                    new SubscriptionCard()
+                        .displayBrand(VISA)
+                        .lastFourDigits("4242")
+                        .expirationMonth(12L)
+                        .expirationYear(2050L))),
+        actual);
+  }
+
+  @Test
+  void get_user_payment_methods_ok_when_no_default_payment_method() throws Exception {
+    var httpServletRequestMock = authenticatedRequest();
+    when(stripePaymentMethodServiceMock.getCardPaymentMethods(STRIPE_CUSTOMER_IDENTIFIER, true))
+        .thenReturn(List.of());
+
+    var actual =
+        subject.getUserPaymentMethods(httpServletRequestMock, randomUUID().toString(), true);
+
+    assertEquals(List.of(), actual);
+  }
+
+  @Test
+  void get_all_user_payment_methods_ok() throws Exception {
+    var httpServletRequestMock = authenticatedRequest();
+    var visaCards = List.of(visaCard(), visaCard());
+    when(stripePaymentMethodServiceMock.getCardPaymentMethods(STRIPE_CUSTOMER_IDENTIFIER, false))
+        .thenReturn(visaCards);
+
+    var actual =
+        subject.getUserPaymentMethods(httpServletRequestMock, randomUUID().toString(), false);
+
+    assertEquals(2, actual.size());
+  }
+
+  private static PaymentMethod visaCard() {
+    var cardDetails = mock(PaymentMethod.Card.class);
+    when(cardDetails.getDisplayBrand()).thenReturn("visa");
+    when(cardDetails.getLast4()).thenReturn("4242");
+    when(cardDetails.getExpMonth()).thenReturn(12L);
+    when(cardDetails.getExpYear()).thenReturn(2050L);
+    var paymentMethod = mock(PaymentMethod.class);
+    when(paymentMethod.getCard()).thenReturn(cardDetails);
+    return paymentMethod;
   }
 
   @Test

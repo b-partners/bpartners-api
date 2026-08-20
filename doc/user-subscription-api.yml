@@ -194,6 +194,43 @@ operations:
         500:
           $ref: './api.yml#/components/responses/500'
   paymentMethodsOperation:
+    get:
+      tags:
+        - User Subscription
+      summary: Get actual user payment methods
+      operationId: getUserPaymentMethods
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+        - in: query
+          name: defaultPaymentMethod
+          schema:
+            type: boolean
+            default: true
+          required: true
+      responses:
+        200:
+          description: User payment methods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSubscriptionPaymentMethod'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
     post:
       tags:
         - User Subscription
@@ -549,3 +586,30 @@ components:
             commitmentEnd:
               type: string
               format: date-time
+    UserSubscriptionPaymentMethod:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/SubscriptionMethodType'
+        card:
+          $ref: '#/components/schemas/SubscriptionCard'
+    SubscriptionMethodType:
+      type: string
+      enum: [ 'card' ]
+    SubscriptionCard:
+      type: object
+      properties:
+        displayBrand:
+          $ref: '#/components/schemas/SubscriptionCardDisplayBrand'
+        lastFourDigits:
+          type: integer
+        expirationMonth:
+          type: integer
+          format: int64
+        expirationYear:
+          type: integer
+          format: int64
+    SubscriptionCardDisplayBrand:
+      type: string
+      enum: [ 'AMERICAN_EXPRESS', 'CARTES_BANCAIRES', 'DINERS_CLUB', 'DISCOVER', 'EFTPOS_AUSTRALIA', 'INTERAC', 'JCB', 'MASTERCARD', 'UNIONPAY', 'VISA', 'OTHER' ]
+

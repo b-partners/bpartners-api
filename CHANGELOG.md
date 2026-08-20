@@ -1,3 +1,15 @@
+## [0.90.1](https://github.com/b-partners/bpartners-api/compare/v0.90.0...v0.90.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* add billing interval on user subscription ([fd42eb5](https://github.com/b-partners/bpartners-api/commit/fd42eb5605b26e34aeaa7ed9e67879efdd1a2b58))
+* do not update stripe subscriptions in a terminal status ([b05b701](https://github.com/b-partners/bpartners-api/commit/b05b701fe9b1ad06e4dcbefb7b54b1761fa3bd1d))
+* grant subscription credits on plan change and until period end ([7e6dd79](https://github.com/b-partners/bpartners-api/commit/7e6dd795e50899f896e8d6db0e35f013d3cb31b4))
+* price credits at public price once subscription is cancelled ([0cc641c](https://github.com/b-partners/bpartners-api/commit/0cc641c09a3794480b41f9ca9f92292b14a7e3c6))
+
+
+
 # [0.90.0](https://github.com/b-partners/bpartners-api/compare/v0.89.0...v0.90.0) (2026-08-20)
 
 
@@ -170,21 +182,6 @@
 ### Features
 
 * handle invoice export asynchronously ([d9e54e3](https://github.com/b-partners/bpartners-api/commit/d9e54e3c032f9247a2c9413b2ce105bb5761de3a))
-
-
-
-# [0.82.0](https://github.com/b-partners/bpartners-api/compare/v0.81.0...v0.82.0) (2026-07-15)
-
-
-### Bug Fixes
-
-* download image from current layer on first iteration ([ddbf444](https://github.com/b-partners/bpartners-api/commit/ddbf444983ae9a115d6b535a6320971021d76aba))
-* **WmsImageSourceFacade:** iterate over all available layers ([874dc44](https://github.com/b-partners/bpartners-api/commit/874dc44d46cb8be6776d308b0bdf2f0c2eb29b2d))
-
-
-### Features
-
-* add facade measurements to pdf ([75c961a](https://github.com/b-partners/bpartners-api/commit/75c961aec63d73e897d08b70966b5fa30a3ad66a))
 
 
 

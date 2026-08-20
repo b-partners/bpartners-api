@@ -178,6 +178,9 @@ public class SecurityConf {
                             GET, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/paymentMethods", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
                         new SelfUserMatcher(
                             GET, "/users/*/subscriptionCommitments", authResourceProvider))
                     .authenticated()

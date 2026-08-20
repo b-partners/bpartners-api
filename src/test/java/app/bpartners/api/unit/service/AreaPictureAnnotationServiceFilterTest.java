@@ -105,6 +105,26 @@ class AreaPictureAnnotationServiceFilterTest {
   }
 
   @Test
+  void
+      find_all_draft_by_account_id_filters_by_prospect_name_excludes_area_pictures_without_prospect() {
+    var idUser = randomUUID().toString();
+    var withoutProspect = areaPictureOf("area_picture_1", null);
+    var matching = areaPictureOf("area_picture_2", "prospect_2");
+    when(areaPictureServiceMock.findAllByIdUser(idUser))
+        .thenReturn(List.of(withoutProspect, matching));
+    when(prospectRepositoryMock.getById("prospect_2"))
+        .thenReturn(Prospect.builder().name("John Doe").build());
+    var criteriaCaptor = ArgumentCaptor.forClass(AreaPictureAnnotationCriteria.class);
+
+    subject.findAllDraftByAccountId(
+        idUser, "John", null, null, null, new PageFromOne(1), new BoundedPageSize(10));
+
+    verify(repositoryMock).findAllByCriteria(criteriaCaptor.capture());
+    assertEquals(List.of("area_picture_2"), criteriaCaptor.getValue().idAreaPictureIds());
+    verify(prospectRepositoryMock, never()).getById(null);
+  }
+
+  @Test
   void find_all_draft_by_account_id_returns_empty_without_querying_repository_when_no_match() {
     var idUser = randomUUID().toString();
     when(areaPictureServiceMock.findAllByAddress(idUser, "Unknown address")).thenReturn(List.of());
@@ -136,5 +156,28 @@ class AreaPictureAnnotationServiceFilterTest {
     verify(repositoryMock).findAllByCriteria(criteriaCaptor.capture());
     assertEquals(creationFrom, criteriaCaptor.getValue().creationFrom());
     assertEquals(creationTo, criteriaCaptor.getValue().creationTo());
+  }
+
+  @Test
+  void find_all_by_criteria_filtered_by_prospect_name_returns_empty_when_no_prospect_linked() {
+    var idUser = randomUUID().toString();
+    var idAreaPicture = randomUUID().toString();
+    when(areaPictureServiceMock.findBy(idUser, idAreaPicture))
+        .thenReturn(areaPictureOf(idAreaPicture, null));
+
+    var actual =
+        subject.findAllByCriteria(
+            idUser,
+            idAreaPicture,
+            "John",
+            null,
+            null,
+            null,
+            new PageFromOne(1),
+            new BoundedPageSize(10));
+
+    assertEquals(List.of(), actual);
+    verify(prospectRepositoryMock, never()).getById(null);
+    verify(repositoryMock, never()).findAllByCriteria(any());
   }
 }

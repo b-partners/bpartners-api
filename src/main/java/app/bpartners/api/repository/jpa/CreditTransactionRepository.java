@@ -3,6 +3,7 @@ package app.bpartners.api.repository.jpa;
 import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.model.credit.CreditTransactionType;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
@@ -17,8 +18,11 @@ public interface CreditTransactionRepository extends JpaRepository<CreditTransac
 
   Optional<CreditTransaction> findFirstByCreditPurchaseId(String creditPurchaseId);
 
-  boolean existsByUserIdAndTypeAndCreationDatetimeGreaterThanEqual(
-      String userId, CreditTransactionType type, Instant from);
+  boolean existsByUserIdAndTypeAndSubscriptionProductIdAndGrantPeriodStart(
+      String userId,
+      CreditTransactionType type,
+      String subscriptionProductId,
+      LocalDate grantPeriodStart);
 
   @Query(
       value = "select 1 from (select pg_advisory_xact_lock(hashtext(:userId), 0)) as lock_acquired",

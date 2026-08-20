@@ -7,6 +7,7 @@ import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.service.utils.TemporalUtils;
+import java.time.LocalDate;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +31,14 @@ public class CreditGrantService {
           userId);
       return Optional.empty();
     }
-    if (alreadyGrantedThisBillingPeriod(userId)) {
+    var billingPeriodStart = temporalUtils.startOfActualMonth();
+    if (alreadyGranted(userId, plan.getId(), billingPeriodStart)) {
       log.info(
-          "User(id={}) was already granted the credits included in its billing period, skipping",
-          userId);
+          "User(id={}) was already granted the credits included in SubscriptionProduct(id={}) for"
+              + " the billing period starting on {}, skipping",
+          userId,
+          plan.getId(),
+          billingPeriodStart);
       return Optional.empty();
     }
     var granted =
@@ -44,21 +49,26 @@ public class CreditGrantService {
                 .movementType(CREDIT)
                 .credits(includedCredits)
                 .label(grantLabel(plan))
+                .subscriptionProductId(plan.getId())
+                .grantPeriodStart(billingPeriodStart)
                 .expirationDatetime(temporalUtils.startOfNextMonthInstant())
                 .build());
     log.info(
-        "Granted {} credits to User(id={}) from SubscriptionProduct(id={}),"
-            + " CreditTransaction.id={}",
+        "Granted {} credits to User(id={}) from SubscriptionProduct(id={}) for the billing period"
+            + " starting on {}, CreditTransaction.id={}",
         includedCredits,
         userId,
         plan.getId(),
+        billingPeriodStart,
         granted.getId());
     return Optional.of(granted);
   }
 
-  private boolean alreadyGrantedThisBillingPeriod(String userId) {
-    return creditTransactionRepository.existsByUserIdAndTypeAndCreationDatetimeGreaterThanEqual(
-        userId, SUBSCRIPTION_GRANT, temporalUtils.startOfMonth());
+  private boolean alreadyGranted(
+      String userId, String subscriptionProductId, LocalDate billingPeriodStart) {
+    return creditTransactionRepository
+        .existsByUserIdAndTypeAndSubscriptionProductIdAndGrantPeriodStart(
+            userId, SUBSCRIPTION_GRANT, subscriptionProductId, billingPeriodStart);
   }
 
   private String grantLabel(SubscriptionProduct plan) {

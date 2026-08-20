@@ -838,6 +838,8 @@ components:
       properties:
         plan:
           $ref: './user-subscription-api.yml#/components/schemas/SubscriptionPlanDescription'
+        billingInterval:
+          $ref: './user-subscription-api.yml#/components/schemas/BillingInterval'
         status:
           $ref: '#/components/schemas/UserSubscriptionStatus'
         start:

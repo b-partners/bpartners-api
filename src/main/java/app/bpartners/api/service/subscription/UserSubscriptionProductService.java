@@ -5,6 +5,7 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
@@ -27,7 +28,7 @@ public class UserSubscriptionProductService {
 
   @Transactional
   public UserSubscriptionProduct ensureActiveSubscriptionProduct(
-      String userId, String subscriptionProductId) {
+      String userId, String subscriptionProductId, BillingInterval billingInterval) {
     var activeProducts = userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now());
     if (subscriptionProductId == null) {
       return grantFromAlreadyActiveProduct(userId, activeProducts);
@@ -40,7 +41,7 @@ public class UserSubscriptionProductService {
                     subscribedProduct.getId().equals(product.getSubscriptionProduct().getId()))
             .findFirst();
     if (activeOnSubscribedProduct.isPresent()) {
-      var stillActive = clearScheduledEnd(activeOnSubscribedProduct.get());
+      var stillActive = refreshActiveProduct(activeOnSubscribedProduct.get(), billingInterval);
       creditGrantService.grantIncludedCredits(userId, subscribedProduct);
       return stillActive;
     }
@@ -54,15 +55,18 @@ public class UserSubscriptionProductService {
                 .id(randomUUID().toString())
                 .userId(userId)
                 .subscriptionProduct(subscribedProduct)
+                .billingInterval(billingIntervalOrDefault(billingInterval))
                 .subscriptionStartDatetime(now)
                 .subscriptionEndDatetime(null)
                 .creationDatetime(now)
                 .build());
     log.info(
-        "Created UserSubscriptionProduct(id={}) for User(id={}) with SubscriptionProduct(id={})",
+        "Created UserSubscriptionProduct(id={}) for User(id={}) with SubscriptionProduct(id={})"
+            + " billed {}",
         created.getId(),
         userId,
-        subscribedProduct.getId());
+        subscribedProduct.getId(),
+        created.getBillingInterval());
     creditGrantService.grantIncludedCredits(userId, subscribedProduct);
     return created;
   }
@@ -119,26 +123,42 @@ public class UserSubscriptionProductService {
     return activeProduct;
   }
 
-  private UserSubscriptionProduct clearScheduledEnd(UserSubscriptionProduct activeProduct) {
-    if (activeProduct.getSubscriptionEndDatetime() == null) {
+  private UserSubscriptionProduct refreshActiveProduct(
+      UserSubscriptionProduct activeProduct, BillingInterval billingInterval) {
+    var resolvedInterval =
+        billingInterval == null
+            ? billingIntervalOrDefault(activeProduct.getBillingInterval())
+            : billingInterval;
+    var intervalChanged = !resolvedInterval.equals(activeProduct.getBillingInterval());
+    if (activeProduct.getSubscriptionEndDatetime() == null && !intervalChanged) {
       log.info(
-          "User(id={}) is already active on SubscriptionProduct(id={}), only granting its included"
-              + " credits",
+          "User(id={}) is already active on SubscriptionProduct(id={}) billed {}, only granting its"
+              + " included credits",
           activeProduct.getUserId(),
-          activeProduct.getSubscriptionProduct().getId());
+          activeProduct.getSubscriptionProduct().getId(),
+          resolvedInterval);
       return activeProduct;
     }
-    var reopened =
+    var refreshed =
         userSubscriptionProductJpaRepository.save(
-            activeProduct.toBuilder().subscriptionEndDatetime(null).build());
+            activeProduct.toBuilder()
+                .subscriptionEndDatetime(null)
+                .billingInterval(resolvedInterval)
+                .build());
     log.info(
-        "Cleared the end scheduled on {} for UserSubscriptionProduct(id={}) of User(id={}) as it is"
-            + " subscribed again to SubscriptionProduct(id={})",
+        "Refreshed UserSubscriptionProduct(id={}) of User(id={}) subscribed again to"
+            + " SubscriptionProduct(id={}): end scheduled on {} cleared, billed {} instead of {}",
+        refreshed.getId(),
+        refreshed.getUserId(),
+        refreshed.getSubscriptionProduct().getId(),
         activeProduct.getSubscriptionEndDatetime(),
-        reopened.getId(),
-        reopened.getUserId(),
-        reopened.getSubscriptionProduct().getId());
-    return reopened;
+        resolvedInterval,
+        activeProduct.getBillingInterval());
+    return refreshed;
+  }
+
+  private static BillingInterval billingIntervalOrDefault(BillingInterval billingInterval) {
+    return billingInterval == null ? BillingInterval.MONTHLY : billingInterval;
   }
 
   private SubscriptionProduct getSubscribedProduct(String subscriptionProductId) {

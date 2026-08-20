@@ -840,10 +840,20 @@ public class SubscriptionService {
     if (subscriptions.isEmpty()) {
       throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");
     }
+    var cancellableStripeSubscriptionIds =
+        stripeSubscriptionService
+            .getStripeSubscriptionsFromStripeCustomerId(user.getUserSubscriptionId())
+            .stream()
+            .filter(
+                stripeSubscription -> !StripeSubscriptionService.isTerminated(stripeSubscription))
+            .map(com.stripe.model.Subscription::getId)
+            .collect(Collectors.toSet());
     var activeSubscriptions =
         subscriptions.stream()
             .filter(Subscription::isActive)
             .filter(subscription -> subscription.getE2Id() != null)
+            .filter(
+                subscription -> cancellableStripeSubscriptionIds.contains(subscription.getE2Id()))
             .toList();
     if (activeSubscriptions.isEmpty()) {
       throw new IllegalStateException(

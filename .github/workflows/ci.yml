@@ -55,7 +55,8 @@ jobs:
 
       - name: Code quality and coverage analysis
         run: |
-         ./gradlew sonarqube --stacktrace \
+         ./gradlew sonarqube --no-daemon --stacktrace \
+         -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g" \
          -Dsonar.host.url=https://sonarcloud.io \
          -Dsonar.organization=${{ vars.SONAR_ORG }} \
          -Dsonar.projectKey=${{ vars.SONAR_PJ_KEY }} \

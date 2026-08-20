@@ -28,8 +28,12 @@ class CreditGrantServiceTest {
       new CreditGrantService(creditLedgerService, creditTransactionRepository, temporalUtils);
 
   private static SubscriptionProduct plan(Long includedCredits) {
+    return plan("plan_id", includedCredits);
+  }
+
+  private static SubscriptionProduct plan(String id, Long includedCredits) {
     return SubscriptionProduct.builder()
-        .id("plan_id")
+        .id(id)
         .name("Essentiel")
         .includedCreditsPerBillingPeriod(includedCredits)
         .build();
@@ -39,8 +43,9 @@ class CreditGrantServiceTest {
   void setUp() {
     when(creditLedgerService.append(any()))
         .thenAnswer(i -> i.getArgument(0, CreditTransaction.class).toBuilder().id("tx_id").build());
-    when(creditTransactionRepository.existsByUserIdAndTypeAndCreationDatetimeGreaterThanEqual(
-            any(), any(), any()))
+    when(creditTransactionRepository
+            .existsByUserIdAndTypeAndSubscriptionProductIdAndGrantPeriodStart(
+                any(), any(), any(), any()))
         .thenReturn(false);
   }
 
@@ -58,6 +63,8 @@ class CreditGrantServiceTest {
     assertEquals(CREDIT, appended.getMovementType());
     assertEquals(10L, appended.getCredits());
     assertEquals("Crédits inclus dans l'abonnement Essentiel", appended.getLabel());
+    assertEquals("plan_id", appended.getSubscriptionProductId());
+    assertEquals(temporalUtils.startOfActualMonth(), appended.getGrantPeriodStart());
     assertEquals(temporalUtils.startOfNextMonthInstant(), appended.getExpirationDatetime());
   }
 
@@ -78,15 +85,35 @@ class CreditGrantServiceTest {
   }
 
   @Test
-  void grants_nothing_when_the_billing_period_was_already_granted() {
-    when(creditTransactionRepository.existsByUserIdAndTypeAndCreationDatetimeGreaterThanEqual(
-            "user_id", SUBSCRIPTION_GRANT, temporalUtils.startOfMonth()))
+  void grants_nothing_when_the_same_plan_was_already_granted_for_the_billing_period() {
+    when(creditTransactionRepository
+            .existsByUserIdAndTypeAndSubscriptionProductIdAndGrantPeriodStart(
+                "user_id", SUBSCRIPTION_GRANT, "plan_id", temporalUtils.startOfActualMonth()))
         .thenReturn(true);
 
     var actual = subject.grantIncludedCredits("user_id", plan(10L));
 
     assertTrue(actual.isEmpty());
     verify(creditLedgerService, never()).append(any());
+  }
+
+  @Test
+  void grants_again_when_another_plan_was_granted_for_the_same_billing_period() {
+    when(creditTransactionRepository
+            .existsByUserIdAndTypeAndSubscriptionProductIdAndGrantPeriodStart(
+                "user_id",
+                SUBSCRIPTION_GRANT,
+                "previous_plan_id",
+                temporalUtils.startOfActualMonth()))
+        .thenReturn(true);
+
+    var actual = subject.grantIncludedCredits("user_id", plan("upgraded_plan_id", 30L));
+
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+    verify(creditLedgerService).append(captor.capture());
+    assertTrue(actual.isPresent());
+    assertEquals(30L, captor.getValue().getCredits());
+    assertEquals("upgraded_plan_id", captor.getValue().getSubscriptionProductId());
   }
 
   @Test

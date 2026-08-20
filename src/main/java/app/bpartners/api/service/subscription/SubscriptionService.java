@@ -2,14 +2,10 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.model.subscription.SessionMode.SETUP;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
-import static app.bpartners.api.service.subscription.StripeFactory.OVERAGE_BILLING_CYCLE_ANCHOR_METADATA_KEY;
-import static app.bpartners.api.service.subscription.StripeFactory.OVERAGE_METERED_PRICE_ID_METADATA_KEY;
-import static com.stripe.param.UsageRecordCreateOnSubscriptionItemParams.Action.SET;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
@@ -63,12 +59,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
   private static final int DEFAULT_TRIAL_PERIOD_DAYS = 7;
-  public static final long FREE_ROOF_ANALYSIS = SubscriptionProduct.DEFAULT_FREE_USAGE_THRESHOLD;
   private static final int DEFAULT_PLANS_PAGE_SIZE = 100;
   private static final String VAT_PERCENT_METADATA_KEY = "vat_percent";
   private static final String CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY =
       "cancel_after_first_invoice";
-  private static final String SUBSCRIPTION_CREATE_BILLING_REASON = "subscription_create";
   private static final String STRIPE_YEARLY_INTERVAL = "year";
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
@@ -78,7 +72,6 @@ public class SubscriptionService {
   private final TemporalUtils temporalUtils;
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
   private final StripeFactory stripeFactory;
-  private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
   private final DetectionTrackingJpaRepository detectionTrackingJpaRepository;
   private final StripeInvoiceService stripeInvoiceService;
   private final StripeCustomerService stripeCustomerService;
@@ -129,93 +122,7 @@ public class SubscriptionService {
             user.getId(),
             temporalUtils.startOfLastMonthInstant(),
             temporalUtils.endOfLastMonthInstant());
-    return computeSubscriptionVariableConsumption(user, consumptionLogs);
-  }
-
-  @SneakyThrows
-  private List<ConsumptionUsageSummary> computeSubscriptionVariableConsumption(
-      User user, List<SubscriptionConsumptionLog> consumptionLogs) {
-    var usageByTypes = calculateUsageByType(consumptionLogs);
-    usageByTypes.forEach(
-        consumptionUsageSummary -> {
-          var actualUsage = consumptionUsageSummary.usage();
-          var payableUsage = actualUsage - FREE_ROOF_ANALYSIS;
-          if (payableUsage > 0) {
-            SubscriptionItem subscriptionItemForProduct;
-            try {
-              subscriptionItemForProduct =
-                  getSubscriptionItem(user, consumptionUsageSummary.consumptionType());
-            } catch (StripeException e) {
-              throw new ApiException(SERVER_EXCEPTION, e);
-            }
-            var subscriptionItemId = subscriptionItemForProduct.getId();
-            var usageRecordCreateOnSubscriptionItemParams =
-                UsageRecordCreateOnSubscriptionItemParams.builder()
-                    .setQuantity(payableUsage)
-                    .setAction(SET)
-                    .setTimestamp(now().getEpochSecond())
-                    .build();
-            try {
-              UsageRecord.createOnSubscriptionItem(
-                  subscriptionItemId, usageRecordCreateOnSubscriptionItemParams);
-            } catch (StripeException e) {
-              throw new ApiException(SERVER_EXCEPTION, e);
-            }
-          }
-        });
-    return usageByTypes;
-  }
-
-  private SubscriptionItem getSubscriptionItem(
-      User user, SubscriptionConsumptionType consumptionType) throws StripeException {
-    var subscriptionProduct =
-        subscriptionProductRepository.findByConsumptionTypeAttached(consumptionType);
-    var stripeSubscriptions =
-        stripeClient
-            .subscriptions()
-            .list(
-                SubscriptionListParams.builder().setCustomer(user.getUserSubscriptionId()).build())
-            .getData();
-    if (stripeSubscriptions.isEmpty()) {
-      throw new NotFoundException("Any subscription found for User.id=" + user.getId());
-    }
-    var subscriptionsMostRecentFirst =
-        stripeSubscriptions.stream()
-            .sorted(
-                comparing(
-                        com.stripe.model.Subscription::getCurrentPeriodStart,
-                        nullsLast(naturalOrder()))
-                    .reversed())
-            .toList();
-    for (var stripeSubscription : subscriptionsMostRecentFirst) {
-      var subscriptionItems =
-          stripeClient
-              .subscriptionItems()
-              .list(
-                  SubscriptionItemListParams.builder()
-                      .setSubscription(stripeSubscription.getId())
-                      .build())
-              .getData();
-      var matchingItem =
-          subscriptionItems.stream()
-              .filter(
-                  subscriptionItem -> {
-                    var price = subscriptionItem.getPrice();
-                    var product = getProductById(price.getProduct());
-                    return product.getId().equals(subscriptionProduct.getE2Id());
-                  })
-              .findFirst();
-      if (matchingItem.isPresent()) {
-        return matchingItem.get();
-      }
-    }
-    throw new NotFoundException(
-        "Any SubscriptionItem matches to SubscriptionProduct for User.id=" + user.getId());
-  }
-
-  @SneakyThrows
-  private Product getProductById(String stripeProductId) {
-    return stripeClient.products().retrieve(stripeProductId);
+    return calculateUsageByType(consumptionLogs);
   }
 
   private List<ConsumptionUsageSummary> calculateUsageByType(
@@ -234,12 +141,6 @@ public class SubscriptionService {
     return consumptionTypeLongMap.entrySet().stream()
         .map(entry -> new ConsumptionUsageSummary(entry.getKey(), entry.getValue()))
         .toList();
-  }
-
-  private static long overageUnitPriceInCentsOf(SubscriptionProduct plan) {
-    return plan == null
-        ? SubscriptionProduct.DEFAULT_OVERAGE_UNIT_PRICE_IN_CENTS
-        : plan.overageUnitPriceInCentsOrDefault();
   }
 
   public List<SubscriptionProduct> getSubscribablePlans(
@@ -272,23 +173,9 @@ public class SubscriptionService {
         .subscriptionProduct(
             getSubscriptionProductByE2Id(
                 subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
-        .meteredProduct(resolveMeteredProduct(subscriptionProduct))
         .billingInterval(interval)
         .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
         .build();
-  }
-
-  private SubscriptionProduct resolveMeteredProduct(SubscriptionProduct plan) {
-    var meteredProductId = plan.getMeteredProductId();
-    if (meteredProductId == null) {
-      return null;
-    }
-    return subscriptionProductRepository
-        .findById(meteredProductId)
-        .orElseThrow(
-            () ->
-                new NotFoundException(
-                    "Metered SubscriptionProduct(id=" + meteredProductId + ") not found"));
   }
 
   public List<UserSubscriptionCommitment> saveUserSubscriptionCommitments(
@@ -555,25 +442,8 @@ public class SubscriptionService {
         "Schedule start date = {}",
         Instant.ofEpochSecond(billingCycleAnchor).atZone(ZoneId.of("Europe/Paris")).toLocalDate());
 
-    var subscriptionProduct = subscription.getSubscriptionProduct();
-    var subscriptionMeteredProduct = subscription.getMeteredProduct();
-    var newVariableProductPrice =
-        stripeClient
-            .prices()
-            .create(
-                PriceCreateParams.builder()
-                    .setCurrency(defaultCurrency())
-                    .setProduct(subscriptionMeteredProduct.getE2Id())
-                    .setUnitAmount(overageUnitPriceInCentsOf(subscriptionProduct))
-                    .setRecurring(
-                        PriceCreateParams.Recurring.builder()
-                            .setUsageType(PriceCreateParams.Recurring.UsageType.METERED)
-                            .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
-                            .build())
-                    .build());
-
     return stripeFactory.initiateSubscriptionWorkflow(
-        stripeCustomer, newVariableProductPrice, redirectionUrls, billingCycleAnchor, subscription);
+        stripeCustomer, redirectionUrls, billingCycleAnchor, subscription);
   }
 
   private Long computeBillingCycleAnchor() {
@@ -827,7 +697,6 @@ public class SubscriptionService {
       var earliestScheduledStartDate = Long.MAX_VALUE;
       for (var scheduledSubscription : activeScheduledSubscriptions) {
         var scheduledStartDate = cancelScheduleAfterUpcomingPayment(scheduledSubscription);
-        cancelRelatedSetupSession(user, scheduledSubscription.getId());
         earliestScheduledStartDate = Math.min(earliestScheduledStartDate, scheduledStartDate);
       }
 
@@ -939,52 +808,6 @@ public class SubscriptionService {
     log.info(
         "Cancelled scheduled subscription {} immediately after its first invoice was paid",
         scheduleId);
-  }
-
-  @SneakyThrows
-  public void scheduleOverageSubscriptionAfterAnnualInvoicePaid(Invoice paidInvoice) {
-    var stripeSubscriptionId = paidInvoice.getSubscription();
-    if (stripeSubscriptionId == null
-        || !SUBSCRIPTION_CREATE_BILLING_REASON.equals(paidInvoice.getBillingReason())) {
-      return;
-    }
-    var stripeSubscription = stripeClient.subscriptions().retrieve(stripeSubscriptionId);
-    var metadata = stripeSubscription.getMetadata();
-    var meteredPriceId =
-        metadata == null ? null : metadata.get(OVERAGE_METERED_PRICE_ID_METADATA_KEY);
-    var billingCycleAnchor =
-        metadata == null ? null : metadata.get(OVERAGE_BILLING_CYCLE_ANCHOR_METADATA_KEY);
-    if (meteredPriceId == null || billingCycleAnchor == null) {
-      return;
-    }
-    var stripeCustomerId = stripeSubscription.getCustomer();
-    var optionalUser = userRepository.findByStripeCustomerId(stripeCustomerId);
-    if (optionalUser.isEmpty()) {
-      log.warn(
-          "No user found for StripeCustomer.id={}, unable to schedule overage subscription",
-          stripeCustomerId);
-      return;
-    }
-    stripeFactory.scheduleOverageSubscription(
-        stripeCustomerId, meteredPriceId, Long.valueOf(billingCycleAnchor), optionalUser.get());
-    log.info(
-        "Scheduled overage subscription on Price.id={} for StripeCustomer.id={} after annual"
-            + " Subscription.id={} was paid",
-        meteredPriceId,
-        stripeCustomerId,
-        stripeSubscriptionId);
-  }
-
-  private void cancelRelatedSetupSession(User user, String subscriptionScheduleId) {
-    userSubscriptionSessionRepository.findAllByUserId(user.getId()).stream()
-        .filter(session -> SETUP.equals(session.getSessionMode()))
-        .filter(session -> !session.isCancelled())
-        .filter(session -> subscriptionScheduleId.equals(session.getSubscriptionScheduleId()))
-        .findFirst()
-        .ifPresent(
-            session ->
-                userSubscriptionSessionRepository.save(
-                    session.toBuilder().isCancelled(true).build()));
   }
 
   @SneakyThrows

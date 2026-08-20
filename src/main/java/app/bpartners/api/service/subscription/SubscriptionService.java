@@ -69,6 +69,7 @@ public class SubscriptionService {
   private static final String CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY =
       "cancel_after_first_invoice";
   private static final String SUBSCRIPTION_CREATE_BILLING_REASON = "subscription_create";
+  private static final String STRIPE_YEARLY_INTERVAL = "year";
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -770,6 +771,7 @@ public class SubscriptionService {
         .e2Id(stripeSubscription.getId())
         .startDatetime(startDatetime)
         .endDatetime(endDatetime)
+        .billingInterval(billingIntervalOf(stripeSubscription))
         .status(status)
         .active(!status.equals(UNKNOWN))
         .paymentMethods(
@@ -1037,33 +1039,31 @@ public class SubscriptionService {
   }
 
   /**
-   * Resolves the domain id of the actually-subscribed plan from a Stripe subscription. A
-   * subscription carries several items (the base plan plus the metered/usage product); only the
-   * subscribable plan (billingType != null) is returned so the metered product is never mistaken
-   * for the plan.
+   * Resolves the actually-subscribed plan, and the interval it is billed on, from a Stripe
+   * subscription. A subscription carries several items (the base plan plus the metered/usage
+   * product); only the subscribable plan (billingType != null) is returned so the metered product
+   * is never mistaken for the plan.
    */
-  public Optional<String> resolveSubscribedPlanId(
+  public Optional<SubscribedPlan> resolveSubscribedPlan(
       com.stripe.model.Subscription stripeSubscription) {
     if (stripeSubscription.getItems() == null) {
       return Optional.empty();
     }
-    var productE2Ids =
-        stripeSubscription.getItems().getData().stream()
-            .map(SubscriptionItem::getPrice)
-            .filter(Objects::nonNull)
-            .map(Price::getProduct)
-            .filter(Objects::nonNull)
-            .toList();
-    return firstSubscribablePlanId(productE2Ids);
+    return stripeSubscription.getItems().getData().stream()
+        .map(SubscriptionItem::getPrice)
+        .filter(Objects::nonNull)
+        .map(this::subscribedPlanFrom)
+        .flatMap(Optional::stream)
+        .findFirst();
   }
 
   /**
-   * Same as {@link #resolveSubscribedPlanId(com.stripe.model.Subscription)} but for a scheduled
+   * Same as {@link #resolveSubscribedPlan(com.stripe.model.Subscription)} but for a scheduled
    * subscription, whose phase items only reference price ids and therefore require the prices to be
    * retrieved to reach their products.
    */
   @SneakyThrows
-  public Optional<String> resolveSubscribedPlanId(SubscriptionSchedule schedule) {
+  public Optional<SubscribedPlan> resolveSubscribedPlan(SubscriptionSchedule schedule) {
     if (schedule.getPhases() == null || schedule.getPhases().isEmpty()) {
       return Optional.empty();
     }
@@ -1074,22 +1074,53 @@ public class SubscriptionService {
             .filter(Objects::nonNull)
             .distinct()
             .toList();
-    var productE2Ids = new ArrayList<String>();
     for (var priceId : priceIds) {
-      var product = stripeClient.prices().retrieve(priceId).getProduct();
-      if (product != null) {
-        productE2Ids.add(product);
+      var subscribedPlan = subscribedPlanFrom(stripeClient.prices().retrieve(priceId));
+      if (subscribedPlan.isPresent()) {
+        return subscribedPlan;
       }
     }
-    return firstSubscribablePlanId(productE2Ids);
+    return Optional.empty();
   }
 
-  private Optional<String> firstSubscribablePlanId(List<String> productE2Ids) {
-    return productE2Ids.stream()
-        .map(subscriptionProductRepository::findByE2Id)
-        .flatMap(Optional::stream)
+  private Optional<SubscribedPlan> subscribedPlanFrom(Price price) {
+    var productE2Id = price.getProduct();
+    if (productE2Id == null) {
+      return Optional.empty();
+    }
+    return subscriptionProductRepository
+        .findByE2Id(productE2Id)
         .filter(product -> product.getBillingType() != null)
-        .map(SubscriptionProduct::getId)
-        .findFirst();
+        .map(product -> new SubscribedPlan(product.getId(), billingIntervalOf(price, product)));
   }
+
+  private static BillingInterval billingIntervalOf(Price price, SubscriptionProduct plan) {
+    if (price.getId() != null && price.getId().equals(plan.getAnnualE2PriceId())) {
+      return BillingInterval.YEARLY;
+    }
+    return billingIntervalOf(price);
+  }
+
+  private static BillingInterval billingIntervalOf(Price price) {
+    var recurring = price.getRecurring();
+    return recurring != null && STRIPE_YEARLY_INTERVAL.equals(recurring.getInterval())
+        ? BillingInterval.YEARLY
+        : BillingInterval.MONTHLY;
+  }
+
+  private static BillingInterval billingIntervalOf(
+      com.stripe.model.Subscription stripeSubscription) {
+    if (stripeSubscription.getItems() == null) {
+      return BillingInterval.MONTHLY;
+    }
+    return stripeSubscription.getItems().getData().stream()
+            .map(SubscriptionItem::getPrice)
+            .filter(Objects::nonNull)
+            .map(SubscriptionService::billingIntervalOf)
+            .anyMatch(BillingInterval.YEARLY::equals)
+        ? BillingInterval.YEARLY
+        : BillingInterval.MONTHLY;
+  }
+
+  public record SubscribedPlan(String planId, BillingInterval billingInterval) {}
 }

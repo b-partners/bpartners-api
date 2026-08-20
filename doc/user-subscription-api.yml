@@ -480,13 +480,14 @@ components:
           $ref: '#/components/schemas/BillingInterval'
     BillingInterval:
       type: string
-      default: MONTHLY
       enum:
         - MONTHLY
         - YEARLY
       description: |
-        Billing interval for the fixed subscription. Defaults to MONTHLY when omitted.
-        YEARLY requires subscriptionPlanIdentifier and a plan that exposes an annual price.
+        Interval the fixed subscription is billed on. On subscription initiation, MONTHLY is
+        assumed when omitted, and YEARLY requires subscriptionPlanIdentifier and a plan that
+        exposes an annual price. On a subscribed user, it reports the interval actually paid, and
+        is null as long as no subscription has been paid, during the free trial for instance.
     UserSubscriptionType:
       type: string
       description: for now, only ESSENTIAL subscription is supported

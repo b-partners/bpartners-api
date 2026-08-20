@@ -29,7 +29,7 @@ public class UserSubscriptionProductBackfillRequestedService
       return;
     }
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        user.getId(), event.getSubscriptionProductId());
+        user.getId(), event.getSubscriptionProductId(), event.getBillingInterval());
   }
 
   private boolean hasActiveSubscription(User user) {

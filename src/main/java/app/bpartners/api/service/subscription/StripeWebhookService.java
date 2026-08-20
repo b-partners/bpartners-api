@@ -167,11 +167,13 @@ public class StripeWebhookService {
 
     if (SUBSCRIPTION_CREATED.equals(type) || SUBSCRIPTION_UPDATED.equals(type)) {
       var subscription = extractStripeObject(event, Subscription.class);
-      if (subscription == null || !STRIPE_ACTIVE_STATUS.equals(subscription.getStatus())) {
+      if (subscription == null || !isEligibleSubscription(subscription)) {
         log.info(
-            "Stripe event={} subscription not active (status={}), skipping",
+            "Stripe event={} subscription not active or cancelled at period end (status={},"
+                + " cancelAtPeriodEnd={}), skipping",
             type,
-            subscription == null ? null : subscription.getStatus());
+            subscription == null ? null : subscription.getStatus(),
+            subscription == null ? null : subscription.getCancelAtPeriodEnd());
         return null;
       }
       var subscribedPlan = subscriptionService.resolveSubscribedPlan(subscription).orElse(null);
@@ -192,6 +194,11 @@ public class StripeWebhookService {
     }
     log.info("Ignoring unhandled Stripe event type={}", type);
     return null;
+  }
+
+  private boolean isEligibleSubscription(Subscription subscription) {
+    return STRIPE_ACTIVE_STATUS.equals(subscription.getStatus())
+        && !Boolean.TRUE.equals(subscription.getCancelAtPeriodEnd());
   }
 
   private boolean isEligibleSchedule(SubscriptionSchedule schedule) {

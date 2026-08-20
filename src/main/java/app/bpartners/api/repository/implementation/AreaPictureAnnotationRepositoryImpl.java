@@ -1,6 +1,5 @@
 package app.bpartners.api.repository.implementation;
 
-
 import app.bpartners.api.model.AreaPictureAnnotation;
 import app.bpartners.api.model.mapper.AreaPictureAnnotationMapper;
 import app.bpartners.api.repository.AreaPictureAnnotationRepository;

@@ -86,9 +86,16 @@ public class AreaPictureAnnotationController {
   public List<DraftAreaPictureAnnotation> getDraftAreaPictureAnnotationsByAccountId(
       @PathVariable String aId,
       @RequestParam(defaultValue = "1", required = false) PageFromOne page,
-      @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {
+      @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize,
+      @RequestParam(required = false) String prospectName,
+      @RequestParam(required = false) String address,
+      @RequestParam(required = false) Instant creationFrom,
+      @RequestParam(required = false) Instant creationTo) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
-    return service.findAllDraftByAccountId(authenticatedUserId, page, pageSize).stream()
+    return service
+        .findAllDraftByAccountId(
+            authenticatedUserId, prospectName, address, creationFrom, creationTo, page, pageSize)
+        .stream()
         .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
         .toList();
   }

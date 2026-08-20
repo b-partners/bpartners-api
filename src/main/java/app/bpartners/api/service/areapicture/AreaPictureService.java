@@ -51,6 +51,16 @@ public class AreaPictureService {
         .toList();
   }
 
+  public List<AreaPicture> findAllByIdUser(String userId) {
+    return jpaRepository.findAllByIdUser(userId).stream().map(mapper::toDomain).toList();
+  }
+
+  public List<AreaPicture> findAllByAddress(String userId, String address) {
+    return jpaRepository.findAllByIdUserAndAddressContainingIgnoreCase(userId, address).stream()
+        .map(mapper::toDomain)
+        .toList();
+  }
+
   public AreaPicture findBy(String userId, String id) {
     var domain =
         mapper.toDomain(

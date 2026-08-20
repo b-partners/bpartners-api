@@ -7,6 +7,7 @@ import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.file.FileWriter;
+import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureAnnotation;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
@@ -106,15 +107,43 @@ public class AreaPictureAnnotationService {
   }
 
   public List<AreaPictureAnnotation> findAllDraftByAccountId(
-      String idUser, PageFromOne page, BoundedPageSize pageSize) {
-    final var isDraft = true;
-    return repository.findAllByIsDraftAndAccountId(
-        idUser,
-        isDraft,
-        PageRequest.of(
-            page.getValue() - 1,
-            pageSize.getValue(),
-            Sort.by(Sort.Order.desc("creationDatetime"))));
+      String idUser,
+      String prospectName,
+      String address,
+      Instant creationFrom,
+      Instant creationTo,
+      PageFromOne page,
+      BoundedPageSize pageSize) {
+    List<String> idAreaPictureIds = null;
+    if (prospectName != null || address != null) {
+      var areaPictures =
+          address != null
+              ? areaPictureService.findAllByAddress(idUser, address)
+              : areaPictureService.findAllByIdUser(idUser);
+      idAreaPictureIds =
+          areaPictures.stream()
+              .filter(
+                  areaPicture ->
+                      prospectName == null
+                          || containsIgnoreCase(
+                              prospectRepository.getById(areaPicture.getIdProspect()).getName(),
+                              prospectName))
+              .map(AreaPicture::getId)
+              .toList();
+      if (idAreaPictureIds.isEmpty()) {
+        return List.of();
+      }
+    }
+    return repository.findAllByCriteria(
+        AreaPictureAnnotationCriteria.builder()
+            .idUser(idUser)
+            .idAreaPictureIds(idAreaPictureIds)
+            .isDraft(true)
+            .creationFrom(creationFrom)
+            .creationTo(creationTo)
+            .page(page.getValue() - 1)
+            .pageSize(pageSize.getValue())
+            .build());
   }
 
   public PreSignedURL exportAreaPictureAnnotationToPdf(

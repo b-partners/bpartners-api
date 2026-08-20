@@ -492,6 +492,8 @@ public class SubscriptionService {
                   .billingType(existing.getBillingType())
                   .freeUsageThreshold(existing.getFreeUsageThreshold())
                   .includedCreditsPerBillingPeriod(existing.getIncludedCreditsPerBillingPeriod())
+                  .creditUnitPriceInCentsWithoutVat(existing.getCreditUnitPriceInCentsWithoutVat())
+                  .creditCostPerAnalysis(existing.getCreditCostPerAnalysis())
                   .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
                   .trialPeriodDays(existing.getTrialPeriodDays())
                   .annualDiscountPercent(existing.getAnnualDiscountPercent())

@@ -1,9 +1,13 @@
 package app.bpartners.api.model;
 
+import static org.hibernate.type.SqlTypes.NAMED_ENUM;
+
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 
 @Entity(name = "user_subscription_product")
 @AllArgsConstructor
@@ -21,6 +25,11 @@ public class UserSubscriptionProduct {
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "subscription_product_id")
   public SubscriptionProduct subscriptionProduct;
+
+  @JdbcTypeCode(NAMED_ENUM)
+  @Enumerated(EnumType.STRING)
+  @Column(name = "billing_interval")
+  private BillingInterval billingInterval;
 
   private Instant subscriptionStartDatetime;
 

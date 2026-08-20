@@ -4,11 +4,13 @@ import static app.bpartners.api.service.utils.AccountUtils.filterActive;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,21 +55,25 @@ public class User implements Serializable {
   }
 
   public SubscriptionProduct getActualSubscriptionProduct() {
-    if (subscriptionProducts != null && !subscriptionProducts.isEmpty()) {
-      var activeSubscriptions =
-          subscriptionProducts.stream()
-              .filter(
-                  userSubscriptionProduct ->
-                      userSubscriptionProduct.getSubscriptionEndDatetime() == null)
-              .toList();
-      var actualActiveSubscriptions =
-          activeSubscriptions.stream()
-              .max(Comparator.comparing(UserSubscriptionProduct::getCreationDatetime));
-      return actualActiveSubscriptions
-          .map(UserSubscriptionProduct::getSubscriptionProduct)
-          .orElse(null);
+    return getActualUserSubscriptionProduct()
+        .map(UserSubscriptionProduct::getSubscriptionProduct)
+        .orElse(null);
+  }
+
+  public BillingInterval getActualBillingInterval() {
+    return getActualUserSubscriptionProduct()
+        .map(UserSubscriptionProduct::getBillingInterval)
+        .orElse(null);
+  }
+
+  private Optional<UserSubscriptionProduct> getActualUserSubscriptionProduct() {
+    if (subscriptionProducts == null || subscriptionProducts.isEmpty()) {
+      return Optional.empty();
     }
-    return null;
+    return subscriptionProducts.stream()
+        .filter(
+            userSubscriptionProduct -> userSubscriptionProduct.getSubscriptionEndDatetime() == null)
+        .max(Comparator.comparing(UserSubscriptionProduct::getCreationDatetime));
   }
 
   public Account getDefaultAccount() {

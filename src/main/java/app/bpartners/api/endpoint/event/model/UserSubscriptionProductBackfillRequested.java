@@ -1,5 +1,6 @@
 package app.bpartners.api.endpoint.event.model;
 
+import app.bpartners.api.model.subscription.BillingInterval;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Duration;
 import lombok.*;
@@ -16,6 +17,9 @@ public class UserSubscriptionProductBackfillRequested extends PojaEvent {
 
   @JsonProperty("subscriptionProductId")
   private String subscriptionProductId;
+
+  @JsonProperty("billingInterval")
+  private BillingInterval billingInterval;
 
   @Override
   public Duration maxConsumerDuration() {

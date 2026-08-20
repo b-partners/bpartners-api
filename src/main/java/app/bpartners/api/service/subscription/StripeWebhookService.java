@@ -6,6 +6,7 @@ import static app.bpartners.api.service.subscription.StripeSetupService.isPaymen
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.credit.CreditPurchaseService;
@@ -75,6 +76,7 @@ public class StripeWebhookService {
             UserSubscriptionProductBackfillRequested.builder()
                 .userId(userId)
                 .subscriptionProductId(eligible.subscriptionPlanIdentifier())
+                .billingInterval(eligible.billingInterval())
                 .build()));
     log.info(
         "Requested UserSubscriptionProduct creation for User(id={}) from Stripe event={}",
@@ -172,9 +174,8 @@ public class StripeWebhookService {
             subscription == null ? null : subscription.getStatus());
         return null;
       }
-      var subscriptionPlanIdentifier =
-          subscriptionService.resolveSubscribedPlanId(subscription).orElse(null);
-      return new EligibleSubscription(subscription.getCustomer(), subscriptionPlanIdentifier);
+      var subscribedPlan = subscriptionService.resolveSubscribedPlan(subscription).orElse(null);
+      return eligibleSubscriptionOf(subscription.getCustomer(), subscribedPlan);
     }
 
     if (SUBSCRIPTION_SCHEDULE_CREATED.equals(type)) {
@@ -186,8 +187,8 @@ public class StripeWebhookService {
             schedule == null ? null : schedule.getStatus());
         return null;
       }
-      var planId = subscriptionService.resolveSubscribedPlanId(schedule).orElse(null);
-      return new EligibleSubscription(schedule.getCustomer(), planId);
+      var subscribedPlan = subscriptionService.resolveSubscribedPlan(schedule).orElse(null);
+      return eligibleSubscriptionOf(schedule.getCustomer(), subscribedPlan);
     }
     log.info("Ignoring unhandled Stripe event type={}", type);
     return null;
@@ -229,5 +230,14 @@ public class StripeWebhookService {
     return null;
   }
 
-  private record EligibleSubscription(String customerId, String subscriptionPlanIdentifier) {}
+  private static EligibleSubscription eligibleSubscriptionOf(
+      String customerId, SubscriptionService.SubscribedPlan subscribedPlan) {
+    return subscribedPlan == null
+        ? new EligibleSubscription(customerId, null, null)
+        : new EligibleSubscription(
+            customerId, subscribedPlan.planId(), subscribedPlan.billingInterval());
+  }
+
+  private record EligibleSubscription(
+      String customerId, String subscriptionPlanIdentifier, BillingInterval billingInterval) {}
 }

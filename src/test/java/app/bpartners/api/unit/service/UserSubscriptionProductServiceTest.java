@@ -1,5 +1,7 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,6 +10,7 @@ import static org.mockito.Mockito.*;
 
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
@@ -35,10 +38,19 @@ class UserSubscriptionProductServiceTest {
 
   private static UserSubscriptionProduct activeProduct(
       String userId, SubscriptionProduct plan, Instant endDatetime) {
+    return activeProduct(userId, plan, endDatetime, MONTHLY);
+  }
+
+  private static UserSubscriptionProduct activeProduct(
+      String userId,
+      SubscriptionProduct plan,
+      Instant endDatetime,
+      BillingInterval billingInterval) {
     return UserSubscriptionProduct.builder()
         .id("user_subscription_product_id")
         .userId(userId)
         .subscriptionProduct(plan)
+        .billingInterval(billingInterval)
         .subscriptionStartDatetime(Instant.parse("2026-08-05T00:00:00Z"))
         .subscriptionEndDatetime(endDatetime)
         .build();
@@ -54,7 +66,7 @@ class UserSubscriptionProductServiceTest {
     when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
         .thenReturn(List.of());
 
-    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId);
+    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, MONTHLY);
 
     var captor = ArgumentCaptor.forClass(UserSubscriptionProduct.class);
     verify(userSubscriptionProductJpaRepository).save(captor.capture());
@@ -62,6 +74,7 @@ class UserSubscriptionProductServiceTest {
     assertEquals(saved, actual);
     assertEquals(userId, saved.getUserId());
     assertEquals(subscribedPlanId, saved.getSubscriptionProduct().getId());
+    assertEquals(MONTHLY, saved.getBillingInterval());
     assertNull(saved.getSubscriptionEndDatetime());
     assertNotNull(saved.getSubscriptionStartDatetime());
     assertNotNull(saved.getCreationDatetime());
@@ -79,7 +92,7 @@ class UserSubscriptionProductServiceTest {
     when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
         .thenReturn(List.of(alreadyActive));
 
-    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId);
+    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, MONTHLY);
 
     assertEquals(alreadyActive, actual);
     verify(userSubscriptionProductJpaRepository, never()).save(any());
@@ -97,7 +110,7 @@ class UserSubscriptionProductServiceTest {
     when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
         .thenReturn(List.of(endingSoon));
 
-    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId);
+    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, MONTHLY);
 
     var captor = ArgumentCaptor.forClass(UserSubscriptionProduct.class);
     verify(userSubscriptionProductJpaRepository).save(captor.capture());
@@ -119,7 +132,7 @@ class UserSubscriptionProductServiceTest {
     when(userSubscriptionProductJpaRepository.saveAll(any()))
         .thenAnswer(i -> i.getArgument(0, List.class));
 
-    var actual = subject.ensureActiveSubscriptionProduct(userId, "upgraded_plan_id");
+    var actual = subject.ensureActiveSubscriptionProduct(userId, "upgraded_plan_id", MONTHLY);
 
     @SuppressWarnings("unchecked")
     var endedCaptor = ArgumentCaptor.forClass(List.class);
@@ -134,6 +147,73 @@ class UserSubscriptionProductServiceTest {
   }
 
   @Test
+  void creates_subscribed_product_with_yearly_billing_interval() {
+    var userId = randomUUID().toString();
+    var subscribedPlanId = "essential_plan_id";
+    var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
+    when(subscriptionProductRepository.findById(subscribedPlanId))
+        .thenReturn(Optional.of(subscribedPlan));
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+        .thenReturn(List.of());
+
+    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, YEARLY);
+
+    assertEquals(YEARLY, actual.getBillingInterval());
+  }
+
+  @Test
+  void creates_subscribed_product_billed_monthly_when_billing_interval_unknown() {
+    var userId = randomUUID().toString();
+    var subscribedPlanId = "essential_plan_id";
+    var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
+    when(subscriptionProductRepository.findById(subscribedPlanId))
+        .thenReturn(Optional.of(subscribedPlan));
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+        .thenReturn(List.of());
+
+    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, null);
+
+    assertEquals(MONTHLY, actual.getBillingInterval());
+  }
+
+  @Test
+  void updates_billing_interval_when_same_plan_is_billed_on_another_interval() {
+    var userId = randomUUID().toString();
+    var subscribedPlanId = "essential_plan_id";
+    var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
+    var billedMonthly = activeProduct(userId, subscribedPlan, null, MONTHLY);
+    when(subscriptionProductRepository.findById(subscribedPlanId))
+        .thenReturn(Optional.of(subscribedPlan));
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+        .thenReturn(List.of(billedMonthly));
+
+    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, YEARLY);
+
+    var captor = ArgumentCaptor.forClass(UserSubscriptionProduct.class);
+    verify(userSubscriptionProductJpaRepository).save(captor.capture());
+    assertEquals(YEARLY, captor.getValue().getBillingInterval());
+    assertEquals(YEARLY, actual.getBillingInterval());
+    verify(creditGrantService).grantIncludedCredits(userId, subscribedPlan);
+  }
+
+  @Test
+  void keeps_billing_interval_when_same_plan_is_billed_on_the_same_interval() {
+    var userId = randomUUID().toString();
+    var subscribedPlanId = "essential_plan_id";
+    var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
+    var billedYearly = activeProduct(userId, subscribedPlan, null, YEARLY);
+    when(subscriptionProductRepository.findById(subscribedPlanId))
+        .thenReturn(Optional.of(subscribedPlan));
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+        .thenReturn(List.of(billedYearly));
+
+    var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, YEARLY);
+
+    assertEquals(billedYearly, actual);
+    verify(userSubscriptionProductJpaRepository, never()).save(any());
+  }
+
+  @Test
   void grants_from_already_active_plan_when_plan_id_null() {
     var userId = randomUUID().toString();
     var activePlan = SubscriptionProduct.builder().id("active_plan_id").build();
@@ -141,7 +221,7 @@ class UserSubscriptionProductServiceTest {
     when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
         .thenReturn(List.of(alreadyActive));
 
-    var actual = subject.ensureActiveSubscriptionProduct(userId, null);
+    var actual = subject.ensureActiveSubscriptionProduct(userId, null, null);
 
     assertEquals(alreadyActive, actual);
     verify(userSubscriptionProductJpaRepository, never()).save(any());
@@ -155,7 +235,7 @@ class UserSubscriptionProductServiceTest {
         .thenReturn(List.of());
 
     assertThrows(
-        NotFoundException.class, () -> subject.ensureActiveSubscriptionProduct(userId, null));
+        NotFoundException.class, () -> subject.ensureActiveSubscriptionProduct(userId, null, null));
     verify(userSubscriptionProductJpaRepository, never()).save(any());
     verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }
@@ -170,7 +250,7 @@ class UserSubscriptionProductServiceTest {
 
     assertThrows(
         NotFoundException.class,
-        () -> subject.ensureActiveSubscriptionProduct(userId, unknownPlanId));
+        () -> subject.ensureActiveSubscriptionProduct(userId, unknownPlanId, MONTHLY));
     verify(userSubscriptionProductJpaRepository, never()).save(any());
     verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }

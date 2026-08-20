@@ -10,6 +10,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
+import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import java.time.Instant;
 import java.util.List;
@@ -21,9 +22,10 @@ import org.mockito.ArgumentCaptor;
 class UserSubscriptionProductServiceTest {
   UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository = mock();
   SubscriptionProductRepository subscriptionProductRepository = mock();
+  CreditGrantService creditGrantService = mock();
   UserSubscriptionProductService subject =
       new UserSubscriptionProductService(
-          userSubscriptionProductJpaRepository, subscriptionProductRepository);
+          userSubscriptionProductJpaRepository, subscriptionProductRepository, creditGrantService);
 
   @BeforeEach
   void setUp() {
@@ -34,8 +36,9 @@ class UserSubscriptionProductServiceTest {
   void creates_subscribed_product_with_null_end_datetime_when_no_active_one() {
     var userId = randomUUID().toString();
     var subscribedPlanId = "usage_based_plan_id";
+    var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
     when(subscriptionProductRepository.findById(subscribedPlanId))
-        .thenReturn(Optional.of(SubscriptionProduct.builder().id(subscribedPlanId).build()));
+        .thenReturn(Optional.of(subscribedPlan));
     when(userSubscriptionProductJpaRepository.existsByUserIdAndSubscriptionEndDatetimeIsNull(
             userId))
         .thenReturn(false);
@@ -51,6 +54,7 @@ class UserSubscriptionProductServiceTest {
     assertNull(saved.getSubscriptionEndDatetime());
     assertNotNull(saved.getSubscriptionStartDatetime());
     assertNotNull(saved.getCreationDatetime());
+    verify(creditGrantService).grantIncludedCredits(userId, subscribedPlan);
   }
 
   @Test
@@ -64,6 +68,7 @@ class UserSubscriptionProductServiceTest {
 
     assertTrue(actual.isEmpty());
     verify(userSubscriptionProductJpaRepository, never()).save(any());
+    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }
 
   @Test
@@ -76,6 +81,7 @@ class UserSubscriptionProductServiceTest {
     assertThrows(
         NotFoundException.class, () -> subject.ensureActiveSubscriptionProduct(userId, null));
     verify(userSubscriptionProductJpaRepository, never()).save(any());
+    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }
 
   @Test
@@ -91,6 +97,7 @@ class UserSubscriptionProductServiceTest {
         NotFoundException.class,
         () -> subject.ensureActiveSubscriptionProduct(userId, unknownPlanId));
     verify(userSubscriptionProductJpaRepository, never()).save(any());
+    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }
 
   @Test

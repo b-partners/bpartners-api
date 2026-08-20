@@ -8,6 +8,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
+import app.bpartners.api.service.credit.CreditGrantService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserSubscriptionProductService {
   private final UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
+  private final CreditGrantService creditGrantService;
 
   @Transactional
   public Optional<UserSubscriptionProduct> ensureActiveSubscriptionProduct(
@@ -48,7 +50,20 @@ public class UserSubscriptionProductService {
         created.getId(),
         userId,
         subscriptionProduct.getId());
+    creditGrantService.grantIncludedCredits(userId, subscriptionProduct);
     return Optional.of(created);
+  }
+
+  public Optional<SubscriptionProduct> findActiveSubscriptionProduct(String userId) {
+    return userSubscriptionProductJpaRepository
+        .findAllByUserIdAndSubscriptionEndDatetimeIsNull(userId)
+        .stream()
+        .findFirst()
+        .map(UserSubscriptionProduct::getSubscriptionProduct);
+  }
+
+  public List<String> findUserIdsWithActiveSubscriptionProduct() {
+    return userSubscriptionProductJpaRepository.findUserIdsWithActiveSubscriptionProduct();
   }
 
   private SubscriptionProduct getSubscribedProduct(String subscriptionProductId) {

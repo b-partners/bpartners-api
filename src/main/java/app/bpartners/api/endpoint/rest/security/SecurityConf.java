@@ -215,6 +215,8 @@ public class SecurityConf {
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(POST, "/monthlySubscriptionInvoiceTrigger")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/monthlySubscriptionCreditGrantTrigger")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/monthlyUpcomingDebitedCustomers/*/*")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/users/subscriptionProductBackfill")

@@ -17,6 +17,9 @@ public interface CreditTransactionRepository extends JpaRepository<CreditTransac
 
   Optional<CreditTransaction> findFirstByCreditPurchaseId(String creditPurchaseId);
 
+  boolean existsByUserIdAndTypeAndCreationDatetimeGreaterThanEqual(
+      String userId, CreditTransactionType type, Instant from);
+
   @Query(
       value = "select 1 from (select pg_advisory_xact_lock(hashtext(:userId), 0)) as lock_acquired",
       nativeQuery = true)

@@ -81,6 +81,10 @@ public class TemporalUtils {
     return startOfActualMonth().atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
   }
 
+  public Instant startOfNextMonthInstant() {
+    return startOfNextMonth().atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
+  }
+
   public Instant startOfLastMonthInstant() {
     return startOfLastMonth().atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
   }

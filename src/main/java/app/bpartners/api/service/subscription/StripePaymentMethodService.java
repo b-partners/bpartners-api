@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class StripePaymentMethodService {
   private static final String CARD_TYPE = "card";
-  private static final String CANCELED_SUBSCRIPTION_STATUS = "canceled";
   private final StripeCustomerService stripeCustomerService;
   private final StripeSubscriptionService stripeSubscriptionService;
   private final StripeClient stripeClient;
@@ -67,7 +66,7 @@ public class StripePaymentMethodService {
     for (var subscription :
         stripeSubscriptionService.getStripeSubscriptionsFromStripeCustomerId(
             stripeCustomerIdentifier)) {
-      if (CANCELED_SUBSCRIPTION_STATUS.equals(subscription.getStatus())) {
+      if (StripeSubscriptionService.isTerminated(subscription)) {
         continue;
       }
       stripeClient
@@ -147,7 +146,7 @@ public class StripePaymentMethodService {
     return stripeSubscriptionService
         .getStripeSubscriptionsFromStripeCustomerId(stripeCustomerIdentifier)
         .stream()
-        .filter(subscription -> !CANCELED_SUBSCRIPTION_STATUS.equals(subscription.getStatus()))
+        .filter(subscription -> !StripeSubscriptionService.isTerminated(subscription))
         .map(Subscription::getDefaultPaymentMethod)
         .filter(Objects::nonNull)
         .findFirst()

@@ -71,6 +71,30 @@ class SubscriptionPlanRestMapperTest {
   }
 
   @Test
+  void to_rest_maps_prepaid_credit_fields() {
+    var domain =
+        subscriptionProduct(COMMITMENT).toBuilder()
+            .includedCreditsPerBillingPeriod(10L)
+            .creditCostPerAnalysis(2L)
+            .build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(10L, actual.getIncludedCreditsPerBillingPeriod());
+    assertEquals(2L, actual.getCreditCostPerAnalysis());
+  }
+
+  @Test
+  void to_rest_maps_prepaid_credit_fields_to_their_default() {
+    var domain = subscriptionProduct(COMMITMENT);
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(0L, actual.getIncludedCreditsPerBillingPeriod());
+    assertEquals(1L, actual.getCreditCostPerAnalysis());
+  }
+
+  @Test
   void to_rest_maps_is_most_chosen() {
     var domain = subscriptionProduct(COMMITMENT, true);
 

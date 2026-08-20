@@ -25,6 +25,8 @@ public class SubscriptionProduct {
 
   public static final long DEFAULT_CREDIT_COST_PER_ANALYSIS = 1L;
 
+  public static final long DEFAULT_INCLUDED_CREDITS_PER_BILLING_PERIOD = 0L;
+
   public static final long DEFAULT_VAT_PERCENT = 2000L;
 
   @Id private String id;
@@ -95,6 +97,9 @@ public class SubscriptionProduct {
   @Column(name = "credit_cost_per_analysis")
   private Long creditCostPerAnalysis;
 
+  @Column(name = "included_credits_per_billing_period")
+  private Long includedCreditsPerBillingPeriod;
+
   public Long getPriceInCentsWithVat() {
     if (priceInCentsWithoutVat == null || vatPercent == null) {
       return null;
@@ -140,5 +145,11 @@ public class SubscriptionProduct {
 
   public long creditCostPerAnalysisOrDefault() {
     return creditCostPerAnalysis == null ? DEFAULT_CREDIT_COST_PER_ANALYSIS : creditCostPerAnalysis;
+  }
+
+  public long includedCreditsPerBillingPeriodOrDefault() {
+    return includedCreditsPerBillingPeriod == null
+        ? DEFAULT_INCLUDED_CREDITS_PER_BILLING_PERIOD
+        : includedCreditsPerBillingPeriod;
   }
 }

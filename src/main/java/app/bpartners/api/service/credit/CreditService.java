@@ -67,7 +67,7 @@ public class CreditService {
   }
 
   public CreditUnitPrice resolveCreditUnitPrice(User user) {
-    return activePlan(user.getId())
+    return notCancelledPlan(user.getId())
         .or(this::usageBasedPlan)
         .map(
             plan ->
@@ -161,6 +161,12 @@ public class CreditService {
 
   private Optional<SubscriptionProduct> activePlan(String userId) {
     return userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now()).stream()
+        .findFirst()
+        .map(UserSubscriptionProduct::getSubscriptionProduct);
+  }
+
+  private Optional<SubscriptionProduct> notCancelledPlan(String userId) {
+    return userSubscriptionProductJpaRepository.findAllNotCancelledByUserId(userId).stream()
         .findFirst()
         .map(UserSubscriptionProduct::getSubscriptionProduct);
   }

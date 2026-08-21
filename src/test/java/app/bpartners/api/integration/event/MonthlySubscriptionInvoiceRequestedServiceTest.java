@@ -27,6 +27,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserStripeCustomerEmailCorrespondenceJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -66,19 +67,22 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   UserStripeCustomerEmailCorrespondenceJpaRepository
       userStripeCustomerEmailCorrespondenceJpaRepositoryMock = mock();
   SubscriptionProductRepository subscriptionProductRepositoryMock = mock();
+  SubscriptionCustomerResolver subscriptionCustomerResolver =
+      new SubscriptionCustomerResolver(
+          customerRepositoryMock,
+          userCustomerConverter,
+          userStripeCustomerEmailCorrespondenceJpaRepositoryMock);
   MonthlySubscriptionInvoiceRequestedService subject =
       new MonthlySubscriptionInvoiceRequestedService(
           invoiceServiceMock,
-          customerRepositoryMock,
           subscriptionServiceMock,
           customDateFormatter,
           temporalUtils,
           subscriptionEligibleJpaRepositoryMock,
-          userCustomerConverter,
+          subscriptionCustomerResolver,
           stripeConfMock,
           stripeFactoryMock,
           stripeInvoiceServiceMock,
-          userStripeCustomerEmailCorrespondenceJpaRepositoryMock,
           new SubscriptionInvoiceTitleComputer(customDateFormatter),
           subscriptionProductRepositoryMock);
 

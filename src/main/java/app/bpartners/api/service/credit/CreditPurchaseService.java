@@ -104,12 +104,36 @@ public class CreditPurchaseService {
                         : creditPurchase.getCompletionDatetime())
                 .creditTransactionId(creditTransaction.getId())
                 .build());
+    requestInvoice(creditTransaction);
+    return completed;
+  }
+
+  private void requestInvoice(CreditTransaction creditTransaction) {
     eventProducer.accept(
         List.of(
             CreditOperationInvoiceRequested.builder()
                 .creditTransaction(creditTransaction)
                 .build()));
-    return completed;
+    log.info(
+        "Requested credit purchase invoice for CreditTransaction(id={}, creditPurchaseId={})",
+        creditTransaction.getId(),
+        creditTransaction.getCreditPurchaseId());
+  }
+
+  private CreditPurchase requestInvoiceIfStillMissing(CreditPurchase creditPurchase) {
+    if (!COMPLETED.equals(creditPurchase.getStatus()) || creditPurchase.getInvoiceId() != null) {
+      return creditPurchase;
+    }
+    creditTransactionRepository
+        .findFirstByCreditPurchaseId(creditPurchase.getId())
+        .ifPresentOrElse(
+            this::requestInvoice,
+            () ->
+                log.warn(
+                    "CreditPurchase.id={} is completed without any CreditTransaction, no invoice"
+                        + " requested",
+                    creditPurchase.getId()));
+    return creditPurchase;
   }
 
   private CreditTransaction grantedCreditsTransaction(CreditPurchase creditPurchase) {
@@ -136,7 +160,7 @@ public class CreditPurchaseService {
               + submission.purchaseId()
               + " was already submitted with a different payload, a purchase is immutable");
     }
-    return alreadySubmitted;
+    return requestInvoiceIfStillMissing(alreadySubmitted);
   }
 
   private boolean buysTheSameThing(

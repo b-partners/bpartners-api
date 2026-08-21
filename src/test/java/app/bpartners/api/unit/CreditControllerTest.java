@@ -5,6 +5,7 @@ import static app.bpartners.api.model.credit.CreditCode.PACK_CUSTOM;
 import static app.bpartners.api.model.credit.CreditPurchaseType.CUSTOM;
 import static app.bpartners.api.model.credit.CreditPurchaseType.PACK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,6 +14,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.CreditPurchaseInvoiceBackfillTriggered;
 import app.bpartners.api.endpoint.rest.controller.CreditController;
 import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
@@ -60,6 +63,7 @@ class CreditControllerTest {
       new CreateCreditPurchaseRestValidator();
   AuthenticatedResourceProvider authenticatedResourceProviderMock =
       mock(AuthenticatedResourceProvider.class);
+  EventProducer eventProducerMock = mock(EventProducer.class);
 
   CreditController subject =
       new CreditController(
@@ -70,7 +74,8 @@ class CreditControllerTest {
           creditPurchaseRestMapper,
           creditPurchaseServiceMock,
           createCreditPurchaseRestValidator,
-          authenticatedResourceProviderMock);
+          authenticatedResourceProviderMock,
+          eventProducerMock);
 
   @Test
   void get_credit_packs_priced_for_the_caller_active_plan() {
@@ -484,5 +489,16 @@ class CreditControllerTest {
         () -> subject.submitCreditPurchase("user_id", "purchase_1", payloadWithoutPack));
 
     verify(creditPurchaseServiceMock, never()).submit(any(), any());
+  }
+
+  @Test
+  void triggers_the_credit_purchase_invoice_backfill() {
+    var actual = subject.triggerCreditPurchaseInvoiceBackfill();
+
+    var eventsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducerMock).accept(eventsCaptor.capture());
+    assertInstanceOf(
+        CreditPurchaseInvoiceBackfillTriggered.class, eventsCaptor.getValue().getFirst());
+    assertEquals("CreditPurchase invoice backfill triggered successfully", actual);
   }
 }

@@ -10,6 +10,8 @@ import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalVatWithDi
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.CreditOperationInvoiceCreated;
 import app.bpartners.api.endpoint.event.model.CreditOperationInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
@@ -54,6 +56,7 @@ public class CreditOperationInvoiceRequestedService
   private final SubscriptionCustomerResolver subscriptionCustomerResolver;
   private final InvoiceService invoiceService;
   private final CustomDateFormatter customDateFormatter;
+  private final EventProducer eventProducer;
 
   @Override
   public void accept(CreditOperationInvoiceRequested event) {
@@ -99,6 +102,12 @@ public class CreditOperationInvoiceRequestedService
         createdInvoice.getRef(),
         creditPurchase.getId(),
         userToDebit.getId());
+    eventProducer.accept(
+        List.of(
+            CreditOperationInvoiceCreated.builder()
+                .invoiceId(createdInvoice.getId())
+                .creditPurchaseId(creditPurchase.getId())
+                .build()));
   }
 
   private Invoice computeCreditPurchaseInvoice(

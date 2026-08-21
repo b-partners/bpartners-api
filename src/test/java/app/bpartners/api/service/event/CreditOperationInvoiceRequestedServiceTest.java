@@ -20,6 +20,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.CreditOperationInvoiceCreated;
 import app.bpartners.api.endpoint.event.model.CreditOperationInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
@@ -40,9 +42,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 class CreditOperationInvoiceRequestedServiceTest {
   private static final String ADMIN_USER_ID = "admin_user_id";
@@ -53,6 +57,7 @@ class CreditOperationInvoiceRequestedServiceTest {
   UserSubscriptionConf userSubscriptionConf = mock();
   SubscriptionCustomerResolver subscriptionCustomerResolver = mock();
   InvoiceService invoiceService = mock();
+  EventProducer eventProducer = mock();
   CreditOperationInvoiceRequestedService subject =
       new CreditOperationInvoiceRequestedService(
           creditPurchaseRepository,
@@ -60,7 +65,8 @@ class CreditOperationInvoiceRequestedServiceTest {
           userSubscriptionConf,
           subscriptionCustomerResolver,
           invoiceService,
-          new CustomDateFormatter());
+          new CustomDateFormatter(),
+          eventProducer);
 
   CreditOperationInvoiceRequestedServiceTest() {
     when(userSubscriptionConf.getUserToCreditId()).thenReturn(ADMIN_USER_ID);
@@ -228,6 +234,32 @@ class CreditOperationInvoiceRequestedServiceTest {
   }
 
   @Test
+  void requests_the_invoice_mail_once_the_invoice_is_created() {
+    givenDefaultUsersAndCustomer();
+    givenPurchase(somePackPurchase().build());
+
+    subject.accept(somePurchaseEvent(30L));
+
+    var inOrder = Mockito.inOrder(invoiceService, creditPurchaseRepository, eventProducer);
+    inOrder.verify(invoiceService).crupdateSubscriptionInvoice(any());
+    inOrder.verify(creditPurchaseRepository).save(any());
+    inOrder.verify(eventProducer).accept(any());
+    var requested = requestedMail();
+    assertEquals(capturedInvoice().getId(), requested.getInvoiceId());
+    assertEquals("purchase_id", requested.getCreditPurchaseId());
+  }
+
+  @Test
+  void requests_no_invoice_mail_when_no_invoice_is_generated() {
+    givenDefaultUsersAndCustomer();
+    givenPurchase(somePackPurchase().invoiceId("already_invoiced").build());
+
+    subject.accept(somePurchaseEvent(30L));
+
+    verify(eventProducer, never()).accept(any());
+  }
+
+  @Test
   void generates_nothing_when_the_purchase_is_already_invoiced() {
     givenDefaultUsersAndCustomer();
     givenPurchase(somePackPurchase().invoiceId("already_invoiced").build());
@@ -314,6 +346,12 @@ class CreditOperationInvoiceRequestedServiceTest {
 
     assertEquals(
         "30 crédits d'analyse", capturedInvoice().getProducts().getFirst().getDescription());
+  }
+
+  private CreditOperationInvoiceCreated requestedMail() {
+    var eventsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducer).accept(eventsCaptor.capture());
+    return (CreditOperationInvoiceCreated) eventsCaptor.getValue().getFirst();
   }
 
   private Invoice capturedInvoice() {

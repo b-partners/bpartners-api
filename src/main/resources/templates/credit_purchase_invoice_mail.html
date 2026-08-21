@@ -1,0 +1,161 @@
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Votre facture d'achat de crédits</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f8;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            color: #1f2933;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .wrapper {
+            width: 100%;
+            background-color: #f4f6f8;
+            padding: 32px 0;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(31, 41, 51, 0.12);
+        }
+
+        .header {
+            background-color: #ea672c;
+            padding: 28px 32px;
+        }
+
+        .header-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .header-subtitle {
+            margin: 6px 0 0 0;
+            font-size: 14px;
+            color: #f1af91;
+        }
+
+        .content {
+            padding: 32px;
+        }
+
+        .content p {
+            margin: 0 0 16px 0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #3e4c59;
+        }
+
+        .summary {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0 24px 0;
+            background-color: #f7f9fc;
+            border-radius: 8px;
+        }
+
+        .summary td {
+            padding: 12px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #e4e9f0;
+        }
+
+        .summary tr:last-child td {
+            border-bottom: none;
+        }
+
+        .summary .label {
+            color: #7b8794;
+        }
+
+        .summary .value {
+            text-align: right;
+            font-weight: 600;
+            color: #1f2933;
+        }
+
+        .summary .total {
+            font-size: 16px;
+            color: #ea672c;
+        }
+
+        .attachment {
+            margin: 0 0 8px 0;
+            padding: 14px 16px;
+            background-color: rgba(241, 175, 145, 0.58);
+            border-left: 3px solid #ea672c;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #1f2933;
+        }
+
+        .footer {
+            padding: 24px 32px 32px 32px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #9aa5b1;
+        }
+
+        .footer p {
+            margin: 0 0 6px 0;
+        }
+
+        @media (max-width: 600px) {
+            .header, .content, .footer {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="card">
+        <div class="header">
+            <h1 class="header-title">Votre facture est disponible</h1>
+            <p class="header-subtitle" th:text="'Achat de crédits du ' + ${purchaseDate}">Achat de crédits</p>
+        </div>
+        <div class="content">
+            <p th:text="'Bonjour ' + ${customerName} + ','">Bonjour,</p>
+            <p>Nous vous remercions pour votre achat de crédits d'analyse. Votre solde a été mis à jour et
+                la facture correspondante est jointe à ce message.</p>
+            <table class="summary">
+                <tr>
+                    <td class="label">Référence</td>
+                    <td class="value" th:text="${invoiceReference}">REF</td>
+                </tr>
+                <tr>
+                    <td class="label" th:text="${purchaseLabel}">Crédits</td>
+                    <td class="value" th:text="${credits} + ' crédits'">0 crédits</td>
+                </tr>
+                <tr>
+                    <td class="label">Montant HT</td>
+                    <td class="value" th:text="${amountWithoutVat} + ' €'">0 €</td>
+                </tr>
+                <tr>
+                    <td class="label">Total TTC</td>
+                    <td class="value total" th:text="${amountWithVat} + ' €'">0 €</td>
+                </tr>
+            </table>
+            <p class="attachment">Votre facture au format PDF est jointe à cet e-mail.</p>
+        </div>
+        <div class="footer">
+            <p>L'équipe BIRDIA</p>
+            <p>BIRDIA - Valorisation d'images aériennes par IA</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

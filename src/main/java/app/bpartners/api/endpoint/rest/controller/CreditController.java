@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.CreditPurchaseInvoiceBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CreditPurchaseRestMapper;
@@ -23,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,6 +42,13 @@ public class CreditController {
   private final CreditPurchaseService creditPurchaseService;
   private final CreateCreditPurchaseRestValidator createCreditPurchaseRestValidator;
   private final AuthenticatedResourceProvider authenticatedResourceProvider;
+  private final EventProducer eventProducer;
+
+  @PostMapping("/creditPurchases/invoiceBackfill")
+  public String triggerCreditPurchaseInvoiceBackfill() {
+    eventProducer.accept(List.of(new CreditPurchaseInvoiceBackfillTriggered()));
+    return "CreditPurchase invoice backfill triggered successfully";
+  }
 
   @GetMapping("/creditPacks")
   public List<CreditPack> getCreditPacks(

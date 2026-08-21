@@ -13,6 +13,8 @@ public interface CreditPurchaseRepository extends JpaRepository<CreditPurchase, 
   List<CreditPurchase> findByUserIdAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
       String userId, Instant from, Instant to, Pageable pageable);
 
+  List<CreditPurchase> findByStatusAndInvoiceIdIsNull(CreditPurchaseStatus status);
+
   List<CreditPurchase> findByUserIdAndStatusInAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
       String userId,
       List<CreditPurchaseStatus> statuses,

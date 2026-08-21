@@ -229,6 +229,8 @@ public class SecurityConf {
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/subscriptionProducts/stripeVatBackfill")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/creditPurchases/invoiceBackfill")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/customers/export", authResourceProvider))

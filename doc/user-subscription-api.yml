@@ -406,7 +406,10 @@ operations:
       summary: Cancel user subscription
       operationId: cancelUserSubscription
       description: |
-        This operation cancel actual active subscription renewal. User still have access until the actual subscription end.
+        This operation cancels the actual active subscription. When cancellationType is IMMEDIATE, which is the
+        default when the parameter is not provided, the subscription is terminated right away and the user loses
+        access immediately. When cancellationType is END_OF_PERIOD, only the renewal is cancelled and the user
+        still has access until the actual subscription end.
       parameters:
         - in: path
           name: uId
@@ -414,6 +417,12 @@ operations:
             type: string
           required: true
           description: User identifier
+        - in: query
+          name: cancellationType
+          schema:
+            $ref: '#/components/schemas/SubscriptionCancellationType'
+          required: false
+          description: When not provided, defaults to IMMEDIATE
       responses:
         200:
           description: User with cancelled subscription status
@@ -433,6 +442,14 @@ operations:
           $ref: './api.yml#/components/responses/500'
 components:
   schemas:
+    SubscriptionCancellationType:
+      type: string
+      description: |
+        IMMEDIATE terminates the subscription right away without prorating the current period.
+        END_OF_PERIOD only cancels the renewal so access is kept until the current period end.
+      enum:
+        - IMMEDIATE
+        - END_OF_PERIOD
     SubscriptionConsumptionLog:
       type: object
       properties:

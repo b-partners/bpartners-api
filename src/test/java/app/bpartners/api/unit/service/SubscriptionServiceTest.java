@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.END_OF_PERIOD;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
@@ -541,7 +542,7 @@ class SubscriptionServiceTest {
 
   @SneakyThrows
   @Test
-  void cancel_scheduled_subscription_ok() {
+  void cancel_scheduled_subscription_at_period_end_ok() {
     var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
 
     var scheduledStartEpoch = now().plus(1L, DAYS).getEpochSecond();
@@ -560,7 +561,7 @@ class SubscriptionServiceTest {
     when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
         .thenReturn(List.of(activeStripeSubscription));
 
-    var actual = subject.cancelLatestUserSubscription(user);
+    var actual = subject.cancelLatestUserSubscription(user, END_OF_PERIOD);
 
     // The schedule is not cancelled right away: it is updated to cancel after one billing cycle so
     // the upcoming due payment is still collected.
@@ -576,6 +577,10 @@ class SubscriptionServiceTest {
     @SuppressWarnings("unchecked")
     var updateMetadata = (Map<String, String>) updateParams.getMetadata();
     assertEquals("true", updateMetadata.get("cancel_after_first_invoice"));
+    // Nothing is refunded when the pending phase is trimmed to a single iteration.
+    assertEquals(
+        SubscriptionScheduleUpdateParams.ProrationBehavior.NONE,
+        updateParams.getProrationBehavior());
     verify(userSubscriptionProductServiceMock)
         .endActiveSubscriptionProducts("user_id", Instant.ofEpochSecond(scheduledStartEpoch));
     verify(stripeClientMock, never()).subscriptions();
@@ -599,7 +604,7 @@ class SubscriptionServiceTest {
 
   @SneakyThrows
   @Test
-  void cancel_current_subscription_ok() {
+  void cancel_current_subscription_at_period_end_ok() {
     var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
 
     // No scheduled subscription -> the current running subscription is the one to cancel.
@@ -622,16 +627,172 @@ class SubscriptionServiceTest {
     var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
     when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
 
-    var actual = subject.cancelLatestUserSubscription(user);
+    var actual = subject.cancelLatestUserSubscription(user, END_OF_PERIOD);
 
     var idCaptor = ArgumentCaptor.forClass(String.class);
     var paramsCaptor = ArgumentCaptor.forClass(SubscriptionUpdateParams.class);
     verify(subscriptionServiceMock).update(idCaptor.capture(), paramsCaptor.capture());
     assertEquals("sub_active", idCaptor.getValue());
     assertEquals(true, paramsCaptor.getValue().getCancelAtPeriodEnd());
+    // Nothing is refunded: the already paid period is kept as is.
+    assertEquals(
+        SubscriptionUpdateParams.ProrationBehavior.NONE,
+        paramsCaptor.getValue().getProrationBehavior());
     // The active product is ended at the current period end, not at cancel time.
     verify(userSubscriptionProductServiceMock)
         .endActiveSubscriptionProducts("user_id", Instant.ofEpochSecond(periodEndEpoch));
+    assertNotNull(actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void cancel_current_subscription_immediately_by_default() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of());
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    var periodEndEpoch = now().plusSeconds(3600).getEpochSecond();
+    var activeStripeSubscription = new com.stripe.model.Subscription();
+    activeStripeSubscription.setId("sub_active");
+    activeStripeSubscription.setStatus("active");
+    activeStripeSubscription.setCurrentPeriodStart(now().getEpochSecond());
+    activeStripeSubscription.setCurrentPeriodEnd(periodEndEpoch);
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(activeStripeSubscription));
+
+    var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
+
+    var actual = subject.cancelLatestUserSubscription(user);
+
+    var idCaptor = ArgumentCaptor.forClass(String.class);
+    var paramsCaptor = ArgumentCaptor.forClass(SubscriptionCancelParams.class);
+    verify(subscriptionServiceMock).cancel(idCaptor.capture(), paramsCaptor.capture());
+    assertEquals("sub_active", idCaptor.getValue());
+    assertEquals(false, paramsCaptor.getValue().getProrate());
+    assertEquals(false, paramsCaptor.getValue().getInvoiceNow());
+    verify(subscriptionServiceMock, never())
+        .update(anyString(), any(SubscriptionUpdateParams.class));
+    var endDatetimeCaptor = ArgumentCaptor.forClass(Instant.class);
+    verify(userSubscriptionProductServiceMock)
+        .endActiveSubscriptionProducts(eq("user_id"), endDatetimeCaptor.capture());
+    // The access stops right away instead of lasting until the current period end.
+    assertTrue(endDatetimeCaptor.getValue().isBefore(Instant.ofEpochSecond(periodEndEpoch)));
+    assertNotNull(actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void cancel_scheduled_subscription_immediately_by_default() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+
+    var scheduledStartEpoch = now().plus(1L, DAYS).getEpochSecond();
+    var schedule = someNotStartedSchedule("schedule_id", scheduledStartEpoch, "price_base");
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of(schedule));
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    var activeStripeSubscription = new com.stripe.model.Subscription();
+    activeStripeSubscription.setId("sub_active");
+    activeStripeSubscription.setStatus("active");
+    activeStripeSubscription.setCurrentPeriodStart(now().getEpochSecond());
+    activeStripeSubscription.setCurrentPeriodEnd(now().plusSeconds(3600).getEpochSecond());
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(activeStripeSubscription));
+
+    var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
+
+    var actual = subject.cancelLatestUserSubscription(user);
+
+    // The upcoming phase is dropped instead of being billed one last time.
+    verify(schedule, never()).update(any(SubscriptionScheduleUpdateParams.class));
+    var scheduleCancelCaptor = ArgumentCaptor.forClass(SubscriptionScheduleCancelParams.class);
+    verify(subscriptionScheduleServiceMock)
+        .cancel(eq("schedule_id"), scheduleCancelCaptor.capture());
+    assertEquals(false, scheduleCancelCaptor.getValue().getProrate());
+    assertEquals(false, scheduleCancelCaptor.getValue().getInvoiceNow());
+    verify(subscriptionServiceMock).cancel(eq("sub_active"), any(SubscriptionCancelParams.class));
+    assertNotNull(actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void cancel_all_scheduled_subscriptions_immediately_by_default() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+
+    var earliestStartEpoch = now().plus(1L, DAYS).getEpochSecond();
+    var latestStartEpoch = now().plus(2L, DAYS).getEpochSecond();
+    var earliestSchedule =
+        someNotStartedSchedule("earliest_schedule_id", earliestStartEpoch, "price_base");
+    var latestSchedule =
+        someNotStartedSchedule("latest_schedule_id", latestStartEpoch, "price_upgraded");
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData())
+        .thenReturn(List.of(earliestSchedule, latestSchedule));
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    var activeStripeSubscription = new com.stripe.model.Subscription();
+    activeStripeSubscription.setId("sub_active");
+    activeStripeSubscription.setStatus("active");
+    activeStripeSubscription.setCurrentPeriodStart(now().getEpochSecond());
+    activeStripeSubscription.setCurrentPeriodEnd(now().plusSeconds(3600).getEpochSecond());
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(activeStripeSubscription));
+
+    var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
+
+    var actual = subject.cancelLatestUserSubscription(user);
+
+    // Every pending phase is dropped, not only the earliest one.
+    var scheduleIdCaptor = ArgumentCaptor.forClass(String.class);
+    verify(subscriptionScheduleServiceMock, times(2))
+        .cancel(scheduleIdCaptor.capture(), any(SubscriptionScheduleCancelParams.class));
+    assertEquals(
+        List.of("earliest_schedule_id", "latest_schedule_id"), scheduleIdCaptor.getAllValues());
+    verify(earliestSchedule, never()).update(any(SubscriptionScheduleUpdateParams.class));
+    verify(latestSchedule, never()).update(any(SubscriptionScheduleUpdateParams.class));
+    verify(subscriptionServiceMock).cancel(eq("sub_active"), any(SubscriptionCancelParams.class));
+    assertNotNull(actual);
+  }
+
+  @SneakyThrows
+  @Test
+  void cancel_scheduled_subscription_immediately_without_running_subscription() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+
+    var scheduledStartEpoch = now().plus(1L, DAYS).getEpochSecond();
+    var schedule = someNotStartedSchedule("schedule_id", scheduledStartEpoch, "price_base");
+    when(schedule.getCreated()).thenReturn(now().getEpochSecond());
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of(schedule));
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    // Only the not-started schedule exists: there is no running subscription to cancel.
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of());
+
+    var actual = subject.cancelLatestUserSubscription(user);
+
+    verify(subscriptionScheduleServiceMock)
+        .cancel(eq("schedule_id"), any(SubscriptionScheduleCancelParams.class));
+    verify(userSubscriptionProductServiceMock)
+        .endActiveSubscriptionProducts(eq("user_id"), any(Instant.class));
     assertNotNull(actual);
   }
 
@@ -664,7 +825,7 @@ class SubscriptionServiceTest {
     var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
     when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
 
-    var actual = subject.cancelLatestUserSubscription(user);
+    var actual = subject.cancelLatestUserSubscription(user, END_OF_PERIOD);
 
     var idCaptor = ArgumentCaptor.forClass(String.class);
     verify(subscriptionServiceMock).update(idCaptor.capture(), any(SubscriptionUpdateParams.class));
@@ -730,7 +891,7 @@ class SubscriptionServiceTest {
     var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
     when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
 
-    var actual = subject.cancelLatestUserSubscription(user);
+    var actual = subject.cancelLatestUserSubscription(user, END_OF_PERIOD);
 
     // Falls back to cancel time (a non-null Instant) when the period end is unknown.
     verify(userSubscriptionProductServiceMock)

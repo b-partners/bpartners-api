@@ -1,5 +1,6 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.END_OF_PERIOD;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
@@ -293,7 +294,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     var userSubscriptionBeforeCancellation = subject.getSubscriptionByUser(user);
 
-    var actualUserSubscription = subject.cancelLatestUserSubscription(user);
+    var actualUserSubscription = subject.cancelLatestUserSubscription(user, END_OF_PERIOD);
 
     var oldSubscription = userSubscriptionBeforeCancellation.getLatestSubscription();
     var latestSubscription = actualUserSubscription.getLatestSubscription();

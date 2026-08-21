@@ -22,6 +22,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.CreditOperationInvoiceRequested;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.credit.CreditPack;
 import app.bpartners.api.model.credit.CreditPurchase;
@@ -38,9 +40,11 @@ import app.bpartners.api.service.credit.CreditLedgerService;
 import app.bpartners.api.service.credit.CreditPurchaseService;
 import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.subscription.StripeCreditPurchaseService;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 class CreditPurchaseServiceTest {
   CreditPurchaseRepository creditPurchaseRepository = mock(CreditPurchaseRepository.class);
@@ -48,6 +52,7 @@ class CreditPurchaseServiceTest {
   CreditService creditService = mock(CreditService.class);
   CreditLedgerService creditLedgerService = mock(CreditLedgerService.class);
   StripeCreditPurchaseService stripeCreditPurchaseService = mock(StripeCreditPurchaseService.class);
+  EventProducer eventProducer = mock(EventProducer.class);
 
   CreditPurchaseService subject =
       new CreditPurchaseService(
@@ -55,7 +60,8 @@ class CreditPurchaseServiceTest {
           creditTransactionRepository,
           creditService,
           creditLedgerService,
-          stripeCreditPurchaseService);
+          stripeCreditPurchaseService,
+          eventProducer);
 
   User user = User.builder().id("user_id").userSubscriptionId("cus_1").build();
   User userWithCard =
@@ -546,5 +552,126 @@ class CreditPurchaseServiceTest {
 
     assertEquals("tx_1", actual.getCreditTransactionId());
     verify(creditLedgerService, times(1)).append(any());
+  }
+
+  @Test
+  void complete_requests_the_invoice_only_once_the_purchase_is_saved() {
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(Optional.of(somePendingPurchase()));
+
+    subject.complete("purchase_1").orElseThrow();
+
+    var inOrder = Mockito.inOrder(creditLedgerService, creditPurchaseRepository, eventProducer);
+    inOrder.verify(creditLedgerService).append(any());
+    inOrder.verify(creditPurchaseRepository).save(any());
+    inOrder.verify(eventProducer).accept(any());
+  }
+
+  @Test
+  void complete_requests_the_invoice_for_the_appended_transaction() {
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(Optional.of(somePendingPurchase()));
+
+    subject.complete("purchase_1").orElseThrow();
+
+    assertEquals("tx_1", requestedInvoiceTransaction().getId());
+    assertEquals("purchase_1", requestedInvoiceTransaction().getCreditPurchaseId());
+    assertEquals(PURCHASE, requestedInvoiceTransaction().getType());
+    assertEquals(CREDIT, requestedInvoiceTransaction().getMovementType());
+  }
+
+  @Test
+  void complete_requests_the_invoice_for_a_transaction_already_appended() {
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(Optional.of(somePendingPurchase()));
+    when(creditTransactionRepository.findFirstByCreditPurchaseId("purchase_1"))
+        .thenReturn(Optional.of(CreditTransaction.builder().id("tx_already").build()));
+
+    subject.complete("purchase_1").orElseThrow();
+
+    assertEquals("tx_already", requestedInvoiceTransaction().getId());
+  }
+
+  @Test
+  void submit_charging_the_card_requests_the_invoice_after_saving_the_purchase() {
+    when(creditPurchaseRepository.findById("purchase_1")).thenReturn(Optional.empty());
+    when(stripeCreditPurchaseService.chargeOffSession(eq("cus_1"), any()))
+        .thenReturn(CreditPurchaseCharge.succeeded("pi_1"));
+
+    subject.submit(userWithCard, customSubmission(7L));
+
+    var inOrder = Mockito.inOrder(creditPurchaseRepository, eventProducer);
+    inOrder.verify(creditPurchaseRepository).save(any());
+    inOrder.verify(eventProducer).accept(any());
+    assertEquals("tx_1", requestedInvoiceTransaction().getId());
+  }
+
+  @Test
+  void submit_redirecting_to_checkout_requests_no_invoice() {
+    when(creditPurchaseRepository.findById("purchase_1")).thenReturn(Optional.empty());
+    when(stripeCreditPurchaseService.chargeOffSession(eq("cus_1"), any()))
+        .thenReturn(CreditPurchaseCharge.failed("authentication_required"));
+
+    subject.submit(userWithCard, customSubmission(7L));
+
+    verify(eventProducer, never()).accept(any());
+  }
+
+  @Test
+  void complete_an_already_completed_purchase_requests_no_invoice() {
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(
+            Optional.of(
+                somePendingPurchase().toBuilder()
+                    .status(COMPLETED)
+                    .creditTransactionId("tx_1")
+                    .build()));
+
+    subject.complete("purchase_1").orElseThrow();
+
+    verify(eventProducer, never()).accept(any());
+  }
+
+  @Test
+  void complete_an_unknown_purchase_requests_no_invoice() {
+    when(creditPurchaseRepository.findById("unknown")).thenReturn(Optional.empty());
+
+    assertTrue(subject.complete("unknown").isEmpty());
+
+    verify(eventProducer, never()).accept(any());
+  }
+
+  @Test
+  void two_paid_webhooks_for_the_same_purchase_request_a_single_invoice() {
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(Optional.of(somePendingPurchase()));
+
+    var fromPaymentIntent = subject.complete("purchase_1").orElseThrow();
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(Optional.of(fromPaymentIntent));
+    var fromCheckoutSession = subject.complete("purchase_1").orElseThrow();
+
+    assertEquals(COMPLETED, fromPaymentIntent.getStatus());
+    assertEquals(fromPaymentIntent, fromCheckoutSession);
+    verify(creditLedgerService, times(1)).append(any());
+    verify(creditPurchaseRepository, times(1)).save(any());
+    verify(eventProducer, times(1)).accept(any());
+  }
+
+  private CreditPurchase somePendingPurchase() {
+    return CreditPurchase.builder()
+        .id("purchase_1")
+        .userId("user_id")
+        .type(CUSTOM)
+        .credits(7L)
+        .status(PENDING)
+        .build();
+  }
+
+  private CreditTransaction requestedInvoiceTransaction() {
+    var eventsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducer).accept(eventsCaptor.capture());
+    return ((CreditOperationInvoiceRequested) eventsCaptor.getValue().getFirst())
+        .getCreditTransaction();
   }
 }

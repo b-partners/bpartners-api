@@ -1,6 +1,7 @@
 package app.bpartners.api.model.credit;
 
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDIT;
+import static app.bpartners.api.model.credit.CreditTransactionType.PURCHASE;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import jakarta.persistence.Column;
@@ -74,6 +75,10 @@ public class CreditTransaction {
 
   public boolean isCredit() {
     return CREDIT.equals(movementType);
+  }
+
+  public boolean isPurchaseCredit() {
+    return isCredit() && PURCHASE.equals(type);
   }
 
   public boolean isExpiredAt(Instant when) {

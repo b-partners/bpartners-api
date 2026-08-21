@@ -7,6 +7,8 @@ import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDI
 import static app.bpartners.api.model.credit.CreditTransactionType.PURCHASE;
 import static java.time.Instant.now;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.CreditOperationInvoiceRequested;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.credit.CreditPack;
 import app.bpartners.api.model.credit.CreditPurchase;
@@ -19,6 +21,7 @@ import app.bpartners.api.model.exception.ConflictException;
 import app.bpartners.api.repository.jpa.CreditPurchaseRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.service.subscription.StripeCreditPurchaseService;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +37,7 @@ public class CreditPurchaseService {
   private final CreditService creditService;
   private final CreditLedgerService creditLedgerService;
   private final StripeCreditPurchaseService stripeCreditPurchaseService;
+  private final EventProducer eventProducer;
 
   public CreditPurchase submit(User user, CreditPurchaseSubmission submission) {
     var alreadySubmitted = creditPurchaseRepository.findById(submission.purchaseId());
@@ -86,34 +90,38 @@ public class CreditPurchaseService {
   }
 
   private CreditPurchase completed(CreditPurchase creditPurchase) {
-    var creditTransactionId =
+    var creditTransaction =
         creditTransactionRepository
             .findFirstByCreditPurchaseId(creditPurchase.getId())
-            .map(CreditTransaction::getId)
-            .orElseGet(() -> grantedCreditsTransactionId(creditPurchase));
-    return creditPurchaseRepository.save(
-        creditPurchase.toBuilder()
-            .status(COMPLETED)
-            .completionDatetime(
-                creditPurchase.getCompletionDatetime() == null
-                    ? now()
-                    : creditPurchase.getCompletionDatetime())
-            .creditTransactionId(creditTransactionId)
-            .build());
+            .orElseGet(() -> grantedCreditsTransaction(creditPurchase));
+    var completed =
+        creditPurchaseRepository.save(
+            creditPurchase.toBuilder()
+                .status(COMPLETED)
+                .completionDatetime(
+                    creditPurchase.getCompletionDatetime() == null
+                        ? now()
+                        : creditPurchase.getCompletionDatetime())
+                .creditTransactionId(creditTransaction.getId())
+                .build());
+    eventProducer.accept(
+        List.of(
+            CreditOperationInvoiceRequested.builder()
+                .creditTransaction(creditTransaction)
+                .build()));
+    return completed;
   }
 
-  private String grantedCreditsTransactionId(CreditPurchase creditPurchase) {
-    return creditLedgerService
-        .append(
-            CreditTransaction.builder()
-                .userId(creditPurchase.getUserId())
-                .type(PURCHASE)
-                .movementType(CREDIT)
-                .credits(creditPurchase.getCredits())
-                .label(creditPurchase.paymentLabel())
-                .creditPurchaseId(creditPurchase.getId())
-                .build())
-        .getId();
+  private CreditTransaction grantedCreditsTransaction(CreditPurchase creditPurchase) {
+    return creditLedgerService.append(
+        CreditTransaction.builder()
+            .userId(creditPurchase.getUserId())
+            .type(PURCHASE)
+            .movementType(CREDIT)
+            .credits(creditPurchase.getCredits())
+            .label(creditPurchase.paymentLabel())
+            .creditPurchaseId(creditPurchase.getId())
+            .build());
   }
 
   private CreditPurchase alreadySubmittedOrConflict(

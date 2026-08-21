@@ -13,7 +13,6 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
-import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
@@ -21,11 +20,9 @@ import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.StripeConf;
-import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
-import app.bpartners.api.repository.jpa.UserStripeCustomerEmailCorrespondenceJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
-import app.bpartners.api.service.customer.UserCustomerConverter;
+import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.ReferenceGenerator;
 import app.bpartners.api.service.subscription.StripeFactory;
@@ -59,17 +56,14 @@ public class MonthlySubscriptionInvoiceRequestedService
     implements Consumer<MonthlySubscriptionInvoiceRequested> {
   private static final int VAT_PERCENT = 2000; // basis points of 10000 : 2000 = 20%
   private final InvoiceService invoiceService;
-  private final CustomerRepository customerRepository;
   private final SubscriptionService subscriptionService;
   private final CustomDateFormatter customDateFormatter;
   private final TemporalUtils temporalUtils;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
-  private final UserCustomerConverter userCustomerConverter;
+  private final SubscriptionCustomerResolver subscriptionCustomerResolver;
   private final StripeConf stripeConf;
   private final StripeFactory stripeFactory;
   private final StripeInvoiceService stripeInvoiceService;
-  private final UserStripeCustomerEmailCorrespondenceJpaRepository
-      userStripeCustomerEmailCorrespondenceJpaRepository;
   private final SubscriptionInvoiceTitleComputer subscriptionInvoiceTitleComputer;
   private final SubscriptionProductRepository subscriptionProductRepository;
 
@@ -177,7 +171,7 @@ public class MonthlySubscriptionInvoiceRequestedService
   private Invoice computeMonthlySusbcriptionInvoice(
       User userToCredit, User userToDebit, UserSubscription userSubscription)
       throws StripeException {
-    var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
+    var customerToDebit = subscriptionCustomerResolver.apply(userToCredit, userToDebit);
     var variableAnalysisConsumptionUsage = getVariableAnalysisConsumptionUsage(userToDebit);
 
     var invoiceId = randomUUID().toString();
@@ -236,51 +230,6 @@ public class MonthlySubscriptionInvoiceRequestedService
           }
         });
     return variableConsumptionUsage.get();
-  }
-
-  private Customer computeCustomerToDebit(User userToCredit, User userToDebit) {
-    var optionalCustomerToDebitFromOriginalUserToDebitEmail =
-        customerRepository
-            .findByIdUserAndCriteria(
-                userToCredit.getId(),
-                null,
-                null,
-                userToDebit.getEmail(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                CustomerStatus.ENABLED,
-                MIN_PAGE,
-                MAX_SIZE)
-            .stream()
-            .findAny();
-    if (optionalCustomerToDebitFromOriginalUserToDebitEmail.isEmpty()) {
-      var optionalUserStripeCustomerEmailCorrespondence =
-          userStripeCustomerEmailCorrespondenceJpaRepository.findByUserId(userToDebit.getId());
-      if (optionalUserStripeCustomerEmailCorrespondence.isPresent()) {
-        return customerRepository
-            .findByIdUserAndCriteria(
-                userToCredit.getId(),
-                null,
-                null,
-                optionalUserStripeCustomerEmailCorrespondence.get().getEmail(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                CustomerStatus.ENABLED,
-                MIN_PAGE,
-                MAX_SIZE)
-            .stream()
-            .findAny()
-            .orElseGet(() -> userCustomerConverter.apply(userToDebit));
-      }
-    }
-    return optionalCustomerToDebitFromOriginalUserToDebitEmail.orElseGet(
-        () -> userCustomerConverter.apply(userToDebit));
   }
 
   private long vatPercentOf(SubscriptionProduct subscriptionProduct) {

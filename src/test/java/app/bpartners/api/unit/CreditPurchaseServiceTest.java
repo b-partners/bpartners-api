@@ -658,6 +658,67 @@ class CreditPurchaseServiceTest {
     verify(eventProducer, times(1)).accept(any());
   }
 
+  @Test
+  void resubmitting_a_completed_purchase_without_invoice_requests_it_again() {
+    var completedWithoutInvoice =
+        somePendingPurchase().toBuilder()
+            .status(COMPLETED)
+            .creditTransactionId("tx_1")
+            .invoiceId(null)
+            .build();
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(Optional.of(completedWithoutInvoice));
+    when(creditTransactionRepository.findFirstByCreditPurchaseId("purchase_1"))
+        .thenReturn(Optional.of(CreditTransaction.builder().id("tx_1").build()));
+
+    var actual = subject.submit(userWithCard, customSubmission(7L));
+
+    assertEquals(completedWithoutInvoice, actual);
+    assertEquals("tx_1", requestedInvoiceTransaction().getId());
+    verify(creditLedgerService, never()).append(any());
+    verify(creditPurchaseRepository, never()).save(any());
+    verify(stripeCreditPurchaseService, never()).chargeOffSession(any(), any());
+  }
+
+  @Test
+  void resubmitting_an_already_invoiced_purchase_requests_nothing() {
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(
+            Optional.of(
+                somePendingPurchase().toBuilder()
+                    .status(COMPLETED)
+                    .creditTransactionId("tx_1")
+                    .invoiceId("invoice_1")
+                    .build()));
+
+    subject.submit(userWithCard, customSubmission(7L));
+
+    verify(eventProducer, never()).accept(any());
+  }
+
+  @Test
+  void resubmitting_a_pending_purchase_requests_nothing() {
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(Optional.of(somePendingPurchase()));
+
+    subject.submit(userWithCard, customSubmission(7L));
+
+    verify(eventProducer, never()).accept(any());
+    verify(creditTransactionRepository, never()).findFirstByCreditPurchaseId(any());
+  }
+
+  @Test
+  void resubmitting_a_completed_purchase_without_transaction_requests_nothing() {
+    when(creditPurchaseRepository.findById("purchase_1"))
+        .thenReturn(Optional.of(somePendingPurchase().toBuilder().status(COMPLETED).build()));
+    when(creditTransactionRepository.findFirstByCreditPurchaseId("purchase_1"))
+        .thenReturn(Optional.empty());
+
+    subject.submit(userWithCard, customSubmission(7L));
+
+    verify(eventProducer, never()).accept(any());
+  }
+
   private CreditPurchase somePendingPurchase() {
     return CreditPurchase.builder()
         .id("purchase_1")

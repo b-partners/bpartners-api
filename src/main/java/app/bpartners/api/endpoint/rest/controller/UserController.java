@@ -210,10 +210,13 @@ public class UserController {
   }
 
   @PostMapping("/users/{uId}/subscriptionCancel")
-  public User cancelUserSubscription(@PathVariable String uId) {
+  public User cancelUserSubscription(
+      @PathVariable String uId,
+      @RequestParam(name = "cancellationType", required = false)
+          SubscriptionCancellationType cancellationType) {
     var user = service.getUserById(uId);
 
-    var userSubscription = subscriptionService.cancelLatestUserSubscription(user);
+    var userSubscription = subscriptionService.cancelLatestUserSubscription(user, cancellationType);
 
     return mapper.toRest(userSubscription.getUser());
   }

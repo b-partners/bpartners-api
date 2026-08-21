@@ -1,5 +1,7 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.END_OF_PERIOD;
+import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.IMMEDIATE;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
@@ -16,6 +18,7 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
@@ -64,6 +67,7 @@ public class SubscriptionService {
   private static final String CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY =
       "cancel_after_first_invoice";
   private static final String STRIPE_YEARLY_INTERVAL = "year";
+  private static final SubscriptionCancellationType DEFAULT_CANCELLATION_TYPE = IMMEDIATE;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -683,6 +687,12 @@ public class SubscriptionService {
 
   @SneakyThrows
   public UserSubscription cancelLatestUserSubscription(User user) {
+    return cancelLatestUserSubscription(user, null);
+  }
+
+  @SneakyThrows
+  public UserSubscription cancelLatestUserSubscription(
+      User user, SubscriptionCancellationType cancellationType) {
     if (user.getUserSubscriptionId() == null) {
       throw new IllegalArgumentException(
           "User.userSubscriptionId is required to cancel subscription, "
@@ -690,10 +700,12 @@ public class SubscriptionService {
               + user.getId()
               + " does not have userSubscriptionId");
     }
+    var effectiveCancellationType =
+        cancellationType == null ? DEFAULT_CANCELLATION_TYPE : cancellationType;
 
     var activeScheduledSubscriptions = getActiveSubscriptionSchedules(user.getUserSubscriptionId());
 
-    if (!activeScheduledSubscriptions.isEmpty()) {
+    if (!activeScheduledSubscriptions.isEmpty() && effectiveCancellationType == END_OF_PERIOD) {
       var earliestScheduledStartDate = Long.MAX_VALUE;
       for (var scheduledSubscription : activeScheduledSubscriptions) {
         var scheduledStartDate = cancelScheduleAfterUpcomingPayment(scheduledSubscription);
@@ -707,10 +719,11 @@ public class SubscriptionService {
       return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
     }
 
-    var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
-    if (subscriptions.isEmpty()) {
-      throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");
+    for (var scheduledSubscription : activeScheduledSubscriptions) {
+      cancelScheduleImmediately(scheduledSubscription);
     }
+
+    var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
     var cancellableStripeSubscriptionIds =
         stripeSubscriptionService
             .getStripeSubscriptionsFromStripeCustomerId(user.getUserSubscriptionId())
@@ -726,6 +739,15 @@ public class SubscriptionService {
             .filter(
                 subscription -> cancellableStripeSubscriptionIds.contains(subscription.getE2Id()))
             .toList();
+    if (activeSubscriptions.isEmpty() && !activeScheduledSubscriptions.isEmpty()) {
+      userSubscriptionProductService.endActiveSubscriptionProducts(user.getId(), now());
+
+      var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
+      return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
+    }
+    if (subscriptions.isEmpty()) {
+      throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");
+    }
     if (activeSubscriptions.isEmpty()) {
       throw new IllegalStateException(
           "Only active subscription can be cancelled but none of the "
@@ -733,11 +755,22 @@ public class SubscriptionService {
               + " subscription(s) is active");
     }
     for (var activeSubscription : activeSubscriptions) {
-      stripeClient
-          .subscriptions()
-          .update(
-              activeSubscription.getE2Id(),
-              SubscriptionUpdateParams.builder().setCancelAtPeriodEnd(true).build());
+      if (effectiveCancellationType == END_OF_PERIOD) {
+        stripeClient
+            .subscriptions()
+            .update(
+                activeSubscription.getE2Id(),
+                SubscriptionUpdateParams.builder()
+                    .setCancelAtPeriodEnd(true)
+                    .setProrationBehavior(SubscriptionUpdateParams.ProrationBehavior.NONE)
+                    .build());
+      } else {
+        stripeClient
+            .subscriptions()
+            .cancel(
+                activeSubscription.getE2Id(),
+                SubscriptionCancelParams.builder().setProrate(false).setInvoiceNow(false).build());
+      }
     }
     var latestSubscription =
         activeSubscriptions.stream()
@@ -745,12 +778,27 @@ public class SubscriptionService {
             .toList()
             .getFirst();
     var periodEnd =
-        latestSubscription.getEndDatetime() != null ? latestSubscription.getEndDatetime() : now();
+        effectiveCancellationType == END_OF_PERIOD && latestSubscription.getEndDatetime() != null
+            ? latestSubscription.getEndDatetime()
+            : now();
 
     userSubscriptionProductService.endActiveSubscriptionProducts(user.getId(), periodEnd);
 
     var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
     return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
+  }
+
+  private void cancelScheduleImmediately(SubscriptionSchedule scheduledSubscription)
+      throws StripeException {
+    stripeClient
+        .subscriptionSchedules()
+        .cancel(
+            scheduledSubscription.getId(),
+            SubscriptionScheduleCancelParams.builder()
+                .setProrate(false)
+                .setInvoiceNow(false)
+                .build());
+    log.info("Cancelled scheduled subscription {} immediately", scheduledSubscription.getId());
   }
 
   private long cancelScheduleAfterUpcomingPayment(SubscriptionSchedule scheduledSubscription)
@@ -775,6 +823,7 @@ public class SubscriptionService {
                     .setIterations(1L)
                     .build())
             .putMetadata(CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY, "true")
+            .setProrationBehavior(SubscriptionScheduleUpdateParams.ProrationBehavior.NONE)
             .build());
     return scheduledStartDate;
   }

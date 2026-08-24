@@ -1,6 +1,7 @@
 package app.bpartners.api.service.annotation;
 
-import app.bpartners.api.service.annotation.export.CompressionParameters;
+import static app.bpartners.api.service.annotation.utils.ImageUriUtils.toJpegCompatible;
+
 import app.bpartners.api.service.annotation.factory.CompressionParametersFactory;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -10,14 +11,16 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.stereotype.Component;
 
 @Component
 @Getter
 @RequiredArgsConstructor
+@Slf4j
 public class ImageCompressor {
-  private static final int DEFAULT_IMAGE_TARGET_SIZE = 100 * 1024; // 100 KB
+  private static final int DEFAULT_IMAGE_TARGET_SIZE = 200 * 1024; // 200 KB
   private static final int DEFAULT_MAX_IMAGE_WIDTH = 1180;
   private static final int DEFAULT_MAX_IMAGE_HEIGHT = 1180;
   private static final String IMAGE_COMPRESSION_FORMAT = "jpg";
@@ -53,7 +56,16 @@ public class ImageCompressor {
   }
 
   private File compressPNGFile(File pngFile) {
-    CompressionParameters params = getCompressionParameters(pngFile);
+    CompressionParameters params;
+    try {
+      params = getCompressionParameters(pngFile);
+    } catch (IllegalArgumentException e) {
+      log.warn(
+          "Unable to compress PNG file {}, keeping original. {}",
+          pngFile.getName(),
+          e.getMessage());
+      return pngFile;
+    }
 
     try {
       Thumbnails.of(pngFile).size(params.targetWidth(), params.targetHeight()).toFile(pngFile);
@@ -66,15 +78,22 @@ public class ImageCompressor {
   }
 
   public BufferedImage compressImage(BufferedImage originalImage) {
+    CompressionParameters params;
     try {
-      CompressionParameters params =
+      params =
           CompressionParametersFactory.from(
               originalImage,
               IMAGE_COMPRESSION_FORMAT,
               imageTargetSize,
               maxImageWidth,
               maxImageHeight);
+    } catch (IllegalArgumentException e) {
+      log.warn(
+          "Unable to compute compression parameters, keeping original image. {}", e.getMessage());
+      return originalImage;
+    }
 
+    try {
       int attempts = 0;
       long currentSize = params.originalSize();
       float currentQuality = params.quality();
@@ -104,9 +123,18 @@ public class ImageCompressor {
   }
 
   private File compressImage(File originalImage) {
+    CompressionParameters params;
     try {
-      CompressionParameters params = getCompressionParameters(originalImage);
+      params = getCompressionParameters(originalImage);
+    } catch (IllegalArgumentException e) {
+      log.warn(
+          "Unable to compute compression parameters for {}, keeping original image. {}",
+          originalImage.getName(),
+          e.getMessage());
+      return originalImage;
+    }
 
+    try {
       int attempts = 0;
       long currentSize = params.originalSize();
       float currentQuality = params.quality();
@@ -151,11 +179,7 @@ public class ImageCompressor {
   }
 
   private BufferedImage convertToJPEGCompatibleType(BufferedImage image) {
-    BufferedImage compatible =
-        new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-    compatible.getGraphics().drawImage(image, 0, 0, null);
-
-    return compatible;
+    return toJpegCompatible(image);
   }
 
   private long getImageSizeBytes(BufferedImage image) throws IOException {

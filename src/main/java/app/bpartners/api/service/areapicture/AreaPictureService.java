@@ -51,6 +51,25 @@ public class AreaPictureService {
         .toList();
   }
 
+  // Intentionally skips mapper::toDomain: that mapper calls the GeoData Imagery API per picture,
+  // and callers of these two methods only need id/idProspect (used to narrow down annotations by
+  // area picture, not to display picture data).
+  public List<AreaPicture> findAllByIdUser(String userId) {
+    return jpaRepository.findAllByIdUser(userId).stream()
+        .map(
+            entity ->
+                AreaPicture.builder().id(entity.getId()).idProspect(entity.getIdProspect()).build())
+        .toList();
+  }
+
+  public List<AreaPicture> findAllByAddress(String userId, String address) {
+    return jpaRepository.findAllByIdUserAndAddressContainingIgnoreCase(userId, address).stream()
+        .map(
+            entity ->
+                AreaPicture.builder().id(entity.getId()).idProspect(entity.getIdProspect()).build())
+        .toList();
+  }
+
   public AreaPicture findBy(String userId, String id) {
     var domain =
         mapper.toDomain(

@@ -11,8 +11,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Transform {
   private final IntXY min;
+  private final IntXY max;
   private final IntXY offset;
   private final double scale;
+
+  @Builder.Default private final boolean flipY = true;
+  @Builder.Default private final boolean flipX = false;
 
   public Coordinates apply(Coordinates coordinates) {
     var allX = coordinates.allX();
@@ -25,8 +29,15 @@ public class Transform {
       var x = allX[i];
       var y = allY[i];
 
-      int nx = (int) Math.round((x - min.x()) * scale + offset.x());
-      int ny = (int) Math.round((y - min.y()) * scale + offset.y());
+      int nx =
+          flipX
+              ? (int) Math.round((max.x() - x) * scale + offset.x())
+              : (int) Math.round((x - min.x()) * scale + offset.x());
+
+      int ny =
+          flipY
+              ? (int) Math.round((max.y() - y) * scale + offset.y())
+              : (int) Math.round((y - min.y()) * scale + offset.y());
 
       resultAllX[i] = nx;
       resultAllY[i] = ny;
@@ -36,6 +47,16 @@ public class Transform {
   }
 
   public static Transform from(Coordinates polygon, int contentSize, int targetSize) {
+    return yFlippedFrom(polygon, contentSize, targetSize, true);
+  }
+
+  public static Transform yFlippedFrom(
+      Coordinates polygon, int contentSize, int targetSize, boolean flipY) {
+    return from(polygon, contentSize, targetSize, flipY, false);
+  }
+
+  public static Transform from(
+      Coordinates polygon, int contentSize, int targetSize, boolean flipY, boolean flipX) {
     var allX = polygon.allX();
     var allY = polygon.allY();
 
@@ -58,7 +79,10 @@ public class Transform {
     return Transform.builder()
         .scale(scale)
         .min(new IntXY(minX, minY))
+        .max(new IntXY(maxX, maxY))
         .offset(new IntXY(paddingX, paddingY))
+        .flipY(flipY)
+        .flipX(flipX)
         .build();
   }
 }

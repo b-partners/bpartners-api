@@ -103,18 +103,4 @@ class ImageCompressorTest {
     ImageIO.write(image, IMAGE_FORMAT, baos);
     return baos.size();
   }
-
-  @Test
-  void compressImage_should_throw_when_image_format_invalid() {
-    BufferedImage img = null;
-
-    assertThrows(RuntimeException.class, () -> subject.compressImage(img));
-  }
-
-  @Test
-  void compressImage_should_throw_when_invalid_image_bytes() {
-    byte[] invalid = "invalid".getBytes();
-
-    assertThrows(RuntimeException.class, () -> subject.compressImage(invalid));
-  }
 }

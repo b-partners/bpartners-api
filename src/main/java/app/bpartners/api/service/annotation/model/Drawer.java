@@ -1,8 +1,8 @@
 package app.bpartners.api.service.annotation.model;
 
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationMeasurement;
 import app.bpartners.api.model.annotation.IntXY;
-import app.bpartners.api.service.annotation.AreaAnnotation3DPan;
-import app.bpartners.api.service.annotation.AreaAnnotationMeasurement;
 import app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -20,7 +20,7 @@ public class Drawer {
   public static void drawStrokePolygon(
       Graphics2D g2d,
       Transform transform,
-      AreaAnnotation3DPan pan,
+      ExportAreaPictureAnnotation3DPan pan,
       float strokeWidthMultiplier,
       boolean oriented) {
     List<RoofSlopBoundary> boundaries = RoofSlopeBoundaryFactory.create(transform, pan, oriented);
@@ -144,7 +144,7 @@ public class Drawer {
       Graphics2D g2d,
       MeasurementConf conf,
       Coordinates polygon,
-      List<AreaAnnotationMeasurement> measurements,
+      List<ExportAreaPictureAnnotationMeasurement> measurements,
       int imageWidth,
       int imageHeight,
       boolean showUnit) {
@@ -157,10 +157,10 @@ public class Drawer {
 
     for (int i = 0; i < numPoints; i++) {
       var measurement = measurements.get(i);
-      if (!measurement.invisible()) {
-        var measurementText = String.format("%.2f", measurement.value());
+      if (!measurement.getIsInvisible()) {
+        var measurementText = String.format("%.2f", measurement.getValue());
         if (showUnit) {
-          measurementText += measurement.unit();
+          measurementText += measurement.getUnit();
         }
         var fontMetrics = g2d.getFontMetrics(largerFont);
 

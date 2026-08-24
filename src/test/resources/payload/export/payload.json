@@ -1,0 +1,839 @@
+{
+  "imageUrl": "https://api.dashboard.birdia.fr/accounts/76aa0457-a370-4df8-b8f9-105a8fe16375/files/af8234aa-ca5f-4cf1-ba6e-8ea179caec6a/raw?accessToken=eyJraWQiOiJWRnhYSXEzTHczT2p3emFkS3ZMUm5oSWptS1VuT1lScHFuNmZBbWNPTjZFPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJhMzc1ODRlYi1iYjMzLTQxYjUtYjBlMi0yOWY5ZDJiOWY2ZGEiLCJpc3MiOiJodHRwczovL2NvZ25pdG8taWRwLmV1LXdlc3QtMy5hbWF6b25hd3MuY29tL2V1LXdlc3QtM19GUktwNlkzR3giLCJjb2duaXRvOnVzZXJuYW1lIjoiYTM3NTg0ZWItYmIzMy00MWI1LWIwZTItMjlmOWQyYjlmNmRhIiwib3JpZ2luX2p0aSI6IjI0NTNkYjVlLTE4ZTQtNDlhMy05NmQ1LTAxN2Q3NmRkZDhmZiIsImF1ZCI6IjFyb2Y4M3A0NGs4M2w1bGM4Z2ZrNnNidGFtIiwiZXZlbnRfaWQiOiJmMWQ4OTIyYi1lNThmLTRiYTQtYWJiYy0xM2RhM2FlMzQwZWUiLCJ0b2tlbl91c2UiOiJpZCIsImF1dGhfdGltZSI6MTc4MTU5Njc0NSwicGhvbmVfbnVtYmVyIjoiKzMzNjMxNDU3MTE5IiwiZXhwIjoxNzgxNjAwMzQ1LCJpYXQiOjE3ODE1OTY3NDUsImp0aSI6IjM4MWYyNWY2LTViOTUtNGJjMC1iZjE5LTAyOWYyNDk3MjE5NyIsImVtYWlsIjoibG91QGJwYXJ0bmVycy5hcHAifQ.C52cpw8AzhbfKFuuEQE2q-Y-_-x_vIQwssYvjr3Fo1Oz29rCuEsQ4JXpHYU062Uy55iNxf8o7KXm2P8qsWM3Yk_YxYBrq3qBAR9pt9YJG4ZP8qU_u4gLNyHQ2ESgiSV549F7MrEqAunwgz-sXB0a4jylIpwOZbKZg-Lsvc99QQGHEsOgQiWbZoYpVn-j7g6Qpxrr-xW5Z6kd9AzqhOkGouRfE6zacCqMWx2rQJyOHGFZs5jGE5-7-YDzNHn0ojk0mQDafR-nGFv4xQKRMCifR-p1zLWV9AjSWsCxFjZ5EQXswOf3fnTL0671J9g5MlKU5E3wyBJmpEu1kXaZwAm3Ig&fileType=ATTACHMENT",
+  "address": "9 Impasse Beauregard, 86370 Vivonne, France",
+  "globalRateType": "A",
+  "globalRateValue": 0,
+  "llm": null,
+  "annotations": [
+    {
+      "polygon": {
+        "fillColor": "#00000000",
+        "strokeColor": "#000000",
+        "points": [
+          { "x": 425.1067961165047, "y": 378.990291262136 },
+          { "x": 350.3495145631066, "y": 312.0000000000001 },
+          { "x": 307.63106796116494, "y": 358.60194174757294 },
+          { "x": 427.04854368932024, "y": 460.54368932038847 },
+          { "x": 425.1067961165047, "y": 378.990291262136 }
+        ],
+        "id": "9036cc5b-1003-4daf-9b6e-47188c6d0493",
+        "measurements": [
+          {
+            "position": { "x": 1299.514563106796, "y": 880.0970873786407 },
+            "unity": "m",
+            "value": 5.2,
+            "polygonId": "9036cc5b-1003-4daf-9b6e-47188c6d0493",
+            "isInvisible": false
+          },
+          {
+            "position": { "x": 1240.7766990291261, "y": 869.9029126213593 },
+            "unity": "m",
+            "value": 3.2,
+            "polygonId": "9036cc5b-1003-4daf-9b6e-47188c6d0493",
+            "isInvisible": false
+          },
+          {
+            "position": { "x": 1279.126213592233, "y": 944.1747572815534 },
+            "unity": "m",
+            "value": 8,
+            "polygonId": "9036cc5b-1003-4daf-9b6e-47188c6d0493",
+            "isInvisible": false
+          },
+          {
+            "position": { "x": 1337.8640776699028, "y": 954.3689320388349 },
+            "unity": "m",
+            "value": 4.2,
+            "polygonId": "9036cc5b-1003-4daf-9b6e-47188c6d0493",
+            "isInvisible": false
+          }
+        ],
+        "surface": 21.06
+      },
+      "labelName": "Polygon A",
+      "fillColor": "#00000000",
+      "strokeColor": "#000000",
+      "measurements": [
+        { "unit": "m", "value": 5.2, "isInvisible": false },
+        { "unit": "m", "value": 3.2, "isInvisible": false },
+        { "unit": "m", "value": 8, "isInvisible": false },
+        { "unit": "m", "value": 4.2, "isInvisible": false }
+      ],
+      "infos": [
+        { "label": "Surface", "value": "21.06m²" },
+        { "label": "Type", "value": "Pan" },
+        { "label": "Revêtement", "value": "Non renseigné" },
+        { "label": "Pente", "value": "Non renseigné" },
+        { "label": "Usure", "value": "Non renseigné" },
+        { "label": "Taux d'usure", "value": "Non renseigné" },
+        { "label": "Taux de moisissure", "value": "Non renseigné" },
+        { "label": "Taux d'humidité", "value": "Non renseigné" },
+        { "label": "Obstacle", "value": "Non renseigné" },
+        { "label": "Commentaire", "value": "Non renseigné" },
+        { "label": "key", "value": "Polygon A" }
+      ]
+    },
+    {
+      "polygon": {
+        "fillColor": "#E91E6340",
+        "strokeColor": "#E91E63",
+        "points": [
+          { "x": 335.7864077669901, "y": 478.990291262136 },
+          { "x": 427.04854368932024, "y": 462.485436893204 },
+          { "x": 309.5728155339805, "y": 357.6310679611652 },
+          { "x": 262.97087378640776, "y": 413.94174757281564 },
+          { "x": 335.7864077669901, "y": 478.990291262136 }
+        ],
+        "id": "409debae-0e8b-4470-9929-cbf729c7ef03",
+        "measurements": [
+          {
+            "position": { "x": 1293.2038834951454, "y": 1005.3398058252427 },
+            "unity": "m",
+            "value": 4.8,
+            "polygonId": "409debae-0e8b-4470-9929-cbf729c7ef03",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1280.0970873786407, "y": 944.6601941747573 },
+            "unity": "m",
+            "value": 8,
+            "polygonId": "409debae-0e8b-4470-9929-cbf729c7ef03",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1198.0582524271845, "y": 920.3883495145631 },
+            "unity": "m",
+            "value": 3.8,
+            "polygonId": "409debae-0e8b-4470-9929-cbf729c7ef03",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1211.1650485436894, "y": 981.0679611650485 },
+            "unity": "m",
+            "value": 5,
+            "polygonId": "409debae-0e8b-4470-9929-cbf729c7ef03",
+            "isInvisible": true
+          }
+        ],
+        "surface": 24.58
+      },
+      "labelName": "Polygon B",
+      "fillColor": "#E91E6340",
+      "strokeColor": "#E91E63",
+      "measurements": [
+        { "unit": "m", "value": 4.8, "isInvisible": false },
+        { "unit": "m", "value": 8, "isInvisible": false },
+        { "unit": "m", "value": 3.8, "isInvisible": false },
+        { "unit": "m", "value": 5, "isInvisible": false }
+      ],
+      "infos": [
+        { "label": "Surface", "value": "24.58m²" },
+        { "label": "Type", "value": "Pan" },
+        { "label": "Revêtement", "value": "Non renseigné" },
+        { "label": "Pente", "value": "Non renseigné" },
+        { "label": "Usure", "value": "Non renseigné" },
+        { "label": "Taux d'usure", "value": "Non renseigné" },
+        { "label": "Taux de moisissure", "value": "Non renseigné" },
+        { "label": "Taux d'humidité", "value": "Non renseigné" },
+        { "label": "Obstacle", "value": "Non renseigné" },
+        { "label": "Commentaire", "value": "Non renseigné" },
+        { "label": "key", "value": "Polygon B" }
+      ]
+    },
+    {
+      "polygon": {
+        "fillColor": "#FFC10740",
+        "strokeColor": "#FFC107",
+        "points": [
+          { "x": 316.3689320388348, "y": 512 },
+          { "x": 337.72815533980565, "y": 478.01941747572823 },
+          { "x": 428.019417475728, "y": 463.45631067961176 },
+          { "x": 369.7669902912621, "y": 542.0970873786409 },
+          { "x": 316.3689320388348, "y": 512 }
+        ],
+        "id": "aa7052ac-eb2f-4037-bb47-4dd65a7a3b61",
+        "measurements": [
+          {
+            "position": { "x": 1238.8349514563106, "y": 1029.6116504854367 },
+            "unity": "m",
+            "value": 2,
+            "polygonId": "aa7052ac-eb2f-4037-bb47-4dd65a7a3b61",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1294.6601941747572, "y": 1005.3398058252427 },
+            "unity": "m",
+            "value": 4.6,
+            "polygonId": "aa7052ac-eb2f-4037-bb47-4dd65a7a3b61",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1310.6796116504854, "y": 1037.378640776699 },
+            "unity": "m",
+            "value": 5,
+            "polygonId": "aa7052ac-eb2f-4037-bb47-4dd65a7a3b61",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1254.8543689320388, "y": 1061.6504854368932 },
+            "unity": "m",
+            "value": 3.2,
+            "polygonId": "aa7052ac-eb2f-4037-bb47-4dd65a7a3b61",
+            "isInvisible": true
+          }
+        ],
+        "surface": 11.44
+      },
+      "labelName": "Polygon C",
+      "fillColor": "#FFC10740",
+      "strokeColor": "#FFC107",
+      "measurements": [
+        { "unit": "m", "value": 2, "isInvisible": false },
+        { "unit": "m", "value": 4.6, "isInvisible": false },
+        { "unit": "m", "value": 5, "isInvisible": false },
+        { "unit": "m", "value": 3.2, "isInvisible": false }
+      ],
+      "infos": [
+        { "label": "Surface", "value": "11.44m²" },
+        { "label": "Type", "value": "Pan" },
+        { "label": "Revêtement", "value": "Non renseigné" },
+        { "label": "Pente", "value": "Non renseigné" },
+        { "label": "Usure", "value": "Non renseigné" },
+        { "label": "Taux d'usure", "value": "Non renseigné" },
+        { "label": "Taux de moisissure", "value": "Non renseigné" },
+        { "label": "Taux d'humidité", "value": "Non renseigné" },
+        { "label": "Obstacle", "value": "Non renseigné" },
+        { "label": "Commentaire", "value": "Non renseigné" },
+        { "label": "key", "value": "Polygon C" }
+      ]
+    },
+    {
+      "polygon": {
+        "fillColor": "#0E4EB340",
+        "strokeColor": "#0E4EB3",
+        "points": [
+          { "x": 423.1650485436892, "y": 581.9029126213593 },
+          { "x": 370.7378640776699, "y": 541.1262135922332 },
+          { "x": 428.99029126213577, "y": 464.4271844660195 },
+          { "x": 434.81553398058236, "y": 577.0485436893205 },
+          { "x": 423.1650485436892, "y": 581.9029126213593 }
+        ],
+        "id": "cbbf3f75-b5d7-4d84-805c-d7d6629b3f51",
+        "measurements": [
+          {
+            "position": { "x": 1308.7378640776699, "y": 1096.116504854369 },
+            "unity": "m",
+            "value": 3.4,
+            "polygonId": "cbbf3f75-b5d7-4d84-805c-d7d6629b3f51",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1311.6504854368932, "y": 1037.378640776699 },
+            "unity": "m",
+            "value": 5,
+            "polygonId": "cbbf3f75-b5d7-4d84-805c-d7d6629b3f51",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1343.6893203883494, "y": 1055.3398058252428 },
+            "unity": "m",
+            "value": 5.8,
+            "polygonId": "cbbf3f75-b5d7-4d84-805c-d7d6629b3f51",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1340.7766990291261, "y": 1114.0776699029125 },
+            "unity": "m",
+            "value": 0.6,
+            "polygonId": "cbbf3f75-b5d7-4d84-805c-d7d6629b3f51",
+            "isInvisible": true
+          }
+        ],
+        "surface": 10.2
+      },
+      "labelName": "Polygon D",
+      "fillColor": "#0E4EB340",
+      "strokeColor": "#0E4EB3",
+      "measurements": [
+        { "unit": "m", "value": 3.4, "isInvisible": false },
+        { "unit": "m", "value": 5, "isInvisible": false },
+        { "unit": "m", "value": 5.8, "isInvisible": false },
+        { "unit": "m", "value": 0.6, "isInvisible": false }
+      ],
+      "infos": [
+        { "label": "Surface", "value": "10.2m²" },
+        { "label": "Type", "value": "Pan" },
+        { "label": "Revêtement", "value": "Non renseigné" },
+        { "label": "Pente", "value": "Non renseigné" },
+        { "label": "Usure", "value": "Non renseigné" },
+        { "label": "Taux d'usure", "value": "Non renseigné" },
+        { "label": "Taux de moisissure", "value": "Non renseigné" },
+        { "label": "Taux d'humidité", "value": "Non renseigné" },
+        { "label": "Obstacle", "value": "Non renseigné" },
+        { "label": "Commentaire", "value": "Non renseigné" },
+        { "label": "key", "value": "Polygon D" }
+      ]
+    },
+    {
+      "polygon": {
+        "fillColor": "#FF572240",
+        "strokeColor": "#FF5722",
+        "points": [
+          { "x": 749.3786407766988, "y": 712 },
+          { "x": 645.4951456310678, "y": 696.4660194174758 },
+          { "x": 435.7864077669901, "y": 578.990291262136 },
+          { "x": 430.9320388349513, "y": 462.485436893204 },
+          { "x": 760.0582524271845, "y": 642.0970873786409 },
+          { "x": 749.3786407766988, "y": 712 }
+        ],
+        "id": "f848092f-3ee6-428e-924a-8bd6aef68f14",
+        "measurements": [
+          {
+            "position": { "x": 1609.2233009708737, "y": 1238.8349514563106 },
+            "unity": "m",
+            "value": 5.4,
+            "polygonId": "f848092f-3ee6-428e-924a-8bd6aef68f14",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1452.4271844660193, "y": 1172.3300970873786 },
+            "unity": "m",
+            "value": 12.4,
+            "polygonId": "f848092f-3ee6-428e-924a-8bd6aef68f14",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1345.145631067961, "y": 1055.3398058252428 },
+            "unity": "m",
+            "value": 6,
+            "polygonId": "f848092f-3ee6-428e-924a-8bd6aef68f14",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1507.2815533980583, "y": 1086.893203883495 },
+            "unity": "m",
+            "value": 19.2,
+            "polygonId": "f848092f-3ee6-428e-924a-8bd6aef68f14",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1666.504854368932, "y": 1211.6504854368932 },
+            "unity": "m",
+            "value": 3.6,
+            "polygonId": "f848092f-3ee6-428e-924a-8bd6aef68f14",
+            "isInvisible": true
+          }
+        ],
+        "surface": 92.25
+      },
+      "labelName": "Polygon E",
+      "fillColor": "#FF572240",
+      "strokeColor": "#FF5722",
+      "measurements": [
+        { "unit": "m", "value": 5.4, "isInvisible": false },
+        { "unit": "m", "value": 12.4, "isInvisible": false },
+        { "unit": "m", "value": 6, "isInvisible": false },
+        { "unit": "m", "value": 19.2, "isInvisible": false },
+        { "unit": "m", "value": 3.6, "isInvisible": false }
+      ],
+      "infos": [
+        { "label": "Surface", "value": "92.25m²" },
+        { "label": "Type", "value": "Pan" },
+        { "label": "Revêtement", "value": "Non renseigné" },
+        { "label": "Pente", "value": "Non renseigné" },
+        { "label": "Usure", "value": "Non renseigné" },
+        { "label": "Taux d'usure", "value": "Non renseigné" },
+        { "label": "Taux de moisissure", "value": "Non renseigné" },
+        { "label": "Taux d'humidité", "value": "Non renseigné" },
+        { "label": "Obstacle", "value": "Non renseigné" },
+        { "label": "Commentaire", "value": "Non renseigné" },
+        { "label": "key", "value": "Polygon E" }
+      ]
+    },
+    {
+      "polygon": {
+        "fillColor": "#00ff0040",
+        "strokeColor": "#00ff00",
+        "points": [
+          { "x": 761.0291262135922, "y": 615.8834951456311 },
+          { "x": 761.0291262135922, "y": 640.1553398058254 },
+          { "x": 433.8446601941746, "y": 461.51456310679623 },
+          { "x": 512.4854368932038, "y": 425.5922330097088 },
+          { "x": 757.145631067961, "y": 557.6310679611652 },
+          { "x": 750.3495145631066, "y": 611.0291262135922 },
+          { "x": 761.0291262135922, "y": 615.8834951456311 }
+        ],
+        "id": "e80c1e49-f043-49a3-bbe1-9f4b23ebf3f7",
+        "measurements": [
+          {
+            "position": { "x": 1672.8155339805826, "y": 1162.621359223301 },
+            "unity": "m",
+            "value": 1.2,
+            "polygonId": "e80c1e49-f043-49a3-bbe1-9f4b23ebf3f7",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1509.2233009708739, "y": 1085.4368932038835 },
+            "unity": "m",
+            "value": 19.2,
+            "polygonId": "e80c1e49-f043-49a3-bbe1-9f4b23ebf3f7",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1384.9514563106795, "y": 978.1553398058252 },
+            "unity": "m",
+            "value": 4.4,
+            "polygonId": "e80c1e49-f043-49a3-bbe1-9f4b23ebf3f7",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1546.6019417475727, "y": 1026.2135922330096 },
+            "unity": "m",
+            "value": 14.2,
+            "polygonId": "e80c1e49-f043-49a3-bbe1-9f4b23ebf3f7",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1665.5339805825242, "y": 1118.9320388349515 },
+            "unity": "m",
+            "value": 2.8,
+            "polygonId": "e80c1e49-f043-49a3-bbe1-9f4b23ebf3f7",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1667.4757281553398, "y": 1148.0582524271845 },
+            "unity": "m",
+            "value": 0.6,
+            "polygonId": "e80c1e49-f043-49a3-bbe1-9f4b23ebf3f7",
+            "isInvisible": true
+          }
+        ],
+        "surface": 59.36
+      },
+      "labelName": "Polygon F",
+      "fillColor": "#00ff0040",
+      "strokeColor": "#00ff00",
+      "measurements": [
+        { "unit": "m", "value": 1.2, "isInvisible": false },
+        { "unit": "m", "value": 19.2, "isInvisible": false },
+        { "unit": "m", "value": 4.4, "isInvisible": false },
+        { "unit": "m", "value": 14.2, "isInvisible": false },
+        { "unit": "m", "value": 2.8, "isInvisible": false },
+        { "unit": "m", "value": 0.6, "isInvisible": false }
+      ],
+      "infos": [
+        { "label": "Surface", "value": "59.36m²" },
+        { "label": "Type", "value": "Pan" },
+        { "label": "Revêtement", "value": "Non renseigné" },
+        { "label": "Pente", "value": "Non renseigné" },
+        { "label": "Usure", "value": "Non renseigné" },
+        { "label": "Taux d'usure", "value": "Non renseigné" },
+        { "label": "Taux de moisissure", "value": "Non renseigné" },
+        { "label": "Taux d'humidité", "value": "Non renseigné" },
+        { "label": "Obstacle", "value": "Non renseigné" },
+        { "label": "Commentaire", "value": "Non renseigné" },
+        { "label": "key", "value": "Polygon F" }
+      ]
+    },
+    {
+      "polygon": {
+        "fillColor": "#CDDC3940",
+        "strokeColor": "#CDDC39",
+        "points": [
+          { "x": 482.38834951456306, "y": 387.7281553398059 },
+          { "x": 428.019417475728, "y": 463.45631067961176 },
+          { "x": 512.4854368932038, "y": 424.62135922330106 },
+          { "x": 516.3689320388348, "y": 419.76699029126223 },
+          { "x": 489.1844660194174, "y": 403.26213592233023 },
+          { "x": 494.03883495145624, "y": 394.52427184466023 },
+          { "x": 482.38834951456306, "y": 387.7281553398059 }
+        ],
+        "id": "12762ec8-9d93-4be8-8fbe-cd34f56d803f",
+        "measurements": [
+          {
+            "position": { "x": 1366.990291262136, "y": 960.1941747572815 },
+            "unity": "m",
+            "value": 4.8,
+            "polygonId": "12762ec8-9d93-4be8-8fbe-cd34f56d803f",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1382.0388349514562, "y": 978.6407766990292 },
+            "unity": "m",
+            "value": 4.8,
+            "polygonId": "12762ec8-9d93-4be8-8fbe-cd34f56d803f",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1426.2135922330096, "y": 956.7961165048544 },
+            "unity": "m",
+            "value": 0.4,
+            "polygonId": "12762ec8-9d93-4be8-8fbe-cd34f56d803f",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1414.5631067961165, "y": 946.1165048543689 },
+            "unity": "m",
+            "value": 1.6,
+            "polygonId": "12762ec8-9d93-4be8-8fbe-cd34f56d803f",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1403.3980582524273, "y": 933.495145631068 },
+            "unity": "m",
+            "value": 0.4,
+            "polygonId": "12762ec8-9d93-4be8-8fbe-cd34f56d803f",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1400, "y": 925.7281553398058 },
+            "unity": "m",
+            "value": 0.6,
+            "polygonId": "12762ec8-9d93-4be8-8fbe-cd34f56d803f",
+            "isInvisible": true
+          }
+        ],
+        "surface": 5.85
+      },
+      "labelName": "Polygon G",
+      "fillColor": "#CDDC3940",
+      "strokeColor": "#CDDC39",
+      "measurements": [
+        { "unit": "m", "value": 4.8, "isInvisible": false },
+        { "unit": "m", "value": 4.8, "isInvisible": false },
+        { "unit": "m", "value": 0.4, "isInvisible": false },
+        { "unit": "m", "value": 1.6, "isInvisible": false },
+        { "unit": "m", "value": 0.4, "isInvisible": false },
+        { "unit": "m", "value": 0.6, "isInvisible": false }
+      ],
+      "infos": [
+        { "label": "Surface", "value": "5.85m²" },
+        { "label": "Type", "value": "Pan" },
+        { "label": "Revêtement", "value": "Non renseigné" },
+        { "label": "Pente", "value": "Non renseigné" },
+        { "label": "Usure", "value": "Non renseigné" },
+        { "label": "Taux d'usure", "value": "Non renseigné" },
+        { "label": "Taux de moisissure", "value": "Non renseigné" },
+        { "label": "Taux d'humidité", "value": "Non renseigné" },
+        { "label": "Obstacle", "value": "Non renseigné" },
+        { "label": "Commentaire", "value": "Non renseigné" },
+        { "label": "key", "value": "Polygon G" }
+      ]
+    },
+    {
+      "polygon": {
+        "fillColor": "#2196F340",
+        "strokeColor": "#2196F3",
+        "points": [
+          { "x": 439.6699029126212, "y": 367.3398058252428 },
+          { "x": 482.38834951456306, "y": 383.8446601941748 },
+          { "x": 428.99029126213577, "y": 462.485436893204 },
+          { "x": 425.1067961165047, "y": 378.990291262136 },
+          { "x": 439.6699029126212, "y": 367.3398058252428 }
+        ],
+        "id": "b4bbb03e-cd36-432d-9711-729b49610b38",
+        "measurements": [
+          {
+            "position": { "x": 1372.8155339805826, "y": 910.1941747572815 },
+            "unity": "m",
+            "value": 2.4,
+            "polygonId": "b4bbb03e-cd36-432d-9711-729b49610b38",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1367.4757281553398, "y": 957.7669902912621 },
+            "unity": "m",
+            "value": 5,
+            "polygonId": "b4bbb03e-cd36-432d-9711-729b49610b38",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1338.8349514563106, "y": 955.3398058252427 },
+            "unity": "m",
+            "value": 4.4,
+            "polygonId": "b4bbb03e-cd36-432d-9711-729b49610b38",
+            "isInvisible": true
+          },
+          {
+            "position": { "x": 1344.1747572815534, "y": 907.7669902912621 },
+            "unity": "m",
+            "value": 1,
+            "polygonId": "b4bbb03e-cd36-432d-9711-729b49610b38",
+            "isInvisible": true
+          }
+        ],
+        "surface": 7.44
+      },
+      "labelName": "Polygon H",
+      "fillColor": "#2196F340",
+      "strokeColor": "#2196F3",
+      "measurements": [
+        { "unit": "m", "value": 2.4, "isInvisible": false },
+        { "unit": "m", "value": 5, "isInvisible": false },
+        { "unit": "m", "value": 4.4, "isInvisible": false },
+        { "unit": "m", "value": 1, "isInvisible": false }
+      ],
+      "infos": [
+        { "label": "Surface", "value": "7.44m²" },
+        { "label": "Type", "value": "Pan" },
+        { "label": "Revêtement", "value": "Non renseigné" },
+        { "label": "Pente", "value": "Non renseigné" },
+        { "label": "Usure", "value": "Non renseigné" },
+        { "label": "Taux d'usure", "value": "Non renseigné" },
+        { "label": "Taux de moisissure", "value": "Non renseigné" },
+        { "label": "Taux d'humidité", "value": "Non renseigné" },
+        { "label": "Obstacle", "value": "Non renseigné" },
+        { "label": "Commentaire", "value": "Non renseigné" },
+        { "label": "key", "value": "Polygon H" }
+      ]
+    }
+  ],
+  "3d": {
+    "pans": [
+      {
+        "polygon": {
+          "points": [
+            { "x": 8.399000000000001, "y": 17.662 },
+            { "x": 4.711, "y": 21.231 },
+            { "x": 2.466, "y": 18.921 },
+            { "x": 8.426, "y": 13.332 },
+            { "x": 8.399000000000001, "y": 17.662 }
+          ]
+        },
+        "measurements": [
+          { "isInvisible": false, "unit": "m", "value": 5.13 },
+          { "isInvisible": false, "unit": "m", "value": 3.95 },
+          { "isInvisible": false, "unit": "m", "value": 8.17 },
+          { "isInvisible": false, "unit": "m", "value": 4.89 }
+        ],
+        "infos": [
+          { "label": "Surface totale réelle", "value": "262.53m²" },
+          { "label": "Surface rampant", "value": "25.96m²" },
+          { "label": "Pente", "value": "27.6°" }
+        ],
+        "name": "Pan A",
+        "imageUri": "01ec1296-df86-4b6d-8c23-e7b0bd4a5c83"
+      },
+      {
+        "polygon": {
+          "points": [
+            { "x": 3.641, "y": 12.691 },
+            { "x": 8.426, "y": 13.332 },
+            { "x": 2.466, "y": 18.921 },
+            { "x": 0, "y": 16.156 },
+            { "x": 3.641, "y": 12.691 }
+          ]
+        },
+        "measurements": [
+          { "isInvisible": false, "unit": "m", "value": 5.17 },
+          { "isInvisible": false, "unit": "m", "value": 8.17 },
+          { "isInvisible": false, "unit": "m", "value": 4.09 },
+          { "isInvisible": false, "unit": "m", "value": 5.03 }
+        ],
+        "infos": [
+          { "label": "Surface rampant", "value": "27.32m²" },
+          { "label": "Pente", "value": "31.05°" }
+        ],
+        "name": "Pan B",
+        "imageUri": "e125aa9c-cf36-4fc4-a826-591214d2ac34"
+      },
+      {
+        "polygon": {
+          "points": [
+            { "x": 2.605, "y": 11.032 },
+            { "x": 3.746, "y": 12.739 },
+            { "x": 8.426, "y": 13.332 },
+            { "x": 5.305, "y": 9.424 },
+            { "x": 2.605, "y": 11.032 }
+          ]
+        },
+        "measurements": [
+          { "isInvisible": false, "unit": "m", "value": 2.05 },
+          { "isInvisible": false, "unit": "m", "value": 5.16 },
+          { "isInvisible": false, "unit": "m", "value": 5 },
+          { "isInvisible": false, "unit": "m", "value": 3.73 }
+        ],
+        "infos": [
+          { "label": "Surface rampant", "value": "13.57m²" },
+          { "label": "Pente", "value": "27.24°" }
+        ],
+        "name": "Pan C",
+        "imageUri": "cdd8f4a5-1694-4840-bc0d-341fad0c2164"
+      },
+      {
+        "polygon": {
+          "points": [
+            { "x": 8.26, "y": 7.344 },
+            { "x": 5.305, "y": 9.424 },
+            { "x": 8.426, "y": 13.332 },
+            { "x": 8.26, "y": 7.344 },
+            { "x": 8.26, "y": 7.344 }
+          ]
+        },
+        "measurements": [
+          { "isInvisible": false, "unit": "m", "value": 4.14 },
+          { "isInvisible": false, "unit": "m", "value": 5 },
+          { "isInvisible": false, "unit": "m", "value": 6.32 }
+        ],
+        "infos": [
+          { "label": "Surface rampant", "value": "10.34m²" },
+          { "label": "Pente", "value": "27.54°" }
+        ],
+        "name": "Pan D",
+        "imageUri": "979b9a73-2a76-4aa9-81f5-cb0919db3fe7"
+      },
+      {
+        "polygon": {
+          "points": [
+            { "x": 24.531, "y": 0 },
+            { "x": 19.206, "y": 0.9550000000000001 },
+            { "x": 8.26, "y": 7.344 },
+            { "x": 8.426, "y": 13.332 },
+            { "x": 25.198, "y": 3.623 },
+            { "x": 24.531, "y": 0 }
+          ]
+        },
+        "measurements": [
+          { "isInvisible": false, "unit": "m", "value": 5.47 },
+          { "isInvisible": false, "unit": "m", "value": 12.67 },
+          { "isInvisible": false, "unit": "m", "value": 6.32 },
+          { "isInvisible": false, "unit": "m", "value": 19.38 },
+          { "isInvisible": false, "unit": "m", "value": 3.87 }
+        ],
+        "infos": [
+          { "label": "Surface rampant", "value": "101.28m²" },
+          { "label": "Pente", "value": "23.8°" }
+        ],
+        "name": "Pan E",
+        "imageUri": "e029eafd-f3ef-4c95-be27-9ae92afc4749"
+      },
+      {
+        "polygon": {
+          "points": [
+            { "x": 25.1, "y": 4.996 },
+            { "x": 25.198, "y": 3.623 },
+            { "x": 8.715, "y": 13.388 },
+            { "x": 12.917, "y": 15.211 },
+            { "x": 25.166, "y": 7.8870000000000005 },
+            { "x": 25.1, "y": 4.996 },
+            { "x": 25.1, "y": 4.996 }
+          ]
+        },
+        "measurements": [
+          { "isInvisible": false, "unit": "m", "value": 1.61 },
+          { "isInvisible": false, "unit": "m", "value": 19.16 },
+          { "isInvisible": false, "unit": "m", "value": 4.76 },
+          { "isInvisible": false, "unit": "m", "value": 14.28 },
+          { "isInvisible": false, "unit": "m", "value": 3.1 }
+        ],
+        "infos": [
+          { "label": "Surface rampant", "value": "67.64m²" },
+          { "label": "Pente", "value": "24.43°" }
+        ],
+        "name": "Pan F",
+        "imageUri": "1ab1b874-da87-4268-95d8-f8596e0fddb1"
+      },
+      {
+        "polygon": {
+          "points": [
+            { "x": 11.508000000000001, "y": 17.053 },
+            { "x": 8.426, "y": 13.332 },
+            { "x": 12.917, "y": 15.211 },
+            { "x": 12.917, "y": 15.211 },
+            { "x": 11.65, "y": 16.316 },
+            { "x": 11.508000000000001, "y": 17.053 },
+            { "x": 11.508000000000001, "y": 17.053 }
+          ]
+        },
+        "measurements": [
+          { "isInvisible": false, "unit": "m", "value": 4.83 },
+          { "isInvisible": false, "unit": "m", "value": 5.13 },
+          { "isInvisible": false, "unit": "m", "value": 2.06 },
+          { "isInvisible": false, "unit": "m", "value": 0.8 }
+        ],
+        "infos": [
+          { "label": "Surface rampant", "value": "7.04m²" },
+          { "label": "Pente", "value": "27.89°" }
+        ],
+        "name": "Pan G",
+        "imageUri": "f1c2726b-fad0-46f8-b14f-0ce88f097963"
+      },
+      {
+        "polygon": {
+          "points": [
+            { "x": 9.193, "y": 18.251 },
+            { "x": 11.508000000000001, "y": 17.053 },
+            { "x": 8.426, "y": 13.332 },
+            { "x": 8.399000000000001, "y": 17.662 },
+            { "x": 9.193, "y": 18.251 }
+          ]
+        },
+        "measurements": [
+          { "isInvisible": false, "unit": "m", "value": 3.05 },
+          { "isInvisible": false, "unit": "m", "value": 4.83 },
+          { "isInvisible": false, "unit": "m", "value": 4.74 },
+          { "isInvisible": false, "unit": "m", "value": 1 }
+        ],
+        "infos": [
+          { "label": "Surface rampant", "value": "9.38m²" },
+          { "label": "Pente", "value": "30.06°" }
+        ],
+        "name": "Pan H",
+        "imageUri": "d4b51c3a-7fe2-4b00-8fba-b7dcdcd5fa54"
+      },
+      {
+        "name": "Polygone 1",
+        "polygon": {
+          "points": [
+            { "x": -2.6984598087196296, "y": -1.2112771991313531 },
+            { "x": -2.8332476681368135, "y": -5.6794263394704085 },
+            { "x": -1.809317390761752, "y": -6.159123311250721 },
+            { "x": 0.5389021807805996, "y": -4.96290068435796 },
+            { "x": 0.6488514655181845, "y": -4.214573810390652 },
+            { "x": 1.8804136437508756, "y": -3.161358748983015 },
+            { "x": -2.6984598087196296, "y": -1.2112771991313531 }
+          ]
+        },
+        "measurements": [
+          { "isInvisible": false, "unit": "m", "value": 4.95 },
+          { "isInvisible": false, "unit": "m", "value": 1.21 },
+          { "isInvisible": false, "unit": "m", "value": 3.07 },
+          { "isInvisible": false, "unit": "m", "value": 0.8 },
+          { "isInvisible": false, "unit": "m", "value": 1.99 },
+          { "isInvisible": false, "unit": "m", "value": 5.21 }
+        ],
+        "infos": [{ "label": "Surface", "value": "16.43m²" }],
+        "imageUri": "ecc7d53f-76c0-4d05-8e4f-dd73687aaf37"
+      },
+      {
+        "name": "Ligne 1",
+        "polygon": {
+          "points": [
+            { "x": -2.5207949741700126, "y": -1.2660653016000598 },
+            { "x": 14.141071542951293, "y": 4.2356702774565935 }
+          ]
+        },
+        "measurements": [{ "isInvisible": false, "unit": "m", "value": 17.6 }],
+        "infos": [
+          { "label": "Distance", "value": "17.6m" },
+          { "label": "Pente", "value": "4.47°" }
+        ],
+        "imageUri": "99313b3b-074c-49b7-a736-f56f58875e61"
+      },
+      {
+        "name": "Ligne 2",
+        "polygon": {
+          "points": [
+            { "x": 14.109300598871851, "y": 7.110848695976182 },
+            { "x": -2.1458121505218166, "y": -1.2933169415789991 }
+          ]
+        },
+        "measurements": [{ "isInvisible": false, "unit": "m", "value": 18.3 }],
+        "infos": [
+          { "label": "Distance", "value": "18.3m" },
+          { "label": "Pente", "value": "1.4°" }
+        ],
+        "imageUri": "bd661b71-d514-42f1-9536-9b3ca219edac"
+      }
+    ]
+  }
+}

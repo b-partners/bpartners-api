@@ -14,10 +14,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -50,7 +47,7 @@ public class AreaPictureAnnotationConverter {
   }
 
   private static Map<String, ConverterAnnotation> convertPolygonAndMapToConverterAnnotation(
-      org.locationtech.jts.geom.Polygon polygon, ConverterAnnotation annotation, boolean toPixel) {
+      Polygon polygon, ConverterAnnotation annotation, boolean toPixel) {
     var filename = annotation.getFilename();
     var zoom = annotation.getZoom();
     var x = getX(filename);
@@ -73,12 +70,7 @@ public class AreaPictureAnnotationConverter {
   }
 
   private static List<List<BigDecimal>> projectPolygonFacade(
-      org.locationtech.jts.geom.Polygon polygon,
-      int tileX,
-      int tileY,
-      int zoom,
-      int tileSizePx,
-      boolean toPixel) {
+      Polygon polygon, int tileX, int tileY, int zoom, int tileSizePx, boolean toPixel) {
     Function<LinearRing, List<List<BigDecimal>>> projector =
         ring ->
             toPixel
@@ -163,8 +155,7 @@ public class AreaPictureAnnotationConverter {
     return parseInt(matcher.group(groupId));
   }
 
-  private static org.locationtech.jts.geom.Polygon toPolygon(
-      List<BigDecimal> allX, List<BigDecimal> allY) {
+  private static Polygon toPolygon(List<BigDecimal> allX, List<BigDecimal> allY) {
     var coordinates = new Coordinate[allX.size()];
     for (int i = 0; i < allX.size(); i++) {
       coordinates[i] = new Coordinate(allX.get(i).doubleValue(), allY.get(i).doubleValue());

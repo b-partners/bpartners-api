@@ -20,29 +20,22 @@ public final class ImageUriUtils {
     return base64ToUri(base64(image));
   }
 
-  public static String base64(BufferedImage image) {
-    // JPEG does not support alpha channel; convert ARGB/ABGR images to RGB
-    BufferedImage encodeImage = image;
-    if ("jpg".equals(IMAGE_FORMAT) || "jpeg".equals(IMAGE_FORMAT)) {
-      int type = image.getType();
-      if (type == BufferedImage.TYPE_INT_ARGB
-          || type == BufferedImage.TYPE_4BYTE_ABGR
-          || type == BufferedImage.TYPE_INT_ARGB_PRE
-          || type == BufferedImage.TYPE_4BYTE_ABGR_PRE) {
-        var rgb =
-            new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-        Graphics2D g2d = rgb.createGraphics();
-        g2d.setColor(Color.WHITE);
-        g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
-        g2d.drawImage(image, 0, 0, null);
-        g2d.dispose();
-        encodeImage = rgb;
-      }
-    }
+  public static BufferedImage toJpegCompatible(BufferedImage image) {
+    BufferedImage compatible =
+        new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+    Graphics2D graphics = compatible.createGraphics();
+    graphics.setColor(Color.WHITE);
+    graphics.fillRect(0, 0, compatible.getWidth(), compatible.getHeight());
+    graphics.drawImage(image, 0, 0, null);
+    graphics.dispose();
+    return compatible;
+  }
 
+  public static String base64(BufferedImage image) {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream();
         OutputStream b64 = Base64.getEncoder().wrap(out)) {
-      ImageIO.write(encodeImage, IMAGE_FORMAT, b64);
+      var imageToWrite = image.getColorModel().hasAlpha() ? toJpegCompatible(image) : image;
+      ImageIO.write(imageToWrite, IMAGE_FORMAT, b64);
       b64.flush();
       return out.toString(StandardCharsets.ISO_8859_1);
     } catch (IOException e) {

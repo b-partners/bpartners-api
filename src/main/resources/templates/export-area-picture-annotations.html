@@ -21,11 +21,9 @@
         }
 
         /* Prevent trailing blank page at the end of document rendering */
-        .page:last-of-type,
         body > .page:last-child,
         body > section:last-child {
             page-break-after: avoid !important;
-            break-after: avoid !important;
         }
 
         /* Standard page blocks using structural margins rather than flex/table constraints */
@@ -34,13 +32,7 @@
             display: block;
             position: relative;
             page-break-after: always;
-            break-after: page;
             page-break-inside: avoid;
-        }
-
-        .page:last-of-type {
-            page-break-after: avoid !important;
-            break-after: avoid !important;
         }
 
         /* Clearfix utility to fix floated containers without using display:table */
@@ -64,7 +56,6 @@
             display: block;
             width: 100%;
             max-height: 480px;
-            object-fit: contain;
             margin: 0 auto;
         }
 
@@ -72,7 +63,6 @@
             page-break-after: avoid !important;
         }
 
-        body > .page:last-of-type,
         body > section.page:last-child {
             page-break-after: avoid !important;
         }
@@ -84,7 +74,6 @@
             width: auto;
             height: auto;
             margin: 16px auto 0 auto;
-            object-fit: contain;
         }
 
         .title {
@@ -100,9 +89,8 @@
         }
 
         .main-image {
-            display: block;
+            display: inline-block;
             width: 550px;
-            margin: 20px auto 0px auto;
         }
 
         .image-wrapper {
@@ -163,7 +151,6 @@
             max-width: 100%;
             height: 140px;
             width: 100%;
-            object-fit: contain;
         }
 
         .annotation-blank-item-image-3d {
@@ -546,7 +533,6 @@
         .custom-section-image {
             max-width: 100%;
             height: auto;
-            object-fit: contain;
         }
 
         .custom-section-caption {
@@ -594,7 +580,9 @@
         <br />
         <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
     </h1>
-    <img alt="annotation" class="main-image" th:src="${mainImage}"/>
+    <div class="image-wrapper" style="margin-top: 20px;">
+        <img alt="annotation" class="main-image" th:src="${mainImage}"/>
+    </div>
     <div class="degradation-container clearfix" th:if="${globalRateType != null}">
         <p class="degradation-section-title">ÉTAT APPARENT DE LA TOITURE</p>
 
@@ -655,7 +643,7 @@
     </div>
 </section>
 
-<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and llm == null and pages3D == null and pagesFacade3D == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
+<section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and annotationPagesIsLast} ? ' last-page' : ''">
     <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
 
     <div th:each="annotation, annotationStat : ${page}" class="annotation-item clearfix">
@@ -686,7 +674,7 @@
 
 <section th:if="${pages3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pages3D}"
          class="page"
-         th:classappend="${pageStat.last and llm == null and pagesFacade3D == null and roofSummary == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and pans3DIsLast} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
 
@@ -698,7 +686,7 @@
         <div class="legend-item" th:each="type : ${roofSlopeBoundariesPerPage[pageStat.index]}">
             <img th:src="${roofSlopeBoundariesImages[type]}"
                  th:alt="${type}"
-                 style="width: 32px; height: 16px; object-fit: contain;" />
+                 style="width: 32px; height: 16px;" />
             <span th:text="${type}"></span>
         </div>
     </div>
@@ -769,7 +757,7 @@
 <section th:if="${pagesFacade3D and conf.showAnnotation3dPages}"
          th:each="page, pageStat : ${pagesFacade3D}"
          class="page"
-         th:classappend="${pageStat.last and roofSummary == null and (customPages == null or #lists.isEmpty(customPages)) and llm == null} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and facades3DIsLast} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les façades du bâtiment </h2>
 
@@ -837,7 +825,7 @@
 </section>
 
 <section class="page diagram-page" th:if="${roofSummary != null and roofSummary.diagramImageBase64 != null and conf.isShowMeasurementSummary()}"
-         th:classappend="${llm == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''">
+         th:classappend="${measurementSummaryIsLast} ? ' last-page' : ''">
     <div th:if="${allEdgeTypes}">
         <h2 class="annotation-information-title">Longueur</h2>
         <p class="section-description">Longueur en mètre</p>
@@ -845,7 +833,7 @@
             <div class="legend-item" th:each="type : ${allEdgeTypes}">
                 <img th:src="${roofSlopeBoundariesImages[type]}"
                      th:alt="${type}"
-                     style="width: 32px; height: 16px; object-fit: contain;" />
+                     style="width: 32px; height: 16px;" />
                 <span th:text="${type}"></span>
             </div>
         </div>
@@ -853,19 +841,22 @@
     <img class="diagram-page-image" th:src="${roofSummary.diagramImageBase64}"/>
 </section>
 
-<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithPitchesUri != null and conf.isShowPitchSummary() == true}">
+<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithPitchesUri != null and conf.isShowPitchSummary() == true}"
+         th:classappend="${pitchSummaryIsLast} ? ' last-page' : ''">
     <h2 class="annotation-information-title">Pente</h2>
     <p class="section-description">Pente en degré</p>
     <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithPitchesUri}"/>
 </section>
 
-<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithAreasUri != null and conf.isShowAreaSummary() == true}">
+<section class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithAreasUri != null and conf.isShowAreaSummary() == true}"
+         th:classappend="${areaSummaryIsLast} ? ' last-page' : ''">
     <h2 class="annotation-information-title">Surface</h2>
     <p class="section-description">Surface en m²</p>
     <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithAreasUri}"/>
 </section>
 
-<section class="page summary-page" th:if="${roofSummary != null and conf.isShowOverallSummary()}">
+<section class="page summary-page" th:if="${roofSummary != null and conf.isShowOverallSummary()}"
+         th:classappend="${overallSummaryIsLast} ? ' last-page' : ''">
     <div>
         <h2 class="annotation-information-title">Résumé sur les mesures</h2>
         <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
@@ -890,7 +881,7 @@
     </div>
 </section>
 
-<section class="page" th:classappend="${llm == null and (customPages == null or #lists.isEmpty(customPages))} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
+<section class="page" th:classappend="${facesSummaryIsLast} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
     <h2 class="annotation-information-title">Résumé sur les pans</h2>
     <p class="section-description">Répartition des pentes, calcul de la marge et détail par pan</p>
 
@@ -960,7 +951,7 @@
     </div>
 </section>
 
-<section th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last and (llm == null or !conf.isShowLlmSummary())} ? ' last-page' : ''">
+<section th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last and customPagesIsLast} ? ' last-page' : ''">
     <h2 class="custom-page-title" th:text="${page.pageTitle}"></h2>
 
     <div th:each="section : ${page.sections}" class="custom-section" th:switch="${section.type.name()}">
@@ -1045,7 +1036,7 @@
     </div>
 </div>
 
-<section class="llm page" th:classappend="${customPages == null or #lists.isEmpty(customPages)} ? ' last-page' : ''" th:if="${llm and conf.isShowLlmSummary()}">
+<section class="llm page last-page" th:if="${llm and conf.isShowLlmSummary()}">
     <div th:utext="${llm}"></div>
 </section>
 

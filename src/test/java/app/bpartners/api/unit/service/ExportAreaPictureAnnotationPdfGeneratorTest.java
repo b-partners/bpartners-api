@@ -7,12 +7,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
+import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.annotation.AreaAnnotationExportPayload;
-import app.bpartners.api.service.annotation.AreaAnnotationInstance;
-import app.bpartners.api.service.annotation.AreaAnnotationInstanceInfo;
-import app.bpartners.api.service.annotation.export.AreaAnnotationExportConf;
-import app.bpartners.api.service.annotation.export.AreaAnnotationPDFGenerator;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -26,10 +24,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-class AreaAnnotationExportPayloadPdfGeneratorTest {
+class ExportAreaPictureAnnotationPdfGeneratorTest {
   FileService fileService = mock();
-  AreaAnnotationPDFGenerator subject;
-
+  AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
+      new AreaPictureAnnotationConfRestMapper();
+  ExportAreaPictureAnnotationPDFGenerator subject;
   private static BufferedImage mockImage;
 
   @BeforeAll
@@ -43,14 +42,16 @@ class AreaAnnotationExportPayloadPdfGeneratorTest {
   void setUp() {
     when(fileService.downloadFile(any(), any(), any())).thenReturn(null);
 
-    subject = new AreaAnnotationPDFGenerator(new TemplateResolverEngine(), fileService);
+    subject =
+        new ExportAreaPictureAnnotationPDFGenerator(
+            new TemplateResolverEngine(), fileService, areaPictureAnnotationConfRestMapper);
   }
 
   @Test
   void generate_pdf_ok() throws IOException {
     var annotationImage = bufferedImageToBase64(mockImage);
     var logoImage = bufferedImageToBase64(mockImage);
-    var exportAreaPictureAnnotation = exportDomainAnnotation();
+    var exportAreaPictureAnnotation = exportAreaPictureAnnotation();
     var subImages =
         exportAreaPictureAnnotation.getAnnotations().stream()
             .map(annotation -> annotationImage)
@@ -70,7 +71,7 @@ class AreaAnnotationExportPayloadPdfGeneratorTest {
 
   String bufferedImageToBase64(BufferedImage image) throws IOException {
     var outputStream = new ByteArrayOutputStream();
-    ImageIO.write(image, "png", outputStream);
+    ImageIO.write(image, "jpg", outputStream);
     return base64Image(outputStream.toByteArray());
   }
 
@@ -83,27 +84,24 @@ class AreaAnnotationExportPayloadPdfGeneratorTest {
         .build();
   }
 
-  static AreaAnnotationExportPayload exportDomainAnnotation() {
-    return AreaAnnotationExportPayload.builder()
+  static ExportAreaPictureAnnotation exportAreaPictureAnnotation() {
+    return new ExportAreaPictureAnnotation()
         .imageUrl("https://dummy.com")
         .address("Dummy Address")
-        .conf(AreaAnnotationExportConf.DEFAULT)
         .annotations(
             List.of(
-                exportDomainInstance("key1"),
-                exportDomainInstance("key1"),
-                exportDomainInstance("key2"),
-                exportDomainInstance("key2")))
-        .build();
+                exportAreaPictureAnnotationInstance("key1"),
+                exportAreaPictureAnnotationInstance("key1"),
+                exportAreaPictureAnnotationInstance("key2"),
+                exportAreaPictureAnnotationInstance("key2")));
   }
 
-  static AreaAnnotationInstance exportDomainInstance(String key) {
-    return AreaAnnotationInstance.builder()
+  static ExportAreaPictureAnnotationInstance exportAreaPictureAnnotationInstance(String key) {
+    return new ExportAreaPictureAnnotationInstance()
         .infos(
             List.of(
-                new AreaAnnotationInstanceInfo("key", key),
-                new AreaAnnotationInstanceInfo("Type", "Non renseigné"),
-                new AreaAnnotationInstanceInfo("Surface", "305 m²")))
-        .build();
+                new ExportAreaPictureAnnotationInstanceInfo().label("key").value(key),
+                new ExportAreaPictureAnnotationInstanceInfo().label("Type").value("Non renseigné"),
+                new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value("305 m²")));
   }
 }

@@ -21,6 +21,7 @@ import app.bpartners.api.model.mapper.AreaPictureMapper;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
+import app.bpartners.api.repository.jpa.model.HAreaPicture;
 import app.bpartners.api.repository.jpa.model.HProspect;
 import app.bpartners.api.service.areapicture.AreaPictureConsumptionValidator;
 import app.bpartners.api.service.areapicture.AreaPictureService;
@@ -119,6 +120,38 @@ class AreaPictureServiceTest extends MockedThirdParties {
         subscriptionConsumptionLog);
     assertNotNull(subscriptionConsumptionLog.getId());
     assertNotNull(subscriptionConsumptionLog.getCreationDatetime());
+  }
+
+  @Test
+  void find_all_by_id_user_does_not_call_imagery_api() {
+    var userId = "userId";
+    var entity = HAreaPicture.builder().id("areaPictureId").idProspect("prospectId").build();
+    when(jpaRepositoryMock.findAllByIdUser(userId)).thenReturn(List.of(entity));
+
+    var actual = subject.findAllByIdUser(userId);
+
+    assertEquals(
+        List.of(AreaPicture.builder().id("areaPictureId").idProspect("prospectId").build()),
+        actual);
+    verifyNoInteractions(imageryServiceMock, mapLayerServiceMock);
+    verify(mapper, never()).toDomain(any(HAreaPicture.class));
+  }
+
+  @Test
+  void find_all_by_address_does_not_call_imagery_api() {
+    var userId = "userId";
+    var address = "Paris";
+    var entity = HAreaPicture.builder().id("areaPictureId").idProspect("prospectId").build();
+    when(jpaRepositoryMock.findAllByIdUserAndAddressContainingIgnoreCase(userId, address))
+        .thenReturn(List.of(entity));
+
+    var actual = subject.findAllByAddress(userId, address);
+
+    assertEquals(
+        List.of(AreaPicture.builder().id("areaPictureId").idProspect("prospectId").build()),
+        actual);
+    verifyNoInteractions(imageryServiceMock, mapLayerServiceMock);
+    verify(mapper, never()).toDomain(any(HAreaPicture.class));
   }
 
   @Test

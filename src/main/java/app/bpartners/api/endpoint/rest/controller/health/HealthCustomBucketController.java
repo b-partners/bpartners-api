@@ -5,8 +5,7 @@ import static java.io.File.createTempFile;
 import static java.nio.file.Files.createTempDirectory;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.PojaGenerated;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.file.hash.FileHash;
 import java.io.File;
 import java.io.FileWriter;
@@ -20,17 +19,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@PojaGenerated
 @SuppressWarnings("all")
 @RestController
 @AllArgsConstructor
-public class HealthBucketController {
+public class HealthCustomBucketController {
 
-  BucketComponent bucketComponent;
+  CustomBucketComponent customBucketComponent;
 
   private static final String HEALTH_KEY = "health/";
 
-  @GetMapping(value = "/health/bucket")
+  @GetMapping(value = "/health/custom-bucket")
   public ResponseEntity<String> file_can_be_uploaded_then_signed() throws IOException {
     var fileSuffix = ".txt";
     var filePrefix = randomUUID().toString();
@@ -59,9 +57,9 @@ public class HealthBucketController {
 
   private File can_upload_file_then_download_file(File toUpload, String bucketKey)
       throws IOException {
-    bucketComponent.upload(toUpload, bucketKey);
+    customBucketComponent.upload(toUpload, bucketKey, true);
 
-    var downloaded = bucketComponent.download(bucketKey);
+    var downloaded = customBucketComponent.download(bucketKey, true);
     var downloadedContent = Files.readString(downloaded.toPath());
     var uploadedContent = Files.readString(toUpload.toPath());
     if (!uploadedContent.equals(downloadedContent)) {
@@ -72,7 +70,7 @@ public class HealthBucketController {
   }
 
   private FileHash can_upload_directory(File toUpload, String bucketKey) {
-    var hash = bucketComponent.upload(toUpload, bucketKey);
+    var hash = customBucketComponent.upload(toUpload, bucketKey, true);
     if (!NONE.equals(hash.algorithm())) {
       throw new RuntimeException("FileHashAlgorithm.NONE expected but got: " + hash.algorithm());
     }
@@ -80,6 +78,6 @@ public class HealthBucketController {
   }
 
   private URL can_presign(String fileBucketKey) {
-    return bucketComponent.presign(fileBucketKey, Duration.ofMinutes(2));
+    return customBucketComponent.presign(fileBucketKey, Duration.ofMinutes(2));
   }
 }

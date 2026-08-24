@@ -23,13 +23,28 @@ jobs:
   deploy-api:
     if: ${{ github.ref_name == 'prod' || github.ref_name == 'preprod' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 15
 
     env:
       AWS_REGION: eu-west-3
-      STRIPE_PRIVATE_API_KEY: ${{ secrets.STRIPE_PRIVATE_API_KEY }}
-      GOOGLE_GEOCODE_API_KEY: ${{ secrets.GOOGLE_GEOCODE_API_KEY }}
-      GEODATA_IMAGERY_BASEURL: ${{secrets.GEODATA_IMAGERY_BASEURL}}
+      STRIPE_PRIVATE_API_KEY: ${{
+                    (github.event_name == 'pull_request' && github.base_ref == 'prod') && secrets.PROD_STRIPE_PRIVATE_API_KEY ||
+                    (github.event_name == 'pull_request' && github.base_ref == 'preprod') && secrets.PREPROD_STRIPE_PRIVATE_API_KEY ||
+                    (github.ref == 'refs/heads/prod') && secrets.PROD_STRIPE_PRIVATE_API_KEY ||
+                    (github.ref == 'refs/heads/preprod') && secrets.PREPROD_STRIPE_PRIVATE_API_KEY
+                    }}
+      GOOGLE_GEOCODE_API_KEY: ${{
+                    (github.event_name == 'pull_request' && github.base_ref == 'prod') && secrets.PROD_GOOGLE_GEOCODE_API_KEY ||
+                    (github.event_name == 'pull_request' && github.base_ref == 'preprod') && secrets.PREPROD_GOOGLE_GEOCODE_API_KEY ||
+                    (github.ref == 'refs/heads/prod') && secrets.PROD_GOOGLE_GEOCODE_API_KEY ||
+                    (github.ref == 'refs/heads/preprod') && secrets.PREPROD_GOOGLE_GEOCODE_API_KEY
+                    }}
+      GEODATA_IMAGERY_BASEURL: ${{
+                    (github.event_name == 'pull_request' && github.base_ref == 'prod') && secrets.PROD_GEODATA_IMAGERY_BASEURL ||
+                    (github.event_name == 'pull_request' && github.base_ref == 'preprod') && secrets.PREPROD_GEODATA_IMAGERY_BASEURL ||
+                    (github.ref == 'refs/heads/prod') && secrets.PROD_GEODATA_IMAGERY_BASEURL ||
+                    (github.ref == 'refs/heads/preprod') && secrets.PREPROD_GEODATA_IMAGERY_BASEURL
+                    }}
 
     steps:
       - uses: actions/checkout@v4.1.6
@@ -44,21 +59,10 @@ jobs:
           secrets: ${{ toJSON(secrets) }}
           region: ${{ env.AWS_REGION }}
 
-      - name: Cache Gradle deps
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-
       - name: Disable tests
         if: ${{ github.event.inputs.run_tests == 'no' }}
         run: |
-          echo "skipTests=true" >> gradle.properties
+          printf "tasks.named('test').configure {\n    enabled = false\n}" >> build.gradle
 
       - run: sam build
 

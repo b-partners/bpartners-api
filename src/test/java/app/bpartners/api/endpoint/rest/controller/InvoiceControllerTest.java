@@ -24,7 +24,7 @@ import app.bpartners.api.endpoint.rest.validator.CreateInvoiceExportRequestValid
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
 import app.bpartners.api.endpoint.rest.validator.UpdateInvoiceStatusRestValidator;
 import app.bpartners.api.endpoint.rest.validator.UpdatePaymentRegValidator;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.service.invoice.InvoiceExportRequestService;
@@ -46,9 +46,9 @@ class InvoiceControllerTest {
   InvoicesSummaryRestMapper invoicesSummaryRestMapperMock = mock();
   InvoiceSummaryService invoiceSummaryServiceMock = mock();
   InvoiceExportRequestService invoiceExportRequestServiceMock = mock();
-  BucketComponent bucketComponentMock = mock();
+  CustomBucketComponent customBucketComponentMock = mock();
   InvoiceExportRequestRestMapper invoiceExportRequestRestMapper =
-      new InvoiceExportRequestRestMapper(bucketComponentMock);
+      new InvoiceExportRequestRestMapper(customBucketComponentMock);
   UpdateInvoiceStatusRestValidator updateInvoiceStatusRestValidatorMock = mock();
   CreateInvoiceExportRequestValidator createInvoiceExportRequestValidatorMock = mock();
   SubscriptionInvoiceService subscriptionInvoiceServiceMock = mock();
@@ -121,7 +121,7 @@ class InvoiceControllerTest {
                 .outputFormat(ZIP)
                 .creationDatetime(now())
                 .build());
-    when(bucketComponentMock.presign(any(), any())).thenReturn(null);
+    when(customBucketComponentMock.presign(any(), any())).thenReturn(null);
 
     var actual = subject.retrieveInvoiceExportRequestById(userIdentifier, requestId);
 
@@ -164,7 +164,7 @@ class InvoiceControllerTest {
                 .outputFormat(ZIP)
                 .creationDatetime(now())
                 .build());
-    when(bucketComponentMock.presign(any(), any())).thenReturn(null);
+    when(customBucketComponentMock.presign(any(), any())).thenReturn(null);
 
     var actual = subject.retrieveInvoiceExportRequestById(userIdentifier, requestId);
 

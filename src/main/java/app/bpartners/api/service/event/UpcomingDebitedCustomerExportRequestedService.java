@@ -9,7 +9,7 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.CustomerExportHistorySaved;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.CustomerExportHistory;
 import app.bpartners.api.model.PageFromOne;
@@ -38,7 +38,7 @@ public class UpcomingDebitedCustomerExportRequestedService
   private final UpcomingUserDebitService upcomingUserDebitService;
   private final UserSubscriptionConf userSubscriptionConf;
   private final CustomerExportFunction customerExportFunction;
-  private final BucketComponent bucketComponent;
+  private final CustomBucketComponent customBucketComponent;
   private final CustomerExportHistoryJpaRepository customerExportHistoryJpaRepository;
   private final EventProducer eventProducer;
   private final StripeCustomerService stripeCustomerService;
@@ -111,7 +111,7 @@ public class UpcomingDebitedCustomerExportRequestedService
 
     var fileKey = "customers/" + randomUUID();
 
-    bucketComponent.upload(exportedExcelFile, fileKey, true);
+    customBucketComponent.upload(exportedExcelFile, fileKey, true);
 
     var additionalProperties = new HashMap<String, Object>();
 

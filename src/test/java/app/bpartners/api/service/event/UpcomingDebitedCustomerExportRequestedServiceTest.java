@@ -12,7 +12,7 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.CustomerExportHistorySaved;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.model.*;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.jpa.CustomerExportHistoryJpaRepository;
@@ -38,7 +38,7 @@ class UpcomingDebitedCustomerExportRequestedServiceTest {
   UpcomingUserDebitService upcomingUserDebitServiceMock = mock(UpcomingUserDebitService.class);
   UserSubscriptionConf userSubscriptionConfMock = mock(UserSubscriptionConf.class);
   CustomerExportFunction customerExportFunctionMock = mock(CustomerExportFunction.class);
-  BucketComponent bucketComponentMock = mock(BucketComponent.class);
+  CustomBucketComponent customBucketComponentMock = mock(CustomBucketComponent.class);
   CustomerExportHistoryJpaRepository customerExportHistoryJpaRepositoryMock =
       mock(CustomerExportHistoryJpaRepository.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
@@ -51,7 +51,7 @@ class UpcomingDebitedCustomerExportRequestedServiceTest {
           upcomingUserDebitServiceMock,
           userSubscriptionConfMock,
           customerExportFunctionMock,
-          bucketComponentMock,
+          customBucketComponentMock,
           customerExportHistoryJpaRepositoryMock,
           eventProducerMock,
           stripeCustomerServiceMock);
@@ -108,7 +108,7 @@ class UpcomingDebitedCustomerExportRequestedServiceTest {
             any()))
         .thenReturn(List.of(customerMock));
     when(customerExportFunctionMock.apply(any())).thenReturn(exportedExcelFileMock);
-    when(bucketComponentMock.upload(eq(exportedExcelFileMock), anyString(), eq(true)))
+    when(customBucketComponentMock.upload(eq(exportedExcelFileMock), anyString(), eq(true)))
         .thenReturn(mock());
     when(customerExportHistoryJpaRepositoryMock.save(any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
@@ -174,7 +174,7 @@ class UpcomingDebitedCustomerExportRequestedServiceTest {
     when(upcomingUserDebitServiceMock.getUpcomingDebitedCustomers())
         .thenReturn(new UpcomingDebitedCustomers(List.of(), List.of()));
     when(customerExportFunctionMock.apply(any())).thenReturn(mock(File.class));
-    when(bucketComponentMock.upload(any(), anyString(), eq(true))).thenReturn(mock());
+    when(customBucketComponentMock.upload(any(), anyString(), eq(true))).thenReturn(mock());
     when(customerExportHistoryJpaRepositoryMock.save(any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
 

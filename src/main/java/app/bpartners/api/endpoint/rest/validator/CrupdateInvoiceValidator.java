@@ -39,7 +39,9 @@ public class CrupdateInvoiceValidator implements Consumer<CrupdateInvoice> {
               + "CASH type is set by default");
       invoice.setPaymentType(CASH);
     }
-    if (invoice.getPaymentType() == IN_INSTALMENT && invoice.getPaymentRegulations() != null) {
+    if (invoice.getPaymentType() == IN_INSTALMENT
+        && invoice.getPaymentRegulations() != null
+        && !invoice.getPaymentRegulations().isEmpty()) {
       if (invoice.getPaymentRegulations().size() < 2) {
         log.info("payment = {}", invoice.getPaymentRegulations().size());
         exceptionBuilder.append("Multiple payments request more than one payment");

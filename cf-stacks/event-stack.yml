@@ -19,7 +19,7 @@ Resources:
   MailboxQueue2:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Join [ '' , [ !Ref Env , -2-bpartners ] ]
+      QueueName: !Join ['' , [!Ref Env , -2-bpartners]]
       VisibilityTimeout: 601 #note(sqs-visibility): WorkerFunction2.Timeout + 1
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt DeadLetterQueue2.Arn
@@ -35,7 +35,7 @@ Resources:
   DeadLetterQueue2:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Join [ '' , [ !Ref Env , -2-bpartners-dl ] ]
+      QueueName:  !Join ['' , [!Ref Env , -2-bpartners-dl]]
       SqsManagedSseEnabled: false
 
   MailboxQueuePolicy:
@@ -125,21 +125,21 @@ Resources:
   MailboxQueue2SSM:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Join [ '' , [ /bpartners/ , !Ref Env , /2/sqs/mailbox-queue-url ] ]
+      Name: !Join ['' , [/bpartners/ , !Ref Env , /2/sqs/mailbox-queue-url]]
       Type: String
       Value: !Ref MailboxQueue2
 
   MailboxQueue2SSMArn:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Join [ '' , [ /bpartners/ , !Ref Env , /2/sqs/mailbox-queue-arn ] ]
+      Name: !Join ['' , [/bpartners/ , !Ref Env , /2/sqs/mailbox-queue-arn]]
       Type: String
       Value: !GetAtt MailboxQueue2.Arn
 
   DeadLetterQueue1SSM:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Join ['' , [/bpartners/ , !Ref Env , /1/sqs/dead-letter-queue-url]]
+      Name: !Join [ '' , [ /bpartners/ , !Ref Env , /1/sqs/dead-letter-queue-url ] ]
       Type: String
       Value: !Ref DeadLetterQueue1
 
@@ -155,14 +155,14 @@ Resources:
     Properties:
       Name: !Join [ '' , [ /bpartners/ , !Ref Env , /2/sqs/dead-letter-queue-url ] ]
       Type: String
-      Value: !Ref DeadLetterQueue1
+      Value: !Ref DeadLetterQueue2
 
   DeadLetterQueue2ArnSSM:
     Type: AWS::SSM::Parameter
     Properties:
       Name: !Join [ '' , [ /bpartners/ , !Ref Env , /2/sqs/dead-letter-queue-arn ] ]
       Type: String
-      Value: !GetAtt DeadLetterQueue1.Arn
+      Value: !GetAtt DeadLetterQueue2.Arn
 
   EventBridgeBus:
     Type: AWS::Events::EventBus
@@ -190,14 +190,14 @@ Resources:
   EventBridgeRule2:
     Type: AWS::Events::Rule
     Properties:
-      Name: !Join [ '', [ !Ref Env, -2-bpartners, -from-api-to-api ] ]
+      Name: !Join ['', [!Ref Env, -2-bpartners, -from-api-to-api]]
       EventBusName: !GetAtt EventBridgeBus.Name
       EventPattern:
         source:
           - app.bpartners.api.event2
       Targets:
         - Arn: !GetAtt MailboxQueue2.Arn
-          Id: !Join [ '', [ !Ref Env, -2-bpartners, -api-mailbox ] ]
+          Id: !Join ['', [!Ref Env, -2-bpartners, -api-mailbox]]
 
   EventBridgeBusNameSSM:
     Type: AWS::SSM::Parameter

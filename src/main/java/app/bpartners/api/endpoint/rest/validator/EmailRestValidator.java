@@ -36,10 +36,8 @@ public class EmailRestValidator implements Consumer<CreateEmail> {
     if (email.getStatus() == null) {
       builder.append("Attribute `status` is mandatory. ");
     }
-    if (email.getRecipients() == null) {
+    if (email.getRecipients() == null || email.getRecipients().isEmpty()) {
       builder.append("Attribute `recipients` is mandatory. ");
-    } else if (email.getRecipients().isEmpty()) {
-      builder.append("At least one recipient is mandatory. ");
     } else if (email.getRecipients().size() > 1) {
       builder.append("At most one recipient is suported for now. ");
     }

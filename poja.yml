@@ -1,22 +1,20 @@
 compute:
-  frontal_function_timeout: 30
-  frontal_memory: 1024
-  worker_batch: 1
-  worker_function_1_timeout: 600
-  worker_function_2_timeout: 600
-  worker_memory: 1024
+  api_gateway_timeout: 900000
+  frontal_function_invocation_method: lambda-url
+  frontal_function_timeout: 900
+  frontal_memory: 2048
+  workers:
+  - batch: 1
+    memory: 1024
+    reserved_concurrent_executions_nb: 30
+    timeout: 600
+  - batch: 1
+    memory: 2048
+    reserved_concurrent_executions_nb: 30
+    timeout: 600
 concurrency:
   frontal_reserved_concurrent_executions_nb: 20
-  worker_reserved_concurrent_executions_nb: 30
 database:
-  aurora_auto_pause: 'false'
-  aurora_max_capacity: null
-  aurora_min_capacity: null
-  aurora_scale_point: null
-  aurora_sleep: null
-  database_non_root_password: /bpartners/${Env}/db/user/password
-  database_non_root_username: /bpartners/${Env}/db/user/username
-  prod_db_cluster_timeout: '300'
   with_database: non-poja-managed-postgres
 emailing:
   ses_source: contact@birdia.fr
@@ -30,15 +28,15 @@ gen_api_client:
   with_publish_to_npm_registry: 'true'
 general:
   app_name: bpartners
-  cli_version: 18.1.1
+  cli_version: 21.6.0
   custom_java_deps: poja-custom-java-deps.txt
   custom_java_env_vars: poja-custom-java-env-vars.txt
   custom_java_repositories: poja-custom-java-repositories.txt
+  java_main_class: PojaApplication
   package_full_name: app.bpartners.api
   poja_domain_owner: 088312068315
   poja_python_repository_domain: python-numer-tech
   poja_python_repository_name: numer-python-store
-  with_queues_nb: 2
   with_snapstart: 'true'
 integration:
   with_codeql: 'false'
@@ -52,6 +50,12 @@ networking:
   ssm_subnet1_id: /bpartners/private/subnet1/id
   ssm_subnet2_id: /bpartners/private/subnet2/id
   with_own_vpc: 'true'
+scheduled_tasks: null
 testing:
+  custom_java_gradle_test_args: poja-custom-java-gradle-test-args.txt
+  custom_java_test_env_vars: poja-custom-java-test-env-vars.txt
   jacoco_min_coverage: '0.4'
   java_facade_it: app.bpartners.api.integration.conf.MockedThirdParties
+  max_heap_size: 2g
+  min_heap_size: 512m
+  stack_size: null

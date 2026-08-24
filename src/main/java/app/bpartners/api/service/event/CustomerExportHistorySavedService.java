@@ -5,7 +5,7 @@ import static java.lang.System.currentTimeMillis;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.CustomerExportHistorySaved;
 import app.bpartners.api.file.FileWriter;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.CustomerExportHistory;
 import app.bpartners.api.repository.jpa.CustomerExportHistoryJpaRepository;
@@ -28,7 +28,7 @@ public class CustomerExportHistorySavedService implements Consumer<CustomerExpor
       "customer_export_history_email";
   private final SesService emailService;
   private final CustomerExportHistoryJpaRepository customerExportHistoryJpaRepository;
-  private final BucketComponent bucketComponent;
+  private final CustomBucketComponent customBucketComponent;
   private final FileWriter fileWriter;
   private final TemplateResolverEngine templateResolverEngine;
   private final SesConf sesConf;
@@ -59,7 +59,7 @@ public class CustomerExportHistorySavedService implements Consumer<CustomerExpor
 
   private List<Attachment> getAttachments(CustomerExportHistory customerExportHistory) {
     var fileKey = customerExportHistory.getFileKey();
-    var downloadedExport = bucketComponent.download(fileKey, true);
+    var downloadedExport = customBucketComponent.download(fileKey, true);
     var attachmentName =
         "Birdia - Liste des clients exportés pour suivi Stripe " + currentTimeMillis() + ".xlsx";
     var attachmentAsBytes = fileWriter.writeAsByte(downloadedExport);

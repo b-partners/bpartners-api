@@ -8,7 +8,7 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceExportRequest;
 import app.bpartners.api.endpoint.rest.model.InvoiceExportBatch;
 import app.bpartners.api.endpoint.rest.model.InvoiceExportRequest;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class InvoiceExportRequestRestMapper {
   private static final Duration URL_EXPIRATION = Duration.ofHours(1L);
-  private final BucketComponent bucketComponent;
+  private final CustomBucketComponent customBucketComponent;
 
   public app.bpartners.api.model.InvoiceExportRequest toDomain(
       String uId, CreateInvoiceExportRequest rest) {
@@ -54,7 +54,8 @@ public class InvoiceExportRequestRestMapper {
   }
 
   public InvoiceExportBatch toRest(app.bpartners.api.model.InvoiceExportBatch invoiceExportBatch) {
-    var presignedUrl = bucketComponent.presign(invoiceExportBatch.getFileKey(), URL_EXPIRATION);
+    var presignedUrl =
+        customBucketComponent.presign(invoiceExportBatch.getFileKey(), URL_EXPIRATION);
     return new InvoiceExportBatch()
         .url(presignedUrl == null ? null : presignedUrl.toString())
         .contentSize(invoiceExportBatch.getContentSize())

@@ -19,7 +19,7 @@ import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.ProspectCreated;
 import app.bpartners.api.endpoint.event.model.ProspectUpdated;
 import app.bpartners.api.file.FileWriter;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -82,7 +82,7 @@ class ProspectServiceTest {
   ProspectJpaRepository prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
   UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
   FileWriter fileWriterMock = mock(FileWriter.class);
-  BucketComponent bucketComponentMock = mock(BucketComponent.class);
+  CustomBucketComponent customBucketComponentMock = mock(CustomBucketComponent.class);
   ProspectService subject =
       new ProspectService(
           repositoryMock,
@@ -102,7 +102,7 @@ class ProspectServiceTest {
           new CustomDateFormatter(),
           prospectJpaRepositoryMock,
           userWhiteListedJpaRepositoryMock,
-          bucketComponentMock,
+          customBucketComponentMock,
           fileWriterMock);
 
   @BeforeEach
@@ -147,7 +147,7 @@ class ProspectServiceTest {
     assertEquals("Prospect(id=" + prospectIdentifier + ") not found", actualException.getMessage());
     verify(eventProducerMock, never()).accept(any());
     verify(fileWriterMock, never()).apply(any(), any());
-    verify(bucketComponentMock, never()).upload(any(), any(), anyBoolean());
+    verify(customBucketComponentMock, never()).upload(any(), any(), anyBoolean());
   }
 
   @Test
@@ -166,7 +166,7 @@ class ProspectServiceTest {
 
     assertEquals(prospectMock, actual);
     var stringCapture = ArgumentCaptor.forClass(String.class);
-    verify(bucketComponentMock, times(1))
+    verify(customBucketComponentMock, times(1))
         .upload(eq(fileAttachmentMock), stringCapture.capture(), eq(true));
     var eventCaptor = ArgumentCaptor.forClass(List.class);
 
@@ -197,7 +197,7 @@ class ProspectServiceTest {
 
     assertEquals(prospectMock, actual);
     verify(fileWriterMock, never()).apply(any(), any());
-    verify(bucketComponentMock, never()).upload(any(), any(), anyBoolean());
+    verify(customBucketComponentMock, never()).upload(any(), any(), anyBoolean());
     var eventCaptor = ArgumentCaptor.forClass(List.class);
     verify(eventProducerMock, times(1)).accept(eventCaptor.capture());
     var prospectCreated = (ProspectCreated) eventCaptor.getValue().getFirst();

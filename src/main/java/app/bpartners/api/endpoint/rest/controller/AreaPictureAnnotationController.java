@@ -11,6 +11,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.annotation.AreaPictureAnnotationConverter;
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -60,10 +61,22 @@ public class AreaPictureAnnotationController {
       @PathVariable String aId,
       @PathVariable String areaPictureId,
       @RequestParam(defaultValue = "1", required = false) PageFromOne page,
-      @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {
+      @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize,
+      @RequestParam(required = false) String prospectName,
+      @RequestParam(required = false) String address,
+      @RequestParam(required = false) Instant creationFrom,
+      @RequestParam(required = false) Instant creationTo) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
     return service
-        .findAllDraftByAccountIdAndAreaPictureId(authenticatedUserId, areaPictureId, page, pageSize)
+        .findAllByCriteria(
+            authenticatedUserId,
+            areaPictureId,
+            prospectName,
+            address,
+            creationFrom,
+            creationTo,
+            page,
+            pageSize)
         .stream()
         .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
         .toList();
@@ -73,9 +86,16 @@ public class AreaPictureAnnotationController {
   public List<DraftAreaPictureAnnotation> getDraftAreaPictureAnnotationsByAccountId(
       @PathVariable String aId,
       @RequestParam(defaultValue = "1", required = false) PageFromOne page,
-      @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize) {
+      @RequestParam(defaultValue = "10", required = false) BoundedPageSize pageSize,
+      @RequestParam(required = false) String prospectName,
+      @RequestParam(required = false) String address,
+      @RequestParam(required = false) Instant creationFrom,
+      @RequestParam(required = false) Instant creationTo) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
-    return service.findAllDraftByAccountId(authenticatedUserId, page, pageSize).stream()
+    return service
+        .findAllDraftByAccountId(
+            authenticatedUserId, prospectName, address, creationFrom, creationTo, page, pageSize)
+        .stream()
         .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
         .toList();
   }

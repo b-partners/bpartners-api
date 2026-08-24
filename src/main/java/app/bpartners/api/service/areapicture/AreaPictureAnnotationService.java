@@ -2,16 +2,20 @@ package app.bpartners.api.service.areapicture;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static java.util.UUID.randomUUID;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.file.FileWriter;
+import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureAnnotation;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.repository.AreaPictureAnnotationRepository;
+import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.model.AreaPictureAnnotationCriteria;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import app.bpartners.api.service.aws.S3Service;
 import java.time.Instant;
@@ -34,6 +38,8 @@ public class AreaPictureAnnotationService {
   private final AreaPictureAnnotationRepository repository;
   private final ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessor;
   private final UserRepository userRepository;
+  private final AreaPictureService areaPictureService;
+  private final ProspectRepository prospectRepository;
 
   public AreaPictureAnnotation save(AreaPictureAnnotation areaPictureAnnotation) {
     return repository.save(areaPictureAnnotation);
@@ -67,22 +73,80 @@ public class AreaPictureAnnotationService {
     return findAllBy(idUser, idAreaPicture, isDraft, page, pageSize);
   }
 
-  public List<AreaPictureAnnotation> findAllDraftByAccountIdAndAreaPictureId(
-      String idUser, String idAreaPicture, PageFromOne page, BoundedPageSize pageSize) {
-    final var isDraft = true;
-    return findAllBy(idUser, idAreaPicture, isDraft, page, pageSize);
+  public List<AreaPictureAnnotation> findAllByCriteria(
+      String idUser,
+      String idAreaPicture,
+      String prospectName,
+      String address,
+      Instant creationFrom,
+      Instant creationTo,
+      PageFromOne page,
+      BoundedPageSize pageSize) {
+    if (prospectName != null || address != null) {
+      var areaPicture = areaPictureService.findBy(idUser, idAreaPicture);
+      if (address != null && !containsIgnoreCase(areaPicture.getAddress(), address)) {
+        return List.of();
+      }
+      if (prospectName != null) {
+        var idProspect = areaPicture.getIdProspect();
+        if (idProspect == null
+            || !containsIgnoreCase(
+                prospectRepository.getById(idProspect).getName(), prospectName)) {
+          return List.of();
+        }
+      }
+    }
+    return repository.findAllByCriteria(
+        AreaPictureAnnotationCriteria.builder()
+            .idUser(idUser)
+            .idAreaPicture(idAreaPicture)
+            .isDraft(true)
+            .creationFrom(creationFrom)
+            .creationTo(creationTo)
+            .page(page.getValue() - 1)
+            .pageSize(pageSize.getValue())
+            .build());
   }
 
   public List<AreaPictureAnnotation> findAllDraftByAccountId(
-      String idUser, PageFromOne page, BoundedPageSize pageSize) {
-    final var isDraft = true;
-    return repository.findAllByIsDraftAndAccountId(
-        idUser,
-        isDraft,
-        PageRequest.of(
-            page.getValue() - 1,
-            pageSize.getValue(),
-            Sort.by(Sort.Order.desc("creationDatetime"))));
+      String idUser,
+      String prospectName,
+      String address,
+      Instant creationFrom,
+      Instant creationTo,
+      PageFromOne page,
+      BoundedPageSize pageSize) {
+    List<String> idAreaPictureIds = null;
+    if (prospectName != null || address != null) {
+      var areaPictures =
+          address != null
+              ? areaPictureService.findAllByAddress(idUser, address)
+              : areaPictureService.findAllByIdUser(idUser);
+      idAreaPictureIds =
+          areaPictures.stream()
+              .filter(
+                  areaPicture ->
+                      prospectName == null
+                          || (areaPicture.getIdProspect() != null
+                              && containsIgnoreCase(
+                                  prospectRepository.getById(areaPicture.getIdProspect()).getName(),
+                                  prospectName)))
+              .map(AreaPicture::getId)
+              .toList();
+      if (idAreaPictureIds.isEmpty()) {
+        return List.of();
+      }
+    }
+    return repository.findAllByCriteria(
+        AreaPictureAnnotationCriteria.builder()
+            .idUser(idUser)
+            .idAreaPictureIds(idAreaPictureIds)
+            .isDraft(true)
+            .creationFrom(creationFrom)
+            .creationTo(creationTo)
+            .page(page.getValue() - 1)
+            .pageSize(pageSize.getValue())
+            .build());
   }
 
   public PreSignedURL exportAreaPictureAnnotationToPdf(

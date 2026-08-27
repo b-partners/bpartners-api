@@ -61,7 +61,11 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
       throws IOException {
     BufferedImage downloadedImage = downloadImage(exportAnnotation.getImageUrl());
-    return process(user, exportAnnotation, downloadedImage, globalImage3D);
+    byte[] resolvedGlobalImage3D =
+        globalImage3D != null
+            ? globalImage3D
+            : downloadImageBytes(exportAnnotation.getGlobalImage3DUrl());
+    return process(user, exportAnnotation, downloadedImage, resolvedGlobalImage3D);
   }
 
   public byte[] process(
@@ -171,6 +175,17 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private static BufferedImage downloadImage(String imageUrl) {
     try {
       return ImageIO.read(new URI(imageUrl).toURL());
+    } catch (IOException | URISyntaxException e) {
+      throw new BadRequestException("Cannot read the image from the url");
+    }
+  }
+
+  private static byte[] downloadImageBytes(String imageUrl) {
+    if (imageUrl == null) {
+      return null;
+    }
+    try (var inputStream = new URI(imageUrl).toURL().openStream()) {
+      return inputStream.readAllBytes();
     } catch (IOException | URISyntaxException e) {
       throw new BadRequestException("Cannot read the image from the url");
     }

@@ -2,14 +2,17 @@ package app.bpartners.api.unit.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.service.subscription.StripeInvoiceService;
+import com.stripe.exception.ApiException;
 import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceCollection;
 import com.stripe.param.InvoiceListParams;
+import com.stripe.param.InvoiceUpcomingParams;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -67,6 +70,34 @@ class StripeInvoiceServiceTest {
       var capturedParams = paramsCaptor.getAllValues();
       assertEquals("sub_1", capturedParams.get(0).getSubscription());
       assertEquals("sub_1", capturedParams.get(1).getSubscription());
+    }
+  }
+
+  @Test
+  void get_upcoming_stripe_invoice_returns_invoice_when_stripe_succeeds() {
+    var upcomingInvoice = mock(Invoice.class);
+
+    try (MockedStatic<Invoice> invoiceMockedStatic = mockStatic(Invoice.class)) {
+      invoiceMockedStatic
+          .when(() -> Invoice.upcoming(any(InvoiceUpcomingParams.class)))
+          .thenReturn(upcomingInvoice);
+
+      var actual = subject.getUpcomingStripeInvoice("cus_1");
+
+      assertEquals(upcomingInvoice, actual);
+    }
+  }
+
+  @Test
+  void get_upcoming_stripe_invoice_returns_null_when_stripe_throws() {
+    try (MockedStatic<Invoice> invoiceMockedStatic = mockStatic(Invoice.class)) {
+      invoiceMockedStatic
+          .when(() -> Invoice.upcoming(any(InvoiceUpcomingParams.class)))
+          .thenThrow(new ApiException("boom", null, null, null, null));
+
+      var actual = subject.getUpcomingStripeInvoice("cus_1");
+
+      assertNull(actual);
     }
   }
 }

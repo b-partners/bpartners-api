@@ -26,7 +26,8 @@ class StripeInvoiceServiceTest {
     var uncollectibleCollection = mock(InvoiceCollection.class);
     when(openCollection.getData()).thenReturn(List.of(openInvoice));
     when(uncollectibleCollection.getData()).thenReturn(List.of(uncollectibleInvoice));
-    ArgumentCaptor<InvoiceListParams> paramsCaptor = ArgumentCaptor.forClass(InvoiceListParams.class);
+    ArgumentCaptor<InvoiceListParams> paramsCaptor =
+        ArgumentCaptor.forClass(InvoiceListParams.class);
 
     try (MockedStatic<Invoice> invoiceMockedStatic = mockStatic(Invoice.class)) {
       invoiceMockedStatic
@@ -52,7 +53,8 @@ class StripeInvoiceServiceTest {
     var uncollectibleCollection = mock(InvoiceCollection.class);
     when(openCollection.getData()).thenReturn(List.of());
     when(uncollectibleCollection.getData()).thenReturn(List.of());
-    ArgumentCaptor<InvoiceListParams> paramsCaptor = ArgumentCaptor.forClass(InvoiceListParams.class);
+    ArgumentCaptor<InvoiceListParams> paramsCaptor =
+        ArgumentCaptor.forClass(InvoiceListParams.class);
 
     try (MockedStatic<Invoice> invoiceMockedStatic = mockStatic(Invoice.class)) {
       invoiceMockedStatic

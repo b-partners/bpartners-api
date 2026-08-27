@@ -12,8 +12,7 @@ import org.junit.jupiter.api.Test;
 class CoordinatesTest {
   @Test
   void from_polygon_extracts_x_and_y_arrays() {
-    var polygon =
-        new Polygon().points(List.of(new Point().x(1d).y(2d), new Point().x(3d).y(4d)));
+    var polygon = new Polygon().points(List.of(new Point().x(1d).y(2d), new Point().x(3d).y(4d)));
 
     var actual = Coordinates.from(polygon);
 
@@ -23,15 +22,15 @@ class CoordinatesTest {
 
   @Test
   void equals_and_hash_code_consider_array_content() {
-    var polygon =
-        new Polygon().points(List.of(new Point().x(1d).y(2d), new Point().x(3d).y(4d)));
+    var polygon = new Polygon().points(List.of(new Point().x(1d).y(2d), new Point().x(3d).y(4d)));
 
     var first = Coordinates.from(polygon);
     var second = Coordinates.from(polygon);
 
     assertEquals(first, second);
     assertEquals(first.hashCode(), second.hashCode());
-    assertNotEquals(first, Coordinates.from(new Polygon().points(List.of(new Point().x(9d).y(9d)))));
+    assertNotEquals(
+        first, Coordinates.from(new Polygon().points(List.of(new Point().x(9d).y(9d)))));
   }
 
   @Test

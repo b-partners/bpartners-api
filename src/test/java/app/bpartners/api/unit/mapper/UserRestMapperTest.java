@@ -317,6 +317,48 @@ class UserRestMapperTest {
   }
 
   @Test
+  void to_rest_v2_unpaid_invoice_check_is_scoped_to_the_current_subscription() {
+    var now = now();
+    var userId = randomUUID().toString();
+    var stripeCustomerId = "cus_1";
+    var currentSubscriptionE2Id = "sub_current";
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userId))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(
+            UserSubscription.builder()
+                .subscriptions(
+                    List.of(
+                        Subscription.builder()
+                            .e2Id(currentSubscriptionE2Id)
+                            .status(Subscription.SubscriptionStatus.ACTIVE)
+                            .active(true)
+                            .startDatetime(now)
+                            .endDatetime(now.plus(30L, DAYS))
+                            .build()))
+                .build());
+    when(stripeInvoiceServiceMock.getUnpaidStripeInvoices(
+            stripeCustomerId, currentSubscriptionE2Id))
+        .thenReturn(List.of());
+
+    var actual =
+        subject.toRestV2(
+            User.builder()
+                .id(userId)
+                .roles(List.of())
+                .paymentMethodExists(true)
+                .userSubscriptionId(stripeCustomerId)
+                .build());
+
+    assertEquals(ACTIVE, actual.getSubscriptionStatus());
+    verify(stripeInvoiceServiceMock)
+        .getUnpaidStripeInvoices(stripeCustomerId, currentSubscriptionE2Id);
+  }
+
+  @Test
   void user_subscription_mapped_with_active_when_eligible_but_white_listed_with_api_key_scope() {
     var now = now();
     var userId = randomUUID().toString();

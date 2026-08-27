@@ -15,20 +15,32 @@ import org.springframework.stereotype.Service;
 public class StripeInvoiceService {
   @SneakyThrows
   private List<Invoice> getStripeInvoices(
-      String stripeCustomerIdentifier, InvoiceListParams.Status invoiceStatus) {
-    InvoiceListParams params =
-        InvoiceListParams.builder()
-            .setCustomer(stripeCustomerIdentifier)
-            .setStatus(invoiceStatus)
-            .build();
+      String stripeCustomerIdentifier,
+      String stripeSubscriptionIdentifier,
+      InvoiceListParams.Status invoiceStatus) {
+    var paramsBuilder =
+        InvoiceListParams.builder().setCustomer(stripeCustomerIdentifier).setStatus(invoiceStatus);
+    if (stripeSubscriptionIdentifier != null) {
+      paramsBuilder.setSubscription(stripeSubscriptionIdentifier);
+    }
 
-    return Invoice.list(params).getData();
+    return Invoice.list(paramsBuilder.build()).getData();
   }
 
   public List<Invoice> getUnpaidStripeInvoices(String stripeCustomerIdentifier) {
-    var unpaidInvoices = getStripeInvoices(stripeCustomerIdentifier, InvoiceListParams.Status.OPEN);
+    return getUnpaidStripeInvoices(stripeCustomerIdentifier, null);
+  }
+
+  public List<Invoice> getUnpaidStripeInvoices(
+      String stripeCustomerIdentifier, String stripeSubscriptionIdentifier) {
+    var unpaidInvoices =
+        getStripeInvoices(
+            stripeCustomerIdentifier, stripeSubscriptionIdentifier, InvoiceListParams.Status.OPEN);
     var uncollectibleInvoice =
-        getStripeInvoices(stripeCustomerIdentifier, InvoiceListParams.Status.UNCOLLECTIBLE);
+        getStripeInvoices(
+            stripeCustomerIdentifier,
+            stripeSubscriptionIdentifier,
+            InvoiceListParams.Status.UNCOLLECTIBLE);
     return Stream.concat(unpaidInvoices.stream(), uncollectibleInvoice.stream()).toList();
   }
 

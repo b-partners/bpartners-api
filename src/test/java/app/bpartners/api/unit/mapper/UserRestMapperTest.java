@@ -298,7 +298,8 @@ class UserRestMapperTest {
                 .build());
     // no unpaid invoice on the CURRENT subscription, even though the customer may have an old,
     // unrelated unpaid/uncollectible invoice from a previous subscription period
-    when(stripeInvoiceServiceMock.getUnpaidStripeInvoices(stripeCustomerId, currentSubscriptionE2Id))
+    when(stripeInvoiceServiceMock.getUnpaidStripeInvoices(
+            stripeCustomerId, currentSubscriptionE2Id))
         .thenReturn(List.of());
 
     var actual =

@@ -67,4 +67,12 @@ public class UserSubscription {
         .toList()
         .getFirst();
   }
+
+  // skips synthetic gap-bridging subscriptions (no Stripe id), unlike getLatestSubscription()
+  public Subscription getLatestSubscriptionWithStripeId() {
+    return subscriptions.stream()
+        .filter(subscription -> subscription.getE2Id() != null)
+        .max(comparing(Subscription::getStartDatetime, naturalOrder()))
+        .orElse(null);
+  }
 }

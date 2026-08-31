@@ -230,7 +230,7 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
 
   @Test
   void resubscribing_during_the_cancelled_period_keeps_serving_the_cancelled_plan() {
-    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS);
+    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MICROS);
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
         JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
     userSubscriptionProductService.endActiveSubscriptionProducts(JOE_DOE_ID, nextPeriodStart);
@@ -252,7 +252,7 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
 
   @Test
   void resubscribing_during_the_cancelled_period_defers_the_new_plan_credits() {
-    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS);
+    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MICROS);
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
         JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
     userSubscriptionProductService.endActiveSubscriptionProducts(JOE_DOE_ID, nextPeriodStart);
@@ -267,7 +267,7 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
 
   @Test
   void monthly_trigger_skips_a_user_whose_only_plan_has_not_started_yet() {
-    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS);
+    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MICROS);
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
         JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
     userSubscriptionProductService.endActiveSubscriptionProducts(JOE_DOE_ID, Instant.now());

@@ -75,9 +75,8 @@ public class UpcomingUserDebitService {
     if (items.isEmpty()) {
       return List.of();
     }
-    ExecutorService executor =
-        Executors.newFixedThreadPool(Math.min(MAX_STRIPE_CONCURRENCY, items.size()));
-    try {
+    try (ExecutorService executor =
+        Executors.newFixedThreadPool(Math.min(MAX_STRIPE_CONCURRENCY, items.size()))) {
       var futures = items.stream().map(item -> executor.submit(() -> mapper.apply(item))).toList();
       var results = new ArrayList<R>(items.size());
       for (var future : futures) {
@@ -91,8 +90,6 @@ public class UpcomingUserDebitService {
         }
       }
       return results;
-    } finally {
-      executor.shutdown();
     }
   }
 

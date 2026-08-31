@@ -19,6 +19,7 @@ import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionSchedule;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -77,6 +78,7 @@ public class StripeWebhookService {
                 .userId(userId)
                 .subscriptionProductId(eligible.subscriptionPlanIdentifier())
                 .billingInterval(eligible.billingInterval())
+                .subscriptionStartDatetime(eligible.subscriptionStartDatetime())
                 .build()));
     log.info(
         "Requested UserSubscriptionProduct creation for User(id={}) from Stripe event={}",
@@ -176,7 +178,8 @@ public class StripeWebhookService {
         return null;
       }
       var subscribedPlan = subscriptionService.resolveSubscribedPlan(subscription).orElse(null);
-      return eligibleSubscriptionOf(subscription.getCustomer(), subscribedPlan);
+      return eligibleSubscriptionOf(
+          subscription.getCustomer(), subscribedPlan, startDatetimeOf(subscription));
     }
 
     if (SUBSCRIPTION_SCHEDULE_CREATED.equals(type)) {
@@ -189,7 +192,8 @@ public class StripeWebhookService {
         return null;
       }
       var subscribedPlan = subscriptionService.resolveSubscribedPlan(schedule).orElse(null);
-      return eligibleSubscriptionOf(schedule.getCustomer(), subscribedPlan);
+      return eligibleSubscriptionOf(
+          schedule.getCustomer(), subscribedPlan, startDatetimeOf(schedule));
     }
     log.info("Ignoring unhandled Stripe event type={}", type);
     return null;
@@ -237,13 +241,35 @@ public class StripeWebhookService {
   }
 
   private static EligibleSubscription eligibleSubscriptionOf(
-      String customerId, SubscriptionService.SubscribedPlan subscribedPlan) {
+      String customerId,
+      SubscriptionService.SubscribedPlan subscribedPlan,
+      Instant subscriptionStartDatetime) {
     return subscribedPlan == null
-        ? new EligibleSubscription(customerId, null, null)
+        ? new EligibleSubscription(customerId, null, null, subscriptionStartDatetime)
         : new EligibleSubscription(
-            customerId, subscribedPlan.planId(), subscribedPlan.billingInterval());
+            customerId,
+            subscribedPlan.planId(),
+            subscribedPlan.billingInterval(),
+            subscriptionStartDatetime);
+  }
+
+  private static Instant startDatetimeOf(Subscription subscription) {
+    var currentPeriodStart = subscription.getCurrentPeriodStart();
+    return currentPeriodStart == null ? null : Instant.ofEpochSecond(currentPeriodStart);
+  }
+
+  private static Instant startDatetimeOf(SubscriptionSchedule schedule) {
+    var phases = schedule.getPhases();
+    if (phases == null || phases.isEmpty()) {
+      return null;
+    }
+    var startDate = phases.getFirst().getStartDate();
+    return startDate == null ? null : Instant.ofEpochSecond(startDate);
   }
 
   private record EligibleSubscription(
-      String customerId, String subscriptionPlanIdentifier, BillingInterval billingInterval) {}
+      String customerId,
+      String subscriptionPlanIdentifier,
+      BillingInterval billingInterval,
+      Instant subscriptionStartDatetime) {}
 }

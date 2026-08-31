@@ -17,6 +17,7 @@ import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +64,7 @@ class UserSubscriptionProductServiceTest {
     var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
     when(subscriptionProductRepository.findById(subscribedPlanId))
         .thenReturn(Optional.of(subscribedPlan));
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of());
 
     var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, MONTHLY);
@@ -89,7 +90,7 @@ class UserSubscriptionProductServiceTest {
     var alreadyActive = activeProduct(userId, subscribedPlan, null);
     when(subscriptionProductRepository.findById(subscribedPlanId))
         .thenReturn(Optional.of(subscribedPlan));
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of(alreadyActive));
 
     var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, MONTHLY);
@@ -107,7 +108,7 @@ class UserSubscriptionProductServiceTest {
     var endingSoon = activeProduct(userId, subscribedPlan, Instant.parse("2026-09-05T00:00:00Z"));
     when(subscriptionProductRepository.findById(subscribedPlanId))
         .thenReturn(Optional.of(subscribedPlan));
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of(endingSoon));
 
     var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, MONTHLY);
@@ -127,7 +128,7 @@ class UserSubscriptionProductServiceTest {
     var previouslyActive = activeProduct(userId, previousPlan, null);
     when(subscriptionProductRepository.findById("upgraded_plan_id"))
         .thenReturn(Optional.of(subscribedPlan));
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of(previouslyActive));
     when(userSubscriptionProductJpaRepository.saveAll(any()))
         .thenAnswer(i -> i.getArgument(0, List.class));
@@ -147,13 +148,94 @@ class UserSubscriptionProductServiceTest {
   }
 
   @Test
+  void starts_the_new_product_on_the_given_period_start_and_defers_its_credits() {
+    var userId = randomUUID().toString();
+    var subscribedPlanId = "upgraded_plan_id";
+    var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
+    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS);
+    when(subscriptionProductRepository.findById(subscribedPlanId))
+        .thenReturn(Optional.of(subscribedPlan));
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
+        .thenReturn(List.of());
+
+    var actual =
+        subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, MONTHLY, nextPeriodStart);
+
+    assertEquals(nextPeriodStart, actual.getSubscriptionStartDatetime());
+    assertNull(actual.getSubscriptionEndDatetime());
+    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
+  }
+
+  @Test
+  void ends_the_cancelled_product_exactly_when_the_newly_subscribed_one_starts() {
+    var userId = randomUUID().toString();
+    var cancelledPlan = SubscriptionProduct.builder().id("cancelled_plan_id").build();
+    var subscribedPlan = SubscriptionProduct.builder().id("upgraded_plan_id").build();
+    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS);
+    var cancelledProduct = activeProduct(userId, cancelledPlan, nextPeriodStart);
+    when(subscriptionProductRepository.findById("upgraded_plan_id"))
+        .thenReturn(Optional.of(subscribedPlan));
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
+        .thenReturn(List.of(cancelledProduct));
+    when(userSubscriptionProductJpaRepository.saveAll(any()))
+        .thenAnswer(i -> i.getArgument(0, List.class));
+
+    var actual =
+        subject.ensureActiveSubscriptionProduct(
+            userId, "upgraded_plan_id", MONTHLY, nextPeriodStart);
+
+    @SuppressWarnings("unchecked")
+    var endedCaptor = ArgumentCaptor.forClass(List.class);
+    verify(userSubscriptionProductJpaRepository).saveAll(endedCaptor.capture());
+    var ended = (List<UserSubscriptionProduct>) endedCaptor.getValue();
+    assertEquals(1, ended.size());
+    assertEquals(nextPeriodStart, ended.getFirst().getSubscriptionEndDatetime());
+    assertEquals(nextPeriodStart, actual.getSubscriptionStartDatetime());
+    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
+  }
+
+  @Test
+  void starts_the_new_product_now_when_the_given_period_start_is_past() {
+    var userId = randomUUID().toString();
+    var subscribedPlanId = "essential_plan_id";
+    var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
+    var pastPeriodStart = Instant.now().minus(2, ChronoUnit.DAYS);
+    when(subscriptionProductRepository.findById(subscribedPlanId))
+        .thenReturn(Optional.of(subscribedPlan));
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
+        .thenReturn(List.of());
+
+    var actual =
+        subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, MONTHLY, pastPeriodStart);
+
+    assertTrue(actual.getSubscriptionStartDatetime().isAfter(pastPeriodStart));
+    verify(creditGrantService).grantIncludedCredits(userId, subscribedPlan);
+  }
+
+  @Test
+  void grants_nothing_from_a_scheduled_product_when_plan_id_null() {
+    var userId = randomUUID().toString();
+    var scheduledPlan = SubscriptionProduct.builder().id("scheduled_plan_id").build();
+    var scheduledProduct =
+        activeProduct(userId, scheduledPlan, null).toBuilder()
+            .subscriptionStartDatetime(Instant.now().plus(20, ChronoUnit.DAYS))
+            .build();
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
+        .thenReturn(List.of(scheduledProduct));
+
+    assertThrows(
+        NotFoundException.class, () -> subject.ensureActiveSubscriptionProduct(userId, null, null));
+    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
+  }
+
+  @Test
   void creates_subscribed_product_with_yearly_billing_interval() {
     var userId = randomUUID().toString();
     var subscribedPlanId = "essential_plan_id";
     var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
     when(subscriptionProductRepository.findById(subscribedPlanId))
         .thenReturn(Optional.of(subscribedPlan));
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of());
 
     var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, YEARLY);
@@ -168,7 +250,7 @@ class UserSubscriptionProductServiceTest {
     var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
     when(subscriptionProductRepository.findById(subscribedPlanId))
         .thenReturn(Optional.of(subscribedPlan));
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of());
 
     var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, null);
@@ -184,7 +266,7 @@ class UserSubscriptionProductServiceTest {
     var billedMonthly = activeProduct(userId, subscribedPlan, null, MONTHLY);
     when(subscriptionProductRepository.findById(subscribedPlanId))
         .thenReturn(Optional.of(subscribedPlan));
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of(billedMonthly));
 
     var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, YEARLY);
@@ -204,7 +286,7 @@ class UserSubscriptionProductServiceTest {
     var billedYearly = activeProduct(userId, subscribedPlan, null, YEARLY);
     when(subscriptionProductRepository.findById(subscribedPlanId))
         .thenReturn(Optional.of(subscribedPlan));
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of(billedYearly));
 
     var actual = subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, YEARLY);
@@ -218,7 +300,7 @@ class UserSubscriptionProductServiceTest {
     var userId = randomUUID().toString();
     var activePlan = SubscriptionProduct.builder().id("active_plan_id").build();
     var alreadyActive = activeProduct(userId, activePlan, null);
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of(alreadyActive));
 
     var actual = subject.ensureActiveSubscriptionProduct(userId, null, null);
@@ -231,7 +313,7 @@ class UserSubscriptionProductServiceTest {
   @Test
   void throws_when_plan_id_null_and_no_active_product() {
     var userId = randomUUID().toString();
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of());
 
     assertThrows(
@@ -245,7 +327,7 @@ class UserSubscriptionProductServiceTest {
     var userId = randomUUID().toString();
     var unknownPlanId = "unknown_plan_id";
     when(subscriptionProductRepository.findById(unknownPlanId)).thenReturn(Optional.empty());
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of());
 
     assertThrows(
@@ -260,7 +342,7 @@ class UserSubscriptionProductServiceTest {
     var userId = randomUUID().toString();
     var endDatetime = Instant.parse("2026-09-05T00:00:00Z");
     var product = activeProduct(userId, SubscriptionProduct.builder().id("plan_id").build(), null);
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of(product));
     when(userSubscriptionProductJpaRepository.saveAll(any()))
         .thenAnswer(i -> i.getArgument(0, List.class));
@@ -280,7 +362,7 @@ class UserSubscriptionProductServiceTest {
   @Test
   void does_nothing_when_no_active_product_to_end() {
     var userId = randomUUID().toString();
-    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq(userId), any()))
+    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
         .thenReturn(List.of());
 
     var actual = subject.endActiveSubscriptionProducts(userId, Instant.now());

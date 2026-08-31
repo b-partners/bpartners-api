@@ -28,6 +28,7 @@ import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionSchedule;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +41,7 @@ class StripeWebhookServiceTest {
   static final String PAYLOAD = "{}";
   static final String SIGNATURE = "sig";
   static final String CUSTOMER_ID = "cus_123";
+  static final Long CURRENT_PERIOD_START = 1_780_000_000L;
 
   StripeConf stripeConf = mock();
   UserRepository userRepository = mock();
@@ -73,6 +75,7 @@ class StripeWebhookServiceTest {
 
   private Event givenEvent(String type, String subscriptionStatus, boolean cancelAtPeriodEnd) {
     var subscription = mock(Subscription.class);
+    lenient().when(subscription.getCurrentPeriodStart()).thenReturn(CURRENT_PERIOD_START);
     lenient().when(subscription.getStatus()).thenReturn(subscriptionStatus);
     lenient().when(subscription.getCancelAtPeriodEnd()).thenReturn(cancelAtPeriodEnd);
     lenient().when(subscription.getCustomer()).thenReturn(CUSTOMER_ID);
@@ -85,10 +88,19 @@ class StripeWebhookServiceTest {
   }
 
   private Event givenScheduleEvent(String scheduleStatus, Long canceledAt) {
+    return givenScheduleEvent(scheduleStatus, canceledAt, null);
+  }
+
+  private Event givenScheduleEvent(String scheduleStatus, Long canceledAt, Long phaseStartDate) {
     var schedule = mock(SubscriptionSchedule.class);
     lenient().when(schedule.getStatus()).thenReturn(scheduleStatus);
     lenient().when(schedule.getCanceledAt()).thenReturn(canceledAt);
     lenient().when(schedule.getCustomer()).thenReturn(CUSTOMER_ID);
+    if (phaseStartDate != null) {
+      var phase = mock(SubscriptionSchedule.Phase.class);
+      lenient().when(phase.getStartDate()).thenReturn(phaseStartDate);
+      lenient().when(schedule.getPhases()).thenReturn(List.of(phase));
+    }
     var deserializer = mock(EventDataObjectDeserializer.class);
     lenient().when(deserializer.getObject()).thenReturn(Optional.of(schedule));
     var event = mock(Event.class);
@@ -120,6 +132,34 @@ class StripeWebhookServiceTest {
                     .userId(userId)
                     .subscriptionProductId(planId)
                     .billingInterval(YEARLY)
+                    .build()));
+  }
+
+  @Test
+  void not_started_schedule_requests_creation_starting_on_the_first_phase() {
+    var userId = randomUUID().toString();
+    var planId = "essential_plan_id";
+    var phaseStartDate = 1_800_000_000L;
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(userId).build()));
+    when(subscriptionService.resolveSubscribedPlan(any(SubscriptionSchedule.class)))
+        .thenReturn(Optional.of(new SubscriptionService.SubscribedPlan(planId, MONTHLY)));
+    var event = givenScheduleEvent("not_started", null, phaseStartDate);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer)
+        .accept(
+            List.of(
+                UserSubscriptionProductBackfillRequested.builder()
+                    .userId(userId)
+                    .subscriptionProductId(planId)
+                    .billingInterval(MONTHLY)
+                    .subscriptionStartDatetime(Instant.ofEpochSecond(phaseStartDate))
                     .build()));
   }
 
@@ -174,6 +214,7 @@ class StripeWebhookServiceTest {
                     .userId(userId)
                     .subscriptionProductId(planId)
                     .billingInterval(MONTHLY)
+                    .subscriptionStartDatetime(Instant.ofEpochSecond(CURRENT_PERIOD_START))
                     .build()));
   }
 

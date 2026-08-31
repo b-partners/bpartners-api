@@ -7,6 +7,8 @@ import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionCreditGrantRequested;
@@ -21,6 +23,7 @@ import app.bpartners.api.service.event.MonthlySubscriptionCreditGrantTriggeredSe
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -223,5 +226,56 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
 
     assertEquals(1, creditTransactionRepository.findAllByUserId(JOE_DOE_ID).size());
     assertEquals(0L, creditService.getCreditBalance(JOE_DOE_ID).getGrantedCredits());
+  }
+
+  @Test
+  void resubscribing_during_the_cancelled_period_keeps_serving_the_cancelled_plan() {
+    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS);
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+    userSubscriptionProductService.endActiveSubscriptionProducts(JOE_DOE_ID, nextPeriodStart);
+
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        JOE_DOE_ID, PRO_PLAN_ID, MONTHLY, nextPeriodStart);
+
+    var servedProducts =
+        userSubscriptionProductJpaRepository.findAllActiveByUserId(JOE_DOE_ID, Instant.now());
+    assertEquals(1, servedProducts.size());
+    assertEquals(ESSENTIAL_PLAN_ID, servedProducts.getFirst().getSubscriptionProduct().getId());
+    assertEquals(nextPeriodStart, servedProducts.getFirst().getSubscriptionEndDatetime());
+    var servedOnceStarted =
+        userSubscriptionProductJpaRepository.findAllActiveByUserId(
+            JOE_DOE_ID, nextPeriodStart.plusSeconds(1));
+    assertEquals(1, servedOnceStarted.size());
+    assertEquals(PRO_PLAN_ID, servedOnceStarted.getFirst().getSubscriptionProduct().getId());
+  }
+
+  @Test
+  void resubscribing_during_the_cancelled_period_defers_the_new_plan_credits() {
+    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS);
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+    userSubscriptionProductService.endActiveSubscriptionProducts(JOE_DOE_ID, nextPeriodStart);
+
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        JOE_DOE_ID, PRO_PLAN_ID, MONTHLY, nextPeriodStart);
+
+    assertEquals(1, creditTransactionRepository.findAllByUserId(JOE_DOE_ID).size());
+    assertEquals(
+        ESSENTIAL_INCLUDED_CREDITS, creditService.getCreditBalance(JOE_DOE_ID).getGrantedCredits());
+  }
+
+  @Test
+  void monthly_trigger_skips_a_user_whose_only_plan_has_not_started_yet() {
+    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS);
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+    userSubscriptionProductService.endActiveSubscriptionProducts(JOE_DOE_ID, Instant.now());
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        JOE_DOE_ID, PRO_PLAN_ID, MONTHLY, nextPeriodStart);
+
+    grantTriggeredService.accept(new MonthlySubscriptionCreditGrantTriggered());
+
+    verify(eventProducer, never()).accept(anyList());
   }
 }

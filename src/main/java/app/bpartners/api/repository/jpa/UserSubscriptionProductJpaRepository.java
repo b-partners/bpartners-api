@@ -13,9 +13,17 @@ public interface UserSubscriptionProductJpaRepository
     extends JpaRepository<UserSubscriptionProduct, String> {
   @Query(
       "select usp from user_subscription_product usp where usp.userId = :userId"
+          + " and (usp.subscriptionStartDatetime is null or usp.subscriptionStartDatetime <= :now)"
           + " and (usp.subscriptionEndDatetime is null or usp.subscriptionEndDatetime > :now)"
           + " order by usp.subscriptionStartDatetime desc")
   List<UserSubscriptionProduct> findAllActiveByUserId(
+      @Param("userId") String userId, @Param("now") Instant now);
+
+  @Query(
+      "select usp from user_subscription_product usp where usp.userId = :userId"
+          + " and (usp.subscriptionEndDatetime is null or usp.subscriptionEndDatetime > :now)"
+          + " order by usp.subscriptionStartDatetime desc")
+  List<UserSubscriptionProduct> findAllNotEndedByUserId(
       @Param("userId") String userId, @Param("now") Instant now);
 
   @Query(
@@ -25,7 +33,8 @@ public interface UserSubscriptionProductJpaRepository
   List<UserSubscriptionProduct> findAllNotCancelledByUserId(@Param("userId") String userId);
 
   @Query(
-      "select distinct usp.userId from user_subscription_product usp"
-          + " where usp.subscriptionEndDatetime is null or usp.subscriptionEndDatetime > :now")
+      "select distinct usp.userId from user_subscription_product usp where"
+          + " (usp.subscriptionStartDatetime is null or usp.subscriptionStartDatetime <= :now) and"
+          + " (usp.subscriptionEndDatetime is null or usp.subscriptionEndDatetime > :now)")
   List<String> findUserIdsWithActiveSubscriptionProduct(@Param("now") Instant now);
 }

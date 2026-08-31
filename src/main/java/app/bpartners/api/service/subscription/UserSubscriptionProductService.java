@@ -29,26 +29,37 @@ public class UserSubscriptionProductService {
   @Transactional
   public UserSubscriptionProduct ensureActiveSubscriptionProduct(
       String userId, String subscriptionProductId, BillingInterval billingInterval) {
-    var activeProducts = userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now());
+    return ensureActiveSubscriptionProduct(userId, subscriptionProductId, billingInterval, null);
+  }
+
+  @Transactional
+  public UserSubscriptionProduct ensureActiveSubscriptionProduct(
+      String userId,
+      String subscriptionProductId,
+      BillingInterval billingInterval,
+      Instant subscriptionStartDatetime) {
+    var now = now();
+    var startDatetime = startDatetimeOrNow(subscriptionStartDatetime, now);
+    var notEndedProducts =
+        userSubscriptionProductJpaRepository.findAllNotEndedByUserId(userId, now);
     if (subscriptionProductId == null) {
-      return grantFromAlreadyActiveProduct(userId, activeProducts);
+      return grantFromAlreadyActiveProduct(userId, servedAt(notEndedProducts, now));
     }
     var subscribedProduct = getSubscribedProduct(subscriptionProductId);
-    var activeOnSubscribedProduct =
-        activeProducts.stream()
+    var notEndedOnSubscribedProduct =
+        notEndedProducts.stream()
             .filter(
                 product ->
                     subscribedProduct.getId().equals(product.getSubscriptionProduct().getId()))
             .findFirst();
-    if (activeOnSubscribedProduct.isPresent()) {
-      var stillActive = refreshActiveProduct(activeOnSubscribedProduct.get(), billingInterval);
-      creditGrantService.grantIncludedCredits(userId, subscribedProduct);
+    if (notEndedOnSubscribedProduct.isPresent()) {
+      var stillActive = refreshActiveProduct(notEndedOnSubscribedProduct.get(), billingInterval);
+      grantIncludedCreditsIfStarted(userId, subscribedProduct, stillActive, now);
       return stillActive;
     }
-    if (!activeProducts.isEmpty()) {
-      endActiveSubscriptionProducts(userId, now());
+    if (!notEndedProducts.isEmpty()) {
+      endActiveSubscriptionProducts(userId, startDatetime);
     }
-    var now = now();
     var created =
         userSubscriptionProductJpaRepository.save(
             UserSubscriptionProduct.builder()
@@ -56,18 +67,19 @@ public class UserSubscriptionProductService {
                 .userId(userId)
                 .subscriptionProduct(subscribedProduct)
                 .billingInterval(billingIntervalOrDefault(billingInterval))
-                .subscriptionStartDatetime(now)
+                .subscriptionStartDatetime(startDatetime)
                 .subscriptionEndDatetime(null)
                 .creationDatetime(now)
                 .build());
     log.info(
         "Created UserSubscriptionProduct(id={}) for User(id={}) with SubscriptionProduct(id={})"
-            + " billed {}",
+            + " billed {} starting on {}",
         created.getId(),
         userId,
         subscribedProduct.getId(),
-        created.getBillingInterval());
-    creditGrantService.grantIncludedCredits(userId, subscribedProduct);
+        created.getBillingInterval(),
+        created.getSubscriptionStartDatetime());
+    grantIncludedCreditsIfStarted(userId, subscribedProduct, created, now);
     return created;
   }
 
@@ -84,7 +96,8 @@ public class UserSubscriptionProductService {
   @Transactional
   public List<UserSubscriptionProduct> endActiveSubscriptionProducts(
       String userId, Instant subscriptionEndDatetime) {
-    var activeProducts = userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now());
+    var activeProducts =
+        userSubscriptionProductJpaRepository.findAllNotEndedByUserId(userId, now());
     if (activeProducts.isEmpty()) {
       log.info("User(id={}) has no active UserSubscriptionProduct to end, skipping", userId);
       return List.of();
@@ -155,6 +168,39 @@ public class UserSubscriptionProductService {
         resolvedInterval,
         activeProduct.getBillingInterval());
     return refreshed;
+  }
+
+  private static Instant startDatetimeOrNow(Instant subscriptionStartDatetime, Instant now) {
+    return subscriptionStartDatetime == null || subscriptionStartDatetime.isBefore(now)
+        ? now
+        : subscriptionStartDatetime;
+  }
+
+  private static List<UserSubscriptionProduct> servedAt(
+      List<UserSubscriptionProduct> products, Instant now) {
+    return products.stream().filter(product -> !isScheduled(product, now)).toList();
+  }
+
+  private static boolean isScheduled(UserSubscriptionProduct product, Instant now) {
+    var start = product.getSubscriptionStartDatetime();
+    return start != null && start.isAfter(now);
+  }
+
+  private void grantIncludedCreditsIfStarted(
+      String userId,
+      SubscriptionProduct subscribedProduct,
+      UserSubscriptionProduct product,
+      Instant now) {
+    if (isScheduled(product, now)) {
+      log.info(
+          "UserSubscriptionProduct(id={}) of User(id={}) only starts on {}, its included credits"
+              + " will be granted by the monthly grant once the billing period has started",
+          product.getId(),
+          userId,
+          product.getSubscriptionStartDatetime());
+      return;
+    }
+    creditGrantService.grantIncludedCredits(userId, subscribedProduct);
   }
 
   private static BillingInterval billingIntervalOrDefault(BillingInterval billingInterval) {

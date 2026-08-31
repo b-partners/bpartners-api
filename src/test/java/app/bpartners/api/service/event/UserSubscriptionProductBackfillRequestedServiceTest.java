@@ -15,6 +15,7 @@ import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import app.bpartners.api.service.user.UserService;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +54,25 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
             .build());
 
     verify(userSubscriptionProductService)
-        .ensureActiveSubscriptionProduct(user.getId(), planId, YEARLY);
+        .ensureActiveSubscriptionProduct(user.getId(), planId, YEARLY, null);
+  }
+
+  @Test
+  void creates_subscription_product_starting_on_the_requested_billing_period_start() {
+    var user = givenUserWithSubscriptionStatus(ACTIVE);
+    var planId = "essential_plan_id";
+    var nextPeriodStart = now().plus(20, ChronoUnit.DAYS);
+
+    subject.accept(
+        UserSubscriptionProductBackfillRequested.builder()
+            .userId(user.getId())
+            .subscriptionProductId(planId)
+            .billingInterval(YEARLY)
+            .subscriptionStartDatetime(nextPeriodStart)
+            .build());
+
+    verify(userSubscriptionProductService)
+        .ensureActiveSubscriptionProduct(user.getId(), planId, YEARLY, nextPeriodStart);
   }
 
   @Test
@@ -63,7 +82,7 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
     subject.accept(UserSubscriptionProductBackfillRequested.builder().userId(user.getId()).build());
 
     verify(userSubscriptionProductService, never())
-        .ensureActiveSubscriptionProduct(any(), any(), any());
+        .ensureActiveSubscriptionProduct(any(), any(), any(), any());
   }
 
   @Test
@@ -73,6 +92,6 @@ class UserSubscriptionProductBackfillRequestedServiceTest {
     subject.accept(UserSubscriptionProductBackfillRequested.builder().userId(user.getId()).build());
 
     verify(userSubscriptionProductService, never())
-        .ensureActiveSubscriptionProduct(any(), any(), any());
+        .ensureActiveSubscriptionProduct(any(), any(), any(), any());
   }
 }

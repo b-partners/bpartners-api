@@ -60,6 +60,9 @@ public class UserRestMapper {
             userSubscriptionId != null && !unpaidStripeInvoices.isEmpty(),
             domain.isPaymentMethodExists(),
             userWhiteListed);
+    var restSubscription =
+        toRestSubscription(
+            domain, subscription, subscriptionStatus, subscriptionEligibility, userWhiteListed);
     return new V2User()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -83,10 +86,9 @@ public class UserRestMapper {
                     .companyInfo(toRestCompanyInfo(domain.getDefaultHolder())))
         .roles(toRest(domain.getRoles()))
         .subscriptionStatus(subscriptionStatus)
-        .subscription(
-            toRestSubscription(
-                domain, subscription, subscriptionStatus, subscriptionEligibility, userWhiteListed))
-        .nextSubscription(getNextSubscription(domain, subscription))
+        .subscription(restSubscription)
+        .nextSubscription(
+            getNextSubscription(domain, subscription, restSubscription.getRenewalStatus()))
         .userParent(toRest(domain.getParentUser()))
         .logoFileId(domain.getLogoFileId());
   }
@@ -117,6 +119,9 @@ public class UserRestMapper {
             userSubscriptionId != null && !unpaidStripeInvoices.isEmpty(),
             domain.isPaymentMethodExists(),
             userWhiteListed);
+    var restSubscription =
+        toRestSubscription(
+            domain, subscription, subscriptionStatus, subscriptionEligibility, userWhiteListed);
     return new User()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -127,10 +132,9 @@ public class UserRestMapper {
         .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()))
         .roles(toRest(domain.getRoles()))
         .subscriptionStatus(subscriptionStatus)
-        .subscription(
-            toRestSubscription(
-                domain, subscription, subscriptionStatus, subscriptionEligibility, userWhiteListed))
-        .nextSubscription(getNextSubscription(domain, subscription))
+        .subscription(restSubscription)
+        .nextSubscription(
+            getNextSubscription(domain, subscription, restSubscription.getRenewalStatus()))
         .identificationStatus(VALID_IDENTITY)
         .idVerified(true);
   }
@@ -181,7 +185,11 @@ public class UserRestMapper {
 
   private @Nullable NextUserSubscription getNextSubscription(
       app.bpartners.api.model.User domain,
-      app.bpartners.api.model.subscription.UserSubscription subscription) {
+      app.bpartners.api.model.subscription.UserSubscription subscription,
+      SubscriptionRenewalStatus renewalStatus) {
+    if (!SubscriptionRenewalStatus.CANCELLED_AT_PERIOD_END.equals(renewalStatus)) {
+      return null;
+    }
     var latestSubscription = subscription.getLatestSubscription();
     if (latestSubscription != null && latestSubscription.getE2Id() == null) {
       return null;

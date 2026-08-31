@@ -833,6 +833,8 @@ components:
       description: |
         Subscription scheduled to take over once the current one ends, null when none is
         scheduled. `subscription` always describes what the user is served right now.
+        Only reported while `subscription.renewalStatus` is CANCELLED_AT_PERIOD_END, the only
+        state where a takeover can be pending: it stays null on a subscription that renews.
       properties:
         plan:
           $ref: './user-subscription-api.yml#/components/schemas/SubscriptionPlanDescription'

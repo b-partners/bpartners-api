@@ -790,11 +790,12 @@ class UserRestMapperTest {
   }
 
   @Test
-  void next_subscription_is_null_when_the_schedule_is_already_the_served_subscription() {
+  void next_subscription_is_not_looked_up_on_a_subscription_that_renews() {
     var now = now();
     var domain =
         givenUserServedBy(
             Subscription.builder()
+                .e2Id("sub_current")
                 .status(Subscription.SubscriptionStatus.ACTIVE)
                 .active(true)
                 .startDatetime(now)
@@ -804,6 +805,53 @@ class UserRestMapperTest {
 
     var actual = subject.toRest(domain);
 
+    assertEquals(SubscriptionRenewalStatus.WILL_RENEW, actual.getSubscription().getRenewalStatus());
+    assertNull(actual.getNextSubscription());
+    verify(subscriptionServiceMock, never()).getScheduledSubscription(any());
+  }
+
+  @Test
+  void next_subscription_is_null_when_the_schedule_is_already_the_served_subscription() {
+    var now = now();
+    var scheduleStart = now.minus(1L, DAYS);
+    var userId = randomUUID().toString();
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userId))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(
+            UserSubscription.builder()
+                .subscriptions(
+                    List.of(
+                        Subscription.builder()
+                            .e2Id("sub_cancelled")
+                            .status(Subscription.SubscriptionStatus.CANCELED)
+                            .active(true)
+                            .startDatetime(now.minus(30L, DAYS))
+                            .endDatetime(scheduleStart)
+                            .build(),
+                        // synthetic subscription mirroring the schedule, it carries no Stripe id
+                        Subscription.builder()
+                            .status(Subscription.SubscriptionStatus.ACTIVE)
+                            .active(true)
+                            .startDatetime(scheduleStart)
+                            .endDatetime(now.plus(20L, DAYS))
+                            .build()))
+                .build());
+    var domain =
+        User.builder()
+            .id(userId)
+            .roles(List.of())
+            .paymentMethodExists(true)
+            .userSubscriptionId("cus_1")
+            .build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(
+        SubscriptionRenewalStatus.CANCELLED_AT_PERIOD_END,
+        actual.getSubscription().getRenewalStatus());
     assertNull(actual.getNextSubscription());
     verify(subscriptionServiceMock, never()).getScheduledSubscription(any());
   }

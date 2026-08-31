@@ -1281,6 +1281,48 @@ class SubscriptionServiceTest {
         .initiateSubscriptionWorkflow(any(), any(), anyLong(), any());
   }
 
+  @SneakyThrows
+  @Test
+  void initiate_subscription_blocked_when_a_schedule_is_already_pending() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    var scheduledStartEpoch = now().plus(20L, DAYS).getEpochSecond();
+    var pendingSchedule = someNotStartedSchedule("schedule_id", scheduledStartEpoch, "price_base");
+    when(pendingSchedule.getMetadata()).thenReturn(Map.of());
+    mockActiveSchedules(pendingSchedule);
+    var cancelledStripeSubscription = new com.stripe.model.Subscription();
+    cancelledStripeSubscription.setId("sub_cancelled");
+    cancelledStripeSubscription.setStatus("active");
+    cancelledStripeSubscription.setCancelAtPeriodEnd(true);
+    cancelledStripeSubscription.setCurrentPeriodStart(now().minus(10L, DAYS).getEpochSecond());
+    cancelledStripeSubscription.setCurrentPeriodEnd(scheduledStartEpoch);
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(cancelledStripeSubscription));
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .userId("user_id")
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(10L))
+                    .build()));
+    when(stripeInvoiceServiceMock.getUnpaidStripeInvoices("customer_id")).thenReturn(List.of());
+    when(stripeCustomerServiceMock.getCustomer(user)).thenReturn(mock(Customer.class));
+
+    var subscriptionToInitiate = someSubscriptionToInitiate();
+    var redirectionUrls = getRedirectionStatusUrls();
+    var actual =
+        assertThrows(
+            BadRequestException.class,
+            () -> subject.initiateSubscription(user, subscriptionToInitiate, redirectionUrls));
+
+    assertTrue(
+        actual
+            .getMessage()
+            .startsWith("User.id=user_id already has a subscription scheduled to start on "));
+    verify(sessionFactoryMock, never())
+        .initiateSubscriptionWorkflow(any(), any(), anyLong(), any());
+  }
+
   private void mockActiveSchedules(SubscriptionSchedule... schedules) throws StripeException {
     var scheduleServiceMock = mock(SubscriptionScheduleService.class);
     StripeCollection<SubscriptionSchedule> scheduleCollectionMock = mock();

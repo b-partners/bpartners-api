@@ -441,6 +441,14 @@ public class SubscriptionService {
               + " has active subscription until "
               + latestSubscription.getEndDatetime());
     }
+    var pendingSchedule = getPendingSubscriptionSchedule(user.getUserSubscriptionId());
+    if (pendingSchedule.isPresent()) {
+      throw new BadRequestException(
+          "User.id="
+              + user.getId()
+              + " already has a subscription scheduled to start on "
+              + Instant.ofEpochSecond(pendingSchedule.get().getPhases().getFirst().getStartDate()));
+    }
     long billingCycleAnchor = computeBillingCycleAnchor();
     log.info(
         "Schedule start date = {}",

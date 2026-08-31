@@ -14,10 +14,19 @@ class UserTest {
 
   private static UserSubscriptionProduct userSubscriptionProduct(
       SubscriptionProduct product, Instant creationDatetime, Instant endDatetime) {
+    return userSubscriptionProduct(product, creationDatetime, null, endDatetime);
+  }
+
+  private static UserSubscriptionProduct userSubscriptionProduct(
+      SubscriptionProduct product,
+      Instant creationDatetime,
+      Instant startDatetime,
+      Instant endDatetime) {
     return UserSubscriptionProduct.builder()
         .id(randomUUID().toString())
         .subscriptionProduct(product)
         .creationDatetime(creationDatetime)
+        .subscriptionStartDatetime(startDatetime)
         .subscriptionEndDatetime(endDatetime)
         .build();
   }
@@ -62,10 +71,51 @@ class UserTest {
                         oldestActiveProduct, now.minus(5, ChronoUnit.DAYS), null),
                     userSubscriptionProduct(
                         latestActiveProduct, now.minus(1, ChronoUnit.DAYS), null),
-                    userSubscriptionProduct(endedProduct, now, now.plus(1, ChronoUnit.DAYS))))
+                    userSubscriptionProduct(endedProduct, now, now.minus(1, ChronoUnit.HOURS))))
             .build();
 
     assertEquals(latestActiveProduct, subject.getActualSubscriptionProduct());
+  }
+
+  @Test
+  void get_actual_subscription_product_kept_until_the_scheduled_end_of_a_cancelled_subscription() {
+    var now = Instant.now();
+    var cancelledPlan = SubscriptionProduct.builder().id(randomUUID().toString()).build();
+
+    subject =
+        User.builder()
+            .subscriptionProducts(
+                List.of(
+                    userSubscriptionProduct(
+                        cancelledPlan,
+                        now.minus(10, ChronoUnit.DAYS),
+                        now.minus(10, ChronoUnit.DAYS),
+                        now.plus(20, ChronoUnit.DAYS))))
+            .build();
+
+    assertEquals(cancelledPlan, subject.getActualSubscriptionProduct());
+  }
+
+  @Test
+  void get_actual_subscription_product_ignores_a_product_starting_later() {
+    var now = Instant.now();
+    var servedPlan = SubscriptionProduct.builder().id(randomUUID().toString()).build();
+    var scheduledPlan = SubscriptionProduct.builder().id(randomUUID().toString()).build();
+
+    subject =
+        User.builder()
+            .subscriptionProducts(
+                List.of(
+                    userSubscriptionProduct(
+                        servedPlan,
+                        now.minus(10, ChronoUnit.DAYS),
+                        now.minus(10, ChronoUnit.DAYS),
+                        now.plus(20, ChronoUnit.DAYS)),
+                    userSubscriptionProduct(
+                        scheduledPlan, now, now.plus(20, ChronoUnit.DAYS), null)))
+            .build();
+
+    assertEquals(servedPlan, subject.getActualSubscriptionProduct());
   }
 
   @Test

@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.rest.security.model.Role;
 import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -70,10 +71,19 @@ public class User implements Serializable {
     if (subscriptionProducts == null || subscriptionProducts.isEmpty()) {
       return Optional.empty();
     }
+    var now = Instant.now();
     return subscriptionProducts.stream()
-        .filter(
-            userSubscriptionProduct -> userSubscriptionProduct.getSubscriptionEndDatetime() == null)
-        .max(Comparator.comparing(UserSubscriptionProduct::getCreationDatetime));
+        .filter(userSubscriptionProduct -> isServedAt(userSubscriptionProduct, now))
+        .max(
+            Comparator.comparing(
+                UserSubscriptionProduct::getCreationDatetime,
+                Comparator.nullsFirst(Comparator.naturalOrder())));
+  }
+
+  private static boolean isServedAt(UserSubscriptionProduct userSubscriptionProduct, Instant now) {
+    var start = userSubscriptionProduct.getSubscriptionStartDatetime();
+    var end = userSubscriptionProduct.getSubscriptionEndDatetime();
+    return (start == null || !start.isAfter(now)) && (end == null || end.isAfter(now));
   }
 
   public Account getDefaultAccount() {

@@ -42,7 +42,13 @@ public class UserRestMapper {
     var userSubscriptionId =
         domain.getUserSubscriptionId(); // TODO: look why unpaidStripeInvoices could not be empty
     // whenever userSubscriptionId null
-    var unpaidStripeInvoices = stripeInvoiceService.getUnpaidStripeInvoices(userSubscriptionId);
+    var latestSubscriptionWithStripeId = subscription.getLatestSubscriptionWithStripeId();
+    var unpaidStripeInvoices =
+        stripeInvoiceService.getUnpaidStripeInvoices(
+            userSubscriptionId,
+            latestSubscriptionWithStripeId == null
+                ? null
+                : latestSubscriptionWithStripeId.getE2Id());
     var subscriptionEligibility =
         userSubscriptionEligibleRepository.findByUserId(domain.getId()).orElse(null);
     var userWhiteListed = userWhiteListedRepository.findByUserId(domain.getId()).orElse(null);
@@ -94,7 +100,13 @@ public class UserRestMapper {
     var userSubscriptionId =
         domain.getUserSubscriptionId(); // TODO: look why unpaidStripeInvoices could not be empty
     // whenever userSubscriptionId null
-    var unpaidStripeInvoices = stripeInvoiceService.getUnpaidStripeInvoices(userSubscriptionId);
+    var latestSubscriptionWithStripeId = subscription.getLatestSubscriptionWithStripeId();
+    var unpaidStripeInvoices =
+        stripeInvoiceService.getUnpaidStripeInvoices(
+            userSubscriptionId,
+            latestSubscriptionWithStripeId == null
+                ? null
+                : latestSubscriptionWithStripeId.getE2Id());
     var subscriptionEligibility =
         userSubscriptionEligibleRepository.findByUserId(domain.getId()).orElse(null);
     var userWhiteListed = userWhiteListedRepository.findByUserId(domain.getId()).orElse(null);

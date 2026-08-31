@@ -16,6 +16,8 @@ import app.bpartners.api.service.subscription.RoofAnalysisConsumptionFreeTrialVa
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -43,13 +45,15 @@ public class DetectionTrackingService {
   @Transactional
   public List<DetectionTracking> computeTrackingWithSubscriptionConsumptionLog(
       List<DetectionTracking> tracking) {
-    tracking.stream()
+    var unregisteredTracking = filterUnregistered(tracking);
+
+    unregisteredTracking.stream()
         .map(DetectionTracking::user)
         .map(User::getId)
         .distinct()
         .forEach(this::validateRoofAnalysisFreeTrialConsumption);
 
-    List<DetectionTracking> savedTracking = saveAll(tracking);
+    List<DetectionTracking> savedTracking = saveAll(unregisteredTracking);
 
     savedTracking.forEach(
         saved -> {
@@ -70,6 +74,20 @@ public class DetectionTrackingService {
           }
         });
     return savedTracking;
+  }
+
+  private List<DetectionTracking> filterUnregistered(List<DetectionTracking> tracking) {
+    var unregistered = new ArrayList<DetectionTracking>();
+    var identifiersOfBatch = new HashSet<String>();
+    for (var detectionTracking : tracking) {
+      var detectionIdentifier = detectionTracking.detectionIdentifier();
+      if (detectionIdentifier == null
+          || (identifiersOfBatch.add(detectionIdentifier)
+              && repository.findByDetectionIdentifier(detectionIdentifier).isEmpty())) {
+        unregistered.add(detectionTracking);
+      }
+    }
+    return unregistered;
   }
 
   private void validateRoofAnalysisFreeTrialConsumption(String userId) {

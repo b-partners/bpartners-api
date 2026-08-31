@@ -55,6 +55,9 @@ components:
     CreateDetectionTracking:
       type: object
       properties:
+        detectionIdentifier:
+          type: string
+          description: Refers to detection end-to-end identifier
         zone:
           type: string
         address:

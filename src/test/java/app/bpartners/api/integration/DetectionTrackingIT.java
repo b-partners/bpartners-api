@@ -104,25 +104,16 @@ class DetectionTrackingIT extends MockedThirdParties {
     var joeDoeClient = anApiClient();
     var api = new DetectionTrackingApi(joeDoeClient);
     final var now = now().truncatedTo(ChronoUnit.MILLIS);
+    var detectionIdentifier = randomUUID().toString();
 
     var actual =
         api.registerDetection(
-            restJoeDoeUser().getId(),
-            List.of(
-                new CreateDetectionTracking()
-                    .zone("dummyZone")
-                    .address("dummyAddress")
-                    .initiator(
-                        new DetectionInitiator()
-                            .name("dummyInitiator")
-                            .email("dummy@email.com")
-                            .phoneNumber("0612345678"))
-                    .creationDatetime(now)));
+            restJoeDoeUser().getId(), someCreateDetectionTracking(now, detectionIdentifier));
 
     var actualDomain =
         detectionTrackingService.findAllByIdUserBetween(restJoeDoeUser().getId(), now, now);
-    var expectedRest = getExpectedRest(actual, now);
-    var expectedDomain = getExpectedDomain(actual, now);
+    var expectedRest = getExpectedRest(actual, now, detectionIdentifier);
+    var expectedDomain = getExpectedDomain(actual, now, detectionIdentifier);
     var subscriptionLogCaptor = ArgumentCaptor.forClass(SubscriptionConsumptionLog.class);
     verify(subscriptionService).addConsumption(subscriptionLogCaptor.capture());
     var expectedSubscriptionLog = getExpectedSubscriptionLog(subscriptionLogCaptor.getValue(), now);
@@ -181,6 +172,42 @@ class DetectionTrackingIT extends MockedThirdParties {
     assertTrue(creditTransactionRepository.findAllByUserId(JOE_DOE_ID).isEmpty());
   }
 
+  @SneakyThrows
+  @Test
+  void detection_already_registered_is_neither_saved_nor_billed_again() {
+    var api = new DetectionTrackingApi(anApiClient());
+    final var now = now().truncatedTo(ChronoUnit.MILLIS);
+    var joeDoeId = restJoeDoeUser().getId();
+    var detectionIdentifier = randomUUID().toString();
+    var payload = someCreateDetectionTracking(now, detectionIdentifier);
+    api.registerDetection(joeDoeId, payload);
+
+    var actual = api.registerDetection(joeDoeId, payload);
+
+    assertTrue(actual.isEmpty());
+    assertEquals(1, detectionTrackingService.findAllByIdUserBetween(joeDoeId, now, now).size());
+    verify(subscriptionService, times(1)).addConsumption(any());
+    assertEquals(1, consumptionsOfJoeDoe().size());
+    assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+  }
+
+  @SneakyThrows
+  @Test
+  void detection_without_identifier_is_always_registered() {
+    var api = new DetectionTrackingApi(anApiClient());
+    final var now = now().truncatedTo(ChronoUnit.MILLIS);
+    var joeDoeId = restJoeDoeUser().getId();
+    var payload = someCreateDetectionTracking(now, null);
+    api.registerDetection(joeDoeId, payload);
+
+    var actual = api.registerDetection(joeDoeId, payload);
+
+    assertEquals(1, actual.size());
+    assertEquals(2, detectionTrackingService.findAllByIdUserBetween(joeDoeId, now, now).size());
+    assertEquals(2, consumptionsOfJoeDoe().size());
+    assertEquals(98L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+  }
+
   private List<CreditTransaction> consumptionsOfJoeDoe() {
     return creditTransactionRepository.findAllByUserId(JOE_DOE_ID).stream()
         .filter(transaction -> CONSUMPTION.equals(transaction.getType()))
@@ -188,8 +215,14 @@ class DetectionTrackingIT extends MockedThirdParties {
   }
 
   private List<CreateDetectionTracking> someCreateDetectionTracking(Instant creationDatetime) {
+    return someCreateDetectionTracking(creationDatetime, randomUUID().toString());
+  }
+
+  private List<CreateDetectionTracking> someCreateDetectionTracking(
+      Instant creationDatetime, String detectionIdentifier) {
     return List.of(
         new CreateDetectionTracking()
+            .detectionIdentifier(detectionIdentifier)
             .zone("dummyZone")
             .address("dummyAddress")
             .initiator(
@@ -220,7 +253,7 @@ class DetectionTrackingIT extends MockedThirdParties {
   }
 
   private @NotNull List<app.bpartners.api.model.detection.DetectionTracking> getExpectedDomain(
-      List<DetectionTracking> actual, Instant now) {
+      List<DetectionTracking> actual, Instant now, String detectionIdentifier) {
     return List.of(
         new app.bpartners.api.model.detection.DetectionTracking(
             actual.getFirst().getId(),
@@ -229,14 +262,16 @@ class DetectionTrackingIT extends MockedThirdParties {
             now,
             new app.bpartners.api.model.detection.DetectionInitiator(
                 "dummyInitiator", "dummy@email.com", "0612345678"),
-            userMock));
+            userMock,
+            detectionIdentifier));
   }
 
   private @NotNull List<DetectionTracking> getExpectedRest(
-      List<DetectionTracking> actual, Instant now) {
+      List<DetectionTracking> actual, Instant now, String detectionIdentifier) {
     return List.of(
         new DetectionTracking()
             .id(actual.getFirst().getId())
+            .detectionIdentifier(detectionIdentifier)
             .zone("dummyZone")
             .address("dummyAddress")
             .initiator(

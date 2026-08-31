@@ -1,5 +1,6 @@
 package app.bpartners.api.repository.jpa.model.detection;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -19,6 +20,9 @@ public class HDetectionTracking {
   @Id private String id;
 
   private String idUser;
+
+  @Column(name = "detection_identifier")
+  private String detectionIdentifier;
 
   private String zone;
 

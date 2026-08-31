@@ -187,13 +187,105 @@ class DetectionTrackingServiceTest {
     verify(subscriptionServiceMock, times(1)).addConsumption(any());
   }
 
+  @Test
+  void save_tracking_without_detection_identifier() {
+    var userId = randomUUID().toString();
+    var tracking = List.of(someTracking(userId, null));
+    when(subscriptionEligibleRepositoryMock.findByUserId(userId)).thenReturn(Optional.empty());
+    when(repositoryMock.saveAll(tracking)).thenReturn(tracking);
+
+    var actual = subject.computeTrackingWithSubscriptionConsumptionLog(tracking);
+
+    assertEquals(tracking, actual);
+    verify(repositoryMock, never()).findByDetectionIdentifier(any());
+    verify(subscriptionServiceMock, times(1)).addConsumption(any());
+    verify(creditServiceMock, times(1)).consumeRoofAnalysis(eq(userId), anyString());
+  }
+
+  @Test
+  void skip_detection_already_registered_with_the_same_identifier() {
+    var userId = randomUUID().toString();
+    var detectionIdentifier = randomUUID().toString();
+    var alreadyRegistered = someTracking(userId, detectionIdentifier);
+    when(repositoryMock.findByDetectionIdentifier(detectionIdentifier))
+        .thenReturn(Optional.of(alreadyRegistered));
+
+    var actual =
+        subject.computeTrackingWithSubscriptionConsumptionLog(
+            List.of(someTracking(userId, detectionIdentifier)));
+
+    assertTrue(actual.isEmpty());
+    verify(repositoryMock).saveAll(List.of());
+    verify(subscriptionServiceMock, never()).addConsumption(any());
+    verify(creditServiceMock, never()).consumeRoofAnalysis(any(), any());
+  }
+
+  @Test
+  void do_not_validate_free_trial_when_every_detection_is_already_registered() {
+    var userId = randomUUID().toString();
+    var detectionIdentifier = randomUUID().toString();
+    var eligible = mock(UserSubscriptionEligible.class);
+    when(subscriptionEligibleRepositoryMock.findByUserId(userId)).thenReturn(Optional.of(eligible));
+    when(repositoryMock.findByDetectionIdentifier(detectionIdentifier))
+        .thenReturn(Optional.of(someTracking(userId, detectionIdentifier)));
+
+    subject.computeTrackingWithSubscriptionConsumptionLog(
+        List.of(someTracking(userId, detectionIdentifier)));
+
+    verify(roofAnalysisFreeTrialValidatorMock, never()).accept(any());
+  }
+
+  @Test
+  void save_only_the_detections_not_registered_yet() {
+    var userId = randomUUID().toString();
+    var knownIdentifier = randomUUID().toString();
+    var unknownIdentifier = randomUUID().toString();
+    var known = someTracking(userId, knownIdentifier);
+    var unknown = someTracking(userId, unknownIdentifier);
+    when(subscriptionEligibleRepositoryMock.findByUserId(userId)).thenReturn(Optional.empty());
+    when(repositoryMock.findByDetectionIdentifier(knownIdentifier))
+        .thenReturn(Optional.of(someTracking(userId, knownIdentifier)));
+    when(repositoryMock.findByDetectionIdentifier(unknownIdentifier)).thenReturn(Optional.empty());
+    when(repositoryMock.saveAll(List.of(unknown))).thenReturn(List.of(unknown));
+
+    var actual = subject.computeTrackingWithSubscriptionConsumptionLog(List.of(known, unknown));
+
+    assertEquals(List.of(unknown), actual);
+    verify(repositoryMock).saveAll(List.of(unknown));
+    verify(subscriptionServiceMock, times(1)).addConsumption(any());
+    verify(creditServiceMock, times(1)).consumeRoofAnalysis(eq(userId), anyString());
+  }
+
+  @Test
+  void deduplicate_detections_sharing_the_same_identifier_inside_a_batch() {
+    var userId = randomUUID().toString();
+    var detectionIdentifier = randomUUID().toString();
+    var first = someTracking(userId, detectionIdentifier);
+    var second = someTracking(userId, detectionIdentifier);
+    when(subscriptionEligibleRepositoryMock.findByUserId(userId)).thenReturn(Optional.empty());
+    when(repositoryMock.findByDetectionIdentifier(detectionIdentifier))
+        .thenReturn(Optional.empty());
+    when(repositoryMock.saveAll(List.of(first))).thenReturn(List.of(first));
+
+    var actual = subject.computeTrackingWithSubscriptionConsumptionLog(List.of(first, second));
+
+    assertEquals(List.of(first), actual);
+    verify(subscriptionServiceMock, times(1)).addConsumption(any());
+    verify(creditServiceMock, times(1)).consumeRoofAnalysis(eq(userId), anyString());
+  }
+
   private DetectionTracking someTracking(String userId) {
+    return someTracking(userId, null);
+  }
+
+  private DetectionTracking someTracking(String userId, String detectionIdentifier) {
     return new DetectionTracking(
         randomUUID().toString(),
         "some zone",
         "some address",
         now(),
         new DetectionInitiator("some name", "some@email.com", "0600000000"),
-        User.builder().id(userId).build());
+        User.builder().id(userId).build(),
+        detectionIdentifier);
   }
 }

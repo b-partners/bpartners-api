@@ -24,6 +24,7 @@ public class Subscription {
 
   private Instant endDatetime;
   private Instant startDatetime;
+  private Instant cancellationDatetime;
 
   public enum SubscriptionStatus {
     ACTIVE,

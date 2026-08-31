@@ -84,16 +84,9 @@ public class UserRestMapper {
         .roles(toRest(domain.getRoles()))
         .subscriptionStatus(subscriptionStatus)
         .subscription(
-            new UserSubscription()
-                .plan(
-                    domain.getActualSubscriptionProduct() == null
-                        ? null
-                        : subscriptionPlanRestMapper.toRestDescription(
-                            domain.getActualSubscriptionProduct()))
-                .billingInterval(getBillingInterval(domain, subscription))
-                .status(subscriptionStatus)
-                .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
-                .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))
+            toRestSubscription(
+                domain, subscription, subscriptionStatus, subscriptionEligibility, userWhiteListed))
+        .nextSubscription(getNextSubscription(domain, subscription))
         .userParent(toRest(domain.getParentUser()))
         .logoFileId(domain.getLogoFileId());
   }
@@ -135,18 +128,77 @@ public class UserRestMapper {
         .roles(toRest(domain.getRoles()))
         .subscriptionStatus(subscriptionStatus)
         .subscription(
-            new UserSubscription()
-                .plan(
-                    domain.getActualSubscriptionProduct() == null
-                        ? null
-                        : subscriptionPlanRestMapper.toRestDescription(
-                            domain.getActualSubscriptionProduct()))
-                .billingInterval(getBillingInterval(domain, subscription))
-                .status(subscriptionStatus)
-                .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
-                .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))
+            toRestSubscription(
+                domain, subscription, subscriptionStatus, subscriptionEligibility, userWhiteListed))
+        .nextSubscription(getNextSubscription(domain, subscription))
         .identificationStatus(VALID_IDENTITY)
         .idVerified(true);
+  }
+
+  private UserSubscription toRestSubscription(
+      app.bpartners.api.model.User domain,
+      app.bpartners.api.model.subscription.UserSubscription subscription,
+      UserSubscriptionStatus subscriptionStatus,
+      UserSubscriptionEligible subscriptionEligibility,
+      UserWhiteListed userWhiteListed) {
+    var end = getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed);
+    return new UserSubscription()
+        .plan(
+            domain.getActualSubscriptionProduct() == null
+                ? null
+                : subscriptionPlanRestMapper.toRestDescription(
+                    domain.getActualSubscriptionProduct()))
+        .billingInterval(getBillingInterval(domain, subscription))
+        .status(subscriptionStatus)
+        .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
+        .end(end)
+        .renewalStatus(getRenewalStatus(subscription, end))
+        .cancellationDatetime(getCancellationDatetime(subscription));
+  }
+
+  private static @Nullable SubscriptionRenewalStatus getRenewalStatus(
+      app.bpartners.api.model.subscription.UserSubscription subscription, Instant end) {
+    var latestSubscription = subscription.getLatestSubscriptionWithStripeId();
+    if (latestSubscription == null) {
+      return null;
+    }
+    var stillServed = end != null && end.isAfter(Instant.now());
+    if (CANCELED.equals(latestSubscription.getStatus())) {
+      return stillServed
+          ? SubscriptionRenewalStatus.CANCELLED_AT_PERIOD_END
+          : SubscriptionRenewalStatus.TERMINATED;
+    }
+    return end != null && !stillServed
+        ? SubscriptionRenewalStatus.TERMINATED
+        : SubscriptionRenewalStatus.WILL_RENEW;
+  }
+
+  private static @Nullable Instant getCancellationDatetime(
+      app.bpartners.api.model.subscription.UserSubscription subscription) {
+    var latestSubscription = subscription.getLatestSubscriptionWithStripeId();
+    return latestSubscription == null ? null : latestSubscription.getCancellationDatetime();
+  }
+
+  private @Nullable NextUserSubscription getNextSubscription(
+      app.bpartners.api.model.User domain,
+      app.bpartners.api.model.subscription.UserSubscription subscription) {
+    var latestSubscription = subscription.getLatestSubscription();
+    if (latestSubscription != null && latestSubscription.getE2Id() == null) {
+      return null;
+    }
+    return subscriptionService
+        .getScheduledSubscription(domain.getUserSubscriptionId())
+        .map(
+            scheduled ->
+                new NextUserSubscription()
+                    .plan(
+                        scheduled.getSubscriptionProduct() == null
+                            ? null
+                            : subscriptionPlanRestMapper.toRestDescription(
+                                scheduled.getSubscriptionProduct()))
+                    .billingInterval(toRest(scheduled.getBillingInterval()))
+                    .start(scheduled.getStartDatetime()))
+        .orElse(null);
   }
 
   private static @Nullable BillingInterval getBillingInterval(

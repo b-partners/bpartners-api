@@ -588,6 +588,38 @@ public class SubscriptionService {
     return initialSubscription;
   }
 
+  @SneakyThrows
+  public Optional<Subscription> getScheduledSubscription(String stripeCustomerId) {
+    return getPendingSubscriptionSchedule(stripeCustomerId).map(this::toScheduledSubscription);
+  }
+
+  private Optional<SubscriptionSchedule> getPendingSubscriptionSchedule(String stripeCustomerId)
+      throws StripeException {
+    if (stripeCustomerId == null) {
+      return Optional.empty();
+    }
+    return getActiveSubscriptionSchedules(stripeCustomerId).stream()
+        .filter(schedule -> schedule.getPhases() != null && !schedule.getPhases().isEmpty())
+        .filter(schedule -> !isFlaggedForCancelAfterFirstInvoice(schedule))
+        .min(comparing(schedule -> schedule.getPhases().getFirst().getStartDate()));
+  }
+
+  private Subscription toScheduledSubscription(SubscriptionSchedule schedule) {
+    var subscribedPlan = resolveSubscribedPlan(schedule).orElse(null);
+    var startDate = schedule.getPhases().getFirst().getStartDate();
+    return Subscription.builder()
+        .id(randomUUID().toString())
+        .e2Id(schedule.getId())
+        .active(false)
+        .startDatetime(startDate == null ? null : Instant.ofEpochSecond(startDate))
+        .billingInterval(subscribedPlan == null ? null : subscribedPlan.billingInterval())
+        .subscriptionProduct(
+            subscribedPlan == null
+                ? null
+                : subscriptionProductRepository.findById(subscribedPlan.planId()).orElse(null))
+        .build();
+  }
+
   private List<SubscriptionSchedule> getActiveSubscriptionSchedules(String stripeCustomerId)
       throws StripeException {
     List<SubscriptionSchedule> scheduledSubscriptions;
@@ -639,12 +671,15 @@ public class SubscriptionService {
     var endDatetime =
         currentPeriodEndLongValue == null ? null : Instant.ofEpochSecond(currentPeriodEndLongValue);
     var status = computeUserSubscriptionStatus(stripeSubscription);
+    var canceledAtLongValue = stripeSubscription.getCanceledAt();
     var paymentSettings = stripeSubscription.getPaymentSettings();
     return Subscription.builder()
         .id(randomUUID().toString()) // TODO: update when subscription history persisted
         .e2Id(stripeSubscription.getId())
         .startDatetime(startDatetime)
         .endDatetime(endDatetime)
+        .cancellationDatetime(
+            canceledAtLongValue == null ? null : Instant.ofEpochSecond(canceledAtLongValue))
         .billingInterval(billingIntervalOf(stripeSubscription))
         .status(status)
         .active(!status.equals(UNKNOWN))

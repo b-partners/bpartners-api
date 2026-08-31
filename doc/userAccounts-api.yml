@@ -784,6 +784,8 @@ components:
           $ref: '#/components/schemas/UserSubscriptionStatus'
         subscription:
           $ref: '#/components/schemas/UserSubscription'
+        nextSubscription:
+          $ref: '#/components/schemas/NextUserSubscription'
         userParent:
           $ref: '#/components/schemas/User'
         logoFileId:
@@ -822,8 +824,24 @@ components:
           $ref: '#/components/schemas/UserSubscriptionStatus'
         subscription:
           $ref: '#/components/schemas/UserSubscription'
+        nextSubscription:
+          $ref: '#/components/schemas/NextUserSubscription'
         userParent:
           $ref: '#/components/schemas/User'
+    NextUserSubscription:
+      type: object
+      description: |
+        Subscription scheduled to take over once the current one ends, null when none is
+        scheduled. `subscription` always describes what the user is served right now.
+      properties:
+        plan:
+          $ref: './user-subscription-api.yml#/components/schemas/SubscriptionPlanDescription'
+        billingInterval:
+          $ref: './user-subscription-api.yml#/components/schemas/BillingInterval'
+        start:
+          type: string
+          format: date-time
+          description: Datetime the scheduled subscription starts being served.
     UserSubscriptionStatus:
       type: string
       enum:
@@ -848,6 +866,27 @@ components:
         end:
           type: string
           format: date-time
+        renewalStatus:
+          $ref: '#/components/schemas/SubscriptionRenewalStatus'
+        cancellationDatetime:
+          type: string
+          format: date-time
+          description: |
+            When the cancellation was requested. Null as long as no cancellation has been
+            requested. A cancelled subscription is still served until `end`.
+    SubscriptionRenewalStatus:
+      type: string
+      description: |
+        WILL_RENEW: the subscription renews at `end`.
+        CANCELLED_AT_PERIOD_END: cancellation requested, access is kept until `end` and there is
+        no renewal. `status` stays ACTIVE meanwhile, so this is the only field telling the two
+        apart.
+        TERMINATED: access has already ended.
+        Null as long as the user never subscribed.
+      enum:
+        - WILL_RENEW
+        - CANCELLED_AT_PERIOD_END
+        - TERMINATED
     IdentificationStatus:
       type: string
       enum:

@@ -16,6 +16,7 @@ import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.BillingInterval;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanDescription;
+import app.bpartners.api.endpoint.rest.model.SubscriptionRenewalStatus;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.UserWhiteListed;
@@ -667,5 +668,143 @@ class UserRestMapperTest {
     assertEquals(ACTIVE, actualSubscription.getStatus());
     assertNull(actualSubscription.getStart());
     assertNull(actualSubscription.getEnd());
+  }
+
+  private User givenUserServedBy(Subscription subscription, String stripeCustomerId) {
+    var userId = randomUUID().toString();
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userId))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(UserSubscription.builder().subscriptions(List.of(subscription)).build());
+    return User.builder()
+        .id(userId)
+        .roles(List.of())
+        .paymentMethodExists(true)
+        .userSubscriptionId(stripeCustomerId)
+        .build();
+  }
+
+  @Test
+  void renewal_status_is_will_renew_on_a_running_subscription() {
+    var now = now();
+    var domain =
+        givenUserServedBy(
+            Subscription.builder()
+                .e2Id("sub_current")
+                .status(Subscription.SubscriptionStatus.ACTIVE)
+                .active(true)
+                .startDatetime(now)
+                .endDatetime(now.plus(30L, DAYS))
+                .build(),
+            "cus_1");
+
+    var actual = subject.toRest(domain).getSubscription();
+
+    assertEquals(SubscriptionRenewalStatus.WILL_RENEW, actual.getRenewalStatus());
+    assertNull(actual.getCancellationDatetime());
+  }
+
+  @Test
+  void renewal_status_is_cancelled_at_period_end_while_the_subscription_is_still_served() {
+    var now = now();
+    var cancellationDatetime = now.minus(2L, DAYS);
+    var domain =
+        givenUserServedBy(
+            Subscription.builder()
+                .e2Id("sub_current")
+                .status(Subscription.SubscriptionStatus.CANCELED)
+                .active(true)
+                .startDatetime(now.minus(10L, DAYS))
+                .endDatetime(now.plus(20L, DAYS))
+                .cancellationDatetime(cancellationDatetime)
+                .build(),
+            "cus_1");
+
+    var actual = subject.toRest(domain).getSubscription();
+
+    assertEquals(SubscriptionRenewalStatus.CANCELLED_AT_PERIOD_END, actual.getRenewalStatus());
+    assertEquals(cancellationDatetime, actual.getCancellationDatetime());
+    assertEquals(CANCELLED, actual.getStatus());
+  }
+
+  @Test
+  void renewal_status_is_terminated_once_the_period_ended() {
+    var now = now();
+    var domain =
+        givenUserServedBy(
+            Subscription.builder()
+                .e2Id("sub_current")
+                .status(Subscription.SubscriptionStatus.CANCELED)
+                .active(true)
+                .startDatetime(now.minus(40L, DAYS))
+                .endDatetime(now.minus(10L, DAYS))
+                .cancellationDatetime(now.minus(35L, DAYS))
+                .build(),
+            "cus_1");
+
+    var actual = subject.toRest(domain).getSubscription();
+
+    assertEquals(SubscriptionRenewalStatus.TERMINATED, actual.getRenewalStatus());
+  }
+
+  @Test
+  void next_subscription_is_reported_from_the_pending_schedule() {
+    var now = now();
+    var nextPeriodStart = now.plus(20L, DAYS);
+    var scheduledPlan = SubscriptionProduct.builder().id("pro_plan_id").build();
+    var scheduledPlanDescription = new SubscriptionPlanDescription().id("pro_plan_id");
+    when(subscriptionPlanRestMapperMock.toRestDescription(scheduledPlan))
+        .thenReturn(scheduledPlanDescription);
+    var domain =
+        givenUserServedBy(
+            Subscription.builder()
+                .e2Id("sub_current")
+                .status(Subscription.SubscriptionStatus.CANCELED)
+                .active(true)
+                .startDatetime(now.minus(10L, DAYS))
+                .endDatetime(nextPeriodStart)
+                .build(),
+            "cus_1");
+    when(subscriptionServiceMock.getScheduledSubscription("cus_1"))
+        .thenReturn(
+            Optional.of(
+                Subscription.builder()
+                    .e2Id("sub_sched_1")
+                    .subscriptionProduct(scheduledPlan)
+                    .billingInterval(app.bpartners.api.model.subscription.BillingInterval.YEARLY)
+                    .startDatetime(nextPeriodStart)
+                    .build()));
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(
+        SubscriptionRenewalStatus.CANCELLED_AT_PERIOD_END,
+        actual.getSubscription().getRenewalStatus());
+    var next = actual.getNextSubscription();
+    assertNotNull(next);
+    assertEquals(scheduledPlanDescription, next.getPlan());
+    assertEquals(BillingInterval.YEARLY, next.getBillingInterval());
+    assertEquals(nextPeriodStart, next.getStart());
+  }
+
+  @Test
+  void next_subscription_is_null_when_the_schedule_is_already_the_served_subscription() {
+    var now = now();
+    var domain =
+        givenUserServedBy(
+            Subscription.builder()
+                .status(Subscription.SubscriptionStatus.ACTIVE)
+                .active(true)
+                .startDatetime(now)
+                .endDatetime(now.plus(20L, DAYS))
+                .build(),
+            "cus_1");
+
+    var actual = subject.toRest(domain);
+
+    assertNull(actual.getNextSubscription());
+    verify(subscriptionServiceMock, never()).getScheduledSubscription(any());
   }
 }

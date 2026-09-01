@@ -42,7 +42,8 @@ class ProspectAnalyseIT extends MockedThirdParties {
     ProspectingApi api = new ProspectingApi(anApiClient());
     var createPayload = new CreateProspectAnalyse().metadata(Map.of("score", "10"));
 
-    ProspectAnalyse created = api.createProspectAnalyse(ACCOUNTHOLDER_ID, PROSPECT_1_ID, createPayload);
+    ProspectAnalyse created =
+        api.createProspectAnalyse(ACCOUNTHOLDER_ID, PROSPECT_1_ID, createPayload);
 
     assertEquals(Map.of("score", "10"), created.getMetadata());
     assertEquals(PROSPECT_1_ID, created.getProspect().getId());
@@ -68,7 +69,8 @@ class ProspectAnalyseIT extends MockedThirdParties {
     ProspectingApi api = new ProspectingApi(anApiClient());
 
     assertThrowsApiException(
-        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Metadata is mandatory and must not be empty.\"}",
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Metadata is mandatory and must not be"
+            + " empty.\"}",
         () ->
             api.createProspectAnalyse(
                 ACCOUNTHOLDER_ID, PROSPECT_1_ID, new CreateProspectAnalyse().metadata(Map.of())));

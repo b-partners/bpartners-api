@@ -600,9 +600,7 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountHolderMatcher(
-                            POST,
-                            "/accountHolders/*/prospects/*/analyses",
-                            authResourceProvider))
+                            POST, "/accountHolders/*/prospects/*/analyses", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountHolderMatcher(
@@ -610,15 +608,11 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountHolderMatcher(
-                            GET,
-                            "/accountHolders/*/prospects/*/analyses/*",
-                            authResourceProvider))
+                            GET, "/accountHolders/*/prospects/*/analyses/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountHolderMatcher(
-                            PUT,
-                            "/accountHolders/*/prospects/*/analyses/*",
-                            authResourceProvider))
+                            PUT, "/accountHolders/*/prospects/*/analyses/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(POST, "/prospectsRelaunch")
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole()) // TODO: add PROSPECT_RELAUNCHER

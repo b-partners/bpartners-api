@@ -326,8 +326,7 @@ public class ProspectController {
 
   @GetMapping("/accountHolders/{ahId}/prospects/{prospectId}/analyses")
   public List<ProspectAnalyse> getProspectAnalyses(
-      @PathVariable("ahId") String accountHolderId,
-      @PathVariable("prospectId") String prospectId) {
+      @PathVariable("ahId") String accountHolderId, @PathVariable("prospectId") String prospectId) {
     return prospectAnalyseService.getByProspectId(prospectId).stream()
         .map(prospectAnalyseRestMapper::toRest)
         .toList();

@@ -57,8 +57,7 @@ class ProspectAnalyseServiceTest {
 
     var actualException = assertThrows(NotFoundException.class, () -> subject.getById(unknownId));
 
-    assertEquals(
-        "ProspectAnalyse(id=" + unknownId + ") not found", actualException.getMessage());
+    assertEquals("ProspectAnalyse(id=" + unknownId + ") not found", actualException.getMessage());
   }
 
   @Test

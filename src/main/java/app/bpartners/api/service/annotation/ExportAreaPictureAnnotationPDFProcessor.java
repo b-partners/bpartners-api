@@ -86,23 +86,15 @@ public class ExportAreaPictureAnnotationPDFProcessor {
                 List.of());
 
     Pair<String, List<String>> annotation3DImages = null;
-    Pair<String, List<String>> annotation3DFacadeImages = null;
 
     if (exportAnnotation.get3d() != null && globalImage3D != null) {
       byte[] compressedGlobalImage3D = imageCompressor.compressImage(globalImage3D);
       annotation3DImages =
           generateAnnotation3DImages(exportAnnotation.get3d(), compressedGlobalImage3D);
-      annotation3DFacadeImages =
-          generateAnnotation3DFacadeImages(exportAnnotation.get3d(), compressedGlobalImage3D);
     }
 
     return exportAreaPictureAnnotationPDFGenerator.apply(
-        user,
-        logoBase64,
-        exportAnnotation,
-        annotationImages,
-        annotation3DImages,
-        annotation3DFacadeImages);
+        user, logoBase64, exportAnnotation, annotationImages, annotation3DImages);
   }
 
   private Pair<String, List<String>> generateAnnotation3DImages(
@@ -115,24 +107,6 @@ public class ExportAreaPictureAnnotationPDFProcessor {
           exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(pan, true);
       var compressedPanImage = imageCompressor.compressImage(panImage);
       subImages3D.add(base64(compressedPanImage));
-    }
-
-    return new Pair<>(mainImage3D, subImages3D);
-  }
-
-  private Pair<String, List<String>> generateAnnotation3DFacadeImages(
-      ExportAreaPictureAnnotation3D annotation3D, byte[] globalImage3D) {
-    var mainImage3D = base64Image(globalImage3D);
-    var subImages3D = new ArrayList<String>();
-
-    if (annotation3D.getFacades() != null) {
-      for (var facade : annotation3D.getFacades()) {
-        var facadeImage =
-            exportAreaPictureAnnotationImage3DGenerator.generatePanImageWithMeasurements(
-                facade, false);
-        var compressedFacadeImage = imageCompressor.compressImage(facadeImage);
-        subImages3D.add(base64(compressedFacadeImage));
-      }
     }
 
     return new Pair<>(mainImage3D, subImages3D);

@@ -245,10 +245,8 @@ public class ExportAnnotationContextFactoryTest {
             export3DPan("Facade 1", "30m²", "Bon état", 50, 50, 150, 150),
             export3DPan("Facade 2", "35m²", "À rénover", 200, 50, 300, 150)));
 
-    Pair<String, List<String>> facadeImages = new Pair<>("main3d", List.of("c", "d"));
-
     ExportAnnotationContextFactory.configureAnnotationFacade3DContext(
-        context, annotation3D, facadeImages, fileService);
+        context, annotation3D, fileService);
 
     List<List<ExportAreaPictureAnnotation3DPan>> pagesFacade3D =
         (List<List<ExportAreaPictureAnnotation3DPan>>) context.getVariable("pagesFacade3D");

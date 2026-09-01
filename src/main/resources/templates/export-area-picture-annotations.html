@@ -765,8 +765,7 @@
         <div style="float:left; width:30%; height: 1px;"></div>
         <div style="float:right; width:68%;">
             <div class="pan-col-headers clearfix">
-                <div class="pan-col-header">Photo façade</div>
-                <div class="pan-col-header">Image annotée</div>
+                <div class="pan-col-header" style="width:100%; margin-right:0;">Photo façade</div>
             </div>
         </div>
     </div>
@@ -789,8 +788,9 @@
             <div class="pan-annotation-images">
                 <div class="pan-images-row clearfix">
 
-                    <div class="pan-image-cell">
+                    <div class="pan-image-cell" style="width:100%; margin-right:0;">
                         <img class="annotation-item-image-3d" alt="annotation 3d sub-image"
+                             style="display:inline-block; width:auto; height:210px; max-width:100%;"
                              th:if="${facadesImages3DUris[pageStat.index] != null
                                      and facadesImages3DUris[pageStat.index].size() > panStat.index
                                      and facadesImages3DUris[pageStat.index][panStat.index] != null}"
@@ -802,17 +802,6 @@
                                      or facadesImages3DUris[pageStat.index] == null
                                      or facadesImages3DUris[pageStat.index].size() &lt;= panStat.index
                                      or facadesImages3DUris[pageStat.index][panStat.index] == null}">
-                            Image indisponible
-                        </div>
-                    </div>
-
-                    <div class="pan-image-cell">
-                        <img class="annotation-item-image-3d" alt="annotation sub-image"
-                             th:if="${topViewFacadeImagesUris[pageStat.index] != null and topViewFacadeImagesUris[pageStat.index].size() > panStat.index}"
-                             th:src="${topViewFacadeImagesUris[pageStat.index][panStat.index]}" />
-
-                        <div class="annotation-blank-item-image-3d"
-                             th:if="${topViewFacadeImagesUris[pageStat.index] == null or topViewFacadeImagesUris[pageStat.index].size() &lt;= panStat.index}">
                             Image indisponible
                         </div>
                     </div>

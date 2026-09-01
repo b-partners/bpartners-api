@@ -110,7 +110,8 @@ class AreaPictureAnnotationRestMapperTest {
     when(areaPictureServiceMock.findBy(userId, "area_picture_1")).thenThrow(cause);
     var annotations = List.of(annotationOf("annotation_1", "area_picture_1"));
 
-    var actual = assertThrows(NotFoundException.class, () -> subject.toRestDrafts(userId, annotations));
+    var actual =
+        assertThrows(NotFoundException.class, () -> subject.toRestDrafts(userId, annotations));
 
     assertEquals(cause, actual);
   }

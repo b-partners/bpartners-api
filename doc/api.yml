@@ -252,6 +252,10 @@ paths:
     $ref: './prospecting-api.yml#/operations/prospectEvaluationJobs'
   /accountHolders/{ahId}/prospects/evaluationJobs/{jId}:
     $ref: './prospecting-api.yml#/operations/prospectEvaluationJobDetails'
+  /accountHolders/{ahId}/prospects/{prospectId}/analyses:
+    $ref: './prospecting-api.yml#/operations/prospectAnalyseOperations'
+  /accountHolders/{ahId}/prospects/{prospectId}/analyses/{analyseId}:
+    $ref: './prospecting-api.yml#/operations/prospectAnalyseByIdOperations'
 
   #############################################
   ################# Google Sheet API ##############

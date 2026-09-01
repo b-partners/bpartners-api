@@ -101,7 +101,8 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/health/event1", GET.name()),
                         new AntPathRequestMatcher("/health/event2", GET.name()),
                         new AntPathRequestMatcher("/health/event/uuids", POST.name()),
-                        new AntPathRequestMatcher("/captcha/token", GET.name())))),
+                        new AntPathRequestMatcher("/captcha/token", GET.name()),
+                        new AntPathRequestMatcher("/token/validate", POST.name())))),
             AnonymousAuthenticationFilter.class)
         // authorize
         .authorizeHttpRequests(
@@ -156,6 +157,8 @@ public class SecurityConf {
                     .requestMatchers(DELETE, "/dummy-user")
                     .permitAll()
                     .requestMatchers(GET, "/captcha/token")
+                    .permitAll()
+                    .requestMatchers(POST, "/token/validate")
                     .permitAll()
                     .requestMatchers(GET, "/api/keys")
                     .authenticated()

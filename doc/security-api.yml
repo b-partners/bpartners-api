@@ -43,6 +43,31 @@ operations:
           500:
             $ref: './api.yml#/components/responses/500'
 
+  validateToken:
+      post:
+        operationId: validateToken
+        summary: "Validate a bearer token"
+        description: "Tells whether the given token is a valid, non-expired token issued by the identity provider"
+        security: [ ]
+        tags:
+          - Security
+        parameters:
+          - name: token
+            in: query
+            required: true
+            description: "token to validate"
+            schema:
+              type: string
+        responses:
+          '200':
+            description: "Token is valid"
+          '401':
+            description: "Token is missing, malformed, expired or otherwise invalid"
+          400:
+            $ref: './api.yml#/components/responses/400'
+          500:
+            $ref: './api.yml#/components/responses/500'
+
   whoami:
     get:
       tags:

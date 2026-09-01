@@ -16,15 +16,20 @@ import app.bpartners.api.endpoint.rest.model.CreateProspectAnalyse;
 import app.bpartners.api.endpoint.rest.model.ProspectAnalyse;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.repository.jpa.ProspectAnalyseJpaRepository;
+import app.bpartners.api.repository.jpa.model.HProspectAnalyse;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 class ProspectAnalyseIT extends MockedThirdParties {
   private static final String UNKNOWN_ANALYSE_ID = "unknown_analyse_id";
+
+  @Autowired private ProspectAnalyseJpaRepository prospectAnalyseJpaRepository;
 
   private ApiClient anApiClient() {
     return TestUtils.anApiClient(JOE_DOE_TOKEN, null, localPort);
@@ -62,6 +67,37 @@ class ProspectAnalyseIT extends MockedThirdParties {
             created.getId(),
             new CreateProspectAnalyse().metadata(Map.of("score", "20")));
     assertEquals(Map.of("score", "20"), updated.getMetadata());
+  }
+
+  @Test
+  void create_analyse_with_json_metadata_and_position_persists_ok() throws Exception {
+    ProspectingApi api = new ProspectingApi(anApiClient());
+    Map<String, Object> metadata =
+        Map.of(
+            "score",
+            10,
+            "isQualified",
+            true,
+            "tags",
+            List.of("roof", "solar"),
+            "details",
+            Map.of("surfaceM2", 120.5, "material", "tile"));
+    var createPayload =
+        new CreateProspectAnalyse().metadata(metadata).longitude(2.3522).latitude(48.8566);
+
+    ProspectAnalyse created =
+        api.createProspectAnalyse(ACCOUNTHOLDER_ID, PROSPECT_1_ID, createPayload);
+
+    assertEquals(metadata, created.getMetadata());
+    assertEquals(2.3522, created.getLongitude());
+    assertEquals(48.8566, created.getLatitude());
+
+    // asserts the jsonb column round-trips through Postgres, bypassing the REST/domain mapping
+    HProspectAnalyse persisted =
+        prospectAnalyseJpaRepository.findById(created.getId()).orElseThrow();
+    assertEquals(metadata, persisted.getMetadata());
+    assertEquals(2.3522, persisted.getPosLongitude());
+    assertEquals(48.8566, persisted.getPosLatitude());
   }
 
   @Test

@@ -35,7 +35,10 @@ public class HProspectAnalyse {
   private String idProspect;
 
   @JdbcTypeCode(JSON)
-  private Map<String, String> metadata;
+  private Map<String, Object> metadata;
+
+  private Double posLongitude;
+  private Double posLatitude;
 
   @CreationTimestamp private Instant createdAt;
   @UpdateTimestamp private Instant updatedAt;

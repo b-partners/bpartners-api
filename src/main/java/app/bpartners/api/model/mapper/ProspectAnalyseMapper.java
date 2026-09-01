@@ -17,6 +17,8 @@ public class ProspectAnalyseMapper {
         .id(domain.getId())
         .idProspect(Objects.requireNonNull(domain.getProspect()).getId())
         .metadata(domain.getMetadata())
+        .posLongitude(domain.getLongitude())
+        .posLatitude(domain.getLatitude())
         .createdAt(domain.getCreatedAt())
         .updatedAt(domain.getUpdatedAt())
         .build();
@@ -27,6 +29,8 @@ public class ProspectAnalyseMapper {
         .id(entity.getId())
         .prospect(prospectRepository.getById(entity.getIdProspect()))
         .metadata(entity.getMetadata())
+        .longitude(entity.getPosLongitude())
+        .latitude(entity.getPosLatitude())
         .createdAt(entity.getCreatedAt())
         .updatedAt(entity.getUpdatedAt())
         .build();

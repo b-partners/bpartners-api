@@ -16,6 +16,8 @@ public class ProspectAnalyseRestMapper {
     return ProspectAnalyse.builder()
         .prospect(prospectRepository.getById(idProspect))
         .metadata(createProspectAnalyse.getMetadata())
+        .longitude(createProspectAnalyse.getLongitude())
+        .latitude(createProspectAnalyse.getLatitude())
         .build();
   }
 
@@ -24,6 +26,8 @@ public class ProspectAnalyseRestMapper {
         .id(domain.getId())
         .prospect(prospectRestMapper.toRest(domain.getProspect()))
         .metadata(domain.getMetadata())
+        .longitude(domain.getLongitude())
+        .latitude(domain.getLatitude())
         .createdAt(domain.getCreatedAt())
         .updatedAt(domain.getUpdatedAt());
   }

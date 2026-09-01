@@ -27,7 +27,7 @@ public class ProspectAnalyseService {
         .orElseThrow(() -> new NotFoundException("ProspectAnalyse(id=" + id + ") not found"));
   }
 
-  public ProspectAnalyse update(String id, Map<String, String> metadata) {
+  public ProspectAnalyse update(String id, Map<String, Object> metadata) {
     ProspectAnalyse existing = getById(id);
     return repository.save(existing.toBuilder().metadata(metadata).build());
   }

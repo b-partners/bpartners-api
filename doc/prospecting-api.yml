@@ -872,8 +872,13 @@ components:
       properties:
         metadata:
           type: object
-          additionalProperties:
-            type: string
+          additionalProperties: true
+        longitude:
+          type: number
+          format: double
+        latitude:
+          type: number
+          format: double
     ProspectAnalyse:
       allOf:
         - $ref: '#/components/schemas/CreateProspectAnalyse'

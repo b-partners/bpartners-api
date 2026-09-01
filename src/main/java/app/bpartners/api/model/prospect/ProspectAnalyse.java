@@ -20,7 +20,9 @@ import lombok.ToString;
 public class ProspectAnalyse {
   private String id;
   private Prospect prospect;
-  private Map<String, String> metadata;
+  private Map<String, Object> metadata;
+  private Double longitude;
+  private Double latitude;
   private Instant createdAt;
   private Instant updatedAt;
 }

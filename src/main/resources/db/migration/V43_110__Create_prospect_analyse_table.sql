@@ -4,6 +4,8 @@ create table if not exists "prospect_analyse"
         constraint prospect_analyse_pk primary key default uuid_generate_v4(),
     id_prospect varchar not null,
     metadata    jsonb,
+    pos_longitude double precision,
+    pos_latitude  double precision,
     created_at  timestamp with time zone default current_timestamp,
     updated_at  timestamp with time zone default current_timestamp,
     constraint prospect_analyse_prospect_fk foreign key (id_prospect) references "prospect" (id)

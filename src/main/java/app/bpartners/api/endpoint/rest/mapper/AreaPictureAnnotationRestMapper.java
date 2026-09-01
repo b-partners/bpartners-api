@@ -24,6 +24,11 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class AreaPictureAnnotationRestMapper {
+  // GeoData Imagery API runs behind a Lambda with a low reserved concurrency: fanning out one
+  // request per area picture without a cap trips its rate limiting (429
+  // ReservedFunctionConcurrentInvocationLimitExceeded) under normal page sizes.
+  private static final int MAX_CONCURRENT_AREA_PICTURE_LOOKUPS = 3;
+
   private final AreaPictureAnnotationInstanceRestMapper instanceRestMapper;
   private final AreaPictureRestMapper areaPictureRestMapper;
   private final AreaPictureService areaPictureService;
@@ -105,7 +110,7 @@ public class AreaPictureAnnotationRestMapper {
   @SneakyThrows
   private Map<String, AreaPicture> findAllAreaPicturesByIdConcurrently(
       String userId, List<String> idAreaPictures) {
-    try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+    try (var executor = Executors.newFixedThreadPool(MAX_CONCURRENT_AREA_PICTURE_LOOKUPS)) {
       Map<String, Future<AreaPicture>> futuresById =
           idAreaPictures.stream()
               .collect(

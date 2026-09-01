@@ -2,6 +2,7 @@ package app.bpartners.api.unit.mapper;
 
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -17,6 +18,7 @@ import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureAnnotation;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.service.areapicture.AreaPictureService;
@@ -99,6 +101,18 @@ class AreaPictureAnnotationRestMapperTest {
     verify(prospectRepositoryMock, times(1)).findAllByIds(List.of("prospect_1"));
     verify(prospectRepositoryMock, never()).getById(anyString());
     assertEquals("John Doe", actual.get(0).getProspectName());
+  }
+
+  @Test
+  void to_rest_drafts_propagates_the_cause_when_an_area_picture_lookup_fails() {
+    var userId = randomUUID().toString();
+    var cause = new NotFoundException("not found");
+    when(areaPictureServiceMock.findBy(userId, "area_picture_1")).thenThrow(cause);
+    var annotations = List.of(annotationOf("annotation_1", "area_picture_1"));
+
+    var actual = assertThrows(NotFoundException.class, () -> subject.toRestDrafts(userId, annotations));
+
+    assertEquals(cause, actual);
   }
 
   @Test

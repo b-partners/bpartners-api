@@ -32,6 +32,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
   private static final String AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_2_id";
   private static final String DRAFT_AREA_PICTURE_ANNOTATION_1_ID = "area_picture_annotation_4_id";
   private static final String DRAFT_AREA_PICTURE_ANNOTATION_2_ID = "area_picture_annotation_5_id";
+  private static final String DRAFT_AREA_PICTURE_ANNOTATION_3_ID = "area_picture_annotation_6_id";
 
   @MockBean MetaDataComponent metaDataComponentMock;
   @MockBean AreaPictureMapLayerService areaPictureMapLayerServiceMock;
@@ -175,6 +176,21 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         .creationDatetime(Instant.parse("2024-01-08T01:05:00.00Z"))
         .prospectName(
             prospect1() // according to V99_35__Test_create_draft_area_picture_annotation.sql
+                .getName());
+  }
+
+  static DraftAreaPictureAnnotation draftAreaPictureAnnotation3() {
+    return new DraftAreaPictureAnnotation()
+        .id(DRAFT_AREA_PICTURE_ANNOTATION_3_ID)
+        .idAreaPicture(AREA_PICTURE_2_ID)
+        .isDraft(true)
+        .areaPicture(areaPicture2())
+        .properties(null)
+        .annotations(List.of())
+        .creationDatetime(Instant.parse("2024-01-08T01:02:30.00Z"))
+        .prospectName(
+            prospect1() // area_picture_2_id is also linked to prospect1_id, see
+                // V99_32__Test_create_area_picture_with_invoice.sql
                 .getName());
   }
 
@@ -344,6 +360,31 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
     assertEquals(draftAreaPictureAnnotation2(), actualAnnotations.getFirst());
     assertEquals(draftAreaPictureAnnotation1(), actualAnnotations.getLast());
     assertTrue(actualAnnotations.stream().allMatch(DraftAreaPictureAnnotation::getIsDraft));
+  }
+
+  @Test
+  void joe_doe_read_all_draft_annotations_spans_multiple_area_pictures_ok() throws ApiException {
+    mockAreaPictureLayers();
+    ApiClient apiClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(apiClient);
+
+    var actualAnnotations =
+        api.getDraftAnnotationsByAccountId(JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null);
+
+    assertEquals(3, actualAnnotations.size());
+    assertTrue(
+        actualAnnotations.containsAll(
+            List.of(
+                draftAreaPictureAnnotation1(),
+                draftAreaPictureAnnotation2(),
+                draftAreaPictureAnnotation3())));
+    var fromAreaPicture2 =
+        actualAnnotations.stream()
+            .filter(annotation -> AREA_PICTURE_2_ID.equals(annotation.getIdAreaPicture()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(areaPicture2(), fromAreaPicture2.getAreaPicture());
+    assertEquals(prospect1().getName(), fromAreaPicture2.getProspectName());
   }
 
   @Test

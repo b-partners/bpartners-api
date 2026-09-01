@@ -11,6 +11,8 @@ import java.util.List;
 public interface ProspectRepository {
   Prospect getById(String id);
 
+  List<Prospect> findAllByIds(List<String> ids);
+
   List<Prospect> findAllByStatus(ProspectStatus status);
 
   List<Prospect> findAllByIdAccountHolder(

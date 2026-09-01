@@ -209,6 +209,32 @@ class ProspectRepositoryImplTest {
   }
 
   @Test
+  void find_all_by_ids() {
+    var hProspect1 =
+        HProspect.builder()
+            .id("prospect_1")
+            .oldName("John Doe")
+            .posLatitude(2.2)
+            .statusHistories(List.of())
+            .build();
+    var hProspect2 =
+        HProspect.builder()
+            .id("prospect_2")
+            .oldName("Jane Smith")
+            .posLongitude(3.3)
+            .statusHistories(List.of())
+            .build();
+    when(jpaRepositoryMock.findAllById(List.of("prospect_1", "prospect_2")))
+        .thenReturn(List.of(hProspect1, hProspect2));
+
+    var actual = subject.findAllByIds(List.of("prospect_1", "prospect_2"));
+
+    assertEquals(2, actual.size());
+    assertEquals("prospect_1", actual.get(0).getId());
+    assertEquals("prospect_2", actual.get(1).getId());
+  }
+
+  @Test
   void needsProspects_false() {
     boolean needProspect =
         subject.needsProspects(

@@ -97,6 +97,21 @@ public class ProspectRepositoryImpl implements ProspectRepository {
   }
 
   @Override
+  public List<Prospect> findAllByIds(List<String> ids) {
+    return jpaRepository.findAllById(ids).stream()
+        .map(
+            prospect ->
+                mapper.toDomain(
+                    prospect,
+                    prospect.getPosLatitude() == null && prospect.getPosLongitude() == null
+                        ? null
+                        : new Geojson()
+                            .latitude(prospect.getPosLatitude())
+                            .longitude(prospect.getPosLongitude())))
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public List<Prospect> findAllByStatus(ProspectStatus status) {
     return jpaRepository.findAllByStatus(status.getValue()).stream()
         .map(

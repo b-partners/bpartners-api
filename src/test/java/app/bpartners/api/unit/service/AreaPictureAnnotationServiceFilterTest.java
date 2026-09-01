@@ -91,10 +91,11 @@ class AreaPictureAnnotationServiceFilterTest {
     var matching = areaPictureOf("area_picture_1", "prospect_1");
     var notMatching = areaPictureOf("area_picture_2", "prospect_2");
     when(areaPictureServiceMock.findAllByIdUser(idUser)).thenReturn(List.of(matching, notMatching));
-    when(prospectRepositoryMock.getById("prospect_1"))
-        .thenReturn(Prospect.builder().name("John Doe").build());
-    when(prospectRepositoryMock.getById("prospect_2"))
-        .thenReturn(Prospect.builder().name("Jane Smith").build());
+    when(prospectRepositoryMock.findAllByIds(List.of("prospect_1", "prospect_2")))
+        .thenReturn(
+            List.of(
+                Prospect.builder().id("prospect_1").name("John Doe").build(),
+                Prospect.builder().id("prospect_2").name("Jane Smith").build()));
     var criteriaCaptor = ArgumentCaptor.forClass(AreaPictureAnnotationCriteria.class);
 
     subject.findAllDraftByAccountId(
@@ -102,6 +103,7 @@ class AreaPictureAnnotationServiceFilterTest {
 
     verify(repositoryMock).findAllByCriteria(criteriaCaptor.capture());
     assertEquals(List.of("area_picture_1"), criteriaCaptor.getValue().idAreaPictureIds());
+    verify(prospectRepositoryMock, never()).getById(any());
   }
 
   @Test
@@ -112,8 +114,8 @@ class AreaPictureAnnotationServiceFilterTest {
     var matching = areaPictureOf("area_picture_2", "prospect_2");
     when(areaPictureServiceMock.findAllByIdUser(idUser))
         .thenReturn(List.of(withoutProspect, matching));
-    when(prospectRepositoryMock.getById("prospect_2"))
-        .thenReturn(Prospect.builder().name("John Doe").build());
+    when(prospectRepositoryMock.findAllByIds(List.of("prospect_2")))
+        .thenReturn(List.of(Prospect.builder().id("prospect_2").name("John Doe").build()));
     var criteriaCaptor = ArgumentCaptor.forClass(AreaPictureAnnotationCriteria.class);
 
     subject.findAllDraftByAccountId(
@@ -121,7 +123,6 @@ class AreaPictureAnnotationServiceFilterTest {
 
     verify(repositoryMock).findAllByCriteria(criteriaCaptor.capture());
     assertEquals(List.of("area_picture_2"), criteriaCaptor.getValue().idAreaPictureIds());
-    verify(prospectRepositoryMock, never()).getById(null);
   }
 
   @Test

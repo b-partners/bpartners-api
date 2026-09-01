@@ -67,8 +67,9 @@ public class AreaPictureAnnotationController {
       @RequestParam(required = false) Instant creationFrom,
       @RequestParam(required = false) Instant creationTo) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
-    return service
-        .findAllByCriteria(
+    return mapper.toRestDrafts(
+        authenticatedUserId,
+        service.findAllByCriteria(
             authenticatedUserId,
             areaPictureId,
             prospectName,
@@ -76,10 +77,7 @@ public class AreaPictureAnnotationController {
             creationFrom,
             creationTo,
             page,
-            pageSize)
-        .stream()
-        .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
-        .toList();
+            pageSize));
   }
 
   @GetMapping("/accounts/{aId}/annotations/drafts")
@@ -92,12 +90,10 @@ public class AreaPictureAnnotationController {
       @RequestParam(required = false) Instant creationFrom,
       @RequestParam(required = false) Instant creationTo) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
-    return service
-        .findAllDraftByAccountId(
-            authenticatedUserId, prospectName, address, creationFrom, creationTo, page, pageSize)
-        .stream()
-        .map(annotation -> mapper.toRestDraft(authenticatedUserId, annotation))
-        .toList();
+    return mapper.toRestDrafts(
+        authenticatedUserId,
+        service.findAllDraftByAccountId(
+            authenticatedUserId, prospectName, address, creationFrom, creationTo, page, pageSize));
   }
 
   @PostMapping(value = "/accounts/{aId}/annotations/exports", consumes = MULTIPART_FORM_DATA_VALUE)

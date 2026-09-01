@@ -12,6 +12,7 @@ import app.bpartners.api.model.AreaPictureAnnotation;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.prospect.Prospect;
 import app.bpartners.api.repository.AreaPictureAnnotationRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -20,6 +21,8 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProces
 import app.bpartners.api.service.aws.S3Service;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -122,17 +125,25 @@ public class AreaPictureAnnotationService {
           address != null
               ? areaPictureService.findAllByAddress(idUser, address)
               : areaPictureService.findAllByIdUser(idUser);
-      idAreaPictureIds =
-          areaPictures.stream()
-              .filter(
-                  areaPicture ->
-                      prospectName == null
-                          || (areaPicture.getIdProspect() != null
-                              && containsIgnoreCase(
-                                  prospectRepository.getById(areaPicture.getIdProspect()).getName(),
-                                  prospectName)))
-              .map(AreaPicture::getId)
-              .toList();
+      if (prospectName != null) {
+        var idProspects =
+            areaPictures.stream().map(AreaPicture::getIdProspect).filter(Objects::nonNull).toList();
+        var matchingIdProspects =
+            prospectRepository.findAllByIds(idProspects).stream()
+                .filter(prospect -> containsIgnoreCase(prospect.getName(), prospectName))
+                .map(Prospect::getId)
+                .collect(Collectors.toSet());
+        idAreaPictureIds =
+            areaPictures.stream()
+                .filter(
+                    areaPicture ->
+                        areaPicture.getIdProspect() != null
+                            && matchingIdProspects.contains(areaPicture.getIdProspect()))
+                .map(AreaPicture::getId)
+                .toList();
+      } else {
+        idAreaPictureIds = areaPictures.stream().map(AreaPicture::getId).toList();
+      }
       if (idAreaPictureIds.isEmpty()) {
         return List.of();
       }

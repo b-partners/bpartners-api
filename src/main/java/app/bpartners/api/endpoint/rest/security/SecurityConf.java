@@ -598,6 +598,28 @@ public class SecurityConf {
                         new SelfAccountHolderMatcher(
                             GET, "/accountHolders/*/prospects/*", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            POST,
+                            "/accountHolders/*/prospects/*/analyses",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            GET, "/accountHolders/*/prospects/*/analyses", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            GET,
+                            "/accountHolders/*/prospects/*/analyses/*",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            PUT,
+                            "/accountHolders/*/prospects/*/analyses/*",
+                            authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/prospectsRelaunch")
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole()) // TODO: add PROSPECT_RELAUNCHER
                     .requestMatchers(

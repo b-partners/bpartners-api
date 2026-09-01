@@ -1,19 +1,19 @@
 package app.bpartners.api.model.mapper;
 
-import app.bpartners.api.model.prospect.Analyse;
+import app.bpartners.api.model.prospect.ProspectAnalyse;
 import app.bpartners.api.repository.ProspectRepository;
-import app.bpartners.api.repository.jpa.model.HAnalyse;
+import app.bpartners.api.repository.jpa.model.HProspectAnalyse;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class AnalyseMapper {
+public class ProspectAnalyseMapper {
   private final ProspectRepository prospectRepository;
 
-  public HAnalyse toEntity(Analyse domain) {
-    return HAnalyse.builder()
+  public HProspectAnalyse toEntity(ProspectAnalyse domain) {
+    return HProspectAnalyse.builder()
         .id(domain.getId())
         .idProspect(Objects.requireNonNull(domain.getProspect()).getId())
         .metadata(domain.getMetadata())
@@ -22,8 +22,8 @@ public class AnalyseMapper {
         .build();
   }
 
-  public Analyse toDomain(HAnalyse entity) {
-    return Analyse.builder()
+  public ProspectAnalyse toDomain(HProspectAnalyse entity) {
+    return ProspectAnalyse.builder()
         .id(entity.getId())
         .prospect(prospectRepository.getById(entity.getIdProspect()))
         .metadata(entity.getMetadata())

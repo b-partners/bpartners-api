@@ -20,14 +20,14 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "\"analyse\"")
+@Table(name = "\"prospect_analyse\"")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @ToString
-public class HAnalyse {
+public class HProspectAnalyse {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private String id;

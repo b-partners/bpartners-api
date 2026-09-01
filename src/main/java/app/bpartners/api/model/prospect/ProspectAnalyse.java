@@ -17,7 +17,7 @@ import lombok.ToString;
 @Builder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
-public class Analyse {
+public class ProspectAnalyse {
   private String id;
   private Prospect prospect;
   private Map<String, String> metadata;

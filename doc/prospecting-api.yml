@@ -487,12 +487,12 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  analyseOperations:
+  prospectAnalyseOperations:
     get:
       tags:
         - Prospecting
       summary: Get analyses for a prospect
-      operationId: getAnalyses
+      operationId: getProspectAnalyses
       parameters:
         - in: path
           name: ahId
@@ -512,7 +512,7 @@ operations:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Analyse'
+                  $ref: '#/components/schemas/ProspectAnalyse'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -527,7 +527,7 @@ operations:
       tags:
         - Prospecting
       summary: Create a new analyse for a prospect
-      operationId: createAnalyse
+      operationId: createProspectAnalyse
       parameters:
         - in: path
           name: ahId
@@ -544,14 +544,14 @@ operations:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateAnalyse'
+              $ref: '#/components/schemas/CreateProspectAnalyse'
       responses:
         200:
           description: The created analyse.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Analyse'
+                $ref: '#/components/schemas/ProspectAnalyse'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -562,12 +562,12 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  analyseByIdOperations:
+  prospectAnalyseByIdOperations:
     get:
       tags:
         - Prospecting
       summary: Get an analyse by its id
-      operationId: getAnalyseById
+      operationId: getProspectAnalyseById
       parameters:
         - in: path
           name: ahId
@@ -590,7 +590,7 @@ operations:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Analyse'
+                $ref: '#/components/schemas/ProspectAnalyse'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -605,7 +605,7 @@ operations:
       tags:
         - Prospecting
       summary: Update an analyse
-      operationId: updateAnalyse
+      operationId: updateProspectAnalyse
       parameters:
         - in: path
           name: ahId
@@ -627,53 +627,14 @@ operations:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateAnalyse'
+              $ref: '#/components/schemas/CreateProspectAnalyse'
       responses:
         200:
           description: The updated analyse.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Analyse'
-        400:
-          $ref: './api.yml#/components/responses/400'
-        403:
-          $ref: './api.yml#/components/responses/403'
-        404:
-          $ref: './api.yml#/components/responses/404'
-        429:
-          $ref: './api.yml#/components/responses/429'
-        500:
-          $ref: './api.yml#/components/responses/500'
-    delete:
-      tags:
-        - Prospecting
-      summary: Delete an analyse
-      operationId: deleteAnalyse
-      parameters:
-        - in: path
-          name: ahId
-          schema:
-            type: string
-          required: true
-        - in: path
-          name: prospectId
-          schema:
-            type: string
-          required: true
-        - in: path
-          name: analyseId
-          schema:
-            type: string
-          required: true
-      responses:
-        200:
-          description: The analyse has been deleted.
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: "Analyse has been successfully deleted"
+                $ref: '#/components/schemas/ProspectAnalyse'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -906,16 +867,16 @@ components:
         updatedAt:
           type: string
           format: date-time
-    CreateAnalyse:
+    CreateProspectAnalyse:
       type: object
       properties:
         metadata:
           type: object
           additionalProperties:
             type: string
-    Analyse:
+    ProspectAnalyse:
       allOf:
-        - $ref: '#/components/schemas/CreateAnalyse'
+        - $ref: '#/components/schemas/CreateProspectAnalyse'
       properties:
         id:
           type: string

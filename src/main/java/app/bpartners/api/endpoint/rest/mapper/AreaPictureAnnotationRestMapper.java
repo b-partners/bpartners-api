@@ -62,11 +62,6 @@ public class AreaPictureAnnotationRestMapper {
         .build();
   }
 
-  /**
-   * Batches the per-annotation lookups that {@code toRestDraft} used to perform one by one: each
-   * distinct area picture (which itself triggers GeoData Imagery API calls) is fetched concurrently
-   * instead of sequentially, and prospects are resolved with a single query.
-   */
   public List<DraftAreaPictureAnnotation> toRestDrafts(
       String userId, List<app.bpartners.api.model.AreaPictureAnnotation> areaPictureAnnotations) {
     var idAreaPictures =

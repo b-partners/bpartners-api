@@ -53,26 +53,9 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
       Pair<String, List<String>> annotation3DImages) {
-    return apply(user, logoBase64, annotation, annotationImages, annotation3DImages, null);
-  }
-
-  @SneakyThrows
-  public byte[] apply(
-      User user,
-      String logoBase64,
-      ExportAreaPictureAnnotation annotation,
-      Pair<String, List<String>> annotationImages,
-      Pair<String, List<String>> annotation3DImages,
-      Pair<String, List<String>> annotation3DFacadeImages) {
 
     var html =
-        parseDataToString(
-            user,
-            logoBase64,
-            annotation,
-            annotationImages,
-            annotation3DImages,
-            annotation3DFacadeImages);
+        parseDataToString(user, logoBase64, annotation, annotationImages, annotation3DImages);
     if (annotation.getLlm() != null) {
       html = emojiReplacer.replaceEmoji(html);
     }
@@ -106,8 +89,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       String logoBase64,
       ExportAreaPictureAnnotation annotation,
       Pair<String, List<String>> annotationImages,
-      Pair<String, List<String>> annotation3DImages,
-      Pair<String, List<String>> annotation3DFacadeImages) {
+      Pair<String, List<String>> annotation3DImages) {
     var templateEngine = templateResolverEngine.getTemplateEngine();
 
     var exportAreaPictureAnnotation3DGenerator = new ExportAreaPictureAnnotationImage3DGenerator();
@@ -118,7 +100,6 @@ public class ExportAreaPictureAnnotationPDFGenerator {
             annotation,
             annotationImages,
             annotation3DImages,
-            annotation3DFacadeImages,
             fileService,
             exportAreaPictureAnnotation3DGenerator,
             areaPictureAnnotationConfRestMapper);

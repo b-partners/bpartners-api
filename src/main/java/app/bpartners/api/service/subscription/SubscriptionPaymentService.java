@@ -21,7 +21,6 @@ import com.stripe.model.InvoiceLineItem;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +30,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class SubscriptionPaymentService {
+  private static final String STRIPE_YEARLY_INTERVAL = "year";
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
   private final UserRepository userRepository;
   private final UserSubscriptionProductService userSubscriptionProductService;
@@ -116,7 +116,13 @@ public class SubscriptionPaymentService {
       String userId,
       UserSubscriptionProduct activeSubscription,
       long amountInCentsWithVat) {
-    var subscriptionProduct = resolveSubscriptionProduct(stripeInvoice, activeSubscription);
+    var resolvedPlan = resolvePlanFromStripe(stripeInvoice);
+    var subscriptionProduct =
+        resolvedPlan == null ? subscriptionProductOf(activeSubscription) : resolvedPlan.product();
+    var billingInterval =
+        resolvedPlan == null || resolvedPlan.billingInterval() == null
+            ? billingIntervalOf(activeSubscription)
+            : resolvedPlan.billingInterval();
     var vatPercent = vatPercentOf(stripeInvoice, subscriptionProduct);
     var billedPeriod = billedPeriodOf(stripeInvoice);
     return SubscriptionPayment.builder()
@@ -125,7 +131,7 @@ public class SubscriptionPaymentService {
         .stripeInvoiceId(stripeInvoice.getId())
         .stripeSubscriptionId(stripeInvoice.getSubscription())
         .subscriptionProduct(subscriptionProduct)
-        .billingInterval(billingIntervalOf(activeSubscription))
+        .billingInterval(billingInterval)
         .label(labelOf(billedPeriod, subscriptionProduct))
         .amountInCentsWithoutVat(
             amountInCentsWithoutVatOf(stripeInvoice, amountInCentsWithVat, vatPercent))
@@ -158,22 +164,26 @@ public class SubscriptionPaymentService {
         .orElse(null);
   }
 
-  private SubscriptionProduct resolveSubscriptionProduct(
-      Invoice stripeInvoice, UserSubscriptionProduct activeSubscription) {
-    return stripeProductIdsOf(stripeInvoice).stream()
-        .map(subscriptionProductRepository::findByE2Id)
-        .flatMap(Optional::stream)
-        .filter(product -> product.getBillingType() != null)
-        .findFirst()
-        .orElseGet(() -> subscriptionProductOf(activeSubscription));
-  }
-
-  private List<String> stripeProductIdsOf(Invoice stripeInvoice) {
+  private ResolvedPlan resolvePlanFromStripe(Invoice stripeInvoice) {
     var lines = stripeInvoice.getLines() == null ? null : stripeInvoice.getLines().getData();
     if (lines == null) {
-      return List.of();
+      return null;
     }
-    return lines.stream().map(this::stripeProductIdOf).filter(Objects::nonNull).toList();
+    for (var line : lines) {
+      var productId = stripeProductIdOf(line);
+      if (productId == null) {
+        continue;
+      }
+      var plan =
+          subscriptionProductRepository
+              .findByE2Id(productId)
+              .filter(product -> product.getBillingType() != null)
+              .orElse(null);
+      if (plan != null) {
+        return new ResolvedPlan(plan, billingIntervalOf(line));
+      }
+    }
+    return null;
   }
 
   private String stripeProductIdOf(InvoiceLineItem line) {
@@ -181,6 +191,25 @@ public class SubscriptionPaymentService {
       return line.getPlan().getProduct();
     }
     return line.getPrice() == null ? null : line.getPrice().getProduct();
+  }
+
+  private BillingInterval billingIntervalOf(InvoiceLineItem line) {
+    var interval = stripeRecurringIntervalOf(line);
+    if (interval == null) {
+      return null;
+    }
+    return STRIPE_YEARLY_INTERVAL.equals(interval)
+        ? BillingInterval.YEARLY
+        : BillingInterval.MONTHLY;
+  }
+
+  private String stripeRecurringIntervalOf(InvoiceLineItem line) {
+    if (line.getPrice() != null
+        && line.getPrice().getRecurring() != null
+        && line.getPrice().getRecurring().getInterval() != null) {
+      return line.getPrice().getRecurring().getInterval();
+    }
+    return line.getPlan() == null ? null : line.getPlan().getInterval();
   }
 
   private SubscriptionProduct subscriptionProductOf(UserSubscriptionProduct activeSubscription) {
@@ -253,4 +282,6 @@ public class SubscriptionPaymentService {
   }
 
   private record BilledPeriod(Long start, Long end) {}
+
+  private record ResolvedPlan(SubscriptionProduct product, BillingInterval billingInterval) {}
 }

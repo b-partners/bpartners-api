@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -105,7 +106,7 @@ class SubscriptionPaymentServiceTest {
   }
 
   @Test
-  void resolves_the_plan_from_stripe_even_without_an_active_subscription() {
+  void resolves_the_plan_and_interval_from_stripe_even_without_an_active_subscription() {
     when(userRepository.findByStripeCustomerId(STRIPE_CUSTOMER_ID))
         .thenReturn(Optional.of(User.builder().id(USER_ID).build()));
     when(userSubscriptionProductService.findActiveUserSubscriptionProduct(USER_ID))
@@ -120,8 +121,23 @@ class SubscriptionPaymentServiceTest {
     assertEquals("Essentiel", subscriptionPayment.planName());
     assertEquals(
         "Abonnement Essentiel du 28/05/2026 au 27/06/2026", subscriptionPayment.paymentLabel());
-    assertNull(subscriptionPayment.getBillingInterval());
+    assertEquals(MONTHLY, subscriptionPayment.getBillingInterval());
     assertEquals(2_000L, subscriptionPayment.getVatPercent());
+  }
+
+  @Test
+  void derives_the_yearly_billing_interval_from_the_stripe_line() {
+    when(userRepository.findByStripeCustomerId(STRIPE_CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(USER_ID).build()));
+    when(userSubscriptionProductService.findActiveUserSubscriptionProduct(USER_ID))
+        .thenReturn(Optional.empty());
+    when(subscriptionProductRepository.findByE2Id(STRIPE_PRODUCT_ID))
+        .thenReturn(Optional.of(essentialPlan()));
+    givenNotYetRecorded();
+
+    subject.recordPaidStripeInvoice(someStripeInvoiceBilledEvery("year"));
+
+    assertEquals(YEARLY, capturedSubscriptionPayment().getBillingInterval());
   }
 
   @Test
@@ -353,6 +369,7 @@ class SubscriptionPaymentServiceTest {
     when(linePeriod.getEnd()).thenReturn(PERIOD_END);
     var plan = mock(com.stripe.model.Plan.class);
     when(plan.getProduct()).thenReturn(STRIPE_PRODUCT_ID);
+    when(plan.getInterval()).thenReturn("month");
     var line = mock(InvoiceLineItem.class);
     when(line.getDescription()).thenReturn("Abonnement Essentiel");
     when(line.getPeriod()).thenReturn(linePeriod);
@@ -368,6 +385,32 @@ class SubscriptionPaymentServiceTest {
     when(stripeInvoice.getTotal()).thenReturn(total);
     when(stripeInvoice.getTotalExcludingTax()).thenReturn(totalExcludingTax);
     when(stripeInvoice.getTax()).thenReturn(tax);
+    when(stripeInvoice.getStatusTransitions()).thenReturn(statusTransitions);
+    when(stripeInvoice.getLines()).thenReturn(lines);
+    return stripeInvoice;
+  }
+
+  private Invoice someStripeInvoiceBilledEvery(String stripeInterval) {
+    var recurring = mock(com.stripe.model.Price.Recurring.class);
+    when(recurring.getInterval()).thenReturn(stripeInterval);
+    var price = mock(com.stripe.model.Price.class);
+    when(price.getProduct()).thenReturn(STRIPE_PRODUCT_ID);
+    when(price.getRecurring()).thenReturn(recurring);
+    var linePeriod = mock(InvoiceLineItem.Period.class);
+    when(linePeriod.getStart()).thenReturn(PERIOD_START);
+    when(linePeriod.getEnd()).thenReturn(PERIOD_END);
+    var line = mock(InvoiceLineItem.class);
+    when(line.getPeriod()).thenReturn(linePeriod);
+    when(line.getPrice()).thenReturn(price);
+    var lines = mock(InvoiceLineItemCollection.class);
+    when(lines.getData()).thenReturn(List.of(line));
+    var statusTransitions = mock(Invoice.StatusTransitions.class);
+    when(statusTransitions.getPaidAt()).thenReturn(PAID_AT);
+    var stripeInvoice = mock(Invoice.class);
+    when(stripeInvoice.getId()).thenReturn(STRIPE_INVOICE_ID);
+    when(stripeInvoice.getCustomer()).thenReturn(STRIPE_CUSTOMER_ID);
+    when(stripeInvoice.getSubscription()).thenReturn(STRIPE_SUBSCRIPTION_ID);
+    when(stripeInvoice.getTotal()).thenReturn(4_900L);
     when(stripeInvoice.getStatusTransitions()).thenReturn(statusTransitions);
     when(stripeInvoice.getLines()).thenReturn(lines);
     return stripeInvoice;

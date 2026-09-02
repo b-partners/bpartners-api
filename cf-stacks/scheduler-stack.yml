@@ -55,27 +55,6 @@ Resources:
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.MonthlyCancelledClientsPayment'
           Source: 'app.bpartners.api.event1'
-  MonthlySubscriptionInvoiceTriggeredScheduler:
-    Type: AWS::Scheduler::Schedule
-    Properties:
-      Description: Scheduler that trigger the computing of monthly subscription invoices for users,
-        invoicing the month that has just elapsed
-      FlexibleTimeWindow:
-        Mode: "OFF"
-      Name: !Join ['', [!Ref Env, -TriggerMonthlySubscriptionInvoice]]
-      ScheduleExpression: !If
-        - IsProd
-        - "cron(0 8 1 * ? *)"
-        - "cron(0 8 20 * ? *)"
-      ScheduleExpressionTimezone: "Europe/Paris"
-      Target:
-        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
-        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
-        DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
-        EventBridgeParameters:
-          DetailType: 'app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered'
-          Source: 'app.bpartners.api.event2'
   MonthlySubscriptionCreditGrantTriggeredScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:

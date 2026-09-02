@@ -140,6 +140,10 @@
                     <td class="label">Abonnement</td>
                     <td class="value" th:text="${subscriptionPlan}">Essentiel</td>
                 </tr>
+                <tr th:if="${billingInterval}">
+                    <td class="label">Facturation</td>
+                    <td class="value" th:text="${billingInterval}">Mensuelle</td>
+                </tr>
                 <tr>
                     <td class="label">Période</td>
                     <td class="value" th:text="${billedPeriod} ?: ${paymentDate}">01/09/2026 au 30/09/2026</td>

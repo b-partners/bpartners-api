@@ -95,6 +95,7 @@ public class SubscriptionPaymentInvoiceCreatedService
     context.setVariable("invoiceReference", invoice.getRef());
     context.setVariable("paymentDate", paymentDateOf(invoice));
     context.setVariable("subscriptionPlan", subscriptionPlanOf(invoice, subscriptionPayment));
+    context.setVariable("billingInterval", billingIntervalLabelOf(subscriptionPayment));
     context.setVariable("billedPeriod", billedPeriodOf(subscriptionPayment));
     context.setVariable("amountWithoutVat", euroOf(invoice.getTotalPriceWithoutVat()));
     context.setVariable("amountWithVat", euroOf(invoice.getTotalPriceWithVat()));
@@ -117,6 +118,16 @@ public class SubscriptionPaymentInvoiceCreatedService
     return invoice.getProducts().isEmpty()
         ? SubscriptionPayment.DEFAULT_LABEL
         : invoice.getProducts().getFirst().getDescription();
+  }
+
+  private String billingIntervalLabelOf(SubscriptionPayment subscriptionPayment) {
+    if (subscriptionPayment == null || subscriptionPayment.getBillingInterval() == null) {
+      return null;
+    }
+    return switch (subscriptionPayment.getBillingInterval()) {
+      case YEARLY -> "Annuelle";
+      case MONTHLY -> "Mensuelle";
+    };
   }
 
   private String billedPeriodOf(SubscriptionPayment subscriptionPayment) {

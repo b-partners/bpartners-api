@@ -1,6 +1,8 @@
 package app.bpartners.api.service.event;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
+import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -115,9 +117,30 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
     assertTrue(body.contains("Buyer SARL"));
     assertTrue(body.contains("REF-04032026103000"));
     assertTrue(body.contains("Essentiel"));
+    assertTrue(body.contains("Facturation"));
+    assertTrue(body.contains("Mensuelle"));
     assertTrue(body.contains("04/03/2026 au 04/04/2026"));
     assertTrue(body.contains("40,83 €"));
     assertTrue(body.contains("49,00 €"));
+  }
+
+  @Test
+  void renders_the_yearly_billing_interval_when_the_subscription_is_annual() {
+    givenInvoiceAndPayment(
+        someInvoice(), somePayment().toBuilder().billingInterval(YEARLY).build());
+
+    subject.accept(someEvent());
+
+    assertTrue(capturedHtmlBody().contains("Annuelle"));
+  }
+
+  @Test
+  void hides_the_billing_interval_row_when_it_is_unknown() {
+    givenInvoiceAndPayment(someInvoice(), somePayment().toBuilder().billingInterval(null).build());
+
+    subject.accept(someEvent());
+
+    assertFalse(capturedHtmlBody().contains("Facturation"));
   }
 
   @Test
@@ -279,6 +302,7 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
         .id("subscription_payment_id")
         .label("Abonnement Essentiel du 04/03/2026 au 04/04/2026")
         .subscriptionProduct(SubscriptionProduct.builder().name("Essentiel").build())
+        .billingInterval(MONTHLY)
         .amountInCentsWithoutVat(4_083L)
         .amountInCentsWithVat(4_900L)
         .vatPercent(2_000L)

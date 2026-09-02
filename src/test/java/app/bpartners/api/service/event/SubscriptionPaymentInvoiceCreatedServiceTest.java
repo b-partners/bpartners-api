@@ -25,6 +25,7 @@ import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.aws.S3Service;
@@ -114,7 +115,7 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
     assertTrue(body.contains("Buyer SARL"));
     assertTrue(body.contains("REF-04032026103000"));
     assertTrue(body.contains("Essentiel"));
-    assertTrue(body.contains("du 04/03/2026 au 04/04/2026"));
+    assertTrue(body.contains("04/03/2026 au 04/04/2026"));
     assertTrue(body.contains("40,83 €"));
     assertTrue(body.contains("49,00 €"));
   }
@@ -276,7 +277,8 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
   private SubscriptionPayment somePayment() {
     return SubscriptionPayment.builder()
         .id("subscription_payment_id")
-        .label("Essentiel")
+        .label("Abonnement Essentiel du 04/03/2026 au 04/04/2026")
+        .subscriptionProduct(SubscriptionProduct.builder().name("Essentiel").build())
         .amountInCentsWithoutVat(4_083L)
         .amountInCentsWithVat(4_900L)
         .vatPercent(2_000L)

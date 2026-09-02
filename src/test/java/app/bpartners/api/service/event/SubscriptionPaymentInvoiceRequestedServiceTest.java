@@ -116,9 +116,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     var invoice = capturedInvoice();
     assertEquals(
         "Facture d'abonnement pour la période du 04/03/2026 au 04/04/2026", invoice.getTitle());
-    assertEquals(
-        "Essentiel pour la période du 04/03/2026 au 04/04/2026",
-        invoice.getProducts().getFirst().getDescription());
+    assertEquals("Essentiel", invoice.getProducts().getFirst().getDescription());
   }
 
   @Test

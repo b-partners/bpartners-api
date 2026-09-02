@@ -137,8 +137,12 @@
                     <td class="value" th:text="${invoiceReference}">REF</td>
                 </tr>
                 <tr>
-                    <td class="label" th:text="${subscriptionLabel}">Abonnement</td>
-                    <td class="value" th:text="${billedPeriod} ?: ${paymentDate}">Période</td>
+                    <td class="label">Abonnement</td>
+                    <td class="value" th:text="${subscriptionPlan}">Essentiel</td>
+                </tr>
+                <tr>
+                    <td class="label">Période</td>
+                    <td class="value" th:text="${billedPeriod} ?: ${paymentDate}">01/09/2026 au 30/09/2026</td>
                 </tr>
                 <tr>
                     <td class="label">Montant HT</td>

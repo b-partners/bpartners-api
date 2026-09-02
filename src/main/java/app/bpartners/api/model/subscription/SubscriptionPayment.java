@@ -88,6 +88,10 @@ public class SubscriptionPayment {
     if (label != null && !label.isBlank()) {
       return label;
     }
+    return planName();
+  }
+
+  public String planName() {
     return subscriptionProduct == null || subscriptionProduct.getName() == null
         ? DEFAULT_LABEL
         : subscriptionProduct.getName();

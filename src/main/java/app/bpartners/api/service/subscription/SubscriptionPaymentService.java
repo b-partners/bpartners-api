@@ -3,6 +3,7 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.model.subscription.SubscriptionProduct.DEFAULT_VAT_PERCENT;
 import static app.bpartners.api.model.subscription.SubscriptionProduct.priceInCentsWithoutVatFrom;
 import static java.time.Instant.now;
+import static java.time.Instant.ofEpochSecond;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -13,6 +14,7 @@ import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
 import java.time.Instant;
@@ -31,6 +33,7 @@ public class SubscriptionPaymentService {
   private final UserRepository userRepository;
   private final UserSubscriptionProductService userSubscriptionProductService;
   private final EventProducer eventProducer;
+  private final CustomDateFormatter customDateFormatter;
 
   public Optional<SubscriptionPayment> recordPaidStripeInvoice(Invoice stripeInvoice) {
     if (stripeInvoice.getSubscription() == null) {
@@ -120,7 +123,7 @@ public class SubscriptionPaymentService {
         .stripeSubscriptionId(stripeInvoice.getSubscription())
         .subscriptionProduct(subscriptionProduct)
         .billingInterval(billingIntervalOf(activeSubscription))
-        .label(labelOf(stripeInvoice, subscriptionProduct))
+        .label(labelOf(billedPeriod, subscriptionProduct))
         .amountInCentsWithoutVat(
             amountInCentsWithoutVatOf(stripeInvoice, amountInCentsWithVat, vatPercent))
         .amountInCentsWithVat(amountInCentsWithVat)
@@ -192,23 +195,23 @@ public class SubscriptionPaymentService {
     return stripeInvoice.getTax() != null && stripeInvoice.getTax() > 0L;
   }
 
-  private String labelOf(Invoice stripeInvoice, SubscriptionProduct subscriptionProduct) {
-    if (subscriptionProduct != null && subscriptionProduct.getName() != null) {
-      return subscriptionProduct.getName();
-    }
-    return firstLineDescriptionOf(stripeInvoice);
+  private String labelOf(BilledPeriod period, SubscriptionProduct subscriptionProduct) {
+    var base =
+        subscriptionProduct == null || subscriptionProduct.getName() == null
+            ? "Abonnement"
+            : "Abonnement " + subscriptionProduct.getName();
+    var periodLabel = periodLabelOf(period);
+    return periodLabel == null ? base : base + " " + periodLabel;
   }
 
-  private String firstLineDescriptionOf(Invoice stripeInvoice) {
-    var lines = stripeInvoice.getLines() == null ? null : stripeInvoice.getLines().getData();
-    if (lines == null || lines.isEmpty()) {
+  private String periodLabelOf(BilledPeriod period) {
+    if (period.start() == null || period.end() == null) {
       return null;
     }
-    return lines.stream()
-        .map(InvoiceLineItem::getDescription)
-        .filter(description -> description != null && !description.isBlank())
-        .findFirst()
-        .orElse(null);
+    return "du "
+        + customDateFormatter.formatFrenchDate(ofEpochSecond(period.start()))
+        + " au "
+        + customDateFormatter.formatFrenchDate(ofEpochSecond(period.end()));
   }
 
   private Instant paidAtOf(Invoice stripeInvoice) {

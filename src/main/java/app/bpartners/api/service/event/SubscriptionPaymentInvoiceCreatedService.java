@@ -94,7 +94,7 @@ public class SubscriptionPaymentInvoiceCreatedService
     context.setVariable("customerName", invoice.getCustomer().getName());
     context.setVariable("invoiceReference", invoice.getRef());
     context.setVariable("paymentDate", paymentDateOf(invoice));
-    context.setVariable("subscriptionLabel", subscriptionLabelOf(invoice, subscriptionPayment));
+    context.setVariable("subscriptionPlan", subscriptionPlanOf(invoice, subscriptionPayment));
     context.setVariable("billedPeriod", billedPeriodOf(subscriptionPayment));
     context.setVariable("amountWithoutVat", euroOf(invoice.getTotalPriceWithoutVat()));
     context.setVariable("amountWithVat", euroOf(invoice.getTotalPriceWithVat()));
@@ -110,9 +110,9 @@ public class SubscriptionPaymentInvoiceCreatedService
         : customDateFormatter.formatFrenchDate(invoice.getCreatedAt());
   }
 
-  private String subscriptionLabelOf(Invoice invoice, SubscriptionPayment subscriptionPayment) {
+  private String subscriptionPlanOf(Invoice invoice, SubscriptionPayment subscriptionPayment) {
     if (subscriptionPayment != null) {
-      return subscriptionPayment.paymentLabel();
+      return subscriptionPayment.planName();
     }
     return invoice.getProducts().isEmpty()
         ? SubscriptionPayment.DEFAULT_LABEL
@@ -125,8 +125,7 @@ public class SubscriptionPaymentInvoiceCreatedService
         || subscriptionPayment.getPeriodEndDatetime() == null) {
       return null;
     }
-    return "du "
-        + customDateFormatter.formatFrenchDate(subscriptionPayment.getPeriodStartDatetime())
+    return customDateFormatter.formatFrenchDate(subscriptionPayment.getPeriodStartDatetime())
         + " au "
         + customDateFormatter.formatFrenchDate(subscriptionPayment.getPeriodEndDatetime());
   }

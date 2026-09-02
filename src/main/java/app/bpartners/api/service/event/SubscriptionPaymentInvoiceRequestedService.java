@@ -1,6 +1,7 @@
 package app.bpartners.api.service.event;
 
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.ProductStatus.ENABLED;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceNoVatWithDiscount;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceWithoutDiscount;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalPriceWithVatAndDiscount;
@@ -14,7 +15,6 @@ import app.bpartners.api.endpoint.event.model.SubscriptionPaymentInvoiceRequeste
 import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
-import app.bpartners.api.endpoint.rest.model.ProductStatus;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
@@ -164,21 +164,14 @@ public class SubscriptionPaymentInvoiceRequestedService
             .id(randomUUID().toString())
             .idInvoice(invoiceIdentifier)
             .createdAt(now())
-            .description(productDescriptionOf(subscriptionPayment))
+            .description(subscriptionPayment.paymentLabel())
             .quantity(1)
             .unitPrice(
                 new Fraction(
                     BigInteger.valueOf(subscriptionPayment.amountInCentsWithoutVatOrZero())))
             .vatPercent(new Fraction(BigInteger.valueOf(subscriptionPayment.vatPercentOrZero())))
-            .status(ProductStatus.ENABLED)
+            .status(ENABLED)
             .build());
     return invoiceProducts;
-  }
-
-  private String productDescriptionOf(SubscriptionPayment subscriptionPayment) {
-    var billedPeriod = billedPeriodOf(subscriptionPayment);
-    return billedPeriod == null
-        ? subscriptionPayment.paymentLabel()
-        : subscriptionPayment.paymentLabel() + " " + billedPeriod;
   }
 }

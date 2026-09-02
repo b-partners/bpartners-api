@@ -21,6 +21,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.subscription.SubscriptionPaymentService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
+import app.bpartners.api.service.utils.CustomDateFormatter;
 import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
 import com.stripe.model.InvoiceLineItemCollection;
@@ -50,7 +51,8 @@ class SubscriptionPaymentServiceTest {
           subscriptionPaymentRepository,
           userRepository,
           userSubscriptionProductService,
-          eventProducer);
+          eventProducer,
+          new CustomDateFormatter());
 
   SubscriptionPaymentServiceTest() {
     when(subscriptionPaymentRepository.save(any()))
@@ -69,7 +71,9 @@ class SubscriptionPaymentServiceTest {
     assertEquals(STRIPE_INVOICE_ID, subscriptionPayment.getStripeInvoiceId());
     assertEquals(STRIPE_SUBSCRIPTION_ID, subscriptionPayment.getStripeSubscriptionId());
     assertEquals(MONTHLY, subscriptionPayment.getBillingInterval());
-    assertEquals("Essentiel", subscriptionPayment.paymentLabel());
+    assertEquals(
+        "Abonnement Essentiel du 28/05/2026 au 27/06/2026", subscriptionPayment.paymentLabel());
+    assertEquals("Essentiel", subscriptionPayment.planName());
     assertEquals(Instant.ofEpochSecond(PERIOD_START), subscriptionPayment.getPeriodStartDatetime());
     assertEquals(Instant.ofEpochSecond(PERIOD_END), subscriptionPayment.getPeriodEndDatetime());
     assertEquals(Instant.ofEpochSecond(PAID_AT), subscriptionPayment.getPaymentDatetime());
@@ -139,7 +143,7 @@ class SubscriptionPaymentServiceTest {
   }
 
   @Test
-  void labels_the_payment_from_the_stripe_line_when_no_plan_is_active() {
+  void labels_the_payment_generically_with_the_period_when_no_plan_is_active() {
     when(userRepository.findByStripeCustomerId(STRIPE_CUSTOMER_ID))
         .thenReturn(Optional.of(User.builder().id(USER_ID).build()));
     when(userSubscriptionProductService.findActiveUserSubscriptionProduct(USER_ID))
@@ -149,7 +153,8 @@ class SubscriptionPaymentServiceTest {
     subject.recordPaidStripeInvoice(someStripeInvoice(4_900L, null, null));
 
     var subscriptionPayment = capturedSubscriptionPayment();
-    assertEquals("Abonnement Essentiel", subscriptionPayment.paymentLabel());
+    assertEquals("Abonnement du 28/05/2026 au 27/06/2026", subscriptionPayment.paymentLabel());
+    assertEquals("Abonnement", subscriptionPayment.planName());
     assertNull(subscriptionPayment.getBillingInterval());
     assertEquals(2_000L, subscriptionPayment.getVatPercent());
   }

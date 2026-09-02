@@ -512,7 +512,7 @@ operations:
                 globalImage3D:
                   type: string
                   format: binary
-                  description: "Image file (PNG or JPEG) for the 3D global view. Alternative to data.globalImage3DUrl; takes precedence if both are provided"
+                  description: "Image file (PNG or JPEG) for the 3D global view"
                 data:
                   type: string
                   format: binary
@@ -912,9 +912,6 @@ components:
           type: string
         imageUrl:
           type: string
-        globalImage3DUrl:
-          type: string
-          description: "URL of the image for the 3D global view, used when globalImage3D is not provided as multipart"
         globalRateValue:
           type: number
           format: double

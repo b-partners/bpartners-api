@@ -680,7 +680,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
         new AreaPictureDetails()
             .id(payloadId)
             .address("Angoulême")
-            .fileId("43bc1920-1d55-4106-8229-c12fe1a24b8c")
+            .fileId(null)
             .prospectId(PROSPECT_1_ID)
             .zoomLevel(HOUSES_0)
             .zoom(zoom)

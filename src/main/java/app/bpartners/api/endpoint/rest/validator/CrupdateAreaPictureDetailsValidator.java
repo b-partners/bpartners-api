@@ -15,7 +15,9 @@ public class CrupdateAreaPictureDetailsValidator implements Consumer<CrupdateAre
     if (crupdateAreaPictureDetails.getAddress() == null) {
       exceptionMessageBuilder.append("address is mandatory. ");
     }
-    if (crupdateAreaPictureDetails.getFileId() == null) {
+    Boolean downloadImage = crupdateAreaPictureDetails.getDownloadImage();
+    boolean shouldDownloadImage = downloadImage == null || downloadImage;
+    if (shouldDownloadImage && crupdateAreaPictureDetails.getFileId() == null) {
       exceptionMessageBuilder.append("fileId is mandatory. ");
     }
     if (crupdateAreaPictureDetails.getZoomLevel() == null) {

@@ -15,7 +15,9 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserStripeCustomerEmailCorrespondence;
+import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.payment.UserSubscriptionConf;
+import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.repository.jpa.UserStripeCustomerEmailCorrespondenceJpaRepository;
 import app.bpartners.api.repository.model.InvoiceCriteria;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -23,6 +25,7 @@ import app.bpartners.api.service.subscription.SubscriptionInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionInvoiceTitleComputer;
 import app.bpartners.api.service.user.UserService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -42,6 +45,7 @@ class SubscriptionInvoiceServiceTest {
   UserService userServiceMock = mock();
   UserSubscriptionConf userSubscriptionConfMock = mock();
   UserStripeCustomerEmailCorrespondenceJpaRepository correspondenceRepositoryMock = mock();
+  SubscriptionPaymentRepository subscriptionPaymentRepositoryMock = mock();
   SubscriptionInvoiceTitleComputer titleComputer =
       new SubscriptionInvoiceTitleComputer(new CustomDateFormatter());
 
@@ -51,12 +55,34 @@ class SubscriptionInvoiceServiceTest {
           userServiceMock,
           userSubscriptionConfMock,
           titleComputer,
-          correspondenceRepositoryMock);
+          correspondenceRepositoryMock,
+          subscriptionPaymentRepositoryMock);
 
   @BeforeEach
   void setUp() {
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(USER_TO_CREDIT_ID);
     when(userServiceMock.getUserById(USER_ID)).thenReturn(user(USER_EMAIL));
+    when(subscriptionPaymentRepositoryMock
+            .findByUserIdAndInvoiceIdIsNotNullAndPaymentDatetimeBetweenOrderByPaymentDatetimeDesc(
+                any(), any(), any()))
+        .thenReturn(List.of());
+  }
+
+  @Test
+  void prepaid_subscription_invoices_come_first_ok() {
+    var expected = invoice();
+    when(subscriptionPaymentRepositoryMock
+            .findByUserIdAndInvoiceIdIsNotNullAndPaymentDatetimeBetweenOrderByPaymentDatetimeDesc(
+                USER_ID,
+                Instant.parse("2024-02-29T23:00:00Z"),
+                Instant.parse("2024-03-31T21:59:59.999999999Z")))
+        .thenReturn(List.of(prepaidPayment()));
+    when(invoiceServiceMock.getById("invoice_id")).thenReturn(expected);
+
+    var actual = subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH);
+
+    assertEquals(List.of(expected), actual);
+    verify(invoiceServiceMock, never()).findAllByCriteria(any());
   }
 
   @Test
@@ -159,6 +185,10 @@ class SubscriptionInvoiceServiceTest {
 
   private static UserStripeCustomerEmailCorrespondence correspondence(String email) {
     return UserStripeCustomerEmailCorrespondence.builder().userId(USER_ID).email(email).build();
+  }
+
+  private static SubscriptionPayment prepaidPayment() {
+    return SubscriptionPayment.builder().id("payment_id").invoiceId("invoice_id").build();
   }
 
   private static Invoice invoice() {

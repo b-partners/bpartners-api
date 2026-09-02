@@ -47,6 +47,7 @@ public class StripeWebhookService {
   private final SubscriptionService subscriptionService;
   private final CreditPurchaseService creditPurchaseService;
   private final StripePaymentMethodService stripePaymentMethodService;
+  private final SubscriptionPaymentService subscriptionPaymentService;
 
   public void handleEvent(String payload, String signatureHeader) {
     var event = verifySignature(payload, signatureHeader);
@@ -92,6 +93,7 @@ public class StripeWebhookService {
       return;
     }
     subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoice.getSubscription());
+    subscriptionPaymentService.recordPaidStripeInvoice(invoice);
   }
 
   private void handlePaymentIntentSucceeded(Event event) {

@@ -19,6 +19,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.credit.CreditPurchaseService;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripeWebhookService;
+import app.bpartners.api.service.subscription.SubscriptionPaymentService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
@@ -49,6 +50,7 @@ class StripeWebhookServiceTest {
   SubscriptionService subscriptionService = mock();
   CreditPurchaseService creditPurchaseService = mock();
   StripePaymentMethodService stripePaymentMethodService = mock();
+  SubscriptionPaymentService subscriptionPaymentService = mock();
   StripeWebhookService subject =
       new StripeWebhookService(
           stripeConf,
@@ -56,7 +58,8 @@ class StripeWebhookServiceTest {
           eventProducer,
           subscriptionService,
           creditPurchaseService,
-          stripePaymentMethodService);
+          stripePaymentMethodService,
+          subscriptionPaymentService);
 
   @BeforeEach
   void setUp() {
@@ -275,6 +278,7 @@ class StripeWebhookServiceTest {
     }
 
     verify(subscriptionService).cancelScheduledSubscriptionAfterInvoicePaid("sub_123");
+    verify(subscriptionPaymentService).recordPaidStripeInvoice(invoice);
     verify(eventProducer, never()).accept(anyList());
     verify(userRepository, never()).findByStripeCustomerId(any());
   }
@@ -295,6 +299,7 @@ class StripeWebhookServiceTest {
     }
 
     verify(subscriptionService, never()).cancelScheduledSubscriptionAfterInvoicePaid(any());
+    verify(subscriptionPaymentService, never()).recordPaidStripeInvoice(any());
   }
 
   @Test

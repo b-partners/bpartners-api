@@ -84,9 +84,13 @@ public class UserSubscriptionProductService {
   }
 
   public Optional<SubscriptionProduct> findActiveSubscriptionProduct(String userId) {
-    return userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now()).stream()
-        .findFirst()
+    return findActiveUserSubscriptionProduct(userId)
         .map(UserSubscriptionProduct::getSubscriptionProduct);
+  }
+
+  public Optional<UserSubscriptionProduct> findActiveUserSubscriptionProduct(String userId) {
+    return userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now()).stream()
+        .findFirst();
   }
 
   public List<String> findUserIdsWithActiveSubscriptionProduct() {

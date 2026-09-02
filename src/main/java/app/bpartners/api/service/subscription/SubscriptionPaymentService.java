@@ -280,8 +280,4 @@ public class SubscriptionPaymentService {
   private Instant epochSecondOrNull(Long epochSecond) {
     return epochSecond == null ? null : Instant.ofEpochSecond(epochSecond);
   }
-
-  private record BilledPeriod(Long start, Long end) {}
-
-  private record ResolvedPlan(SubscriptionProduct product, BillingInterval billingInterval) {}
 }

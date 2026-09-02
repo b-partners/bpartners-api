@@ -14,12 +14,14 @@ import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ public class SubscriptionPaymentService {
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
   private final UserRepository userRepository;
   private final UserSubscriptionProductService userSubscriptionProductService;
+  private final SubscriptionProductRepository subscriptionProductRepository;
   private final EventProducer eventProducer;
   private final CustomDateFormatter customDateFormatter;
 
@@ -113,7 +116,7 @@ public class SubscriptionPaymentService {
       String userId,
       UserSubscriptionProduct activeSubscription,
       long amountInCentsWithVat) {
-    var subscriptionProduct = subscriptionProductOf(activeSubscription);
+    var subscriptionProduct = resolveSubscriptionProduct(stripeInvoice, activeSubscription);
     var vatPercent = vatPercentOf(stripeInvoice, subscriptionProduct);
     var billedPeriod = billedPeriodOf(stripeInvoice);
     return SubscriptionPayment.builder()
@@ -153,6 +156,31 @@ public class SubscriptionPaymentService {
         .max(Comparator.comparingLong(line -> line.getPeriod().getEnd()))
         .map(InvoiceLineItem::getPeriod)
         .orElse(null);
+  }
+
+  private SubscriptionProduct resolveSubscriptionProduct(
+      Invoice stripeInvoice, UserSubscriptionProduct activeSubscription) {
+    return stripeProductIdsOf(stripeInvoice).stream()
+        .map(subscriptionProductRepository::findByE2Id)
+        .flatMap(Optional::stream)
+        .filter(product -> product.getBillingType() != null)
+        .findFirst()
+        .orElseGet(() -> subscriptionProductOf(activeSubscription));
+  }
+
+  private List<String> stripeProductIdsOf(Invoice stripeInvoice) {
+    var lines = stripeInvoice.getLines() == null ? null : stripeInvoice.getLines().getData();
+    if (lines == null) {
+      return List.of();
+    }
+    return lines.stream().map(this::stripeProductIdOf).filter(Objects::nonNull).toList();
+  }
+
+  private String stripeProductIdOf(InvoiceLineItem line) {
+    if (line.getPlan() != null && line.getPlan().getProduct() != null) {
+      return line.getPlan().getProduct();
+    }
+    return line.getPrice() == null ? null : line.getPrice().getProduct();
   }
 
   private SubscriptionProduct subscriptionProductOf(UserSubscriptionProduct activeSubscription) {

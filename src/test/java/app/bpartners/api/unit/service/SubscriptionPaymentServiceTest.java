@@ -1,6 +1,7 @@
 package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,6 +20,7 @@ import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.service.subscription.SubscriptionPaymentService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -26,6 +28,7 @@ import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
 import com.stripe.model.InvoiceLineItemCollection;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -35,6 +38,8 @@ class SubscriptionPaymentServiceTest {
   private static final String STRIPE_INVOICE_ID = "in_123";
   private static final String STRIPE_CUSTOMER_ID = "cus_123";
   private static final String STRIPE_SUBSCRIPTION_ID = "sub_123";
+  private static final String STRIPE_PRODUCT_ID = "prod_123";
+  private static final String STRIPE_METERED_PRODUCT_ID = "prod_metered";
   private static final String USER_ID = "user_id";
   private static final long PERIOD_START = 1_780_000_000L;
   private static final long PERIOD_END = 1_782_592_000L;
@@ -45,18 +50,21 @@ class SubscriptionPaymentServiceTest {
   SubscriptionPaymentRepository subscriptionPaymentRepository = mock();
   UserRepository userRepository = mock();
   UserSubscriptionProductService userSubscriptionProductService = mock();
+  SubscriptionProductRepository subscriptionProductRepository = mock();
   EventProducer eventProducer = mock();
   SubscriptionPaymentService subject =
       new SubscriptionPaymentService(
           subscriptionPaymentRepository,
           userRepository,
           userSubscriptionProductService,
+          subscriptionProductRepository,
           eventProducer,
           new CustomDateFormatter());
 
   SubscriptionPaymentServiceTest() {
     when(subscriptionPaymentRepository.save(any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
+    when(subscriptionProductRepository.findByE2Id(any())).thenReturn(Optional.empty());
   }
 
   @Test
@@ -79,6 +87,59 @@ class SubscriptionPaymentServiceTest {
     assertEquals(Instant.ofEpochSecond(PAID_AT), subscriptionPayment.getPaymentDatetime());
     assertNull(subscriptionPayment.getInvoiceId());
     assertEquals(subscriptionPayment.getId(), capturedRequest().getSubscriptionPaymentId());
+  }
+
+  @Test
+  void resolves_the_plan_from_the_stripe_invoice_line_over_the_active_subscription() {
+    givenSubscribedUser(otherPlan());
+    when(subscriptionProductRepository.findByE2Id(STRIPE_PRODUCT_ID))
+        .thenReturn(Optional.of(essentialPlan()));
+    givenNotYetRecorded();
+
+    subject.recordPaidStripeInvoice(someStripeInvoice(4_900L, null, null));
+
+    var subscriptionPayment = capturedSubscriptionPayment();
+    assertEquals("Essentiel", subscriptionPayment.planName());
+    assertEquals(
+        "Abonnement Essentiel du 28/05/2026 au 27/06/2026", subscriptionPayment.paymentLabel());
+  }
+
+  @Test
+  void resolves_the_plan_from_stripe_even_without_an_active_subscription() {
+    when(userRepository.findByStripeCustomerId(STRIPE_CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(USER_ID).build()));
+    when(userSubscriptionProductService.findActiveUserSubscriptionProduct(USER_ID))
+        .thenReturn(Optional.empty());
+    when(subscriptionProductRepository.findByE2Id(STRIPE_PRODUCT_ID))
+        .thenReturn(Optional.of(essentialPlan()));
+    givenNotYetRecorded();
+
+    subject.recordPaidStripeInvoice(someStripeInvoice(4_900L, null, null));
+
+    var subscriptionPayment = capturedSubscriptionPayment();
+    assertEquals("Essentiel", subscriptionPayment.planName());
+    assertEquals(
+        "Abonnement Essentiel du 28/05/2026 au 27/06/2026", subscriptionPayment.paymentLabel());
+    assertNull(subscriptionPayment.getBillingInterval());
+    assertEquals(2_000L, subscriptionPayment.getVatPercent());
+  }
+
+  @Test
+  void skips_a_metered_line_and_bills_the_subscription_plan_line() {
+    when(userRepository.findByStripeCustomerId(STRIPE_CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(USER_ID).build()));
+    when(userSubscriptionProductService.findActiveUserSubscriptionProduct(USER_ID))
+        .thenReturn(Optional.empty());
+    when(subscriptionProductRepository.findByE2Id(STRIPE_METERED_PRODUCT_ID))
+        .thenReturn(Optional.of(meteredProduct()));
+    when(subscriptionProductRepository.findByE2Id(STRIPE_PRODUCT_ID))
+        .thenReturn(Optional.of(essentialPlan()));
+    givenNotYetRecorded();
+
+    subject.recordPaidStripeInvoice(
+        someStripeInvoiceWithLines(STRIPE_METERED_PRODUCT_ID, STRIPE_PRODUCT_ID));
+
+    assertEquals("Essentiel", capturedSubscriptionPayment().planName());
   }
 
   @Test
@@ -239,16 +300,63 @@ class SubscriptionPaymentServiceTest {
         .name("Essentiel")
         .vatPercent(2_000L)
         .priceInCentsWithoutVat(4_083L)
+        .billingType(COMMITMENT)
         .build();
+  }
+
+  private SubscriptionProduct otherPlan() {
+    return SubscriptionProduct.builder()
+        .id("other_plan_id")
+        .name("Autre")
+        .vatPercent(2_000L)
+        .billingType(COMMITMENT)
+        .build();
+  }
+
+  private SubscriptionProduct meteredProduct() {
+    return SubscriptionProduct.builder().id("metered_id").name("Analyse de toîtures").build();
+  }
+
+  private Invoice someStripeInvoiceWithLines(String... productIds) {
+    var linePeriod = mock(InvoiceLineItem.Period.class);
+    when(linePeriod.getStart()).thenReturn(PERIOD_START);
+    when(linePeriod.getEnd()).thenReturn(PERIOD_END);
+    var lines =
+        Arrays.stream(productIds)
+            .map(
+                productId -> {
+                  var plan = mock(com.stripe.model.Plan.class);
+                  when(plan.getProduct()).thenReturn(productId);
+                  var line = mock(InvoiceLineItem.class);
+                  when(line.getPlan()).thenReturn(plan);
+                  when(line.getPeriod()).thenReturn(linePeriod);
+                  return line;
+                })
+            .toList();
+    var lineCollection = mock(InvoiceLineItemCollection.class);
+    when(lineCollection.getData()).thenReturn(lines);
+    var statusTransitions = mock(Invoice.StatusTransitions.class);
+    when(statusTransitions.getPaidAt()).thenReturn(PAID_AT);
+    var stripeInvoice = mock(Invoice.class);
+    when(stripeInvoice.getId()).thenReturn(STRIPE_INVOICE_ID);
+    when(stripeInvoice.getCustomer()).thenReturn(STRIPE_CUSTOMER_ID);
+    when(stripeInvoice.getSubscription()).thenReturn(STRIPE_SUBSCRIPTION_ID);
+    when(stripeInvoice.getTotal()).thenReturn(4_900L);
+    when(stripeInvoice.getStatusTransitions()).thenReturn(statusTransitions);
+    when(stripeInvoice.getLines()).thenReturn(lineCollection);
+    return stripeInvoice;
   }
 
   private Invoice someStripeInvoice(long total, Long totalExcludingTax, Long tax) {
     var linePeriod = mock(InvoiceLineItem.Period.class);
     when(linePeriod.getStart()).thenReturn(PERIOD_START);
     when(linePeriod.getEnd()).thenReturn(PERIOD_END);
+    var plan = mock(com.stripe.model.Plan.class);
+    when(plan.getProduct()).thenReturn(STRIPE_PRODUCT_ID);
     var line = mock(InvoiceLineItem.class);
     when(line.getDescription()).thenReturn("Abonnement Essentiel");
     when(line.getPeriod()).thenReturn(linePeriod);
+    when(line.getPlan()).thenReturn(plan);
     var lines = mock(InvoiceLineItemCollection.class);
     when(lines.getData()).thenReturn(List.of(line));
     var statusTransitions = mock(Invoice.StatusTransitions.class);

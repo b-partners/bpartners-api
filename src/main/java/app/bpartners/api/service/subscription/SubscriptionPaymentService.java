@@ -16,6 +16,7 @@ import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -111,6 +112,7 @@ public class SubscriptionPaymentService {
       long amountInCentsWithVat) {
     var subscriptionProduct = subscriptionProductOf(activeSubscription);
     var vatPercent = vatPercentOf(stripeInvoice, subscriptionProduct);
+    var billedPeriod = billedPeriodOf(stripeInvoice);
     return SubscriptionPayment.builder()
         .id(randomUUID().toString())
         .userId(userId)
@@ -123,11 +125,31 @@ public class SubscriptionPaymentService {
             amountInCentsWithoutVatOf(stripeInvoice, amountInCentsWithVat, vatPercent))
         .amountInCentsWithVat(amountInCentsWithVat)
         .vatPercent(vatPercent)
-        .periodStartDatetime(epochSecondOrNull(stripeInvoice.getPeriodStart()))
-        .periodEndDatetime(epochSecondOrNull(stripeInvoice.getPeriodEnd()))
+        .periodStartDatetime(epochSecondOrNull(billedPeriod.start()))
+        .periodEndDatetime(epochSecondOrNull(billedPeriod.end()))
         .paymentDatetime(paidAtOf(stripeInvoice))
         .creationDatetime(now())
         .build();
+  }
+
+  private BilledPeriod billedPeriodOf(Invoice stripeInvoice) {
+    var subscriptionLinePeriod = subscriptionLinePeriodOf(stripeInvoice);
+    if (subscriptionLinePeriod != null) {
+      return new BilledPeriod(subscriptionLinePeriod.getStart(), subscriptionLinePeriod.getEnd());
+    }
+    return new BilledPeriod(stripeInvoice.getPeriodStart(), stripeInvoice.getPeriodEnd());
+  }
+
+  private InvoiceLineItem.Period subscriptionLinePeriodOf(Invoice stripeInvoice) {
+    var lines = stripeInvoice.getLines() == null ? null : stripeInvoice.getLines().getData();
+    if (lines == null || lines.isEmpty()) {
+      return null;
+    }
+    return lines.stream()
+        .filter(line -> line.getPeriod() != null && line.getPeriod().getEnd() != null)
+        .max(Comparator.comparingLong(line -> line.getPeriod().getEnd()))
+        .map(InvoiceLineItem::getPeriod)
+        .orElse(null);
   }
 
   private SubscriptionProduct subscriptionProductOf(UserSubscriptionProduct activeSubscription) {
@@ -198,4 +220,6 @@ public class SubscriptionPaymentService {
   private Instant epochSecondOrNull(Long epochSecond) {
     return epochSecond == null ? null : Instant.ofEpochSecond(epochSecond);
   }
+
+  private record BilledPeriod(Long start, Long end) {}
 }

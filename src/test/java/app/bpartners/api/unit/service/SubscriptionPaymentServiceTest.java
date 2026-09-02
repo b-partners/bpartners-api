@@ -37,6 +37,8 @@ class SubscriptionPaymentServiceTest {
   private static final String USER_ID = "user_id";
   private static final long PERIOD_START = 1_780_000_000L;
   private static final long PERIOD_END = 1_782_592_000L;
+  private static final long INVOICE_LEVEL_PERIOD_START = 1_780_050_000L;
+  private static final long INVOICE_LEVEL_PERIOD_END = 1_782_650_000L;
   private static final long PAID_AT = 1_780_000_100L;
 
   SubscriptionPaymentRepository subscriptionPaymentRepository = mock();
@@ -73,6 +75,41 @@ class SubscriptionPaymentServiceTest {
     assertEquals(Instant.ofEpochSecond(PAID_AT), subscriptionPayment.getPaymentDatetime());
     assertNull(subscriptionPayment.getInvoiceId());
     assertEquals(subscriptionPayment.getId(), capturedRequest().getSubscriptionPaymentId());
+  }
+
+  @Test
+  void bills_the_subscription_line_period_over_the_rolling_invoice_period() {
+    givenSubscribedUser(essentialPlan());
+    givenNotYetRecorded();
+    var stripeInvoice = someStripeInvoice(4_900L, null, null);
+    when(stripeInvoice.getPeriodStart()).thenReturn(INVOICE_LEVEL_PERIOD_START);
+    when(stripeInvoice.getPeriodEnd()).thenReturn(INVOICE_LEVEL_PERIOD_END);
+
+    subject.recordPaidStripeInvoice(stripeInvoice);
+
+    var subscriptionPayment = capturedSubscriptionPayment();
+    assertEquals(Instant.ofEpochSecond(PERIOD_START), subscriptionPayment.getPeriodStartDatetime());
+    assertEquals(Instant.ofEpochSecond(PERIOD_END), subscriptionPayment.getPeriodEndDatetime());
+  }
+
+  @Test
+  void falls_back_on_the_invoice_period_when_no_line_carries_a_period() {
+    givenSubscribedUser(essentialPlan());
+    givenNotYetRecorded();
+    var stripeInvoice = someStripeInvoice(4_900L, null, null);
+    when(stripeInvoice.getLines().getData().getFirst().getPeriod()).thenReturn(null);
+    when(stripeInvoice.getPeriodStart()).thenReturn(INVOICE_LEVEL_PERIOD_START);
+    when(stripeInvoice.getPeriodEnd()).thenReturn(INVOICE_LEVEL_PERIOD_END);
+
+    subject.recordPaidStripeInvoice(stripeInvoice);
+
+    var subscriptionPayment = capturedSubscriptionPayment();
+    assertEquals(
+        Instant.ofEpochSecond(INVOICE_LEVEL_PERIOD_START),
+        subscriptionPayment.getPeriodStartDatetime());
+    assertEquals(
+        Instant.ofEpochSecond(INVOICE_LEVEL_PERIOD_END),
+        subscriptionPayment.getPeriodEndDatetime());
   }
 
   @Test
@@ -201,8 +238,12 @@ class SubscriptionPaymentServiceTest {
   }
 
   private Invoice someStripeInvoice(long total, Long totalExcludingTax, Long tax) {
+    var linePeriod = mock(InvoiceLineItem.Period.class);
+    when(linePeriod.getStart()).thenReturn(PERIOD_START);
+    when(linePeriod.getEnd()).thenReturn(PERIOD_END);
     var line = mock(InvoiceLineItem.class);
     when(line.getDescription()).thenReturn("Abonnement Essentiel");
+    when(line.getPeriod()).thenReturn(linePeriod);
     var lines = mock(InvoiceLineItemCollection.class);
     when(lines.getData()).thenReturn(List.of(line));
     var statusTransitions = mock(Invoice.StatusTransitions.class);
@@ -214,8 +255,6 @@ class SubscriptionPaymentServiceTest {
     when(stripeInvoice.getTotal()).thenReturn(total);
     when(stripeInvoice.getTotalExcludingTax()).thenReturn(totalExcludingTax);
     when(stripeInvoice.getTax()).thenReturn(tax);
-    when(stripeInvoice.getPeriodStart()).thenReturn(PERIOD_START);
-    when(stripeInvoice.getPeriodEnd()).thenReturn(PERIOD_END);
     when(stripeInvoice.getStatusTransitions()).thenReturn(statusTransitions);
     when(stripeInvoice.getLines()).thenReturn(lines);
     return stripeInvoice;

@@ -12,24 +12,14 @@ public class AreaPictureValidator implements Consumer<AreaPicture> {
   public void accept(AreaPicture areaPicture) {
     StringBuilder exceptionMessageBuilder = new StringBuilder();
 
-    String filename = areaPicture.getFilename();
     if (areaPicture.getAddress() == null) {
       exceptionMessageBuilder.append("address is mandatory. ");
-    }
-    if (areaPicture.getCurrentLayer() == null) {
-      exceptionMessageBuilder.append("layer is mandatory. ");
     }
     if (areaPicture.getIdFileInfo() == null) {
       exceptionMessageBuilder.append("fileId is mandatory. ");
     }
     if (areaPicture.getZoomLevel() == null) {
       exceptionMessageBuilder.append("zoomLevel is mandatory. ");
-    }
-    if (filename == null) {
-      exceptionMessageBuilder.append("filename is mandatory. ");
-    }
-    if (areaPicture.getCurrentGeoPosition() == null) {
-      exceptionMessageBuilder.append("currentGeoPosition is mandatory. ");
     }
 
     String exceptionMessage = exceptionMessageBuilder.toString();

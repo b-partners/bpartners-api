@@ -15,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.AreaPictureApi;
@@ -653,6 +655,54 @@ public class AreaPictureIT extends S3MockedThirdParties {
     assertNotNull(actual.getImagePresignedUrl().getValue());
     actual.setImagePresignedUrl(null);
     assertEquals(expected, removeAvailableLayers(ignoreGeneratedDataOf(actual)));
+  }
+
+  @Test
+  void crupdate_area_picture_details_with_download_image_false_skips_image_fetch()
+      throws ApiException {
+    ApiClient joeDoeClient = joeDoeClient();
+    AreaPictureApi api = new AreaPictureApi(joeDoeClient);
+    String payloadId = randomUUID().toString();
+    CrupdateAreaPictureDetails payload =
+        new CrupdateAreaPictureDetails()
+            .address("Angoulême")
+            .fileId("43bc1920-1d55-4106-8229-c12fe1a24b8c")
+            .prospectId(PROSPECT_1_ID)
+            .zoomLevel(HOUSES_0)
+            .downloadImage(false);
+
+    var actual = api.crupdateAreaPictureDetails(JOE_DOE_ACCOUNT_ID, payloadId, payload);
+
+    verify(imageryServiceMock, never()).downloadFromGeodataSource(any());
+    verify(fileDownloaderImplMock, never()).get(any(), any());
+    Zoom zoom = new Zoom().level(HOUSES_0).number(20);
+    AreaPictureDetails expected =
+        new AreaPictureDetails()
+            .id(payloadId)
+            .address("Angoulême")
+            .fileId("43bc1920-1d55-4106-8229-c12fe1a24b8c")
+            .prospectId(PROSPECT_1_ID)
+            .zoomLevel(HOUSES_0)
+            .zoom(zoom)
+            .layer(DEFAULT_OSM_LAYER)
+            .actualLayer(null)
+            .currentTile(null)
+            .referenceTile(null)
+            .currentGeoPosition(null)
+            .geoPositions(null)
+            .filename(null)
+            .isExtended(false)
+            .isOpaque(false)
+            .shiftDirection(null)
+            .shiftNb(null)
+            .xTile(null)
+            .yTile(null)
+            .xOffset(1234)
+            .yOffset(123)
+            .createdAt(null)
+            .updatedAt(null);
+    assertEquals(
+        removeAvailableLayers(expected), removeAvailableLayers(ignoreGeneratedDataOf(actual)));
   }
 
   public AreaPictureDetails expectedAreaPictureDetails() {

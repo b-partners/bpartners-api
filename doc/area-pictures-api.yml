@@ -661,6 +661,13 @@ components:
       properties:
         layerId:
           type: string
+        downloadImage:
+          type: boolean
+          default: true
+          description: |
+            When true (default), fetches a fresh image from the imagery source on crupdate.
+            When false and the area picture already exists, only metadata fields are updated
+            and the existing image is kept as-is.
 
     AreaPictureDetails:
       allOf:

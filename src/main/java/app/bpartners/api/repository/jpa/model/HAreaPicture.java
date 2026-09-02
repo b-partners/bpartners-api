@@ -39,9 +39,9 @@ public class HAreaPicture {
   private String idUser;
   private String idFileInfo;
   private String address;
-  private double longitude;
-  private double latitude;
-  private double score;
+  private Double longitude;
+  private Double latitude;
+  private Double score;
   private String idProspect;
   @CreationTimestamp private Instant createdAt;
   @UpdateTimestamp private Instant updatedAt;
@@ -90,6 +90,9 @@ public class HAreaPicture {
   }
 
   public GeoPosition getCurrentGeoPosition() {
+    if (longitude == null || latitude == null) {
+      return null;
+    }
     return new GeoPosition().score(score).longitude(longitude).latitude(latitude);
   }
 }

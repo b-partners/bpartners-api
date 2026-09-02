@@ -12,8 +12,8 @@ import app.bpartners.api.model.annotation.IntXY;
 import app.bpartners.api.service.annotation.factory.AnnotationSummaryFactory;
 import app.bpartners.api.service.annotation.factory.BufferedImageFactory;
 import app.bpartners.api.service.annotation.factory.Graphics2DFactory;
+import app.bpartners.api.service.annotation.model.Coordinates;
 import app.bpartners.api.service.annotation.model.Pair;
-import app.bpartners.api.service.annotation.model.RawCoordinates;
 import app.bpartners.api.service.annotation.model.Transform;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -47,7 +47,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
     pans.forEach(
         pan -> {
-          var rawData = RawCoordinates.from(requireNonNull(pan.getPolygon()));
+          var rawData = Coordinates.from(requireNonNull(pan.getPolygon()));
           var mapped = imageContext.transform().apply(rawData);
 
           drawFillPolygon(imageContext.g2d(), RED, mapped);
@@ -66,7 +66,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     pans.forEach(
         pan -> {
           drawStrokePolygon(imageContext.g2d(), imageContext.transform(), pan, 1f, false);
-          var coordinates = RawCoordinates.from(pan.getPolygon());
+          var coordinates = Coordinates.from(pan.getPolygon());
           var mapped = imageContext.transform().apply(coordinates);
           drawPolygonMeasurements(
               imageContext.g2d(),
@@ -87,7 +87,10 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
       List<ExportAreaPictureAnnotation3DPan> pans) {
     var allPoints = extractPoints(pans);
 
-    var transform = Transform.from(allPoints, CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
+    var allX = allPoints.stream().mapToInt(IntXY::x).toArray();
+    var allY = allPoints.stream().mapToInt(IntXY::y).toArray();
+    var transform =
+        Transform.from(new Coordinates(allX, allY), CONTENT_SIZE * 2, SUMMARY_IMAGE_SIZE);
 
     var baseImage = BufferedImageFactory.make(SUMMARY_IMAGE_SIZE, SUMMARY_IMAGE_SIZE);
     var g2d = Graphics2DFactory.make(baseImage);
@@ -95,7 +98,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   }
 
   private static @NotNull ImageContext getImageContext(ExportAreaPictureAnnotation3DPan pan) {
-    var coordinates = RawCoordinates.from(selectPolygon(pan, true));
+    var coordinates = Coordinates.from(selectPolygon(pan, true));
     var transform = Transform.yFlippedFrom(coordinates, PAN_CONTENT_SIZE, TARGET_SIZE, true);
 
     var baseImage = BufferedImageFactory.make(TARGET_SIZE, TARGET_SIZE);
@@ -129,7 +132,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   private void drawPolygonWithCenteredText(
       ImageContext imageContext, ExportAreaPictureAnnotation3DPan pan, String area) {
-    var coordinates = RawCoordinates.from(pan.getPolygon());
+    var coordinates = Coordinates.from(pan.getPolygon());
     var mapped = imageContext.transform().apply(coordinates);
     drawStrokePolygon(imageContext.g2d(), BLACK, POLYGON_STROKE, mapped);
     drawTextInPolygonCentroid(
@@ -172,7 +175,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
       var pan = pans.get(index);
       var name = "P" + (index + 1);
 
-      var coordinates = RawCoordinates.from(pan.getPolygon());
+      var coordinates = Coordinates.from(pan.getPolygon());
       var mapped = imageContext.transform().apply(coordinates);
       var font = new Font(FONT_NAME, PLAIN, SUMMARY_IMAGE_FONT.getSize() * 2);
       drawStrokePolygon(imageContext.g2d(), BLACK, POLYGON_STROKE, mapped);
@@ -190,17 +193,13 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     return imageContext.baseImage();
   }
 
-  private static @NotNull RawCoordinates extractPoints(
-      List<ExportAreaPictureAnnotation3DPan> pans) {
-    var points =
-        pans.stream()
-            .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
-            .toList();
-
-    var allX = points.stream().mapToDouble(p -> requireNonNull(p.getX()).doubleValue()).toArray();
-    var allY = points.stream().mapToDouble(p -> requireNonNull(p.getY()).doubleValue()).toArray();
-
-    return new RawCoordinates(allX, allY);
+  private static @NotNull List<IntXY> extractPoints(List<ExportAreaPictureAnnotation3DPan> pans) {
+    return pans.stream()
+        .flatMap(pan -> requireNonNull(pan.getPolygon().getPoints()).stream())
+        .map(
+            p ->
+                new IntXY(requireNonNull(p.getX()).intValue(), requireNonNull(p.getY()).intValue()))
+        .toList();
   }
 
   public BufferedImage generateBaseImageWithHighlightedPanWithSlopeBoundary(
@@ -219,8 +218,8 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   private static void drawPan(
       Graphics2D g2d, Transform transform, Color fillColor, ExportAreaPictureAnnotation3DPan pan) {
-    var rawPolygon = RawCoordinates.from(requireNonNull(pan.getPolygon()));
-    var polygon = transform.apply(rawPolygon);
+    var polygon = Coordinates.from(requireNonNull(pan.getPolygon()));
+    polygon = transform.apply(polygon);
 
     drawFillPolygon(g2d, fillColor, polygon);
     drawStrokePolygon(g2d, transform, pan, 1f, false);
@@ -233,8 +232,8 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
     var panImage = BufferedImageFactory.make(baseImage);
     var g2d = Graphics2DFactory.make(panImage);
 
-    var rawPolygon = RawCoordinates.from(requireNonNull(panToHighlight.getPolygon()));
-    var polygon = transform.apply(rawPolygon);
+    var polygon = Coordinates.from(requireNonNull(panToHighlight.getPolygon()));
+    polygon = transform.apply(polygon);
 
     drawFillPolygon(g2d, SELECTED_PAN_COLOR, polygon);
     drawStrokePolygon(g2d, BLACK, POLYGON_STROKE, polygon);
@@ -247,7 +246,7 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   public BufferedImage generatePanImageWithMeasurements(
       ExportAreaPictureAnnotation3DPan pan, boolean flipX) {
     var imageContext = getImageContext(pan);
-    var coordinates = RawCoordinates.from(selectPolygon(pan, true));
+    Coordinates coordinates = Coordinates.from(selectPolygon(pan, true));
     var transform = imageContext.transform().toBuilder().flipX(flipX).build();
     var mapped = transform.apply(coordinates);
 

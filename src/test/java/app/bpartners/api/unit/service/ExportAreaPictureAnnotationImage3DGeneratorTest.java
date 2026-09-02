@@ -8,7 +8,7 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationMeasurem
 import app.bpartners.api.endpoint.rest.model.Point;
 import app.bpartners.api.endpoint.rest.model.Polygon;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
-import app.bpartners.api.service.annotation.model.RawCoordinates;
+import app.bpartners.api.service.annotation.model.Coordinates;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -36,7 +36,7 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     BufferedImage image = result.second();
 
     var transform = result.first();
-    var center = transform.apply(new RawCoordinates(new double[] {150}, new double[] {125}));
+    var center = transform.apply(new Coordinates(new int[] {150}, new int[] {125}));
 
     assertColorEquals(Color.RED, image.getRGB(center.allX()[0], center.allY()[0]));
   }
@@ -61,8 +61,8 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     var result = subject.generateBaseImage(List.of(pan));
     var transform = result.first();
 
-    var sourceTop = transform.apply(new RawCoordinates(new double[] {150}, new double[] {100}));
-    var sourceBottom = transform.apply(new RawCoordinates(new double[] {150}, new double[] {200}));
+    var sourceTop = transform.apply(new Coordinates(new int[] {150}, new int[] {100}));
+    var sourceBottom = transform.apply(new Coordinates(new int[] {150}, new int[] {200}));
 
     assertTrue(
         sourceTop.allY()[0] > sourceBottom.allY()[0],

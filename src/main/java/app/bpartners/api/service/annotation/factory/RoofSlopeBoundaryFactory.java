@@ -1,7 +1,7 @@
 package app.bpartners.api.service.annotation.factory;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.service.annotation.model.RawCoordinates;
+import app.bpartners.api.service.annotation.model.Coordinates;
 import app.bpartners.api.service.annotation.model.RoofSlopBoundary;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.annotation.model.Transform;
@@ -26,9 +26,9 @@ public class RoofSlopeBoundaryFactory {
       var startPoint = polygon.getPoints().get(i - 1);
       var endPoint = polygon.getPoints().get(i);
       var boundaryCoordinates =
-          new RawCoordinates(
-              new double[] {startPoint.getX().doubleValue(), endPoint.getX().doubleValue()},
-              new double[] {startPoint.getY().doubleValue(), endPoint.getY().doubleValue()});
+          new Coordinates(
+              new int[] {startPoint.getX().intValue(), endPoint.getX().intValue()},
+              new int[] {startPoint.getY().intValue(), endPoint.getY().intValue()});
       var transformedBoundaryCoordinates = transform.apply(boundaryCoordinates);
       var boundary =
           new RoofSlopBoundary(

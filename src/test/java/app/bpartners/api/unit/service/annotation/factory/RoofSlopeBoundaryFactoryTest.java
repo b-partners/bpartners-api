@@ -35,10 +35,8 @@ class RoofSlopeBoundaryFactoryTest {
                         .value("[\"faitage\", \"egout\", \"rive\", \"noue\"]")));
     var transform =
         Transform.builder()
-            .minX(0)
-            .minY(0)
-            .maxX(10)
-            .maxY(10)
+            .min(new IntXY(0, 0))
+            .max(new IntXY(10, 10))
             .offset(new IntXY(0, 0))
             .scale(1.0)
             .build();
@@ -66,10 +64,8 @@ class RoofSlopeBoundaryFactoryTest {
             .infos(List.of());
     var transform =
         Transform.builder()
-            .minX(0)
-            .minY(0)
-            .maxX(10)
-            .maxY(0)
+            .min(new IntXY(0, 0))
+            .max(new IntXY(10, 0))
             .offset(new IntXY(0, 0))
             .scale(1.0)
             .build();

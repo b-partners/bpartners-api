@@ -665,9 +665,10 @@ components:
           type: boolean
           default: true
           description: |
-            When true (default), fetches a fresh image from the imagery source on crupdate.
-            When false and the area picture already exists, only metadata fields are updated
-            and the existing image is kept as-is.
+            When true (default), fetches a fresh image from the imagery source on crupdate,
+            and fileId is used to store it.
+            When false, no image is fetched or stored: fileId is ignored and the area
+            picture is persisted without any associated file.
 
     AreaPictureDetails:
       allOf:

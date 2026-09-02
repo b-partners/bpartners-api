@@ -90,11 +90,11 @@ public class AreaPictureRestMapper {
     }
     Boolean isExtended = rest.getIsExtended();
     ShiftDirection restShiftDirection = rest.getShiftDirection();
-    Boolean downloadImage = rest.getDownloadImage();
+    boolean downloadImage = rest.getDownloadImage() == null || rest.getDownloadImage();
     return AreaPicture.builder()
         .id(id)
         .address(rest.getAddress())
-        .idFileInfo(rest.getFileId())
+        .idFileInfo(downloadImage ? rest.getFileId() : null)
         .zoomLevel(zoomLevel)
         .idProspect(rest.getProspectId())
         .currentLayer(mapLayer)
@@ -106,7 +106,7 @@ public class AreaPictureRestMapper {
         .shiftNb(rest.getShiftNb() == null ? null : rest.getShiftNb())
         .isOpaque(Boolean.TRUE.equals(rest.getIsOpaque()))
         .shiftDirection(restShiftDirection != null ? toDomain(restShiftDirection) : null)
-        .downloadImage(downloadImage == null || downloadImage)
+        .downloadImage(downloadImage)
         .build();
   }
 

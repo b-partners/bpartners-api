@@ -35,8 +35,9 @@ public class AreaPictureRestMapper {
   public AreaPictureDetails toRest(AreaPicture domain) {
     var arcgisZoom = domain.getArcgisZoom();
     Zoom zoom = new Zoom().level(domain.getZoomLevel()).number(arcgisZoom.getZoomLevel());
-    var tile = toRestTile(domain.getCurrentTile(), zoom);
-    Tile referenceTile = toRestTile(domain.getReferenceTile(), zoom);
+    boolean hasImage = domain.getCurrentTile() != null;
+    var tile = hasImage ? toRestTile(domain.getCurrentTile(), zoom) : null;
+    Tile referenceTile = hasImage ? toRestTile(domain.getReferenceTile(), zoom) : null;
     int xOffset = metaDataComponent.getXOffset();
     int yOffset = metaDataComponent.getYOffset();
     log.info("Layers={}", domain.getLayers());
@@ -49,14 +50,20 @@ public class AreaPictureRestMapper {
         .zoomLevel(domain.getZoomLevel())
         .createdAt(domain.getCreatedAt())
         .updatedAt(domain.getUpdatedAt())
-        .xTile(tile.getX())
-        .yTile(tile.getY())
+        .xTile(tile == null ? null : tile.getX())
+        .yTile(tile == null ? null : tile.getY())
         .prospectId(domain.getIdProspect())
         .zoom(zoom)
         .layer(TOUS_FR)
         .availableLayers(List.of(TOUS_FR))
-        .actualLayer(layerRestMapper.toRest(domain.getCurrentLayer()))
-        .otherLayers(domain.getLayers().stream().map(layerRestMapper::toRest).toList())
+        .actualLayer(
+            domain.getCurrentLayer() == null
+                ? null
+                : layerRestMapper.toRest(domain.getCurrentLayer()))
+        .otherLayers(
+            domain.getLayers() == null
+                ? List.of()
+                : domain.getLayers().stream().map(layerRestMapper::toRest).toList())
         .currentGeoPosition(domain.getCurrentGeoPosition())
         .geoPositions(domain.getGeoPositions())
         .currentTile(tile)
@@ -83,6 +90,7 @@ public class AreaPictureRestMapper {
     }
     Boolean isExtended = rest.getIsExtended();
     ShiftDirection restShiftDirection = rest.getShiftDirection();
+    Boolean downloadImage = rest.getDownloadImage();
     return AreaPicture.builder()
         .id(id)
         .address(rest.getAddress())
@@ -98,6 +106,7 @@ public class AreaPictureRestMapper {
         .shiftNb(rest.getShiftNb() == null ? null : rest.getShiftNb())
         .isOpaque(Boolean.TRUE.equals(rest.getIsOpaque()))
         .shiftDirection(restShiftDirection != null ? toDomain(restShiftDirection) : null)
+        .downloadImage(downloadImage == null || downloadImage)
         .build();
   }
 

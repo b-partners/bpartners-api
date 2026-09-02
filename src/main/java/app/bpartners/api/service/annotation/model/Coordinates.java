@@ -1,6 +1,5 @@
 package app.bpartners.api.service.annotation.model;
 
-
 import java.util.Arrays;
 
 public record Coordinates(int[] allX, int[] allY) {

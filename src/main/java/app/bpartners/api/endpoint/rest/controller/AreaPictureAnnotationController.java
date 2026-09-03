@@ -65,10 +65,10 @@ public class AreaPictureAnnotationController {
       @RequestParam(required = false) String prospectName,
       @RequestParam(required = false) String address,
       @RequestParam(required = false) Instant creationFrom,
-      @RequestParam(required = false) Instant creationTo) {
+      @RequestParam(required = false) Instant creationTo,
+      @RequestParam(defaultValue = "false", required = false) Boolean lite) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
-    return mapper.toRestDrafts(
-        authenticatedUserId,
+    var draftAnnotations =
         service.findAllByCriteria(
             authenticatedUserId,
             areaPictureId,
@@ -77,7 +77,10 @@ public class AreaPictureAnnotationController {
             creationFrom,
             creationTo,
             page,
-            pageSize));
+            pageSize);
+    return Boolean.TRUE.equals(lite)
+        ? mapper.toRestDraftsLite(authenticatedUserId, draftAnnotations)
+        : mapper.toRestDrafts(authenticatedUserId, draftAnnotations);
   }
 
   @GetMapping("/accounts/{aId}/annotations/drafts")
@@ -88,12 +91,15 @@ public class AreaPictureAnnotationController {
       @RequestParam(required = false) String prospectName,
       @RequestParam(required = false) String address,
       @RequestParam(required = false) Instant creationFrom,
-      @RequestParam(required = false) Instant creationTo) {
+      @RequestParam(required = false) Instant creationTo,
+      @RequestParam(defaultValue = "false", required = false) Boolean lite) {
     var authenticatedUserId = AuthProvider.getAuthenticatedUserId();
-    return mapper.toRestDrafts(
-        authenticatedUserId,
+    var draftAnnotations =
         service.findAllDraftByAccountId(
-            authenticatedUserId, prospectName, address, creationFrom, creationTo, page, pageSize));
+            authenticatedUserId, prospectName, address, creationFrom, creationTo, page, pageSize);
+    return Boolean.TRUE.equals(lite)
+        ? mapper.toRestDraftsLite(authenticatedUserId, draftAnnotations)
+        : mapper.toRestDrafts(authenticatedUserId, draftAnnotations);
   }
 
   @PostMapping(value = "/accounts/{aId}/annotations/exports", consumes = MULTIPART_FORM_DATA_VALUE)

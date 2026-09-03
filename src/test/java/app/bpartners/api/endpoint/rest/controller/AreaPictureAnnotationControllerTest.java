@@ -92,9 +92,34 @@ class AreaPictureAnnotationControllerTest {
 
       var actual =
           subject.getDraftAreaPictureAnnotationsByAccountId(
-              accountId, page, pageSize, null, null, null, null);
+              accountId, page, pageSize, null, null, null, null, false);
 
       assertEquals(expected, actual);
+    }
+  }
+
+  @Test
+  void get_draft_area_picture_annotations_by_account_id_delegates_to_mapper_lite_when_lite_true() {
+    var accountId = randomUUID().toString();
+    var userId = randomUUID().toString();
+    var page = new PageFromOne(1);
+    var pageSize = new BoundedPageSize(10);
+    var domainAnnotations = List.of(mock(app.bpartners.api.model.AreaPictureAnnotation.class));
+    var expected = List.of(mock(DraftAreaPictureAnnotation.class));
+
+    when(serviceMock.findAllDraftByAccountId(userId, null, null, null, null, page, pageSize))
+        .thenReturn(domainAnnotations);
+    when(mapperMock.toRestDraftsLite(userId, domainAnnotations)).thenReturn(expected);
+
+    try (MockedStatic<AuthProvider> authProviderMockedStatic = mockStatic(AuthProvider.class)) {
+      authProviderMockedStatic.when(AuthProvider::getAuthenticatedUserId).thenReturn(userId);
+
+      var actual =
+          subject.getDraftAreaPictureAnnotationsByAccountId(
+              accountId, page, pageSize, null, null, null, null, true);
+
+      assertEquals(expected, actual);
+      verify(mapperMock, never()).toRestDrafts(userId, domainAnnotations);
     }
   }
 
@@ -119,9 +144,37 @@ class AreaPictureAnnotationControllerTest {
 
       var actual =
           subject.getDraftAreaPictureAnnotationsByAccountIdAndAreaPictureId(
-              accountId, areaPictureId, page, pageSize, null, null, null, null);
+              accountId, areaPictureId, page, pageSize, null, null, null, null, false);
 
       assertEquals(expected, actual);
+    }
+  }
+
+  @Test
+  void
+      get_draft_area_picture_annotations_by_account_id_and_area_picture_id_delegates_to_mapper_lite_when_lite_true() {
+    var accountId = randomUUID().toString();
+    var areaPictureId = randomUUID().toString();
+    var userId = randomUUID().toString();
+    var page = new PageFromOne(1);
+    var pageSize = new BoundedPageSize(10);
+    var domainAnnotations = List.of(mock(app.bpartners.api.model.AreaPictureAnnotation.class));
+    var expected = List.of(mock(DraftAreaPictureAnnotation.class));
+
+    when(serviceMock.findAllByCriteria(
+            userId, areaPictureId, null, null, null, null, page, pageSize))
+        .thenReturn(domainAnnotations);
+    when(mapperMock.toRestDraftsLite(userId, domainAnnotations)).thenReturn(expected);
+
+    try (MockedStatic<AuthProvider> authProviderMockedStatic = mockStatic(AuthProvider.class)) {
+      authProviderMockedStatic.when(AuthProvider::getAuthenticatedUserId).thenReturn(userId);
+
+      var actual =
+          subject.getDraftAreaPictureAnnotationsByAccountIdAndAreaPictureId(
+              accountId, areaPictureId, page, pageSize, null, null, null, null, true);
+
+      assertEquals(expected, actual);
+      verify(mapperMock, never()).toRestDrafts(userId, domainAnnotations);
     }
   }
 

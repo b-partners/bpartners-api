@@ -18,8 +18,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.EmailRecipientsUpdateRequested;
 import app.bpartners.api.endpoint.event.model.SubscriptionPaymentInvoiceCreated;
+import app.bpartners.api.endpoint.rest.model.EmailRecipientType;
 import app.bpartners.api.file.FileWriter;
+import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
@@ -30,6 +34,7 @@ import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
+import app.bpartners.api.service.accountholder.EmailRecipientService;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -53,6 +58,8 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
   S3Service s3Service = mock();
   FileWriter fileWriter = mock();
   SesService mailer = mock();
+  EmailRecipientService emailRecipientService = mock();
+  EventProducer<EmailRecipientsUpdateRequested> eventProducer = mock();
   SubscriptionPaymentInvoiceCreatedService subject =
       new SubscriptionPaymentInvoiceCreatedService(
           invoiceRepository,
@@ -61,7 +68,9 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
           fileWriter,
           mailer,
           new TemplateResolverEngine(),
-          new CustomDateFormatter());
+          new CustomDateFormatter(),
+          emailRecipientService,
+          eventProducer);
 
   SubscriptionPaymentInvoiceCreatedServiceTest() {
     when(s3Service.downloadFile(any(), anyString(), anyString()))
@@ -90,6 +99,41 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
     assertEquals(
         "[BIRDIA] Votre facture d'abonnement REF-04032026103000 est disponible",
         subjectCaptor.getValue());
+  }
+
+  @Test
+  void sends_to_configured_invoice_recipients_when_present() throws Exception {
+    givenInvoiceAndPayment(invoiceWithHolder(), somePayment());
+    when(emailRecipientService.getEmails("account_holder_id", EmailRecipientType.INVOICE))
+        .thenReturn(List.of("compta@client.fr", "admin@client.fr"));
+
+    subject.accept(someEvent());
+
+    var recipientCaptor = ArgumentCaptor.forClass(String.class);
+    verify(mailer)
+        .sendEmail(recipientCaptor.capture(), anyString(), anyString(), anyString(), anyList());
+    assertEquals("compta@client.fr,admin@client.fr", recipientCaptor.getValue());
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
+  void requests_async_recipients_update_and_falls_back_when_none_configured() throws Exception {
+    givenInvoiceAndPayment(invoiceWithHolder(), somePayment());
+    when(emailRecipientService.getEmails("account_holder_id", EmailRecipientType.INVOICE))
+        .thenReturn(List.of());
+
+    subject.accept(someEvent());
+
+    var recipientCaptor = ArgumentCaptor.forClass(String.class);
+    verify(mailer)
+        .sendEmail(recipientCaptor.capture(), anyString(), anyString(), anyString(), anyList());
+    assertEquals("subscriber@email.com", recipientCaptor.getValue());
+    var eventsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducer).accept(eventsCaptor.capture());
+    var requested = (EmailRecipientsUpdateRequested) eventsCaptor.getValue().getFirst();
+    assertEquals("account_holder_id", requested.getAccountHolderId());
+    assertEquals("admin_user_id", requested.getUserId());
+    assertEquals(EmailRecipientType.INVOICE, requested.getType());
   }
 
   @Test
@@ -270,6 +314,16 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
     return SubscriptionPaymentInvoiceCreated.builder()
         .invoiceId("invoice_id")
         .subscriptionPaymentId("subscription_payment_id")
+        .build();
+  }
+
+  private Invoice invoiceWithHolder() {
+    return someInvoice().toBuilder()
+        .user(
+            User.builder()
+                .id("admin_user_id")
+                .accountHolders(List.of(AccountHolder.builder().id("account_holder_id").build()))
+                .build())
         .build();
   }
 

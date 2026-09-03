@@ -3,12 +3,8 @@ package app.bpartners.api.service.event;
 import static app.bpartners.api.endpoint.rest.model.FileType.INVOICE;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
-import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.EmailRecipientsUpdateRequested;
 import app.bpartners.api.endpoint.event.model.SubscriptionPaymentInvoiceCreated;
-import app.bpartners.api.endpoint.rest.model.EmailRecipientType;
 import app.bpartners.api.file.FileWriter;
-import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
@@ -16,7 +12,7 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
-import app.bpartners.api.service.accountholder.EmailRecipientService;
+import app.bpartners.api.service.EmailInvoiceResolver;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -45,8 +41,7 @@ public class SubscriptionPaymentInvoiceCreatedService
   private final SesService mailer;
   private final TemplateResolverEngine templateResolverEngine;
   private final CustomDateFormatter customDateFormatter;
-  private final EmailRecipientService emailRecipientService;
-  private final EventProducer<EmailRecipientsUpdateRequested> eventProducer;
+  private final EmailInvoiceResolver emailInvoiceResolver;
 
   @Override
   public void accept(SubscriptionPaymentInvoiceCreated event) {
@@ -55,7 +50,7 @@ public class SubscriptionPaymentInvoiceCreatedService
       log.warn("No Invoice.id={} to send by mail, skipping", event.getInvoiceId());
       return;
     }
-    var recipient = resolveRecipient(invoice);
+    var recipient = emailInvoiceResolver.apply(invoice);
     if (recipient == null) {
       log.warn(
           "Invoice(id={}) has no configured nor customer email address, "
@@ -81,48 +76,6 @@ public class SubscriptionPaymentInvoiceCreatedService
         invoice.getRef(),
         invoice.getCustomer().getId(),
         TECH_RECIPIENT);
-  }
-
-  private String resolveRecipient(Invoice invoice) {
-    AccountHolder accountHolder = invoice.getActualHolder();
-    if (accountHolder != null) {
-      List<String> configuredEmails =
-          emailRecipientService.getEmails(accountHolder.getId(), EmailRecipientType.INVOICE);
-      if (!configuredEmails.isEmpty()) {
-        var retainedEmailAddress = configuredEmails.getFirst();
-        if (configuredEmails.size() > 1) {
-          var ignoredEmailAddresses = configuredEmails.subList(1, configuredEmails.size());
-          log.warn(
-              "Only one email address supported for now but AccountHolder(id={}) has {} configured;"
-                  + " {} retained, {} ignored",
-              accountHolder.getId(),
-              configuredEmails.size(),
-              retainedEmailAddress,
-              ignoredEmailAddresses);
-        }
-        return retainedEmailAddress;
-      }
-      requestInvoiceRecipientsUpdate(invoice, accountHolder);
-    }
-    return invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail();
-  }
-
-  private void requestInvoiceRecipientsUpdate(Invoice invoice, AccountHolder accountHolder) {
-    if (invoice.getUser() == null) {
-      return;
-    }
-    eventProducer.accept(
-        List.of(
-            EmailRecipientsUpdateRequested.builder()
-                .userId(invoice.getUser().getId())
-                .accountHolderId(accountHolder.getId())
-                .type(EmailRecipientType.INVOICE)
-                .build()));
-    log.info(
-        "No INVOICE email recipient for AccountHolder(id={}), requested async update from stripe"
-            + " customer of User(id={})",
-        accountHolder.getId(),
-        invoice.getUser().getId());
   }
 
   private String mailSubject(Invoice invoice) {

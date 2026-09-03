@@ -12,6 +12,7 @@ import app.bpartners.api.model.credit.CreditPurchase;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.CreditPurchaseRepository;
+import app.bpartners.api.service.EmailInvoiceResolver;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -40,6 +41,7 @@ public class CreditOperationInvoiceCreatedService
   private final SesService mailer;
   private final TemplateResolverEngine templateResolverEngine;
   private final CustomDateFormatter customDateFormatter;
+  private final EmailInvoiceResolver emailInvoiceResolver;
 
   @Override
   public void accept(CreditOperationInvoiceCreated event) {
@@ -48,7 +50,7 @@ public class CreditOperationInvoiceCreatedService
       log.warn("No Invoice.id={} to send by mail, skipping", event.getInvoiceId());
       return;
     }
-    var recipient = invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail();
+    var recipient = emailInvoiceResolver.apply(invoice);
     if (recipient == null) {
       log.warn(
           "Invoice(id={}) customer has no email address, credit purchase invoice mail not sent",

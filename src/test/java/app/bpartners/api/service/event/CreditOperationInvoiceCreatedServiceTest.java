@@ -28,6 +28,7 @@ import app.bpartners.api.model.credit.CreditPurchase;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.CreditPurchaseRepository;
+import app.bpartners.api.service.EmailInvoiceResolver;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -51,6 +52,7 @@ class CreditOperationInvoiceCreatedServiceTest {
   S3Service s3Service = mock();
   FileWriter fileWriter = mock();
   SesService mailer = mock();
+  EmailInvoiceResolver emailInvoiceResolver = mock();
   CreditOperationInvoiceCreatedService subject =
       new CreditOperationInvoiceCreatedService(
           invoiceRepository,
@@ -59,12 +61,14 @@ class CreditOperationInvoiceCreatedServiceTest {
           fileWriter,
           mailer,
           new TemplateResolverEngine(),
-          new CustomDateFormatter());
+          new CustomDateFormatter(),
+          emailInvoiceResolver);
 
   CreditOperationInvoiceCreatedServiceTest() {
     when(s3Service.downloadFile(any(), anyString(), anyString()))
         .thenReturn(new File("invoice.pdf"));
     when(fileWriter.writeAsByte(any(File.class))).thenReturn(PDF_BYTES);
+    when(emailInvoiceResolver.apply(any())).thenReturn("buyer@email.com");
   }
 
   @Test
@@ -195,27 +199,14 @@ class CreditOperationInvoiceCreatedServiceTest {
   }
 
   @Test
-  void sends_nothing_when_the_customer_has_no_email() throws Exception {
-    when(invoiceRepository.findById("invoice_id"))
-        .thenReturn(
-            someInvoice().toBuilder()
-                .customer(Customer.builder().id("customer_id").name("Buyer SARL").build())
-                .build());
+  void sends_nothing_when_no_recipient_is_resolved() throws Exception {
+    givenInvoiceAndPurchase(someInvoice(), somePurchase());
+    when(emailInvoiceResolver.apply(any())).thenReturn(null);
 
     subject.accept(someEvent());
 
     verify(mailer, never()).sendEmail(any(), any(), any(), any(), anyList());
     verify(s3Service, never()).downloadFile(any(), any(), any());
-  }
-
-  @Test
-  void sends_nothing_when_the_invoice_has_no_customer() throws Exception {
-    when(invoiceRepository.findById("invoice_id"))
-        .thenReturn(someInvoice().toBuilder().customer(null).build());
-
-    subject.accept(someEvent());
-
-    verify(mailer, never()).sendEmail(any(), any(), any(), any(), anyList());
   }
 
   @Test

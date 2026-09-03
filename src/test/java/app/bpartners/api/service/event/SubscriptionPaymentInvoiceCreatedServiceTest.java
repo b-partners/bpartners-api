@@ -34,6 +34,7 @@ import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
+import app.bpartners.api.service.EmailInvoiceResolver;
 import app.bpartners.api.service.accountholder.EmailRecipientService;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
@@ -60,6 +61,8 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
   SesService mailer = mock();
   EmailRecipientService emailRecipientService = mock();
   EventProducer<EmailRecipientsUpdateRequested> eventProducer = mock();
+  EmailInvoiceResolver emailInvoiceResolver =
+      new EmailInvoiceResolver(emailRecipientService, eventProducer);
   SubscriptionPaymentInvoiceCreatedService subject =
       new SubscriptionPaymentInvoiceCreatedService(
           invoiceRepository,
@@ -69,8 +72,7 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
           mailer,
           new TemplateResolverEngine(),
           new CustomDateFormatter(),
-          emailRecipientService,
-          eventProducer);
+          emailInvoiceResolver);
 
   SubscriptionPaymentInvoiceCreatedServiceTest() {
     when(s3Service.downloadFile(any(), anyString(), anyString()))

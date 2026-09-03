@@ -26,6 +26,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
+import app.bpartners.api.repository.DetectionTrackingRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
@@ -45,10 +46,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 
 class DetectionTrackingIT extends MockedThirdParties {
   private final String dummyApiKey = "dummyApiKey";
   @Autowired private DetectionTrackingService detectionTrackingService;
+  @Autowired private DetectionTrackingRepository detectionTrackingRepository;
   @Autowired private CreditTransactionRepository creditTransactionRepository;
   @Autowired private UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
   @Autowired private CreditService creditService;
@@ -263,6 +266,53 @@ class DetectionTrackingIT extends MockedThirdParties {
 
     assertEquals(List.of(expectedId), matching.stream().map(DetectionTracking::getId).toList());
     assertTrue(notMatching.isEmpty());
+  }
+
+  @SneakyThrows
+  @Test
+  void repository_find_all_by_id_user_and_search_accepts_null_search() {
+    var api = new DetectionTrackingApi(anApiClient());
+    var joeDoeId = restJoeDoeUser().getId();
+    final var now = now().truncatedTo(ChronoUnit.MILLIS);
+    var expectedId =
+        api.registerDetection(joeDoeId, someCreateDetectionTracking(now)).getFirst().getId();
+
+    var actual = detectionTrackingRepository.findAllByIdUser(joeDoeId, null, PageRequest.of(0, 10));
+
+    assertTrue(
+        actual.stream()
+            .map(app.bpartners.api.model.detection.DetectionTracking::id)
+            .toList()
+            .contains(expectedId));
+  }
+
+  @SneakyThrows
+  @Test
+  void repository_find_all_by_id_user_and_search_filters_across_all_searchable_fields() {
+    var api = new DetectionTrackingApi(anApiClient());
+    var joeDoeId = restJoeDoeUser().getId();
+    final var now = now().truncatedTo(ChronoUnit.MILLIS);
+    var searchToken = randomUUID().toString();
+    var zonePayload = someCreateDetectionTracking(now).getFirst().zone("zone-" + searchToken);
+    var addressPayload =
+        someCreateDetectionTracking(now).getFirst().address("address-" + searchToken);
+    var initiatorPayload =
+        someCreateDetectionTracking(now)
+            .getFirst()
+            .initiator(new DetectionInitiator().name("initiator-" + searchToken));
+    var zoneId = api.registerDetection(joeDoeId, List.of(zonePayload)).getFirst().getId();
+    var addressId = api.registerDetection(joeDoeId, List.of(addressPayload)).getFirst().getId();
+    var initiatorId = api.registerDetection(joeDoeId, List.of(initiatorPayload)).getFirst().getId();
+
+    var actualIds =
+        detectionTrackingRepository
+            .findAllByIdUser(joeDoeId, searchToken, PageRequest.of(0, 10))
+            .stream()
+            .map(app.bpartners.api.model.detection.DetectionTracking::id)
+            .toList();
+
+    assertEquals(3, actualIds.size());
+    assertTrue(actualIds.containsAll(List.of(zoneId, addressId, initiatorId)));
   }
 
   private List<CreditTransaction> consumptionsOfJoeDoe() {

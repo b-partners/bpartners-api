@@ -18,12 +18,14 @@ public interface DetectionTrackingJpaRepository extends JpaRepository<HDetection
   Optional<HDetectionTracking> findByDetectionIdentifier(String detectionIdentifier);
 
   @Query(
-      "SELECT t FROM HDetectionTracking t WHERE t.idUser = :idUser AND (:search IS NULL"
-          + " OR LOWER(t.zone) LIKE LOWER(CONCAT('%', :search, '%'))"
-          + " OR LOWER(t.address) LIKE LOWER(CONCAT('%', :search, '%'))"
-          + " OR LOWER(t.initiatorName) LIKE LOWER(CONCAT('%', :search, '%'))"
-          + " OR LOWER(t.initiatorEmail) LIKE LOWER(CONCAT('%', :search, '%'))"
-          + " OR LOWER(t.initiatorPhoneNumber) LIKE LOWER(CONCAT('%', :search, '%')))"
+      "SELECT t FROM HDetectionTracking t WHERE t.idUser = :idUser AND (CAST(:search AS string)"
+          + " IS NULL"
+          + " OR LOWER(t.zone) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))"
+          + " OR LOWER(t.address) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))"
+          + " OR LOWER(t.initiatorName) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))"
+          + " OR LOWER(t.initiatorEmail) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))"
+          + " OR LOWER(t.initiatorPhoneNumber) LIKE LOWER(CONCAT('%', CAST(:search AS string),"
+          + " '%')))"
           + " ORDER BY t.creationDatetime DESC")
   List<HDetectionTracking> findAllByIdUserAndSearch(
       @Param("idUser") String idUser, @Param("search") String search, Pageable pageable);

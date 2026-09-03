@@ -145,8 +145,7 @@ class AreaPictureAnnotationRestMapperTest {
             .idProspect("prospect_2")
             .idFileInfo("file_2")
             .build();
-    when(areaPictureServiceMock.findAllByIdIn(
-            userId, List.of("area_picture_1", "area_picture_2")))
+    when(areaPictureServiceMock.findAllByIdIn(userId, List.of("area_picture_1", "area_picture_2")))
         .thenReturn(List.of(areaPicture1, areaPicture2));
     when(prospectRepositoryMock.findAllByIds(any()))
         .thenReturn(

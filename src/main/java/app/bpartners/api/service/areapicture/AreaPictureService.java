@@ -20,6 +20,7 @@ import app.bpartners.api.service.geodata.ImageryService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -67,6 +68,22 @@ public class AreaPictureService {
         .map(
             entity ->
                 AreaPicture.builder().id(entity.getId()).idProspect(entity.getIdProspect()).build())
+        .toList();
+  }
+
+  // Same rationale as findAllByIdUser above, but for list views (e.g. draft annotations lite
+  // list) that also need idFileInfo/zoomLevel to render a picture thumbnail without paying for
+  // the GeoData Imagery API call that mapper::toDomain triggers per picture.
+  public List<AreaPicture> findAllByIdIn(String userId, Collection<String> ids) {
+    return jpaRepository.findAllByIdUserAndIdIn(userId, ids).stream()
+        .map(
+            entity ->
+                AreaPicture.builder()
+                    .id(entity.getId())
+                    .idProspect(entity.getIdProspect())
+                    .idFileInfo(entity.getIdFileInfo())
+                    .zoomLevel(entity.getZoomLevel())
+                    .build())
         .toList();
   }
 

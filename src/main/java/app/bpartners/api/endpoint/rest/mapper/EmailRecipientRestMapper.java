@@ -21,6 +21,7 @@ public class EmailRecipientRestMapper {
       return List.of();
     }
     return rest.getRecipients().stream()
+        .filter(recipient -> recipient.getEmails() != null)
         .flatMap(
             recipient ->
                 recipient.getEmails().stream()

@@ -18,9 +18,7 @@ public class EmailRecipientsValidator implements Consumer<EmailRecipientsConfigu
         if (recipient.getType() == null) {
           messageBuilder.append("recipient type is mandatory. ");
         }
-        if (recipient.getEmails() == null || recipient.getEmails().isEmpty()) {
-          messageBuilder.append("at least one email is mandatory for each recipient type. ");
-        } else {
+        if (recipient.getEmails() != null) {
           recipient.getEmails().stream()
               .filter(email -> !isValidEmail(email))
               .forEach(email -> messageBuilder.append("Invalid email ").append(email).append(". "));

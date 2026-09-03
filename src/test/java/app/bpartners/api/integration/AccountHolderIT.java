@@ -330,8 +330,7 @@ class AccountHolderIT extends MockedThirdParties {
     assertEquals(List.of("compta@client.fr"), emailsByType(fetched, EmailRecipientType.INVOICE));
     assertEquals(
         List.of("tech@client.fr"), emailsByType(fetched, EmailRecipientType.API_NOTIFICATION));
-    assertEquals(
-        List.of("boss@client.fr"), emailsByType(fetched, EmailRecipientType.ACCOUNT_INFO));
+    assertEquals(List.of("boss@client.fr"), emailsByType(fetched, EmailRecipientType.ACCOUNT_INFO));
   }
 
   @Test
@@ -349,6 +348,36 @@ class AccountHolderIT extends MockedThirdParties {
     assertThrowsApiException(
         "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invalid email not-an-email. \"}",
         () -> api.configureEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, invalid));
+  }
+
+  @Test
+  void configure_email_recipients_with_empty_emails_is_accepted() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    api.configureEmailRecipients(
+        JOE_DOE_ID,
+        JOE_DOE_ACCOUNT_HOLDER_ID,
+        new EmailRecipientsConfiguration()
+            .recipients(
+                List.of(
+                    new EmailRecipient()
+                        .type(EmailRecipientType.INVOICE)
+                        .emails(List.of("compta@client.fr")))));
+
+    EmailRecipientsConfiguration withEmptyType =
+        new EmailRecipientsConfiguration()
+            .recipients(
+                List.of(
+                    new EmailRecipient()
+                        .type(EmailRecipientType.API_NOTIFICATION)
+                        .emails(List.of())));
+
+    EmailRecipientsConfiguration result =
+        assertDoesNotThrow(
+            () ->
+                api.configureEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, withEmptyType));
+
+    assertEquals(List.of("compta@client.fr"), emailsByType(result, EmailRecipientType.INVOICE));
   }
 
   private static List<String> emailsByType(

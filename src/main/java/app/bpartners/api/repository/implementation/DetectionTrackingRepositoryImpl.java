@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -39,6 +40,13 @@ public class DetectionTrackingRepositoryImpl implements DetectionTrackingReposit
   @Override
   public List<DetectionTracking> findAllByIdUserBetween(String idUser, Instant from, Instant to) {
     return jpaRepository.findAllByIdUserAndCreationDatetimeBetween(idUser, from, to).stream()
+        .map(entity -> mapper.toDomain(userRepository.getById(entity.getIdUser()), entity))
+        .toList();
+  }
+
+  @Override
+  public List<DetectionTracking> findAllByIdUser(String idUser, String search, Pageable pageable) {
+    return jpaRepository.findAllByIdUserAndSearch(idUser, search, pageable).stream()
         .map(entity -> mapper.toDomain(userRepository.getById(entity.getIdUser()), entity))
         .toList();
   }

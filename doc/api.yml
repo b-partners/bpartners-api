@@ -290,7 +290,7 @@ paths:
   ############## Detection Tracking API #############
   #############################################
   /users/{userId}/detectionTracking:
-    $ref: './detection-monitoring-api.yml#/operations/registerDetection'
+    $ref: './detection-monitoring-api.yml#/operations/detectionTrackingOperations'
 
   #############################################
   ############## Address Autocompletion API #############

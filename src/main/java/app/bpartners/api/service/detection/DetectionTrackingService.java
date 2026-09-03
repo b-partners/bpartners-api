@@ -5,6 +5,8 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.U
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.detection.DetectionTracking;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
@@ -21,12 +23,14 @@ import java.util.HashSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class DetectionTrackingService {
+  private static final int DEFAULT_PAGE_SIZE = 100;
   private final DetectionTrackingRepository repository;
   private final SubscriptionService subscriptionService;
   private final CustomDateFormatter customDateFormatter;
@@ -36,6 +40,13 @@ public class DetectionTrackingService {
 
   public List<DetectionTracking> findAllByIdUserBetween(String idUser, Instant from, Instant to) {
     return repository.findAllByIdUserBetween(idUser, from, to);
+  }
+
+  public List<DetectionTracking> findAllByIdUser(
+      String idUser, String search, PageFromOne page, BoundedPageSize pageSize) {
+    var pageValue = page != null ? page.getValue() - 1 : 0;
+    var pageSizeValue = pageSize != null ? pageSize.getValue() : DEFAULT_PAGE_SIZE;
+    return repository.findAllByIdUser(idUser, search, PageRequest.of(pageValue, pageSizeValue));
   }
 
   public List<DetectionTracking> saveAll(List<DetectionTracking> tracking) {

@@ -4,6 +4,7 @@ import app.bpartners.api.model.detection.DetectionTracking;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 
 public interface DetectionTrackingRepository {
 
@@ -12,4 +13,6 @@ public interface DetectionTrackingRepository {
   List<DetectionTracking> saveAll(List<DetectionTracking> trackings);
 
   List<DetectionTracking> findAllByIdUserBetween(String idUser, Instant from, Instant to);
+
+  List<DetectionTracking> findAllByIdUser(String idUser, String search, Pageable pageable);
 }

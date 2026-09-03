@@ -10,6 +10,7 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.U
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -206,6 +207,62 @@ class DetectionTrackingIT extends MockedThirdParties {
     assertEquals(2, detectionTrackingService.findAllByIdUserBetween(joeDoeId, now, now).size());
     assertEquals(2, consumptionsOfJoeDoe().size());
     assertEquals(98L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+  }
+
+  @SneakyThrows
+  @Test
+  void retrieve_detection_tracking_list_by_user_id_is_ordered_by_creation_datetime_desc() {
+    var api = new DetectionTrackingApi(anApiClient());
+    var joeDoeId = restJoeDoeUser().getId();
+    final var older = now().minusSeconds(60).truncatedTo(ChronoUnit.MILLIS);
+    final var newer = now().truncatedTo(ChronoUnit.MILLIS);
+    var olderId =
+        api.registerDetection(joeDoeId, someCreateDetectionTracking(older)).getFirst().getId();
+    var newerId =
+        api.registerDetection(joeDoeId, someCreateDetectionTracking(newer)).getFirst().getId();
+
+    var actualIds =
+        api.retrieveDetectionTrackingListByUserId(joeDoeId, null, null, null).stream()
+            .map(DetectionTracking::getId)
+            .toList();
+
+    assertTrue(actualIds.indexOf(newerId) < actualIds.indexOf(olderId));
+  }
+
+  @SneakyThrows
+  @Test
+  void retrieve_detection_tracking_list_is_paginated() {
+    var api = new DetectionTrackingApi(anApiClient());
+    var joeDoeId = restJoeDoeUser().getId();
+    final var now = now().truncatedTo(ChronoUnit.MILLIS);
+    api.registerDetection(joeDoeId, someCreateDetectionTracking(now.minusSeconds(1)));
+    api.registerDetection(joeDoeId, someCreateDetectionTracking(now));
+
+    var firstPage = api.retrieveDetectionTrackingListByUserId(joeDoeId, null, 1, 1);
+    var secondPage = api.retrieveDetectionTrackingListByUserId(joeDoeId, null, 2, 1);
+
+    assertEquals(1, firstPage.size());
+    assertEquals(1, secondPage.size());
+    assertNotEquals(firstPage.getFirst().getId(), secondPage.getFirst().getId());
+  }
+
+  @SneakyThrows
+  @Test
+  void retrieve_detection_tracking_list_filtered_by_search() {
+    var api = new DetectionTrackingApi(anApiClient());
+    var joeDoeId = restJoeDoeUser().getId();
+    final var now = now().truncatedTo(ChronoUnit.MILLIS);
+    var searchableZone = "searchableZone-" + randomUUID();
+    var payload = someCreateDetectionTracking(now).getFirst().zone(searchableZone);
+    var expectedId = api.registerDetection(joeDoeId, List.of(payload)).getFirst().getId();
+
+    var matching =
+        api.retrieveDetectionTrackingListByUserId(joeDoeId, "searchablezone-", null, null);
+    var notMatching =
+        api.retrieveDetectionTrackingListByUserId(joeDoeId, "noMatch-" + randomUUID(), null, null);
+
+    assertEquals(List.of(expectedId), matching.stream().map(DetectionTracking::getId).toList());
+    assertTrue(notMatching.isEmpty());
   }
 
   private List<CreditTransaction> consumptionsOfJoeDoe() {

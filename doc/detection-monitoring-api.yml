@@ -1,5 +1,52 @@
 operations:
-  registerDetection:
+  detectionTrackingOperations:
+    get:
+      tags:
+        - Detection Tracking
+      summary: Retrieve detection tracking list of specific user
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: search
+          description: |
+            Filter detection tracking by zone or address or initiator details or both.
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      operationId: retrieveDetectionTrackingListByUserId
+      responses:
+        200:
+          description: List of registered detection tracking ordered by creation datetime DESC
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DetectionTracking"
+        400:
+          $ref: './api.yml#/components/responses/400'
+        402:
+          $ref: './api.yml#/components/responses/402'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
     post:
       tags:
         - Detection Tracking

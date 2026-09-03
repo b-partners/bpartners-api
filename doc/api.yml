@@ -64,6 +64,8 @@ paths:
     $ref: './userAccounts-api.yml#/operations/updateRevenueTargets'
   /users/{userId}/accountHolders/{ahId}/feedback/configuration:
     $ref: './userAccounts-api.yml#/operations/configureFeedback'
+  /users/{userId}/accountHolders/{ahId}/emailRecipients:
+    $ref: './userAccounts-api.yml#/operations/emailRecipients'
   /users/{userId}/accountHolders/{ahId}/feedback:
     $ref: './userAccounts-api.yml#/operations/askFeedback'
   /accountHolders:

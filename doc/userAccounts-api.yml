@@ -543,6 +543,78 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  emailRecipients:
+    get:
+      tags:
+        - User Accounts
+      summary: Get the email recipients configuration of an account holder
+      operationId: getEmailRecipients
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Email recipients configuration of the account holder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailRecipientsConfiguration'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - User Accounts
+      summary: Configure the email recipients of an account holder
+      operationId: configureEmailRecipients
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRecipientsConfiguration'
+      responses:
+        200:
+          description: Updated email recipients configuration of the account holder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailRecipientsConfiguration'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   updateRevenueTargets:
     put:
       tags:
@@ -740,6 +812,30 @@ operations:
           $ref: './api.yml#/components/responses/500'
 components:
   schemas:
+    EmailRecipientsConfiguration:
+      type: object
+      properties:
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailRecipient'
+    EmailRecipient:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/EmailRecipientType'
+        emails:
+          type: array
+          description: Email addresses that will receive the emails of this type
+          items:
+            type: string
+    EmailRecipientType:
+      type: string
+      description: Category of emails sent by the service to the account holder
+      enum:
+        - INVOICE
+        - API_NOTIFICATION
+        - ACCOUNT_INFO
     LegalFile:
       type: object
       properties:

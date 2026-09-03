@@ -14,6 +14,9 @@ import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.EmailRecipient;
+import app.bpartners.api.endpoint.rest.model.EmailRecipientType;
+import app.bpartners.api.endpoint.rest.model.EmailRecipientsConfiguration;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.security.model.Role;
@@ -262,6 +265,79 @@ class AccountHolderIT extends MockedThirdParties {
         "https://updateFeedbackLink.com",
         actualUpdatedFeedbackLink.getFeedback().getFeedbackLink());
     assertNull(actualNoFeedbackLink.getFeedback().getFeedbackLink());
+  }
+
+  @Test
+  void configure_and_get_email_recipients_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    EmailRecipientsConfiguration toConfigure =
+        new EmailRecipientsConfiguration()
+            .recipients(
+                List.of(
+                    new EmailRecipient()
+                        .type(EmailRecipientType.INVOICE)
+                        .emails(List.of("compta@client.fr", "admin@client.fr")),
+                    new EmailRecipient()
+                        .type(EmailRecipientType.API_NOTIFICATION)
+                        .emails(List.of("tech@client.fr"))));
+
+    EmailRecipientsConfiguration configured =
+        api.configureEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, toConfigure);
+    EmailRecipientsConfiguration fetched =
+        api.getEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID);
+
+    assertEquals(
+        emailsByType(toConfigure, EmailRecipientType.INVOICE),
+        emailsByType(configured, EmailRecipientType.INVOICE));
+    assertEquals(
+        emailsByType(toConfigure, EmailRecipientType.INVOICE),
+        emailsByType(fetched, EmailRecipientType.INVOICE));
+    assertEquals(
+        emailsByType(toConfigure, EmailRecipientType.API_NOTIFICATION),
+        emailsByType(fetched, EmailRecipientType.API_NOTIFICATION));
+
+    EmailRecipientsConfiguration reconfigured =
+        api.configureEmailRecipients(
+            JOE_DOE_ID,
+            JOE_DOE_ACCOUNT_HOLDER_ID,
+            new EmailRecipientsConfiguration()
+                .recipients(
+                    List.of(
+                        new EmailRecipient()
+                            .type(EmailRecipientType.ACCOUNT_INFO)
+                            .emails(List.of("boss@client.fr")))));
+
+    assertEquals(1, reconfigured.getRecipients().size());
+    assertEquals(
+        List.of("boss@client.fr"),
+        emailsByType(reconfigured, EmailRecipientType.ACCOUNT_INFO));
+  }
+
+  @Test
+  void configure_email_recipients_with_invalid_email_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    EmailRecipientsConfiguration invalid =
+        new EmailRecipientsConfiguration()
+            .recipients(
+                List.of(
+                    new EmailRecipient()
+                        .type(EmailRecipientType.INVOICE)
+                        .emails(List.of("not-an-email"))));
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invalid email not-an-email. \"}",
+        () -> api.configureEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, invalid));
+  }
+
+  private static List<String> emailsByType(
+      EmailRecipientsConfiguration configuration, EmailRecipientType type) {
+    return configuration.getRecipients().stream()
+        .filter(recipient -> recipient.getType() == type)
+        .findFirst()
+        .map(EmailRecipient::getEmails)
+        .orElse(List.of());
   }
 
   @Test

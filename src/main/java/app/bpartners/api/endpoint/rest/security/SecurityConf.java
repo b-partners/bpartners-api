@@ -539,6 +539,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(POST, "/users/*/accountHolders/*/feedback")
                     .authenticated()
+                    .requestMatchers(GET, "/users/*/accountHolders/*/emailRecipients")
+                    .authenticated()
+                    .requestMatchers(PUT, "/users/*/accountHolders/*/emailRecipients")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/paymentRequests", authResourceProvider))

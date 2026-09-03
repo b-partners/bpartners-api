@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.mapper.AccountHolderRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.AnnualRevenueTargetRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.BusinessActivityRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.CompanyInfoMapper;
+import app.bpartners.api.endpoint.rest.mapper.EmailRecipientRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.FeedbackRestMapper;
 import app.bpartners.api.endpoint.rest.model.AccountHolder;
 import app.bpartners.api.endpoint.rest.model.AccountHolderFeedback;
@@ -11,6 +12,7 @@ import app.bpartners.api.endpoint.rest.model.CompanyBusinessActivity;
 import app.bpartners.api.endpoint.rest.model.CompanyInfo;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
+import app.bpartners.api.endpoint.rest.model.EmailRecipientsConfiguration;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.validator.CreateAnnualRevenueTargetValidator;
@@ -18,6 +20,7 @@ import app.bpartners.api.model.AnnualRevenueTarget;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.service.accountholder.AccountHolderService;
+import app.bpartners.api.service.accountholder.EmailRecipientService;
 import app.bpartners.api.service.feedback.FeedbackService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +44,8 @@ public class AccountHolderController {
   private final CreateAnnualRevenueTargetValidator revenueTargetValidator;
   private final FeedbackService feedbackService;
   private final FeedbackRestMapper feedbackRestMapper;
+  private final EmailRecipientService emailRecipientService;
+  private final EmailRecipientRestMapper emailRecipientRestMapper;
 
   @GetMapping("/accountHolders")
   public List<AccountHolder> getAllAccountHolders(
@@ -121,6 +126,23 @@ public class AccountHolderController {
     return accountHolderMapper.toRest(
         accountHolderService.updateFeedBackConfiguration(
             accountHolderMapper.toDomain(accountHolderId, toUpdate)));
+  }
+
+  @GetMapping("/users/{userId}/accountHolders/{ahId}/emailRecipients")
+  public EmailRecipientsConfiguration getEmailRecipients(
+      @PathVariable("userId") String userId, @PathVariable("ahId") String accountHolderId) {
+    return emailRecipientRestMapper.toRest(
+        emailRecipientService.getByAccountHolderId(accountHolderId));
+  }
+
+  @PutMapping("/users/{userId}/accountHolders/{ahId}/emailRecipients")
+  public EmailRecipientsConfiguration configureEmailRecipients(
+      @PathVariable("userId") String userId,
+      @PathVariable("ahId") String accountHolderId,
+      @RequestBody EmailRecipientsConfiguration toConfigure) {
+    return emailRecipientRestMapper.toRest(
+        emailRecipientService.configure(
+            accountHolderId, emailRecipientRestMapper.toDomain(accountHolderId, toConfigure)));
   }
 
   @PostMapping("/users/{userId}/accountHolders/{ahId}/feedback")

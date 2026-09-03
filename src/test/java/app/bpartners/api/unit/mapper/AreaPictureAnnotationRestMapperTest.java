@@ -129,4 +129,58 @@ class AreaPictureAnnotationRestMapperTest {
     assertEquals(1, actual.size());
     assertEquals(null, actual.get(0).getProspectName());
   }
+
+  @Test
+  void to_rest_drafts_lite_fetches_area_pictures_with_a_single_bulk_call() {
+    var userId = randomUUID().toString();
+    var areaPicture1 =
+        AreaPicture.builder()
+            .id("area_picture_1")
+            .idProspect("prospect_1")
+            .idFileInfo("file_1")
+            .build();
+    var areaPicture2 =
+        AreaPicture.builder()
+            .id("area_picture_2")
+            .idProspect("prospect_2")
+            .idFileInfo("file_2")
+            .build();
+    when(areaPictureServiceMock.findAllByIdIn(userId, List.of("area_picture_1", "area_picture_2")))
+        .thenReturn(List.of(areaPicture1, areaPicture2));
+    when(prospectRepositoryMock.findAllByIds(any()))
+        .thenReturn(
+            List.of(
+                Prospect.builder().id("prospect_1").name("John Doe").build(),
+                Prospect.builder().id("prospect_2").name("Jane Smith").build()));
+    var annotations =
+        List.of(
+            annotationOf("annotation_1", "area_picture_1"),
+            annotationOf("annotation_2", "area_picture_1"),
+            annotationOf("annotation_3", "area_picture_2"));
+
+    var actual = subject.toRestDraftsLite(userId, annotations);
+
+    verify(areaPictureServiceMock, never()).findBy(anyString(), anyString());
+    assertEquals(3, actual.size());
+    assertEquals("John Doe", actual.get(0).getProspectName());
+    assertEquals("John Doe", actual.get(1).getProspectName());
+    assertEquals("Jane Smith", actual.get(2).getProspectName());
+    assertEquals("file_1", actual.get(0).getAreaPicture().getFileId());
+    assertEquals(null, actual.get(0).getAnnotations());
+  }
+
+  @Test
+  void to_rest_drafts_lite_handles_area_picture_without_prospect() {
+    var userId = randomUUID().toString();
+    var areaPicture = AreaPicture.builder().id("area_picture_1").idProspect(null).build();
+    when(areaPictureServiceMock.findAllByIdIn(userId, List.of("area_picture_1")))
+        .thenReturn(List.of(areaPicture));
+    var annotations = List.of(annotationOf("annotation_1", "area_picture_1"));
+
+    var actual = subject.toRestDraftsLite(userId, annotations);
+
+    verify(prospectRepositoryMock).findAllByIds(List.of());
+    assertEquals(1, actual.size());
+    assertEquals(null, actual.get(0).getProspectName());
+  }
 }

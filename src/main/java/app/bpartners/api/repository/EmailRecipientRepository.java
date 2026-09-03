@@ -10,8 +10,6 @@ public interface EmailRecipientRepository {
   List<EmailRecipient> findByAccountHolderIdAndType(
       String accountHolderId, EmailRecipientType type);
 
-  List<EmailRecipient> saveAll(String accountHolderId, List<EmailRecipient> recipients);
-
   List<EmailRecipient> saveByType(
       String accountHolderId, EmailRecipientType type, List<EmailRecipient> recipients);
 }

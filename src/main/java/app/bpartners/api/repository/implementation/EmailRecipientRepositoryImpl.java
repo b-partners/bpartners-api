@@ -34,17 +34,10 @@ public class EmailRecipientRepositoryImpl implements EmailRecipientRepository {
 
   @Transactional
   @Override
-  public List<EmailRecipient> saveAll(String accountHolderId, List<EmailRecipient> recipients) {
-    jpaRepository.deleteByIdAccountHolder(accountHolderId);
-    List<HEmailRecipient> entities = recipients.stream().map(mapper::toEntity).toList();
-    return jpaRepository.saveAll(entities).stream().map(mapper::toDomain).toList();
-  }
-
-  @Transactional
-  @Override
   public List<EmailRecipient> saveByType(
       String accountHolderId, EmailRecipientType type, List<EmailRecipient> recipients) {
     jpaRepository.deleteByIdAccountHolderAndType(accountHolderId, type);
+    jpaRepository.flush();
     List<HEmailRecipient> entities = recipients.stream().map(mapper::toEntity).toList();
     return jpaRepository.saveAll(entities).stream().map(mapper::toDomain).toList();
   }

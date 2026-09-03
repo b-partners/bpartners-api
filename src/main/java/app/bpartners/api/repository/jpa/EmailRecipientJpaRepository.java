@@ -11,7 +11,5 @@ public interface EmailRecipientJpaRepository extends JpaRepository<HEmailRecipie
   List<HEmailRecipient> findByIdAccountHolderAndType(
       String idAccountHolder, EmailRecipientType type);
 
-  void deleteByIdAccountHolder(String idAccountHolder);
-
   void deleteByIdAccountHolderAndType(String idAccountHolder, EmailRecipientType type);
 }

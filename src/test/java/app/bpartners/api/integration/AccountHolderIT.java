@@ -284,18 +284,12 @@ class AccountHolderIT extends MockedThirdParties {
 
     EmailRecipientsConfiguration configured =
         api.configureEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, toConfigure);
-    EmailRecipientsConfiguration fetched =
-        api.getEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID);
 
     assertEquals(
-        emailsByType(toConfigure, EmailRecipientType.INVOICE),
-        emailsByType(configured, EmailRecipientType.INVOICE));
+        List.of("admin@client.fr", "compta@client.fr"),
+        sorted(emailsByType(configured, EmailRecipientType.INVOICE)));
     assertEquals(
-        emailsByType(toConfigure, EmailRecipientType.INVOICE),
-        emailsByType(fetched, EmailRecipientType.INVOICE));
-    assertEquals(
-        emailsByType(toConfigure, EmailRecipientType.API_NOTIFICATION),
-        emailsByType(fetched, EmailRecipientType.API_NOTIFICATION));
+        List.of("tech@client.fr"), emailsByType(configured, EmailRecipientType.API_NOTIFICATION));
 
     EmailRecipientsConfiguration reconfigured =
         api.configureEmailRecipients(
@@ -308,9 +302,36 @@ class AccountHolderIT extends MockedThirdParties {
                             .type(EmailRecipientType.ACCOUNT_INFO)
                             .emails(List.of("boss@client.fr")))));
 
-    assertEquals(1, reconfigured.getRecipients().size());
+    assertEquals(3, reconfigured.getRecipients().size());
     assertEquals(
         List.of("boss@client.fr"), emailsByType(reconfigured, EmailRecipientType.ACCOUNT_INFO));
+    assertEquals(
+        List.of("admin@client.fr", "compta@client.fr"),
+        sorted(emailsByType(reconfigured, EmailRecipientType.INVOICE)));
+    assertEquals(
+        List.of("tech@client.fr"), emailsByType(reconfigured, EmailRecipientType.API_NOTIFICATION));
+
+    EmailRecipientsConfiguration reset =
+        api.configureEmailRecipients(
+            JOE_DOE_ID,
+            JOE_DOE_ACCOUNT_HOLDER_ID,
+            new EmailRecipientsConfiguration()
+                .recipients(
+                    List.of(
+                        new EmailRecipient()
+                            .type(EmailRecipientType.INVOICE)
+                            .emails(List.of("compta@client.fr")))));
+
+    assertEquals(List.of("compta@client.fr"), emailsByType(reset, EmailRecipientType.INVOICE));
+
+    EmailRecipientsConfiguration fetched =
+        api.getEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID);
+    assertEquals(3, fetched.getRecipients().size());
+    assertEquals(List.of("compta@client.fr"), emailsByType(fetched, EmailRecipientType.INVOICE));
+    assertEquals(
+        List.of("tech@client.fr"), emailsByType(fetched, EmailRecipientType.API_NOTIFICATION));
+    assertEquals(
+        List.of("boss@client.fr"), emailsByType(fetched, EmailRecipientType.ACCOUNT_INFO));
   }
 
   @Test
@@ -337,6 +358,10 @@ class AccountHolderIT extends MockedThirdParties {
         .findFirst()
         .map(EmailRecipient::getEmails)
         .orElse(List.of());
+  }
+
+  private static List<String> sorted(List<String> emails) {
+    return emails.stream().sorted().toList();
   }
 
   @Test

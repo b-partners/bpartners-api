@@ -310,8 +310,7 @@ class AccountHolderIT extends MockedThirdParties {
 
     assertEquals(1, reconfigured.getRecipients().size());
     assertEquals(
-        List.of("boss@client.fr"),
-        emailsByType(reconfigured, EmailRecipientType.ACCOUNT_INFO));
+        List.of("boss@client.fr"), emailsByType(reconfigured, EmailRecipientType.ACCOUNT_INFO));
   }
 
   @Test

@@ -44,7 +44,8 @@ public class EmailRecipientsUpdateRequestedService
 
     emailRecipientService.populateByType(accountHolderId, type, List.of(stripeCustomerEmail));
     log.info(
-        "AccountHolder(id={}) {} email recipients populated with stripe customer email of User(id={})",
+        "AccountHolder(id={}) {} email recipients populated with stripe customer email of"
+            + " User(id={})",
         accountHolderId,
         type,
         user.getId());

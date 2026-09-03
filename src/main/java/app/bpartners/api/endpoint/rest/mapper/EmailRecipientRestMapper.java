@@ -1,7 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
-import app.bpartners.api.endpoint.rest.model.EmailRecipientsConfiguration;
 import app.bpartners.api.endpoint.rest.model.EmailRecipientType;
+import app.bpartners.api.endpoint.rest.model.EmailRecipientsConfiguration;
 import app.bpartners.api.endpoint.rest.validator.EmailRecipientsValidator;
 import app.bpartners.api.model.EmailRecipient;
 import java.util.List;
@@ -15,8 +15,7 @@ import org.springframework.stereotype.Component;
 public class EmailRecipientRestMapper {
   private final EmailRecipientsValidator validator;
 
-  public List<EmailRecipient> toDomain(
-      String accountHolderId, EmailRecipientsConfiguration rest) {
+  public List<EmailRecipient> toDomain(String accountHolderId, EmailRecipientsConfiguration rest) {
     validator.accept(rest);
     if (rest.getRecipients() == null) {
       return List.of();

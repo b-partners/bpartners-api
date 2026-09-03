@@ -51,7 +51,8 @@ class EmailRecipientsUpdateRequestedServiceTest {
 
     var emailsCaptor = ArgumentCaptor.forClass(List.class);
     verify(emailRecipientService)
-        .populateByType(eq("account_holder_id"), eq(EmailRecipientType.INVOICE), emailsCaptor.capture());
+        .populateByType(
+            eq("account_holder_id"), eq(EmailRecipientType.INVOICE), emailsCaptor.capture());
     assertEquals(List.of("compta@client.fr"), emailsCaptor.getValue());
   }
 

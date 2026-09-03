@@ -4,9 +4,13 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.EmailRecipientsUpdateRequested;
 import app.bpartners.api.endpoint.rest.model.EmailRecipientType;
 import app.bpartners.api.model.AccountHolder;
+import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.User;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.accountholder.EmailRecipientService;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,40 +21,45 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EmailInvoiceResolver implements Function<Invoice, String> {
   private final EmailRecipientService emailRecipientService;
+  private final UserRepository userRepository;
   private final EventProducer eventProducer;
 
   public String apply(Invoice invoice) {
-    AccountHolder accountHolder = invoice.getActualHolder();
-    if (accountHolder != null) {
-      List<String> configuredEmails =
-          emailRecipientService.getEmails(accountHolder.getId(), EmailRecipientType.INVOICE);
-      if (!configuredEmails.isEmpty()) {
-        var retainedEmailAddress = configuredEmails.getFirst();
-        if (configuredEmails.size() > 1) {
-          var ignoredEmailAddresses = configuredEmails.subList(1, configuredEmails.size());
-          log.warn(
-              "Only one email address supported for now but AccountHolder(id={}) has {} configured;"
-                  + " {} retained, {} ignored",
-              accountHolder.getId(),
-              configuredEmails.size(),
-              retainedEmailAddress,
-              ignoredEmailAddresses);
-        }
-        return retainedEmailAddress;
-      }
-      requestInvoiceRecipientsUpdate(invoice, accountHolder);
+    Customer customer = invoice.getCustomer();
+    if (customer == null || customer.getEmail() == null) {
+      return customer == null ? null : customer.getEmail();
     }
-    return invoice.getCustomer() == null ? null : invoice.getCustomer().getEmail();
+    Optional<User> recipientUser = userRepository.findByEmail(customer.getEmail());
+    if (recipientUser.isPresent()) {
+      AccountHolder accountHolder = recipientUser.get().getDefaultHolder();
+      if (accountHolder != null) {
+        List<String> configuredEmails =
+            emailRecipientService.getEmails(accountHolder.getId(), EmailRecipientType.INVOICE);
+        if (!configuredEmails.isEmpty()) {
+          var retainedEmailAddress = configuredEmails.getFirst();
+          if (configuredEmails.size() > 1) {
+            var ignoredEmailAddresses = configuredEmails.subList(1, configuredEmails.size());
+            log.warn(
+                "Only one email address supported for now but AccountHolder(id={}) has {}"
+                    + " configured; {} retained, {} ignored",
+                accountHolder.getId(),
+                configuredEmails.size(),
+                retainedEmailAddress,
+                ignoredEmailAddresses);
+          }
+          return retainedEmailAddress;
+        }
+        requestInvoiceRecipientsUpdate(recipientUser.get(), accountHolder);
+      }
+    }
+    return customer.getEmail();
   }
 
-  private void requestInvoiceRecipientsUpdate(Invoice invoice, AccountHolder accountHolder) {
-    if (invoice.getUser() == null) {
-      return;
-    }
+  private void requestInvoiceRecipientsUpdate(User recipientUser, AccountHolder accountHolder) {
     eventProducer.accept(
         List.of(
             EmailRecipientsUpdateRequested.builder()
-                .userId(invoice.getUser().getId())
+                .userId(recipientUser.getId())
                 .accountHolderId(accountHolder.getId())
                 .type(EmailRecipientType.INVOICE)
                 .build()));
@@ -58,6 +67,6 @@ public class EmailInvoiceResolver implements Function<Invoice, String> {
         "No INVOICE email recipient for AccountHolder(id={}), requested async update from stripe"
             + " customer of User(id={})",
         accountHolder.getId(),
-        invoice.getUser().getId());
+        recipientUser.getId());
   }
 }

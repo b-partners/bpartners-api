@@ -33,6 +33,7 @@ import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.EmailInvoiceResolver;
 import app.bpartners.api.service.accountholder.EmailRecipientService;
@@ -60,9 +61,10 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
   FileWriter fileWriter = mock();
   SesService mailer = mock();
   EmailRecipientService emailRecipientService = mock();
+  UserRepository userRepository = mock();
   EventProducer<EmailRecipientsUpdateRequested> eventProducer = mock();
   EmailInvoiceResolver emailInvoiceResolver =
-      new EmailInvoiceResolver(emailRecipientService, eventProducer);
+      new EmailInvoiceResolver(emailRecipientService, userRepository, eventProducer);
   SubscriptionPaymentInvoiceCreatedService subject =
       new SubscriptionPaymentInvoiceCreatedService(
           invoiceRepository,
@@ -105,7 +107,8 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
 
   @Test
   void sends_to_the_single_configured_invoice_recipient_when_present() throws Exception {
-    givenInvoiceAndPayment(invoiceWithHolder(), somePayment());
+    givenInvoiceAndPayment(someInvoice(), somePayment());
+    givenRecipientUserOfCustomerEmail();
     when(emailRecipientService.getEmails("account_holder_id", EmailRecipientType.INVOICE))
         .thenReturn(List.of("compta@client.fr"));
 
@@ -120,7 +123,8 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
 
   @Test
   void keeps_only_the_first_configured_invoice_recipient_when_several() throws Exception {
-    givenInvoiceAndPayment(invoiceWithHolder(), somePayment());
+    givenInvoiceAndPayment(someInvoice(), somePayment());
+    givenRecipientUserOfCustomerEmail();
     when(emailRecipientService.getEmails("account_holder_id", EmailRecipientType.INVOICE))
         .thenReturn(List.of("compta@client.fr", "admin@client.fr"));
 
@@ -135,7 +139,8 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
 
   @Test
   void requests_async_recipients_update_and_falls_back_when_none_configured() throws Exception {
-    givenInvoiceAndPayment(invoiceWithHolder(), somePayment());
+    givenInvoiceAndPayment(someInvoice(), somePayment());
+    givenRecipientUserOfCustomerEmail();
     when(emailRecipientService.getEmails("account_holder_id", EmailRecipientType.INVOICE))
         .thenReturn(List.of());
 
@@ -149,7 +154,7 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
     verify(eventProducer).accept(eventsCaptor.capture());
     var requested = (EmailRecipientsUpdateRequested) eventsCaptor.getValue().getFirst();
     assertEquals("account_holder_id", requested.getAccountHolderId());
-    assertEquals("admin_user_id", requested.getUserId());
+    assertEquals("recipient_user_id", requested.getUserId());
     assertEquals(EmailRecipientType.INVOICE, requested.getType());
   }
 
@@ -334,14 +339,15 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
         .build();
   }
 
-  private Invoice invoiceWithHolder() {
-    return someInvoice().toBuilder()
-        .user(
-            User.builder()
-                .id("admin_user_id")
-                .accountHolders(List.of(AccountHolder.builder().id("account_holder_id").build()))
-                .build())
-        .build();
+  private void givenRecipientUserOfCustomerEmail() {
+    when(userRepository.findByEmail("subscriber@email.com"))
+        .thenReturn(
+            Optional.of(
+                User.builder()
+                    .id("recipient_user_id")
+                    .accountHolders(
+                        List.of(AccountHolder.builder().id("account_holder_id").build()))
+                    .build()));
   }
 
   private Invoice someInvoice() {

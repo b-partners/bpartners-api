@@ -340,6 +340,12 @@ operations:
           schema:
             type: string
             format: date-time
+        - in: query
+          name: lite
+          description: when true, skips annotations details and area picture imagery data to speed up list rendering
+          schema:
+            type: boolean
+            default: false
       responses:
         200:
           description: all draft annotations made for the given account, ordered by creation date-time
@@ -402,6 +408,12 @@ operations:
           schema:
             type: string
             format: date-time
+        - in: query
+          name: lite
+          description: when true, skips annotations details and area picture imagery data to speed up list rendering
+          schema:
+            type: boolean
+            default: false
       responses:
         200:
           description: draft annotations made on the area picture, ordered by creation date-time

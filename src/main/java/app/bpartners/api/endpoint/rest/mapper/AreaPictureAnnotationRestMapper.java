@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
 import app.bpartners.api.endpoint.rest.model.AreaPictureAnnotation;
+import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.DraftAreaPictureAnnotation;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -102,6 +103,53 @@ public class AreaPictureAnnotationRestMapper {
                   .properties(restAnnotation.getProperties())
                   .creationDatetime(restAnnotation.getCreationDatetime())
                   .areaPicture(areaPictureRestMapper.toRest(areaPicture))
+                  .prospectName(prospect == null ? null : prospect.getName());
+            })
+        .toList();
+  }
+
+  // Lite variant for list views: skips loading annotationInstances (avoids an N+1 lazy-load per
+  // row) and fetches area pictures via a single bulk query instead of one GeoData Imagery API
+  // call per distinct picture, since list rows only render id/fileId/prospectId/zoomLevel.
+  public List<DraftAreaPictureAnnotation> toRestDraftsLite(
+      String userId, List<app.bpartners.api.model.AreaPictureAnnotation> areaPictureAnnotations) {
+    var idAreaPictures =
+        areaPictureAnnotations.stream()
+            .map(app.bpartners.api.model.AreaPictureAnnotation::getIdAreaPicture)
+            .distinct()
+            .toList();
+    var areaPicturesById =
+        areaPictureService.findAllByIdIn(userId, idAreaPictures).stream()
+            .collect(toMap(AreaPicture::getId, Function.identity()));
+
+    var idProspects =
+        areaPicturesById.values().stream()
+            .map(AreaPicture::getIdProspect)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+    var prospectsById =
+        prospectRepository.findAllByIds(idProspects).stream()
+            .collect(toMap(Prospect::getId, Function.identity()));
+
+    return areaPictureAnnotations.stream()
+        .map(
+            areaPictureAnnotation -> {
+              var areaPicture = areaPicturesById.get(areaPictureAnnotation.getIdAreaPicture());
+              var idProspect = areaPicture.getIdProspect();
+              var prospect = idProspect == null ? null : prospectsById.get(idProspect);
+
+              return new DraftAreaPictureAnnotation()
+                  .id(areaPictureAnnotation.getId())
+                  .isDraft(areaPictureAnnotation.getIsDraft())
+                  .idAreaPicture(areaPictureAnnotation.getIdAreaPicture())
+                  .creationDatetime(areaPictureAnnotation.getCreationDatetime())
+                  .areaPicture(
+                      new AreaPictureDetails()
+                          .id(areaPicture.getId())
+                          .fileId(areaPicture.getIdFileInfo())
+                          .prospectId(areaPicture.getIdProspect())
+                          .zoomLevel(areaPicture.getZoomLevel()))
                   .prospectName(prospect == null ? null : prospect.getName());
             })
         .toList();

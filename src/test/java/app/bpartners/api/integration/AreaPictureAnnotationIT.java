@@ -240,7 +240,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
 
     var actualAnnotations =
         api.getDraftAnnotationsByAccountIdAndAreaPictureId(
-            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, null, null, null, null);
+            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, null, null, null, null, null);
 
     assertEquals(draftAreaPictureAnnotation2(), actualAnnotations.getFirst());
     assertEquals(draftAreaPictureAnnotation1(), actualAnnotations.getLast());
@@ -255,7 +255,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
 
     var matching =
         api.getDraftAnnotationsByAccountIdAndAreaPictureId(
-            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, "John", null, null, null);
+            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, "John", null, null, null, null);
     var notMatching =
         api.getDraftAnnotationsByAccountIdAndAreaPictureId(
             JOE_DOE_ACCOUNT_ID,
@@ -263,6 +263,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
             null,
             null,
             "Unknown prospect",
+            null,
             null,
             null,
             null);
@@ -281,10 +282,18 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
 
     var matching =
         api.getDraftAnnotationsByAccountIdAndAreaPictureId(
-            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, null, "Montauban", null, null);
+            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, null, "Montauban", null, null, null);
     var notMatching =
         api.getDraftAnnotationsByAccountIdAndAreaPictureId(
-            JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, null, null, null, "Unknown address", null, null);
+            JOE_DOE_ACCOUNT_ID,
+            AREA_PICTURE_1_ID,
+            null,
+            null,
+            null,
+            "Unknown address",
+            null,
+            null,
+            null);
 
     assertTrue(
         matching.containsAll(
@@ -307,6 +316,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
             null,
             null,
             Instant.parse("2024-01-08T01:03:00.00Z"),
+            null,
             null);
     var toBeforeSecondDraft =
         api.getDraftAnnotationsByAccountIdAndAreaPictureId(
@@ -317,7 +327,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
             null,
             null,
             null,
-            Instant.parse("2024-01-08T01:02:00.00Z"));
+            Instant.parse("2024-01-08T01:02:00.00Z"),
+            null);
 
     assertEquals(List.of(draftAreaPictureAnnotation2()), fromAfterFirstDraft);
     assertEquals(List.of(draftAreaPictureAnnotation1()), toBeforeSecondDraft);
@@ -355,7 +366,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
     AreaPictureApi api = new AreaPictureApi(apiClient);
 
     var actualAnnotations =
-        api.getDraftAnnotationsByAccountId(JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null);
+        api.getDraftAnnotationsByAccountId(
+            JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null);
 
     assertEquals(draftAreaPictureAnnotation2(), actualAnnotations.getFirst());
     assertEquals(draftAreaPictureAnnotation1(), actualAnnotations.getLast());
@@ -369,7 +381,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
     AreaPictureApi api = new AreaPictureApi(apiClient);
 
     var actualAnnotations =
-        api.getDraftAnnotationsByAccountId(JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null);
+        api.getDraftAnnotationsByAccountId(
+            JOE_DOE_ACCOUNT_ID, null, null, null, null, null, null, null);
 
     assertEquals(3, actualAnnotations.size());
     assertTrue(
@@ -393,7 +406,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
     AreaPictureApi api = new AreaPictureApi(apiClient);
 
     var actualAnnotations =
-        api.getDraftAnnotationsByAccountId(JANE_ACCOUNT_ID, null, null, null, null, null, null);
+        api.getDraftAnnotationsByAccountId(
+            JANE_ACCOUNT_ID, null, null, null, null, null, null, null);
 
     assertTrue(actualAnnotations.isEmpty());
   }
@@ -406,10 +420,10 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
 
     var matching =
         api.getDraftAnnotationsByAccountId(
-            JOE_DOE_ACCOUNT_ID, null, null, "John", null, null, null);
+            JOE_DOE_ACCOUNT_ID, null, null, "John", null, null, null, null);
     var notMatching =
         api.getDraftAnnotationsByAccountId(
-            JOE_DOE_ACCOUNT_ID, null, null, "Unknown prospect", null, null, null);
+            JOE_DOE_ACCOUNT_ID, null, null, "Unknown prospect", null, null, null, null);
 
     assertTrue(
         matching.containsAll(
@@ -425,10 +439,10 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
 
     var matching =
         api.getDraftAnnotationsByAccountId(
-            JOE_DOE_ACCOUNT_ID, null, null, null, "Montauban", null, null);
+            JOE_DOE_ACCOUNT_ID, null, null, null, "Montauban", null, null, null);
     var notMatching =
         api.getDraftAnnotationsByAccountId(
-            JOE_DOE_ACCOUNT_ID, null, null, null, "Unknown address", null, null);
+            JOE_DOE_ACCOUNT_ID, null, null, null, "Unknown address", null, null, null);
 
     assertTrue(
         matching.containsAll(
@@ -450,6 +464,7 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
             null,
             null,
             Instant.parse("2024-01-08T01:03:00.00Z"),
+            null,
             null);
     var toBeforeSecondDraft =
         api.getDraftAnnotationsByAccountId(
@@ -459,7 +474,8 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
             null,
             null,
             null,
-            Instant.parse("2024-01-08T01:02:00.00Z"));
+            Instant.parse("2024-01-08T01:02:00.00Z"),
+            null);
 
     assertEquals(List.of(draftAreaPictureAnnotation2()), fromAfterFirstDraft);
     assertEquals(List.of(draftAreaPictureAnnotation1()), toBeforeSecondDraft);

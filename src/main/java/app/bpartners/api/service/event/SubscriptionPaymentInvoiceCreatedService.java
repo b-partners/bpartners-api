@@ -89,7 +89,18 @@ public class SubscriptionPaymentInvoiceCreatedService
       List<String> configuredEmails =
           emailRecipientService.getEmails(accountHolder.getId(), EmailRecipientType.INVOICE);
       if (!configuredEmails.isEmpty()) {
-        return String.join(",", configuredEmails);
+        var retainedEmailAddress = configuredEmails.getFirst();
+        if (configuredEmails.size() > 1) {
+          var ignoredEmailAddresses = configuredEmails.subList(1, configuredEmails.size());
+          log.warn(
+              "Only one email address supported for now but AccountHolder(id={}) has {} configured;"
+                  + " {} retained, {} ignored",
+              accountHolder.getId(),
+              configuredEmails.size(),
+              retainedEmailAddress,
+              ignoredEmailAddresses);
+        }
+        return retainedEmailAddress;
       }
       requestInvoiceRecipientsUpdate(invoice, accountHolder);
     }

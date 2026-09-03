@@ -102,7 +102,22 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
   }
 
   @Test
-  void sends_to_configured_invoice_recipients_when_present() throws Exception {
+  void sends_to_the_single_configured_invoice_recipient_when_present() throws Exception {
+    givenInvoiceAndPayment(invoiceWithHolder(), somePayment());
+    when(emailRecipientService.getEmails("account_holder_id", EmailRecipientType.INVOICE))
+        .thenReturn(List.of("compta@client.fr"));
+
+    subject.accept(someEvent());
+
+    var recipientCaptor = ArgumentCaptor.forClass(String.class);
+    verify(mailer)
+        .sendEmail(recipientCaptor.capture(), anyString(), anyString(), anyString(), anyList());
+    assertEquals("compta@client.fr", recipientCaptor.getValue());
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
+  void keeps_only_the_first_configured_invoice_recipient_when_several() throws Exception {
     givenInvoiceAndPayment(invoiceWithHolder(), somePayment());
     when(emailRecipientService.getEmails("account_holder_id", EmailRecipientType.INVOICE))
         .thenReturn(List.of("compta@client.fr", "admin@client.fr"));
@@ -112,7 +127,7 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
     var recipientCaptor = ArgumentCaptor.forClass(String.class);
     verify(mailer)
         .sendEmail(recipientCaptor.capture(), anyString(), anyString(), anyString(), anyList());
-    assertEquals("compta@client.fr,admin@client.fr", recipientCaptor.getValue());
+    assertEquals("compta@client.fr", recipientCaptor.getValue());
     verify(eventProducer, never()).accept(anyList());
   }
 

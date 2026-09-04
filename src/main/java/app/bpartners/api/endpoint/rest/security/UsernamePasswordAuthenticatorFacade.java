@@ -13,6 +13,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ForbiddenException;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
+import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.user.LegalFileService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,6 +48,7 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
   private final SubscriptionService subscriptionService;
   private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
   private final UserSubscriptionEligibleJpaRepository userSubscriptionEligibleJpaRepository;
+  private final CreditService creditService;
 
   @Override
   public UserDetails retrieveUser(
@@ -98,10 +100,16 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
               });
     }
     var userSubscription = subscriptionService.getSubscriptionByUserId(user.getId());
-    if (!userSubscription.hasValidSubscription() && !userNotRestrictedBySubscriptionStatus) {
+    if (!userSubscription.hasValidSubscription()
+        && !userNotRestrictedBySubscriptionStatus
+        && !userHasSpendableCredits(user)) {
       throw new UserSubscriptionExpiredException(
           "User.id=" + user.getId() + " does not have a valid subscription or free trial expired");
     }
+  }
+
+  private boolean userHasSpendableCredits(User user) {
+    return creditService.getCreditBalance(user.getId()).getSpendableCredits() > 0;
   }
 
   @Override

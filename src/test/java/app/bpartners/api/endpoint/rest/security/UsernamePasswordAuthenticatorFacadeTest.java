@@ -21,6 +21,7 @@ import app.bpartners.api.service.user.LegalFileService;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 class UsernamePasswordAuthenticatorFacadeTest {
@@ -187,5 +188,54 @@ class UsernamePasswordAuthenticatorFacadeTest {
     assertThrows(
         UserSubscriptionExpiredException.class,
         () -> subject.retrieveUser(username, authenticationTokenMock));
+  }
+
+  @Test
+  void do_nothing_when_getting_credit_purchases_even_without_valid_subscription() {
+    var username = randomUUID().toString();
+    var userId = randomUUID().toString();
+    var authenticationTokenMock = mock(UsernamePasswordAuthenticationToken.class);
+    var principalMock = mock(Principal.class);
+    var userMock = mock(User.class);
+
+    when(userMock.getId()).thenReturn(userId);
+    when(principalMock.getUser()).thenReturn(userMock);
+    when(bearerAuthenticatorMock.retrieveUser(username, authenticationTokenMock))
+        .thenReturn(principalMock);
+    when(legalServiceMock.getAllToBeApprovedLegalFilesByUserId(userId)).thenReturn(List.of());
+    when(authenticationTokenMock.getDetails())
+        .thenReturn(request("GET", "/users/" + userId + "/creditPurchases"));
+
+    assertDoesNotThrow(() -> subject.retrieveUser(username, authenticationTokenMock));
+    verify(subscriptionServiceMock, never()).getSubscriptionByUserId(any());
+    verify(creditServiceMock, never()).getCreditBalance(any());
+  }
+
+  @Test
+  void do_nothing_when_updating_a_credit_purchase_even_without_valid_subscription() {
+    var username = randomUUID().toString();
+    var userId = randomUUID().toString();
+    var authenticationTokenMock = mock(UsernamePasswordAuthenticationToken.class);
+    var principalMock = mock(Principal.class);
+    var userMock = mock(User.class);
+
+    when(userMock.getId()).thenReturn(userId);
+    when(principalMock.getUser()).thenReturn(userMock);
+    when(bearerAuthenticatorMock.retrieveUser(username, authenticationTokenMock))
+        .thenReturn(principalMock);
+    when(legalServiceMock.getAllToBeApprovedLegalFilesByUserId(userId)).thenReturn(List.of());
+    when(authenticationTokenMock.getDetails())
+        .thenReturn(request("PUT", "/users/" + userId + "/creditPurchases/" + randomUUID()));
+
+    assertDoesNotThrow(() -> subject.retrieveUser(username, authenticationTokenMock));
+    verify(subscriptionServiceMock, never()).getSubscriptionByUserId(any());
+    verify(creditServiceMock, never()).getCreditBalance(any());
+  }
+
+  private static MockHttpServletRequest request(String method, String servletPath) {
+    var request = new MockHttpServletRequest();
+    request.setMethod(method);
+    request.setServletPath(servletPath);
+    return request;
   }
 }

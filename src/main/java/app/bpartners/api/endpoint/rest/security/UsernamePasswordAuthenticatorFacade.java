@@ -36,6 +36,8 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
       new OrRequestMatcher(
           new AntPathRequestMatcher("/creditPacks", GET.name()),
           new AntPathRequestMatcher("/creditPacks/*", GET.name()),
+          new AntPathRequestMatcher("/users/*/creditPurchases", GET.name()),
+          new AntPathRequestMatcher("/users/*/creditPurchases/*", PUT.name()),
           new AntPathRequestMatcher("/users/*/creditBalance", GET.name()),
           new AntPathRequestMatcher("/users/*/paymentMethods", GET.name()),
           new AntPathRequestMatcher("/users/*/paymentMethods", PUT.name()),

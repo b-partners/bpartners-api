@@ -2,8 +2,7 @@ package app.bpartners.api.endpoint.rest.security;
 
 import static app.bpartners.api.model.WhiteListScope.PAYMENT_METHOD_NOT_REQUIRED;
 import static app.bpartners.api.model.WhiteListScope.SUBSCRIPTION_VALIDATION_NOT_REQUIRED;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.*;
 
 import app.bpartners.api.endpoint.rest.security.exception.NoPaymentMethodFoundException;
 import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
@@ -38,6 +37,7 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
           new AntPathRequestMatcher("/creditPacks/*", GET.name()),
           new AntPathRequestMatcher("/users/*/creditBalance", GET.name()),
           new AntPathRequestMatcher("/users/*/paymentMethods", GET.name()),
+          new AntPathRequestMatcher("/users/*/paymentMethods", PUT.name()),
           new AntPathRequestMatcher("/users/*/subscriptionCommitments", GET.name()),
           new AntPathRequestMatcher("/users/*/subscriptionCommitments", POST.name()));
 

@@ -1,0 +1,873 @@
+operations:
+  creditPacksOperation:
+    get:
+      tags:
+        - Credits
+      summary: List the purchasable prepaid credit packs
+      description: |
+        Catalog of the prepaid credit packs, priced against the caller active subscription plan,
+        so the returned prices vary from one plan to another. A pack grants `credits` to the buyer
+        wallet once its purchase is `COMPLETED`. Deprecated packs are never returned.
+      operationId: getCreditPacks
+      parameters:
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: Available credit packs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CreditPack'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+  creditPackSingleOperation:
+    get:
+      tags:
+        - Credits
+      summary: Get a credit pack by identifier
+      operationId: getCreditPackById
+      parameters:
+        - in: path
+          name: packId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The credit pack
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditPack'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+  creditBalanceOperation:
+    get:
+      tags:
+        - Credits
+      summary: Get the current credit balance of a user
+      description: |
+        Singleton sub-resource holding the live wallet state: total credits, breakdown by origin,
+        effective per-analysis cost of the active plan and upcoming expirations.
+      operationId: getCreditBalance
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The user credit balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditBalance'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+  creditPurchasesOperation:
+    get:
+      tags:
+        - Credits
+      summary: List the credit purchases of a user
+      operationId: getCreditPurchases
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: statuses
+          description: When omitted, purchases of every status are returned.
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/CreditPurchaseStatus'
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: Credit purchases, most recent first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CreditPurchase'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+  creditPurchaseSingleOperation:
+    put:
+      tags:
+        - Credits
+      summary: Buy credits, either a pack or a freely chosen amount
+      description: |
+        A `PACK` purchase buys one of the catalog packs, a `CUSTOM` one buys the exact number of
+        credits the consumer asks for, priced server side at the unit price in force. The returned
+        purchase carries the resulting `amountInCentsWithVat`, which the consumer can display.
+        The consumer chooses `purchaseId`, which makes the call safely retryable: submitting an
+        already known identifier returns the existing purchase instead of buying twice.
+        The buyer is charged without leaving the consumer whenever a valid card is already
+        registered: the returned purchase is then `COMPLETED`, carries no `redirection` and its
+        `creditTransactionId` points at the credits already added to the wallet.
+        Otherwise, when no card is registered or when the card needs the buyer to authenticate,
+        the purchase is `PENDING` and carries the payment redirection to follow. Credits are then
+        added only once the payment provider confirms the payment, which moves the purchase to
+        `COMPLETED` and appends a `PURCHASE` credit transaction. `redirectionStatusUrls` is
+        therefore required even when the charge is expected to succeed without redirection.
+        A purchase is immutable, submitting a known identifier with a different payload is
+        rejected.
+      operationId: submitCreditPurchase
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: purchaseId
+          description: Consumer generated identifier of the purchase
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCreditPurchase'
+      responses:
+        200:
+          description: |
+            The submitted purchase, `COMPLETED` when it could be charged on a registered card,
+            `PENDING` and carrying its payment redirection otherwise
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditPurchase'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        409:
+          $ref: './api.yml#/components/responses/409'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    get:
+      tags:
+        - Credits
+      summary: Get a credit purchase by identifier
+      description: |
+        Polled by the consumer after the payment redirection to observe the transition from
+        `PENDING` to `COMPLETED` or `FAILED`.
+      operationId: getCreditPurchaseById
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: purchaseId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The credit purchase
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditPurchase'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+  creditTransactionsOperation:
+    get:
+      tags:
+        - Credits
+      summary: List the credit transactions of a user
+      description: |
+        Append-only ledger of every wallet movement: subscription grants, purchases, adjustments,
+        consumptions, reversals and expirations. Entries are immutable, a wrong movement is
+        compensated by a new one.
+      operationId: getCreditTransactions
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: types
+          description: When omitted, every transaction type is returned.
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/CreditTransactionType'
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: Credit transactions, most recent first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CreditTransaction'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  creditTransactionSingleOperation:
+    get:
+      tags:
+        - Credits
+      summary: Get a credit transaction by identifier
+      operationId: getCreditTransactionById
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: transactionId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The credit transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditTransaction'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  creditAutoRechargeConfOperations:
+    get:
+      tags:
+        - Credits
+      summary: Get the current automatic credit recharge configuration of a user
+      operationId: getCreditAutoRechargeConf
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The user automatic credit recharge configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditAutoRechargeConf'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Credits
+      summary: Configure the automatic credit recharge of a user
+      description: |
+        Replaces the whole configuration. Once the `automaticRechargeStatus` is `ENABLED`, dropping
+        to or below `thresholdCredits` buys either the configured pack or the configured credit
+        amount on the saved payment method, which requires one to be registered beforehand.
+      operationId: configureCreditAutoRecharge
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCreditAutoRechargeConf'
+      responses:
+        200:
+          description: The user automatic credit recharge configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditAutoRechargeConf'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+  creditAdjustmentSingleOperation:
+    put:
+      tags:
+        - Credits
+      summary: Adjust the credit balance of a user
+      description: |
+        Back-office only. Appends an `ADJUSTMENT` transaction, a `CREDIT` for a commercial gesture
+        or a migration carry-over, a `DEBIT` for a correction.
+        `adjustmentId` is chosen by the consumer and becomes the identifier of the appended
+        transaction, which makes the call safely retryable: submitting an already known identifier
+        returns the transaction appended by the first call rather than adjusting twice.
+        An adjustment is immutable, submitting a known identifier with a different payload is
+        rejected.
+      operationId: submitCreditAdjustment
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: adjustmentId
+          description: Consumer generated identifier of the adjustment
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCreditAdjustment'
+      responses:
+        200:
+          description: The appended adjustment transaction
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditTransaction'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        409:
+          $ref: './api.yml#/components/responses/409'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+components:
+  schemas:
+    CreditPackDescription:
+      type: object
+      description: |
+        Credit packs are sold prepaid. `credits` is what the wallet receives. The money side is
+        priced against the caller active subscription plan, whose per-credit unit price varies by
+        offer, so the very same pack costs less on a better plan.
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+          description: Stable functional identifier, for example `PACK_100`.
+        description:
+          type: string
+        creditPurchaseType:
+          $ref: '#/components/schemas/CreditPurchaseType'
+        credits:
+          type: integer
+          format: int64
+          description: |
+            Credits granted to the wallet when the purchase is completed. Null on a `CUSTOM` pack,
+            whose amount is chosen by the consumer at purchase time.
+        creditUnitPriceInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: |
+            Price of one credit, VAT excluded (HT), in cents, as it applies to the caller active
+            plan. Set on every pack, and the only price a `CUSTOM` pack carries since its total
+            depends on the amount the consumer will choose.
+        creditUnitPriceInCentsWithVat:
+          type: integer
+          format: int64
+          description: Price of one credit, VAT included (TTC), in cents, for the caller active plan.
+        priceInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: |
+            Total pack price, VAT excluded (HT), in cents, that is `credits *
+            creditUnitPriceInCentsWithoutVat`. Null on a `CUSTOM` pack.
+        priceInCentsWithVat:
+          type: integer
+          format: int64
+          description: |
+            Total pack price, VAT included (TTC), in cents. Null on a `CUSTOM` pack.
+        vatPercent:
+          type: integer
+          format: int64
+          description: VAT rate in basis points of 10_000 (2000 = 20%), values between 0 and 10_000.
+    CreditPack:
+      allOf:
+        - $ref: '#/components/schemas/CreditPackDescription'
+        - type: object
+          properties:
+            validityDays:
+              type: integer
+              description: |
+                Lifetime of the purchased credits, in days from the purchase completion.
+                Null when purchased credits never expire.
+            isMostChosen:
+              type: boolean
+            isDeprecated:
+              type: boolean
+              description: For deprecated packs to not be shown in consumer usage.
+            displayPosition:
+              type: integer
+              minimum: 1
+              maximum: 4
+              description: Corresponds to the left-to-right position to be displayed at the consumer end
+    CreditBalance:
+      type: object
+      description: |
+        Consumption debits the credits closest to expiry first, hence the split between
+        `grantedCredits`, reset at every billing period, and `purchasedCredits`, which survive it.
+      properties:
+        spendableCredits:
+          type: integer
+          format: int64
+          description: Spendable credits, always `grantedCredits + purchasedCredits`.
+        grantedCredits:
+          type: integer
+          format: int64
+          description: |
+            Credits included in the current billing period of the subscription plan.
+            Reset at every renewal, never carried over.
+        purchasedCredits:
+          type: integer
+          format: int64
+          description: Credits bought through credit packs or granted by an adjustment.
+        creditCostPerAnalysis:
+          type: integer
+          format: int64
+          description: |
+            Credits debited by one roof analysis under the currently active plan. Mirrors
+            `SubscriptionPlan.creditCostPerAnalysis` and changes as soon as the plan changes.
+        estimatedRemainingAnalyses:
+          type: integer
+          format: int64
+          description: |
+            `spendableCredits / creditCostPerAnalysis`, rounded down. Indicative only, since the
+            plan may change before the credits are spent.
+        nextGrantDatetime:
+          type: string
+          format: date-time
+          description: |
+            When the next `SUBSCRIPTION_GRANT` is due, that is the start of the next billing period.
+            Null when the user has no active subscription.
+        expirations:
+          type: array
+          description: Upcoming expirations, soonest first.
+          items:
+            $ref: '#/components/schemas/CreditExpiration'
+        updatedAt:
+          type: string
+          format: date-time
+          description: Datetime of the last transaction that moved this balance.
+    CreditExpiration:
+      type: object
+      properties:
+        credits:
+          type: integer
+          format: int64
+        expirationDatetime:
+          type: string
+          format: date-time
+        origin:
+          $ref: '#/components/schemas/CreditOrigin'
+    CreditOrigin:
+      type: string
+      enum:
+        - SUBSCRIPTION_GRANT
+        - PURCHASE
+        - ADJUSTMENT
+    CreditPurchaseType:
+      type: string
+      description: |
+        `PACK` buys a catalog pack at its own price. `CUSTOM` buys a freely chosen number of
+        credits at the unit price in force.
+      enum:
+        - PACK
+        - CUSTOM
+    CreateCreditPurchase:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/CreditPurchaseType'
+        redirectionStatusUrls:
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+      discriminator:
+        propertyName: type
+        mapping:
+          PACK: '#/components/schemas/CreateCreditPackPurchase'
+          CUSTOM: '#/components/schemas/CreateCustomCreditPurchase'
+    CreateCreditPackPurchase:
+      allOf:
+        - $ref: '#/components/schemas/CreateCreditPurchase'
+        - type: object
+          required:
+            - creditPackIdentifier
+          properties:
+            creditPackIdentifier:
+              type: string
+              description: Identifier of the bought pack (see GET /creditPacks).
+            quantity:
+              type: integer
+              default: 1
+              minimum: 1
+              description: Number of packs bought in one go.
+    CreateCustomCreditPurchase:
+      allOf:
+        - $ref: '#/components/schemas/CreateCreditPurchase'
+        - type: object
+          required:
+            - credits
+          properties:
+            credits:
+              type: integer
+              format: int64
+              description: |
+                Credits to buy, freely chosen. An amount outside the bounds in force is rejected.
+                The amount to pay is always computed server side from the unit price in force, the
+                consumer never states a price.
+    CreditPurchase:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          $ref: '#/components/schemas/CreditPurchaseType'
+        packPurchase:
+          $ref: '#/components/schemas/CreditPackPurchase'
+        customPurchase:
+          $ref: '#/components/schemas/CustomCreditPurchase'
+        credits:
+          type: integer
+          format: int64
+          description: |
+            Credits added to the wallet, `packPurchase.creditPack.credits * packPurchase.quantity`
+            on a `PACK` purchase, the freely chosen amount on a `CUSTOM` one.
+        amountInCentsWithVat:
+          type: integer
+          format: int64
+        amountInCentsWithoutVat:
+          type: integer
+          format: int64
+        vatPercent:
+          type: integer
+          format: int64
+        status:
+          $ref: '#/components/schemas/CreditPurchaseStatus'
+        origin:
+          $ref: '#/components/schemas/CreditPurchaseOrigin'
+        redirection:
+          $ref: './api.yml#/components/schemas/Redirection'
+        creditTransactionId:
+          type: string
+          description: |
+            The `PURCHASE` transaction that credited the wallet. Only set once `COMPLETED`.
+        invoiceId:
+          type: string
+          description: Subscription invoice issued for this purchase. Only set once `COMPLETED`.
+        creationDatetime:
+          type: string
+          format: date-time
+        completionDatetime:
+          type: string
+          format: date-time
+        creditsExpirationDatetime:
+          type: string
+          format: date-time
+          description: |
+            When the credits bought here expire, derived from `CreditPack.validityDays` on a
+            `PACK` purchase and from the custom purchase validity in force on a `CUSTOM` one.
+            Null when they never expire.
+    CreditPackPurchase:
+      type: object
+      description: |
+        What was bought on a `PACK` purchase. Null on a `CUSTOM` one, which carries
+        `customPurchase` instead.
+      properties:
+        creditPack:
+          $ref: '#/components/schemas/CreditPackDescription'
+        quantity:
+          type: integer
+          description: Number of packs bought in one go.
+    CustomCreditPurchase:
+      type: object
+      description: |
+        What was bought on a `CUSTOM` purchase. Null on a `PACK` one, which carries `packPurchase`
+        instead.
+      properties:
+        creditUnitPriceInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: |
+            Unit price applied when the purchase was submitted, kept for auditability since the
+            pricing in force may change afterwards.
+    CreditPurchaseStatus:
+      type: string
+      description: |
+        `PENDING` until the payment provider confirms. `EXPIRED` when the payment session was
+        abandoned. `REFUNDED` when the payment was given back, which also removes the matching
+        credits through a `PURCHASE_REFUND` transaction.
+      enum:
+        - PENDING
+        - COMPLETED
+        - FAILED
+        - EXPIRED
+        - REFUNDED
+    CreditPurchaseOrigin:
+      type: string
+      enum:
+        - SELF_SERVICE
+        - AUTO_RECHARGE
+    CreditTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          $ref: '#/components/schemas/CreditTransactionType'
+        movementType:
+          $ref: '#/components/schemas/CreditTransactionMovementType'
+        credits:
+          type: integer
+          format: int64
+          minimum: 1
+          description: |
+            Credits moved by this transaction, always a positive magnitude. Whether they enter or
+            leave the wallet is carried by `movementType`.
+        label:
+          type: string
+          description: Human readable wording, displayable as is in the consumer history.
+        creditPurchaseId:
+          type: string
+          description: Set on `PURCHASE` and `PURCHASE_REFUND` transactions.
+        adjustmentReason:
+          $ref: '#/components/schemas/CreditAdjustmentReason'
+        reversedTransactionId:
+          type: string
+          description: Set on `CONSUMPTION_REVERSAL`, pointing at the compensated consumption.
+        expirationDatetime:
+          type: string
+          format: date-time
+          description: |
+            When the credits added by this transaction expire. Only set when `movementType` is
+            `CREDIT`.
+        creationDatetime:
+          type: string
+          format: date-time
+    CreditTransactionMovementType:
+      type: string
+      description: |
+        Which way the credits move. `CREDIT` enters the wallet, `DEBIT` leaves it. Always set,
+        including on the types whose direction never varies.
+      enum:
+        - CREDIT
+        - DEBIT
+    CreditTransactionType:
+      type: string
+      description: |
+        Why the credits moved. `SUBSCRIPTION_GRANT`, `PURCHASE` and `CONSUMPTION_REVERSAL` are
+        always `CREDIT`, `CONSUMPTION`, `EXPIRATION` and `PURCHASE_REFUND` are always `DEBIT`,
+        and `ADJUSTMENT` takes either direction.
+      enum:
+        - SUBSCRIPTION_GRANT
+        - PURCHASE
+        - PURCHASE_REFUND
+        - ADJUSTMENT
+        - CONSUMPTION
+        - CONSUMPTION_REVERSAL
+        - EXPIRATION
+    CreateCreditAutoRechargeConf:
+      type: object
+      properties:
+        automaticRechargeStatus:
+          $ref: './api.yml#/components/schemas/EnableStatus'
+        thresholdCredits:
+          type: integer
+          format: int64
+          description: Balance at or below which the recharge is triggered. Required when `ENABLED`.
+        rechargeType:
+          $ref: '#/components/schemas/CreditPurchaseType'
+        creditPackIdentifier:
+          type: string
+          description: Pack bought by the recharge. Required when `rechargeType` is `PACK`.
+        quantity:
+          type: integer
+          default: 1
+          minimum: 1
+          description: Number of packs bought by the recharge. Only read when `rechargeType` is `PACK`.
+        rechargeCredits:
+          type: integer
+          format: int64
+          description: |
+            Credits bought by the recharge, freely chosen within the bounds in force.
+            Required when `rechargeType` is `CUSTOM`.
+        monthlyCapInCentsWithVat:
+          type: integer
+          format: int64
+          description: |
+            Upper bound on what automatic recharges may spend within one calendar month.
+            Null for no cap.
+    CreditAutoRechargeConf:
+      allOf:
+        - $ref: '#/components/schemas/CreateCreditAutoRechargeConf'
+      properties:
+        id:
+          type: string
+        creditPack:
+          $ref: '#/components/schemas/CreditPackDescription'
+        lastTriggeredDatetime:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateCreditAdjustment:
+      type: object
+      required:
+        - movementType
+        - credits
+        - reason
+      properties:
+        movementType:
+          $ref: '#/components/schemas/CreditTransactionMovementType'
+        credits:
+          type: integer
+          format: int64
+          minimum: 1
+          description: |
+            Credits to move, always a positive magnitude. A `CREDIT` `movementType` grants them, a
+            `DEBIT` one takes them back.
+        reason:
+          $ref: '#/components/schemas/CreditAdjustmentReason'
+        comment:
+          type: string
+        expirationDatetime:
+          type: string
+          format: date-time
+          description: |
+            When granted credits expire. Null for no expiry. Ignored when `movementType` is
+            `DEBIT`.
+    CreditAdjustmentReason:
+      type: string
+      enum:
+        - COMMERCIAL_GESTURE
+        - INCIDENT_COMPENSATION
+        - MIGRATION
+        - CORRECTION

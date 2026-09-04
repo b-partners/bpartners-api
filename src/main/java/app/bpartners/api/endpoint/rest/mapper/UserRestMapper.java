@@ -7,6 +7,7 @@ import static app.bpartners.api.endpoint.rest.security.model.Role.EVAL_PROSPECT;
 import static app.bpartners.api.endpoint.rest.security.model.Role.INVOICE_RELAUNCHER;
 import static app.bpartners.api.model.WhiteListScope.*;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
+import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.CANCELED;
 import static java.time.LocalTime.MAX;
 
 import app.bpartners.api.endpoint.rest.model.*;
@@ -19,7 +20,6 @@ import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +36,7 @@ public class UserRestMapper {
   private final UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
   private final UserWhiteListedJpaRepository userWhiteListedRepository;
   private final TemporalUtils temporalUtils;
+  private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
 
   public V2User toRestV2(app.bpartners.api.model.User domain) {
     var subscription = subscriptionService.getSubscriptionByUser(domain);
@@ -59,6 +60,9 @@ public class UserRestMapper {
             userSubscriptionId != null && !unpaidStripeInvoices.isEmpty(),
             domain.isPaymentMethodExists(),
             userWhiteListed);
+    var restSubscription =
+        toRestSubscription(
+            domain, subscription, subscriptionStatus, subscriptionEligibility, userWhiteListed);
     return new V2User()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -82,11 +86,9 @@ public class UserRestMapper {
                     .companyInfo(toRestCompanyInfo(domain.getDefaultHolder())))
         .roles(toRest(domain.getRoles()))
         .subscriptionStatus(subscriptionStatus)
-        .subscription(
-            new UserSubscription()
-                .status(subscriptionStatus)
-                .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
-                .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))
+        .subscription(restSubscription)
+        .nextSubscription(
+            getNextSubscription(domain, subscription, restSubscription.getRenewalStatus()))
         .userParent(toRest(domain.getParentUser()))
         .logoFileId(domain.getLogoFileId());
   }
@@ -117,6 +119,9 @@ public class UserRestMapper {
             userSubscriptionId != null && !unpaidStripeInvoices.isEmpty(),
             domain.isPaymentMethodExists(),
             userWhiteListed);
+    var restSubscription =
+        toRestSubscription(
+            domain, subscription, subscriptionStatus, subscriptionEligibility, userWhiteListed);
     return new User()
         .id(domain.getId())
         .firstName(domain.getFirstName())
@@ -127,13 +132,105 @@ public class UserRestMapper {
         .activeAccount(accountRestMapper.toRest(domain.getDefaultAccount()))
         .roles(toRest(domain.getRoles()))
         .subscriptionStatus(subscriptionStatus)
-        .subscription(
-            new UserSubscription()
-                .status(subscriptionStatus)
-                .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
-                .end(getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed)))
+        .subscription(restSubscription)
+        .nextSubscription(
+            getNextSubscription(domain, subscription, restSubscription.getRenewalStatus()))
         .identificationStatus(VALID_IDENTITY)
         .idVerified(true);
+  }
+
+  private UserSubscription toRestSubscription(
+      app.bpartners.api.model.User domain,
+      app.bpartners.api.model.subscription.UserSubscription subscription,
+      UserSubscriptionStatus subscriptionStatus,
+      UserSubscriptionEligible subscriptionEligibility,
+      UserWhiteListed userWhiteListed) {
+    var end = getSubscriptionEnd(subscription, subscriptionEligibility, userWhiteListed);
+    return new UserSubscription()
+        .plan(
+            domain.getActualSubscriptionProduct() == null
+                ? null
+                : subscriptionPlanRestMapper.toRestDescription(
+                    domain.getActualSubscriptionProduct()))
+        .billingInterval(getBillingInterval(domain, subscription))
+        .status(subscriptionStatus)
+        .start(getSubscriptionStart(subscription, subscriptionEligibility, userWhiteListed))
+        .end(end)
+        .renewalStatus(getRenewalStatus(subscription, end))
+        .cancellationDatetime(getCancellationDatetime(subscription));
+  }
+
+  private static @Nullable SubscriptionRenewalStatus getRenewalStatus(
+      app.bpartners.api.model.subscription.UserSubscription subscription, Instant end) {
+    var latestSubscription = subscription.getLatestSubscriptionWithStripeId();
+    if (latestSubscription == null) {
+      return null;
+    }
+    var stillServed = end != null && end.isAfter(Instant.now());
+    if (CANCELED.equals(latestSubscription.getStatus())) {
+      return stillServed
+          ? SubscriptionRenewalStatus.CANCELLED_AT_PERIOD_END
+          : SubscriptionRenewalStatus.TERMINATED;
+    }
+    return end != null && !stillServed
+        ? SubscriptionRenewalStatus.TERMINATED
+        : SubscriptionRenewalStatus.WILL_RENEW;
+  }
+
+  private static @Nullable Instant getCancellationDatetime(
+      app.bpartners.api.model.subscription.UserSubscription subscription) {
+    var latestSubscription = subscription.getLatestSubscriptionWithStripeId();
+    return latestSubscription == null ? null : latestSubscription.getCancellationDatetime();
+  }
+
+  private @Nullable NextUserSubscription getNextSubscription(
+      app.bpartners.api.model.User domain,
+      app.bpartners.api.model.subscription.UserSubscription subscription,
+      SubscriptionRenewalStatus renewalStatus) {
+    if (!SubscriptionRenewalStatus.CANCELLED_AT_PERIOD_END.equals(renewalStatus)) {
+      return null;
+    }
+    var latestSubscription = subscription.getLatestSubscription();
+    if (latestSubscription != null && latestSubscription.getE2Id() == null) {
+      return null;
+    }
+    return subscriptionService
+        .getScheduledSubscription(domain.getUserSubscriptionId())
+        .map(
+            scheduled ->
+                new NextUserSubscription()
+                    .plan(
+                        scheduled.getSubscriptionProduct() == null
+                            ? null
+                            : subscriptionPlanRestMapper.toRestDescription(
+                                scheduled.getSubscriptionProduct()))
+                    .billingInterval(toRest(scheduled.getBillingInterval()))
+                    .start(scheduled.getStartDatetime()))
+        .orElse(null);
+  }
+
+  private static @Nullable BillingInterval getBillingInterval(
+      app.bpartners.api.model.User domain,
+      app.bpartners.api.model.subscription.UserSubscription subscription) {
+    var persistedBillingInterval = domain.getActualBillingInterval();
+    if (persistedBillingInterval != null) {
+      return toRest(persistedBillingInterval);
+    }
+    var latestSubscription = subscription.getLatestSubscription();
+    return latestSubscription == null || latestSubscription.getE2Id() == null
+        ? null
+        : toRest(latestSubscription.getBillingInterval());
+  }
+
+  private static @Nullable BillingInterval toRest(
+      app.bpartners.api.model.subscription.BillingInterval domain) {
+    if (domain == null) {
+      return null;
+    }
+    return switch (domain) {
+      case MONTHLY -> BillingInterval.MONTHLY;
+      case YEARLY -> BillingInterval.YEARLY;
+    };
   }
 
   private UserSubscriptionStatus getSubscriptionStatus(
@@ -159,7 +256,9 @@ public class UserRestMapper {
     }
     if (subscription.hasValidSubscription()
         && !userSubscriptionEligible.hasFreeTrialPeriodActive()) {
-      return UserSubscriptionStatus.ACTIVE;
+      return CANCELED.equals(subscription.getLatestSubscription().getStatus())
+          ? CANCELLED
+          : UserSubscriptionStatus.ACTIVE;
     }
     if (subscription.hasValidSubscription()
         && userSubscriptionEligible.hasFreeTrialPeriodActive()
@@ -189,13 +288,8 @@ public class UserRestMapper {
     }
     if (userWhiteListed != null
         && userWhiteListed.getScopes().contains(SUBSCRIPTION_VALIDATION_NOT_REQUIRED)) {
-      var today = LocalDate.now();
-      var fifthOfActualMonth = temporalUtils.fifthOfActualMonth();
-      if (today.isBefore(fifthOfActualMonth)) {
-        return fifthOfActualMonth.atStartOfDay(parisZoneId).minusSeconds(1L).toInstant();
-      }
       return temporalUtils
-          .fifthOfNextMonth()
+          .startOfNextMonth()
           .atStartOfDay(parisZoneId)
           .minusSeconds(1L)
           .toInstant();
@@ -223,12 +317,7 @@ public class UserRestMapper {
     }
     if (userWhiteListed != null
         && userWhiteListed.getScopes().contains(SUBSCRIPTION_VALIDATION_NOT_REQUIRED)) {
-      var today = LocalDate.now();
-      var fifthOfActualMonth = temporalUtils.fifthOfActualMonth();
-      if (today.isBefore(fifthOfActualMonth)) {
-        return temporalUtils.fifthOfLastMonth().atStartOfDay(parisZoneId).toInstant();
-      }
-      return fifthOfActualMonth.atStartOfDay(parisZoneId).toInstant();
+      return temporalUtils.startOfActualMonth().atStartOfDay(parisZoneId).toInstant();
     }
     if (subscription.getLatestSubscription() != null) {
       if (subscription.getLatestSubscription().getStartDatetime() != null

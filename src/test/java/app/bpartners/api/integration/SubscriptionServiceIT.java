@@ -1,5 +1,6 @@
 package app.bpartners.api.integration;
 
+import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.END_OF_PERIOD;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
@@ -226,11 +227,10 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
         SubscriptionProduct.builder()
             .e2Id(defaultSubscriptionProductId())
             .type(MONTHLY)
-            .priceInCents(5880L)
+            .priceInCentsWithoutVat(4900L)
+            .vatPercent(2000L)
             .build();
     when(subscriptionProductRepositoryMock.save(any())).thenReturn(product);
-    when(subscriptionProductRepositoryMock.findByConsumptionTypeAttached(ROOF_ANALYSIS))
-        .thenReturn(product);
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
         .thenReturn(
             Optional.of(
@@ -294,7 +294,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
 
     var userSubscriptionBeforeCancellation = subject.getSubscriptionByUser(user);
 
-    var actualUserSubscription = subject.cancelLatestUserSubscription(user);
+    var actualUserSubscription = subject.cancelLatestUserSubscription(user, END_OF_PERIOD);
 
     var oldSubscription = userSubscriptionBeforeCancellation.getLatestSubscription();
     var latestSubscription = actualUserSubscription.getLatestSubscription();
@@ -385,7 +385,8 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
                 "Sans engagement - Idéal pour les artisans couvreurs. "
                     + String.join(" ", subscriptionProductFeatures()))
             .features(subscriptionProductFeatures())
-            .priceInCents(5880L)
+            .priceInCentsWithoutVat(4900L)
+            .vatPercent(2000L)
             .type(MONTHLY)
             .build());
 

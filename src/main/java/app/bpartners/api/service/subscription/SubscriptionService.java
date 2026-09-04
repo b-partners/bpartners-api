@@ -1,24 +1,30 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.END_OF_PERIOD;
+import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.IMMEDIATE;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.model.subscription.SessionMode.SETUP;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
-import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static java.time.Instant.now;
-import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.model.Redirection;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
+import app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType;
 import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserSubscriptionCommitment;
+import app.bpartners.api.model.UserSubscriptionCommitmentAutoRenewalStatusHistory;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -27,6 +33,8 @@ import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.UserSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository;
+import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.*;
 import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.StripeClient;
@@ -44,6 +52,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,7 +62,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class SubscriptionService {
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
   private static final int DEFAULT_TRIAL_PERIOD_DAYS = 7;
-  public static final long FREE_ROOF_ANALYSIS = 20L;
+  private static final int DEFAULT_PLANS_PAGE_SIZE = 100;
+  private static final String VAT_PERCENT_METADATA_KEY = "vat_percent";
+  private static final String CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY =
+      "cancel_after_first_invoice";
+  private static final String STRIPE_YEARLY_INTERVAL = "year";
+  private static final SubscriptionCancellationType DEFAULT_CANCELLATION_TYPE = IMMEDIATE;
   private final StripeConf stripeConf;
   private final StripeClient stripeClient;
   private final UserRepository userRepository;
@@ -62,11 +76,14 @@ public class SubscriptionService {
   private final TemporalUtils temporalUtils;
   private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
   private final StripeFactory stripeFactory;
-  private final UserSubscriptionSessionRepository userSubscriptionSessionRepository;
   private final DetectionTrackingJpaRepository detectionTrackingJpaRepository;
   private final StripeInvoiceService stripeInvoiceService;
   private final StripeCustomerService stripeCustomerService;
   private final StripeSubscriptionService stripeSubscriptionService;
+  private final UserSubscriptionProductService userSubscriptionProductService;
+  private final UserSubscriptionCommitmentJpaRepository userSubscriptionCommitmentJpaRepository;
+  private final UserSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository
+      userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository;
 
   public SubscriptionConsumptionLog addConsumption(
       SubscriptionConsumptionLog subscriptionConsumptionLog) {
@@ -107,89 +124,9 @@ public class SubscriptionService {
     var consumptionLogs =
         findConsumptionLogsByUserId(
             user.getId(),
-            temporalUtils.startOfLastMonth().atStartOfDay().toInstant(UTC),
-            temporalUtils
-                .endOfLastMonth()
-                .plusDays(1L)
-                .atStartOfDay()
-                .minusSeconds(1L)
-                .toInstant(UTC));
-    return computeSubscriptionVariableConsumption(user, consumptionLogs);
-  }
-
-  @SneakyThrows
-  private List<ConsumptionUsageSummary> computeSubscriptionVariableConsumption(
-      User user, List<SubscriptionConsumptionLog> consumptionLogs) {
-    var usageByTypes = calculateUsageByType(consumptionLogs);
-    usageByTypes.forEach(
-        consumptionUsageSummary -> {
-          var actualUsage = consumptionUsageSummary.usage();
-          var payableUsage = actualUsage - FREE_ROOF_ANALYSIS;
-          if (payableUsage > 0) {
-            SubscriptionItem subscriptionItemForProduct;
-            try {
-              subscriptionItemForProduct =
-                  getSubscriptionItem(user, consumptionUsageSummary.consumptionType());
-            } catch (StripeException e) {
-              throw new ApiException(SERVER_EXCEPTION, e);
-            }
-            var subscriptionItemId = subscriptionItemForProduct.getId();
-            var usageRecordCreateOnSubscriptionItemParams =
-                UsageRecordCreateOnSubscriptionItemParams.builder()
-                    .setQuantity(payableUsage)
-                    .setTimestamp(now().getEpochSecond())
-                    .build();
-            try {
-              UsageRecord.createOnSubscriptionItem(
-                  subscriptionItemId, usageRecordCreateOnSubscriptionItemParams);
-            } catch (StripeException e) {
-              throw new ApiException(SERVER_EXCEPTION, e);
-            }
-          }
-        });
-    return usageByTypes;
-  }
-
-  private SubscriptionItem getSubscriptionItem(
-      User user, SubscriptionConsumptionType consumptionType) throws StripeException {
-    var subscriptionProduct =
-        subscriptionProductRepository.findByConsumptionTypeAttached(consumptionType);
-    var stripeSubscriptions =
-        stripeClient
-            .subscriptions()
-            .list(
-                SubscriptionListParams.builder().setCustomer(user.getUserSubscriptionId()).build())
-            .getData();
-    var latestSubscription =
-        stripeSubscriptions.stream()
-            .max(comparing(com.stripe.model.Subscription::getCurrentPeriodStart))
-            .orElseThrow(
-                () -> new NotFoundException("Any subscription found for User.id=" + user.getId()));
-    var latestSubscriptionId = latestSubscription.getId();
-    var subscriptionItems =
-        stripeClient
-            .subscriptionItems()
-            .list(
-                SubscriptionItemListParams.builder().setSubscription(latestSubscriptionId).build())
-            .getData();
-    return subscriptionItems.stream()
-        .filter(
-            subscriptionItem -> {
-              var price = subscriptionItem.getPrice();
-              var product = getProductById(price.getProduct());
-              return product.getId().equals(subscriptionProduct.getE2Id());
-            })
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new NotFoundException(
-                    "Any SubscriptionItem matches to SubscriptionProduct for User.id="
-                        + user.getId()));
-  }
-
-  @SneakyThrows
-  private Product getProductById(String stripeProductId) {
-    return stripeClient.products().retrieve(stripeProductId);
+            temporalUtils.startOfLastMonthInstant(),
+            temporalUtils.endOfLastMonthInstant());
+    return calculateUsageByType(consumptionLogs);
   }
 
   private List<ConsumptionUsageSummary> calculateUsageByType(
@@ -210,27 +147,75 @@ public class SubscriptionService {
         .toList();
   }
 
+  public List<SubscriptionProduct> getSubscribablePlans(
+      PageFromOne page, BoundedPageSize pageSize) {
+    var pageValue = page != null ? page.getValue() - 1 : 0;
+    var pageSizeValue = pageSize != null ? pageSize.getValue() : DEFAULT_PLANS_PAGE_SIZE;
+    return subscriptionProductRepository.findAllByBillingTypeNotNull(
+        PageRequest.of(pageValue, pageSizeValue));
+  }
+
   public Subscription getBySubscriptionType(@NotNull UserSubscriptionType userSubscriptionType) {
     if (userSubscriptionType.equals(ESSENTIAL)) {
-      var defaultSubscriptionProductId = stripeConf.getEssentialSubscriptionProductId();
-      var subscriptionProduct =
-          subscriptionProductRepository
-              .findById(defaultSubscriptionProductId)
-              .orElseThrow(
-                  () ->
-                      new NotFoundException(
-                          "SubscriptionProduct(id="
-                              + defaultSubscriptionProductId
-                              + ") not found"));
-      log.info("subscriprtionProduct: {}", subscriptionProduct);
-      return Subscription.builder()
-          .subscriptionProduct(
-              getSubscriptionProductByE2Id(
-                  subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
-          .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
-          .build();
+      return getByPlanId(stripeConf.getEssentialSubscriptionProductId(), BillingInterval.MONTHLY);
     }
     throw new NotImplementedException("Only ESSENTIAL subscription type is supported");
+  }
+
+  public Subscription getByPlanId(String planId, BillingInterval billingInterval) {
+    var interval = billingInterval == null ? BillingInterval.MONTHLY : billingInterval;
+    var subscriptionProduct =
+        subscriptionProductRepository
+            .findById(planId)
+            .orElseThrow(
+                () -> new NotFoundException("SubscriptionProduct(id=" + planId + ") not found"));
+    if (interval == BillingInterval.YEARLY && !subscriptionProduct.hasAnnualPricing()) {
+      throw new BadRequestException(
+          "SubscriptionProduct(id=" + planId + ") has no annual pricing, YEARLY is not available");
+    }
+    return Subscription.builder()
+        .subscriptionProduct(
+            getSubscriptionProductByE2Id(
+                subscriptionProduct.getId(), subscriptionProduct.getE2Id()))
+        .billingInterval(interval)
+        .endDatetime(now().plus(DEFAULT_SUBSCRIPTION_DELAY, DAYS))
+        .build();
+  }
+
+  public List<UserSubscriptionCommitment> saveUserSubscriptionCommitments(
+      List<UserSubscriptionCommitment> userSubscriptionCommitments) {
+    return userSubscriptionCommitmentJpaRepository.saveAll(userSubscriptionCommitments);
+  }
+
+  public List<UserSubscriptionCommitment> getUserSubscriptionCommitments(String userIdentifier) {
+    return userSubscriptionCommitmentJpaRepository.findAllByUserId(userIdentifier);
+  }
+
+  @Transactional
+  public UserSubscriptionCommitment updateUserSubscriptionCommitmentAutoRenewalStatus(
+      String userId, String commitmentId, EnableStatus autoRenewalStatus) {
+    if (autoRenewalStatus == null) {
+      throw new BadRequestException("autoRenewalStatus is mandatory.");
+    }
+    var commitment =
+        userSubscriptionCommitmentJpaRepository
+            .findById(commitmentId)
+            .filter(it -> userId.equals(it.getUserId()))
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "UserSubscriptionCommitment.id="
+                            + commitmentId
+                            + " not found for User.id="
+                            + userId));
+    userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository.save(
+        UserSubscriptionCommitmentAutoRenewalStatusHistory.builder()
+            .id(randomUUID().toString())
+            .userSubscriptionCommitmentId(commitmentId)
+            .autoRenewalStatus(autoRenewalStatus)
+            .creationDatetime(now())
+            .build());
+    return userSubscriptionCommitmentJpaRepository.findById(commitmentId).orElseThrow();
   }
 
   @SneakyThrows
@@ -272,7 +257,7 @@ public class SubscriptionService {
         TRIALING,
         now,
         new TemporalUtils()
-            .fifthOfNextMonth()
+            .startOfNextMonth()
             .atStartOfDay(ZoneId.of("Europe/Paris"))
             .minusSeconds(1L)
             .toInstant());
@@ -291,10 +276,13 @@ public class SubscriptionService {
                             ProductCreateParams.MarketingFeature.builder().setName(feature).build())
                     .toList())
             .setActive(true)
+            .putMetadata(
+                VAT_PERCENT_METADATA_KEY,
+                String.valueOf(vatPercentOrDefault(subscriptionProduct.getVatPercent())))
             .setDefaultPriceData(
                 ProductCreateParams.DefaultPriceData.builder()
                     .setCurrency(defaultCurrency())
-                    .setUnitAmount(subscriptionProduct.getPriceInCents())
+                    .setUnitAmount(subscriptionProduct.getPriceInCentsWithVat())
                     .setRecurring(
                         ProductCreateParams.DefaultPriceData.Recurring.builder()
                             .setInterval(
@@ -311,11 +299,59 @@ public class SubscriptionService {
     return fromStripeProduct(randomUUID().toString(), createdStripeProduct);
   }
 
+  private static long vatPercentOrDefault(Long vatPercent) {
+    return vatPercent == null ? SubscriptionProduct.DEFAULT_VAT_PERCENT : vatPercent;
+  }
+
+  public void backfillStripeProductsVatMetadata() {
+    var products = subscriptionProductRepository.findAll();
+    log.info(
+        "Stripe VAT metadata backfill starting for {} subscription product(s)", products.size());
+    for (var product : products) {
+      if (product.getE2Id() == null || product.getVatPercent() == null) {
+        continue;
+      }
+      try {
+        Product.retrieve(product.getE2Id())
+            .update(
+                ProductUpdateParams.builder()
+                    .putMetadata(VAT_PERCENT_METADATA_KEY, String.valueOf(product.getVatPercent()))
+                    .build());
+        log.info(
+            "Backfilled VAT metadata (vat_percent={}) on Stripe product {}",
+            product.getVatPercent(),
+            product.getE2Id());
+      } catch (StripeException e) {
+        log.error(
+            "Failed to backfill VAT metadata on Stripe product {}, skipping", product.getE2Id(), e);
+      }
+    }
+  }
+
+  private static long vatPercentFromMetadata(Product stripeProduct) {
+    var metadata = stripeProduct.getMetadata();
+    var rawVatPercent = metadata == null ? null : metadata.get(VAT_PERCENT_METADATA_KEY);
+    if (rawVatPercent == null) {
+      return SubscriptionProduct.DEFAULT_VAT_PERCENT;
+    }
+    try {
+      return Long.parseLong(rawVatPercent);
+    } catch (NumberFormatException e) {
+      log.warn(
+          "Unparseable {} metadata '{}' on Stripe product {}, falling back to default VAT",
+          VAT_PERCENT_METADATA_KEY,
+          rawVatPercent,
+          stripeProduct.getId());
+      return SubscriptionProduct.DEFAULT_VAT_PERCENT;
+    }
+  }
+
   @SneakyThrows
   private SubscriptionProduct fromStripeProduct(
       String domainProductId, Product createdStripeProduct) {
     var createdDefaultPriceId = createdStripeProduct.getDefaultPrice();
     var price = Price.retrieve(createdDefaultPriceId);
+    var vatPercent = vatPercentFromMetadata(createdStripeProduct);
     var subscriptionProductToPersistBuilder =
         SubscriptionProduct.builder()
             .id(domainProductId)
@@ -326,7 +362,9 @@ public class SubscriptionService {
                 createdStripeProduct.getMarketingFeatures().stream()
                     .map(Product.MarketingFeature::getName)
                     .toList())
-            .priceInCents(price.getUnitAmount())
+            .priceInCentsWithoutVat(
+                SubscriptionProduct.priceInCentsWithoutVatFrom(price.getUnitAmount(), vatPercent))
+            .vatPercent(vatPercent)
             .type(computeTypeFromRecurring(price.getRecurring().getInterval()))
             .creationDatetime(Instant.ofEpochSecond(createdStripeProduct.getCreated()));
 
@@ -335,12 +373,40 @@ public class SubscriptionService {
         && !createdStripeProduct.getImages().getFirst().isBlank()) {
       subscriptionProductToPersistBuilder.imageUrl(createdStripeProduct.getImages().getFirst());
     }
+
+    subscriptionProductRepository
+        .findById(domainProductId)
+        .ifPresent(
+            existing -> {
+              subscriptionProductToPersistBuilder
+                  .consumptionTypeAttached(existing.getConsumptionTypeAttached())
+                  .planCode(existing.getPlanCode())
+                  .billingType(existing.getBillingType())
+                  .freeUsageThreshold(existing.getFreeUsageThreshold())
+                  .includedCreditsPerBillingPeriod(existing.getIncludedCreditsPerBillingPeriod())
+                  .creditUnitPriceInCentsWithoutVat(existing.getCreditUnitPriceInCentsWithoutVat())
+                  .creditCostPerAnalysis(existing.getCreditCostPerAnalysis())
+                  .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
+                  .trialPeriodDays(existing.getTrialPeriodDays())
+                  .annualDiscountPercent(existing.getAnnualDiscountPercent())
+                  .annualE2PriceId(existing.getAnnualE2PriceId())
+                  .annualPriceInCentsWithVat(existing.getAnnualPriceInCentsWithVat())
+                  .meteredProductId(existing.getMeteredProductId())
+                  .mostChosen(existing.isMostChosen())
+                  .deprecated(existing.isDeprecated())
+                  .displayPosition(existing.getDisplayPosition());
+              if (createdStripeProduct.getMarketingFeatures() == null
+                  || createdStripeProduct.getMarketingFeatures().isEmpty()) {
+                subscriptionProductToPersistBuilder.features(existing.getFeatures());
+              }
+            });
+
     return subscriptionProductRepository.save(subscriptionProductToPersistBuilder.build());
   }
 
   private ProductCreateParams.DefaultPriceData.Recurring.Interval intervalFromSubscriptionType(
       SubscriptionType subscriptionType) {
-    if (Objects.requireNonNull(subscriptionType) == MONTHLY) {
+    if (Objects.requireNonNull(subscriptionType) == SubscriptionType.MONTHLY) {
       return ProductCreateParams.DefaultPriceData.Recurring.Interval.MONTH;
     }
     throw new IllegalArgumentException("Unknown subscription type " + subscriptionType);
@@ -366,64 +432,37 @@ public class SubscriptionService {
     var latestSubscription = actualUserSubscription.getLatestSubscription();
     if (latestSubscription != null
         && latestSubscription.isActive()
-        && !(TRIALING).equals(latestSubscription.getStatus())) {
+        && !(TRIALING).equals(latestSubscription.getStatus())
+        && !(CANCELED).equals(latestSubscription.getStatus())
+        && !hasPendingCancellationAfterFirstInvoice(user.getUserSubscriptionId())) {
       throw new BadRequestException(
           "User.id="
               + user.getId()
               + " has active subscription until "
               + latestSubscription.getEndDatetime());
     }
-    var endOfTrialPeriod = computeEndOfTrialPeriod(user);
-    var today = LocalDate.now();
-    var dateFromWhenSubscriptionPeriodStart =
-        endOfTrialPeriod.isAfter(today) ? endOfTrialPeriod : today;
-    long billingCycleAnchor = computeBillingCycleAnchor(dateFromWhenSubscriptionPeriodStart);
+    var pendingSchedule = getPendingSubscriptionSchedule(user.getUserSubscriptionId());
+    if (pendingSchedule.isPresent()) {
+      throw new BadRequestException(
+          "User.id="
+              + user.getId()
+              + " already has a subscription scheduled to start on "
+              + Instant.ofEpochSecond(pendingSchedule.get().getPhases().getFirst().getStartDate()));
+    }
+    long billingCycleAnchor = computeBillingCycleAnchor();
     log.info(
         "Schedule start date = {}",
         Instant.ofEpochSecond(billingCycleAnchor).atZone(ZoneId.of("Europe/Paris")).toLocalDate());
 
-    var subscriptionProduct = subscription.getSubscriptionProduct();
-    var subscriptionProductRoofAnalysis =
-        subscriptionProductRepository.findByConsumptionTypeAttached(ROOF_ANALYSIS);
-    var newVariableProductPrice =
-        stripeClient
-            .prices()
-            .create(
-                PriceCreateParams.builder()
-                    .setCurrency(defaultCurrency())
-                    .setProduct(subscriptionProductRoofAnalysis.getE2Id())
-                    .setUnitAmount(200L)
-                    .setRecurring(
-                        PriceCreateParams.Recurring.builder()
-                            .setUsageType(PriceCreateParams.Recurring.UsageType.METERED)
-                            .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
-                            .build())
-                    .build());
-
     return stripeFactory.initiateSubscriptionWorkflow(
-        user,
-        dateFromWhenSubscriptionPeriodStart,
-        stripeCustomer,
-        subscriptionProduct,
-        newVariableProductPrice,
-        redirectionUrls,
-        billingCycleAnchor,
-        subscription);
+        stripeCustomer, redirectionUrls, billingCycleAnchor, subscription);
   }
 
-  private LocalDate computeEndOfTrialPeriod(User user) {
-    var userEligibility =
-        subscriptionEligibleJpaRepository.findByUserId(user.getId()).orElseThrow();
-    return userEligibility.getLatestTrialPeriodDate();
-  }
-
-  private Long computeBillingCycleAnchor(LocalDate latestTrialPeriodDate) {
-    var nextBillingDate = temporalUtils.fifthOfNextMonth();
-    if (latestTrialPeriodDate.isAfter(temporalUtils.endOfActualMonth())) {
-      nextBillingDate = temporalUtils.fifthOfMonthAfter(2);
-    }
-    return Date.from(nextBillingDate.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant()).getTime()
-        / 1000L;
+  private Long computeBillingCycleAnchor() {
+    var today = temporalUtils.today();
+    var firstFullBillingPeriodStart =
+        today.getDayOfMonth() == 1 ? today : temporalUtils.startOfMonthAfter(today);
+    return firstFullBillingPeriodStart.atStartOfDay(ZoneId.of("Europe/Paris")).toEpochSecond();
   }
 
   @SneakyThrows
@@ -538,19 +577,55 @@ public class SubscriptionService {
         && stripeSubscriptions.stream()
             .noneMatch(
                 stripeSubscription -> stripeSubscription.getStatus().equalsIgnoreCase("active"))) {
+      var firstScheduledSubscription = activeScheduledSubscriptions.getFirst();
       var scheduledStripeSubscriptionStartDate =
-          activeScheduledSubscriptions.getFirst().getPhases().getFirst().getStartDate();
+          firstScheduledSubscription.getPhases().getFirst().getStartDate();
       var domainSubscriptionStartDate =
-          Instant.ofEpochSecond(activeScheduledSubscriptions.getFirst().getCreated());
+          Instant.ofEpochSecond(firstScheduledSubscription.getCreated());
       var domainSubscriptionEndDate = Instant.ofEpochSecond(scheduledStripeSubscriptionStartDate);
+      var scheduledSubscriptionStatus =
+          isFlaggedForCancelAfterFirstInvoice(firstScheduledSubscription) ? CANCELED : ACTIVE;
       var subscriptionsFromSchedule =
-          defaultActiveSubscription(ACTIVE, domainSubscriptionStartDate, domainSubscriptionEndDate);
+          defaultActiveSubscription(
+              scheduledSubscriptionStatus, domainSubscriptionStartDate, domainSubscriptionEndDate);
       initialSubscription.addAll(subscriptionsFromSchedule);
       log.info("Return subscriptions {}", initialSubscription);
       return initialSubscription;
     }
     log.info("Return subscriptions {}", initialSubscription);
     return initialSubscription;
+  }
+
+  @SneakyThrows
+  public Optional<Subscription> getScheduledSubscription(String stripeCustomerId) {
+    return getPendingSubscriptionSchedule(stripeCustomerId).map(this::toScheduledSubscription);
+  }
+
+  private Optional<SubscriptionSchedule> getPendingSubscriptionSchedule(String stripeCustomerId)
+      throws StripeException {
+    if (stripeCustomerId == null) {
+      return Optional.empty();
+    }
+    return getActiveSubscriptionSchedules(stripeCustomerId).stream()
+        .filter(schedule -> schedule.getPhases() != null && !schedule.getPhases().isEmpty())
+        .filter(schedule -> !isFlaggedForCancelAfterFirstInvoice(schedule))
+        .min(comparing(schedule -> schedule.getPhases().getFirst().getStartDate()));
+  }
+
+  private Subscription toScheduledSubscription(SubscriptionSchedule schedule) {
+    var subscribedPlan = resolveSubscribedPlan(schedule).orElse(null);
+    var startDate = schedule.getPhases().getFirst().getStartDate();
+    return Subscription.builder()
+        .id(randomUUID().toString())
+        .e2Id(schedule.getId())
+        .active(false)
+        .startDatetime(startDate == null ? null : Instant.ofEpochSecond(startDate))
+        .billingInterval(subscribedPlan == null ? null : subscribedPlan.billingInterval())
+        .subscriptionProduct(
+            subscribedPlan == null
+                ? null
+                : subscriptionProductRepository.findById(subscribedPlan.planId()).orElse(null))
+        .build();
   }
 
   private List<SubscriptionSchedule> getActiveSubscriptionSchedules(String stripeCustomerId)
@@ -578,6 +653,22 @@ public class SubscriptionService {
         .toList();
   }
 
+  private boolean hasPendingCancellationAfterFirstInvoice(String stripeCustomerId)
+      throws StripeException {
+    if (stripeCustomerId == null) {
+      return false;
+    }
+    var activeScheduledSubscriptions = getActiveSubscriptionSchedules(stripeCustomerId);
+    return !activeScheduledSubscriptions.isEmpty()
+        && activeScheduledSubscriptions.stream()
+            .allMatch(SubscriptionService::isFlaggedForCancelAfterFirstInvoice);
+  }
+
+  private static boolean isFlaggedForCancelAfterFirstInvoice(SubscriptionSchedule schedule) {
+    var metadata = schedule.getMetadata();
+    return metadata != null && "true".equals(metadata.get(CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY));
+  }
+
   private Subscription mapToDomain(com.stripe.model.Subscription stripeSubscription) {
     var currentPeriodStartLongValue = stripeSubscription.getCurrentPeriodStart();
     var startDatetime =
@@ -588,12 +679,16 @@ public class SubscriptionService {
     var endDatetime =
         currentPeriodEndLongValue == null ? null : Instant.ofEpochSecond(currentPeriodEndLongValue);
     var status = computeUserSubscriptionStatus(stripeSubscription);
+    var canceledAtLongValue = stripeSubscription.getCanceledAt();
     var paymentSettings = stripeSubscription.getPaymentSettings();
     return Subscription.builder()
         .id(randomUUID().toString()) // TODO: update when subscription history persisted
         .e2Id(stripeSubscription.getId())
         .startDatetime(startDatetime)
         .endDatetime(endDatetime)
+        .cancellationDatetime(
+            canceledAtLongValue == null ? null : Instant.ofEpochSecond(canceledAtLongValue))
+        .billingInterval(billingIntervalOf(stripeSubscription))
         .status(status)
         .active(!status.equals(UNKNOWN))
         .paymentMethods(
@@ -635,6 +730,12 @@ public class SubscriptionService {
 
   @SneakyThrows
   public UserSubscription cancelLatestUserSubscription(User user) {
+    return cancelLatestUserSubscription(user, null);
+  }
+
+  @SneakyThrows
+  public UserSubscription cancelLatestUserSubscription(
+      User user, SubscriptionCancellationType cancellationType) {
     if (user.getUserSubscriptionId() == null) {
       throw new IllegalArgumentException(
           "User.userSubscriptionId is required to cancel subscription, "
@@ -642,53 +743,239 @@ public class SubscriptionService {
               + user.getId()
               + " does not have userSubscriptionId");
     }
+    var effectiveCancellationType =
+        cancellationType == null ? DEFAULT_CANCELLATION_TYPE : cancellationType;
+
+    var activeScheduledSubscriptions = getActiveSubscriptionSchedules(user.getUserSubscriptionId());
+
+    if (!activeScheduledSubscriptions.isEmpty() && effectiveCancellationType == END_OF_PERIOD) {
+      var earliestScheduledStartDate = Long.MAX_VALUE;
+      for (var scheduledSubscription : activeScheduledSubscriptions) {
+        var scheduledStartDate = cancelScheduleAfterUpcomingPayment(scheduledSubscription);
+        earliestScheduledStartDate = Math.min(earliestScheduledStartDate, scheduledStartDate);
+      }
+
+      userSubscriptionProductService.endActiveSubscriptionProducts(
+          user.getId(), Instant.ofEpochSecond(earliestScheduledStartDate));
+
+      var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
+      return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
+    }
+
+    for (var scheduledSubscription : activeScheduledSubscriptions) {
+      cancelScheduleImmediately(scheduledSubscription);
+    }
 
     var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
+    var cancellableStripeSubscriptions =
+        stripeSubscriptionService
+            .getStripeSubscriptionsFromStripeCustomerId(user.getUserSubscriptionId())
+            .stream()
+            .filter(
+                stripeSubscription -> !StripeSubscriptionService.isTerminated(stripeSubscription))
+            .collect(
+                Collectors.toMap(
+                    com.stripe.model.Subscription::getId,
+                    stripeSubscription -> stripeSubscription,
+                    (existing, duplicate) -> existing));
+    var cancellableStripeSubscriptionIds = cancellableStripeSubscriptions.keySet();
+    var activeSubscriptions =
+        subscriptions.stream()
+            .filter(Subscription::isActive)
+            .filter(subscription -> subscription.getE2Id() != null)
+            .filter(
+                subscription -> cancellableStripeSubscriptionIds.contains(subscription.getE2Id()))
+            .toList();
+    if (activeSubscriptions.isEmpty() && !activeScheduledSubscriptions.isEmpty()) {
+      userSubscriptionProductService.endActiveSubscriptionProducts(user.getId(), now());
+
+      var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
+      return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
+    }
     if (subscriptions.isEmpty()) {
       throw new BadRequestException("User.id=" + user.getId() + " does not have any subscriptions");
     }
+    if (activeSubscriptions.isEmpty()) {
+      throw new IllegalStateException(
+          "Only active subscription can be cancelled but none of the "
+              + subscriptions.size()
+              + " subscription(s) is active");
+    }
+    for (var activeSubscription : activeSubscriptions) {
+      if (effectiveCancellationType == END_OF_PERIOD) {
+        releaseManagingScheduleIfAny(
+            cancellableStripeSubscriptions.get(activeSubscription.getE2Id()));
+        stripeClient
+            .subscriptions()
+            .update(
+                activeSubscription.getE2Id(),
+                SubscriptionUpdateParams.builder()
+                    .setCancelAtPeriodEnd(true)
+                    .setProrationBehavior(SubscriptionUpdateParams.ProrationBehavior.NONE)
+                    .build());
+      } else {
+        stripeClient
+            .subscriptions()
+            .cancel(
+                activeSubscription.getE2Id(),
+                SubscriptionCancelParams.builder().setProrate(false).setInvoiceNow(false).build());
+      }
+    }
     var latestSubscription =
-        subscriptions.stream()
-            .sorted(comparing(Subscription::getStartDatetime, naturalOrder()).reversed())
+        activeSubscriptions.stream()
+            .sorted(comparing(Subscription::getStartDatetime, nullsLast(naturalOrder())).reversed())
             .toList()
             .getFirst();
-    if (!latestSubscription.isActive()) {
-      throw new IllegalStateException(
-          "Only active subscription can be cancelled but actual status is "
-              + latestSubscription.getStatus());
-    }
-    List<UserSubscriptionSession> userSubscriptionSessions =
-        userSubscriptionSessionRepository.findAllByUserId(user.getId()).stream()
-            .filter(
-                userSubscriptionSession -> userSubscriptionSession.getSessionMode().equals(SETUP))
-            .filter(
-                userSubscriptionSession ->
-                    userSubscriptionSession.getTrialUntil().isAfter(LocalDate.now()))
-            .filter(userSubscriptionSession -> !userSubscriptionSession.isCancelled())
-            .toList();
-    if (!userSubscriptionSessions.isEmpty()) {
-      UserSubscriptionSession userInSetUpMode =
-          userSubscriptionSessions.stream()
-              .findFirst()
-              .orElseThrow(
-                  () ->
-                      new IllegalStateException(
-                          "Aucune session trouvée pour l'utilisateur " + user.getId()));
+    var periodEnd =
+        effectiveCancellationType == END_OF_PERIOD && latestSubscription.getEndDatetime() != null
+            ? latestSubscription.getEndDatetime()
+            : now();
 
-      userSubscriptionSessionRepository.save(userInSetUpMode.toBuilder().isCancelled(true).build());
-      SubscriptionSchedule resource =
-          SubscriptionSchedule.retrieve(userInSetUpMode.getSubscriptionScheduleId());
-      resource.cancel();
-      return UserSubscription.builder().user(user).build();
-    }
-    stripeClient
-        .subscriptions()
-        .update(
-            latestSubscription.getE2Id(),
-            SubscriptionUpdateParams.builder().setCancelAtPeriodEnd(true).build());
+    userSubscriptionProductService.endActiveSubscriptionProducts(user.getId(), periodEnd);
 
     var actualSubscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
     return UserSubscription.builder().user(user).subscriptions(actualSubscriptions).build();
+  }
+
+  private void cancelScheduleImmediately(SubscriptionSchedule scheduledSubscription)
+      throws StripeException {
+    stripeClient
+        .subscriptionSchedules()
+        .cancel(
+            scheduledSubscription.getId(),
+            SubscriptionScheduleCancelParams.builder()
+                .setProrate(false)
+                .setInvoiceNow(false)
+                .build());
+    log.info("Cancelled scheduled subscription {} immediately", scheduledSubscription.getId());
+  }
+
+  private void releaseManagingScheduleIfAny(com.stripe.model.Subscription stripeSubscription)
+      throws StripeException {
+    if (stripeSubscription == null) {
+      return;
+    }
+    var scheduleId = stripeSubscription.getSchedule();
+    if (scheduleId == null) {
+      return;
+    }
+    stripeClient.subscriptionSchedules().release(scheduleId);
+    log.info(
+        "Released subscription schedule {} managing Stripe subscription {} before cancelling at"
+            + " period end",
+        scheduleId,
+        stripeSubscription.getId());
+  }
+
+  private long cancelScheduleAfterUpcomingPayment(SubscriptionSchedule scheduledSubscription)
+      throws StripeException {
+    var upcomingPhase = scheduledSubscription.getPhases().getFirst();
+    var scheduledStartDate = upcomingPhase.getStartDate();
+    var phaseItems =
+        upcomingPhase.getItems().stream()
+            .map(
+                item ->
+                    SubscriptionScheduleUpdateParams.Phase.Item.builder()
+                        .setPrice(item.getPrice())
+                        .build())
+            .toList();
+    scheduledSubscription.update(
+        SubscriptionScheduleUpdateParams.builder()
+            .setEndBehavior(SubscriptionScheduleUpdateParams.EndBehavior.CANCEL)
+            .addPhase(
+                SubscriptionScheduleUpdateParams.Phase.builder()
+                    .addAllItem(phaseItems)
+                    .setStartDate(scheduledStartDate)
+                    .setIterations(1L)
+                    .build())
+            .putMetadata(CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY, "true")
+            .setProrationBehavior(SubscriptionScheduleUpdateParams.ProrationBehavior.NONE)
+            .build());
+    return scheduledStartDate;
+  }
+
+  @SneakyThrows
+  public void cancelUserSubscriptionsImmediately(User user) {
+    if (user.getUserSubscriptionId() == null) {
+      return;
+    }
+    stripeSubscriptionService
+        .getStripeSubscriptionsFromStripeCustomerId(user.getUserSubscriptionId())
+        .stream()
+        .filter(subscription -> !StripeSubscriptionService.isTerminated(subscription))
+        .forEach(subscription -> cancelSubscriptionImmediately(subscription.getId()));
+    userSubscriptionProductService.endActiveSubscriptionProducts(user.getId(), now());
+  }
+
+  @SneakyThrows
+  public void cancelSubscriptionImmediately(String stripeSubscriptionId) {
+    if (stripeSubscriptionId == null) {
+      return;
+    }
+    var subscription = stripeClient.subscriptions().retrieve(stripeSubscriptionId);
+    if (StripeSubscriptionService.isTerminated(subscription)) {
+      log.info(
+          "Stripe subscription {} is already terminated, skipping immediate cancellation",
+          stripeSubscriptionId);
+      return;
+    }
+    var scheduleId = subscription.getSchedule();
+    if (scheduleId != null) {
+      var schedule = stripeClient.subscriptionSchedules().retrieve(scheduleId);
+      if ("canceled".equalsIgnoreCase(schedule.getStatus())) {
+        return;
+      }
+      stripeClient
+          .subscriptionSchedules()
+          .cancel(
+              scheduleId,
+              SubscriptionScheduleCancelParams.builder()
+                  .setProrate(false)
+                  .setInvoiceNow(false)
+                  .build());
+      log.info(
+          "Cancelled subscription schedule {} immediately after its invoice was paid", scheduleId);
+    } else {
+      stripeClient
+          .subscriptions()
+          .cancel(
+              stripeSubscriptionId,
+              SubscriptionCancelParams.builder().setProrate(false).setInvoiceNow(false).build());
+      log.info(
+          "Cancelled Stripe subscription {} immediately after its invoice was paid",
+          stripeSubscriptionId);
+    }
+  }
+
+  @SneakyThrows
+  public void cancelScheduledSubscriptionAfterInvoicePaid(String stripeSubscriptionId) {
+    if (stripeSubscriptionId == null) {
+      return;
+    }
+    var subscription = stripeClient.subscriptions().retrieve(stripeSubscriptionId);
+    var scheduleId = subscription.getSchedule();
+    if (scheduleId == null) {
+      return;
+    }
+    var schedule = stripeClient.subscriptionSchedules().retrieve(scheduleId);
+    if (!isFlaggedForCancelAfterFirstInvoice(schedule)) {
+      return;
+    }
+    if ("canceled".equalsIgnoreCase(schedule.getStatus())) {
+      log.info("Scheduled subscription {} already canceled, skipping", scheduleId);
+      return;
+    }
+    stripeClient
+        .subscriptionSchedules()
+        .cancel(
+            scheduleId,
+            SubscriptionScheduleCancelParams.builder()
+                .setProrate(false)
+                .setInvoiceNow(false)
+                .build());
+    log.info(
+        "Cancelled scheduled subscription {} immediately after its first invoice was paid",
+        scheduleId);
   }
 
   @SneakyThrows
@@ -707,7 +994,7 @@ public class SubscriptionService {
 
   private SubscriptionType computeTypeFromRecurring(String intervalValue) {
     if (intervalValue.equals("month")) {
-      return MONTHLY;
+      return SubscriptionType.MONTHLY;
     }
     throw new IllegalArgumentException(
         "Unknown or not supported subscription type: " + intervalValue);
@@ -741,4 +1028,90 @@ public class SubscriptionService {
   public SubscriptionProduct getSubscriptionProductByE2Id(String domainProductId, String e2Id) {
     return fromStripeProduct(domainProductId, Product.retrieve(e2Id));
   }
+
+  /**
+   * Resolves the actually-subscribed plan, and the interval it is billed on, from a Stripe
+   * subscription. A subscription carries several items (the base plan plus the metered/usage
+   * product); only the subscribable plan (billingType != null) is returned so the metered product
+   * is never mistaken for the plan.
+   */
+  public Optional<SubscribedPlan> resolveSubscribedPlan(
+      com.stripe.model.Subscription stripeSubscription) {
+    if (stripeSubscription.getItems() == null) {
+      return Optional.empty();
+    }
+    return stripeSubscription.getItems().getData().stream()
+        .map(SubscriptionItem::getPrice)
+        .filter(Objects::nonNull)
+        .map(this::subscribedPlanFrom)
+        .flatMap(Optional::stream)
+        .findFirst();
+  }
+
+  /**
+   * Same as {@link #resolveSubscribedPlan(com.stripe.model.Subscription)} but for a scheduled
+   * subscription, whose phase items only reference price ids and therefore require the prices to be
+   * retrieved to reach their products.
+   */
+  @SneakyThrows
+  public Optional<SubscribedPlan> resolveSubscribedPlan(SubscriptionSchedule schedule) {
+    if (schedule.getPhases() == null || schedule.getPhases().isEmpty()) {
+      return Optional.empty();
+    }
+    var priceIds =
+        schedule.getPhases().stream()
+            .flatMap(phase -> phase.getItems().stream())
+            .map(SubscriptionSchedule.Phase.Item::getPrice)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+    for (var priceId : priceIds) {
+      var subscribedPlan = subscribedPlanFrom(stripeClient.prices().retrieve(priceId));
+      if (subscribedPlan.isPresent()) {
+        return subscribedPlan;
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<SubscribedPlan> subscribedPlanFrom(Price price) {
+    var productE2Id = price.getProduct();
+    if (productE2Id == null) {
+      return Optional.empty();
+    }
+    return subscriptionProductRepository
+        .findByE2Id(productE2Id)
+        .filter(product -> product.getBillingType() != null)
+        .map(product -> new SubscribedPlan(product.getId(), billingIntervalOf(price, product)));
+  }
+
+  private static BillingInterval billingIntervalOf(Price price, SubscriptionProduct plan) {
+    if (price.getId() != null && price.getId().equals(plan.getAnnualE2PriceId())) {
+      return BillingInterval.YEARLY;
+    }
+    return billingIntervalOf(price);
+  }
+
+  private static BillingInterval billingIntervalOf(Price price) {
+    var recurring = price.getRecurring();
+    return recurring != null && STRIPE_YEARLY_INTERVAL.equals(recurring.getInterval())
+        ? BillingInterval.YEARLY
+        : BillingInterval.MONTHLY;
+  }
+
+  private static BillingInterval billingIntervalOf(
+      com.stripe.model.Subscription stripeSubscription) {
+    if (stripeSubscription.getItems() == null) {
+      return BillingInterval.MONTHLY;
+    }
+    return stripeSubscription.getItems().getData().stream()
+            .map(SubscriptionItem::getPrice)
+            .filter(Objects::nonNull)
+            .map(SubscriptionService::billingIntervalOf)
+            .anyMatch(BillingInterval.YEARLY::equals)
+        ? BillingInterval.YEARLY
+        : BillingInterval.MONTHLY;
+  }
+
+  public record SubscribedPlan(String planId, BillingInterval billingInterval) {}
 }

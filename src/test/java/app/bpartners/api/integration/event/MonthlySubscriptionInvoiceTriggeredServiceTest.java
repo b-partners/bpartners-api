@@ -14,6 +14,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceTriggeredService;
+import app.bpartners.api.service.subscription.UpcomingDebitedCustomers;
 import app.bpartners.api.service.subscription.UpcomingUserDebitService;
 import java.time.Duration;
 import java.time.YearMonth;
@@ -39,8 +40,8 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
     var userTwoMock = mock(User.class);
     var userToCreditMock = mock(User.class);
     var userToCreditIdentifier = randomUUID().toString();
-    when(upcomingUserDebitServiceMock.getUpcomingUserDebited())
-        .thenReturn(List.of(userOneMock, userTwoMock));
+    when(upcomingUserDebitServiceMock.getUpcomingDebitedCustomers())
+        .thenReturn(new UpcomingDebitedCustomers(List.of(userOneMock, userTwoMock), List.of()));
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditIdentifier);
     when(userRepositoryMock.getById(userToCreditIdentifier)).thenReturn(userToCreditMock);
     var expectedMonthlySubscriptionInvoiceRequestedPage1 =
@@ -66,7 +67,7 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
         (MonthlySubscriptionInvoiceRequested) eventCaptor.getAllValues().getLast().getFirst();
 
     assertEquals(
-        new UpcomingDebitedCustomerExportRequested(YearMonth.now()),
+        new UpcomingDebitedCustomerExportRequested(YearMonth.now().minusMonths(1)),
         upcomingDebitedCustomerExportRequested);
     assertEquals(
         Duration.ofSeconds(120L), upcomingDebitedCustomerExportRequested.maxConsumerDuration());
@@ -86,11 +87,32 @@ class MonthlySubscriptionInvoiceTriggeredServiceTest {
   }
 
   @Test
-  void request_monthly_subscription_invoice_creation_with_any_users() {
-    when(userRepositoryMock.findAllByCriteria(any())).thenReturn(List.of());
+  void does_not_produce_any_event_when_no_upcoming_debited_customer() {
+    when(upcomingUserDebitServiceMock.getUpcomingDebitedCustomers())
+        .thenReturn(new UpcomingDebitedCustomers(List.of(), List.of()));
 
     assertDoesNotThrow(() -> subject.accept(MonthlySubscriptionInvoiceTriggered.builder().build()));
 
     verify(eventProducerMock, never()).accept(any());
+  }
+
+  @Test
+  void exports_even_when_only_not_billed_customers_are_present() {
+    var notBilledStripeCustomerMock = mock(com.stripe.model.Customer.class);
+    var userToCreditMock = mock(User.class);
+    var userToCreditIdentifier = randomUUID().toString();
+    when(upcomingUserDebitServiceMock.getUpcomingDebitedCustomers())
+        .thenReturn(new UpcomingDebitedCustomers(List.of(), List.of(notBilledStripeCustomerMock)));
+    when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditIdentifier);
+    when(userRepositoryMock.getById(userToCreditIdentifier)).thenReturn(userToCreditMock);
+
+    assertDoesNotThrow(() -> subject.accept(MonthlySubscriptionInvoiceTriggered.builder().build()));
+
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
+    // Only the export event : no billedUsers user means no MonthlySubscriptionInvoiceRequested.
+    verify(eventProducerMock, times(1)).accept(eventCaptor.capture());
+    assertEquals(
+        new UpcomingDebitedCustomerExportRequested(YearMonth.now().minusMonths(1)),
+        eventCaptor.getValue().getFirst());
   }
 }

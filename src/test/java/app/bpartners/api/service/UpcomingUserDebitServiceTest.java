@@ -11,6 +11,7 @@ import app.bpartners.api.service.subscription.StripeCustomerService;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.UpcomingUserDebitService;
 import app.bpartners.api.service.user.UserService;
+import app.bpartners.api.service.utils.TemporalUtils;
 import com.stripe.model.Address;
 import com.stripe.model.Customer;
 import com.stripe.model.Invoice;
@@ -29,7 +30,8 @@ class UpcomingUserDebitServiceTest {
           stripeInvoiceServiceMock,
           stripeCustomerServiceMock,
           userServiceMock,
-          unknownStripeCustomerJpaRepositoryMock);
+          unknownStripeCustomerJpaRepositoryMock,
+          new TemporalUtils());
 
   @Test
   void get_upcoming_user_debited_without_any_unknown_customers() {
@@ -43,9 +45,10 @@ class UpcomingUserDebitServiceTest {
     when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(stripeCustomerIdentifier))
         .thenReturn(mock(Invoice.class));
 
-    var actual = subject.getUpcomingUserDebited();
+    var actual = subject.getUpcomingDebitedCustomers();
 
-    assertEquals(List.of(userMock), actual);
+    assertEquals(List.of(userMock), actual.billedUsers());
+    assertEquals(List.of(), actual.notBilledCustomers());
     verify(unknownStripeCustomerJpaRepositoryMock, never()).saveAll(any());
   }
 
@@ -76,9 +79,10 @@ class UpcomingUserDebitServiceTest {
     when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(unknownStripeCustomerIdentifier))
         .thenReturn(mock(Invoice.class));
 
-    var actual = subject.getUpcomingUserDebited();
+    var actual = subject.getUpcomingDebitedCustomers();
 
-    assertEquals(List.of(userMock), actual);
+    assertEquals(List.of(userMock), actual.billedUsers());
+    assertEquals(List.of(unknownStripeCustomerMock), actual.notBilledCustomers());
     var listCaptor = ArgumentCaptor.forClass(List.class);
     verify(unknownStripeCustomerJpaRepositoryMock).saveAll(listCaptor.capture());
     var unknownStripeCustomer = (UnknownStripeCustomer) listCaptor.getValue().getFirst();
@@ -93,5 +97,37 @@ class UpcomingUserDebitServiceTest {
             .creationDatetime(unknownStripeCustomer.getCreationDatetime())
             .build(),
         unknownStripeCustomer);
+  }
+
+  @Test
+  void does_not_resave_unknown_customer_already_persisted_this_month() {
+    var userMock = mock(User.class);
+    var stripeCustomerMock = mock(Customer.class);
+    var unknownStripeCustomerMock = mock(Customer.class);
+    var stripeCustomerIdentifier = randomUUID().toString();
+    var unknownStripeCustomerIdentifier = randomUUID().toString();
+    when(userMock.getUserSubscriptionId()).thenReturn(stripeCustomerIdentifier);
+    when(stripeCustomerMock.getId()).thenReturn(stripeCustomerIdentifier);
+    when(unknownStripeCustomerMock.getId()).thenReturn(unknownStripeCustomerIdentifier);
+    when(userServiceMock.getEnabledUsers()).thenReturn(new ArrayList<>(List.of(userMock)));
+    when(stripeCustomerServiceMock.getStripeCustomers())
+        .thenReturn(List.of(stripeCustomerMock, unknownStripeCustomerMock));
+    when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(stripeCustomerIdentifier))
+        .thenReturn(mock(Invoice.class));
+    when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(unknownStripeCustomerIdentifier))
+        .thenReturn(mock(Invoice.class));
+    when(unknownStripeCustomerJpaRepositoryMock.findAllByCreationDatetimeBetween(any(), any()))
+        .thenReturn(
+            List.of(
+                UnknownStripeCustomer.builder()
+                    .id(randomUUID().toString())
+                    .stripeCustomerIdentifier(unknownStripeCustomerIdentifier)
+                    .build()));
+
+    var actual = subject.getUpcomingDebitedCustomers();
+
+    assertEquals(List.of(userMock), actual.billedUsers());
+    assertEquals(List.of(unknownStripeCustomerMock), actual.notBilledCustomers());
+    verify(unknownStripeCustomerJpaRepositoryMock, never()).saveAll(any());
   }
 }

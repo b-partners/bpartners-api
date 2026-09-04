@@ -4,8 +4,6 @@ import static app.bpartners.api.endpoint.rest.model.CustomerStatus.ENABLED;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static java.time.Instant.now;
-import static java.time.ZoneOffset.UTC;
-import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -17,7 +15,6 @@ import app.bpartners.api.model.CustomerExportHistory;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.jpa.CustomerExportHistoryJpaRepository;
-import app.bpartners.api.repository.jpa.UnknownStripeCustomerJpaRepository;
 import app.bpartners.api.service.customer.CustomerExportPayload;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.file.CustomerExportFunction;
@@ -25,7 +22,6 @@ import app.bpartners.api.service.subscription.StripeCustomerService;
 import app.bpartners.api.service.subscription.UpcomingUserDebitService;
 import app.bpartners.api.service.user.UserService;
 import java.time.Instant;
-import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
@@ -40,7 +36,6 @@ public class UpcomingDebitedCustomerExportRequestedService
   private final UserService userService;
   private final CustomerService customerService;
   private final UpcomingUserDebitService upcomingUserDebitService;
-  private final UnknownStripeCustomerJpaRepository unknownStripeCustomerJpaRepository;
   private final UserSubscriptionConf userSubscriptionConf;
   private final CustomerExportFunction customerExportFunction;
   private final BucketComponent bucketComponent;
@@ -53,14 +48,14 @@ public class UpcomingDebitedCustomerExportRequestedService
     var userOwnerIdentifier = userSubscriptionConf.getUserToCreditId();
     var user = userService.getUserById(userOwnerIdentifier);
 
-    var upcomingUserDebited = upcomingUserDebitService.getUpcomingUserDebited();
+    var upcomingDebitedCustomers = upcomingUserDebitService.getUpcomingDebitedCustomers();
 
     var customerStatus = ENABLED;
     var page = new PageFromOne(MIN_PAGE);
     var pageSize = new BoundedPageSize(MAX_SIZE);
 
-    var convertedCustomers =
-        upcomingUserDebited.stream()
+    var billedCustomers =
+        upcomingDebitedCustomers.billedUsers().stream()
             .map(
                 upcomingDebitedUser -> {
                   var userSubscriptionId = upcomingDebitedUser.getUserSubscriptionId();
@@ -96,12 +91,21 @@ public class UpcomingDebitedCustomerExportRequestedService
                 })
             .toList();
 
-    var customerExportFromUnknownStripe = getCustomerExportPayloads(event.getYearMonth());
+    var notBilledCustomers =
+        upcomingDebitedCustomers.notBilledCustomers().stream()
+            .map(
+                stripeCustomer ->
+                    new CustomerExportPayload(
+                        null,
+                        stripeCustomer.getEmail(),
+                        stripeCustomer.getId(),
+                        stripeCustomer.getName(),
+                        true,
+                        Instant.ofEpochSecond(stripeCustomer.getCreated())))
+            .toList();
 
     var customerExportPayloads =
-        Stream.of(customerExportFromUnknownStripe, convertedCustomers)
-            .flatMap(List::stream)
-            .toList();
+        Stream.of(notBilledCustomers, billedCustomers).flatMap(List::stream).toList();
 
     var exportedExcelFile = customerExportFunction.apply(customerExportPayloads);
 
@@ -127,27 +131,5 @@ public class UpcomingDebitedCustomerExportRequestedService
 
     eventProducer.accept(
         List.of(new CustomerExportHistorySaved(savedCustomerExportHistory.getId())));
-  }
-
-  private List<CustomerExportPayload> getCustomerExportPayloads(YearMonth yearMonth) {
-    var begin = yearMonth.atDay(1);
-    var end = yearMonth.atEndOfMonth();
-    var beginInstant = begin.atStartOfDay().toInstant(UTC);
-    var endInstant = end.plusDays(1).atStartOfDay().toInstant(UTC).minus(1L, SECONDS);
-    var unknownStripeCustomersAtPeriod =
-        unknownStripeCustomerJpaRepository.findAllByCreationDatetimeBetween(
-            beginInstant, endInstant);
-
-    return unknownStripeCustomersAtPeriod.stream()
-        .map(
-            unknownStripeCustomer ->
-                new CustomerExportPayload(
-                    null,
-                    unknownStripeCustomer.getEmail(),
-                    unknownStripeCustomer.getStripeCustomerIdentifier(),
-                    unknownStripeCustomer.getName(),
-                    true,
-                    unknownStripeCustomer.getCreationDatetime()))
-        .toList();
   }
 }

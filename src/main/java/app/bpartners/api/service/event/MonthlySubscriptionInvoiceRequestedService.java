@@ -5,25 +5,24 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 import static app.bpartners.api.model.mapper.InvoiceMapper.*;
-import static app.bpartners.api.service.subscription.SubscriptionService.FREE_ROOF_ANALYSIS;
-import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
+import static app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT;
+import static app.bpartners.api.model.subscription.SubscriptionProduct.DEFAULT_FREE_USAGE_THRESHOLD;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceRequested;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.*;
-import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.StripeConf;
-import app.bpartners.api.repository.CustomerRepository;
-import app.bpartners.api.repository.jpa.UserStripeCustomerEmailCorrespondenceJpaRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
-import app.bpartners.api.service.customer.UserCustomerConverter;
+import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.ReferenceGenerator;
 import app.bpartners.api.service.subscription.StripeFactory;
@@ -41,6 +40,7 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -54,19 +54,18 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MonthlySubscriptionInvoiceRequestedService
     implements Consumer<MonthlySubscriptionInvoiceRequested> {
+  private static final int VAT_PERCENT = 2000; // basis points of 10000 : 2000 = 20%
   private final InvoiceService invoiceService;
-  private final CustomerRepository customerRepository;
   private final SubscriptionService subscriptionService;
   private final CustomDateFormatter customDateFormatter;
   private final TemporalUtils temporalUtils;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
-  private final UserCustomerConverter userCustomerConverter;
+  private final SubscriptionCustomerResolver subscriptionCustomerResolver;
   private final StripeConf stripeConf;
   private final StripeFactory stripeFactory;
   private final StripeInvoiceService stripeInvoiceService;
-  private final UserStripeCustomerEmailCorrespondenceJpaRepository
-      userStripeCustomerEmailCorrespondenceJpaRepository;
   private final SubscriptionInvoiceTitleComputer subscriptionInvoiceTitleComputer;
+  private final SubscriptionProductRepository subscriptionProductRepository;
 
   @Override
   public void accept(MonthlySubscriptionInvoiceRequested event) {
@@ -87,7 +86,7 @@ public class MonthlySubscriptionInvoiceRequestedService
     log.info("Upcoming Stripe Invoice {} for user(id={})", nextInvoiceDate, userToDebit.getId());
 
     if (nextInvoiceDate != null
-        && nextInvoiceDate.isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 1))) {
+        && nextInvoiceDate.isBefore(temporalUtils.getFirstOfMonthAt2359(now(), 1))) {
       Invoice monthlySubscriptionInvoice;
       try {
         monthlySubscriptionInvoice =
@@ -159,7 +158,7 @@ public class MonthlySubscriptionInvoiceRequestedService
                         .equalsIgnoreCase(monthlySubscriptionInvoice.getTitle())
                     && existingInvoice
                         .getCreatedAt()
-                        .isBefore(temporalUtils.getSixthOfMonthAt2359(now(), 1))
+                        .isBefore(temporalUtils.getFirstOfMonthAt2359(now(), 1))
                     && existingInvoice
                         .getCreatedAt()
                         .isAfter(
@@ -172,13 +171,13 @@ public class MonthlySubscriptionInvoiceRequestedService
   private Invoice computeMonthlySusbcriptionInvoice(
       User userToCredit, User userToDebit, UserSubscription userSubscription)
       throws StripeException {
-    var customerToDebit = computeCustomerToDebit(userToCredit, userToDebit);
+    var customerToDebit = subscriptionCustomerResolver.apply(userToCredit, userToDebit);
     var variableAnalysisConsumptionUsage = getVariableAnalysisConsumptionUsage(userToDebit);
 
     var invoiceId = randomUUID().toString();
-    var actualMonth = YearMonth.from(temporalUtils.startOfActualMonth());
-    var monthPeriod = subscriptionInvoiceTitleComputer.monthPeriodOf(actualMonth);
-    var invoiceTitle = subscriptionInvoiceTitleComputer.apply(actualMonth);
+    var billedMonth = YearMonth.from(temporalUtils.startOfLastMonth());
+    var monthPeriod = subscriptionInvoiceTitleComputer.monthPeriodOf(billedMonth);
+    var invoiceTitle = subscriptionInvoiceTitleComputer.apply(billedMonth);
     var defaultProductDescription = "Abonnement Essentiel " + monthPeriod;
     var invoiceProducts =
         computeSubscriptionProducts(
@@ -187,7 +186,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             userSubscription,
             variableAnalysisConsumptionUsage);
     var discountZero = new Fraction(BigInteger.ZERO);
-    var sendingDate = temporalUtils.endOfActualMonth();
+    var sendingDate = temporalUtils.endOfLastMonth();
     LocalDateTime fixedDateTime = LocalDateTime.of(sendingDate, LocalTime.now());
     Supplier<LocalDateTime> fixedDateTimeSupplier = () -> fixedDateTime;
     var referenceGenerator = new ReferenceGenerator(fixedDateTimeSupplier);
@@ -199,7 +198,7 @@ public class MonthlySubscriptionInvoiceRequestedService
         .status(CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(temporalUtils.fifthOfNextMonth())
+        .toPayAt(temporalUtils.startOfActualMonth())
         .sendingDate(sendingDate)
         .validityDate(sendingDate.plusDays(30L))
         .paymentMethod(PaymentMethod.CREDIT_CARD)
@@ -233,58 +232,45 @@ public class MonthlySubscriptionInvoiceRequestedService
     return variableConsumptionUsage.get();
   }
 
-  private Customer computeCustomerToDebit(User userToCredit, User userToDebit) {
-    var optionalCustomerToDebitFromOriginalUserToDebitEmail =
-        customerRepository
-            .findByIdUserAndCriteria(
-                userToCredit.getId(),
-                null,
-                null,
-                userToDebit.getEmail(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                CustomerStatus.ENABLED,
-                MIN_PAGE,
-                MAX_SIZE)
-            .stream()
-            .findAny();
-    if (optionalCustomerToDebitFromOriginalUserToDebitEmail.isEmpty()) {
-      var optionalUserStripeCustomerEmailCorrespondence =
-          userStripeCustomerEmailCorrespondenceJpaRepository.findByUserId(userToDebit.getId());
-      if (optionalUserStripeCustomerEmailCorrespondence.isPresent()) {
-        return customerRepository
-            .findByIdUserAndCriteria(
-                userToCredit.getId(),
-                null,
-                null,
-                optionalUserStripeCustomerEmailCorrespondence.get().getEmail(),
-                null,
-                null,
-                null,
-                null,
-                null,
-                CustomerStatus.ENABLED,
-                MIN_PAGE,
-                MAX_SIZE)
-            .stream()
-            .findAny()
-            .orElseGet(() -> userCustomerConverter.apply(userToDebit));
-      }
-    }
-    return optionalCustomerToDebitFromOriginalUserToDebitEmail.orElseGet(
-        () -> userCustomerConverter.apply(userToDebit));
+  private long vatPercentOf(SubscriptionProduct subscriptionProduct) {
+    return subscriptionProduct == null || subscriptionProduct.getVatPercent() == null
+        ? VAT_PERCENT
+        : subscriptionProduct.getVatPercent();
   }
 
-  private double getProductUnitPrice(List<String> productIds) {
-    if (productIds.stream()
-        .anyMatch(productId -> productId.contains(stripeConf.getBasicSubscriptionProductId()))) {
-      return 700;
-    } else {
-      return 4900;
-    }
+  private long getProductUnitPrice(
+      Optional<SubscriptionProduct> commitmentPlan, List<String> productIds) {
+    return commitmentPlan
+        .filter(plan -> plan.getPriceInCentsWithoutVat() != null)
+        .map(SubscriptionProduct::getPriceInCentsWithoutVat)
+        .orElseGet(
+            () ->
+                productIds.stream()
+                        .anyMatch(
+                            productId ->
+                                productId.contains(stripeConf.getBasicSubscriptionProductId()))
+                    ? 700L
+                    : 4900L);
+  }
+
+  private Optional<SubscriptionProduct> findCommitmentPlan(List<String> stripeProductIds) {
+    return stripeProductIds.stream()
+        .map(subscriptionProductRepository::findByE2Id)
+        .flatMap(Optional::stream)
+        .filter(plan -> COMMITMENT.equals(plan.getBillingType()))
+        .findFirst();
+  }
+
+  private long freeUsageThresholdOf(Optional<SubscriptionProduct> commitmentPlan) {
+    return commitmentPlan
+        .map(SubscriptionProduct::freeUsageThresholdOrDefault)
+        .orElse(DEFAULT_FREE_USAGE_THRESHOLD);
+  }
+
+  private long overageUnitPriceOf(Optional<SubscriptionProduct> commitmentPlan) {
+    return commitmentPlan
+        .map(SubscriptionProduct::overageUnitPriceInCentsOrDefault)
+        .orElse(SubscriptionProduct.DEFAULT_OVERAGE_UNIT_PRICE_IN_CENTS);
   }
 
   private @NotNull ArrayList<InvoiceProduct> computeSubscriptionProducts(
@@ -302,6 +288,7 @@ public class MonthlySubscriptionInvoiceRequestedService
             .flatMap(subscription -> subscription.getItems().getData().stream())
             .map(subscriptionItem -> subscriptionItem.getPlan().getProduct())
             .toList();
+    var commitmentPlan = findCommitmentPlan(subscriptions);
     var subscriptionProduct = latestSubscription.getSubscriptionProduct();
     invoiceProducts.add(
         InvoiceProduct.builder()
@@ -310,12 +297,15 @@ public class MonthlySubscriptionInvoiceRequestedService
             .createdAt(now())
             .description(subscriptionProduct == null ? invoiceTitle : subscriptionProduct.getName())
             .quantity(1)
-            .unitPrice(parseFraction(getProductUnitPrice(subscriptions)))
-            .vatPercent(new Fraction(BigInteger.valueOf(2000)))
+            .unitPrice(
+                new Fraction(
+                    BigInteger.valueOf(getProductUnitPrice(commitmentPlan, subscriptions))))
+            .vatPercent(new Fraction(BigInteger.valueOf(vatPercentOf(subscriptionProduct))))
             .status(ProductStatus.ENABLED)
             .build());
 
-    var analysisPayableUsage = variableAnalysisConsumptionUsage - FREE_ROOF_ANALYSIS;
+    var analysisPayableUsage =
+        variableAnalysisConsumptionUsage - freeUsageThresholdOf(commitmentPlan);
     if (analysisPayableUsage > 0L) {
       invoiceProducts.add(
           InvoiceProduct.builder()
@@ -324,8 +314,8 @@ public class MonthlySubscriptionInvoiceRequestedService
               .createdAt(now())
               .description("Analyse de toîtures supplémentaire")
               .quantity((int) analysisPayableUsage)
-              .unitPrice(parseFraction(200))
-              .vatPercent(new Fraction(BigInteger.valueOf(2000)))
+              .unitPrice(new Fraction(BigInteger.valueOf(overageUnitPriceOf(commitmentPlan))))
+              .vatPercent(new Fraction(BigInteger.valueOf(vatPercentOf(subscriptionProduct))))
               .status(ProductStatus.ENABLED)
               .build());
     }

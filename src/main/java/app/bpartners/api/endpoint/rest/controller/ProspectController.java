@@ -5,11 +5,13 @@ import static app.bpartners.api.endpoint.rest.validator.ProspectRestValidator.XL
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered;
+import app.bpartners.api.endpoint.rest.mapper.ProspectAnalyseRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectJobRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.ProspectRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.security.UsernamePasswordAuthenticator;
+import app.bpartners.api.endpoint.rest.validator.CreateProspectAnalyseValidator;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.BoundedPageSize;
@@ -19,6 +21,7 @@ import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJobRunner;
 import app.bpartners.api.repository.expressif.ProspectEval;
 import app.bpartners.api.repository.expressif.utils.ProspectEvalUtils;
+import app.bpartners.api.service.prospect.ProspectAnalyseService;
 import app.bpartners.api.service.prospect.ProspectService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
@@ -54,6 +57,9 @@ public class ProspectController {
   private final ProspectJobRestMapper jobRestMapper;
   private final EventProducer eventProducer;
   private final FileWriter fileWriter;
+  private final ProspectAnalyseService prospectAnalyseService;
+  private final ProspectAnalyseRestMapper prospectAnalyseRestMapper;
+  private final CreateProspectAnalyseValidator createProspectAnalyseValidator;
   private UsernamePasswordAuthenticator authenticator;
 
   private static Double getMinCustomerRating(HttpHeaders headers) {
@@ -305,5 +311,43 @@ public class ProspectController {
   public String deleteProspectById(HttpServletRequest request, @PathVariable String id) {
     authenticator.retrieveUserWithoutLegalFileCheck(request);
     return service.deleteProspectById(id);
+  }
+
+  @PostMapping("/accountHolders/{ahId}/prospects/{prospectId}/analyses")
+  public ProspectAnalyse createProspectAnalyse(
+      @PathVariable("ahId") String accountHolderId,
+      @PathVariable("prospectId") String prospectId,
+      @RequestBody CreateProspectAnalyse toCreate) {
+    createProspectAnalyseValidator.accept(toCreate);
+    app.bpartners.api.model.prospect.ProspectAnalyse prospectAnalyse =
+        prospectAnalyseRestMapper.toDomain(prospectId, toCreate);
+    return prospectAnalyseRestMapper.toRest(prospectAnalyseService.create(prospectAnalyse));
+  }
+
+  @GetMapping("/accountHolders/{ahId}/prospects/{prospectId}/analyses")
+  public List<ProspectAnalyse> getProspectAnalyses(
+      @PathVariable("ahId") String accountHolderId, @PathVariable("prospectId") String prospectId) {
+    return prospectAnalyseService.getByProspectId(prospectId).stream()
+        .map(prospectAnalyseRestMapper::toRest)
+        .toList();
+  }
+
+  @GetMapping("/accountHolders/{ahId}/prospects/{prospectId}/analyses/{analyseId}")
+  public ProspectAnalyse getProspectAnalyseById(
+      @PathVariable("ahId") String accountHolderId,
+      @PathVariable("prospectId") String prospectId,
+      @PathVariable("analyseId") String analyseId) {
+    return prospectAnalyseRestMapper.toRest(prospectAnalyseService.getById(analyseId));
+  }
+
+  @PutMapping("/accountHolders/{ahId}/prospects/{prospectId}/analyses/{analyseId}")
+  public ProspectAnalyse updateProspectAnalyse(
+      @PathVariable("ahId") String accountHolderId,
+      @PathVariable("prospectId") String prospectId,
+      @PathVariable("analyseId") String analyseId,
+      @RequestBody CreateProspectAnalyse toUpdate) {
+    createProspectAnalyseValidator.accept(toUpdate);
+    return prospectAnalyseRestMapper.toRest(
+        prospectAnalyseService.update(analyseId, toUpdate.getMetadata()));
   }
 }

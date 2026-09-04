@@ -63,9 +63,6 @@ import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.ban.BanApi;
 import app.bpartners.api.repository.ban.model.GeoPosition;
 import app.bpartners.api.repository.jpa.model.HAccountHolder;
-import app.bpartners.api.repository.sendinblue.SendinblueApi;
-import app.bpartners.api.repository.sendinblue.model.Attributes;
-import app.bpartners.api.repository.sendinblue.model.Contact;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.io.IOException;
@@ -721,27 +718,6 @@ public class TestUtils {
         .thenReturn(
             new UsernamePasswordAuthenticationToken(
                 new Principal(new app.bpartners.api.model.User(), JOE_DOE_TOKEN), new Object()));
-  }
-
-  public static void setUpSendiblueApi(SendinblueApi sendinblueApi) {
-    Attributes attributes =
-        Attributes.builder()
-            .id(0D)
-            .firstName("John")
-            .lastName("Doe")
-            .smsPhoneNumber("+33611223344")
-            .build();
-    when(sendinblueApi.createContact(any()))
-        .thenReturn(
-            Contact.builder()
-                .email(VALID_EMAIL)
-                .updateEnabled(true)
-                .listIds(List.of())
-                .smtpBlackListed(List.of())
-                .smsBlackListed(false)
-                .emailBlackListed(false)
-                .attributes(attributes)
-                .build());
   }
 
   public static void setUpEventBridge(EventBridgeClient eventBridgeClient) {

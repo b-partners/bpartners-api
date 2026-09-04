@@ -125,6 +125,19 @@ public class UserRepositoryImpl implements UserRepository {
         .toList();
   }
 
+  @Override
+  public List<String> findEnabledUserIdsWithSubscription() {
+    // Projection on id only: avoids hydrating the whole HUser graph (accounts, holders, banks,
+    // subscription products, parent user...) which triggers a heavy N+1 over the full user base.
+    return entityManager
+        .createQuery(
+            "SELECT u.id FROM HUser u "
+                + "WHERE u.status = :status AND u.userSubscriptionE2Id IS NOT NULL",
+            String.class)
+        .setParameter("status", EnableStatus.ENABLED)
+        .getResultList();
+  }
+
   private static Integer computeDefaultPage(HashMap<String, Object> criteria) {
     if (criteria.containsKey("page")) {
       Object pageObject = criteria.get("page");
@@ -182,14 +195,26 @@ public class UserRepositoryImpl implements UserRepository {
         : Optional.empty();
   }
 
+  @Transactional
+  @Override
+  public Optional<User> findByStripeCustomerId(String stripeCustomerId) {
+    return jpaRepository
+        .findByUserSubscriptionE2Id(stripeCustomerId)
+        .map(userMapper::toDomain)
+        .map(this::retrievePaymentMethod);
+  }
+
   @Override
   public User getById(String id) {
-    var fetchedUser =
-        userMapper.toDomain(
-            jpaRepository
-                .findById(id)
-                .orElseThrow(() -> new NotFoundException("User(id=" + id + " not found)")));
-    return retrievePaymentMethod(fetchedUser);
+    return retrievePaymentMethod(getByIdWithoutPaymentMethod(id));
+  }
+
+  @Override
+  public User getByIdWithoutPaymentMethod(String id) {
+    return userMapper.toDomain(
+        jpaRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException("User(id=" + id + " not found)")));
   }
 
   @Override

@@ -1,3 +1,119 @@
+# [0.91.0](https://github.com/b-partners/bpartners-api/compare/v0.85.0...v0.91.0) (2026-09-03)
+
+
+### Bug Fixes
+
+* 3d annotation inverted ([354793f](https://github.com/b-partners/bpartners-api/commit/354793fb29fc7a807e188a8d14eebb08b1446050))
+* add /users/*/subscriptionCommitments in securityConf ([1ee050b](https://github.com/b-partners/bpartners-api/commit/1ee050b8aca9de315c6bb61b7164e6a6811383f7))
+* add billing interval on user subscription ([9788f97](https://github.com/b-partners/bpartners-api/commit/9788f975aaa50a31f208c8f50a995bafa6b0d6ee))
+* add detection identifier on tracking to avoid duplication ([0918081](https://github.com/b-partners/bpartners-api/commit/09180812a5018bbfb580e1cdea936919a987e65b))
+* add user subscription plan ([ab43b4b](https://github.com/b-partners/bpartners-api/commit/ab43b4b2b0d879af9d3e76016357b97691e64e85))
+* ajust billing cycle anchor per calendar month and prorated ([9be6de6](https://github.com/b-partners/bpartners-api/commit/9be6de668bf5c4a3abf671b4fb4aef9c81d06a3a))
+* annotation draft filter compute timeout ([76df2bc](https://github.com/b-partners/bpartners-api/commit/76df2bc454b2e6aa790ddd5f34c244514640de70))
+* associate user into subscription product through stripe webhook ([36b9c97](https://github.com/b-partners/bpartners-api/commit/36b9c97d6f1b1efe7b0265c08896301e56853886))
+* avoid erasing existing subscription data from empty stripe data ([576f753](https://github.com/b-partners/bpartners-api/commit/576f75322167d1d7d864cd0b68f36e811efc433f))
+* blank page after facade section in export pdf ([ad09070](https://github.com/b-partners/bpartners-api/commit/ad0907075f4b12a7f9f61c97f90f7f4f8594c94a))
+* cap concurrent GeoData Imagery API calls in draft-annotations batching ([ca7e548](https://github.com/b-partners/bpartners-api/commit/ca7e548f01193771f1780946d3af527315c5d2d3))
+* **ConsumptionFreeTrialValidator:** allow non trial period user to consume over limited consumption ([4d45d35](https://github.com/b-partners/bpartners-api/commit/4d45d35a17d856fe1bc4e315a2a5fc781756b0a2))
+* **db:** rename commitment_duration _12_MONTHS to TWELVE_MONTHS ([63e5450](https://github.com/b-partners/bpartners-api/commit/63e5450e2655ec5b78a19e96074018043b94d413))
+* debit immediately when annual subscription billing interval ([91002c0](https://github.com/b-partners/bpartners-api/commit/91002c06fcbcf3aeb36286f35083d6902d43d133))
+* do not cancel scheduled subscription immediatly to debit payment first before cancelling ([62e4d78](https://github.com/b-partners/bpartners-api/commit/62e4d788e5385581bac6389b9ecf55692e6df3d5))
+* do not include and schedule overage subscription anymore ([c335473](https://github.com/b-partners/bpartners-api/commit/c3354737e09795dc8aa8551a0699a66ca61bba08))
+* do not update stripe subscriptions in a terminal status ([e57d8bf](https://github.com/b-partners/bpartners-api/commit/e57d8bf41a7fc91f4afce374011eb4b377e68849))
+* eliminate N+1 queries on draft area picture annotations endpoint ([99728e9](https://github.com/b-partners/bpartners-api/commit/99728e954aeafbe911f93a6f5e5f1390889e902a))
+* fan out user subscription product backfill to avoid Lambda timeout ([6909d83](https://github.com/b-partners/bpartners-api/commit/6909d83254e5f827d461a19ce99238416331efb5))
+* **flyway:** set lock timeout on migration connections ([e52d290](https://github.com/b-partners/bpartners-api/commit/e52d290215a9c2bad8a7ab40d49abaf3ef29d298))
+* grant credits from subscription and renew each month through scheduler ([5150619](https://github.com/b-partners/bpartners-api/commit/5150619dd80521f5d59a1223d7623d3c23a3c019))
+* grant subscription credits on plan change and until period end ([09574a5](https://github.com/b-partners/bpartners-api/commit/09574a553142596c2fc2bec9fbd46d69afe44cfe))
+* handle already submitted credit purcahse on invoice generation ([187a583](https://github.com/b-partners/bpartners-api/commit/187a5837b80c1ce591d2352365d84cc1468112f3))
+* handle analysis consumption on stripe event webhook on YEARLY billing interval ([4fcc39d](https://github.com/b-partners/bpartners-api/commit/4fcc39d043e1725d7aa7deed283ea50617250abf))
+* handle area picture consumption as image_access ([b9b4280](https://github.com/b-partners/bpartners-api/commit/b9b428081c09eeb8d23a06f427b00c05f9520c3e))
+* handle CANCELED subscription status with correct mapping ([3f10d30](https://github.com/b-partners/bpartners-api/commit/3f10d30a1c83828a5c8e0413aa4aceff2f620a0e))
+* handle subscription plan dynamically in StripeWebhook ([90a79c9](https://github.com/b-partners/bpartners-api/commit/90a79c98b3dcbe50b72799a11cd758eaac5b65ba))
+* ignore png compression if failed ([4ad10ce](https://github.com/b-partners/bpartners-api/commit/4ad10cec0c4ce54780e19a9d496ded48ba1f89f1))
+* ignore stripe susbcription with CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY flag during initiation ([f74049a](https://github.com/b-partners/bpartners-api/commit/f74049a1cf517e65318659f286db588cc51f1e3a))
+* **InvoiceValidator:** allow crupdating PAID invoice ([4b309b1](https://github.com/b-partners/bpartners-api/commit/4b309b13a8286a5c0dc322f7645e969cff52f747))
+* limit upcoming billed users by user with subscription ID only ([b343055](https://github.com/b-partners/bpartners-api/commit/b343055b24e83571a43b1f89f3fd884231f278d4))
+* make file info nullable for downloadImage AreaPicture ([6bcbb35](https://github.com/b-partners/bpartners-api/commit/6bcbb35acd58908c22935e8c573a79cb23124f34))
+* map createdAt in toCrupdatedAreaPictureDetails mapper ([6216197](https://github.com/b-partners/bpartners-api/commit/6216197732b9b24fa0c0540875aaebb5f9d8698b))
+* npe on AreaPictureAnnotation mapper while no ProspectId ([61d22b6](https://github.com/b-partners/bpartners-api/commit/61d22b62554669be70507de33194c538e76b7a36))
+* oriented pan on pdf export ([de875a2](https://github.com/b-partners/bpartners-api/commit/de875a2686a939df60b3ce480507016a1c062912))
+* preserve sub-unit precision in polygon coordinates until pixel rounding ([4788e4b](https://github.com/b-partners/bpartners-api/commit/4788e4b6c7342d4586276f59664f3bfd00ace3ae))
+* price credits at public price once subscription is cancelled ([02dbbb7](https://github.com/b-partners/bpartners-api/commit/02dbbb70521afe253c049a6280fefa73bafb2dcf))
+* remove excluded user skipping free consumption validator ([4afdd87](https://github.com/b-partners/bpartners-api/commit/4afdd8782c5e9a69deb98d9d3b6e44209526bbc6))
+* rename commitment duration enum value 12_MONTHS to TWELVE_MONTHS ([1c6507e](https://github.com/b-partners/bpartners-api/commit/1c6507e355e2a35fc3d33b333572f37cb80f3103))
+* reversed facade image ([645a50d](https://github.com/b-partners/bpartners-api/commit/645a50de94a9e4184f4ac755ed8c02e6ad2325b8))
+* send subscription invoice to a single recipient ([701d13b](https://github.com/b-partners/bpartners-api/commit/701d13b58b3247cade045cd3e8fd2a79b4b67ea9))
+* separate price with vat and without on subscription plan ([a490d51](https://github.com/b-partners/bpartners-api/commit/a490d5138f80a9d5332b1bfe414e37b32f9edd37))
+* set scheduler to run on 1st of each month to generate past month invoices ([fddddd8](https://github.com/b-partners/bpartners-api/commit/fddddd8f34094289738f38c210716d1732690e68))
+* set subscription cancellation configurable with immediate effect by default ([099c964](https://github.com/b-partners/bpartners-api/commit/099c9646e474e33a0d91f83932fbeff1afac1aaa))
+* **StripeFactory:** allow proration except YEARLY interval ([d352161](https://github.com/b-partners/bpartners-api/commit/d35216131fc42126ad9bf587ad937dfa7e29cdb1))
+* **StripePortalService:** verify stripe customer association before initiating billing portal session ([12a20c3](https://github.com/b-partners/bpartners-api/commit/12a20c3d8a10a60a55659c2bf4c76ed95a5b0474))
+* **StripeWebhookService:** handle subscription_schedule.created event ([d31aad6](https://github.com/b-partners/bpartners-api/commit/d31aad6a9cea47787e7c8936b34e7d8ac0b56bd6))
+* **Subscription:** compute period from line period not invoice period ([9a93b2b](https://github.com/b-partners/bpartners-api/commit/9a93b2bb134541782409c8a8939c3d5b8220dde7))
+* **subscription:** date subscription products on the real period start ([aff8a95](https://github.com/b-partners/bpartners-api/commit/aff8a9559c0b5b1e02cc672a16b0d7cd5d29a5be))
+* **SubscriptionInvoice:** improve mail content and prepraid subscription invoice labels ([9ffa752](https://github.com/b-partners/bpartners-api/commit/9ffa7526aa31a8643bdf213d64044aa83d2c6c76))
+* **subscription:** keep the plan served until the subscription end ([0d72636](https://github.com/b-partners/bpartners-api/commit/0d726366ee3f9197d1b2b88943526c179d980ed4))
+* **SubscriptionPayment:** derive billing interval from the stripe invoice ([b53711f](https://github.com/b-partners/bpartners-api/commit/b53711fb0edf64f17e0607d0a1e950521ce87943))
+* **SubscriptionPlan:** add deprecated attribute ([ba0a5ea](https://github.com/b-partners/bpartners-api/commit/ba0a5eaa56574684452cafd7504fc9178e230a46))
+* **SubscriptionPlan:** add displayPosition attribute ([2862886](https://github.com/b-partners/bpartners-api/commit/28628862593b08e2d7302c5c648be6233865c7d9))
+* **SubscriptionPlan:** add most chosen attribute ([20606a3](https://github.com/b-partners/bpartners-api/commit/20606a309b5ea5f729fbac44e006a0189cd9520b))
+* **SubscriptionProduct:** do not override credit unit price in cents and credit cost per analysis ([27b5c87](https://github.com/b-partners/bpartners-api/commit/27b5c87b76bb592c60b8f419b2458772228be58d))
+* **subscription:** reject a subscription when one is already scheduled ([8a2b0fc](https://github.com/b-partners/bpartners-api/commit/8a2b0fc3fe75d8a57deb381276b358aa8b220289))
+* **Subscription:** retrieve product from stripe end-to-end id product ([bf95f50](https://github.com/b-partners/bpartners-api/commit/bf95f50965cdbd341d049ead23987b701fcee5b0))
+* **subscription:** scope unpaid invoice check to a real subscription during schedule gap ([a4bf693](https://github.com/b-partners/bpartners-api/commit/a4bf693ccfd3c82328d8300378bb362454ebca26))
+* **subscription:** scope unpaid stripe invoice check to the current subscription ([8e188d5](https://github.com/b-partners/bpartners-api/commit/8e188d5bac8e7c523b3cfb25e5398c3a2f7fb56d))
+* **SubscriptionService:** avoid duplicated overall consumption debit through SET against default INCREMENT ([052ea48](https://github.com/b-partners/bpartners-api/commit/052ea48ab2c9f3df3fa2140ccb63f02633a5a807))
+* **SubscriptionService:** cancel latest subscription support scheduled subscriptions ([cd73e0f](https://github.com/b-partners/bpartners-api/commit/cd73e0f2c678a85b925f966cfacbcf91fe5d1c75))
+* trailing page on exported pdf ([a8f1dc1](https://github.com/b-partners/bpartners-api/commit/a8f1dc1e1aee0d2e5ce5b70934671b5cbfee1aa2))
+* trigger user subscription product back fill ([96e6a40](https://github.com/b-partners/bpartners-api/commit/96e6a40890efbcaaedd6c00c8dabba115c0ccf49))
+* **UpdateUserSubscriptionCommitment:** rename autoRenewalStatus into automaticRenewalStatus ([cfe245e](https://github.com/b-partners/bpartners-api/commit/cfe245e43ee4e63f7c495a9bbe34a8eb33d7e107))
+* **UserRestMapper:** return plan on V1 rest mapper ([bb18edc](https://github.com/b-partners/bpartners-api/commit/bb18edcaae37f8dc986d306667d2ee0726f6a546))
+* **UserSubscriptionCommitmentRestMapper:** verify subscription plan existence ([0d502ed](https://github.com/b-partners/bpartners-api/commit/0d502ed4d772706642524c3c1b334e3c0b91945a))
+* x axis flip of 3d annotation in pdf export ([e3644f4](https://github.com/b-partners/bpartners-api/commit/e3644f4f93fed47e5c341fef8634cee8139be107))
+
+
+### Features
+
+* add comment on prospect creation and update ([4a3c865](https://github.com/b-partners/bpartners-api/commit/4a3c86535f980dbfb15a5ad26e5aae33de2c4ab1))
+* add new subscription plans ([91701c1](https://github.com/b-partners/bpartners-api/commit/91701c1b2050649a121d476ae7c2cb49bc7013ea))
+* annotation draft filter on get all endpoint ([1c77973](https://github.com/b-partners/bpartners-api/commit/1c779738a76c55c75fb57b959b8ef7220d683727))
+* append credit transaction on analysis consumption through detection tracking ([1775cbf](https://github.com/b-partners/bpartners-api/commit/1775cbf6e5de6777abc07a50c2b7770cfc0b9436))
+* configure email recipients per account holder ([0e6bac0](https://github.com/b-partners/bpartners-api/commit/0e6bac058c398b18295fef24e61833cbf0a3eca5))
+* download image is now optinoal for AreaPicture ([c8a8688](https://github.com/b-partners/bpartners-api/commit/c8a8688c73176a624f511313ccbf2dd003a4fa27))
+* filter annotation drafts by properties ([8a39c64](https://github.com/b-partners/bpartners-api/commit/8a39c6457f230505073d1988bec7e78bf3cdc025))
+* GET /users/{id}/paymentMethods ([6bbd29c](https://github.com/b-partners/bpartners-api/commit/6bbd29c9cfb82f65289a47ffed532e18ac24f22b))
+* handle annual pricing with new subscription plans ([4a0bf76](https://github.com/b-partners/bpartners-api/commit/4a0bf7687a09df906e6848f421165a14d6798fce))
+* handle subscription plans with actual unique plan dynamically ([a0c2323](https://github.com/b-partners/bpartners-api/commit/a0c2323c4a7aa268bd69cddcb7c9a16ef017ef82))
+* implement and test geodata imagery for area pictures ([e297f0b](https://github.com/b-partners/bpartners-api/commit/e297f0b76d02c6ba5750890913172b4477bd9665))
+* notify by email credit purchase invoice ([93b8975](https://github.com/b-partners/bpartners-api/commit/93b89753ccf18dfc3b856b1063e8492148892f7e))
+* produces prepraid subscription invoice after user purchase ([dae2229](https://github.com/b-partners/bpartners-api/commit/dae22291303e3a6867960bd917366c7e3edc25f7))
+* prospect analyse ([15be829](https://github.com/b-partners/bpartners-api/commit/15be829435ae282c5ec9c061e7c96b0d3aadce69))
+* purchase credits with existing packs or custom ([c5520dd](https://github.com/b-partners/bpartners-api/commit/c5520ddfa40efabd5a798ccf602b5a210c86930a))
+* replace payment method through PUT /users/{id}/paymentMethods ([18d49b5](https://github.com/b-partners/bpartners-api/commit/18d49b55dbc0e38b1c92b0c53a7d84c348afd597))
+* retrieve credit packs ([64d1dc7](https://github.com/b-partners/bpartners-api/commit/64d1dc7880028348d4997a815d7f15c69c9b4f8f))
+* retrieve user credit balance ([d2753c4](https://github.com/b-partners/bpartners-api/commit/d2753c46f7e69fbb138d9f2531b9ae335b3aa20c))
+* retrieve user credit purchases ([94184d5](https://github.com/b-partners/bpartners-api/commit/94184d5234926b15b73c98c6eead73d8594ba0ed))
+* retrieve user credit transactions ([f12d5a3](https://github.com/b-partners/bpartners-api/commit/f12d5a39d751ec93b73e907852052928ecc6aa4d))
+* retrieve user detection tracking ([ced310d](https://github.com/b-partners/bpartners-api/commit/ced310d3992d0d031b4f15683d7ab58f5aa97b87))
+* retrieve user subscription commitments ([a88475e](https://github.com/b-partners/bpartners-api/commit/a88475ebfe09be317c92819a263bb5ed11f374fc))
+* route subscription invoice emails through recipients config ([0448b71](https://github.com/b-partners/bpartners-api/commit/0448b71da68e9b621ac1cf754433c12993c885cb))
+* save user subscription commitments ([e7a7ef2](https://github.com/b-partners/bpartners-api/commit/e7a7ef260c5efde922de03f653f86ad06e2b8ede))
+* **security:** add public /token/validate endpoint for Cognito token validation ([5d3609b](https://github.com/b-partners/bpartners-api/commit/5d3609b6b48fb93e54452e32b3740fcfd2349599))
+* **subscription:** expose renewal status and scheduled next subscription ([5fd5630](https://github.com/b-partners/bpartners-api/commit/5fd5630966954901b3eac1ddf6cd69fe103b00e2))
+* **SubscriptionInvoice:** show billing interval in the invoice email ([fbcd6b4](https://github.com/b-partners/bpartners-api/commit/fbcd6b45123b39a1cfa6445f1f24c1851652f2cd))
+* support globalImage3DUrl fallback for area picture annotation export ([8032a6e](https://github.com/b-partners/bpartners-api/commit/8032a6e2de04c1f424f31401ca28b55981257284))
+* trigger credit invoice after credit purchase completed ([440f767](https://github.com/b-partners/bpartners-api/commit/440f767eaee1521479db5f334745de78c3085d84))
+* update user subscription commitment auto renewal status ([92284c0](https://github.com/b-partners/bpartners-api/commit/92284c0bb346c0a6a1432d4ac8208c751e6c6d46))
+
+
+### Reverts
+
+* "chore: optimize PDF export performance and file size" ([420d7d3](https://github.com/b-partners/bpartners-api/commit/420d7d3980b76ec309ccf028e3a997a25be35c45))
+* pdf optimization prod ([a91b3ee](https://github.com/b-partners/bpartners-api/commit/a91b3ee1ac45bd2cd6fb6709e8c0e10816375a74))
+
+
+
 # [0.85.0](https://github.com/b-partners/bpartners-api/compare/v0.84.0...v0.85.0) (2026-07-21)
 
 
@@ -191,42 +307,6 @@
 ### Reverts
 
 * Revert "chore(to-revert): update invoice trigger information to december 2025" ([4ed25bf](https://github.com/b-partners/bpartners-api/commit/4ed25bf6c23283ccf4dd193f412dbae8985db5a7))
-
-
-
-# [0.77.0](https://github.com/b-partners/bpartners-api/compare/v0.76.0...v0.77.0) (2026-01-29)
-
-
-### Bug Fixes
-
-* accept only not expired card as default payment method ([96ecc48](https://github.com/b-partners/bpartners-api/commit/96ecc48f0c3fbc8f49afe6d59cf65339d289c8ba))
-* **DbContextInitializer:** setup 60s startup timeout to prevent flyway launch before postgres ([bd076b8](https://github.com/b-partners/bpartners-api/commit/bd076b8adc3151a3963414765ba6b67f4f5d62cd))
-* handle User and UserAnalysisApiKey entities through unidirectionnal relation ([294691f](https://github.com/b-partners/bpartners-api/commit/294691f57abc4745759c5d1e80c9156d79436e55))
-* handle user payment method verification when trial period expired ([e072c6c](https://github.com/b-partners/bpartners-api/commit/e072c6cd3b309a3bfb2be9162af2c9d2a2a0c4b2))
-* **ProspectJpaRepository:** filter existing prospects by idAccountHolder and (old email or new email) ([c420fda](https://github.com/b-partners/bpartners-api/commit/c420fda75e8dec01f424dd1713f47e59f333db27))
-* **ProspectJpaRepository:** filter existing prospects by idAccountHolder and (old email or new email) ([0de03f0](https://github.com/b-partners/bpartners-api/commit/0de03f0e2813be459fc59af44107b6e4d05b7578))
-* **ProspectJpaRepository:** reverse args on filtering existing account holder prospects ([564d177](https://github.com/b-partners/bpartners-api/commit/564d177f6dc8511faf6c9fdab82974ff253a1312))
-* **ProspectJpaRepository:** reverse args on filtering existing account holder prospects ([ad009ed](https://github.com/b-partners/bpartners-api/commit/ad009ed70e46fae7058078b02b6e98d2a922129f))
-* **RefreshInvoiceSummaryTriggeredService:** filter users to compute invoice summary to those associated to stripe only ([5daf7d2](https://github.com/b-partners/bpartners-api/commit/5daf7d2b7325ffb3b723d530832563baf1bb0724))
-* **SecurityConf:** only ADMIN can view users keys ([73dd577](https://github.com/b-partners/bpartners-api/commit/73dd57715ff61a3aa1e6dc7178d560bb4881d6b8))
-* **UserAnalysisApiKey:** ignore User attribute to avoid infinite loop ([2009823](https://github.com/b-partners/bpartners-api/commit/2009823c738bbb67815eb6b3e09c0a4203534ef4))
-* **UserAnalysisApiKeyService:** do not instance new HttpEntity and ignore deprecated attributes ([0d42a4c](https://github.com/b-partners/bpartners-api/commit/0d42a4c968224fb1c0e8bfad169c4ea08e8de1e8))
-* **UserRepository:** handle StripException when retrieving user payment methods ([90584db](https://github.com/b-partners/bpartners-api/commit/90584db0e58b5a82da87b4e912ccf2131dd13d86))
-* **UserRestMapper:** check subscription validity before free trial ([7c5e1ae](https://github.com/b-partners/bpartners-api/commit/7c5e1aeb4b4c570b1578d7040eccc405dce4e69b))
-
-
-### Features
-
-* add airbus pneo source ([675463c](https://github.com/b-partners/bpartners-api/commit/675463c844184e727651356346c901c4dbacca81))
-* api key revocation ([090b988](https://github.com/b-partners/bpartners-api/commit/090b988015ce1b19eb62509c535867b9e7384ecc))
-* get user analysis api key through existing api keys endpoint ([ec5055e](https://github.com/b-partners/bpartners-api/commit/ec5055ed29cf92248e16f3e181b30bcf9b314efe))
-* request analysis api key after user onboarding ([4edc1af](https://github.com/b-partners/bpartners-api/commit/4edc1aff3de8d14125be8284a1df571a386bc6e9))
-* support quebec coordinates ([181a374](https://github.com/b-partners/bpartners-api/commit/181a374609783b3fa50216b6d20057831e2a7150))
-
-
-### Reverts
-
-* Revert "chore: add tech email as bcc on customer crupdate event triggered" ([732b2c4](https://github.com/b-partners/bpartners-api/commit/732b2c4124790af830248ea750ebc0b00ddd493a))
 
 
 

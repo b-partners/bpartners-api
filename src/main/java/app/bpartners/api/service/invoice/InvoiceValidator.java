@@ -56,7 +56,12 @@ public class InvoiceValidator {
     boolean isToBeConfirmed =
         invoices.isEmpty()
             || invoices.stream().anyMatch(invoice -> invoice.getStatus() == PROPOSAL);
-    boolean isToBePaid = invoices.stream().anyMatch(invoice -> invoice.getStatus() == CONFIRMED);
+    boolean isToBePaid =
+        invoices.isEmpty()
+            || invoices.stream()
+                .anyMatch(
+                    invoice ->
+                        invoice.getStatus() == CONFIRMED || invoice.getId().equals(actual.getId()));
     if (status != CONFIRMED && status != PAID) {
       return invoices.isEmpty()
           || invoices.stream().anyMatch(invoice -> invoice.getId().equals(actual.getId()));

@@ -7,7 +7,9 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.DetectionTrackingJpaRepository;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -16,6 +18,16 @@ public class DetectionTrackingRepositoryImpl implements DetectionTrackingReposit
   private final DetectionTrackingJpaRepository jpaRepository;
   private final UserRepository userRepository;
   private final DetectionTrackingMapper mapper;
+
+  @Override
+  public Optional<DetectionTracking> findByDetectionIdentifier(String detectionIdentifier) {
+    return jpaRepository
+        .findByDetectionIdentifier(detectionIdentifier)
+        .map(
+            hDetectionTracking ->
+                mapper.toDomain(
+                    userRepository.getById(hDetectionTracking.getIdUser()), hDetectionTracking));
+  }
 
   @Override
   public List<DetectionTracking> saveAll(List<DetectionTracking> detectionTracking) {
@@ -28,6 +40,13 @@ public class DetectionTrackingRepositoryImpl implements DetectionTrackingReposit
   @Override
   public List<DetectionTracking> findAllByIdUserBetween(String idUser, Instant from, Instant to) {
     return jpaRepository.findAllByIdUserAndCreationDatetimeBetween(idUser, from, to).stream()
+        .map(entity -> mapper.toDomain(userRepository.getById(entity.getIdUser()), entity))
+        .toList();
+  }
+
+  @Override
+  public List<DetectionTracking> findAllByIdUser(String idUser, String search, Pageable pageable) {
+    return jpaRepository.findAllByIdUserAndSearch(idUser, search, pageable).stream()
         .map(entity -> mapper.toDomain(userRepository.getById(entity.getIdUser()), entity))
         .toList();
   }

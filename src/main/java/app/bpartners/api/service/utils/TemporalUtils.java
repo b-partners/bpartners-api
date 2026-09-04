@@ -12,66 +12,40 @@ import org.springframework.stereotype.Component;
 public class TemporalUtils {
   private static final ZoneId ZONE_ID_OF_EUROPE_PARIS = ZoneId.of("Europe/Paris");
 
-  public LocalDate fifthOfNextMonth() {
-    return fifthOfMonthAfter(1);
+  public LocalDate today() {
+    return now(ZONE_ID_OF_EUROPE_PARIS);
   }
 
   public LocalDate startOfNextMonth() {
-    var today = now();
-    var nextMonth = today.plusMonths(1);
-    return nextMonth.withDayOfMonth(1);
+    return startOfMonthAfter(today());
   }
 
-  public LocalDate fourthOfNextMonth() {
-    var today = now();
-    var nextMonth = today.plusMonths(1);
-    return nextMonth.withDayOfMonth(4);
-  }
-
-  public LocalDate fifthOfMonthAfter(int monthsOffset) {
-    var today = now();
-    var nextMonth = today.plusMonths(monthsOffset);
-    return nextMonth.withDayOfMonth(5);
+  public LocalDate startOfMonthAfter(LocalDate date) {
+    return YearMonth.from(date).plusMonths(1).atDay(1);
   }
 
   public LocalDate startOfActualMonth() {
-    var today = now();
-    var currentMonth = YearMonth.from(today);
+    var currentMonth = YearMonth.from(today());
     return currentMonth.atDay(1);
   }
 
-  public LocalDate fifthOfActualMonth() {
-    var today = now();
-    var currentMonth = YearMonth.from(today);
-    return currentMonth.atDay(5);
-  }
-
-  public LocalDate fifthOfLastMonth() {
-    var today = now();
-    var lastMonth = YearMonth.from(today).minusMonths(1);
-    return lastMonth.atDay(5);
-  }
-
   public LocalDate startOfLastMonth() {
-    var today = now();
-    var lastMonth = YearMonth.from(today).minusMonths(1);
+    var lastMonth = YearMonth.from(today()).minusMonths(1);
     return lastMonth.atDay(1);
   }
 
   public LocalDate endOfLastMonth() {
-    var today = now();
-    var lastMonth = YearMonth.from(today).minusMonths(1);
+    var lastMonth = YearMonth.from(today()).minusMonths(1);
     return lastMonth.atEndOfMonth();
   }
 
   public LocalDate endOfActualMonth() {
-    var today = now();
-    var currentMonth = YearMonth.from(today);
+    var currentMonth = YearMonth.from(today());
     return currentMonth.atEndOfMonth();
   }
 
   public static String actualMonthValue() {
-    LocalDate today = LocalDate.now();
+    LocalDate today = now(ZONE_ID_OF_EUROPE_PARIS);
     return switch (today.getMonthValue()) {
       case 1 -> "Janvier";
       case 2 -> "Février";
@@ -97,34 +71,36 @@ public class TemporalUtils {
   }
 
   public Instant endOfMonth() {
-    return LocalDate.now()
-        .withDayOfMonth(LocalDate.now().lengthOfMonth())
+    return endOfActualMonth()
         .atTime(23, 59, 59, 999_999_999)
-        .atZone(ZONE_ID_OF_EUROPE_PARIS) // Zone donnée
+        .atZone(ZONE_ID_OF_EUROPE_PARIS)
         .toInstant();
   }
 
   public Instant startOfMonth() {
-    return LocalDate.now().withDayOfMonth(1).atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
+    return startOfActualMonth().atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
   }
 
-  public Instant getSixthOfMonthAt2359(Instant instant, int plusMonth) {
-    return instant
+  public Instant startOfNextMonthInstant() {
+    return startOfNextMonth().atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
+  }
+
+  public Instant startOfLastMonthInstant() {
+    return startOfLastMonth().atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
+  }
+
+  public Instant endOfLastMonthInstant() {
+    return endOfLastMonth()
+        .atTime(23, 59, 59, 999_999_999)
         .atZone(ZONE_ID_OF_EUROPE_PARIS)
-        .plusMonths(plusMonth)
-        .withDayOfMonth(6)
-        .withHour(23)
-        .withMinute(59)
-        .withSecond(0)
-        .withNano(0)
         .toInstant();
   }
 
-  public Instant getSixthOfNextMonthAt2359(Instant instant) {
+  public Instant getFirstOfMonthAt2359(Instant instant, int plusMonth) {
     return instant
         .atZone(ZONE_ID_OF_EUROPE_PARIS)
-        .plusMonths(1)
-        .withDayOfMonth(6)
+        .plusMonths(plusMonth)
+        .withDayOfMonth(1)
         .withHour(23)
         .withMinute(59)
         .withSecond(0)

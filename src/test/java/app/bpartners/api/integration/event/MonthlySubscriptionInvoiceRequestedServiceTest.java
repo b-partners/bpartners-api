@@ -2,6 +2,7 @@ package app.bpartners.api.integration.event;
 
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
@@ -23,8 +24,10 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.CustomerRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserStripeCustomerEmailCorrespondenceJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.customer.UserCustomerConverter;
 import app.bpartners.api.service.event.MonthlySubscriptionInvoiceRequestedService;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -63,31 +66,45 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   StripeInvoiceService stripeInvoiceServiceMock = mock();
   UserStripeCustomerEmailCorrespondenceJpaRepository
       userStripeCustomerEmailCorrespondenceJpaRepositoryMock = mock();
+  SubscriptionProductRepository subscriptionProductRepositoryMock = mock();
+  SubscriptionCustomerResolver subscriptionCustomerResolver =
+      new SubscriptionCustomerResolver(
+          customerRepositoryMock,
+          userCustomerConverter,
+          userStripeCustomerEmailCorrespondenceJpaRepositoryMock);
   MonthlySubscriptionInvoiceRequestedService subject =
       new MonthlySubscriptionInvoiceRequestedService(
           invoiceServiceMock,
-          customerRepositoryMock,
           subscriptionServiceMock,
           customDateFormatter,
           temporalUtils,
           subscriptionEligibleJpaRepositoryMock,
-          userCustomerConverter,
+          subscriptionCustomerResolver,
           stripeConfMock,
           stripeFactoryMock,
           stripeInvoiceServiceMock,
-          userStripeCustomerEmailCorrespondenceJpaRepositoryMock,
-          new SubscriptionInvoiceTitleComputer(customDateFormatter));
+          new SubscriptionInvoiceTitleComputer(customDateFormatter),
+          subscriptionProductRepositoryMock);
 
   @BeforeEach
   void setUp() {
     var stripeInvoiceMock = mock(com.stripe.model.Invoice.class);
-    // The invoice is computed only when the next Stripe payment attempt falls before the 6th of the
-    // current month; pick a date that satisfies this regardless of the day the test actually runs.
     when(stripeInvoiceMock.getNextPaymentAttempt())
-        .thenReturn(temporalUtils.getSixthOfMonthAt2359(now(), 0).minus(1L, DAYS).getEpochSecond());
+        .thenReturn(temporalUtils.getFirstOfMonthAt2359(now(), 0).minus(1L, DAYS).getEpochSecond());
     when(stripeInvoiceServiceMock.getUpcomingStripeInvoice(any())).thenReturn(stripeInvoiceMock);
     when(userStripeCustomerEmailCorrespondenceJpaRepositoryMock.findByUserId(any()))
         .thenReturn(Optional.empty());
+    when(subscriptionProductRepositoryMock.findByE2Id("essentialProduct"))
+        .thenReturn(
+            Optional.of(
+                SubscriptionProduct.builder()
+                    .billingType(
+                        app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT)
+                    .priceInCentsWithoutVat(4900L)
+                    .vatPercent(2000L)
+                    .freeUsageThreshold(20L)
+                    .overageUnitPriceInCents(200L)
+                    .build()));
   }
 
   @Test
@@ -112,14 +129,14 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
             .build();
     var users = List.of(subscribedUser);
     when(userRepositoryMock.findAllByCriteria(any())).thenReturn(users);
-    var subscriptionProduct = SubscriptionProduct.builder().priceInCents(5L).build();
+    var subscriptionProduct = SubscriptionProduct.builder().priceInCentsWithoutVat(5L).build();
 
     var latestSubscription =
         Subscription.builder()
             .subscriptionProduct(subscriptionProduct)
             .active(true)
             .status(ACTIVE)
-            .endDatetime(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS))
+            .endDatetime(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS))
             .build();
     var user = User.builder().id(userToDebitId).userSubscriptionId("subscriptionId").build();
     when(stripeConfMock.getBasicSubscriptionProductId()).thenReturn("basicProductId");
@@ -173,6 +190,79 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
   }
 
   @Test
+  void invoice_amounts_follow_the_resolved_plan_pricing() throws StripeException {
+    var userToCredit = User.builder().build();
+    var userToCreditId = "userToCreditId";
+    var userToDebitId = randomUUID().toString();
+    var subscriptionEligibilityMock = mock(UserSubscriptionEligible.class);
+    when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(userToCreditId);
+    when(userRepositoryMock.getById(anyString())).thenReturn(userToCredit);
+    when(subscriptionEligibilityMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userToDebitId))
+        .thenReturn(Optional.of(subscriptionEligibilityMock));
+    var subscribedUser =
+        User.builder()
+            .id(userToDebitId)
+            .userSubscriptionId("subscriptionId")
+            .accountHolders(List.of(AccountHolder.builder().build()))
+            .build();
+    var latestSubscription =
+        Subscription.builder()
+            .active(true)
+            .status(ACTIVE)
+            .endDatetime(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS))
+            .build();
+    var userSubscription =
+        UserSubscription.builder()
+            .user(subscribedUser)
+            .subscriptions(List.of(latestSubscription))
+            .build();
+    when(subscriptionServiceMock.getSubscriptionByUser(any())).thenReturn(userSubscription);
+    var subscription = mock(com.stripe.model.Subscription.class);
+    when(stripeFactoryMock.retrieveUserSubscriptions(any())).thenReturn(List.of(subscription));
+    var items = mock(SubscriptionItemCollection.class);
+    when(subscription.getItems()).thenReturn(items);
+    var data = mock(SubscriptionItem.class);
+    when(items.getData()).thenReturn(List.of(data));
+    var plan = mock(Plan.class);
+    when(data.getPlan()).thenReturn(plan);
+    when(plan.getProduct()).thenReturn("planBProduct");
+    when(subscriptionProductRepositoryMock.findByE2Id("planBProduct"))
+        .thenReturn(
+            Optional.of(
+                SubscriptionProduct.builder()
+                    .billingType(
+                        app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT)
+                    .priceInCentsWithoutVat(700L)
+                    .vatPercent(2000L)
+                    .freeUsageThreshold(5L)
+                    .overageUnitPriceInCents(300L)
+                    .build()));
+    when(customerRepositoryMock.findByIdUserAndCriteria(
+            any(), any(), any(), any(), any(), any(), any(), anyList(), any(), any(), anyInt(),
+            anyInt()))
+        .thenReturn(List.of(Customer.builder().name("dummy").build()));
+    when(subscriptionServiceMock.computeMonthlySubscriptionVariableConsumption(any()))
+        .thenReturn(List.of(new ConsumptionUsageSummary(ROOF_ANALYSIS, 8L)));
+    when(invoiceServiceMock.crupdateSubscriptionInvoice(any()))
+        .thenReturn(Invoice.builder().customer(Customer.builder().name("dummy").build()).build());
+
+    subject.accept(
+        MonthlySubscriptionInvoiceRequested.builder()
+            .userToCredit(userToCredit)
+            .userToAttemptDebit(subscribedUser)
+            .build());
+
+    var invoiceCaptor = ArgumentCaptor.forClass(Invoice.class);
+    verify(invoiceServiceMock).crupdateSubscriptionInvoice(invoiceCaptor.capture());
+    var products = invoiceCaptor.getValue().getProducts();
+    assertEquals(2, products.size());
+    assertEquals(parseFraction(700), products.getFirst().getUnitPrice());
+    assertEquals(3, products.get(1).getQuantity());
+    assertEquals(parseFraction(300), products.get(1).getUnitPrice());
+  }
+
+  @Test
   void does_not_recreate_invoice_when_already_computed_even_if_amount_differs()
       throws StripeException {
     var userToCreditId = "userToCreditId";
@@ -206,7 +296,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn("subscriptionProductName");
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
@@ -232,9 +322,9 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
 
     var billingPeriod =
         "pour la période de "
-            + customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth())
+            + customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth())
             + " au "
-            + customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
+            + customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
     var alreadyComputedInvoice =
         Invoice.builder()
             .customer(Customer.builder().name(customerName).build())
@@ -299,11 +389,11 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(customerRepositoryMock.findByIdUserAndCriteria(
             any(),
@@ -397,11 +487,11 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(customerRepositoryMock.findByIdUserAndCriteria(
             any(),
@@ -516,10 +606,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(adminUserMock.getId()).thenReturn(adminUserId);
@@ -620,10 +710,10 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
     when(subscriptionEligibilityMock.getTrialPeriodDays()).thenReturn(0);
     when(subscriptionEligibilityMock.getEligibleFrom()).thenReturn(LocalDate.of(2025, 3, 11));
     when(subscriptionProductMock.getName()).thenReturn(subscriptionProductName);
-    when(subscriptionProductMock.getPriceInCents()).thenReturn(4900L);
+    when(subscriptionProductMock.getVatPercent()).thenReturn(2000L);
     when(subscriptionMock.getSubscriptionProduct()).thenReturn(subscriptionProductMock);
     when(subscriptionMock.getEndDatetime())
-        .thenReturn(new TemporalUtils().getSixthOfMonthAt2359(now(), 1).minus(1L, DAYS));
+        .thenReturn(new TemporalUtils().getFirstOfMonthAt2359(now(), 1).minus(1L, DAYS));
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(true);
     when(userSubscriptionMock.getLatestSubscription()).thenReturn(subscriptionMock);
     when(adminUserMock.getId()).thenReturn(adminUserId);
@@ -732,11 +822,11 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
 
   private Invoice computeExpectedInvoice(
       Invoice createdInvoice, User userToCreditMock, Customer customerMock) {
-    var startOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.startOfActualMonth());
-    var endOfCurrentMonthFormatted =
-        customDateFormatter.formatFrenchDate(temporalUtils.endOfActualMonth());
-    var sendingDate = temporalUtils.endOfActualMonth();
+    var startOfBilledMonthFormatted =
+        customDateFormatter.formatFrenchDate(temporalUtils.startOfLastMonth());
+    var endOfBilledMonthFormatted =
+        customDateFormatter.formatFrenchDate(temporalUtils.endOfLastMonth());
+    var sendingDate = temporalUtils.endOfLastMonth();
     return Invoice.builder()
         .id(createdInvoice.getId())
         .paymentMethod(PaymentMethod.CREDIT_CARD)
@@ -746,12 +836,12 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .paymentType(app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum.CASH)
         .title(
             "Facture pour la période de "
-                + startOfCurrentMonthFormatted
+                + startOfBilledMonthFormatted
                 + " au "
-                + endOfCurrentMonthFormatted)
+                + endOfBilledMonthFormatted)
         .ref(createdInvoice.getRef())
         .validityDate(sendingDate.plusDays(30L))
-        .toPayAt(temporalUtils.fifthOfNextMonth())
+        .toPayAt(temporalUtils.startOfActualMonth())
         .sendingDate(sendingDate)
         .createdAt(createdInvoice.getCreatedAt())
         .user(userToCreditMock)

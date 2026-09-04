@@ -9,4 +9,5 @@ public record DetectionTracking(
     String address,
     Instant creationDatetime,
     DetectionInitiator detectionInitiator,
-    User user) {}
+    User user,
+    String detectionIdentifier) {}

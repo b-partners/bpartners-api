@@ -1,7 +1,7 @@
 package app.bpartners.api.service.areapicture;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
+import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.IMAGE_ACCESS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
@@ -146,12 +146,11 @@ public class AreaPictureService {
       }
     }
 
-    // TODO: Bad ! Only areaPicture must be returned done here
     subscriptionService.addConsumption(
         SubscriptionConsumptionLog.builder()
             .id(randomUUID().toString())
             .userId(picture.getIdUser())
-            .consumptionType(ROOF_ANALYSIS)
+            .consumptionType(IMAGE_ACCESS)
             .usageMetric(usageMetric)
             .consumptionUnit(UNIT)
             .comment(comment)

@@ -18,13 +18,19 @@ public interface UserRepository {
 
   List<User> findAllByCriteria(HashMap<String, Object> criteria);
 
+  List<String> findEnabledUserIdsWithSubscription();
+
   Optional<User> findByApiKey(String apiKey);
 
   User getByEmail(String email);
 
   Optional<User> findByEmail(String email);
 
+  Optional<User> findByStripeCustomerId(String stripeCustomerId);
+
   User getById(String id);
+
+  User getByIdWithoutPaymentMethod(String id);
 
   User save(User toSave);
 

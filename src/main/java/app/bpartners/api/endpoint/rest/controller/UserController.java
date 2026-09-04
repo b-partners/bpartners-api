@@ -5,10 +5,14 @@ import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATIO
 import static app.bpartners.api.endpoint.rest.security.model.Role.ADMIN_ROLE;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
+import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static java.time.Instant.now;
 
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionCommitmentRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionPaymentMethodRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
@@ -16,6 +20,7 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.StripeSetupService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -38,6 +43,9 @@ public class UserController {
   private final StripePortalService stripePortalService;
   private final ApiKeyService apiKeyService;
   private final StripeSetupService stripeSetupService;
+  private final UserSubscriptionCommitmentRestMapper userSubscriptionCommitmentRestMapper;
+  private final StripePaymentMethodService stripePaymentMethodService;
+  private final UserSubscriptionPaymentMethodRestMapper userSubscriptionPaymentMethodRestMapper;
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
@@ -48,6 +56,34 @@ public class UserController {
     var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
 
     return stripePortalService.initiateBillingPortalSession(
+        userSubscriptionId, redirectionStatusUrls);
+  }
+
+  @GetMapping("/users/{uId}/paymentMethods")
+  public List<UserSubscriptionPaymentMethod> getUserPaymentMethods(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestParam(name = "defaultPaymentMethod", required = false, defaultValue = "true")
+          boolean defaultPaymentMethod) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
+
+    return stripePaymentMethodService
+        .getCardPaymentMethods(userSubscriptionId, defaultPaymentMethod)
+        .stream()
+        .map(userSubscriptionPaymentMethodRestMapper::toRest)
+        .toList();
+  }
+
+  @PutMapping("/users/{uId}/paymentMethods")
+  public Redirection initiatePaymentMethodReplacement(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestBody RedirectionStatusUrls redirectionStatusUrls) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
+
+    return stripeSetupService.setupReplacementCheckoutSession(
         userSubscriptionId, redirectionStatusUrls);
   }
 
@@ -62,6 +98,49 @@ public class UserController {
     return stripeSetupService.setupCheckoutSession(userSubscriptionId, redirectionStatusUrls);
   }
 
+  @PostMapping("/users/{uId}/subscriptionCommitments")
+  public List<UserSubscriptionCommitment> saveUserSubscriptionCommitments(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestBody List<CreateUserSubscriptionCommitment> createUserSubscriptionCommitments) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    var userSubscriptionCommitments =
+        createUserSubscriptionCommitments.stream()
+            .map(
+                createUserSubscriptionCommitment ->
+                    userSubscriptionCommitmentRestMapper.toDomain(
+                        authenticatedSelfUser, createUserSubscriptionCommitment))
+            .toList();
+    return subscriptionService.saveUserSubscriptionCommitments(userSubscriptionCommitments).stream()
+        .map(userSubscriptionCommitmentRestMapper::toRest)
+        .toList();
+  }
+
+  @GetMapping("/users/{uId}/subscriptionCommitments")
+  public List<UserSubscriptionCommitment> getUserSubscriptionCommitments(
+      HttpServletRequest request, @PathVariable String uId) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    return subscriptionService
+        .getUserSubscriptionCommitments(authenticatedSelfUser.getId())
+        .stream()
+        .map(userSubscriptionCommitmentRestMapper::toRest)
+        .toList();
+  }
+
+  @PostMapping("/users/{uId}/subscriptionCommitments/{sId}/autoRenewalStatus")
+  public UserSubscriptionCommitment updateUserSubscriptionCommitmentAutoRenewalStatus(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @PathVariable String sId,
+      @RequestBody
+          UpdateUserSubscriptionCommitmentAutoRenewalStatus updateUserSubscriptionCommitment) {
+    var automaticRenewalStatus = updateUserSubscriptionCommitment.getAutomaticRenewalStatus();
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    return userSubscriptionCommitmentRestMapper.toRest(
+        subscriptionService.updateUserSubscriptionCommitmentAutoRenewalStatus(
+            authenticatedSelfUser.getId(), sId, automaticRenewalStatus));
+  }
+
   @PostMapping("/users/{uId}/subscriptionInitiation")
   public Redirection initiateUserSubscription(
       HttpServletRequest request,
@@ -70,11 +149,28 @@ public class UserController {
     var authenticatedSelfUser = getAuthUser(request, uId);
     subscriptionInitiationRestValidator.accept(subscriptionInitiation);
     var redirectionStatusUrls = subscriptionInitiation.getRedirectionStatusUrls();
-    var subscriptionType =
-        subscriptionService.getBySubscriptionType(subscriptionInitiation.getSubscriptionType());
-    var user = service.getUserById(authenticatedSelfUser.getId());
 
-    return subscriptionService.initiateSubscription(user, subscriptionType, redirectionStatusUrls);
+    var user = service.getUserById(authenticatedSelfUser.getId());
+    var billingInterval = billingIntervalToDomain(subscriptionInitiation.getBillingInterval());
+    var subscription =
+        subscriptionInitiation.getSubscriptionPlanIdentifier() != null
+            ? subscriptionService.getByPlanId(
+                subscriptionInitiation.getSubscriptionPlanIdentifier(), billingInterval)
+            : subscriptionService.getBySubscriptionType(
+                subscriptionInitiation.getSubscriptionType());
+
+    return subscriptionService.initiateSubscription(user, subscription, redirectionStatusUrls);
+  }
+
+  private static app.bpartners.api.model.subscription.BillingInterval billingIntervalToDomain(
+      BillingInterval billingInterval) {
+    if (billingInterval == null) {
+      return MONTHLY;
+    }
+    return switch (billingInterval) {
+      case MONTHLY -> MONTHLY;
+      case YEARLY -> YEARLY;
+    };
   }
 
   @PostMapping("/users/subscriptionRegistration")
@@ -114,10 +210,13 @@ public class UserController {
   }
 
   @PostMapping("/users/{uId}/subscriptionCancel")
-  public User cancelUserSubscription(@PathVariable String uId) {
+  public User cancelUserSubscription(
+      @PathVariable String uId,
+      @RequestParam(name = "cancellationType", required = false)
+          SubscriptionCancellationType cancellationType) {
     var user = service.getUserById(uId);
 
-    var userSubscription = subscriptionService.cancelLatestUserSubscription(user);
+    var userSubscription = subscriptionService.cancelLatestUserSubscription(user, cancellationType);
 
     return mapper.toRest(userSubscription.getUser());
   }

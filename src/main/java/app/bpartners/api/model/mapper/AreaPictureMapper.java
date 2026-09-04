@@ -30,12 +30,16 @@ public class AreaPictureMapper {
 
   @SneakyThrows
   public AreaPicture toDomain(HAreaPicture entity) {
-    AreaPictureMapLayer layer = areaPictureMapLayerService.getById(entity.getIdLayer());
+    AreaPictureMapLayer layer =
+        entity.getIdLayer() == null
+            ? null
+            : areaPictureMapLayerService.getById(entity.getIdLayer());
+    GeoPosition currentGeoPosition = entity.getCurrentGeoPosition();
     var domain =
         AreaPicture.builder()
             .id(entity.getId())
             .address(entity.getAddress())
-            .currentGeoPosition(entity.getCurrentGeoPosition())
+            .currentGeoPosition(currentGeoPosition)
             .zoomLevel(entity.getZoomLevel())
             .currentLayer(layer)
             .idUser(entity.getIdUser())
@@ -48,25 +52,26 @@ public class AreaPictureMapper {
             .shiftNb(entity.getShiftNb())
             .shiftDirection(entity.getShiftDirection())
             .build();
-    Tile tile = Tile.from(domain);
-    domain.setCurrentTile(tile);
-    domain.setLayers(
-        areaPictureMapLayerService.getAvailableLayersFrom(entity.getCurrentGeoPosition()));
+    if (currentGeoPosition != null) {
+      domain.setCurrentTile(Tile.from(domain));
+      domain.setLayers(areaPictureMapLayerService.getAvailableLayersFrom(currentGeoPosition));
+    }
     return domain;
   }
 
   public HAreaPicture toEntity(AreaPicture domain) {
     validator.accept(domain);
-    GeoPosition currentGeoPosition = Objects.requireNonNull(domain.getCurrentGeoPosition());
+    GeoPosition currentGeoPosition = domain.getCurrentGeoPosition();
+    AreaPictureMapLayer currentLayer = domain.getCurrentLayer();
     return HAreaPicture.builder()
         .id(domain.getId())
         .address(domain.getAddress())
         .filename(domain.getFilename())
-        .latitude(currentGeoPosition.getLatitude())
-        .longitude(currentGeoPosition.getLongitude())
-        .score(currentGeoPosition.getScore())
+        .latitude(currentGeoPosition == null ? null : currentGeoPosition.getLatitude())
+        .longitude(currentGeoPosition == null ? null : currentGeoPosition.getLongitude())
+        .score(currentGeoPosition == null ? null : currentGeoPosition.getScore())
         .zoomLevel(domain.getZoomLevel())
-        .idLayer(domain.getCurrentLayer().getId())
+        .idLayer(currentLayer == null ? null : currentLayer.getId())
         .idUser(domain.getIdUser())
         .idFileInfo(domain.getIdFileInfo())
         .createdAt(domain.getCreatedAt())

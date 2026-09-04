@@ -91,6 +91,8 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/users/*/billingPortal", POST.name()),
                         new AntPathRequestMatcher("/users/*/paymentMethods", POST.name()),
                         new AntPathRequestMatcher("/users/*/subscriptionInitiation", POST.name()),
+                        new AntPathRequestMatcher("/webhooks/stripe", POST.name()),
+                        new AntPathRequestMatcher("/subscriptionPlans", GET.name()),
                         new AntPathRequestMatcher("/**", OPTIONS.toString()),
                         new AntPathRequestMatcher("/whois/*", GET.name()),
                         new AntPathRequestMatcher("/health/db", GET.name()),
@@ -99,7 +101,8 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/health/event1", GET.name()),
                         new AntPathRequestMatcher("/health/event2", GET.name()),
                         new AntPathRequestMatcher("/health/event/uuids", POST.name()),
-                        new AntPathRequestMatcher("/captcha/token", GET.name())))),
+                        new AntPathRequestMatcher("/captcha/token", GET.name()),
+                        new AntPathRequestMatcher("/token/validate", POST.name())))),
             AnonymousAuthenticationFilter.class)
         // authorize
         .authorizeHttpRequests(
@@ -131,6 +134,10 @@ public class SecurityConf {
                     // Authentication check done in user controller for subscription status
                     .requestMatchers(POST, "/users/*/subscriptionInitiation")
                     .permitAll()
+                    .requestMatchers(POST, "/webhooks/stripe")
+                    .permitAll()
+                    .requestMatchers(GET, "/subscriptionPlans")
+                    .permitAll()
                     .requestMatchers(OPTIONS, "/**")
                     .permitAll()
                     .requestMatchers(GET, "/whois/*")
@@ -151,6 +158,8 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(GET, "/captcha/token")
                     .permitAll()
+                    .requestMatchers(POST, "/token/validate")
+                    .permitAll()
                     .requestMatchers(GET, "/api/keys")
                     .authenticated()
                     .requestMatchers(DELETE, "/api/keys")
@@ -170,6 +179,26 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfUserMatcher(
                             GET, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/paymentMethods", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(PUT, "/users/*/paymentMethods", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/subscriptionCommitments", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/subscriptionCommitments", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST,
+                            "/users/*/subscriptionCommitments/*/autoRenewalStatus",
+                            authResourceProvider))
                     .authenticated()
                     .requestMatchers(POST, "/users/*/keys")
                     .hasAnyRole(ADMIN_ROLE.getRole())
@@ -195,7 +224,19 @@ public class SecurityConf {
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(POST, "/monthlySubscriptionInvoiceTrigger")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/monthlySubscriptionCreditGrantTrigger")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/transitionalSubscriptionCreditGrantTrigger")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/immediateSubscriptionCancellationTrigger")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/monthlyUpcomingDebitedCustomers/*/*")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/users/subscriptionProductBackfill")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/subscriptionProducts/stripeVatBackfill")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/creditPurchases/invoiceBackfill")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(
@@ -502,6 +543,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(POST, "/users/*/accountHolders/*/feedback")
                     .authenticated()
+                    .requestMatchers(GET, "/users/*/accountHolders/*/emailRecipients")
+                    .authenticated()
+                    .requestMatchers(PUT, "/users/*/accountHolders/*/emailRecipients")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/paymentRequests", authResourceProvider))
@@ -564,6 +609,22 @@ public class SecurityConf {
                         new SelfAccountHolderMatcher(
                             GET, "/accountHolders/*/prospects/*", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            POST, "/accountHolders/*/prospects/*/analyses", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            GET, "/accountHolders/*/prospects/*/analyses", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            GET, "/accountHolders/*/prospects/*/analyses/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
+                            PUT, "/accountHolders/*/prospects/*/analyses/*", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/prospectsRelaunch")
                     .hasAnyRole(INVOICE_RELAUNCHER.getRole()) // TODO: add PROSPECT_RELAUNCHER
                     .requestMatchers(
@@ -609,7 +670,33 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             POST, "/users/*/detectionTracking", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/detectionTracking", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/address/autocomplete")
+                    .authenticated()
+                    .requestMatchers(GET, "/creditPacks")
+                    .authenticated()
+                    .requestMatchers(GET, "/creditPacks/*")
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/creditBalance", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/creditPurchases", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/creditPurchases/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/creditTransactions", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/creditTransactions/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers("/**")
                     .denyAll())

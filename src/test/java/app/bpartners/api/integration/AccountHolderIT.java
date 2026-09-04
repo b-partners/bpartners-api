@@ -14,6 +14,9 @@ import app.bpartners.api.endpoint.rest.model.ContactAddress;
 import app.bpartners.api.endpoint.rest.model.CreateAnnualRevenueTarget;
 import app.bpartners.api.endpoint.rest.model.CreatedFeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.Customer;
+import app.bpartners.api.endpoint.rest.model.EmailRecipient;
+import app.bpartners.api.endpoint.rest.model.EmailRecipientType;
+import app.bpartners.api.endpoint.rest.model.EmailRecipientsConfiguration;
 import app.bpartners.api.endpoint.rest.model.FeedbackRequest;
 import app.bpartners.api.endpoint.rest.model.UpdateAccountHolder;
 import app.bpartners.api.endpoint.rest.security.model.Role;
@@ -262,6 +265,132 @@ class AccountHolderIT extends MockedThirdParties {
         "https://updateFeedbackLink.com",
         actualUpdatedFeedbackLink.getFeedback().getFeedbackLink());
     assertNull(actualNoFeedbackLink.getFeedback().getFeedbackLink());
+  }
+
+  @Test
+  void configure_and_get_email_recipients_ok() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    EmailRecipientsConfiguration toConfigure =
+        new EmailRecipientsConfiguration()
+            .recipients(
+                List.of(
+                    new EmailRecipient()
+                        .type(EmailRecipientType.INVOICE)
+                        .emails(List.of("compta@client.fr", "admin@client.fr")),
+                    new EmailRecipient()
+                        .type(EmailRecipientType.API_NOTIFICATION)
+                        .emails(List.of("tech@client.fr"))));
+
+    EmailRecipientsConfiguration configured =
+        api.configureEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, toConfigure);
+
+    assertEquals(
+        List.of("admin@client.fr", "compta@client.fr"),
+        sorted(emailsByType(configured, EmailRecipientType.INVOICE)));
+    assertEquals(
+        List.of("tech@client.fr"), emailsByType(configured, EmailRecipientType.API_NOTIFICATION));
+
+    EmailRecipientsConfiguration reconfigured =
+        api.configureEmailRecipients(
+            JOE_DOE_ID,
+            JOE_DOE_ACCOUNT_HOLDER_ID,
+            new EmailRecipientsConfiguration()
+                .recipients(
+                    List.of(
+                        new EmailRecipient()
+                            .type(EmailRecipientType.ACCOUNT_INFO)
+                            .emails(List.of("boss@client.fr")))));
+
+    assertEquals(3, reconfigured.getRecipients().size());
+    assertEquals(
+        List.of("boss@client.fr"), emailsByType(reconfigured, EmailRecipientType.ACCOUNT_INFO));
+    assertEquals(
+        List.of("admin@client.fr", "compta@client.fr"),
+        sorted(emailsByType(reconfigured, EmailRecipientType.INVOICE)));
+    assertEquals(
+        List.of("tech@client.fr"), emailsByType(reconfigured, EmailRecipientType.API_NOTIFICATION));
+
+    EmailRecipientsConfiguration reset =
+        api.configureEmailRecipients(
+            JOE_DOE_ID,
+            JOE_DOE_ACCOUNT_HOLDER_ID,
+            new EmailRecipientsConfiguration()
+                .recipients(
+                    List.of(
+                        new EmailRecipient()
+                            .type(EmailRecipientType.INVOICE)
+                            .emails(List.of("compta@client.fr")))));
+
+    assertEquals(List.of("compta@client.fr"), emailsByType(reset, EmailRecipientType.INVOICE));
+
+    EmailRecipientsConfiguration fetched =
+        api.getEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID);
+    assertEquals(3, fetched.getRecipients().size());
+    assertEquals(List.of("compta@client.fr"), emailsByType(fetched, EmailRecipientType.INVOICE));
+    assertEquals(
+        List.of("tech@client.fr"), emailsByType(fetched, EmailRecipientType.API_NOTIFICATION));
+    assertEquals(List.of("boss@client.fr"), emailsByType(fetched, EmailRecipientType.ACCOUNT_INFO));
+  }
+
+  @Test
+  void configure_email_recipients_with_invalid_email_ko() {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    EmailRecipientsConfiguration invalid =
+        new EmailRecipientsConfiguration()
+            .recipients(
+                List.of(
+                    new EmailRecipient()
+                        .type(EmailRecipientType.INVOICE)
+                        .emails(List.of("not-an-email"))));
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invalid email not-an-email. \"}",
+        () -> api.configureEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, invalid));
+  }
+
+  @Test
+  void configure_email_recipients_with_empty_emails_is_accepted() throws ApiException {
+    ApiClient joeDoeClient = anApiClient();
+    UserAccountsApi api = new UserAccountsApi(joeDoeClient);
+    api.configureEmailRecipients(
+        JOE_DOE_ID,
+        JOE_DOE_ACCOUNT_HOLDER_ID,
+        new EmailRecipientsConfiguration()
+            .recipients(
+                List.of(
+                    new EmailRecipient()
+                        .type(EmailRecipientType.INVOICE)
+                        .emails(List.of("compta@client.fr")))));
+
+    EmailRecipientsConfiguration withEmptyType =
+        new EmailRecipientsConfiguration()
+            .recipients(
+                List.of(
+                    new EmailRecipient()
+                        .type(EmailRecipientType.API_NOTIFICATION)
+                        .emails(List.of())));
+
+    EmailRecipientsConfiguration result =
+        assertDoesNotThrow(
+            () ->
+                api.configureEmailRecipients(JOE_DOE_ID, JOE_DOE_ACCOUNT_HOLDER_ID, withEmptyType));
+
+    assertEquals(List.of("compta@client.fr"), emailsByType(result, EmailRecipientType.INVOICE));
+  }
+
+  private static List<String> emailsByType(
+      EmailRecipientsConfiguration configuration, EmailRecipientType type) {
+    return configuration.getRecipients().stream()
+        .filter(recipient -> recipient.getType() == type)
+        .findFirst()
+        .map(EmailRecipient::getEmails)
+        .orElse(List.of());
+  }
+
+  private static List<String> sorted(List<String> emails) {
+    return emails.stream().sorted().toList();
   }
 
   @Test

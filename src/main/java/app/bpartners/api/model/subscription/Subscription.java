@@ -1,5 +1,7 @@
 package app.bpartners.api.model.subscription;
 
+import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+
 import java.time.Instant;
 import java.util.List;
 import lombok.*;
@@ -17,8 +19,12 @@ public class Subscription {
   private List<String> paymentMethods;
   private SubscriptionStatus status;
   private SubscriptionProduct subscriptionProduct;
+
+  @Builder.Default private BillingInterval billingInterval = MONTHLY;
+
   private Instant endDatetime;
   private Instant startDatetime;
+  private Instant cancellationDatetime;
 
   public enum SubscriptionStatus {
     ACTIVE,

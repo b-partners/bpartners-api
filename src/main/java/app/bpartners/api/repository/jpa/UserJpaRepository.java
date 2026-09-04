@@ -20,6 +20,8 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
 
   Optional<HUser> findByEmail(String email);
 
+  Optional<HUser> findByUserSubscriptionE2Id(String userSubscriptionE2Id);
+
   HUser getByEmail(String email);
 
   @Query("select u from HUser u join HAccount a" + " on u.id = a.user.id" + " where a.id = ?1")

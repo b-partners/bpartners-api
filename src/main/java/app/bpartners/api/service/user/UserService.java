@@ -81,6 +81,11 @@ public class UserService {
   }
 
   @Transactional
+  public User getUserByIdWithoutPaymentMethod(String id) {
+    return userRepository.getByIdWithoutPaymentMethod(id);
+  }
+
+  @Transactional
   public User getUserByEmail(String email) {
     return userRepository.getByEmail(email);
   }

@@ -1,9 +1,130 @@
 operations:
+  subscriptionCommitmentsOperations:
+    get:
+      tags:
+        - User Subscription
+      summary: Get user subscription commitments
+      operationId: getUserSubscriptionCommitments
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      responses:
+        200:
+          description: List of user subscription commitments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSubscriptionCommitment'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - User Subscription
+      summary: Save user subscription commitments
+      operationId: saveUserSubscriptionCommitments
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CreateUserSubscriptionCommitment'
+      responses:
+        '200':
+          description: List of user subscription commitment consent saved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSubscriptionCommitment'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+  subscriptionCommitmentAutoRenewalStatusOperation:
+    post:
+      tags:
+        - User Subscription
+      summary: Update the automatic renewal status of a user subscription commitment
+      operationId: updateUserSubscriptionCommitmentAutoRenewalStatus
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: sId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserSubscriptionCommitmentAutoRenewalStatus'
+      responses:
+        '200':
+          description: User subscription commitment with its updated automatic renewal status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionCommitment'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
   subscriptionConsumptionLogsOperation:
     get:
       tags:
         - User Subscription
       summary: Get user Subscription log
+      deprecated: true
+      description: |
+        Replaced by GET /users/{uId}/creditTransactions, which reports the same consumptions as
+        ledger entries carrying the credits actually debited.
       operationId: getConsumptionLogsByUserId
       parameters:
         - in: path
@@ -42,7 +163,114 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  subscriptionPlansOperation:
+    get:
+      tags:
+        - User Subscription
+      summary: List the subscribable subscription plans
+      parameters:
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      operationId: getSubscriptionPlans
+      responses:
+        200:
+          description: Available subscription plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionPlan'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   paymentMethodsOperation:
+    get:
+      tags:
+        - User Subscription
+      summary: Get actual user payment methods
+      operationId: getUserPaymentMethods
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+        - in: query
+          name: defaultPaymentMethod
+          schema:
+            type: boolean
+            default: true
+          required: true
+      responses:
+        200:
+          description: User payment methods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSubscriptionPaymentMethod'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - User Subscription
+      summary: Initiate payment method replacement for later subscription
+      description: |
+        Same setup flow as POST /users/{uId}/paymentMethods, except the newly registered payment
+        method replaces the existing ones instead of being added alongside them. The replacement is
+        only carried out once the user completes the Stripe setup flow, through the
+        checkout.session.completed webhook: the new card becomes the customer default payment
+        method and every other card is detached.
+      operationId: initiatePaymentMethodReplacement
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
+      responses:
+        200:
+          description: Redirection URL to access to setup payment method
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/Redirection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
     post:
       tags:
         - User Subscription
@@ -59,14 +287,14 @@ operations:
         content:
           application/json:
             schema:
-              $ref: './api.yml/#/components/schemas/RedirectionStatusUrls'
+              $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
       responses:
         200:
           description: Redirection URL to access to setup payment method
           content:
             application/json:
               schema:
-                $ref: './api.yml/#/components/schemas/Redirection'
+                $ref: './api.yml#/components/schemas/Redirection'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -94,14 +322,14 @@ operations:
         content:
           application/json:
             schema:
-              $ref: './api.yml/#/components/schemas/RedirectionStatusUrls'
+              $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
       responses:
         200:
           description: Redirection URL to access to billing portal
           content:
             application/json:
               schema:
-                $ref: './api.yml/#/components/schemas/Redirection'
+                $ref: './api.yml#/components/schemas/Redirection'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -125,7 +353,7 @@ operations:
             schema:
               type: array
               items:
-                $ref: './userAccounts-api.yml/#/components/schemas/User'
+                $ref: './userAccounts-api.yml#/components/schemas/User'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -160,7 +388,7 @@ operations:
           content:
             application/json:
               schema:
-                $ref: './api.yml/#/components/schemas/Redirection'
+                $ref: './api.yml#/components/schemas/Redirection'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -178,7 +406,10 @@ operations:
       summary: Cancel user subscription
       operationId: cancelUserSubscription
       description: |
-        This operation cancel actual active subscription renewal. User still have access until the actual subscription end.
+        This operation cancels the actual active subscription. When cancellationType is IMMEDIATE, which is the
+        default when the parameter is not provided, the subscription is terminated right away and the user loses
+        access immediately. When cancellationType is END_OF_PERIOD, only the renewal is cancelled and the user
+        still has access until the actual subscription end.
       parameters:
         - in: path
           name: uId
@@ -186,13 +417,19 @@ operations:
             type: string
           required: true
           description: User identifier
+        - in: query
+          name: cancellationType
+          schema:
+            $ref: '#/components/schemas/SubscriptionCancellationType'
+          required: false
+          description: When not provided, defaults to IMMEDIATE
       responses:
         200:
           description: User with cancelled subscription status
           content:
             application/json:
               schema:
-                $ref: './userAccounts-api.yml/#/components/schemas/User'
+                $ref: './userAccounts-api.yml#/components/schemas/User'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -205,6 +442,14 @@ operations:
           $ref: './api.yml#/components/responses/500'
 components:
   schemas:
+    SubscriptionCancellationType:
+      type: string
+      description: |
+        IMMEDIATE terminates the subscription right away without prorating the current period.
+        END_OF_PERIOD only cancels the renewal so access is kept until the current period end.
+      enum:
+        - IMMEDIATE
+        - END_OF_PERIOD
     SubscriptionConsumptionLog:
       type: object
       properties:
@@ -226,8 +471,12 @@ components:
           format: date-time
     ConsumptionType:
       type: string
+      description: |
+        ROOF_ANALYSIS is the only billable consumption. IMAGE_ACCESS only tracks
+        that an area picture has been read from an external source.
       enum:
         - ROOF_ANALYSIS
+        - IMAGE_ACCESS
     ConsumptionUnit:
       type: string
       enum:
@@ -236,11 +485,189 @@ components:
       type: object
       properties:
         redirectionStatusUrls:
-          $ref: './api.yml/#/components/schemas/RedirectionStatusUrls'
+          $ref: './api.yml#/components/schemas/RedirectionStatusUrls'
         subscriptionType:
           $ref: '#/components/schemas/UserSubscriptionType'
+        subscriptionPlanIdentifier:
+          type: string
+          description: |
+            Identifier of the chosen plan (see GET /subscriptionPlans). When provided it takes
+            precedence over subscriptionType, enabling data-driven plan selection.
+        billingInterval:
+          $ref: '#/components/schemas/BillingInterval'
+    BillingInterval:
+      type: string
+      enum:
+        - MONTHLY
+        - YEARLY
+      description: |
+        Interval the fixed subscription is billed on. On subscription initiation, MONTHLY is
+        assumed when omitted, and YEARLY requires subscriptionPlanIdentifier and a plan that
+        exposes an annual price. On a subscribed user, it reports the interval actually paid, and
+        is null as long as no subscription has been paid, during the free trial for instance.
     UserSubscriptionType:
       type: string
       description: for now, only ESSENTIAL subscription is supported
       enum:
         - ESSENTIAL
+    SubscriptionBillingType:
+      type: string
+      description: |
+        COMMITMENT is the only billing type of the prepaid model. USAGE_BASED is deprecated, no
+        plan is post-paid anymore, and the value is kept only until the metered plans are migrated.
+      enum:
+        - COMMITMENT
+        - USAGE_BASED
+    SubscriptionPlanDescription:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        billingType:
+          $ref: '#/components/schemas/SubscriptionBillingType'
+        priceInCentsWithVat:
+          type: integer
+          format: int64
+          description: Monthly fixed price, VAT included (TTC), in cents.
+        priceInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: Monthly fixed price, VAT excluded (HT), in cents.
+        vatPercent:
+          type: integer
+          format: int64
+          description: VAT rate in basis points of 10_000 (2000 = 20%), values between 0 and 10_000.
+        isMostChosen:
+          type: boolean
+        isDeprecated:
+          type: boolean
+          description: For deprecated plans to not be shown in consumer usage.
+        displayPosition:
+          type: integer
+          minimum: 1
+          maximum: 4
+          description: Corresponds to the left-to-right position to be displayed at the consumer end
+    SubscriptionPlan:
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionPlanDescription'
+        - type: object
+          properties:
+            includedCreditsPerBillingPeriod:
+              type: integer
+              format: int64
+              description: |
+                Credits granted to the wallet at the start of every billing period. They expire at
+                the end of that period and are never carried over.
+            creditCostPerAnalysis:
+              type: integer
+              format: int64
+              description: |
+                Credits debited by one roof analysis on this plan. The lever that makes a better
+                plan consume the same wallet more slowly.
+            freeUsageThreshold:
+              type: integer
+              format: int64
+              deprecated: true
+              description: |
+                Post-paid leftover, replaced by `includedCreditsPerBillingPeriod`.
+                Removed once every consumer reads the prepaid credit fields.
+            overageUnitPriceInCents:
+              type: integer
+              format: int64
+              deprecated: true
+              description: |
+                Post-paid leftover, there is no overage anymore. Extra analyses are paid upfront
+                through credit packs, see GET /creditPacks.
+                Removed once every consumer reads the prepaid credit fields.
+            trialPeriodDays:
+              type: integer
+            annualDiscountPercent:
+              type: integer
+              description: Discount, in percent, on the yearly prepaid fixed price.
+            annualPriceInCentsWithVat:
+              type: integer
+              format: int64
+              description: |
+                Yearly prepaid fixed price, VAT included (TTC), in cents, discount already applied.
+                Null when the plan has no annual pricing.
+            annualPriceInCentsWithoutVat:
+              type: integer
+              format: int64
+              description: |
+                Yearly prepaid fixed price, VAT excluded (HT), in cents, discount already applied.
+                Null when the plan has no annual pricing.
+    UserSubscriptionCommitmentDetails:
+      type: object
+      properties:
+        commitmentStart:
+          type: string
+          format: date-time
+        duration:
+          $ref: '#/components/schemas/UserSubscriptionCommitmentDuration'
+        approvalDatetime:
+          type: string
+          format: date-time
+        automaticRenewalStatus:
+          $ref: './api.yml#/components/schemas/EnableStatus'
+    UserSubscriptionCommitmentDuration:
+      type: string
+      enum: [ 'TWELVE_MONTHS' ]
+    UpdateUserSubscriptionCommitmentAutoRenewalStatus:
+      type: object
+      properties:
+        automaticRenewalStatus:
+          $ref: './api.yml#/components/schemas/EnableStatus'
+    CreateUserSubscriptionCommitment:
+      allOf:
+        - $ref: '#/components/schemas/UserSubscriptionCommitmentDetails'
+        - type: object
+          properties:
+            subscriptionPlanIdentifier:
+              type: string
+    UserSubscriptionCommitment:
+      allOf:
+        - $ref: '#/components/schemas/UserSubscriptionCommitmentDetails'
+        - type: object
+          properties:
+            id:
+              type: string
+            subscriptionPlan:
+              $ref: '#/components/schemas/SubscriptionPlanDescription'
+            commitmentEnd:
+              type: string
+              format: date-time
+    UserSubscriptionPaymentMethod:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/SubscriptionMethodType'
+        card:
+          $ref: '#/components/schemas/SubscriptionCard'
+    SubscriptionMethodType:
+      type: string
+      enum: [ 'card' ]
+    SubscriptionCard:
+      type: object
+      properties:
+        displayBrand:
+          $ref: '#/components/schemas/SubscriptionCardDisplayBrand'
+        lastFourDigits:
+          type: string
+        expirationMonth:
+          type: integer
+          format: int64
+        expirationYear:
+          type: integer
+          format: int64
+    SubscriptionCardDisplayBrand:
+      type: string
+      enum: [ 'AMERICAN_EXPRESS', 'CARTES_BANCAIRES', 'DINERS_CLUB', 'DISCOVER', 'EFTPOS_AUSTRALIA', 'INTERAC', 'JCB', 'MASTERCARD', 'UNIONPAY', 'VISA', 'OTHER' ]
+

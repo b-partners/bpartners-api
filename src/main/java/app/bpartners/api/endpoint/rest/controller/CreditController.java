@@ -1,0 +1,129 @@
+package app.bpartners.api.endpoint.rest.controller;
+
+import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.CreditPurchaseInvoiceBackfillTriggered;
+import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.CreditPackRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.CreditPurchaseRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.CreditTransactionRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreateCreditPurchase;
+import app.bpartners.api.endpoint.rest.model.CreditBalance;
+import app.bpartners.api.endpoint.rest.model.CreditPack;
+import app.bpartners.api.endpoint.rest.model.CreditPurchase;
+import app.bpartners.api.endpoint.rest.model.CreditPurchaseStatus;
+import app.bpartners.api.endpoint.rest.model.CreditTransaction;
+import app.bpartners.api.endpoint.rest.model.CreditTransactionType;
+import app.bpartners.api.endpoint.rest.security.AuthenticatedResourceProvider;
+import app.bpartners.api.endpoint.rest.validator.CreateCreditPurchaseRestValidator;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.service.credit.CreditPurchaseService;
+import app.bpartners.api.service.credit.CreditService;
+import java.time.Instant;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+public class CreditController {
+  private final CreditService service;
+  private final CreditPackRestMapper creditPackRestMapper;
+  private final CreditBalanceRestMapper creditBalanceRestMapper;
+  private final CreditTransactionRestMapper creditTransactionRestMapper;
+  private final CreditPurchaseRestMapper creditPurchaseRestMapper;
+  private final CreditPurchaseService creditPurchaseService;
+  private final CreateCreditPurchaseRestValidator createCreditPurchaseRestValidator;
+  private final AuthenticatedResourceProvider authenticatedResourceProvider;
+  private final EventProducer eventProducer;
+
+  @PostMapping("/creditPurchases/invoiceBackfill")
+  public String triggerCreditPurchaseInvoiceBackfill() {
+    eventProducer.accept(List.of(new CreditPurchaseInvoiceBackfillTriggered()));
+    return "CreditPurchase invoice backfill triggered successfully";
+  }
+
+  @GetMapping("/creditPacks")
+  public List<CreditPack> getCreditPacks(
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
+    var unitPrice = service.resolveCreditUnitPrice(authenticatedResourceProvider.getUser());
+    return service.getCreditPacks(page, pageSize).stream()
+        .map(creditPack -> creditPackRestMapper.toRest(creditPack, unitPrice))
+        .toList();
+  }
+
+  @GetMapping("/creditPacks/{packId}")
+  public CreditPack getCreditPackById(@PathVariable String packId) {
+    var unitPrice = service.resolveCreditUnitPrice(authenticatedResourceProvider.getUser());
+    return creditPackRestMapper.toRest(service.getCreditPack(packId), unitPrice);
+  }
+
+  @GetMapping("/users/{uId}/creditBalance")
+  public CreditBalance getCreditBalance(@PathVariable String uId) {
+    return creditBalanceRestMapper.toRest(service.getCreditBalance(uId));
+  }
+
+  @GetMapping("/users/{uId}/creditPurchases")
+  public List<CreditPurchase> getCreditPurchases(
+      @PathVariable String uId,
+      @RequestParam(required = false) List<CreditPurchaseStatus> statuses,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant from,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant to,
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
+    var domainStatuses =
+        statuses == null
+            ? null
+            : statuses.stream().map(creditPurchaseRestMapper::toDomainStatus).toList();
+    return service.getCreditPurchases(uId, domainStatuses, from, to, page, pageSize).stream()
+        .map(creditPurchaseRestMapper::toRest)
+        .toList();
+  }
+
+  @PutMapping("/users/{uId}/creditPurchases/{purchaseId}")
+  public CreditPurchase submitCreditPurchase(
+      @PathVariable String uId,
+      @PathVariable String purchaseId,
+      @RequestBody CreateCreditPurchase createCreditPurchase) {
+    createCreditPurchaseRestValidator.accept(createCreditPurchase);
+    return creditPurchaseRestMapper.toRest(
+        creditPurchaseService.submit(
+            authenticatedResourceProvider.getUser(),
+            creditPurchaseRestMapper.toDomain(purchaseId, createCreditPurchase)));
+  }
+
+  @GetMapping("/users/{uId}/creditTransactions")
+  public List<CreditTransaction> getCreditTransactions(
+      @PathVariable String uId,
+      @RequestParam(required = false) List<CreditTransactionType> types,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant from,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant to,
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
+    var domainTypes =
+        types == null
+            ? null
+            : types.stream().map(creditTransactionRestMapper::toDomainType).toList();
+    return service.getCreditTransactions(uId, domainTypes, from, to, page, pageSize).stream()
+        .map(creditTransactionRestMapper::toRest)
+        .toList();
+  }
+
+  @GetMapping("/users/{uId}/creditTransactions/{transactionId}")
+  public CreditTransaction getCreditTransactionById(
+      @PathVariable String uId, @PathVariable String transactionId) {
+    return creditTransactionRestMapper.toRest(service.getCreditTransaction(uId, transactionId));
+  }
+}

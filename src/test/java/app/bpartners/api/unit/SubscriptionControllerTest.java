@@ -10,9 +10,13 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.rest.controller.SubscriptionController;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.model.ConsumptionType;
 import app.bpartners.api.endpoint.rest.model.ConsumptionUnit;
+import app.bpartners.api.endpoint.rest.model.SubscriptionBillingType;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.util.List;
@@ -21,13 +25,67 @@ import org.junit.jupiter.api.Test;
 class SubscriptionControllerTest {
   SubscriptionConsumptionLogRestMapper consumptionLogRestMapper =
       new SubscriptionConsumptionLogRestMapper();
+  SubscriptionPlanRestMapper subscriptionPlanRestMapper = new SubscriptionPlanRestMapper();
   SubscriptionService subscriptionServiceMock = mock(SubscriptionService.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
   TemporalUtils temporalUtils = new TemporalUtils();
 
   SubscriptionController subject =
       new SubscriptionController(
-          eventProducerMock, subscriptionServiceMock, consumptionLogRestMapper);
+          eventProducerMock,
+          subscriptionServiceMock,
+          consumptionLogRestMapper,
+          subscriptionPlanRestMapper);
+
+  @Test
+  void get_subscription_plans() {
+    var page = new app.bpartners.api.model.PageFromOne(1);
+    var pageSize = new app.bpartners.api.model.BoundedPageSize(100);
+    when(subscriptionServiceMock.getSubscribablePlans(page, pageSize))
+        .thenReturn(
+            List.of(
+                SubscriptionProduct.builder()
+                    .id("essential")
+                    .name("Essentiel")
+                    .description("desc")
+                    .features(List.of("f1"))
+                    .billingType(
+                        app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT)
+                    .priceInCentsWithoutVat(4900L)
+                    .vatPercent(2000L)
+                    .includedCreditsPerBillingPeriod(10L)
+                    .creditCostPerAnalysis(2L)
+                    .freeUsageThreshold(20L)
+                    .overageUnitPriceInCents(200L)
+                    .trialPeriodDays(7)
+                    .mostChosen(true)
+                    .deprecated(true)
+                    .displayPosition(3)
+                    .build()));
+
+    var actual = subject.getSubscriptionPlans(page, pageSize);
+
+    assertEquals(
+        List.of(
+            new SubscriptionPlan()
+                .id("essential")
+                .name("Essentiel")
+                .description("desc")
+                .features(List.of("f1"))
+                .billingType(SubscriptionBillingType.COMMITMENT)
+                .priceInCentsWithVat(5880L)
+                .priceInCentsWithoutVat(4900L)
+                .vatPercent(2000L)
+                .includedCreditsPerBillingPeriod(10L)
+                .creditCostPerAnalysis(2L)
+                .freeUsageThreshold(20L)
+                .overageUnitPriceInCents(200L)
+                .trialPeriodDays(7)
+                .isMostChosen(true)
+                .isDeprecated(true)
+                .displayPosition(3)),
+        actual);
+  }
 
   @Test
   void get_consumptions_log_by_user_id() {

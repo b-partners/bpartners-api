@@ -3,6 +3,7 @@ package app.bpartners.api.unit.validator;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
 import static org.junit.jupiter.api.Assertions.*;
 
+import app.bpartners.api.endpoint.rest.model.BillingInterval;
 import app.bpartners.api.endpoint.rest.model.CreateSubscriptionInitiation;
 import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionInitiationRestValidator;
@@ -32,7 +33,7 @@ class CreateSubscriptionInitiationRestValidatorTest {
             IllegalArgumentException.class, () -> subject.accept(createSubscriptionInitiation2));
 
     assertEquals(
-        "subscriptionType can not be null. redirectionStatusUrls can not be null. ",
+        "planId or subscriptionType can not be both null. redirectionStatusUrls can not be null. ",
         actual.getMessage());
     assertEquals(
         "redirectionStatusUrls.successUrl can not be null. redirectionStatusUrls.failureUrl can not"
@@ -45,6 +46,47 @@ class CreateSubscriptionInitiationRestValidatorTest {
     var createSubscriptionInitiation =
         new CreateSubscriptionInitiation()
             .subscriptionType(ESSENTIAL)
+            .redirectionStatusUrls(
+                new RedirectionStatusUrls().failureUrl("failure URL").successUrl("success URL"));
+
+    assertDoesNotThrow(() -> subject.accept(createSubscriptionInitiation));
+  }
+
+  @Test
+  void accept_ok_with_plan_id_only() {
+    var createSubscriptionInitiation =
+        new CreateSubscriptionInitiation()
+            .subscriptionPlanIdentifier("some-plan-id")
+            .redirectionStatusUrls(
+                new RedirectionStatusUrls().failureUrl("failure URL").successUrl("success URL"));
+
+    assertDoesNotThrow(() -> subject.accept(createSubscriptionInitiation));
+  }
+
+  @Test
+  void accept_ko_when_yearly_without_plan_id() {
+    var createSubscriptionInitiation =
+        new CreateSubscriptionInitiation()
+            .subscriptionType(ESSENTIAL)
+            .billingInterval(BillingInterval.YEARLY)
+            .redirectionStatusUrls(
+                new RedirectionStatusUrls().failureUrl("failure URL").successUrl("success URL"));
+
+    var actual =
+        assertThrows(
+            IllegalArgumentException.class, () -> subject.accept(createSubscriptionInitiation));
+
+    assertEquals(
+        "subscriptionPlanIdentifier is required when billingInterval is YEARLY. ",
+        actual.getMessage());
+  }
+
+  @Test
+  void accept_ok_when_yearly_with_plan_id() {
+    var createSubscriptionInitiation =
+        new CreateSubscriptionInitiation()
+            .subscriptionPlanIdentifier("some-plan-id")
+            .billingInterval(BillingInterval.YEARLY)
             .redirectionStatusUrls(
                 new RedirectionStatusUrls().failureUrl("failure URL").successUrl("success URL"));
 

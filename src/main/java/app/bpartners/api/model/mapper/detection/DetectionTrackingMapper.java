@@ -20,6 +20,7 @@ public class DetectionTrackingMapper {
         .initiatorPhoneNumber(domain.detectionInitiator().phoneNumber())
         .creationDatetime(domain.creationDatetime())
         .idUser(domain.user().getId())
+        .detectionIdentifier(domain.detectionIdentifier())
         .build();
   }
 
@@ -30,7 +31,8 @@ public class DetectionTrackingMapper {
         entity.getAddress(),
         entity.getCreationDatetime(),
         toDomainInitiator(entity),
-        user);
+        user,
+        entity.getDetectionIdentifier());
   }
 
   public @NotNull DetectionInitiator toDomainInitiator(HDetectionTracking entity) {

@@ -21,7 +21,6 @@ import app.bpartners.api.manager.ProjectTokenManager;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
-import app.bpartners.api.repository.sendinblue.SendinblueConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
 import app.bpartners.api.service.subscription.StripeCustomerService;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
@@ -44,7 +43,6 @@ class LegalFileIT extends FacadeIT {
   @MockBean protected PaymentScheduleService paymentScheduleService;
   @MockBean BuildingPermitConf buildingPermitConf;
   @MockBean SentryConf sentryConf;
-  @MockBean SendinblueConf sendinblueConf;
   @MockBean CognitoComponent cognitoComponentMock;
   @MockBean ProjectTokenManager projectTokenManager;
   @MockBean EventProducer eventProducer;

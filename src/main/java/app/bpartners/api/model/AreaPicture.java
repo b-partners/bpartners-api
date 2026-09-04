@@ -44,8 +44,12 @@ public class AreaPicture {
   private List<GeoPosition> geoPositions;
   private boolean isOpaque;
   private TileExtenderRequestBody.ShiftDirection shiftDirection;
+  @Builder.Default private boolean downloadImage = true;
 
   public String getFilename() {
+    if (currentLayer == null || currentTile == null || zoomLevel == null) {
+      return null;
+    }
     return isExtended
         ? getExtendedAreaPictureFilenameFormat()
         : getNormalAreaPictureFilenameFormat();

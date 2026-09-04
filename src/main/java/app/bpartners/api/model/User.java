@@ -4,16 +4,15 @@ import static app.bpartners.api.service.utils.AccountUtils.filterActive;
 
 import app.bpartners.api.endpoint.rest.model.EnableStatus;
 import app.bpartners.api.endpoint.rest.security.model.Role;
+import app.bpartners.api.model.subscription.BillingInterval;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import java.util.Optional;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Getter
@@ -43,12 +42,48 @@ public class User implements Serializable {
   private boolean paymentMethodExists;
   private List<UserAnalysisApiKey> analysisApiKeys;
 
+  @Getter(AccessLevel.NONE)
+  @EqualsAndHashCode.Exclude
+  @ToString.Exclude
+  private List<UserSubscriptionProduct> subscriptionProducts;
+
   public String describe() {
     return "User(id=" + id + ")";
   }
 
   public String getName() {
     return firstName + " " + lastName;
+  }
+
+  public SubscriptionProduct getActualSubscriptionProduct() {
+    return getActualUserSubscriptionProduct()
+        .map(UserSubscriptionProduct::getSubscriptionProduct)
+        .orElse(null);
+  }
+
+  public BillingInterval getActualBillingInterval() {
+    return getActualUserSubscriptionProduct()
+        .map(UserSubscriptionProduct::getBillingInterval)
+        .orElse(null);
+  }
+
+  private Optional<UserSubscriptionProduct> getActualUserSubscriptionProduct() {
+    if (subscriptionProducts == null || subscriptionProducts.isEmpty()) {
+      return Optional.empty();
+    }
+    var now = Instant.now();
+    return subscriptionProducts.stream()
+        .filter(userSubscriptionProduct -> isServedAt(userSubscriptionProduct, now))
+        .max(
+            Comparator.comparing(
+                UserSubscriptionProduct::getCreationDatetime,
+                Comparator.nullsFirst(Comparator.naturalOrder())));
+  }
+
+  private static boolean isServedAt(UserSubscriptionProduct userSubscriptionProduct, Instant now) {
+    var start = userSubscriptionProduct.getSubscriptionStartDatetime();
+    var end = userSubscriptionProduct.getSubscriptionEndDatetime();
+    return (start == null || !start.isAfter(now)) && (end == null || end.isAfter(now));
   }
 
   public Account getDefaultAccount() {

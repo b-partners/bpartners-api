@@ -543,6 +543,78 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  emailRecipients:
+    get:
+      tags:
+        - User Accounts
+      summary: Get the email recipients configuration of an account holder
+      operationId: getEmailRecipients
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: Email recipients configuration of the account holder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailRecipientsConfiguration'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - User Accounts
+      summary: Configure the email recipients of an account holder
+      operationId: configureEmailRecipients
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRecipientsConfiguration'
+      responses:
+        200:
+          description: Updated email recipients configuration of the account holder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailRecipientsConfiguration'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   updateRevenueTargets:
     put:
       tags:
@@ -740,6 +812,30 @@ operations:
           $ref: './api.yml#/components/responses/500'
 components:
   schemas:
+    EmailRecipientsConfiguration:
+      type: object
+      properties:
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailRecipient'
+    EmailRecipient:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/EmailRecipientType'
+        emails:
+          type: array
+          description: Email addresses that will receive the emails of this type
+          items:
+            type: string
+    EmailRecipientType:
+      type: string
+      description: Category of emails sent by the service to the account holder
+      enum:
+        - INVOICE
+        - API_NOTIFICATION
+        - ACCOUNT_INFO
     LegalFile:
       type: object
       properties:
@@ -771,7 +867,7 @@ components:
         email:
           type: string
         status:
-          $ref: '#/components/schemas/EnableStatus'
+          $ref: './api.yml#/components/schemas/EnableStatus'
         activeAccount:
           $ref: '#/components/schemas/Account'
         activeAccountHolder:
@@ -784,6 +880,8 @@ components:
           $ref: '#/components/schemas/UserSubscriptionStatus'
         subscription:
           $ref: '#/components/schemas/UserSubscription'
+        nextSubscription:
+          $ref: '#/components/schemas/NextUserSubscription'
         userParent:
           $ref: '#/components/schemas/User'
         logoFileId:
@@ -811,7 +909,7 @@ components:
         logoFileId:
           type: string
         status:
-          $ref: '#/components/schemas/EnableStatus'
+          $ref: './api.yml#/components/schemas/EnableStatus'
         activeAccount:
           $ref: '#/components/schemas/Account'
         roles:
@@ -822,8 +920,26 @@ components:
           $ref: '#/components/schemas/UserSubscriptionStatus'
         subscription:
           $ref: '#/components/schemas/UserSubscription'
+        nextSubscription:
+          $ref: '#/components/schemas/NextUserSubscription'
         userParent:
           $ref: '#/components/schemas/User'
+    NextUserSubscription:
+      type: object
+      description: |
+        Subscription scheduled to take over once the current one ends, null when none is
+        scheduled. `subscription` always describes what the user is served right now.
+        Only reported while `subscription.renewalStatus` is CANCELLED_AT_PERIOD_END, the only
+        state where a takeover can be pending: it stays null on a subscription that renews.
+      properties:
+        plan:
+          $ref: './user-subscription-api.yml#/components/schemas/SubscriptionPlanDescription'
+        billingInterval:
+          $ref: './user-subscription-api.yml#/components/schemas/BillingInterval'
+        start:
+          type: string
+          format: date-time
+          description: Datetime the scheduled subscription starts being served.
     UserSubscriptionStatus:
       type: string
       enum:
@@ -836,6 +952,10 @@ components:
     UserSubscription:
       type: object
       properties:
+        plan:
+          $ref: './user-subscription-api.yml#/components/schemas/SubscriptionPlanDescription'
+        billingInterval:
+          $ref: './user-subscription-api.yml#/components/schemas/BillingInterval'
         status:
           $ref: '#/components/schemas/UserSubscriptionStatus'
         start:
@@ -844,6 +964,27 @@ components:
         end:
           type: string
           format: date-time
+        renewalStatus:
+          $ref: '#/components/schemas/SubscriptionRenewalStatus'
+        cancellationDatetime:
+          type: string
+          format: date-time
+          description: |
+            When the cancellation was requested. Null as long as no cancellation has been
+            requested. A cancelled subscription is still served until `end`.
+    SubscriptionRenewalStatus:
+      type: string
+      description: |
+        WILL_RENEW: the subscription renews at `end`.
+        CANCELLED_AT_PERIOD_END: cancellation requested, access is kept until `end` and there is
+        no renewal. `status` stays ACTIVE meanwhile, so this is the only field telling the two
+        apart.
+        TERMINATED: access has already ended.
+        Null as long as the user never subscribed.
+      enum:
+        - WILL_RENEW
+        - CANCELLED_AT_PERIOD_END
+        - TERMINATED
     IdentificationStatus:
       type: string
       enum:
@@ -852,11 +993,6 @@ components:
         - INVALID_IDENTITY
         - INSUFFICIENT_DOCUMENT_QUALITY
         - UNINITIATED
-    EnableStatus:
-      type: string
-      enum:
-        - ENABLED
-        - DISABLED
     Bank:
       type: object
       properties:

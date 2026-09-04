@@ -242,6 +242,7 @@ public class UserRestMapper {
     if (userSubscriptionEligible == null
         || (userWhiteListed != null
             && (userWhiteListed.getScopes().contains(SUBSCRIPTION_VALIDATION_NOT_REQUIRED)
+                || userWhiteListed.getScopes().contains(CREDIT_ANALYSIS_NOT_REQUIRED)
                 || userWhiteListed.getScopes().contains(API_KEY_NOT_RESTRICTED_BY_TRIAL)))) {
       return UserSubscriptionStatus.ACTIVE;
     }

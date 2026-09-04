@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.security.BearerAuthenticator;
-import app.bpartners.api.endpoint.rest.security.exception.UserSubscriptionExpiredException;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.User;
@@ -58,7 +57,7 @@ class AuthProviderIT extends MockedThirdParties {
   }
 
   @Test
-  void user_does_not_have_valid_subscription() {
+  void user_authenticated_even_without_valid_subscription() {
     var userSubscriptionMock = mock(UserSubscription.class);
     when(userSubscriptionMock.hasValidSubscription()).thenReturn(false);
     when(subscriptionService.getSubscriptionByUserId(any())).thenReturn(userSubscriptionMock);
@@ -67,14 +66,7 @@ class AuthProviderIT extends MockedThirdParties {
     var usernamePasswordAuthenticationToken =
         new UsernamePasswordAuthenticationToken(mockPrincipal(), mockCredentials);
 
-    var actual =
-        assertThrows(
-            UserSubscriptionExpiredException.class,
-            () -> subject.authenticate(usernamePasswordAuthenticationToken));
-
-    assertEquals(
-        "User.id=joe_doe_id does not have a valid subscription or free trial expired",
-        actual.getMessage());
+    assertNotNull(subject.authenticate(usernamePasswordAuthenticationToken));
   }
 
   private @NotNull Principal mockPrincipal() {

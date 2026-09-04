@@ -68,7 +68,7 @@ class UserRestMapperTest {
     var domain = User.builder().status(ENABLED).roles(List.of()).paymentMethodExists(true).build();
     var userSubscriptionMock = mock(UserSubscription.class);
     var subscriptionEligible =
-        UserSubscriptionEligible.builder().eligibleFrom(LocalDate.now()).build();
+        UserSubscriptionEligible.builder().trialPeriodDays(7).eligibleFrom(LocalDate.now()).build();
     when(userSubscriptionMock.getSubscriptions()).thenReturn(List.of());
     when(subscriptionServiceMock.getSubscriptionByUser(any()))
         .thenReturn(UserSubscription.builder().build());
@@ -454,6 +454,42 @@ class UserRestMapperTest {
     assertEquals(ACTIVE, actualSubscription.getStatus());
     assertNotNull(actualSubscription.getStart());
     assertNotNull(actualSubscription.getEnd());
+  }
+
+  @Test
+  void
+      user_subscription_mapped_with_active_when_eligible_but_white_listed_with_credit_analysis_scope() {
+    var now = now();
+    var userId = randomUUID().toString();
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    var userWhiteListedMock = mock(UserWhiteListed.class);
+
+    reset(subscriptionEligibleJpaRepositoryMock, userWhiteListedJpaRepositoryMock);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(userId))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
+    when(userWhiteListedMock.getScopes()).thenReturn(List.of(CREDIT_ANALYSIS_NOT_REQUIRED));
+    when(userWhiteListedJpaRepositoryMock.findByUserId(userId))
+        .thenReturn(Optional.of(userWhiteListedMock));
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(
+            UserSubscription.builder()
+                .subscriptions(
+                    List.of(
+                        Subscription.builder()
+                            .status(Subscription.SubscriptionStatus.ACTIVE)
+                            .active(true)
+                            .startDatetime(now)
+                            .endDatetime(now)
+                            .build()))
+                .build());
+
+    var actual =
+        subject.toRest(
+            User.builder().id(userId).roles(List.of()).paymentMethodExists(false).build());
+
+    var actualSubscription = actual.getSubscription();
+    assertEquals(ACTIVE, actualSubscription.getStatus());
   }
 
   @Test

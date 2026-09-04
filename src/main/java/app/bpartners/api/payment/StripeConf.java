@@ -22,7 +22,7 @@ public class StripeConf {
       @Value("${stripe.subscription.product.essential.id}") String essentialSubscriptionProductId,
       @Value("${stripe.subscription.product.basic.id}") String basicSubscriptionProductId,
       @Value("${stripe.webhook.secret}") String webhookSecret,
-      @Value("${stripe.subscription.cancel-on-invoice-paid:false}")
+      @Value("${stripe.subscription.cancel-on-invoice-paid:true}")
           boolean cancelSubscriptionOnInvoicePaid) {
     this.apiKey = apiKey;
     this.essentialSubscriptionProductId = essentialSubscriptionProductId;

@@ -36,15 +36,17 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
         String accessToken = request.getParameterMap().get(BEARER_QUERY_PARAMETER_NAME)[0];
         bearer = BEARER_PREFIX + accessToken;
       }
-      return getAuthenticationManager()
-          .authenticate(new UsernamePasswordAuthenticationToken(bearer, bearer));
+      var bearerToken = new UsernamePasswordAuthenticationToken(bearer, bearer);
+      bearerToken.setDetails(request);
+      return getAuthenticationManager().authenticate(bearerToken);
     } catch (Exception ignored) {
       String apiKey = request.getHeader(API_KEY_HEADER);
       if (apiKey == null && verifyAntMatcher(request)) {
         apiKey = request.getParameterMap().get(API_KEY_QUERY_PARAMETER_NAME)[0];
       }
-      return getAuthenticationManager()
-          .authenticate(new UsernamePasswordAuthenticationToken(API_KEY_HEADER, apiKey));
+      var apiKeyToken = new UsernamePasswordAuthenticationToken(API_KEY_HEADER, apiKey);
+      apiKeyToken.setDetails(request);
+      return getAuthenticationManager().authenticate(apiKeyToken);
     }
   }
 

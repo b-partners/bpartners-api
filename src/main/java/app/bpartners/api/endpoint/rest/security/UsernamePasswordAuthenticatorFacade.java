@@ -2,6 +2,8 @@ package app.bpartners.api.endpoint.rest.security;
 
 import static app.bpartners.api.model.WhiteListScope.PAYMENT_METHOD_NOT_REQUIRED;
 import static app.bpartners.api.model.WhiteListScope.SUBSCRIPTION_VALIDATION_NOT_REQUIRED;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
 
 import app.bpartners.api.endpoint.rest.security.exception.NoPaymentMethodFoundException;
 import app.bpartners.api.endpoint.rest.security.exception.UnapprovedLegalFileException;
@@ -21,12 +23,24 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
 @Primary
 @Component
 @AllArgsConstructor
 public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuthenticator {
+  private static final RequestMatcher SUBSCRIPTION_VALIDATION_EXEMPTED_MATCHER =
+      new OrRequestMatcher(
+          new AntPathRequestMatcher("/creditPacks", GET.name()),
+          new AntPathRequestMatcher("/creditPacks/*", GET.name()),
+          new AntPathRequestMatcher("/users/*/creditBalance", GET.name()),
+          new AntPathRequestMatcher("/users/*/paymentMethods", GET.name()),
+          new AntPathRequestMatcher("/users/*/subscriptionCommitments", GET.name()),
+          new AntPathRequestMatcher("/users/*/subscriptionCommitments", POST.name()));
+
   private final BearerAuthenticator bearerAuthenticator;
   private final ApiKeyAuthenticator apiKeyAuthenticator;
   private final LegalFileService legalFileService;
@@ -48,9 +62,17 @@ public class UsernamePasswordAuthenticatorFacade implements UsernamePasswordAuth
     List<LegalFile> legalFilesList =
         legalFileService.getAllToBeApprovedLegalFilesByUserId(user.getId());
     checkLegalFiles(legalFilesList, user);
-    validateSubscriptionRequirements(user);
+    if (!isSubscriptionValidationExempted(authenticationToken)) {
+      validateSubscriptionRequirements(user);
+    }
 
     return principal;
+  }
+
+  private static boolean isSubscriptionValidationExempted(
+      UsernamePasswordAuthenticationToken authenticationToken) {
+    return authenticationToken.getDetails() instanceof HttpServletRequest request
+        && SUBSCRIPTION_VALIDATION_EXEMPTED_MATCHER.matches(request);
   }
 
   private void validateSubscriptionRequirements(User user) {

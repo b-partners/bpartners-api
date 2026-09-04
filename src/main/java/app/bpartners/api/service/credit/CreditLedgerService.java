@@ -4,6 +4,7 @@ import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.credit.CreditTransaction;
+import app.bpartners.api.model.credit.CreditWallet;
 import app.bpartners.api.model.exception.InsufficientCreditsException;
 import app.bpartners.api.model.validator.CreditTransactionValidator;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
@@ -23,10 +24,10 @@ public class CreditLedgerService {
 
     var userIdentifier = draft.getUserId();
     creditTransactionRepository.acquireWalletLock(userIdentifier);
-    var currentBalance = currentBalanceInCredits(userIdentifier);
+    var spendableCredits = spendableCreditsInCredits(userIdentifier);
     var movement = draft.isCredit() ? draft.creditsOrZero() : -draft.creditsOrZero();
-    if (currentBalance + movement < 0) {
-      throw new InsufficientCreditsException(draft.creditsOrZero(), currentBalance);
+    if (spendableCredits + movement < 0) {
+      throw new InsufficientCreditsException(draft.creditsOrZero(), spendableCredits);
     }
     return creditTransactionRepository.save(
         draft.toBuilder()
@@ -36,11 +37,8 @@ public class CreditLedgerService {
             .build());
   }
 
-  private long currentBalanceInCredits(String userId) {
-    return creditTransactionRepository.findAllByUserId(userId).stream()
-        .mapToLong(
-            transaction ->
-                transaction.isCredit() ? transaction.creditsOrZero() : -transaction.creditsOrZero())
-        .sum();
+  private long spendableCreditsInCredits(String userId) {
+    return CreditWallet.of(creditTransactionRepository.findAllByUserId(userId), now())
+        .spendableCredits();
   }
 }

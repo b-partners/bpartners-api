@@ -83,4 +83,54 @@ class CreditWalletTest {
     assertEquals(0L, wallet.spendableCredits());
     assertTrue(wallet.upcomingExpirations().isEmpty());
   }
+
+  @Test
+  void a_fresh_grant_is_not_reduced_by_consumption_charged_to_an_already_expired_grant() {
+    var wallet =
+        CreditWallet.of(
+            List.of(
+                tx(
+                    CreditTransactionType.SUBSCRIPTION_GRANT,
+                    CREDIT,
+                    25L,
+                    now.minus(2, DAYS),
+                    now.minus(40, DAYS)),
+                tx(CONSUMPTION, DEBIT, 8L, null, now.minus(35, DAYS)),
+                tx(
+                    CreditTransactionType.SUBSCRIPTION_GRANT,
+                    CREDIT,
+                    25L,
+                    now.plus(28, DAYS),
+                    now.minus(1, DAYS))),
+            now);
+
+    assertEquals(25L, wallet.spendableCredits());
+    assertEquals(25L, wallet.grantedCredits());
+    assertEquals(1, wallet.upcomingExpirations().size());
+    assertEquals(25L, wallet.upcomingExpirations().getFirst().getCredits());
+  }
+
+  @Test
+  void consumption_reduces_the_current_grant_once_the_previous_one_has_expired() {
+    var wallet =
+        CreditWallet.of(
+            List.of(
+                tx(
+                    CreditTransactionType.SUBSCRIPTION_GRANT,
+                    CREDIT,
+                    25L,
+                    now.minus(2, DAYS),
+                    now.minus(40, DAYS)),
+                tx(
+                    CreditTransactionType.SUBSCRIPTION_GRANT,
+                    CREDIT,
+                    25L,
+                    now.plus(28, DAYS),
+                    now.minus(1, DAYS)),
+                tx(CONSUMPTION, DEBIT, 5L, null, now)),
+            now);
+
+    assertEquals(20L, wallet.spendableCredits());
+    assertEquals(20L, wallet.grantedCredits());
+  }
 }

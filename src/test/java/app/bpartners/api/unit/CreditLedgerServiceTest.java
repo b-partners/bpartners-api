@@ -4,6 +4,8 @@ import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDI
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.DEBIT;
 import static app.bpartners.api.model.credit.CreditTransactionType.CONSUMPTION;
 import static app.bpartners.api.model.credit.CreditTransactionType.PURCHASE;
+import static app.bpartners.api.model.credit.CreditTransactionType.SUBSCRIPTION_GRANT;
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -88,6 +90,33 @@ class CreditLedgerServiceTest {
 
     assertEquals(5L, exception.getRequiredCredits());
     assertEquals(3L, exception.getAvailableCredits());
+    verify(creditTransactionRepository, never()).save(any());
+  }
+
+  @Test
+  void append_debit_ignores_expired_credits_as_not_spendable() {
+    when(creditTransactionRepository.findAllByUserId("user_id"))
+        .thenReturn(
+            List.of(
+                CreditTransaction.builder()
+                    .type(SUBSCRIPTION_GRANT)
+                    .movementType(CREDIT)
+                    .credits(30L)
+                    .expirationDatetime(Instant.now().minus(1, DAYS))
+                    .creationDatetime(Instant.now().minus(10, DAYS))
+                    .build()));
+
+    var draft =
+        CreditTransaction.builder()
+            .userId("user_id")
+            .type(CONSUMPTION)
+            .movementType(DEBIT)
+            .credits(5L)
+            .build();
+
+    var exception = assertThrows(InsufficientCreditsException.class, () -> subject.append(draft));
+
+    assertEquals(0L, exception.getAvailableCredits());
     verify(creditTransactionRepository, never()).save(any());
   }
 

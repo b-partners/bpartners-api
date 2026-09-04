@@ -110,7 +110,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @Autowired AreaPictureRestMapper areaPictureRestMapper;
   @Autowired AreaPictureMapLayerMapper areaPictureMapLayerMapper;
   @MockBean FileDownloaderImpl fileDownloaderImplMock;
-  @Autowired app.bpartners.api.repository.jpa.CreditTransactionRepository creditTransactionRepository;
+
+  @Autowired
+  app.bpartners.api.repository.jpa.CreditTransactionRepository creditTransactionRepository;
 
   static AreaPictureMapLayer charenteLayer() {
     return new AreaPictureMapLayer()

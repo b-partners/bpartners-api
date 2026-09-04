@@ -106,6 +106,7 @@ public class AreaPictureService {
   @SneakyThrows
   @Transactional
   public AreaPictureDetails downloadFromExternalSource(AreaPicture areaPicture) {
+    areaPictureConsumptionValidator.accept(areaPicture);
     var areaPictureDetails =
         imageryService.downloadFromGeodataSource(mapper.toCrupdatedAreaPictureDetails(areaPicture));
     areaPictureDetails.setId(areaPicture.getId());
@@ -128,8 +129,6 @@ public class AreaPictureService {
   }
 
   public AreaPicture saveLogConsumption(AreaPicture picture) {
-    areaPictureConsumptionValidator.accept(picture);
-
     var usageMetric = 1L;
     var idProspect = picture.getIdProspect();
     var address = picture.getAddress();

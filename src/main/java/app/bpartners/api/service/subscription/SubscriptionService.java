@@ -61,7 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class SubscriptionService {
   private static final long DEFAULT_SUBSCRIPTION_DELAY = 30L;
-  private static final int DEFAULT_TRIAL_PERIOD_DAYS = 7;
+  private static final int DEFAULT_TRIAL_PERIOD_DAYS = 0;
   private static final int DEFAULT_PLANS_PAGE_SIZE = 100;
   private static final String VAT_PERCENT_METADATA_KEY = "vat_percent";
   private static final String CANCEL_AFTER_FIRST_INVOICE_METADATA_KEY =

@@ -75,7 +75,6 @@ class AreaPictureServiceTest extends MockedThirdParties {
     var prospectAddress = "prospectAddress";
     var prospectId = "prospectId";
     var prospectName = "prospectOldName";
-    doNothing().when(consumptionValidatorMock).accept(areaPictureMock);
     when(areaPictureMock.getCurrentLayer()).thenReturn(areaPictureMapLayerMock);
     when(areaPictureMock.getFilename()).thenReturn("dummyFilename");
     when(areaPictureMock.getIdUser()).thenReturn(userId);

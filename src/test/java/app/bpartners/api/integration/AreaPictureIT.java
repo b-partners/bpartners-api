@@ -111,6 +111,9 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @Autowired AreaPictureMapLayerMapper areaPictureMapLayerMapper;
   @MockBean FileDownloaderImpl fileDownloaderImplMock;
 
+  @Autowired
+  app.bpartners.api.repository.jpa.CreditTransactionRepository creditTransactionRepository;
+
   static AreaPictureMapLayer charenteLayer() {
     return new AreaPictureMapLayer()
         .id("08af0028-69ae-43a4-879a-a1950508ae6c")
@@ -512,6 +515,19 @@ public class AreaPictureIT extends S3MockedThirdParties {
     return TestUtils.anApiClient(null, JOE_DOE_API_KEY, localPort);
   }
 
+  private void persistJoeDoeSpendableCredits(long credits) {
+    creditTransactionRepository.save(
+        app.bpartners.api.model.credit.CreditTransaction.builder()
+            .id(randomUUID().toString())
+            .userId(JOE_DOE_ID)
+            .type(app.bpartners.api.model.credit.CreditTransactionType.PURCHASE)
+            .movementType(app.bpartners.api.model.credit.CreditTransactionMovementType.CREDIT)
+            .credits(credits)
+            .expirationDatetime(null)
+            .creationDatetime(Instant.now())
+            .build());
+  }
+
   private @NotNull File getMockJpegFile() {
     FileSystemResource mockJpegResource =
         new FileSystemResource(
@@ -629,6 +645,7 @@ public class AreaPictureIT extends S3MockedThirdParties {
   @Test
   void crupdate_area_picture_details()
       throws ApiException, IOException, InterruptedException, com.google.maps.errors.ApiException {
+    persistJoeDoeSpendableCredits(100L);
     ApiClient joeDoeClient = joeDoeClient();
     AreaPictureApi api = new AreaPictureApi(joeDoeClient);
     String payloadId = randomUUID().toString();

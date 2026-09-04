@@ -19,9 +19,10 @@ public class MonthlySubscriptionCreditGrantTriggeredService
 
   @Override
   public void accept(MonthlySubscriptionCreditGrantTriggered event) {
-    var userIds = userSubscriptionProductService.findUserIdsWithActiveSubscriptionProduct();
+    var userIds = userSubscriptionProductService.findUserIdsWithActiveYearlySubscriptionProduct();
     log.info(
-        "Monthly subscription credit grant triggered, fanning out for {} subscribed user(s)",
+        "Monthly subscription credit grant triggered, fanning out for {} yearly-billed subscribed"
+            + " user(s)",
         userIds.size());
     if (userIds.isEmpty()) {
       return;

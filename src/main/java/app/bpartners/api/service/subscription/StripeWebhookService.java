@@ -7,8 +7,10 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.BillingInterval;
+import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.credit.CreditPurchaseService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
@@ -48,6 +50,8 @@ public class StripeWebhookService {
   private final CreditPurchaseService creditPurchaseService;
   private final StripePaymentMethodService stripePaymentMethodService;
   private final SubscriptionPaymentService subscriptionPaymentService;
+  private final UserSubscriptionProductService userSubscriptionProductService;
+  private final CreditGrantService creditGrantService;
 
   public void handleEvent(String payload, String signatureHeader) {
     var event = verifySignature(payload, signatureHeader);
@@ -93,7 +97,22 @@ public class StripeWebhookService {
       return;
     }
     subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoice.getSubscription());
-    subscriptionPaymentService.recordPaidStripeInvoice(invoice);
+    subscriptionPaymentService
+        .recordPaidStripeInvoice(invoice)
+        .ifPresent(this::grantIncludedCreditsForPaidSubscription);
+  }
+
+  private void grantIncludedCreditsForPaidSubscription(SubscriptionPayment payment) {
+    var plan = payment.getSubscriptionProduct();
+    if (plan == null) {
+      log.info(
+          "SubscriptionPayment(id={}) has no resolved plan, no subscription credits to grant",
+          payment.getId());
+      return;
+    }
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        payment.getUserId(), plan.getId(), payment.getBillingInterval());
+    creditGrantService.grantIncludedCredits(payment.getUserId(), plan);
   }
 
   private void handlePaymentIntentSucceeded(Event event) {

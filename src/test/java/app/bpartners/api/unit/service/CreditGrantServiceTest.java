@@ -4,7 +4,6 @@ import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDI
 import static app.bpartners.api.model.credit.CreditTransactionType.SUBSCRIPTION_GRANT;
 import static java.time.Instant.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,6 +18,7 @@ import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.credit.CreditLedgerService;
 import app.bpartners.api.service.utils.TemporalUtils;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -131,7 +131,7 @@ class CreditGrantServiceTest {
   }
 
   @Test
-  void grants_transitional_credits_without_plan_expiring_at_end_of_month() {
+  void grants_transitional_credits_without_plan_expiring_on_the_transition_day() {
     var actual = subject.grantTransitionalCredits("user_id", 25L);
 
     var captor = ArgumentCaptor.forClass(CreditTransaction.class);
@@ -144,7 +144,7 @@ class CreditGrantServiceTest {
     assertNull(appended.getSubscriptionProductId());
     assertEquals("Crédits offerts pendant la transition vers le prépayé", appended.getLabel());
     assertEquals(temporalUtils.startOfActualMonth(), appended.getGrantPeriodStart());
-    assertEquals(temporalUtils.startOfNextMonthInstant(), appended.getExpirationDatetime());
+    assertEquals(Instant.parse("2026-09-04T21:59:59Z"), appended.getExpirationDatetime());
   }
 
   @Test
@@ -165,31 +165,6 @@ class CreditGrantServiceTest {
 
     assertTrue(actual.isEmpty());
     verify(creditLedgerService, never()).append(any());
-  }
-
-  @Test
-  void revokes_live_transitional_grants_by_expiring_them_now() {
-    when(creditTransactionRepository.findAllByUserIdAndTypeAndSubscriptionProductIdIsNull(
-            "user_id", SUBSCRIPTION_GRANT))
-        .thenReturn(List.of(liveTransitionalGrant()));
-
-    subject.revokeTransitionalGrants("user_id");
-
-    verify(creditTransactionRepository).acquireWalletLock("user_id");
-    var captor = ArgumentCaptor.forClass(List.class);
-    verify(creditTransactionRepository).saveAll(captor.capture());
-    @SuppressWarnings("unchecked")
-    var revoked = (List<CreditTransaction>) captor.getValue();
-    assertEquals(1, revoked.size());
-    assertFalse(revoked.getFirst().isExpiredAt(now().minus(1, ChronoUnit.SECONDS)));
-    assertTrue(revoked.getFirst().isExpiredAt(now().plus(1, ChronoUnit.SECONDS)));
-  }
-
-  @Test
-  void revokes_nothing_when_no_live_transitional_grant_exists() {
-    subject.revokeTransitionalGrants("user_id");
-
-    verify(creditTransactionRepository, never()).saveAll(any());
   }
 
   private static CreditTransaction liveTransitionalGrant() {

@@ -23,8 +23,8 @@ class MonthlySubscriptionCreditGrantTriggeredServiceTest {
           userSubscriptionProductService, eventProducer);
 
   @Test
-  void fans_out_one_grant_request_per_subscribed_user() {
-    when(userSubscriptionProductService.findUserIdsWithActiveSubscriptionProduct())
+  void fans_out_one_grant_request_per_yearly_subscribed_user() {
+    when(userSubscriptionProductService.findUserIdsWithActiveYearlySubscriptionProduct())
         .thenReturn(List.of("user_1", "user_2"));
 
     subject.accept(new MonthlySubscriptionCreditGrantTriggered());
@@ -40,8 +40,8 @@ class MonthlySubscriptionCreditGrantTriggeredServiceTest {
   }
 
   @Test
-  void produces_nothing_when_no_user_is_subscribed() {
-    when(userSubscriptionProductService.findUserIdsWithActiveSubscriptionProduct())
+  void produces_nothing_when_no_yearly_user_is_subscribed() {
+    when(userSubscriptionProductService.findUserIdsWithActiveYearlySubscriptionProduct())
         .thenReturn(List.of());
 
     subject.accept(new MonthlySubscriptionCreditGrantTriggered());

@@ -1,6 +1,7 @@
 package app.bpartners.api.repository.jpa;
 
 import app.bpartners.api.model.UserSubscriptionProduct;
+import app.bpartners.api.model.subscription.BillingInterval;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,4 +38,12 @@ public interface UserSubscriptionProductJpaRepository
           + " (usp.subscriptionStartDatetime is null or usp.subscriptionStartDatetime <= :now) and"
           + " (usp.subscriptionEndDatetime is null or usp.subscriptionEndDatetime > :now)")
   List<String> findUserIdsWithActiveSubscriptionProduct(@Param("now") Instant now);
+
+  @Query(
+      "select distinct usp.userId from user_subscription_product usp where"
+          + " usp.billingInterval = :billingInterval and"
+          + " (usp.subscriptionStartDatetime is null or usp.subscriptionStartDatetime <= :now) and"
+          + " (usp.subscriptionEndDatetime is null or usp.subscriptionEndDatetime > :now)")
+  List<String> findUserIdsWithActiveSubscriptionProductByInterval(
+      @Param("now") Instant now, @Param("billingInterval") BillingInterval billingInterval);
 }

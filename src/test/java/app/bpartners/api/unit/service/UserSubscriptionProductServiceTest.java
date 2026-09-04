@@ -14,7 +14,6 @@ import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
-import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -27,10 +26,9 @@ import org.mockito.ArgumentCaptor;
 class UserSubscriptionProductServiceTest {
   UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository = mock();
   SubscriptionProductRepository subscriptionProductRepository = mock();
-  CreditGrantService creditGrantService = mock();
   UserSubscriptionProductService subject =
       new UserSubscriptionProductService(
-          userSubscriptionProductJpaRepository, subscriptionProductRepository, creditGrantService);
+          userSubscriptionProductJpaRepository, subscriptionProductRepository);
 
   @BeforeEach
   void setUp() {
@@ -79,11 +77,10 @@ class UserSubscriptionProductServiceTest {
     assertNull(saved.getSubscriptionEndDatetime());
     assertNotNull(saved.getSubscriptionStartDatetime());
     assertNotNull(saved.getCreationDatetime());
-    verify(creditGrantService).grantIncludedCredits(userId, subscribedPlan);
   }
 
   @Test
-  void grants_included_credits_without_creating_when_already_active_on_subscribed_plan() {
+  void keeps_association_without_creating_when_already_active_on_subscribed_plan() {
     var userId = randomUUID().toString();
     var subscribedPlanId = "essential_plan_id";
     var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
@@ -97,7 +94,6 @@ class UserSubscriptionProductServiceTest {
 
     assertEquals(alreadyActive, actual);
     verify(userSubscriptionProductJpaRepository, never()).save(any());
-    verify(creditGrantService).grantIncludedCredits(userId, subscribedPlan);
   }
 
   @Test
@@ -117,11 +113,10 @@ class UserSubscriptionProductServiceTest {
     verify(userSubscriptionProductJpaRepository).save(captor.capture());
     assertNull(captor.getValue().getSubscriptionEndDatetime());
     assertNull(actual.getSubscriptionEndDatetime());
-    verify(creditGrantService).grantIncludedCredits(userId, subscribedPlan);
   }
 
   @Test
-  void ends_previous_product_and_grants_new_plan_credits_on_plan_change() {
+  void ends_previous_product_on_plan_change() {
     var userId = randomUUID().toString();
     var previousPlan = SubscriptionProduct.builder().id("previous_plan_id").build();
     var subscribedPlan = SubscriptionProduct.builder().id("upgraded_plan_id").build();
@@ -143,12 +138,10 @@ class UserSubscriptionProductServiceTest {
     assertNotNull(ended.getFirst().getSubscriptionEndDatetime());
     assertEquals("upgraded_plan_id", actual.getSubscriptionProduct().getId());
     assertNull(actual.getSubscriptionEndDatetime());
-    verify(creditGrantService).grantIncludedCredits(userId, subscribedPlan);
-    verify(creditGrantService, never()).grantIncludedCredits(userId, previousPlan);
   }
 
   @Test
-  void starts_the_new_product_on_the_given_period_start_and_defers_its_credits() {
+  void starts_the_new_product_on_the_given_period_start() {
     var userId = randomUUID().toString();
     var subscribedPlanId = "upgraded_plan_id";
     var subscribedPlan = SubscriptionProduct.builder().id(subscribedPlanId).build();
@@ -163,7 +156,6 @@ class UserSubscriptionProductServiceTest {
 
     assertEquals(nextPeriodStart, actual.getSubscriptionStartDatetime());
     assertNull(actual.getSubscriptionEndDatetime());
-    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }
 
   @Test
@@ -191,7 +183,6 @@ class UserSubscriptionProductServiceTest {
     assertEquals(1, ended.size());
     assertEquals(nextPeriodStart, ended.getFirst().getSubscriptionEndDatetime());
     assertEquals(nextPeriodStart, actual.getSubscriptionStartDatetime());
-    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }
 
   @Test
@@ -209,23 +200,6 @@ class UserSubscriptionProductServiceTest {
         subject.ensureActiveSubscriptionProduct(userId, subscribedPlanId, MONTHLY, pastPeriodStart);
 
     assertTrue(actual.getSubscriptionStartDatetime().isAfter(pastPeriodStart));
-    verify(creditGrantService).grantIncludedCredits(userId, subscribedPlan);
-  }
-
-  @Test
-  void grants_nothing_from_a_scheduled_product_when_plan_id_null() {
-    var userId = randomUUID().toString();
-    var scheduledPlan = SubscriptionProduct.builder().id("scheduled_plan_id").build();
-    var scheduledProduct =
-        activeProduct(userId, scheduledPlan, null).toBuilder()
-            .subscriptionStartDatetime(Instant.now().plus(20, ChronoUnit.DAYS))
-            .build();
-    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
-        .thenReturn(List.of(scheduledProduct));
-
-    assertThrows(
-        NotFoundException.class, () -> subject.ensureActiveSubscriptionProduct(userId, null, null));
-    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }
 
   @Test
@@ -275,7 +249,6 @@ class UserSubscriptionProductServiceTest {
     verify(userSubscriptionProductJpaRepository).save(captor.capture());
     assertEquals(YEARLY, captor.getValue().getBillingInterval());
     assertEquals(YEARLY, actual.getBillingInterval());
-    verify(creditGrantService).grantIncludedCredits(userId, subscribedPlan);
   }
 
   @Test
@@ -296,30 +269,12 @@ class UserSubscriptionProductServiceTest {
   }
 
   @Test
-  void grants_from_already_active_plan_when_plan_id_null() {
+  void throws_when_plan_id_null() {
     var userId = randomUUID().toString();
-    var activePlan = SubscriptionProduct.builder().id("active_plan_id").build();
-    var alreadyActive = activeProduct(userId, activePlan, null);
-    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
-        .thenReturn(List.of(alreadyActive));
-
-    var actual = subject.ensureActiveSubscriptionProduct(userId, null, null);
-
-    assertEquals(alreadyActive, actual);
-    verify(userSubscriptionProductJpaRepository, never()).save(any());
-    verify(creditGrantService).grantIncludedCredits(userId, activePlan);
-  }
-
-  @Test
-  void throws_when_plan_id_null_and_no_active_product() {
-    var userId = randomUUID().toString();
-    when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))
-        .thenReturn(List.of());
 
     assertThrows(
         NotFoundException.class, () -> subject.ensureActiveSubscriptionProduct(userId, null, null));
     verify(userSubscriptionProductJpaRepository, never()).save(any());
-    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }
 
   @Test
@@ -334,7 +289,6 @@ class UserSubscriptionProductServiceTest {
         NotFoundException.class,
         () -> subject.ensureActiveSubscriptionProduct(userId, unknownPlanId, MONTHLY));
     verify(userSubscriptionProductJpaRepository, never()).save(any());
-    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
   }
 
   @Test

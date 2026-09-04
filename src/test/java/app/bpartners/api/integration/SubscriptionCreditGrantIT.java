@@ -4,6 +4,7 @@ import static app.bpartners.api.integration.conf.utils.TestUtils.JOE_DOE_ID;
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDIT;
 import static app.bpartners.api.model.credit.CreditTransactionType.SUBSCRIPTION_GRANT;
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,8 +16,11 @@ import app.bpartners.api.endpoint.event.model.MonthlySubscriptionCreditGrantRequ
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionCreditGrantTriggered;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.credit.CreditTransaction;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
+import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.event.MonthlySubscriptionCreditGrantRequestedService;
 import app.bpartners.api.service.event.MonthlySubscriptionCreditGrantTriggeredService;
@@ -40,7 +44,9 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
 
   @Autowired private UserSubscriptionProductService userSubscriptionProductService;
   @Autowired private UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository;
+  @Autowired private SubscriptionProductRepository subscriptionProductRepository;
   @Autowired private CreditTransactionRepository creditTransactionRepository;
+  @Autowired private CreditGrantService creditGrantService;
   @Autowired private CreditService creditService;
   @Autowired private TemporalUtils temporalUtils;
   @Autowired private MonthlySubscriptionCreditGrantTriggeredService grantTriggeredService;
@@ -61,6 +67,14 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
     userSubscriptionProductJpaRepository.deleteAll();
   }
 
+  private void simulatePaidInvoice(
+      String userId, String subscriptionProductId, BillingInterval billingInterval) {
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        userId, subscriptionProductId, billingInterval);
+    var plan = subscriptionProductRepository.findById(subscriptionProductId).orElseThrow();
+    creditGrantService.grantIncludedCredits(userId, plan);
+  }
+
   private void replaceLedgerByAPreviousBillingPeriodGrant() {
     creditTransactionRepository.deleteAll();
     creditTransactionRepository.save(
@@ -79,9 +93,8 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
   }
 
   @Test
-  void subscribing_grants_the_credits_included_in_the_plan() {
-    userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+  void a_paid_invoice_grants_the_credits_included_in_the_plan() {
+    simulatePaidInvoice(JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
 
     var ledger = creditTransactionRepository.findAllByUserId(JOE_DOE_ID);
     assertEquals(1, ledger.size());
@@ -99,11 +112,9 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
   }
 
   @Test
-  void subscribing_twice_grants_the_included_credits_only_once() {
-    userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
-    userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+  void two_paid_invoices_in_the_same_period_grant_the_included_credits_only_once() {
+    simulatePaidInvoice(JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+    simulatePaidInvoice(JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
 
     assertEquals(1, creditTransactionRepository.findAllByUserId(JOE_DOE_ID).size());
     assertEquals(
@@ -111,18 +122,33 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
   }
 
   @Test
-  void subscribing_to_a_plan_without_included_credits_grants_nothing() {
-    userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, USAGE_BASED_PLAN_ID, MONTHLY);
+  void a_paid_invoice_for_a_plan_without_included_credits_grants_nothing() {
+    simulatePaidInvoice(JOE_DOE_ID, USAGE_BASED_PLAN_ID, MONTHLY);
 
     assertTrue(creditTransactionRepository.findAllByUserId(JOE_DOE_ID).isEmpty());
     assertEquals(0L, creditService.getCreditBalance(JOE_DOE_ID).getGrantedCredits());
   }
 
   @Test
-  void monthly_trigger_requests_a_grant_for_every_subscribed_user() {
+  void changing_the_plan_within_the_month_stacks_the_newly_subscribed_plan_credits() {
+    simulatePaidInvoice(JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+
+    simulatePaidInvoice(JOE_DOE_ID, PRO_PLAN_ID, MONTHLY);
+
+    assertEquals(2, creditTransactionRepository.findAllByUserId(JOE_DOE_ID).size());
+    assertEquals(
+        ESSENTIAL_INCLUDED_CREDITS + PRO_INCLUDED_CREDITS,
+        creditService.getCreditBalance(JOE_DOE_ID).getGrantedCredits());
+    var activeProducts =
+        userSubscriptionProductJpaRepository.findAllActiveByUserId(JOE_DOE_ID, Instant.now());
+    assertEquals(1, activeProducts.size());
+    assertEquals(PRO_PLAN_ID, activeProducts.getFirst().getSubscriptionProduct().getId());
+  }
+
+  @Test
+  void monthly_trigger_fans_out_only_for_yearly_billed_subscribers() {
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+        JOE_DOE_ID, ESSENTIAL_PLAN_ID, YEARLY);
 
     grantTriggeredService.accept(new MonthlySubscriptionCreditGrantTriggered());
 
@@ -135,9 +161,19 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
   }
 
   @Test
-  void renewal_grants_the_included_credits_again_for_the_new_billing_period() {
+  void monthly_trigger_skips_monthly_billed_subscribers() {
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
         JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+
+    grantTriggeredService.accept(new MonthlySubscriptionCreditGrantTriggered());
+
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
+  void monthly_renewal_grants_the_included_credits_again_for_the_new_billing_period() {
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        JOE_DOE_ID, ESSENTIAL_PLAN_ID, YEARLY);
     replaceLedgerByAPreviousBillingPeriodGrant();
 
     grantRequestedService.accept(
@@ -160,10 +196,12 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
   }
 
   @Test
-  void renewal_grants_nothing_twice_in_the_same_billing_period() {
+  void monthly_renewal_grants_nothing_twice_in_the_same_billing_period() {
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+        JOE_DOE_ID, ESSENTIAL_PLAN_ID, YEARLY);
 
+    grantRequestedService.accept(
+        MonthlySubscriptionCreditGrantRequested.builder().userId(JOE_DOE_ID).build());
     grantRequestedService.accept(
         MonthlySubscriptionCreditGrantRequested.builder().userId(JOE_DOE_ID).build());
 
@@ -173,27 +211,10 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
   }
 
   @Test
-  void changing_the_plan_grants_the_credits_included_in_the_newly_subscribed_plan() {
+  void
+      monthly_renewal_still_grants_while_the_cancelled_subscription_is_paid_until_the_period_end() {
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
-
-    userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, PRO_PLAN_ID, MONTHLY);
-
-    assertEquals(2, creditTransactionRepository.findAllByUserId(JOE_DOE_ID).size());
-    assertEquals(
-        ESSENTIAL_INCLUDED_CREDITS + PRO_INCLUDED_CREDITS,
-        creditService.getCreditBalance(JOE_DOE_ID).getGrantedCredits());
-    var activeProducts =
-        userSubscriptionProductJpaRepository.findAllActiveByUserId(JOE_DOE_ID, Instant.now());
-    assertEquals(1, activeProducts.size());
-    assertEquals(PRO_PLAN_ID, activeProducts.getFirst().getSubscriptionProduct().getId());
-  }
-
-  @Test
-  void renewal_still_grants_while_the_cancelled_subscription_is_paid_until_the_period_end() {
-    userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+        JOE_DOE_ID, ESSENTIAL_PLAN_ID, YEARLY);
     replaceLedgerByAPreviousBillingPeriodGrant();
     userSubscriptionProductService.endActiveSubscriptionProducts(
         JOE_DOE_ID, temporalUtils.endOfMonth());
@@ -214,9 +235,9 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
   }
 
   @Test
-  void renewal_grants_nothing_once_the_subscription_ended() {
+  void monthly_renewal_grants_nothing_once_the_subscription_ended() {
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+        JOE_DOE_ID, ESSENTIAL_PLAN_ID, YEARLY);
     replaceLedgerByAPreviousBillingPeriodGrant();
     userSubscriptionProductService.endActiveSubscriptionProducts(
         JOE_DOE_ID, temporalUtils.startOfMonth());
@@ -226,6 +247,19 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
 
     assertEquals(1, creditTransactionRepository.findAllByUserId(JOE_DOE_ID).size());
     assertEquals(0L, creditService.getCreditBalance(JOE_DOE_ID).getGrantedCredits());
+  }
+
+  @Test
+  void a_future_dated_association_grants_nothing_until_its_own_invoice_is_paid() {
+    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MICROS);
+    simulatePaidInvoice(JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+
+    userSubscriptionProductService.ensureActiveSubscriptionProduct(
+        JOE_DOE_ID, PRO_PLAN_ID, MONTHLY, nextPeriodStart);
+
+    assertEquals(1, creditTransactionRepository.findAllByUserId(JOE_DOE_ID).size());
+    assertEquals(
+        ESSENTIAL_INCLUDED_CREDITS, creditService.getCreditBalance(JOE_DOE_ID).getGrantedCredits());
   }
 
   @Test
@@ -251,28 +285,13 @@ class SubscriptionCreditGrantIT extends MockedThirdParties {
   }
 
   @Test
-  void resubscribing_during_the_cancelled_period_defers_the_new_plan_credits() {
-    var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MICROS);
-    userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
-    userSubscriptionProductService.endActiveSubscriptionProducts(JOE_DOE_ID, nextPeriodStart);
-
-    userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, PRO_PLAN_ID, MONTHLY, nextPeriodStart);
-
-    assertEquals(1, creditTransactionRepository.findAllByUserId(JOE_DOE_ID).size());
-    assertEquals(
-        ESSENTIAL_INCLUDED_CREDITS, creditService.getCreditBalance(JOE_DOE_ID).getGrantedCredits());
-  }
-
-  @Test
   void monthly_trigger_skips_a_user_whose_only_plan_has_not_started_yet() {
     var nextPeriodStart = Instant.now().plus(20, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MICROS);
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, ESSENTIAL_PLAN_ID, MONTHLY);
+        JOE_DOE_ID, ESSENTIAL_PLAN_ID, YEARLY);
     userSubscriptionProductService.endActiveSubscriptionProducts(JOE_DOE_ID, Instant.now());
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
-        JOE_DOE_ID, PRO_PLAN_ID, MONTHLY, nextPeriodStart);
+        JOE_DOE_ID, PRO_PLAN_ID, YEARLY, nextPeriodStart);
 
     grantTriggeredService.accept(new MonthlySubscriptionCreditGrantTriggered());
 

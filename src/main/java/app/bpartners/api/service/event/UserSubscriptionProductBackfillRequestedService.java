@@ -21,6 +21,13 @@ public class UserSubscriptionProductBackfillRequestedService
 
   @Override
   public void accept(UserSubscriptionProductBackfillRequested event) {
+    if (event.getSubscriptionProductId() == null) {
+      log.info(
+          "No SubscriptionProduct resolved for User(id={}), skipping UserSubscriptionProduct"
+              + " backfill; its association will be created on the next paid Stripe invoice",
+          event.getUserId());
+      return;
+    }
     var user = userService.getUserByIdWithoutPaymentMethod(event.getUserId());
     if (!hasActiveSubscription(user)) {
       log.info(

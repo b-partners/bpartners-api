@@ -15,7 +15,6 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +23,8 @@ public class CreditGrantService {
   private static final String DEFAULT_GRANT_LABEL = "Crédits inclus dans l'abonnement";
   private static final String TRANSITIONAL_GRANT_LABEL =
       "Crédits offerts pendant la transition vers le prépayé";
+  private static final Instant TRANSITIONAL_CREDITS_EXPIRATION =
+      Instant.parse("2026-09-04T21:59:59Z");
   private final CreditLedgerService creditLedgerService;
   private final CreditTransactionRepository creditTransactionRepository;
   private final TemporalUtils temporalUtils;
@@ -47,7 +48,7 @@ public class CreditGrantService {
                 .label(TRANSITIONAL_GRANT_LABEL)
                 .subscriptionProductId(null)
                 .grantPeriodStart(temporalUtils.startOfActualMonth())
-                .expirationDatetime(temporalUtils.startOfNextMonthInstant())
+                .expirationDatetime(TRANSITIONAL_CREDITS_EXPIRATION)
                 .build());
     log.info(
         "Granted {} transitional credits to User(id={}), CreditTransaction.id={}",
@@ -55,24 +56,6 @@ public class CreditGrantService {
         userId,
         granted.getId());
     return Optional.of(granted);
-  }
-
-  @Transactional
-  public void revokeTransitionalGrants(String userId) {
-    creditTransactionRepository.acquireWalletLock(userId);
-    var now = now();
-    var liveTransitionalGrants =
-        liveTransitionalGrants(userId, now).stream()
-            .map(transaction -> transaction.toBuilder().expirationDatetime(now).build())
-            .toList();
-    if (liveTransitionalGrants.isEmpty()) {
-      return;
-    }
-    creditTransactionRepository.saveAll(liveTransitionalGrants);
-    log.info(
-        "Revoked {} transitional credit grant(s) of User(id={}) following a new subscription",
-        liveTransitionalGrants.size(),
-        userId);
   }
 
   private boolean hasLiveTransitionalGrant(String userId) {

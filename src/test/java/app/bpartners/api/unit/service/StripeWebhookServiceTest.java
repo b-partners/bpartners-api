@@ -16,11 +16,13 @@ import app.bpartners.api.model.credit.CreditPurchase;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.credit.CreditPurchaseService;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripeWebhookService;
 import app.bpartners.api.service.subscription.SubscriptionPaymentService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.Invoice;
@@ -51,6 +53,8 @@ class StripeWebhookServiceTest {
   CreditPurchaseService creditPurchaseService = mock();
   StripePaymentMethodService stripePaymentMethodService = mock();
   SubscriptionPaymentService subscriptionPaymentService = mock();
+  UserSubscriptionProductService userSubscriptionProductService = mock();
+  CreditGrantService creditGrantService = mock();
   StripeWebhookService subject =
       new StripeWebhookService(
           stripeConf,
@@ -59,7 +63,9 @@ class StripeWebhookServiceTest {
           subscriptionService,
           creditPurchaseService,
           stripePaymentMethodService,
-          subscriptionPaymentService);
+          subscriptionPaymentService,
+          userSubscriptionProductService,
+          creditGrantService);
 
   @BeforeEach
   void setUp() {

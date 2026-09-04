@@ -646,6 +646,41 @@ class SubscriptionServiceTest {
 
   @SneakyThrows
   @Test
+  void cancel_current_subscription_managed_by_a_schedule_releases_it_before_cancelling() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+
+    var subscriptionScheduleServiceMock = mock(SubscriptionScheduleService.class);
+    StripeCollection<SubscriptionSchedule> scheduleStripeCollectionMock = mock();
+    when(scheduleStripeCollectionMock.getData()).thenReturn(List.of());
+    when(subscriptionScheduleServiceMock.list(any(SubscriptionScheduleListParams.class)))
+        .thenReturn(scheduleStripeCollectionMock);
+    when(stripeClientMock.subscriptionSchedules()).thenReturn(subscriptionScheduleServiceMock);
+
+    var periodEndEpoch = now().plusSeconds(3600).getEpochSecond();
+    var activeStripeSubscription = new com.stripe.model.Subscription();
+    activeStripeSubscription.setId("sub_active");
+    activeStripeSubscription.setStatus("active");
+    activeStripeSubscription.setSchedule("sub_sched_managing");
+    activeStripeSubscription.setCurrentPeriodStart(now().getEpochSecond());
+    activeStripeSubscription.setCurrentPeriodEnd(periodEndEpoch);
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(activeStripeSubscription));
+
+    var subscriptionServiceMock = mock(com.stripe.service.SubscriptionService.class);
+    when(stripeClientMock.subscriptions()).thenReturn(subscriptionServiceMock);
+
+    subject.cancelLatestUserSubscription(user, END_OF_PERIOD);
+
+    verify(subscriptionScheduleServiceMock).release("sub_sched_managing");
+    var idCaptor = ArgumentCaptor.forClass(String.class);
+    var paramsCaptor = ArgumentCaptor.forClass(SubscriptionUpdateParams.class);
+    verify(subscriptionServiceMock).update(idCaptor.capture(), paramsCaptor.capture());
+    assertEquals("sub_active", idCaptor.getValue());
+    assertEquals(true, paramsCaptor.getValue().getCancelAtPeriodEnd());
+  }
+
+  @SneakyThrows
+  @Test
   void cancel_current_subscription_immediately_by_default() {
     var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
 

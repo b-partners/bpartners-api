@@ -767,14 +767,18 @@ public class SubscriptionService {
     }
 
     var subscriptions = getSubscriptionsFromStripeCustomer(user.getUserSubscriptionId());
-    var cancellableStripeSubscriptionIds =
+    var cancellableStripeSubscriptions =
         stripeSubscriptionService
             .getStripeSubscriptionsFromStripeCustomerId(user.getUserSubscriptionId())
             .stream()
             .filter(
                 stripeSubscription -> !StripeSubscriptionService.isTerminated(stripeSubscription))
-            .map(com.stripe.model.Subscription::getId)
-            .collect(Collectors.toSet());
+            .collect(
+                Collectors.toMap(
+                    com.stripe.model.Subscription::getId,
+                    stripeSubscription -> stripeSubscription,
+                    (existing, duplicate) -> existing));
+    var cancellableStripeSubscriptionIds = cancellableStripeSubscriptions.keySet();
     var activeSubscriptions =
         subscriptions.stream()
             .filter(Subscription::isActive)
@@ -799,6 +803,8 @@ public class SubscriptionService {
     }
     for (var activeSubscription : activeSubscriptions) {
       if (effectiveCancellationType == END_OF_PERIOD) {
+        releaseManagingScheduleIfAny(
+            cancellableStripeSubscriptions.get(activeSubscription.getE2Id()));
         stripeClient
             .subscriptions()
             .update(
@@ -842,6 +848,23 @@ public class SubscriptionService {
                 .setInvoiceNow(false)
                 .build());
     log.info("Cancelled scheduled subscription {} immediately", scheduledSubscription.getId());
+  }
+
+  private void releaseManagingScheduleIfAny(com.stripe.model.Subscription stripeSubscription)
+      throws StripeException {
+    if (stripeSubscription == null) {
+      return;
+    }
+    var scheduleId = stripeSubscription.getSchedule();
+    if (scheduleId == null) {
+      return;
+    }
+    stripeClient.subscriptionSchedules().release(scheduleId);
+    log.info(
+        "Released subscription schedule {} managing Stripe subscription {} before cancelling at"
+            + " period end",
+        scheduleId,
+        stripeSubscription.getId());
   }
 
   private long cancelScheduleAfterUpcomingPayment(SubscriptionSchedule scheduledSubscription)

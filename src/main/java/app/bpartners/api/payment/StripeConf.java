@@ -15,16 +15,20 @@ public class StripeConf {
   private final String essentialSubscriptionProductId;
   private final String basicSubscriptionProductId;
   private final String webhookSecret;
+  private final boolean cancelSubscriptionOnInvoicePaid;
 
   public StripeConf(
       @Value("${stripe.private.api.key}") String apiKey,
       @Value("${stripe.subscription.product.essential.id}") String essentialSubscriptionProductId,
       @Value("${stripe.subscription.product.basic.id}") String basicSubscriptionProductId,
-      @Value("${stripe.webhook.secret}") String webhookSecret) {
+      @Value("${stripe.webhook.secret}") String webhookSecret,
+      @Value("${stripe.subscription.cancel-on-invoice-paid:false}")
+          boolean cancelSubscriptionOnInvoicePaid) {
     this.apiKey = apiKey;
     this.essentialSubscriptionProductId = essentialSubscriptionProductId;
     this.basicSubscriptionProductId = basicSubscriptionProductId;
     this.webhookSecret = webhookSecret;
+    this.cancelSubscriptionOnInvoicePaid = cancelSubscriptionOnInvoicePaid;
     Stripe.apiKey = apiKey;
   }
 

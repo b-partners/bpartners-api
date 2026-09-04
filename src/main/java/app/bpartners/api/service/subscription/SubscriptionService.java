@@ -895,6 +895,59 @@ public class SubscriptionService {
   }
 
   @SneakyThrows
+  public void cancelUserSubscriptionsImmediately(User user) {
+    if (user.getUserSubscriptionId() == null) {
+      return;
+    }
+    stripeSubscriptionService
+        .getStripeSubscriptionsFromStripeCustomerId(user.getUserSubscriptionId())
+        .stream()
+        .filter(subscription -> !StripeSubscriptionService.isTerminated(subscription))
+        .forEach(subscription -> cancelSubscriptionImmediately(subscription.getId()));
+    userSubscriptionProductService.endActiveSubscriptionProducts(user.getId(), now());
+  }
+
+  @SneakyThrows
+  public void cancelSubscriptionImmediately(String stripeSubscriptionId) {
+    if (stripeSubscriptionId == null) {
+      return;
+    }
+    var subscription = stripeClient.subscriptions().retrieve(stripeSubscriptionId);
+    if (StripeSubscriptionService.isTerminated(subscription)) {
+      log.info(
+          "Stripe subscription {} is already terminated, skipping immediate cancellation",
+          stripeSubscriptionId);
+      return;
+    }
+    var scheduleId = subscription.getSchedule();
+    if (scheduleId != null) {
+      var schedule = stripeClient.subscriptionSchedules().retrieve(scheduleId);
+      if ("canceled".equalsIgnoreCase(schedule.getStatus())) {
+        return;
+      }
+      stripeClient
+          .subscriptionSchedules()
+          .cancel(
+              scheduleId,
+              SubscriptionScheduleCancelParams.builder()
+                  .setProrate(false)
+                  .setInvoiceNow(false)
+                  .build());
+      log.info(
+          "Cancelled subscription schedule {} immediately after its invoice was paid", scheduleId);
+    } else {
+      stripeClient
+          .subscriptions()
+          .cancel(
+              stripeSubscriptionId,
+              SubscriptionCancelParams.builder().setProrate(false).setInvoiceNow(false).build());
+      log.info(
+          "Cancelled Stripe subscription {} immediately after its invoice was paid",
+          stripeSubscriptionId);
+    }
+  }
+
+  @SneakyThrows
   public void cancelScheduledSubscriptionAfterInvoicePaid(String stripeSubscriptionId) {
     if (stripeSubscriptionId == null) {
       return;

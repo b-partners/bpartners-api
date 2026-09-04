@@ -285,8 +285,30 @@ class StripeWebhookServiceTest {
 
     verify(subscriptionService).cancelScheduledSubscriptionAfterInvoicePaid("sub_123");
     verify(subscriptionPaymentService).recordPaidStripeInvoice(invoice);
+    verify(subscriptionService, never()).cancelSubscriptionImmediately(any());
     verify(eventProducer, never()).accept(anyList());
     verify(userRepository, never()).findByStripeCustomerId(any());
+  }
+
+  @Test
+  void invoice_paid_cancels_the_subscription_immediately_when_flag_enabled() {
+    when(stripeConf.isCancelSubscriptionOnInvoicePaid()).thenReturn(true);
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    when(deserializer.getObject()).thenReturn(Optional.of(invoice));
+    var event = mock(Event.class);
+    when(event.getType()).thenReturn("invoice.paid");
+    when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionService).cancelSubscriptionImmediately("sub_123");
+    verify(subscriptionPaymentService, never()).recordPaidStripeInvoice(any());
   }
 
   @Test

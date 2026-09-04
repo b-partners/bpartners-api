@@ -97,6 +97,10 @@ public class StripeWebhookService {
       return;
     }
     subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoice.getSubscription());
+    if (stripeConf.isCancelSubscriptionOnInvoicePaid()) {
+      subscriptionService.cancelSubscriptionImmediately(invoice.getSubscription());
+      return;
+    }
     subscriptionPaymentService
         .recordPaidStripeInvoice(invoice)
         .ifPresent(this::grantIncludedCreditsForPaidSubscription);

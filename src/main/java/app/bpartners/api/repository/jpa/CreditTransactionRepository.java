@@ -24,6 +24,9 @@ public interface CreditTransactionRepository extends JpaRepository<CreditTransac
       String subscriptionProductId,
       LocalDate grantPeriodStart);
 
+  List<CreditTransaction> findAllByUserIdAndTypeAndSubscriptionProductIdIsNull(
+      String userId, CreditTransactionType type);
+
   @Query(
       value = "select 1 from (select pg_advisory_xact_lock(hashtext(:userId), 0)) as lock_acquired",
       nativeQuery = true)

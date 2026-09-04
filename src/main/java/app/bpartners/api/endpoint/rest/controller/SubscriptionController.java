@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionCreditGrantTriggered;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered;
 import app.bpartners.api.endpoint.event.model.SubscriptionProductStripeVatBackfillTriggered;
+import app.bpartners.api.endpoint.event.model.TransitionalSubscriptionCreditGrantTriggered;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
@@ -57,6 +58,12 @@ public class SubscriptionController {
   public String triggerMonthlySubscriptionCreditGrant() {
     eventProducer.accept(List.of(new MonthlySubscriptionCreditGrantTriggered()));
     return "Monthly subscription credit grant triggered successfully";
+  }
+
+  @PostMapping("/transitionalSubscriptionCreditGrantTrigger")
+  public String triggerTransitionalSubscriptionCreditGrant() {
+    eventProducer.accept(List.of(new TransitionalSubscriptionCreditGrantTriggered()));
+    return "Transitional subscription credit grant triggered successfully";
   }
 
   // TODO: temporary endpoint to backfill historical Essential UserSubscriptionProduct for users who

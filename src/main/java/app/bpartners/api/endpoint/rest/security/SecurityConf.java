@@ -226,6 +226,8 @@ public class SecurityConf {
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/monthlySubscriptionCreditGrantTrigger")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/transitionalSubscriptionCreditGrantTrigger")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/monthlyUpcomingDebitedCustomers/*/*")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/users/subscriptionProductBackfill")

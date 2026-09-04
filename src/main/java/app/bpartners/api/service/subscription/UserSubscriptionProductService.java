@@ -59,6 +59,7 @@ public class UserSubscriptionProductService {
     }
     if (!notEndedProducts.isEmpty()) {
       endActiveSubscriptionProducts(userId, startDatetime);
+      creditGrantService.revokeTransitionalGrants(userId);
     }
     var created =
         userSubscriptionProductJpaRepository.save(

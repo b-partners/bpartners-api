@@ -1442,6 +1442,89 @@ class SubscriptionServiceTest {
         .initiateSubscriptionWorkflow(any(), any(), anyLong(), any());
   }
 
+  @SneakyThrows
+  @Test
+  void get_subscription_reports_previous_period_for_post_paid_terminated_subscription() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    mockActiveSchedules();
+    var terminatedStripeSubscription = new com.stripe.model.Subscription();
+    terminatedStripeSubscription.setId("sub_terminated");
+    terminatedStripeSubscription.setStatus("canceled");
+    terminatedStripeSubscription.setCurrentPeriodStart(
+        Instant.parse("2026-09-04T21:00:00Z").getEpochSecond());
+    terminatedStripeSubscription.setCurrentPeriodEnd(
+        Instant.parse("2026-10-04T21:00:00Z").getEpochSecond());
+    terminatedStripeSubscription.setEndedAt(
+        Instant.parse("2026-09-04T22:00:41Z").getEpochSecond());
+    terminatedStripeSubscription.setCanceledAt(
+        Instant.parse("2026-09-04T22:00:41Z").getEpochSecond());
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(terminatedStripeSubscription));
+    mockSubscriptionEligible();
+
+    var latest = subject.getSubscriptionByUser(user).getLatestSubscription();
+
+    assertEquals(Instant.parse("2026-08-04T21:00:00Z"), latest.getStartDatetime());
+    assertEquals(Instant.parse("2026-09-04T21:00:00Z"), latest.getEndDatetime());
+    assertEquals(Instant.parse("2026-09-04T22:00:41Z"), latest.getCancellationDatetime());
+  }
+
+  @SneakyThrows
+  @Test
+  void get_subscription_reports_ended_at_for_terminated_subscription_billed_as_pre_paid() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    mockActiveSchedules();
+    var periodStart = now();
+    var endedAt = now().plusSeconds(3600L);
+    var terminatedStripeSubscription = new com.stripe.model.Subscription();
+    terminatedStripeSubscription.setId("sub_terminated");
+    terminatedStripeSubscription.setStatus("canceled");
+    terminatedStripeSubscription.setCurrentPeriodStart(periodStart.getEpochSecond());
+    terminatedStripeSubscription.setCurrentPeriodEnd(now().plus(30L, DAYS).getEpochSecond());
+    terminatedStripeSubscription.setEndedAt(endedAt.getEpochSecond());
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(terminatedStripeSubscription));
+    mockSubscriptionEligible();
+
+    var latest = subject.getSubscriptionByUser(user).getLatestSubscription();
+
+    assertEquals(periodStart.getEpochSecond(), latest.getStartDatetime().getEpochSecond());
+    assertEquals(endedAt.getEpochSecond(), latest.getEndDatetime().getEpochSecond());
+  }
+
+  @SneakyThrows
+  @Test
+  void get_subscription_keeps_stripe_period_for_running_subscription() {
+    var user = User.builder().id("user_id").userSubscriptionId("customer_id").build();
+    mockActiveSchedules();
+    var periodStart = Instant.parse("2026-08-04T21:00:00Z");
+    var periodEnd = Instant.parse("2026-09-04T21:00:00Z");
+    var activeStripeSubscription = new com.stripe.model.Subscription();
+    activeStripeSubscription.setId("sub_active");
+    activeStripeSubscription.setStatus("active");
+    activeStripeSubscription.setCurrentPeriodStart(periodStart.getEpochSecond());
+    activeStripeSubscription.setCurrentPeriodEnd(periodEnd.getEpochSecond());
+    when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))
+        .thenReturn(List.of(activeStripeSubscription));
+    mockSubscriptionEligible();
+
+    var latest = subject.getSubscriptionByUser(user).getLatestSubscription();
+
+    assertEquals(periodStart, latest.getStartDatetime());
+    assertEquals(periodEnd, latest.getEndDatetime());
+  }
+
+  private void mockSubscriptionEligible() {
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId("user_id"))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionEligible.builder()
+                    .userId("user_id")
+                    .trialPeriodDays(0)
+                    .eligibleFrom(LocalDate.now().minusDays(10L))
+                    .build()));
+  }
+
   private void mockActiveSchedules(SubscriptionSchedule... schedules) throws StripeException {
     var scheduleServiceMock = mock(SubscriptionScheduleService.class);
     StripeCollection<SubscriptionSchedule> scheduleCollectionMock = mock();

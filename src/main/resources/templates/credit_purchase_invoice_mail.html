@@ -137,8 +137,12 @@
                     <td class="value" th:text="${invoiceReference}">REF</td>
                 </tr>
                 <tr>
-                    <td class="label" th:text="${purchaseLabel}">Crédits</td>
-                    <td class="value" th:text="${credits} + ' crédits'">0 crédits</td>
+                    <td class="label">Nombre de crédits</td>
+                    <td class="value" th:text="${credits}">0</td>
+                </tr>
+                <tr>
+                    <td class="label">Prix unitaire HT</td>
+                    <td class="value" th:text="${unitPriceWithoutVat} + ' €'">0 €</td>
                 </tr>
                 <tr>
                     <td class="label">Montant HT</td>

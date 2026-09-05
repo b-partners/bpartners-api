@@ -96,8 +96,8 @@ public class CreditOperationInvoiceCreatedService
     context.setVariable("customerName", invoice.getCustomer().getName());
     context.setVariable("invoiceReference", invoice.getRef());
     context.setVariable("purchaseDate", purchaseDateOf(invoice));
-    context.setVariable("purchaseLabel", purchaseLabelOf(invoice, creditPurchase));
     context.setVariable("credits", creditsOf(invoice, creditPurchase));
+    context.setVariable("unitPriceWithoutVat", euroOf(unitPriceWithoutVatOf(invoice)));
     context.setVariable("amountWithoutVat", euroOf(invoice.getTotalPriceWithoutVat()));
     context.setVariable("amountWithVat", euroOf(invoice.getTotalPriceWithVat()));
     return context;
@@ -112,13 +112,11 @@ public class CreditOperationInvoiceCreatedService
         : customDateFormatter.formatFrenchDate(invoice.getCreatedAt());
   }
 
-  private String purchaseLabelOf(Invoice invoice, CreditPurchase creditPurchase) {
-    if (creditPurchase != null) {
-      return creditPurchase.paymentLabel();
+  private Fraction unitPriceWithoutVatOf(Invoice invoice) {
+    if (invoice.getProducts().isEmpty()) {
+      return new Fraction();
     }
-    return invoice.getProducts().isEmpty()
-        ? "Crédits d'analyse"
-        : invoice.getProducts().getFirst().getDescription();
+    return invoice.getProducts().getFirst().getUnitPrice();
   }
 
   private long creditsOf(Invoice invoice, CreditPurchase creditPurchase) {

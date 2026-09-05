@@ -118,11 +118,24 @@ class CreditOperationInvoiceCreatedServiceTest {
     var body = capturedHtmlBody();
     assertTrue(body.contains("Buyer SARL"));
     assertTrue(body.contains("REF-04032026103000"));
-    assertTrue(body.contains("Pack 30 crédits"));
-    assertTrue(body.contains("30 crédits"));
+    assertTrue(body.contains("Nombre de crédits"));
+    assertTrue(body.contains(">30<"));
+    assertTrue(body.contains("Prix unitaire HT"));
+    assertTrue(body.contains("1,00 €"));
     assertTrue(body.contains("30,00 €"));
     assertTrue(body.contains("36,00 €"));
     assertTrue(body.contains("04/03/2026"));
+  }
+
+  @Test
+  void does_not_repeat_the_credit_count_in_the_purchase_label() throws Exception {
+    givenInvoiceAndPurchase(someInvoice(), somePurchase());
+
+    subject.accept(someEvent());
+
+    var body = capturedHtmlBody();
+    assertFalse(body.contains("Pack 30 crédits"));
+    assertFalse(body.contains("30 crédits"));
   }
 
   @Test
@@ -148,8 +161,8 @@ class CreditOperationInvoiceCreatedServiceTest {
     subject.accept(someEvent());
 
     var body = capturedHtmlBody();
-    assertTrue(body.contains("Pack 30 crédits"));
-    assertTrue(body.contains("30 crédits"));
+    assertTrue(body.contains(">30<"));
+    assertTrue(body.contains("1,00 €"));
   }
 
   @Test
@@ -167,16 +180,16 @@ class CreditOperationInvoiceCreatedServiceTest {
   }
 
   @Test
-  void falls_back_on_a_generic_label_when_neither_purchase_nor_invoice_line_is_available() {
+  void renders_zeroed_credits_when_neither_purchase_nor_invoice_line_is_available() {
     when(invoiceRepository.findById("invoice_id"))
         .thenReturn(someInvoice().toBuilder().products(List.of()).build());
     when(creditPurchaseRepository.findById("purchase_id")).thenReturn(Optional.empty());
 
-    subject.accept(someEvent());
+    assertDoesNotThrow(() -> subject.accept(someEvent()));
 
     var body = capturedHtmlBody();
-    assertTrue(body.contains("Crédits d&#39;analyse"));
-    assertTrue(body.contains("0 crédits"));
+    assertTrue(body.contains(">0<"));
+    assertTrue(body.contains("0,00 €"));
   }
 
   @Test
@@ -185,7 +198,7 @@ class CreditOperationInvoiceCreatedServiceTest {
 
     subject.accept(someEvent());
 
-    assertTrue(capturedHtmlBody().contains("30 crédits"));
+    assertTrue(capturedHtmlBody().contains(">30<"));
   }
 
   @Test
@@ -269,7 +282,12 @@ class CreditOperationInvoiceCreatedServiceTest {
                 .build())
         .sendingDate(LocalDate.of(2026, 3, 4))
         .products(
-            List.of(InvoiceProduct.builder().description("Pack 30 crédits").quantity(30).build()))
+            List.of(
+                InvoiceProduct.builder()
+                    .description("Pack 30 crédits")
+                    .quantity(30)
+                    .unitPrice(parseFraction(100))
+                    .build()))
         .totalPriceWithoutVat(parseFraction(3000))
         .totalPriceWithVat(parseFraction(3600))
         .build();

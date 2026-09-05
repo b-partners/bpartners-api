@@ -20,6 +20,7 @@ import app.bpartners.api.endpoint.rest.model.SubscriptionRenewalStatus;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.UserWhiteListed;
+import app.bpartners.api.model.subscription.ServedPeriod;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscription;
@@ -783,6 +784,66 @@ class UserRestMapperTest {
     var actual = subject.toRest(domain).getSubscription();
 
     assertEquals(SubscriptionRenewalStatus.TERMINATED, actual.getRenewalStatus());
+  }
+
+  @Test
+  void renewal_status_is_terminated_for_a_post_paid_subscription_cancelled_immediately() {
+    var stripeCurrentPeriodStart = Instant.parse("2026-09-04T21:00:00Z");
+    var stripeCurrentPeriodEnd = Instant.parse("2026-10-04T21:00:00Z");
+    var cancellationDatetime = Instant.parse("2026-09-04T22:00:41Z");
+    var servedPeriod =
+        ServedPeriod.of(
+            stripeCurrentPeriodStart,
+            stripeCurrentPeriodEnd,
+            cancellationDatetime,
+            app.bpartners.api.model.subscription.BillingInterval.MONTHLY);
+    var domain =
+        givenUserServedBy(
+            Subscription.builder()
+                .e2Id("sub_current")
+                .status(Subscription.SubscriptionStatus.CANCELED)
+                .active(true)
+                .startDatetime(servedPeriod.start())
+                .endDatetime(servedPeriod.end())
+                .cancellationDatetime(cancellationDatetime)
+                .build(),
+            "cus_1");
+
+    var actual = subject.toRest(domain).getSubscription();
+
+    assertEquals(SubscriptionRenewalStatus.TERMINATED, actual.getRenewalStatus());
+    assertEquals(Instant.parse("2026-08-04T21:00:00Z"), actual.getStart());
+    assertEquals(Instant.parse("2026-09-04T21:00:00Z"), actual.getEnd());
+    assertEquals(cancellationDatetime, actual.getCancellationDatetime());
+  }
+
+  @Test
+  void next_subscription_is_not_reported_for_a_post_paid_subscription_cancelled_immediately() {
+    var stripeCurrentPeriodStart = Instant.parse("2026-09-04T21:00:00Z");
+    var servedPeriod =
+        ServedPeriod.of(
+            stripeCurrentPeriodStart,
+            Instant.parse("2026-10-04T21:00:00Z"),
+            Instant.parse("2026-09-04T22:00:41Z"),
+            app.bpartners.api.model.subscription.BillingInterval.MONTHLY);
+    var domain =
+        givenUserServedBy(
+            Subscription.builder()
+                .e2Id("sub_current")
+                .status(Subscription.SubscriptionStatus.CANCELED)
+                .active(true)
+                .startDatetime(servedPeriod.start())
+                .endDatetime(servedPeriod.end())
+                .cancellationDatetime(Instant.parse("2026-09-04T22:00:41Z"))
+                .build(),
+            "cus_1");
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(
+        SubscriptionRenewalStatus.TERMINATED, actual.getSubscription().getRenewalStatus());
+    assertNull(actual.getNextSubscription());
+    verify(subscriptionServiceMock, never()).getScheduledSubscription(any());
   }
 
   @Test

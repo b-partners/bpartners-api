@@ -671,24 +671,29 @@ public class SubscriptionService {
 
   private Subscription mapToDomain(com.stripe.model.Subscription stripeSubscription) {
     var currentPeriodStartLongValue = stripeSubscription.getCurrentPeriodStart();
-    var startDatetime =
+    var currentPeriodStart =
         currentPeriodStartLongValue == null
             ? null
             : Instant.ofEpochSecond(currentPeriodStartLongValue);
     var currentPeriodEndLongValue = stripeSubscription.getCurrentPeriodEnd();
-    var endDatetime =
+    var currentPeriodEnd =
         currentPeriodEndLongValue == null ? null : Instant.ofEpochSecond(currentPeriodEndLongValue);
+    var endedAtLongValue = stripeSubscription.getEndedAt();
+    var endedAt = endedAtLongValue == null ? null : Instant.ofEpochSecond(endedAtLongValue);
     var status = computeUserSubscriptionStatus(stripeSubscription);
     var canceledAtLongValue = stripeSubscription.getCanceledAt();
+    var billingInterval = billingIntervalOf(stripeSubscription);
+    var servedPeriod =
+        ServedPeriod.of(currentPeriodStart, currentPeriodEnd, endedAt, billingInterval);
     var paymentSettings = stripeSubscription.getPaymentSettings();
     return Subscription.builder()
         .id(randomUUID().toString()) // TODO: update when subscription history persisted
         .e2Id(stripeSubscription.getId())
-        .startDatetime(startDatetime)
-        .endDatetime(endDatetime)
+        .startDatetime(servedPeriod.start())
+        .endDatetime(servedPeriod.end())
         .cancellationDatetime(
             canceledAtLongValue == null ? null : Instant.ofEpochSecond(canceledAtLongValue))
-        .billingInterval(billingIntervalOf(stripeSubscription))
+        .billingInterval(billingInterval)
         .status(status)
         .active(!status.equals(UNKNOWN))
         .paymentMethods(

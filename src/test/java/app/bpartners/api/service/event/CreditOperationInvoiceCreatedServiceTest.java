@@ -231,6 +231,27 @@ class CreditOperationInvoiceCreatedServiceTest {
   }
 
   @Test
+  void renders_the_credit_unit_price_even_when_the_invoice_line_prices_a_whole_pack() {
+    givenInvoiceAndPurchase(
+        someInvoice().toBuilder()
+            .products(
+                List.of(
+                    InvoiceProduct.builder()
+                        .description("Pack de 30 crédits d'analyse")
+                        .quantity(1)
+                        .unitPrice(parseFraction(3000))
+                        .build()))
+            .build(),
+        somePurchase().toBuilder().creditUnitPriceInCentsWithoutVat(100L).build());
+
+    subject.accept(someEvent());
+
+    var body = capturedHtmlBody();
+    assertTrue(body.contains(">30<"));
+    assertTrue(body.contains("1,00 €"));
+  }
+
+  @Test
   void falls_back_on_the_invoice_line_quantity_when_the_purchase_carries_no_credits() {
     givenInvoiceAndPurchase(someInvoice(), somePurchase().toBuilder().credits(null).build());
 

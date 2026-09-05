@@ -18,6 +18,7 @@ import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -97,7 +98,8 @@ public class CreditOperationInvoiceCreatedService
     context.setVariable("invoiceReference", invoice.getRef());
     context.setVariable("purchaseDate", purchaseDateOf(invoice));
     context.setVariable("credits", creditsOf(invoice, creditPurchase));
-    context.setVariable("unitPriceWithoutVat", euroOf(unitPriceWithoutVatOf(invoice)));
+    context.setVariable(
+        "unitPriceWithoutVat", euroOf(unitPriceWithoutVatOf(invoice, creditPurchase)));
     context.setVariable("amountWithoutVat", euroOf(invoice.getTotalPriceWithoutVat()));
     context.setVariable("amountWithVat", euroOf(invoice.getTotalPriceWithVat()));
     return context;
@@ -112,7 +114,10 @@ public class CreditOperationInvoiceCreatedService
         : customDateFormatter.formatFrenchDate(invoice.getCreatedAt());
   }
 
-  private Fraction unitPriceWithoutVatOf(Invoice invoice) {
+  private Fraction unitPriceWithoutVatOf(Invoice invoice, CreditPurchase creditPurchase) {
+    if (creditPurchase != null && creditPurchase.getCreditUnitPriceInCentsWithoutVat() != null) {
+      return new Fraction(BigInteger.valueOf(creditPurchase.getCreditUnitPriceInCentsWithoutVat()));
+    }
     if (invoice.getProducts().isEmpty()) {
       return new Fraction();
     }

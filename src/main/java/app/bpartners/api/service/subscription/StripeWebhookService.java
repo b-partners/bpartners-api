@@ -15,6 +15,7 @@ import app.bpartners.api.service.credit.CreditPurchaseService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.Invoice;
+import com.stripe.model.InvoiceLineItem;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
 import com.stripe.model.Subscription;
@@ -24,6 +25,7 @@ import com.stripe.net.Webhook;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -96,14 +98,51 @@ public class StripeWebhookService {
     if (invoice == null) {
       return;
     }
-    subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoice.getSubscription());
-    if (stripeConf.isCancelSubscriptionOnInvoicePaid()) {
-      subscriptionService.cancelSubscriptionImmediately(invoice.getSubscription());
+    var invoiceSubscriptionIdentifier = invoice.getSubscription();
+    subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoiceSubscriptionIdentifier);
+    if (isEssentialSubscriptionInvoice(invoice)) {
+      subscriptionService.cancelSubscriptionImmediately(invoiceSubscriptionIdentifier);
       return;
     }
     subscriptionPaymentService
         .recordPaidStripeInvoice(invoice)
         .ifPresent(this::grantIncludedCreditsForPaidSubscription);
+  }
+
+  private boolean isEssentialSubscriptionInvoice(Invoice invoice) {
+    var essentialSubscriptionProductId = stripeConf.getEssentialSubscriptionProductId();
+    if (essentialSubscriptionProductId == null) {
+      return false;
+    }
+    var billedStripeProductIds = stripeProductIdsOf(invoice);
+    if (billedStripeProductIds.contains(essentialSubscriptionProductId)) {
+      return true;
+    }
+    log.info(
+        "Stripe Invoice(id={}) does not bill the essential subscription product (billed"
+            + " products={}, essential product={}), skipping immediate cancellation",
+        invoice.getId(),
+        billedStripeProductIds,
+        essentialSubscriptionProductId);
+    return false;
+  }
+
+  private static List<String> stripeProductIdsOf(Invoice invoice) {
+    var lines = invoice.getLines() == null ? null : invoice.getLines().getData();
+    if (lines == null) {
+      return List.of();
+    }
+    return lines.stream()
+        .map(StripeWebhookService::stripeProductIdOf)
+        .filter(Objects::nonNull)
+        .toList();
+  }
+
+  private static String stripeProductIdOf(InvoiceLineItem line) {
+    if (line.getPlan() != null && line.getPlan().getProduct() != null) {
+      return line.getPlan().getProduct();
+    }
+    return line.getPrice() == null ? null : line.getPrice().getProduct();
   }
 
   private void grantIncludedCreditsForPaidSubscription(SubscriptionPayment payment) {

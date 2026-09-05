@@ -26,7 +26,10 @@ import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.Invoice;
+import com.stripe.model.InvoiceLineItem;
+import com.stripe.model.InvoiceLineItemCollection;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Price;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionSchedule;
 import com.stripe.model.checkout.Session;
@@ -44,6 +47,7 @@ class StripeWebhookServiceTest {
   static final String PAYLOAD = "{}";
   static final String SIGNATURE = "sig";
   static final String CUSTOMER_ID = "cus_123";
+  static final String ESSENTIAL_PRODUCT_ID = "prod_essential";
   static final Long CURRENT_PERIOD_START = 1_780_000_000L;
 
   StripeConf stripeConf = mock();
@@ -267,15 +271,33 @@ class StripeWebhookServiceTest {
     verify(eventProducer, never()).accept(anyList());
   }
 
-  @Test
-  void invoice_paid_delegates_cancellation_and_produces_no_backfill_event() {
-    var invoice = mock(Invoice.class);
-    when(invoice.getSubscription()).thenReturn("sub_123");
+  private Event givenInvoicePaidEvent(Invoice invoice) {
     var deserializer = mock(EventDataObjectDeserializer.class);
     when(deserializer.getObject()).thenReturn(Optional.of(invoice));
     var event = mock(Event.class);
     when(event.getType()).thenReturn("invoice.paid");
     when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+    return event;
+  }
+
+  private Invoice givenInvoiceBilling(String stripeProductId) {
+    var price = mock(Price.class);
+    when(price.getProduct()).thenReturn(stripeProductId);
+    var line = mock(InvoiceLineItem.class);
+    when(line.getPrice()).thenReturn(price);
+    var lines = mock(InvoiceLineItemCollection.class);
+    when(lines.getData()).thenReturn(List.of(line));
+    var invoice = mock(Invoice.class);
+    lenient().when(invoice.getSubscription()).thenReturn("sub_123");
+    when(invoice.getLines()).thenReturn(lines);
+    return invoice;
+  }
+
+  @Test
+  void invoice_paid_delegates_cancellation_and_produces_no_backfill_event() {
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    var event = givenInvoicePaidEvent(invoice);
 
     try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
       webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
@@ -291,15 +313,10 @@ class StripeWebhookServiceTest {
   }
 
   @Test
-  void invoice_paid_cancels_the_subscription_immediately_when_flag_enabled() {
-    when(stripeConf.isCancelSubscriptionOnInvoicePaid()).thenReturn(true);
-    var invoice = mock(Invoice.class);
-    when(invoice.getSubscription()).thenReturn("sub_123");
-    var deserializer = mock(EventDataObjectDeserializer.class);
-    when(deserializer.getObject()).thenReturn(Optional.of(invoice));
-    var event = mock(Event.class);
-    when(event.getType()).thenReturn("invoice.paid");
-    when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+  void invoice_paid_cancels_the_subscription_immediately_when_essential_product_is_billed() {
+    when(stripeConf.getEssentialSubscriptionProductId()).thenReturn(ESSENTIAL_PRODUCT_ID);
+    var invoice = givenInvoiceBilling(ESSENTIAL_PRODUCT_ID);
+    var event = givenInvoicePaidEvent(invoice);
 
     try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
       webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
@@ -309,6 +326,22 @@ class StripeWebhookServiceTest {
 
     verify(subscriptionService).cancelSubscriptionImmediately("sub_123");
     verify(subscriptionPaymentService, never()).recordPaidStripeInvoice(any());
+  }
+
+  @Test
+  void invoice_paid_records_payment_without_cancelling_when_another_product_is_billed() {
+    when(stripeConf.getEssentialSubscriptionProductId()).thenReturn(ESSENTIAL_PRODUCT_ID);
+    var invoice = givenInvoiceBilling("prod_other");
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionService, never()).cancelSubscriptionImmediately(any());
+    verify(subscriptionPaymentService).recordPaidStripeInvoice(invoice);
   }
 
   @Test

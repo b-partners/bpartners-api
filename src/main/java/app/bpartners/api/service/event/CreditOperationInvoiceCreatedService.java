@@ -116,14 +116,19 @@ public class CreditOperationInvoiceCreatedService
     if (invoice.getProducts().isEmpty()) {
       return new Fraction();
     }
-    return invoice.getProducts().getFirst().getUnitPrice();
+    var unitPrice = invoice.getProducts().getFirst().getUnitPrice();
+    return unitPrice == null ? new Fraction() : unitPrice;
   }
 
   private long creditsOf(Invoice invoice, CreditPurchase creditPurchase) {
     if (creditPurchase != null && creditPurchase.getCredits() != null) {
       return creditPurchase.getCredits();
     }
-    return invoice.getProducts().isEmpty() ? 0L : invoice.getProducts().getFirst().getQuantity();
+    if (invoice.getProducts().isEmpty()) {
+      return 0L;
+    }
+    var quantity = invoice.getProducts().getFirst().getQuantity();
+    return quantity == null ? 0L : quantity;
   }
 
   private String euroOf(Fraction amount) {

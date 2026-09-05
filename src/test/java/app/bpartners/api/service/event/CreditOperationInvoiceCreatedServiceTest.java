@@ -193,6 +193,44 @@ class CreditOperationInvoiceCreatedServiceTest {
   }
 
   @Test
+  void renders_zeroed_credits_when_neither_purchase_nor_invoice_line_carries_a_quantity() {
+    givenInvoiceAndPurchase(
+        someInvoice().toBuilder()
+            .products(
+                List.of(
+                    InvoiceProduct.builder()
+                        .description("Pack 30 crédits")
+                        .quantity(null)
+                        .unitPrice(parseFraction(100))
+                        .build()))
+            .build(),
+        somePurchase().toBuilder().credits(null).build());
+
+    assertDoesNotThrow(() -> subject.accept(someEvent()));
+
+    assertTrue(capturedHtmlBody().contains(">0<"));
+  }
+
+  @Test
+  void renders_a_zeroed_unit_price_when_the_invoice_line_carries_no_unit_price() {
+    givenInvoiceAndPurchase(
+        someInvoice().toBuilder()
+            .products(
+                List.of(
+                    InvoiceProduct.builder()
+                        .description("Pack 30 crédits")
+                        .quantity(30)
+                        .unitPrice(null)
+                        .build()))
+            .build(),
+        somePurchase());
+
+    assertDoesNotThrow(() -> subject.accept(someEvent()));
+
+    assertTrue(capturedHtmlBody().contains("0,00 €"));
+  }
+
+  @Test
   void falls_back_on_the_invoice_line_quantity_when_the_purchase_carries_no_credits() {
     givenInvoiceAndPurchase(someInvoice(), somePurchase().toBuilder().credits(null).build());
 

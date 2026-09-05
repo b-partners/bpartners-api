@@ -123,7 +123,7 @@ class CreditOperationInvoiceRequestedServiceTest {
   }
 
   @Test
-  void bills_the_purchased_credits_at_the_unit_price_applied() {
+  void bills_a_pack_purchase_as_a_single_line_priced_for_the_whole_pack() {
     givenDefaultUsersAndCustomer();
     givenPurchase(somePackPurchase().build());
 
@@ -132,9 +132,9 @@ class CreditOperationInvoiceRequestedServiceTest {
     var invoice = capturedInvoice();
     assertEquals(1, invoice.getProducts().size());
     var product = invoice.getProducts().getFirst();
-    assertEquals("Pack 30 crédits", product.getDescription());
-    assertEquals(30, product.getQuantity());
-    assertEquals(parseFraction(100), product.getUnitPrice());
+    assertEquals("Pack de 30 crédits d'analyse", product.getDescription());
+    assertEquals(1, product.getQuantity());
+    assertEquals(parseFraction(3000), product.getUnitPrice());
     assertEquals(parseFraction(2000), product.getVatPercent());
     assertEquals(invoice.getId(), product.getIdInvoice());
     assertEquals(parseFraction(3000), invoice.getTotalPriceWithoutDiscount());
@@ -162,9 +162,9 @@ class CreditOperationInvoiceRequestedServiceTest {
     var invoice = capturedInvoice();
     var product = invoice.getProducts().getFirst();
     assertEquals(1, invoice.getProducts().size());
-    assertEquals("Pack 100 crédits", product.getDescription());
-    assertEquals(200, product.getQuantity());
-    assertEquals(parseFraction(250), product.getUnitPrice());
+    assertEquals("Pack de 100 crédits d'analyse", product.getDescription());
+    assertEquals(2, product.getQuantity());
+    assertEquals(parseFraction(25_000), product.getUnitPrice());
     assertEquals(
         multiPackPurchase.getAmountInCentsWithoutVat().longValue(),
         invoice.getTotalPriceWithoutVat().getCentsRoundUp().longValue());
@@ -351,14 +351,15 @@ class CreditOperationInvoiceRequestedServiceTest {
   }
 
   @Test
-  void describes_a_pack_purchase_by_its_credits_amount_when_the_pack_has_no_description() {
+  void describes_a_pack_purchase_by_its_pack_credits_when_it_carries_no_pack_anymore() {
     givenDefaultUsersAndCustomer();
-    givenPurchase(somePackPurchase().type(PACK).creditPack(null).build());
+    givenPurchase(somePackPurchase().creditPack(null).build());
 
     subject.accept(somePurchaseEvent(30L));
 
     assertEquals(
-        "30 crédits d'analyse", capturedInvoice().getProducts().getFirst().getDescription());
+        "Pack de 30 crédits d'analyse",
+        capturedInvoice().getProducts().getFirst().getDescription());
   }
 
   private CreditOperationInvoiceCreated requestedMail() {
@@ -394,6 +395,7 @@ class CreditOperationInvoiceRequestedServiceTest {
     return CreditPurchase.builder()
         .id("purchase_id")
         .userId("buyer_id")
+        .type(PACK)
         .creditPack(CreditPack.builder().id("pack_id").description("Pack 30 crédits").build())
         .quantity(1)
         .credits(30L)

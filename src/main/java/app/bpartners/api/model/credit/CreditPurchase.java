@@ -101,22 +101,37 @@ public class CreditPurchase {
     return completionDatetime == null ? null : completionDatetime.truncatedTo(ChronoUnit.MILLIS);
   }
 
+  public boolean isCustomPurchase() {
+    return CUSTOM.equals(type);
+  }
+
+  public int packQuantity() {
+    return quantity == null || quantity < 1 ? 1 : quantity;
+  }
+
+  public Long creditsPerPack() {
+    if (creditPack != null && creditPack.getCredits() != null) {
+      return creditPack.getCredits();
+    }
+    return credits == null ? null : credits / packQuantity();
+  }
+
   public String paymentLabel() {
     var packDescription = packDescription();
     if (packDescription != null) {
       return packDescription;
     }
-    return CUSTOM.equals(type)
-        ? credits + CUSTOM_PAYMENT_LABEL_SUFFIX
-        : credits + " crédits d'analyse";
+    return isCustomPurchase() ? credits + CUSTOM_PAYMENT_LABEL_SUFFIX : packLabel(credits);
   }
 
   public String invoiceLineLabel() {
-    var packDescription = packDescription();
-    if (packDescription != null) {
-      return packDescription;
-    }
-    return CUSTOM.equals(type) ? CUSTOM_INVOICE_LINE_LABEL : credits + " crédits d'analyse";
+    return isCustomPurchase() ? CUSTOM_INVOICE_LINE_LABEL : packLabel(creditsPerPack());
+  }
+
+  private String packLabel(Long packCredits) {
+    return packCredits == null
+        ? "Pack de crédits d'analyse"
+        : "Pack de " + packCredits + " crédits d'analyse";
   }
 
   private String packDescription() {

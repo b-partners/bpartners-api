@@ -39,15 +39,37 @@ class CreditPurchaseTest {
   }
 
   @Test
-  void pack_purchase_invoice_line_is_labelled_like_its_payment() {
+  void pack_purchase_invoice_line_speaks_of_credits_rather_than_of_the_sold_pack() {
+    var actual =
+        CreditPurchase.builder()
+            .type(PACK)
+            .creditPack(
+                CreditPack.builder().description("10 analyses de toiture").credits(10L).build())
+            .quantity(2)
+            .credits(20L)
+            .build();
+
+    assertEquals("Pack de 10 crédits d'analyse", actual.invoiceLineLabel());
+  }
+
+  @Test
+  void pack_purchase_invoice_line_splits_the_bought_credits_when_the_pack_carries_none() {
     var actual =
         CreditPurchase.builder()
             .type(PACK)
             .creditPack(CreditPack.builder().description("10 analyses de toiture").build())
+            .quantity(2)
             .credits(20L)
             .build();
 
-    assertEquals("10 analyses de toiture", actual.invoiceLineLabel());
+    assertEquals("Pack de 10 crédits d'analyse", actual.invoiceLineLabel());
+  }
+
+  @Test
+  void pack_purchase_invoice_line_falls_back_on_a_creditless_label() {
+    var actual = CreditPurchase.builder().type(PACK).build();
+
+    assertEquals("Pack de crédits d'analyse", actual.invoiceLineLabel());
   }
 
   @Test
@@ -59,7 +81,7 @@ class CreditPurchaseTest {
             .credits(20L)
             .build();
 
-    assertEquals("20 crédits d'analyse", actual.paymentLabel());
+    assertEquals("Pack de 20 crédits d'analyse", actual.paymentLabel());
   }
 
   @Test

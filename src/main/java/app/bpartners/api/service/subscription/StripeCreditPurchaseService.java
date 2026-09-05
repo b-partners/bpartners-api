@@ -2,6 +2,7 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.PAYMENT;
+import static com.stripe.param.checkout.SessionCreateParams.PaymentIntentData.SetupFutureUsage.OFF_SESSION;
 import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
 
 import app.bpartners.api.model.credit.CreditPurchase;
@@ -85,6 +86,10 @@ public class StripeCreditPurchaseService {
                 .setMode(PAYMENT)
                 .setCustomer(stripeCustomerIdentifier)
                 .setCurrency(defaultCurrency())
+                .setPaymentIntentData(
+                    SessionCreateParams.PaymentIntentData.builder()
+                        .setSetupFutureUsage(OFF_SESSION)
+                        .build())
                 .addLineItem(lineItem)
                 .setClientReferenceId(creditPurchase.getId())
                 .putMetadata(CREDIT_PURCHASE_ID_METADATA_KEY, creditPurchase.getId())

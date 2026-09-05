@@ -2,6 +2,7 @@ package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.model.credit.CreditPurchaseCharge.NO_CHARGEABLE_CARD;
 import static app.bpartners.api.model.credit.CreditPurchaseType.CUSTOM;
+import static com.stripe.param.checkout.SessionCreateParams.PaymentIntentData.SetupFutureUsage.OFF_SESSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -181,5 +182,22 @@ class StripeCreditPurchaseServiceTest {
     assertEquals(
         "10 analyses de toiture",
         params.getLineItems().getFirst().getPriceData().getProductData().getName());
+  }
+
+  @Test
+  void checkout_session_saves_the_card_for_later_off_session_charges() {
+    var session = mock(Session.class);
+    when(session.getUrl()).thenReturn("https://pay.stripe.com/session");
+    var paramsCaptor = ArgumentCaptor.forClass(SessionCreateParams.class);
+
+    try (var mockedSession = mockStatic(Session.class)) {
+      mockedSession.when(() -> Session.create(any(SessionCreateParams.class))).thenReturn(session);
+
+      subject.checkoutSessionUrl(
+          "cus_1", purchase(), "https://birdia.fr/success", "https://birdia.fr/failure");
+
+      mockedSession.verify(() -> Session.create(paramsCaptor.capture()));
+    }
+    assertEquals(OFF_SESSION, paramsCaptor.getValue().getPaymentIntentData().getSetupFutureUsage());
   }
 }

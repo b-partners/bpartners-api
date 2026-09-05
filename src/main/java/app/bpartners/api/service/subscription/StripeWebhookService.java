@@ -4,6 +4,7 @@ import static app.bpartners.api.service.subscription.StripeCreditPurchaseService
 import static app.bpartners.api.service.subscription.StripeSetupService.isPaymentMethodReplacement;
 
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillRequested;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.BillingInterval;
@@ -98,6 +99,7 @@ public class StripeWebhookService {
     if (invoice == null) {
       return;
     }
+    requestDefaultPaymentMethodBackfill(invoice.getCustomer(), INVOICE_PAID, invoice.getId());
     var invoiceSubscriptionIdentifier = invoice.getSubscription();
     subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoiceSubscriptionIdentifier);
     if (isEssentialSubscriptionInvoice(invoice)) {
@@ -107,6 +109,34 @@ public class StripeWebhookService {
     subscriptionPaymentService
         .recordPaidStripeInvoice(invoice)
         .ifPresent(this::grantIncludedCreditsForPaidSubscription);
+  }
+
+  private void requestDefaultPaymentMethodBackfill(
+      String stripeCustomerIdentifier, String stripeEventType, String stripeObjectId) {
+    if (stripeCustomerIdentifier == null) {
+      log.info(
+          "Stripe event={} object(id={}) carries no customer, skipping default payment method"
+              + " backfill",
+          stripeEventType,
+          stripeObjectId);
+      return;
+    }
+    var optionalUser = userRepository.findByStripeCustomerId(stripeCustomerIdentifier);
+    if (optionalUser.isEmpty()) {
+      log.warn(
+          "No user found for Stripe customer id={}, skipping default payment method backfill",
+          stripeCustomerIdentifier);
+      return;
+    }
+    var userId = optionalUser.get().getId();
+    eventProducer.accept(
+        List.of(UserDefaultPaymentMethodBackfillRequested.builder().userId(userId).build()));
+    log.info(
+        "Requested default payment method backfill for User(id={}) from Stripe event={}"
+            + " object(id={})",
+        userId,
+        stripeEventType,
+        stripeObjectId);
   }
 
   private boolean isEssentialSubscriptionInvoice(Invoice invoice) {
@@ -163,6 +193,8 @@ public class StripeWebhookService {
     if (paymentIntent == null) {
       return;
     }
+    requestDefaultPaymentMethodBackfill(
+        paymentIntent.getCustomer(), event.getType(), paymentIntent.getId());
     completeCreditPurchase(paymentIntent.getMetadata(), event.getType());
   }
 
@@ -182,6 +214,7 @@ public class StripeWebhookService {
           session.getPaymentStatus());
       return;
     }
+    requestDefaultPaymentMethodBackfill(session.getCustomer(), event.getType(), session.getId());
     completeCreditPurchase(session.getMetadata(), event.getType());
   }
 

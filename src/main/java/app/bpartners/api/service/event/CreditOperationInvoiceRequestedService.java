@@ -175,7 +175,7 @@ public class CreditOperationInvoiceRequestedService
             .id(randomUUID().toString())
             .idInvoice(invoiceIdentifier)
             .createdAt(now())
-            .description(creditPurchase.paymentLabel())
+            .description(creditPurchase.invoiceLineLabel())
             .quantity((int) creditTransaction.creditsOrZero())
             .unitPrice(new Fraction(BigInteger.valueOf(unitPrice.inCentsWithoutVat())))
             .vatPercent(new Fraction(BigInteger.valueOf(unitPrice.vatPercent())))

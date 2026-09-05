@@ -1,5 +1,6 @@
 package app.bpartners.api.model.credit;
 
+import static app.bpartners.api.model.credit.CreditPurchaseType.CUSTOM;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import jakarta.persistence.Column;
@@ -28,6 +29,9 @@ import org.hibernate.annotations.JdbcTypeCode;
 @EqualsAndHashCode(callSuper = false)
 @ToString
 public class CreditPurchase {
+  private static final String CUSTOM_INVOICE_LINE_LABEL = "Crédits d'analyse à l'unité";
+  private static final String CUSTOM_PAYMENT_LABEL_SUFFIX = " crédits d'analyse à l'unité";
+
   @Id private String id;
 
   @Column(name = "user_id")
@@ -98,9 +102,25 @@ public class CreditPurchase {
   }
 
   public String paymentLabel() {
-    return creditPack == null || creditPack.getDescription() == null
-        ? credits + " crédits d'analyse"
-        : creditPack.getDescription();
+    var packDescription = packDescription();
+    if (packDescription != null) {
+      return packDescription;
+    }
+    return CUSTOM.equals(type)
+        ? credits + CUSTOM_PAYMENT_LABEL_SUFFIX
+        : credits + " crédits d'analyse";
+  }
+
+  public String invoiceLineLabel() {
+    var packDescription = packDescription();
+    if (packDescription != null) {
+      return packDescription;
+    }
+    return CUSTOM.equals(type) ? CUSTOM_INVOICE_LINE_LABEL : credits + " crédits d'analyse";
+  }
+
+  private String packDescription() {
+    return creditPack == null ? null : creditPack.getDescription();
   }
 
   public CreditUnitPrice unitPriceApplied() {

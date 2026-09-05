@@ -4,6 +4,8 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.model.credit.CreditPurchaseStatus.COMPLETED;
 import static app.bpartners.api.model.credit.CreditPurchaseStatus.PENDING;
+import static app.bpartners.api.model.credit.CreditPurchaseType.CUSTOM;
+import static app.bpartners.api.model.credit.CreditPurchaseType.PACK;
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDIT;
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.DEBIT;
 import static app.bpartners.api.model.credit.CreditTransactionType.PURCHASE;
@@ -338,9 +340,20 @@ class CreditOperationInvoiceRequestedServiceTest {
   }
 
   @Test
-  void describes_a_custom_purchase_by_its_credits_amount() {
+  void describes_a_custom_purchase_without_repeating_the_credits_amount() {
     givenDefaultUsersAndCustomer();
-    givenPurchase(somePackPurchase().creditPack(null).build());
+    givenPurchase(somePackPurchase().type(CUSTOM).creditPack(null).quantity(null).build());
+
+    subject.accept(somePurchaseEvent(30L));
+
+    assertEquals(
+        "Crédits d'analyse à l'unité", capturedInvoice().getProducts().getFirst().getDescription());
+  }
+
+  @Test
+  void describes_a_pack_purchase_by_its_credits_amount_when_the_pack_has_no_description() {
+    givenDefaultUsersAndCustomer();
+    givenPurchase(somePackPurchase().type(PACK).creditPack(null).build());
 
     subject.accept(somePurchaseEvent(30L));
 

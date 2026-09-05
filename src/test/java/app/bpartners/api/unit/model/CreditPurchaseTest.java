@@ -25,10 +25,29 @@ class CreditPurchaseTest {
   }
 
   @Test
-  void custom_purchase_is_labelled_after_the_bought_credits() {
+  void custom_purchase_payment_is_labelled_after_the_bought_credits() {
     var actual = CreditPurchase.builder().type(CUSTOM).credits(7L).build();
 
-    assertEquals("7 crédits d'analyse", actual.paymentLabel());
+    assertEquals("7 crédits d'analyse à l'unité", actual.paymentLabel());
+  }
+
+  @Test
+  void custom_purchase_invoice_line_does_not_repeat_the_bought_credits() {
+    var actual = CreditPurchase.builder().type(CUSTOM).credits(7L).build();
+
+    assertEquals("Crédits d'analyse à l'unité", actual.invoiceLineLabel());
+  }
+
+  @Test
+  void pack_purchase_invoice_line_is_labelled_like_its_payment() {
+    var actual =
+        CreditPurchase.builder()
+            .type(PACK)
+            .creditPack(CreditPack.builder().description("10 analyses de toiture").build())
+            .credits(20L)
+            .build();
+
+    assertEquals("10 analyses de toiture", actual.invoiceLineLabel());
   }
 
   @Test

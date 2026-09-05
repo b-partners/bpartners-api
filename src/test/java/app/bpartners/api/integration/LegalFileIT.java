@@ -23,6 +23,7 @@ import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
 import app.bpartners.api.service.subscription.StripeCustomerService;
+import app.bpartners.api.service.subscription.StripeDefaultPaymentMethodService;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripeSubscriptionService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -51,6 +52,7 @@ class LegalFileIT extends FacadeIT {
   @MockBean SubscriptionService subscriptionService;
   @MockBean StripePaymentMethodService stripePaymentMethodService;
   @MockBean StripeCustomerService stripeCustomerService;
+  @MockBean StripeDefaultPaymentMethodService stripeDefaultPaymentMethodService;
   @MockBean protected StripeSubscriptionService stripeSubscriptionServiceMock;
 
   public static final String NOT_EXISTING_LEGAL_FILE = "not_existing_legal_file";

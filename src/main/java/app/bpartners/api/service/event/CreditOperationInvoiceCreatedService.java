@@ -18,6 +18,7 @@ import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -96,8 +97,9 @@ public class CreditOperationInvoiceCreatedService
     context.setVariable("customerName", invoice.getCustomer().getName());
     context.setVariable("invoiceReference", invoice.getRef());
     context.setVariable("purchaseDate", purchaseDateOf(invoice));
-    context.setVariable("purchaseLabel", purchaseLabelOf(invoice, creditPurchase));
     context.setVariable("credits", creditsOf(invoice, creditPurchase));
+    context.setVariable(
+        "unitPriceWithoutVat", euroOf(unitPriceWithoutVatOf(invoice, creditPurchase)));
     context.setVariable("amountWithoutVat", euroOf(invoice.getTotalPriceWithoutVat()));
     context.setVariable("amountWithVat", euroOf(invoice.getTotalPriceWithVat()));
     return context;
@@ -112,20 +114,26 @@ public class CreditOperationInvoiceCreatedService
         : customDateFormatter.formatFrenchDate(invoice.getCreatedAt());
   }
 
-  private String purchaseLabelOf(Invoice invoice, CreditPurchase creditPurchase) {
-    if (creditPurchase != null) {
-      return creditPurchase.paymentLabel();
+  private Fraction unitPriceWithoutVatOf(Invoice invoice, CreditPurchase creditPurchase) {
+    if (creditPurchase != null && creditPurchase.getCreditUnitPriceInCentsWithoutVat() != null) {
+      return new Fraction(BigInteger.valueOf(creditPurchase.getCreditUnitPriceInCentsWithoutVat()));
     }
-    return invoice.getProducts().isEmpty()
-        ? "Crédits d'analyse"
-        : invoice.getProducts().getFirst().getDescription();
+    if (invoice.getProducts().isEmpty()) {
+      return new Fraction();
+    }
+    var unitPrice = invoice.getProducts().getFirst().getUnitPrice();
+    return unitPrice == null ? new Fraction() : unitPrice;
   }
 
   private long creditsOf(Invoice invoice, CreditPurchase creditPurchase) {
     if (creditPurchase != null && creditPurchase.getCredits() != null) {
       return creditPurchase.getCredits();
     }
-    return invoice.getProducts().isEmpty() ? 0L : invoice.getProducts().getFirst().getQuantity();
+    if (invoice.getProducts().isEmpty()) {
+      return 0L;
+    }
+    var quantity = invoice.getProducts().getFirst().getQuantity();
+    return quantity == null ? 0L : quantity;
   }
 
   private String euroOf(Fraction amount) {

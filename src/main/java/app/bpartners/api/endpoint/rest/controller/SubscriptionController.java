@@ -7,6 +7,7 @@ import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggere
 import app.bpartners.api.endpoint.event.model.SubscriptionProductStripeVatBackfillTriggered;
 import app.bpartners.api.endpoint.event.model.TransitionalSubscriptionCreditGrantTriggered;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
+import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillTriggered;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
@@ -78,6 +79,12 @@ public class SubscriptionController {
   public String triggerUserSubscriptionProductBackfill() {
     eventProducer.accept(List.of(new UserSubscriptionProductBackfillTriggered()));
     return "UserSubscriptionProduct backfill triggered successfully";
+  }
+
+  @PostMapping("/users/defaultPaymentMethodBackfill")
+  public String triggerUserDefaultPaymentMethodBackfill() {
+    eventProducer.accept(List.of(new UserDefaultPaymentMethodBackfillTriggered()));
+    return "User default payment method backfill triggered successfully";
   }
 
   // TODO: temporary endpoint to backfill the VAT rate onto existing Stripe products' metadata.

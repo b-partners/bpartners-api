@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillRequested;
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.credit.CreditPurchase;
@@ -345,6 +346,44 @@ class StripeWebhookServiceTest {
   }
 
   @Test
+  void invoice_paid_requests_the_default_payment_method_backfill_of_the_invoiced_user() {
+    var userId = randomUUID().toString();
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(userId).build()));
+    var invoice = mock(Invoice.class);
+    when(invoice.getCustomer()).thenReturn(CUSTOMER_ID);
+    lenient().when(invoice.getSubscription()).thenReturn("sub_123");
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer)
+        .accept(
+            List.of(UserDefaultPaymentMethodBackfillRequested.builder().userId(userId).build()));
+  }
+
+  @Test
+  void invoice_paid_of_an_unknown_customer_requests_no_default_payment_method_backfill() {
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID)).thenReturn(Optional.empty());
+    var invoice = mock(Invoice.class);
+    when(invoice.getCustomer()).thenReturn(CUSTOMER_ID);
+    lenient().when(invoice.getSubscription()).thenReturn("sub_123");
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
   void invoice_paid_without_deserializable_object_is_noop() throws Exception {
     var deserializer = mock(EventDataObjectDeserializer.class);
     when(deserializer.getObject()).thenReturn(Optional.empty());
@@ -520,6 +559,76 @@ class StripeWebhookServiceTest {
     }
 
     verify(creditPurchaseService, never()).complete(any());
+  }
+
+  @Test
+  void payment_intent_succeeded_requests_the_default_payment_method_backfill() {
+    var userId = randomUUID().toString();
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(userId).build()));
+    var paymentIntent = mock(PaymentIntent.class);
+    when(paymentIntent.getCustomer()).thenReturn(CUSTOMER_ID);
+    lenient().when(paymentIntent.getMetadata()).thenReturn(Map.of());
+    var event = givenStripeObjectEvent("payment_intent.succeeded", paymentIntent);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer)
+        .accept(
+            List.of(UserDefaultPaymentMethodBackfillRequested.builder().userId(userId).build()));
+  }
+
+  @Test
+  void paid_checkout_session_requests_the_default_payment_method_backfill() {
+    var userId = randomUUID().toString();
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(userId).build()));
+    var session = mock(Session.class);
+    when(session.getPaymentStatus()).thenReturn("paid");
+    when(session.getCustomer()).thenReturn(CUSTOMER_ID);
+    lenient().when(session.getMetadata()).thenReturn(Map.of());
+    var event = givenStripeObjectEvent("checkout.session.completed", session);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer)
+        .accept(
+            List.of(UserDefaultPaymentMethodBackfillRequested.builder().userId(userId).build()));
+  }
+
+  @Test
+  void unpaid_checkout_session_requests_no_default_payment_method_backfill() {
+    var session = mock(Session.class);
+    when(session.getPaymentStatus()).thenReturn("unpaid");
+    lenient().when(session.getCustomer()).thenReturn(CUSTOMER_ID);
+    var event = givenStripeObjectEvent("checkout.session.completed", session);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+    verify(userRepository, never()).findByStripeCustomerId(any());
+  }
+
+  @Test
+  void completed_setup_session_requests_no_default_payment_method_backfill() {
+    var session = setupSession(Map.of("payment_method_replacement", "true"), "seti_1");
+    var event = givenStripeObjectEvent("checkout.session.completed", session);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
   }
 
   @Test

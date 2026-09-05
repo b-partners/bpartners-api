@@ -1,5 +1,6 @@
 package app.bpartners.api.model.credit;
 
+import static app.bpartners.api.model.credit.CreditPurchaseType.CUSTOM;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import jakarta.persistence.Column;
@@ -28,6 +29,9 @@ import org.hibernate.annotations.JdbcTypeCode;
 @EqualsAndHashCode(callSuper = false)
 @ToString
 public class CreditPurchase {
+  private static final String CUSTOM_INVOICE_LINE_LABEL = "Crédits d'analyse à l'unité";
+  private static final String CUSTOM_PAYMENT_LABEL_SUFFIX = " crédits d'analyse à l'unité";
+
   @Id private String id;
 
   @Column(name = "user_id")
@@ -97,10 +101,41 @@ public class CreditPurchase {
     return completionDatetime == null ? null : completionDatetime.truncatedTo(ChronoUnit.MILLIS);
   }
 
+  public boolean isCustomPurchase() {
+    return CUSTOM.equals(type);
+  }
+
+  public int packQuantity() {
+    return quantity == null || quantity < 1 ? 1 : quantity;
+  }
+
+  public Long creditsPerPack() {
+    if (creditPack != null && creditPack.getCredits() != null) {
+      return creditPack.getCredits();
+    }
+    return credits == null ? null : credits / packQuantity();
+  }
+
   public String paymentLabel() {
-    return creditPack == null || creditPack.getDescription() == null
-        ? credits + " crédits d'analyse"
-        : creditPack.getDescription();
+    var packDescription = packDescription();
+    if (packDescription != null) {
+      return packDescription;
+    }
+    return isCustomPurchase() ? credits + CUSTOM_PAYMENT_LABEL_SUFFIX : packLabel(credits);
+  }
+
+  public String invoiceLineLabel() {
+    return isCustomPurchase() ? CUSTOM_INVOICE_LINE_LABEL : packLabel(creditsPerPack());
+  }
+
+  private String packLabel(Long packCredits) {
+    return packCredits == null
+        ? "Pack de crédits d'analyse"
+        : "Pack de " + packCredits + " crédits d'analyse";
+  }
+
+  private String packDescription() {
+    return creditPack == null ? null : creditPack.getDescription();
   }
 
   public CreditUnitPrice unitPriceApplied() {

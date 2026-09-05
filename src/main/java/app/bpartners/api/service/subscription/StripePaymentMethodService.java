@@ -172,7 +172,7 @@ public class StripePaymentMethodService {
         .toList();
   }
 
-  private @NotNull List<PaymentMethod> getPaymentMethodsAttachedToCustomer(
+  public @NotNull List<PaymentMethod> getPaymentMethodsAttachedToCustomer(
       String stripeCustomerIdentifier) throws StripeException {
     List<PaymentMethod> paymentMethods = new ArrayList<>();
     for (PaymentMethodListParams.Type type :

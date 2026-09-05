@@ -169,18 +169,32 @@ public class CreditOperationInvoiceRequestedService
       CreditPurchase creditPurchase,
       CreditTransaction creditTransaction) {
     var unitPrice = creditPurchase.unitPriceApplied();
+    var purchasedCredits = creditTransaction.creditsOrZero();
+    var lineQuantity = lineQuantity(creditPurchase, purchasedCredits);
+    var lineUnitPriceInCents =
+        lineQuantity == 0
+            ? unitPrice.inCentsWithoutVat()
+            : unitPrice.inCentsWithoutVat() * (purchasedCredits / lineQuantity);
     var invoiceProducts = new ArrayList<InvoiceProduct>();
     invoiceProducts.add(
         InvoiceProduct.builder()
             .id(randomUUID().toString())
             .idInvoice(invoiceIdentifier)
             .createdAt(now())
-            .description(creditPurchase.paymentLabel())
-            .quantity((int) creditTransaction.creditsOrZero())
-            .unitPrice(new Fraction(BigInteger.valueOf(unitPrice.inCentsWithoutVat())))
+            .description(creditPurchase.invoiceLineLabel())
+            .quantity(lineQuantity)
+            .unitPrice(new Fraction(BigInteger.valueOf(lineUnitPriceInCents)))
             .vatPercent(new Fraction(BigInteger.valueOf(unitPrice.vatPercent())))
             .status(ProductStatus.ENABLED)
             .build());
     return invoiceProducts;
+  }
+
+  private int lineQuantity(CreditPurchase creditPurchase, long purchasedCredits) {
+    if (creditPurchase.isCustomPurchase()) {
+      return (int) purchasedCredits;
+    }
+    var packQuantity = creditPurchase.packQuantity();
+    return purchasedCredits % packQuantity == 0 ? packQuantity : 1;
   }
 }

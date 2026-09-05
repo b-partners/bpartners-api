@@ -12,6 +12,7 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.Buildi
 import app.bpartners.api.service.payment.PaymentScheduleService;
 import app.bpartners.api.service.subscription.StripeCreditPurchaseService;
 import app.bpartners.api.service.subscription.StripeCustomerService;
+import app.bpartners.api.service.subscription.StripeDefaultPaymentMethodService;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripeSubscriptionService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -33,6 +34,7 @@ public class MockedThirdParties extends FacadeIT {
   @MockBean protected SubscriptionService subscriptionService;
   @MockBean protected StripePaymentMethodService stripePaymentMethodServiceMock;
   @MockBean protected StripeCustomerService stripeCustomerServiceMock;
+  @MockBean protected StripeDefaultPaymentMethodService stripeDefaultPaymentMethodServiceMock;
   @MockBean protected StripeSubscriptionService stripeSubscriptionServiceMock;
   @MockBean protected StripeCreditPurchaseService stripeCreditPurchaseServiceMock;
   @MockBean protected EventProducer eventProducer;

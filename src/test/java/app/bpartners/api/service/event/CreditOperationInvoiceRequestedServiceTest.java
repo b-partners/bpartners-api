@@ -4,6 +4,8 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.model.credit.CreditPurchaseStatus.COMPLETED;
 import static app.bpartners.api.model.credit.CreditPurchaseStatus.PENDING;
+import static app.bpartners.api.model.credit.CreditPurchaseType.CUSTOM;
+import static app.bpartners.api.model.credit.CreditPurchaseType.PACK;
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDIT;
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.DEBIT;
 import static app.bpartners.api.model.credit.CreditTransactionType.PURCHASE;
@@ -121,7 +123,7 @@ class CreditOperationInvoiceRequestedServiceTest {
   }
 
   @Test
-  void bills_the_purchased_credits_at_the_unit_price_applied() {
+  void bills_a_pack_purchase_as_a_single_line_priced_for_the_whole_pack() {
     givenDefaultUsersAndCustomer();
     givenPurchase(somePackPurchase().build());
 
@@ -130,9 +132,9 @@ class CreditOperationInvoiceRequestedServiceTest {
     var invoice = capturedInvoice();
     assertEquals(1, invoice.getProducts().size());
     var product = invoice.getProducts().getFirst();
-    assertEquals("Pack 30 crédits", product.getDescription());
-    assertEquals(30, product.getQuantity());
-    assertEquals(parseFraction(100), product.getUnitPrice());
+    assertEquals("Pack de 30 crédits d'analyse", product.getDescription());
+    assertEquals(1, product.getQuantity());
+    assertEquals(parseFraction(3000), product.getUnitPrice());
     assertEquals(parseFraction(2000), product.getVatPercent());
     assertEquals(invoice.getId(), product.getIdInvoice());
     assertEquals(parseFraction(3000), invoice.getTotalPriceWithoutDiscount());
@@ -160,9 +162,9 @@ class CreditOperationInvoiceRequestedServiceTest {
     var invoice = capturedInvoice();
     var product = invoice.getProducts().getFirst();
     assertEquals(1, invoice.getProducts().size());
-    assertEquals("Pack 100 crédits", product.getDescription());
-    assertEquals(200, product.getQuantity());
-    assertEquals(parseFraction(250), product.getUnitPrice());
+    assertEquals("Pack de 100 crédits d'analyse", product.getDescription());
+    assertEquals(2, product.getQuantity());
+    assertEquals(parseFraction(25_000), product.getUnitPrice());
     assertEquals(
         multiPackPurchase.getAmountInCentsWithoutVat().longValue(),
         invoice.getTotalPriceWithoutVat().getCentsRoundUp().longValue());
@@ -338,14 +340,26 @@ class CreditOperationInvoiceRequestedServiceTest {
   }
 
   @Test
-  void describes_a_custom_purchase_by_its_credits_amount() {
+  void describes_a_custom_purchase_without_repeating_the_credits_amount() {
+    givenDefaultUsersAndCustomer();
+    givenPurchase(somePackPurchase().type(CUSTOM).creditPack(null).quantity(null).build());
+
+    subject.accept(somePurchaseEvent(30L));
+
+    assertEquals(
+        "Crédits d'analyse à l'unité", capturedInvoice().getProducts().getFirst().getDescription());
+  }
+
+  @Test
+  void describes_a_pack_purchase_by_its_pack_credits_when_it_carries_no_pack_anymore() {
     givenDefaultUsersAndCustomer();
     givenPurchase(somePackPurchase().creditPack(null).build());
 
     subject.accept(somePurchaseEvent(30L));
 
     assertEquals(
-        "30 crédits d'analyse", capturedInvoice().getProducts().getFirst().getDescription());
+        "Pack de 30 crédits d'analyse",
+        capturedInvoice().getProducts().getFirst().getDescription());
   }
 
   private CreditOperationInvoiceCreated requestedMail() {
@@ -381,6 +395,7 @@ class CreditOperationInvoiceRequestedServiceTest {
     return CreditPurchase.builder()
         .id("purchase_id")
         .userId("buyer_id")
+        .type(PACK)
         .creditPack(CreditPack.builder().id("pack_id").description("Pack 30 crédits").build())
         .quantity(1)
         .credits(30L)

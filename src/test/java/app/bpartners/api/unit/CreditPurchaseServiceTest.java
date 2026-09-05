@@ -415,7 +415,7 @@ class CreditPurchaseServiceTest {
     assertEquals(PURCHASE, appended.getType());
     assertEquals(CREDIT, appended.getMovementType());
     assertEquals(7L, appended.getCredits());
-    assertEquals("7 crédits d'analyse", appended.getLabel());
+    assertEquals("7 crédits d'analyse à l'unité", appended.getLabel());
     assertEquals("purchase_1", appended.getCreditPurchaseId());
     assertNull(appended.getExpirationDatetime());
   }

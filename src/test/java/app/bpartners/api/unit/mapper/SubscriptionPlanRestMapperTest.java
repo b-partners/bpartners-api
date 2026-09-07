@@ -8,7 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.model.SubscriptionBillingType;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureStyle;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.SubscriptionProductFeatureItem;
+import app.bpartners.api.model.subscription.SubscriptionProductFeatureSection;
+import app.bpartners.api.model.subscription.SubscriptionProductFeatureStyle;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -170,5 +174,93 @@ class SubscriptionPlanRestMapperTest {
 
     assertNull(subject.toRest(domain).getDisplayPosition());
     assertNull(subject.toRestDescription(domain).getDisplayPosition());
+  }
+
+  @Test
+  void to_rest_maps_feature_sections_with_titles_styles_and_inline_bold() {
+    var domain = subscriptionProduct(COMMITMENT).toBuilder().featureSections(sections()).build();
+
+    var actual = subject.toRest(domain);
+
+    var restSections = actual.getFeatureSections();
+    assertEquals(2, restSections.size());
+    assertEquals("Métrés inclus", restSections.get(0).getTitle());
+    assertEquals(
+        "Métrés 2D — surface, pente, périmètre", restSections.get(0).getItems().get(0).getText());
+    assertEquals(
+        SubscriptionPlanFeatureStyle.HIGHLIGHTED, restSections.get(0).getItems().get(0).getStyle());
+    assertNull(restSections.get(1).getTitle());
+    assertEquals(
+        "**Communauté BIRDIA** — 1 chantier proposé / mois",
+        restSections.get(1).getItems().get(0).getText());
+    assertEquals(
+        SubscriptionPlanFeatureStyle.EXCLUDED, restSections.get(1).getItems().get(1).getStyle());
+  }
+
+  @Test
+  void features_are_derived_from_sections_with_bold_stripped_and_inherited_merged() {
+    var parent =
+        SubscriptionProduct.builder()
+            .name("Essentiel")
+            .featureSections(
+                List.of(
+                    SubscriptionProductFeatureSection.builder()
+                        .items(
+                            List.of(
+                                SubscriptionProductFeatureItem.builder()
+                                    .text("Support 7j/7 par email")
+                                    .style(SubscriptionProductFeatureStyle.NORMAL)
+                                    .build()))
+                        .build()))
+            .build();
+    var domain =
+        subscriptionProduct(COMMITMENT).toBuilder()
+            .featureSections(sections())
+            .includedSubscriptionProductFeatures(List.of(parent))
+            .build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals("Essentiel", actual.getInheritedFromPlanName());
+    assertEquals(
+        List.of(
+            "Métrés 2D — surface, pente, périmètre",
+            "Communauté BIRDIA — 1 chantier proposé / mois",
+            "Marque blanche / co-branding",
+            "Support 7j/7 par email"),
+        actual.getFeatures());
+  }
+
+  @Test
+  void to_rest_maps_null_inherited_from_plan_name_by_default() {
+    var domain = subscriptionProduct(COMMITMENT);
+
+    assertNull(subject.toRest(domain).getInheritedFromPlanName());
+    assertNull(subject.toRestDescription(domain).getInheritedFromPlanName());
+  }
+
+  private static List<SubscriptionProductFeatureSection> sections() {
+    return List.of(
+        SubscriptionProductFeatureSection.builder()
+            .title("Métrés inclus")
+            .items(
+                List.of(
+                    SubscriptionProductFeatureItem.builder()
+                        .text("Métrés 2D — surface, pente, périmètre")
+                        .style(SubscriptionProductFeatureStyle.HIGHLIGHTED)
+                        .build()))
+            .build(),
+        SubscriptionProductFeatureSection.builder()
+            .items(
+                List.of(
+                    SubscriptionProductFeatureItem.builder()
+                        .text("**Communauté BIRDIA** — 1 chantier proposé / mois")
+                        .style(SubscriptionProductFeatureStyle.NORMAL)
+                        .build(),
+                    SubscriptionProductFeatureItem.builder()
+                        .text("Marque blanche / co-branding")
+                        .style(SubscriptionProductFeatureStyle.EXCLUDED)
+                        .build()))
+            .build());
   }
 }

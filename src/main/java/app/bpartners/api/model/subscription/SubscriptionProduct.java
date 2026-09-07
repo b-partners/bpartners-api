@@ -43,6 +43,10 @@ public class SubscriptionProduct {
   @JdbcTypeCode(JSON)
   private List<String> features;
 
+  @JdbcTypeCode(JSON)
+  @Column(name = "feature_sections")
+  private List<SubscriptionProductFeatureSection> featureSections;
+
   private String imageUrl;
 
   @JdbcTypeCode(NAMED_ENUM)
@@ -114,14 +118,40 @@ public class SubscriptionProduct {
 
   public List<String> getAllFeatures() {
     var allFeatures = new LinkedHashSet<String>();
-    if (features != null) {
-      allFeatures.addAll(features);
-    }
+    allFeatures.addAll(ownPlainTextFeatures());
     if (includedSubscriptionProductFeatures != null) {
       includedSubscriptionProductFeatures.forEach(
           included -> allFeatures.addAll(included.getAllFeatures()));
     }
     return new ArrayList<>(allFeatures);
+  }
+
+  public String getInheritedFromPlanName() {
+    if (includedSubscriptionProductFeatures == null
+        || includedSubscriptionProductFeatures.isEmpty()) {
+      return null;
+    }
+    return includedSubscriptionProductFeatures.get(0).getName();
+  }
+
+  private List<String> ownPlainTextFeatures() {
+    if (featureSections == null || featureSections.isEmpty()) {
+      return features == null ? List.of() : features;
+    }
+    var texts = new ArrayList<String>();
+    for (var section : featureSections) {
+      if (section.getItems() == null) {
+        continue;
+      }
+      for (var item : section.getItems()) {
+        texts.add(stripEmphasis(item.getText()));
+      }
+    }
+    return texts;
+  }
+
+  private static String stripEmphasis(String text) {
+    return text == null ? null : text.replace("**", "");
   }
 
   public Long getPriceInCentsWithVat() {

@@ -72,6 +72,7 @@ class SubscriptionControllerTest {
                 .name("Essentiel")
                 .description("desc")
                 .features(List.of("f1"))
+                .inheritedFromPlanName(null)
                 .billingType(SubscriptionBillingType.COMMITMENT)
                 .priceInCentsWithVat(5880L)
                 .priceInCentsWithoutVat(4900L)

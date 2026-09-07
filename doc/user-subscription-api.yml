@@ -518,6 +518,35 @@ components:
       enum:
         - COMMITMENT
         - USAGE_BASED
+    SubscriptionPlanFeatureStyle:
+      type: string
+      description: |
+        NORMAL is a plain bullet. HIGHLIGHTED is a whole-line emphasized bullet (the "métrés"
+        core-capability rows). EXCLUDED is a not-included bullet, rendered with a cross instead
+        of a check.
+      enum:
+        - NORMAL
+        - HIGHLIGHTED
+        - EXCLUDED
+    SubscriptionPlanFeatureItem:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Markdown-lite bullet text; `**bold**` marks an inline emphasis run.
+        style:
+          $ref: '#/components/schemas/SubscriptionPlanFeatureStyle'
+    SubscriptionPlanFeatureSection:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+          description: Section header (e.g. "Métrés inclus"), or null for an untitled block.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlanFeatureItem'
     SubscriptionPlanDescription:
       type: object
       properties:
@@ -529,8 +558,29 @@ components:
           type: string
         features:
           type: array
+          deprecated: true
+          description: |
+            Flat, plain-text feature bullets, kept for backward compatibility. Prefer
+            `featureSections`, which carries the section grouping and inline emphasis that lets the
+            consumer reproduce the rendering exactly. Derived from `featureSections` (Markdown
+            emphasis stripped) and still merged with inherited plans, so old consumers are unaffected.
           items:
             type: string
+        featureSections:
+          type: array
+          description: |
+            This plan's own feature blocks, in display order. Each block is an optionally titled
+            section of items. Item text is Markdown-lite: `**bold**` marks an inline emphasis run.
+            Inherited plans are not merged in here; use `inheritedFromPlanName` to render the
+            "+ Tout X" badge and let the consumer fetch the parent plan's own sections.
+          items:
+            $ref: '#/components/schemas/SubscriptionPlanFeatureSection'
+        inheritedFromPlanName:
+          type: string
+          nullable: true
+          description: |
+            Name of the plan whose features this plan includes on top of its own, or null when it
+            inherits nothing. Drives the "+ Tout {inheritedFromPlanName}" badge.
         billingType:
           $ref: '#/components/schemas/SubscriptionBillingType'
         priceInCentsWithVat:

@@ -3,7 +3,12 @@ package app.bpartners.api.endpoint.rest.mapper;
 import app.bpartners.api.endpoint.rest.model.SubscriptionBillingType;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanDescription;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureItem;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureSection;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureStyle;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.SubscriptionProductFeatureSection;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,6 +20,8 @@ public class SubscriptionPlanRestMapper {
         .name(domain.getName())
         .description(domain.getDescription())
         .features(domain.getAllFeatures())
+        .featureSections(featureSectionsToRest(domain.getFeatureSections()))
+        .inheritedFromPlanName(domain.getInheritedFromPlanName())
         .billingType(billingTypeToRest(domain.getBillingType()))
         .priceInCentsWithVat(domain.getPriceInCentsWithVat())
         .priceInCentsWithoutVat(domain.getPriceInCentsWithoutVat())
@@ -38,6 +45,8 @@ public class SubscriptionPlanRestMapper {
         .name(domain.getName())
         .description(domain.getDescription())
         .features(domain.getAllFeatures())
+        .featureSections(featureSectionsToRest(domain.getFeatureSections()))
+        .inheritedFromPlanName(domain.getInheritedFromPlanName())
         .billingType(billingTypeToRest(domain.getBillingType()))
         .priceInCentsWithVat(domain.getPriceInCentsWithVat())
         .priceInCentsWithoutVat(domain.getPriceInCentsWithoutVat())
@@ -45,6 +54,32 @@ public class SubscriptionPlanRestMapper {
         .isDeprecated(domain.isDeprecated())
         .displayPosition(domain.getDisplayPosition())
         .vatPercent(domain.getVatPercent());
+  }
+
+  private List<SubscriptionPlanFeatureSection> featureSectionsToRest(
+      List<SubscriptionProductFeatureSection> domainSections) {
+    if (domainSections == null) {
+      return null;
+    }
+    return domainSections.stream().map(this::featureSectionToRest).toList();
+  }
+
+  private SubscriptionPlanFeatureSection featureSectionToRest(
+      SubscriptionProductFeatureSection domainSection) {
+    var items =
+        domainSection.getItems() == null
+            ? null
+            : domainSection.getItems().stream()
+                .map(
+                    item ->
+                        new SubscriptionPlanFeatureItem()
+                            .text(item.getText())
+                            .style(
+                                item.getStyle() == null
+                                    ? null
+                                    : SubscriptionPlanFeatureStyle.valueOf(item.getStyle().name())))
+                .toList();
+    return new SubscriptionPlanFeatureSection().title(domainSection.getTitle()).items(items);
   }
 
   private SubscriptionBillingType billingTypeToRest(

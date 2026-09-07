@@ -147,9 +147,25 @@ public class SubscriptionPaymentService {
   private BilledPeriod billedPeriodOf(Invoice stripeInvoice) {
     var subscriptionLinePeriod = subscriptionLinePeriodOf(stripeInvoice);
     if (subscriptionLinePeriod != null) {
-      return new BilledPeriod(subscriptionLinePeriod.getStart(), subscriptionLinePeriod.getEnd());
+      return inclusiveBilledPeriod(
+          subscriptionLinePeriod.getStart(), subscriptionLinePeriod.getEnd());
     }
-    return new BilledPeriod(stripeInvoice.getPeriodStart(), stripeInvoice.getPeriodEnd());
+    return inclusiveBilledPeriod(stripeInvoice.getPeriodStart(), stripeInvoice.getPeriodEnd());
+  }
+
+  private BilledPeriod inclusiveBilledPeriod(Long start, Long stripeExclusiveEnd) {
+    return new BilledPeriod(start, lastServedSecondOf(start, stripeExclusiveEnd));
+  }
+
+  private Long lastServedSecondOf(Long start, Long stripeExclusiveEnd) {
+    if (stripeExclusiveEnd == null) {
+      return null;
+    }
+    var lastServedSecond = stripeExclusiveEnd - 1L;
+    if (start != null && lastServedSecond < start) {
+      return stripeExclusiveEnd;
+    }
+    return lastServedSecond;
   }
 
   private InvoiceLineItem.Period subscriptionLinePeriodOf(Invoice stripeInvoice) {

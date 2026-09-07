@@ -84,7 +84,8 @@ class SubscriptionPaymentServiceTest {
         "Abonnement Essentiel du 28/05/2026 au 27/06/2026", subscriptionPayment.paymentLabel());
     assertEquals("Essentiel", subscriptionPayment.planName());
     assertEquals(Instant.ofEpochSecond(PERIOD_START), subscriptionPayment.getPeriodStartDatetime());
-    assertEquals(Instant.ofEpochSecond(PERIOD_END), subscriptionPayment.getPeriodEndDatetime());
+    assertEquals(
+        Instant.ofEpochSecond(PERIOD_END - 1), subscriptionPayment.getPeriodEndDatetime());
     assertEquals(Instant.ofEpochSecond(PAID_AT), subscriptionPayment.getPaymentDatetime());
     assertNull(subscriptionPayment.getInvoiceId());
     assertEquals(subscriptionPayment.getId(), capturedRequest().getSubscriptionPaymentId());
@@ -170,7 +171,8 @@ class SubscriptionPaymentServiceTest {
 
     var subscriptionPayment = capturedSubscriptionPayment();
     assertEquals(Instant.ofEpochSecond(PERIOD_START), subscriptionPayment.getPeriodStartDatetime());
-    assertEquals(Instant.ofEpochSecond(PERIOD_END), subscriptionPayment.getPeriodEndDatetime());
+    assertEquals(
+        Instant.ofEpochSecond(PERIOD_END - 1), subscriptionPayment.getPeriodEndDatetime());
   }
 
   @Test
@@ -189,8 +191,31 @@ class SubscriptionPaymentServiceTest {
         Instant.ofEpochSecond(INVOICE_LEVEL_PERIOD_START),
         subscriptionPayment.getPeriodStartDatetime());
     assertEquals(
-        Instant.ofEpochSecond(INVOICE_LEVEL_PERIOD_END),
+        Instant.ofEpochSecond(INVOICE_LEVEL_PERIOD_END - 1),
         subscriptionPayment.getPeriodEndDatetime());
+  }
+
+  @Test
+  void reports_the_last_served_day_when_stripe_ends_the_period_on_the_next_first_of_month() {
+    givenSubscribedUser(essentialPlan());
+    givenNotYetRecorded();
+    var septemberFirst = Instant.parse("2026-08-31T22:00:00Z").getEpochSecond();
+    var octoberFirst = Instant.parse("2026-09-30T22:00:00Z").getEpochSecond();
+    var stripeInvoice = someStripeInvoice(4_900L, null, null);
+    when(stripeInvoice.getLines().getData().getFirst().getPeriod().getStart())
+        .thenReturn(septemberFirst);
+    when(stripeInvoice.getLines().getData().getFirst().getPeriod().getEnd())
+        .thenReturn(octoberFirst);
+
+    subject.recordPaidStripeInvoice(stripeInvoice);
+
+    var subscriptionPayment = capturedSubscriptionPayment();
+    assertEquals(
+        "Abonnement Essentiel du 01/09/2026 au 30/09/2026", subscriptionPayment.paymentLabel());
+    assertEquals(
+        Instant.ofEpochSecond(septemberFirst), subscriptionPayment.getPeriodStartDatetime());
+    assertEquals(
+        Instant.ofEpochSecond(octoberFirst - 1), subscriptionPayment.getPeriodEndDatetime());
   }
 
   @Test

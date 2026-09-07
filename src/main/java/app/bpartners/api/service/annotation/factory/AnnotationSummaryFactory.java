@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
@@ -146,7 +147,11 @@ public class AnnotationSummaryFactory {
             key ->
                 new AnnotationMeasurementSummary(
                     key.substring(0, 1).toUpperCase() + key.substring(1).replace("-", " "),
-                    String.format("%.2f m (%s)", edgeTypesSize.get(key), edgeTypesCount.get(key))))
+                    String.format(
+                        Locale.ROOT,
+                        "%.2f m (%s)",
+                        edgeTypesSize.get(key),
+                        edgeTypesCount.get(key))))
         .toList();
   }
 

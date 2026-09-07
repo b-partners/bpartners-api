@@ -394,7 +394,9 @@ public class SubscriptionService {
                   .meteredProductId(existing.getMeteredProductId())
                   .mostChosen(existing.isMostChosen())
                   .deprecated(existing.isDeprecated())
-                  .displayPosition(existing.getDisplayPosition());
+                  .displayPosition(existing.getDisplayPosition())
+                  .includedSubscriptionProductFeatures(
+                      existing.getIncludedSubscriptionProductFeatures());
               if (createdStripeProduct.getMarketingFeatures() == null
                   || createdStripeProduct.getMarketingFeatures().isEmpty()) {
                 subscriptionProductToPersistBuilder.features(existing.getFeatures());

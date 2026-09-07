@@ -840,8 +840,7 @@ class UserRestMapperTest {
 
     var actual = subject.toRest(domain);
 
-    assertEquals(
-        SubscriptionRenewalStatus.TERMINATED, actual.getSubscription().getRenewalStatus());
+    assertEquals(SubscriptionRenewalStatus.TERMINATED, actual.getSubscription().getRenewalStatus());
     assertNull(actual.getNextSubscription());
     verify(subscriptionServiceMock, never()).getScheduledSubscription(any());
   }

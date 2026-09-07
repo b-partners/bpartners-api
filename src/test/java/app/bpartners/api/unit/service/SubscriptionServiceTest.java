@@ -1454,8 +1454,7 @@ class SubscriptionServiceTest {
         Instant.parse("2026-09-04T21:00:00Z").getEpochSecond());
     terminatedStripeSubscription.setCurrentPeriodEnd(
         Instant.parse("2026-10-04T21:00:00Z").getEpochSecond());
-    terminatedStripeSubscription.setEndedAt(
-        Instant.parse("2026-09-04T22:00:41Z").getEpochSecond());
+    terminatedStripeSubscription.setEndedAt(Instant.parse("2026-09-04T22:00:41Z").getEpochSecond());
     terminatedStripeSubscription.setCanceledAt(
         Instant.parse("2026-09-04T22:00:41Z").getEpochSecond());
     when(stripeSubscriptionServiceMock.getStripeSubscriptionsFromStripeCustomerId("customer_id"))

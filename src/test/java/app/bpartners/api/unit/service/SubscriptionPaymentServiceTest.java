@@ -84,8 +84,7 @@ class SubscriptionPaymentServiceTest {
         "Abonnement Essentiel du 28/05/2026 au 27/06/2026", subscriptionPayment.paymentLabel());
     assertEquals("Essentiel", subscriptionPayment.planName());
     assertEquals(Instant.ofEpochSecond(PERIOD_START), subscriptionPayment.getPeriodStartDatetime());
-    assertEquals(
-        Instant.ofEpochSecond(PERIOD_END - 1), subscriptionPayment.getPeriodEndDatetime());
+    assertEquals(Instant.ofEpochSecond(PERIOD_END - 1), subscriptionPayment.getPeriodEndDatetime());
     assertEquals(Instant.ofEpochSecond(PAID_AT), subscriptionPayment.getPaymentDatetime());
     assertNull(subscriptionPayment.getInvoiceId());
     assertEquals(subscriptionPayment.getId(), capturedRequest().getSubscriptionPaymentId());
@@ -171,8 +170,7 @@ class SubscriptionPaymentServiceTest {
 
     var subscriptionPayment = capturedSubscriptionPayment();
     assertEquals(Instant.ofEpochSecond(PERIOD_START), subscriptionPayment.getPeriodStartDatetime());
-    assertEquals(
-        Instant.ofEpochSecond(PERIOD_END - 1), subscriptionPayment.getPeriodEndDatetime());
+    assertEquals(Instant.ofEpochSecond(PERIOD_END - 1), subscriptionPayment.getPeriodEndDatetime());
   }
 
   @Test

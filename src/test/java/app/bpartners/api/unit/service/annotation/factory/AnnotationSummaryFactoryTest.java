@@ -70,7 +70,8 @@ class AnnotationSummaryFactoryTest {
                         .value("[\"egout\", \"aretier\", \"faitage\"]")));
 
     var annotation =
-        new ExportAreaPictureAnnotation()._3d(new ExportAreaPictureAnnotation3D().pans(List.of(pan1, pan2)));
+        new ExportAreaPictureAnnotation()
+            ._3d(new ExportAreaPictureAnnotation3D().pans(List.of(pan1, pan2)));
 
     var generator = mock(ExportAreaPictureAnnotationImage3DGenerator.class);
     var dummyImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
@@ -87,8 +88,7 @@ class AnnotationSummaryFactoryTest {
     assertThat(faitage).isPresent();
     assertThat(faitage.get().value()).isEqualTo("7.07 m (1)");
 
-    var egout =
-        summary.measurements().stream().filter(m -> m.label().equals("Egout")).findFirst();
+    var egout = summary.measurements().stream().filter(m -> m.label().equals("Egout")).findFirst();
     assertThat(egout).isPresent();
     assertThat(egout.get().value()).isEqualTo("20.00 m (2)");
 

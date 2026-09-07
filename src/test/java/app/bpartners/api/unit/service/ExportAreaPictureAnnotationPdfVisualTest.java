@@ -415,6 +415,20 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     savePdfFile(pdfBytes, "uneven");
   }
 
+  @Test
+  void generate_shared_ridge_pans_pdf() throws IOException {
+    // Two pans sharing a ridge (faitage): check "Résumé des mesures" counts it once, not twice.
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation =
+        sharedRidgeExportAreaPictureAnnotation();
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "shared-ridge");
+  }
+
   private static void savePdfFile(byte[] pdfBytes, String suffix) throws IOException {
     String now = now().format(DateTimeFormatter.ISO_DATE_TIME).replace(":", "-");
     Files.write(
@@ -493,6 +507,86 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 exportInstance("Group C", "Type 3", "Moyen", "2m", 200, 100, 300, 200),
                 exportInstance("Group C", "Type 3", "Moyen", "2m", 300, 100, 400, 200),
                 exportInstance("Group D", "Type 4", "N/A", "0m", 0, 200, 100, 300)));
+  }
+
+  private ExportAreaPictureAnnotation sharedRidgeExportAreaPictureAnnotation() {
+    // Pan1 and Pan2 are two triangular roof faces sharing a ridge between (2000,0) and
+    // (1000,1500). Pan2 stores that same edge in reverse point order, as each pan is
+    // triangulated independently.
+    var pan1 =
+        new ExportAreaPictureAnnotation3DPan()
+            .name("P1")
+            .polygon(
+                new Polygon()
+                    .points(
+                        List.of(
+                            new Point().x(0d).y(0d),
+                            new Point().x(2000d).y(0d),
+                            new Point().x(1000d).y(1500d),
+                            new Point().x(0d).y(0d))))
+            .measurements(
+                List.of(
+                    new ExportAreaPictureAnnotationMeasurement()
+                        .value(20.0)
+                        .unit("m")
+                        .isInvisible(false),
+                    new ExportAreaPictureAnnotationMeasurement()
+                        .value(18.03)
+                        .unit("m")
+                        .isInvisible(false),
+                    new ExportAreaPictureAnnotationMeasurement()
+                        .value(18.03)
+                        .unit("m")
+                        .isInvisible(false)))
+            .infos(
+                List.of(
+                    new ExportAreaPictureAnnotationInstanceInfo()
+                        .label("edgeTypes")
+                        .value("[\"egout\", \"faitage\", \"aretier\"]"),
+                    new ExportAreaPictureAnnotationInstanceInfo().label("Pente").value("21°"),
+                    new ExportAreaPictureAnnotationInstanceInfo()
+                        .label("Surface rampant")
+                        .value("15m²")));
+
+    var pan2 =
+        new ExportAreaPictureAnnotation3DPan()
+            .name("P2")
+            .polygon(
+                new Polygon()
+                    .points(
+                        List.of(
+                            new Point().x(2000d).y(0d),
+                            new Point().x(4000d).y(0d),
+                            new Point().x(1000d).y(1500d),
+                            new Point().x(2000d).y(0d))))
+            .measurements(
+                List.of(
+                    new ExportAreaPictureAnnotationMeasurement()
+                        .value(20.0)
+                        .unit("m")
+                        .isInvisible(false),
+                    new ExportAreaPictureAnnotationMeasurement()
+                        .value(22.20)
+                        .unit("m")
+                        .isInvisible(false),
+                    new ExportAreaPictureAnnotationMeasurement()
+                        .value(18.03)
+                        .unit("m")
+                        .isInvisible(false)))
+            .infos(
+                List.of(
+                    new ExportAreaPictureAnnotationInstanceInfo()
+                        .label("edgeTypes")
+                        .value("[\"egout\", \"aretier\", \"faitage\"]"),
+                    new ExportAreaPictureAnnotationInstanceInfo().label("Pente").value("21°"),
+                    new ExportAreaPictureAnnotationInstanceInfo()
+                        .label("Surface rampant")
+                        .value("14m²")));
+
+    return new ExportAreaPictureAnnotation()
+        .imageUrl("https://dummy.com")
+        .address("Shared Ridge Test")
+        ._3d(new ExportAreaPictureAnnotation3D().pans(List.of(pan1, pan2)));
   }
 
   private ExportAreaPictureAnnotation fullExportAreaPictureAnnotation() {

@@ -5,6 +5,7 @@ import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedI
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.endpoint.rest.model.Point;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.summary.AnnotationMeasurementSummary;
 import app.bpartners.api.service.annotation.model.summary.AnnotationPitch;
@@ -13,6 +14,7 @@ import app.bpartners.api.service.annotation.model.summary.AnnotationSummary;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,6 +115,9 @@ public class AnnotationSummaryFactory {
       ExportAreaPictureAnnotation annotation) {
     var edgeTypesCount = new HashMap<String, Integer>();
     var edgeTypesSize = new HashMap<String, Double>();
+    // Adjacent pans each carry their own copy of a shared edge (e.g. a ridge between two roof
+    // faces), so the same physical edge must only be counted once across all pans.
+    var seenEdgeKeys = new HashSet<String>();
 
     annotation
         .get3d()
@@ -121,9 +126,14 @@ public class AnnotationSummaryFactory {
             pan -> {
               var typeNames = RoofSlopeBoundaryFactory.getRoofSlopeBoundaryTypeNames(pan);
               var panMeasurements = pan.getMeasurements();
+              var points = pan.getPolygon().getPoints();
               for (int index = 0; index < typeNames.size(); index++) {
                 var name = typeNames.get(index);
                 var measurements = panMeasurements.get(index);
+                var edgeKey = name + ":" + edgeKey(points.get(index), points.get(index + 1));
+                if (!seenEdgeKeys.add(edgeKey)) {
+                  continue;
+                }
                 var count = edgeTypesCount.getOrDefault(name, 0);
                 var size = edgeTypesSize.getOrDefault(name, 0d);
                 edgeTypesCount.put(name, count + 1);
@@ -138,6 +148,20 @@ public class AnnotationSummaryFactory {
                     key.substring(0, 1).toUpperCase() + key.substring(1).replace("-", " "),
                     String.format("%.2f m (%s)", edgeTypesSize.get(key), edgeTypesCount.get(key))))
         .toList();
+  }
+
+  // Points are shared across all pans of the same annotation (see
+  // ExportAreaPictureAnnotationImage3DGenerator, which pools every pan's polygon points into a
+  // single bounding box), so two edges with the same rounded endpoints, in either order, are the
+  // same physical edge.
+  private static String edgeKey(Point a, Point b) {
+    var pa = roundedPoint(a);
+    var pb = roundedPoint(b);
+    return pa.compareTo(pb) <= 0 ? pa + "|" + pb : pb + "|" + pa;
+  }
+
+  private static String roundedPoint(Point point) {
+    return String.format("%.3f,%.3f", point.getX(), point.getY());
   }
 
   private static List<AnnotationPitch> pitchBreakdown(List<AnnotationRoofSlopeSummary> faces) {

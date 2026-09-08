@@ -8,8 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.model.SubscriptionBillingType;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlanComparisonCellKind;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureStyle;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.SubscriptionProductComparisonCellKind;
+import app.bpartners.api.model.subscription.SubscriptionProductComparisonEntry;
 import app.bpartners.api.model.subscription.SubscriptionProductFeatureItem;
 import app.bpartners.api.model.subscription.SubscriptionProductFeatureSection;
 import app.bpartners.api.model.subscription.SubscriptionProductFeatureStyle;
@@ -237,6 +240,51 @@ class SubscriptionPlanRestMapperTest {
 
     assertNull(subject.toRest(domain).getInheritedFromPlanName());
     assertNull(subject.toRestDescription(domain).getInheritedFromPlanName());
+  }
+
+  @Test
+  void to_rest_maps_comparison_entries_with_all_cell_kinds() {
+    var domain =
+        subscriptionProduct(COMMITMENT).toBuilder()
+            .comparisonEntries(
+                List.of(
+                    SubscriptionProductComparisonEntry.builder()
+                        .sectionTitle("Métrés — coeur BIRDIA")
+                        .label("Surface rampant, pente, périmètre")
+                        .kind(SubscriptionProductComparisonCellKind.INCLUDED)
+                        .build(),
+                    SubscriptionProductComparisonEntry.builder()
+                        .sectionTitle("Intégration & monitoring")
+                        .label("Accès API & webhooks")
+                        .kind(SubscriptionProductComparisonCellKind.EXCLUDED)
+                        .build(),
+                    SubscriptionProductComparisonEntry.builder()
+                        .sectionTitle("Support")
+                        .label("Support")
+                        .kind(SubscriptionProductComparisonCellKind.TEXT)
+                        .text("Prioritaire")
+                        .build()))
+            .build();
+
+    var entries = subject.toRest(domain).getComparisonEntries();
+
+    assertEquals(3, entries.size());
+    assertEquals("Métrés — coeur BIRDIA", entries.get(0).getSectionTitle());
+    assertEquals("Surface rampant, pente, périmètre", entries.get(0).getLabel());
+    assertEquals(SubscriptionPlanComparisonCellKind.INCLUDED, entries.get(0).getKind());
+    assertNull(entries.get(0).getText());
+    assertEquals(SubscriptionPlanComparisonCellKind.EXCLUDED, entries.get(1).getKind());
+    assertNull(entries.get(1).getText());
+    assertEquals(SubscriptionPlanComparisonCellKind.TEXT, entries.get(2).getKind());
+    assertEquals("Prioritaire", entries.get(2).getText());
+  }
+
+  @Test
+  void to_rest_maps_null_comparison_entries_by_default() {
+    var domain = subscriptionProduct(COMMITMENT);
+
+    assertNull(subject.toRest(domain).getComparisonEntries());
+    assertNull(subject.toRestDescription(domain).getComparisonEntries());
   }
 
   private static List<SubscriptionProductFeatureSection> sections() {

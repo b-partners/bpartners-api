@@ -47,6 +47,10 @@ public class SubscriptionProduct {
   @Column(name = "feature_sections")
   private List<SubscriptionProductFeatureSection> featureSections;
 
+  @JdbcTypeCode(JSON)
+  @Column(name = "comparison_entries")
+  private List<SubscriptionProductComparisonEntry> comparisonEntries;
+
   private String imageUrl;
 
   @JdbcTypeCode(NAMED_ENUM)

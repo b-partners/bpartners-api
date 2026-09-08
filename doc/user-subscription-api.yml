@@ -547,6 +547,30 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SubscriptionPlanFeatureItem'
+    SubscriptionPlanComparisonCellKind:
+      type: string
+      description: |
+        INCLUDED renders a check, EXCLUDED renders a cross ("—"), TEXT renders the `text` value
+        verbatim (e.g. "Prioritaire", "1 (particulier, entretien)").
+      enum:
+        - INCLUDED
+        - EXCLUDED
+        - TEXT
+    SubscriptionPlanComparisonEntry:
+      type: object
+      properties:
+        sectionTitle:
+          type: string
+          description: Comparison group header, e.g. "Métrés — cœur BIRDIA".
+        label:
+          type: string
+          description: Row label, e.g. "Surface rampant, pente, périmètre".
+        kind:
+          $ref: '#/components/schemas/SubscriptionPlanComparisonCellKind'
+        text:
+          type: string
+          nullable: true
+          description: The cell value, set only when `kind` is TEXT; null otherwise.
     SubscriptionPlanDescription:
       type: object
       properties:
@@ -581,6 +605,15 @@ components:
           description: |
             Name of the plan whose features this plan includes on top of its own, or null when it
             inherits nothing. Drives the "+ Tout {inheritedFromPlanName}" badge.
+        comparisonEntries:
+          type: array
+          description: |
+            This plan's column of the detailed comparison table. Every plan carries the same rows in
+            the same order, so consumers rebuild the grid by grouping on `sectionTitle` and matching
+            rows on `label`. Pricing rows (monthly price, included analyses, extra-analysis price)
+            are not included here; derive them from the dedicated price fields.
+          items:
+            $ref: '#/components/schemas/SubscriptionPlanComparisonEntry'
         billingType:
           $ref: '#/components/schemas/SubscriptionBillingType'
         priceInCentsWithVat:

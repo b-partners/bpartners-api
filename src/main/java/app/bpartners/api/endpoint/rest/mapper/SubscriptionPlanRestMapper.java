@@ -2,11 +2,14 @@ package app.bpartners.api.endpoint.rest.mapper;
 
 import app.bpartners.api.endpoint.rest.model.SubscriptionBillingType;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlanComparisonCellKind;
+import app.bpartners.api.endpoint.rest.model.SubscriptionPlanComparisonEntry;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanDescription;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureItem;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureSection;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureStyle;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.SubscriptionProductComparisonEntry;
 import app.bpartners.api.model.subscription.SubscriptionProductFeatureSection;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -21,6 +24,7 @@ public class SubscriptionPlanRestMapper {
         .description(domain.getDescription())
         .features(domain.getAllFeatures())
         .featureSections(featureSectionsToRest(domain.getFeatureSections()))
+        .comparisonEntries(comparisonEntriesToRest(domain.getComparisonEntries()))
         .inheritedFromPlanName(domain.getInheritedFromPlanName())
         .billingType(billingTypeToRest(domain.getBillingType()))
         .priceInCentsWithVat(domain.getPriceInCentsWithVat())
@@ -46,6 +50,7 @@ public class SubscriptionPlanRestMapper {
         .description(domain.getDescription())
         .features(domain.getAllFeatures())
         .featureSections(featureSectionsToRest(domain.getFeatureSections()))
+        .comparisonEntries(comparisonEntriesToRest(domain.getComparisonEntries()))
         .inheritedFromPlanName(domain.getInheritedFromPlanName())
         .billingType(billingTypeToRest(domain.getBillingType()))
         .priceInCentsWithVat(domain.getPriceInCentsWithVat())
@@ -80,6 +85,26 @@ public class SubscriptionPlanRestMapper {
                                     : SubscriptionPlanFeatureStyle.valueOf(item.getStyle().name())))
                 .toList();
     return new SubscriptionPlanFeatureSection().title(domainSection.getTitle()).items(items);
+  }
+
+  private List<SubscriptionPlanComparisonEntry> comparisonEntriesToRest(
+      List<SubscriptionProductComparisonEntry> domainEntries) {
+    if (domainEntries == null) {
+      return null;
+    }
+    return domainEntries.stream().map(this::comparisonEntryToRest).toList();
+  }
+
+  private SubscriptionPlanComparisonEntry comparisonEntryToRest(
+      SubscriptionProductComparisonEntry domainEntry) {
+    return new SubscriptionPlanComparisonEntry()
+        .sectionTitle(domainEntry.getSectionTitle())
+        .label(domainEntry.getLabel())
+        .kind(
+            domainEntry.getKind() == null
+                ? null
+                : SubscriptionPlanComparisonCellKind.valueOf(domainEntry.getKind().name()))
+        .text(domainEntry.getText());
   }
 
   private SubscriptionBillingType billingTypeToRest(

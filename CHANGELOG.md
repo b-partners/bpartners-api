@@ -1,3 +1,44 @@
+# [0.92.0](https://github.com/b-partners/bpartners-api/compare/v0.91.0...v0.92.0) (2026-09-08)
+
+
+### Bug Fixes
+
+* allow resetting email recipients and partial-type PUT ([a878254](https://github.com/b-partners/bpartners-api/commit/a87825435a92a3ad2d092b31df388e5b9ae71c9a))
+* **annotation:** format shared roof edge measures with a fixed locale ([2155267](https://github.com/b-partners/bpartners-api/commit/21552670eeb0c1995977c3c4d2c6999b57d90b8a))
+* compute roof edge measures once per shared edge ([3e5537f](https://github.com/b-partners/bpartners-api/commit/3e5537f5d0817c6059457e4cd6a61d26e041b515))
+* consider existing spendable credits as valid subscription ([03638dd](https://github.com/b-partners/bpartners-api/commit/03638dd4d0e68d4791d03ba91e563570be87fc8b))
+* **credit:** grant subscription credits on paid invoice and cap transitional credits to the migration day ([be54a38](https://github.com/b-partners/bpartners-api/commit/be54a38f0242f5a7db1aca76abf82f0c4bd5e59d))
+* **credit:** prevent expired-lot consumption from reducing later grants ([948451a](https://github.com/b-partners/bpartners-api/commit/948451acff09225c5c7f82386cde17d0f18cefc9))
+* **DetectionTrackingJpaRepository:** explicit string cast on each criteria ([94c434c](https://github.com/b-partners/bpartners-api/commit/94c434c5576d42bb79071fec42787bfcf6a809c8))
+* **EmailRecipientsValidator:** allow empty recipient mail ([f7ee32c](https://github.com/b-partners/bpartners-api/commit/f7ee32c0083274d0626320885bbf5c528ea8b144))
+* exempt subscription validation for onboarding requests ([c7d3cd9](https://github.com/b-partners/bpartners-api/commit/c7d3cd90e704db151184493bcfe2976d6fa376fd))
+* **mail:** avoid NPE on null unit price and quantity of credit purchase invoice line ([383752e](https://github.com/b-partners/bpartners-api/commit/383752e00c8986c643bb3a754a94a15add8aa9f2))
+* **mail:** read the credit unit price from the purchase instead of the invoice line ([7923650](https://github.com/b-partners/bpartners-api/commit/7923650faf59218703c59385fb3ec1674d7daed8))
+* resolve invoice recipient holder from customer not issuer ([6a9b468](https://github.com/b-partners/bpartners-api/commit/6a9b46819955abfbc1c38c94f5082fdc664f713c))
+* route credit purchase mail to specific recipient same as subscription invoice ([f48400c](https://github.com/b-partners/bpartners-api/commit/f48400cb7def73272d20a8ff880500981b20df8a))
+* **security:** exempt subscription validation for creditPurchases GET and PUT ([cbf6410](https://github.com/b-partners/bpartners-api/commit/cbf641015a46488113740acae4c425310b4ca0da))
+* **StripeWebhookService:** cancel only deprecated ESSENTIAL product after payment ([9d76ac7](https://github.com/b-partners/bpartners-api/commit/9d76ac79feb0071d79df3d659fa04774fbed601d))
+* **SubscriptionProduct:** include feature from other subscription product ([91fe333](https://github.com/b-partners/bpartners-api/commit/91fe333d81abceeec27aa8ad09b2fdbe6f0c9cb3))
+* **subscription:** release managing schedule before end-of-period cancellation ([fb52e97](https://github.com/b-partners/bpartners-api/commit/fb52e970f60515049772e4e179ad1a856b2a4089))
+* **subscription:** report Stripe's exclusive period end as the last served day on invoices ([da0cc06](https://github.com/b-partners/bpartners-api/commit/da0cc06be86a1448dd2026e9013d3e55bebeba9e))
+* **subscription:** report the served period of terminated subscriptions ([5e4e257](https://github.com/b-partners/bpartners-api/commit/5e4e257066a2f3a39ab85bdab73c74858b7270d3))
+* **test:** mock StripeDefaultPaymentMethodService in IT contexts without a StripeClient bean ([b3a3b7c](https://github.com/b-partners/bpartners-api/commit/b3a3b7cd3869c90ed056b0cd1475e9d872258be5))
+* **UsernamePasswordAuthenticatorFacade:** include PUT /users/*/paymentMethods exempting subscription validation ([06a001b](https://github.com/b-partners/bpartners-api/commit/06a001b7aa8e3524a64892ac58c38795289a6ea7))
+
+
+### Features
+
+* add lite variant for draft area picture annotations list endpoints ([6b4b352](https://github.com/b-partners/bpartners-api/commit/6b4b352405495690c4efaf877dd8844a7b7fca1c))
+* **credit:** grant transitional credits to active stripe subscribers ([d01e062](https://github.com/b-partners/bpartners-api/commit/d01e06238a9ff44ffbbd961d0b1dee5fbc1bef32))
+* **invoice:** bill a pack credit purchase as one line per pack ([19c9e5f](https://github.com/b-partners/bpartners-api/commit/19c9e5fa73d48cb2ae94ae7d7ae7803ccde46975))
+* **mail:** show credit count without redundancy and unit price excluding VAT in credit purchase invoice mail ([c676580](https://github.com/b-partners/bpartners-api/commit/c67658031f0bf68de96f1ccf20834941d782c212))
+* **subscription:** cancel subscriptions immediately on paid invoice and via admin trigger ([693ec98](https://github.com/b-partners/bpartners-api/commit/693ec984bccf50afbce4c5d2088018c40ad0795c))
+* **subscription:** expose structured feature sections and inherited plan for exact plan rendering ([9a27701](https://github.com/b-partners/bpartners-api/commit/9a27701b016f15f7bbfc044a59475b8dc7da7c69))
+* **subscription:** gate credits at analysis time instead of at authentication ([6038ad1](https://github.com/b-partners/bpartners-api/commit/6038ad1cac135ab697ff7d85c173370e2813bda9))
+* **subscription:** set a default payment method after each successful Stripe payment when none is set ([62abb56](https://github.com/b-partners/bpartners-api/commit/62abb569f9c2fd8e8bb0f42b2f865bf8802b6bc4))
+
+
+
 # [0.91.0](https://github.com/b-partners/bpartners-api/compare/v0.85.0...v0.91.0) (2026-09-03)
 
 
@@ -271,42 +312,6 @@
 ### Bug Fixes
 
 * commit untracked files on releases-version ([489aa75](https://github.com/b-partners/bpartners-api/commit/489aa7534da183c9ae0ad544d4e9ffabce878087))
-
-
-
-# [0.78.0](https://github.com/b-partners/bpartners-api/compare/v0.77.0...v0.78.0) (2026-02-03)
-
-
-### Bug Fixes
-
-* do not look for defaut payment only existing payment methods ([aa8c56e](https://github.com/b-partners/bpartners-api/commit/aa8c56e692f86c7c344e31958e4d668852703188))
-* handle multiple analysis api key found by one key ([a20aac7](https://github.com/b-partners/bpartners-api/commit/a20aac7d2c53702b3f1b734db8864d9e94ceba26))
-* handle one by one user subscription invoice computing ([c2a7488](https://github.com/b-partners/bpartners-api/commit/c2a7488679bc3952453cea6c185c3e58ea896116))
-* **MonthlySubscriptionInvoiceRequestedService:** do not compute subscription invoice when already computed for current month ([7c47057](https://github.com/b-partners/bpartners-api/commit/7c47057506ade869d542f1975e75cb209e010571))
-* **MonthlySubscriptionInvoiceRequestedService:** filter existing subscritpion invoices using userToCredit and userToDebit filter ([18e1b69](https://github.com/b-partners/bpartners-api/commit/18e1b69e3980c21a857619442ead2e6ab743b6ad))
-* **MonthlySubscriptionInvoiceRequestedService:** only compute subscription invoice for active subscription and eligible user ([dd0bfe1](https://github.com/b-partners/bpartners-api/commit/dd0bfe17bce30c20c885d35755a2e54191d62803))
-* **MonthlySubscriptionInvoiceRequestedService:** set default sending date to last day of actual month ([20cb8a5](https://github.com/b-partners/bpartners-api/commit/20cb8a5246297c4f5acef0ea7216aacc0ef21cd5))
-* **ProspectService:** trigger ProspectUpdate event on each saving methods ([ce8aba1](https://github.com/b-partners/bpartners-api/commit/ce8aba141b6cee4b85cdf4c392c3f56a4b9e7b63))
-* **RefreshUserInvoiceSummaryTriggered:** update eventStack=EVENT_STACK_2 ([a0eed3a](https://github.com/b-partners/bpartners-api/commit/a0eed3af1564487b2ae9820406f78c4903840f6a))
-* retrieve payment methods from both subscription and customer ([f81d4ee](https://github.com/b-partners/bpartners-api/commit/f81d4ee6b18ea689b3462ba060c2ba4a6116883d))
-* **StripeFactory:** avoid billing_cycle_anchor late than natural billing by handling today if before fifth of actual month ([63be005](https://github.com/b-partners/bpartners-api/commit/63be005ab98e592d15e4ca87eb74b0222f71ea6a))
-* **SubscriptionService:** update free trial period to 7 days ([ea78623](https://github.com/b-partners/bpartners-api/commit/ea78623fa5289f390b0cfa9d058e724f2133381e))
-* use upcoming stripe invoice to compute subscription invoice ([e8b42ac](https://github.com/b-partners/bpartners-api/commit/e8b42ac581a974d1649abd0f04ac339d56bd4eb6))
-* **UserController:** type updated user api keys as DASHBOARD and add default creation datetime ([6e415ae](https://github.com/b-partners/bpartners-api/commit/6e415aecc244647c9eb2b7aedd2ebf4e0705ad89))
-* **UserOnboarded:** generate api key after user onboarded ([f9f6298](https://github.com/b-partners/bpartners-api/commit/f9f629884798b0eaf639c00f6ddd95aa0216f0f7))
-* **UserRestMapper:** always return ACTIVE when not subscription eligibile ([1bc6474](https://github.com/b-partners/bpartners-api/commit/1bc64741706fb145bd277d65e003a06105212351))
-* **UserRestMapper:** return ACTIVE only when free trial period not active ([e6940d6](https://github.com/b-partners/bpartners-api/commit/e6940d6f64d9658d17e6023076a34a9dd29530ed))
-* **UserSubscription:** only subscription not expired can be valid ([19dba5e](https://github.com/b-partners/bpartners-api/commit/19dba5e7125538acca229b7b386a231ae4a61fe0))
-
-
-### Features
-
-* implement areaPicture shiftDirection ([67a1ec7](https://github.com/b-partners/bpartners-api/commit/67a1ec74d7a9cb824b20c3f3f35bf51c85b3b0f6))
-
-
-### Reverts
-
-* Revert "chore(to-revert): update invoice trigger information to december 2025" ([4ed25bf](https://github.com/b-partners/bpartners-api/commit/4ed25bf6c23283ccf4dd193f412dbae8985db5a7))
 
 
 

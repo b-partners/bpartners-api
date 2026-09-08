@@ -1,3 +1,12 @@
+# [0.93.0](https://github.com/b-partners/bpartners-api/compare/v0.92.0...v0.93.0) (2026-09-08)
+
+
+### Features
+
+* add subscription comparison entries ([1a9d29f](https://github.com/b-partners/bpartners-api/commit/1a9d29fa0e9e282e6efe30a7ef1081a2249456bd))
+
+
+
 # [0.92.0](https://github.com/b-partners/bpartners-api/compare/v0.91.0...v0.92.0) (2026-09-08)
 
 
@@ -303,15 +312,6 @@
 ### Reverts
 
 * **Drawer:** from 35cd87b6628921741dd144eeb23ddd94b4e73245 into a627df37f635edf843d646a65f53335a5acb79a3 ([#1680](https://github.com/b-partners/bpartners-api/issues/1680)) ([6ce8de8](https://github.com/b-partners/bpartners-api/commit/6ce8de8db548b85cc2db7147facccec8268e9a7e))
-
-
-
-## [0.78.1](https://github.com/b-partners/bpartners-api/compare/v0.78.0...v0.78.1) (2026-02-03)
-
-
-### Bug Fixes
-
-* commit untracked files on releases-version ([489aa75](https://github.com/b-partners/bpartners-api/commit/489aa7534da183c9ae0ad544d4e9ffabce878087))
 
 
 

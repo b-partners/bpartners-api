@@ -399,6 +399,86 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  startUserSubscriptionTrial:
+    post:
+      tags:
+        - User Subscription
+      summary: Start a free trial on a subscription plan
+      description: |
+        Starts the one-time free trial of the given plan for the user, without any payment. It
+        grants the plan's trial analyses as credits that expire at the end of the trial period, and
+        opens an active subscription that ends when the trial expires. A trial can be started only
+        once per user and per plan, and only when the user has no active subscription.
+      operationId: startUserSubscriptionTrial
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubscriptionTrial'
+      responses:
+        200:
+          description: The started free trial
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionTrial'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        409:
+          $ref: './api.yml#/components/responses/409'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  getUserSubscriptionTrialEligibility:
+    get:
+      tags:
+        - User Subscription
+      summary: Whether the user can start a free trial, per subscription plan
+      description: |
+        Read-only, side-effect-free view of the user's free-trial eligibility for every subscribable
+        plan. Lets a consumer decide whether to show a "start free trial" call to action without
+        attempting POST /users/{uId}/subscriptionTrial (which would actually start the trial). A plan
+        is ELIGIBLE only when it offers a trial, the user has not already used that plan's trial, and
+        the user has no active subscription.
+      operationId: getUserSubscriptionTrialEligibility
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      responses:
+        200:
+          description: Free-trial eligibility for each subscribable plan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionTrialEligibility'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   cancelUserSubscription:
     post:
       tags:
@@ -481,6 +561,54 @@ components:
       type: string
       enum:
         - UNIT
+    CreateSubscriptionTrial:
+      type: object
+      properties:
+        subscriptionPlanIdentifier:
+          type: string
+          description: Identifier of the plan to try (see GET /subscriptionPlans).
+    SubscriptionTrial:
+      type: object
+      description: A free trial started by a user on a subscription plan.
+      properties:
+        subscriptionPlanIdentifier:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          description: Instant the trial ends; its granted credits expire at the same moment.
+        grantedAnalyses:
+          type: integer
+          description: Number of analyses granted for the trial.
+        grantedCredits:
+          type: integer
+          format: int64
+          description: Credits granted for the trial (grantedAnalyses * creditCostPerAnalysis).
+    SubscriptionTrialEligibility:
+      type: object
+      description: Whether the user can start the free trial of a given plan, and why not otherwise.
+      properties:
+        subscriptionPlanIdentifier:
+          type: string
+        eligible:
+          type: boolean
+          description: true only when reason is ELIGIBLE.
+        reason:
+          $ref: '#/components/schemas/SubscriptionTrialIneligibilityReason'
+    SubscriptionTrialIneligibilityReason:
+      type: string
+      description: |
+        ELIGIBLE means the trial can be started. PLAN_HAS_NO_TRIAL: the plan offers no free trial.
+        TRIAL_ALREADY_USED: the user already used this plan's one-time trial. ALREADY_SUBSCRIBED:
+        the user has an active subscription, so no trial is offered.
+      enum:
+        - ELIGIBLE
+        - PLAN_HAS_NO_TRIAL
+        - TRIAL_ALREADY_USED
+        - ALREADY_SUBSCRIBED
     CreateSubscriptionInitiation:
       type: object
       properties:
@@ -518,6 +646,59 @@ components:
       enum:
         - COMMITMENT
         - USAGE_BASED
+    SubscriptionPlanFeatureStyle:
+      type: string
+      description: |
+        NORMAL is a plain bullet. HIGHLIGHTED is a whole-line emphasized bullet (the "métrés"
+        core-capability rows). EXCLUDED is a not-included bullet, rendered with a cross instead
+        of a check.
+      enum:
+        - NORMAL
+        - HIGHLIGHTED
+        - EXCLUDED
+    SubscriptionPlanFeatureItem:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Markdown-lite bullet text; `**bold**` marks an inline emphasis run.
+        style:
+          $ref: '#/components/schemas/SubscriptionPlanFeatureStyle'
+    SubscriptionPlanFeatureSection:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+          description: Section header (e.g. "Métrés inclus"), or null for an untitled block.
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionPlanFeatureItem'
+    SubscriptionPlanComparisonCellKind:
+      type: string
+      description: |
+        INCLUDED renders a check, EXCLUDED renders a cross ("—"), TEXT renders the `text` value
+        verbatim (e.g. "Prioritaire", "1 (particulier, entretien)").
+      enum:
+        - INCLUDED
+        - EXCLUDED
+        - TEXT
+    SubscriptionPlanComparisonEntry:
+      type: object
+      properties:
+        sectionTitle:
+          type: string
+          description: Comparison group header, e.g. "Métrés — cœur BIRDIA".
+        label:
+          type: string
+          description: Row label, e.g. "Surface rampant, pente, périmètre".
+        kind:
+          $ref: '#/components/schemas/SubscriptionPlanComparisonCellKind'
+        text:
+          type: string
+          nullable: true
+          description: The cell value, set only when `kind` is TEXT; null otherwise.
     SubscriptionPlanDescription:
       type: object
       properties:
@@ -529,8 +710,38 @@ components:
           type: string
         features:
           type: array
+          deprecated: true
+          description: |
+            Flat, plain-text feature bullets, kept for backward compatibility. Prefer
+            `featureSections`, which carries the section grouping and inline emphasis that lets the
+            consumer reproduce the rendering exactly. Derived from `featureSections` (Markdown
+            emphasis stripped) and still merged with inherited plans, so old consumers are unaffected.
           items:
             type: string
+        featureSections:
+          type: array
+          description: |
+            This plan's own feature blocks, in display order. Each block is an optionally titled
+            section of items. Item text is Markdown-lite: `**bold**` marks an inline emphasis run.
+            Inherited plans are not merged in here; use `inheritedFromPlanName` to render the
+            "+ Tout X" badge and let the consumer fetch the parent plan's own sections.
+          items:
+            $ref: '#/components/schemas/SubscriptionPlanFeatureSection'
+        inheritedFromPlanName:
+          type: string
+          nullable: true
+          description: |
+            Name of the plan whose features this plan includes on top of its own, or null when it
+            inherits nothing. Drives the "+ Tout {inheritedFromPlanName}" badge.
+        comparisonEntries:
+          type: array
+          description: |
+            This plan's column of the detailed comparison table. Every plan carries the same rows in
+            the same order, so consumers rebuild the grid by grouping on `sectionTitle` and matching
+            rows on `label`. Pricing rows (monthly price, included analyses, extra-analysis price)
+            are not included here; derive them from the dedicated price fields.
+          items:
+            $ref: '#/components/schemas/SubscriptionPlanComparisonEntry'
         billingType:
           $ref: '#/components/schemas/SubscriptionBillingType'
         priceInCentsWithVat:
@@ -589,6 +800,16 @@ components:
                 Removed once every consumer reads the prepaid credit fields.
             trialPeriodDays:
               type: integer
+              description: |
+                Length, in days, of the one-time free trial this plan grants. A trial is granted
+                only once per user and per plan, the first time the user subscribes to it. Zero or
+                null means the plan has no trial.
+            trialAnalysisGranted:
+              type: integer
+              description: |
+                Number of analyses offered during the free trial. They are converted to credits
+                (analyses * creditCostPerAnalysis) at the start of the trial and expire at the end
+                of the trial period.
             annualDiscountPercent:
               type: integer
               description: Discount, in percent, on the yearly prepaid fixed price.

@@ -388,13 +388,18 @@ public class SubscriptionService {
                   .creditCostPerAnalysis(existing.getCreditCostPerAnalysis())
                   .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
                   .trialPeriodDays(existing.getTrialPeriodDays())
+                  .trialAnalysisGranted(existing.getTrialAnalysisGranted())
                   .annualDiscountPercent(existing.getAnnualDiscountPercent())
                   .annualE2PriceId(existing.getAnnualE2PriceId())
                   .annualPriceInCentsWithVat(existing.getAnnualPriceInCentsWithVat())
                   .meteredProductId(existing.getMeteredProductId())
                   .mostChosen(existing.isMostChosen())
                   .deprecated(existing.isDeprecated())
-                  .displayPosition(existing.getDisplayPosition());
+                  .displayPosition(existing.getDisplayPosition())
+                  .includedSubscriptionProductFeatures(
+                      existing.getIncludedSubscriptionProductFeatures())
+                  .featureSections(existing.getFeatureSections())
+                  .comparisonEntries(existing.getComparisonEntries());
               if (createdStripeProduct.getMarketingFeatures() == null
                   || createdStripeProduct.getMarketingFeatures().isEmpty()) {
                 subscriptionProductToPersistBuilder.features(existing.getFeatures());

@@ -7,14 +7,10 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
-import app.bpartners.api.model.User;
 import app.bpartners.api.model.detection.DetectionTracking;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
-import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.DetectionTrackingRepository;
-import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.service.credit.CreditService;
-import app.bpartners.api.service.subscription.RoofAnalysisConsumptionFreeTrialValidator;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.time.Instant;
@@ -34,8 +30,6 @@ public class DetectionTrackingService {
   private final DetectionTrackingRepository repository;
   private final SubscriptionService subscriptionService;
   private final CustomDateFormatter customDateFormatter;
-  private final UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
-  private final RoofAnalysisConsumptionFreeTrialValidator roofAnalysisConsumptionFreeTrialValidator;
   private final CreditService creditService;
 
   public List<DetectionTracking> findAllByIdUserBetween(String idUser, Instant from, Instant to) {
@@ -58,12 +52,6 @@ public class DetectionTrackingService {
       List<DetectionTracking> tracking) {
     var unregisteredTracking = filterUnregistered(tracking);
 
-    unregisteredTracking.stream()
-        .map(DetectionTracking::user)
-        .map(User::getId)
-        .distinct()
-        .forEach(this::validateRoofAnalysisFreeTrialConsumption);
-
     List<DetectionTracking> savedTracking = saveAll(unregisteredTracking);
 
     savedTracking.forEach(
@@ -80,9 +68,7 @@ public class DetectionTrackingService {
                   .comment(comment)
                   .creationDatetime(now())
                   .build());
-          if (!hasFreeTrialPeriodActive(userId)) {
-            creditService.consumeRoofAnalysis(userId, "Analyse toiture : " + saved.address());
-          }
+          creditService.consumeRoofAnalysis(userId, "Analyse toiture : " + saved.address());
         });
     return savedTracking;
   }
@@ -99,19 +85,6 @@ public class DetectionTrackingService {
       }
     }
     return unregistered;
-  }
-
-  private void validateRoofAnalysisFreeTrialConsumption(String userId) {
-    userSubscriptionEligibleRepository
-        .findByUserId(userId)
-        .ifPresent(roofAnalysisConsumptionFreeTrialValidator);
-  }
-
-  private boolean hasFreeTrialPeriodActive(String userId) {
-    return userSubscriptionEligibleRepository
-        .findByUserId(userId)
-        .map(UserSubscriptionEligible::hasFreeTrialPeriodActive)
-        .orElse(false);
   }
 
   private @NotNull String getAnalysisComment(DetectionTracking saved) {

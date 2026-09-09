@@ -70,7 +70,10 @@ class UserControllerTest {
           stripeSetupServiceMock,
           userSubscriptionCommitmentRestMapper,
           stripePaymentMethodServiceMock,
-          userSubscriptionPaymentMethodRestMapper);
+          userSubscriptionPaymentMethodRestMapper,
+          mock(),
+          mock(),
+          mock());
 
   @BeforeEach
   void setUp() {

@@ -90,7 +90,10 @@
 
         .main-image {
             display: inline-block;
-            width: 550px;
+            max-width: 550px;
+            max-height: 400px;
+            width: auto;
+            height: auto;
         }
 
         .image-wrapper {
@@ -281,6 +284,8 @@
             border-bottom: 8px solid #2c2c2a;
             position: absolute;
             top: 0;
+            left: 50%;
+            margin-left: -6px;
         }
 
         .degradation-level-label {

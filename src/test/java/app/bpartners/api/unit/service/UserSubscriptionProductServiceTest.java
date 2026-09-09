@@ -314,6 +314,26 @@ class UserSubscriptionProductServiceTest {
   }
 
   @Test
+  void creates_trial_association_with_null_interval_and_end_datetime() {
+    var userId = randomUUID().toString();
+    var plan = SubscriptionProduct.builder().id("plan_id").build();
+    var start = Instant.parse("2026-09-09T00:00:00Z");
+    var end = Instant.parse("2026-09-16T00:00:00Z");
+
+    var actual = subject.createTrialAssociation(userId, plan, start, end);
+
+    var captor = ArgumentCaptor.forClass(UserSubscriptionProduct.class);
+    verify(userSubscriptionProductJpaRepository).save(captor.capture());
+    var saved = captor.getValue();
+    assertEquals(saved, actual);
+    assertEquals(userId, saved.getUserId());
+    assertEquals("plan_id", saved.getSubscriptionProduct().getId());
+    assertNull(saved.getBillingInterval());
+    assertEquals(start, saved.getSubscriptionStartDatetime());
+    assertEquals(end, saved.getSubscriptionEndDatetime());
+  }
+
+  @Test
   void does_nothing_when_no_active_product_to_end() {
     var userId = randomUUID().toString();
     when(userSubscriptionProductJpaRepository.findAllNotEndedByUserId(eq(userId), any()))

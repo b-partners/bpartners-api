@@ -1,10 +1,13 @@
 package app.bpartners.api.model.subscription;
 
+import static jakarta.persistence.FetchType.EAGER;
 import static org.hibernate.type.SqlTypes.JSON;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -27,6 +30,8 @@ public class SubscriptionProduct {
 
   public static final long DEFAULT_INCLUDED_CREDITS_PER_BILLING_PERIOD = 0L;
 
+  public static final long DEFAULT_TRIAL_ANALYSIS_GRANTED = 0L;
+
   public static final long DEFAULT_VAT_PERCENT = 2000L;
 
   @Id private String id;
@@ -39,6 +44,14 @@ public class SubscriptionProduct {
 
   @JdbcTypeCode(JSON)
   private List<String> features;
+
+  @JdbcTypeCode(JSON)
+  @Column(name = "feature_sections")
+  private List<SubscriptionProductFeatureSection> featureSections;
+
+  @JdbcTypeCode(JSON)
+  @Column(name = "comparison_entries")
+  private List<SubscriptionProductComparisonEntry> comparisonEntries;
 
   private String imageUrl;
 
@@ -79,6 +92,9 @@ public class SubscriptionProduct {
   @Column(name = "trial_period_days")
   private Integer trialPeriodDays;
 
+  @Column(name = "trial_analysis_granted")
+  private Integer trialAnalysisGranted;
+
   @Column(name = "annual_discount_percent")
   private Integer annualDiscountPercent;
 
@@ -99,6 +115,53 @@ public class SubscriptionProduct {
 
   @Column(name = "included_credits_per_billing_period")
   private Long includedCreditsPerBillingPeriod;
+
+  @ManyToMany(fetch = EAGER)
+  @JoinTable(
+      name = "subscription_product_included_feature",
+      joinColumns = @JoinColumn(name = "subscription_product_id"),
+      inverseJoinColumns = @JoinColumn(name = "included_subscription_product_id"))
+  @ToString.Exclude
+  @EqualsAndHashCode.Exclude
+  private List<SubscriptionProduct> includedSubscriptionProductFeatures;
+
+  public List<String> getAllFeatures() {
+    var allFeatures = new LinkedHashSet<String>();
+    allFeatures.addAll(ownPlainTextFeatures());
+    if (includedSubscriptionProductFeatures != null) {
+      includedSubscriptionProductFeatures.forEach(
+          included -> allFeatures.addAll(included.getAllFeatures()));
+    }
+    return new ArrayList<>(allFeatures);
+  }
+
+  public String getInheritedFromPlanName() {
+    if (includedSubscriptionProductFeatures == null
+        || includedSubscriptionProductFeatures.isEmpty()) {
+      return null;
+    }
+    return includedSubscriptionProductFeatures.get(0).getName();
+  }
+
+  private List<String> ownPlainTextFeatures() {
+    if (featureSections == null || featureSections.isEmpty()) {
+      return features == null ? List.of() : features;
+    }
+    var texts = new ArrayList<String>();
+    for (var section : featureSections) {
+      if (section.getItems() == null) {
+        continue;
+      }
+      for (var item : section.getItems()) {
+        texts.add(stripEmphasis(item.getText()));
+      }
+    }
+    return texts;
+  }
+
+  private static String stripEmphasis(String text) {
+    return text == null ? null : text.replace("**", "");
+  }
 
   public Long getPriceInCentsWithVat() {
     if (priceInCentsWithoutVat == null || vatPercent == null) {
@@ -151,5 +214,21 @@ public class SubscriptionProduct {
     return includedCreditsPerBillingPeriod == null
         ? DEFAULT_INCLUDED_CREDITS_PER_BILLING_PERIOD
         : includedCreditsPerBillingPeriod;
+  }
+
+  public long trialAnalysisGrantedOrDefault() {
+    return trialAnalysisGranted == null ? DEFAULT_TRIAL_ANALYSIS_GRANTED : trialAnalysisGranted;
+  }
+
+  public int trialPeriodDaysOrZero() {
+    return trialPeriodDays == null ? 0 : trialPeriodDays;
+  }
+
+  public boolean offersFreeTrial() {
+    return trialPeriodDaysOrZero() > 0;
+  }
+
+  public long trialCreditsGranted() {
+    return trialAnalysisGrantedOrDefault() * creditCostPerAnalysisOrDefault();
   }
 }

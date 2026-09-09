@@ -81,4 +81,13 @@ public class UserSubscription {
         .max(comparing(Subscription::getStartDatetime, naturalOrder()))
         .orElse(null);
   }
+
+  // a real, Stripe-backed subscription that is currently active, ignoring synthetic ones
+  public boolean hasValidStripeSubscription() {
+    var latest = getLatestSubscriptionWithStripeId();
+    return latest != null
+        && latest.isActive()
+        && latest.getEndDatetime() != null
+        && !latest.getEndDatetime().isBefore(Instant.now());
+  }
 }

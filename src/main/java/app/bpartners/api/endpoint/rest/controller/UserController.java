@@ -10,6 +10,8 @@ import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 import static java.time.Instant.now;
 
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionTrialEligibilityRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionTrialRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionCommitmentRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionPaymentMethodRestMapper;
@@ -24,6 +26,7 @@ import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.StripeSetupService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.subscription.UserSubscriptionTrialService;
 import app.bpartners.api.service.user.ApiKeyService;
 import app.bpartners.api.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +49,9 @@ public class UserController {
   private final UserSubscriptionCommitmentRestMapper userSubscriptionCommitmentRestMapper;
   private final StripePaymentMethodService stripePaymentMethodService;
   private final UserSubscriptionPaymentMethodRestMapper userSubscriptionPaymentMethodRestMapper;
+  private final UserSubscriptionTrialService userSubscriptionTrialService;
+  private final SubscriptionTrialRestMapper subscriptionTrialRestMapper;
+  private final SubscriptionTrialEligibilityRestMapper subscriptionTrialEligibilityRestMapper;
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
@@ -160,6 +166,29 @@ public class UserController {
                 subscriptionInitiation.getSubscriptionType());
 
     return subscriptionService.initiateSubscription(user, subscription, redirectionStatusUrls);
+  }
+
+  @PostMapping("/users/{uId}/subscriptionTrial")
+  public SubscriptionTrial startUserSubscriptionTrial(
+      HttpServletRequest request,
+      @PathVariable String uId,
+      @RequestBody CreateSubscriptionTrial createSubscriptionTrial) {
+    var authenticatedSelfUser = getAuthUser(request, uId);
+    var planIdentifier =
+        createSubscriptionTrial == null
+            ? null
+            : createSubscriptionTrial.getSubscriptionPlanIdentifier();
+    var started =
+        userSubscriptionTrialService.startTrial(authenticatedSelfUser.getId(), planIdentifier);
+    return subscriptionTrialRestMapper.toRest(started);
+  }
+
+  @GetMapping("/users/{uId}/subscriptionTrialEligibility")
+  public List<SubscriptionTrialEligibility> getUserSubscriptionTrialEligibility(
+      @PathVariable String uId) {
+    return userSubscriptionTrialService.getTrialEligibility(uId).stream()
+        .map(subscriptionTrialEligibilityRestMapper::toRest)
+        .toList();
   }
 
   private static app.bpartners.api.model.subscription.BillingInterval billingIntervalToDomain(

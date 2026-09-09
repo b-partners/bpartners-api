@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.controller.UserController;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionTrialEligibilityRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionTrialRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionCommitmentRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionPaymentMethodRestMapper;
@@ -22,6 +24,7 @@ import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.StripeSetupService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.subscription.UserSubscriptionTrialService;
 import app.bpartners.api.service.user.ApiKeyService;
 import app.bpartners.api.service.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -38,6 +41,9 @@ class UserControllerTest {
   UserSubscriptionCommitmentRestMapper userSubscriptionCommitmentRestMapperMock = mock();
   StripePaymentMethodService stripePaymentMethodServiceMock = mock();
   UserSubscriptionPaymentMethodRestMapper userSubscriptionPaymentMethodRestMapperMock = mock();
+  UserSubscriptionTrialService userSubscriptionTrialServiceMock = mock();
+  SubscriptionTrialRestMapper subscriptionTrialRestMapperMock = mock();
+  SubscriptionTrialEligibilityRestMapper subscriptionTrialEligibilityRestMapperMock = mock();
 
   UserController subject =
       new UserController(
@@ -51,7 +57,10 @@ class UserControllerTest {
           stripeSetupServiceMock,
           userSubscriptionCommitmentRestMapperMock,
           stripePaymentMethodServiceMock,
-          userSubscriptionPaymentMethodRestMapperMock);
+          userSubscriptionPaymentMethodRestMapperMock,
+          userSubscriptionTrialServiceMock,
+          subscriptionTrialRestMapperMock,
+          subscriptionTrialEligibilityRestMapperMock);
 
   @Test
   void cancel_user_subscription_without_cancellation_type() {

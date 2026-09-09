@@ -327,6 +327,7 @@ class SubscriptionServiceTest {
               .vatPercent(2000L)
               .overageUnitPriceInCents(200L)
               .trialPeriodDays(7)
+              .trialAnalysisGranted(2)
               .features(List.of("feature-a", "feature-b"))
               .mostChosen(true)
               .deprecated(true)
@@ -359,6 +360,7 @@ class SubscriptionServiceTest {
       assertEquals(Long.valueOf(20L), saved.getFreeUsageThreshold());
       assertEquals(Long.valueOf(200L), saved.getOverageUnitPriceInCents());
       assertEquals(Integer.valueOf(7), saved.getTrialPeriodDays());
+      assertEquals(Integer.valueOf(2), saved.getTrialAnalysisGranted());
       assertEquals(Long.valueOf(5880L), saved.getPriceInCentsWithVat());
       // Catalog-only columns must survive a re-mirror even though Stripe does not carry them.
       assertTrue(saved.isMostChosen());
@@ -408,6 +410,60 @@ class SubscriptionServiceTest {
       assertEquals(Long.valueOf(1500L), saved.getCreditUnitPriceInCentsWithoutVat());
       assertEquals(Long.valueOf(3L), saved.getCreditCostPerAnalysis());
       assertEquals(Long.valueOf(50L), saved.getIncludedCreditsPerBillingPeriod());
+    }
+  }
+
+  @Test
+  void get_subscription_product_by_e2id_preserves_feature_sections_and_comparison_entries() {
+    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
+        MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {
+      var domainProductId = "planId";
+      var featureSections =
+          List.of(
+              SubscriptionProductFeatureSection.builder()
+                  .title("Section title")
+                  .items(List.of(SubscriptionProductFeatureItem.builder().text("item-a").build()))
+                  .build());
+      var comparisonEntries =
+          List.of(
+              SubscriptionProductComparisonEntry.builder()
+                  .sectionTitle("Comparison section")
+                  .label("Comparison label")
+                  .build());
+      var existing =
+          SubscriptionProduct.builder()
+              .id(domainProductId)
+              .e2Id("stripeProductId")
+              .vatPercent(2000L)
+              .featureSections(featureSections)
+              .comparisonEntries(comparisonEntries)
+              .build();
+      when(subscriptionProductRepositoryMock.findById(domainProductId))
+          .thenReturn(Optional.of(existing));
+      var product = new Product();
+      product.setDefaultPrice("priceId");
+      product.setMarketingFeatures(List.of());
+      product.setImages(List.of());
+      product.setCreated(1L);
+      var price = new Price();
+      var recurring = new Price.Recurring();
+      recurring.setInterval("month");
+      price.setRecurring(recurring);
+      price.setUnitAmount(5880L);
+      productMockedStatic.when(() -> Product.retrieve(any())).thenReturn(product);
+      priceMockedStatic.when(() -> Price.retrieve(any())).thenReturn(price);
+      when(subscriptionProductRepositoryMock.save(any()))
+          .thenAnswer(invocation -> invocation.getArgument(0));
+
+      subject.getSubscriptionProductByE2Id(domainProductId, "stripeProductId");
+
+      var captor = ArgumentCaptor.forClass(SubscriptionProduct.class);
+      verify(subscriptionProductRepositoryMock).save(captor.capture());
+      var saved = captor.getValue();
+      // Stripe carries neither feature sections nor comparison entries, so a re-mirror must keep
+      // the catalog-defined ones instead of nulling them out.
+      assertEquals(featureSections, saved.getFeatureSections());
+      assertEquals(comparisonEntries, saved.getComparisonEntries());
     }
   }
 

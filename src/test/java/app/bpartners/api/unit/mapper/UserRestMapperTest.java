@@ -9,6 +9,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.mapper.AccountRestMapper;
@@ -88,6 +89,153 @@ class UserRestMapperTest {
     var subscriptionStart =
         subscriptionEligible.getEligibleFrom().atStartOfDay(parisZoneId).toInstant();
     assertEquals(subscriptionStart, actual.getSubscription().getStart());
+  }
+
+  @Test
+  void user_subscription_status_is_free_trial_during_new_free_trial() {
+    var now = now();
+    var start = now;
+    var end = now.plus(7, java.time.temporal.ChronoUnit.DAYS);
+    var plan = SubscriptionProduct.builder().id("plan_id").name("Essentiel").build();
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(UserSubscription.builder().subscriptions(List.of()).build());
+    var domain =
+        User.builder()
+            .roles(List.of())
+            .paymentMethodExists(false)
+            .subscriptionProducts(
+                List.of(
+                    UserSubscriptionProduct.builder()
+                        .id(randomUUID().toString())
+                        .subscriptionProduct(plan)
+                        .billingInterval(null)
+                        .subscriptionStartDatetime(start)
+                        .subscriptionEndDatetime(end)
+                        .creationDatetime(now)
+                        .build()))
+            .build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(FREE_TRIAL, actual.getSubscriptionStatus());
+    assertEquals(start, actual.getSubscription().getStart());
+    assertEquals(end, actual.getSubscription().getEnd());
+  }
+
+  @Test
+  void user_subscription_status_stays_free_trial_when_only_synthetic_subscription_exists() {
+    var now = now();
+    var trialEnd = now.plus(7, DAYS);
+    var plan = SubscriptionProduct.builder().id("plan_id").name("Essentiel").build();
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(
+            UserSubscription.builder()
+                .subscriptions(
+                    List.of(
+                        Subscription.builder()
+                            .active(true)
+                            .status(Subscription.SubscriptionStatus.ACTIVE)
+                            .startDatetime(now)
+                            .endDatetime(now.plus(30, DAYS))
+                            .build()))
+                .build());
+    var domain =
+        User.builder()
+            .roles(List.of())
+            .paymentMethodExists(false)
+            .subscriptionProducts(
+                List.of(
+                    UserSubscriptionProduct.builder()
+                        .id(randomUUID().toString())
+                        .subscriptionProduct(plan)
+                        .billingInterval(null)
+                        .subscriptionStartDatetime(now)
+                        .subscriptionEndDatetime(trialEnd)
+                        .creationDatetime(now)
+                        .build()))
+            .build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(FREE_TRIAL, actual.getSubscriptionStatus());
+    assertEquals(trialEnd, actual.getSubscription().getEnd());
+  }
+
+  @Test
+  void unpaid_invoices_take_precedence_over_an_active_free_trial() {
+    var now = now();
+    var trialEnd = now.plus(7, DAYS);
+    var stripeCustomerId = "cus_1";
+    var plan = SubscriptionProduct.builder().id("plan_id").name("Essentiel").build();
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(UserSubscription.builder().subscriptions(List.of()).build());
+    when(stripeInvoiceServiceMock.getUnpaidStripeInvoices(eq(stripeCustomerId), any()))
+        .thenReturn(List.of(new Invoice()));
+    var domain =
+        User.builder()
+            .roles(List.of())
+            .paymentMethodExists(false)
+            .userSubscriptionId(stripeCustomerId)
+            .subscriptionProducts(
+                List.of(
+                    UserSubscriptionProduct.builder()
+                        .id(randomUUID().toString())
+                        .subscriptionProduct(plan)
+                        .billingInterval(null)
+                        .subscriptionStartDatetime(now)
+                        .subscriptionEndDatetime(trialEnd)
+                        .creationDatetime(now)
+                        .build()))
+            .build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(UNPAID, actual.getSubscriptionStatus());
+  }
+
+  @Test
+  void user_subscription_status_is_active_when_subscribed_even_if_trial_not_finished() {
+    var now = now();
+    var trialEnd = now.plus(7, DAYS);
+    var subscriptionEnd = now.plus(30, DAYS);
+    var plan = SubscriptionProduct.builder().id("plan_id").name("Essentiel").build();
+    var userSubscriptionEligibleMock = mock(UserSubscriptionEligible.class);
+    when(userSubscriptionEligibleMock.hasFreeTrialPeriodActive()).thenReturn(false);
+    when(subscriptionEligibleJpaRepositoryMock.findByUserId(any()))
+        .thenReturn(Optional.of(userSubscriptionEligibleMock));
+    when(subscriptionServiceMock.getSubscriptionByUser(any()))
+        .thenReturn(
+            UserSubscription.builder()
+                .subscriptions(
+                    List.of(
+                        Subscription.builder()
+                            .e2Id("stripe_sub_id")
+                            .active(true)
+                            .status(Subscription.SubscriptionStatus.ACTIVE)
+                            .startDatetime(now)
+                            .endDatetime(subscriptionEnd)
+                            .build()))
+                .build());
+    var domain =
+        User.builder()
+            .roles(List.of())
+            .paymentMethodExists(true)
+            .subscriptionProducts(
+                List.of(
+                    UserSubscriptionProduct.builder()
+                        .id(randomUUID().toString())
+                        .subscriptionProduct(plan)
+                        .billingInterval(null)
+                        .subscriptionStartDatetime(now)
+                        .subscriptionEndDatetime(trialEnd)
+                        .creationDatetime(now)
+                        .build()))
+            .build();
+
+    var actual = subject.toRest(domain);
+
+    assertEquals(ACTIVE, actual.getSubscriptionStatus());
+    assertEquals(subscriptionEnd, actual.getSubscription().getEnd());
   }
 
   @Test

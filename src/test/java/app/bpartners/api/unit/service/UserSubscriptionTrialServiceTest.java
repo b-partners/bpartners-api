@@ -14,13 +14,18 @@ import app.bpartners.api.model.UserSubscriptionTrial;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ConflictException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.TrialIneligibilityReason;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionTrialJpaRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import app.bpartners.api.service.subscription.UserSubscriptionTrialService;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -110,5 +115,59 @@ class UserSubscriptionTrialServiceTest {
     verify(userSubscriptionProductService, never())
         .createTrialAssociation(any(), any(), any(), any());
     verify(creditGrantService, never()).grantTrialCredits(any(), any(), any());
+  }
+
+  private static SubscriptionProduct planWithTrialDays(String id, int trialPeriodDays) {
+    return SubscriptionProduct.builder().id(id).trialPeriodDays(trialPeriodDays).build();
+  }
+
+  @Test
+  void eligibility_reports_per_plan_reasons_when_user_has_no_active_subscription() {
+    when(subscriptionProductRepository.findAllByBillingTypeNotNull(any()))
+        .thenReturn(
+            List.of(
+                planWithTrialDays("eligible", 7),
+                planWithTrialDays("no_trial", 0),
+                planWithTrialDays("used", 7)));
+    when(userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
+            "user_id", "used"))
+        .thenReturn(true);
+
+    var byPlan =
+        subject.getTrialEligibility("user_id").stream()
+            .collect(
+                Collectors.toMap(
+                    app.bpartners.api.model.subscription.SubscriptionTrialEligibility
+                        ::subscriptionProductId,
+                    Function.identity()));
+
+    assertEquals(TrialIneligibilityReason.ELIGIBLE, byPlan.get("eligible").reason());
+    assertEquals(true, byPlan.get("eligible").eligible());
+    assertEquals(TrialIneligibilityReason.PLAN_HAS_NO_TRIAL, byPlan.get("no_trial").reason());
+    assertEquals(false, byPlan.get("no_trial").eligible());
+    assertEquals(TrialIneligibilityReason.TRIAL_ALREADY_USED, byPlan.get("used").reason());
+    assertEquals(false, byPlan.get("used").eligible());
+  }
+
+  @Test
+  void eligibility_is_already_subscribed_when_user_has_an_active_subscription() {
+    when(userSubscriptionProductService.findActiveUserSubscriptionProduct("user_id"))
+        .thenReturn(Optional.of(UserSubscriptionProduct.builder().id("usp_id").build()));
+    when(subscriptionProductRepository.findAllByBillingTypeNotNull(any()))
+        .thenReturn(List.of(planWithTrialDays("eligible", 7), planWithTrialDays("used", 7)));
+    when(userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
+            "user_id", "used"))
+        .thenReturn(true);
+
+    Map<String, TrialIneligibilityReason> byPlan =
+        subject.getTrialEligibility("user_id").stream()
+            .collect(
+                Collectors.toMap(
+                    app.bpartners.api.model.subscription.SubscriptionTrialEligibility
+                        ::subscriptionProductId,
+                    app.bpartners.api.model.subscription.SubscriptionTrialEligibility::reason));
+
+    assertEquals(TrialIneligibilityReason.ALREADY_SUBSCRIBED, byPlan.get("eligible"));
+    assertEquals(TrialIneligibilityReason.TRIAL_ALREADY_USED, byPlan.get("used"));
   }
 }

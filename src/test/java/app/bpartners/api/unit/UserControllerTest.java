@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.controller.UserController;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionTrialEligibilityRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionTrialRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserSubscriptionCommitmentRestMapper;
@@ -42,6 +43,7 @@ class UserControllerTest {
   UserSubscriptionPaymentMethodRestMapper userSubscriptionPaymentMethodRestMapperMock = mock();
   UserSubscriptionTrialService userSubscriptionTrialServiceMock = mock();
   SubscriptionTrialRestMapper subscriptionTrialRestMapperMock = mock();
+  SubscriptionTrialEligibilityRestMapper subscriptionTrialEligibilityRestMapperMock = mock();
 
   UserController subject =
       new UserController(
@@ -57,7 +59,8 @@ class UserControllerTest {
           stripePaymentMethodServiceMock,
           userSubscriptionPaymentMethodRestMapperMock,
           userSubscriptionTrialServiceMock,
-          subscriptionTrialRestMapperMock);
+          subscriptionTrialRestMapperMock,
+          subscriptionTrialEligibilityRestMapperMock);
 
   @Test
   void cancel_user_subscription_without_cancellation_type() {

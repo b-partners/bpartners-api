@@ -1,5 +1,9 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.model.subscription.TrialIneligibilityReason.ALREADY_SUBSCRIBED;
+import static app.bpartners.api.model.subscription.TrialIneligibilityReason.ELIGIBLE;
+import static app.bpartners.api.model.subscription.TrialIneligibilityReason.PLAN_HAS_NO_TRIAL;
+import static app.bpartners.api.model.subscription.TrialIneligibilityReason.TRIAL_ALREADY_USED;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
@@ -9,12 +13,15 @@ import app.bpartners.api.model.exception.ConflictException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.StartedSubscriptionTrial;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.SubscriptionTrialEligibility;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionTrialJpaRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import java.time.ZoneId;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +30,37 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UserSubscriptionTrialService {
   private static final ZoneId ZONE_ID_OF_EUROPE_PARIS = ZoneId.of("Europe/Paris");
+  private static final int SUBSCRIBABLE_PLANS_PAGE_SIZE = 100;
 
   private final UserSubscriptionTrialJpaRepository userSubscriptionTrialJpaRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final UserSubscriptionProductService userSubscriptionProductService;
   private final CreditGrantService creditGrantService;
+
+  public List<SubscriptionTrialEligibility> getTrialEligibility(String userId) {
+    var hasActiveSubscription =
+        userSubscriptionProductService.findActiveUserSubscriptionProduct(userId).isPresent();
+    return subscriptionProductRepository
+        .findAllByBillingTypeNotNull(PageRequest.of(0, SUBSCRIBABLE_PLANS_PAGE_SIZE))
+        .stream()
+        .map(plan -> eligibilityOf(userId, plan, hasActiveSubscription))
+        .toList();
+  }
+
+  private SubscriptionTrialEligibility eligibilityOf(
+      String userId, SubscriptionProduct plan, boolean hasActiveSubscription) {
+    if (!plan.offersFreeTrial()) {
+      return SubscriptionTrialEligibility.of(plan.getId(), PLAN_HAS_NO_TRIAL);
+    }
+    if (userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
+        userId, plan.getId())) {
+      return SubscriptionTrialEligibility.of(plan.getId(), TRIAL_ALREADY_USED);
+    }
+    if (hasActiveSubscription) {
+      return SubscriptionTrialEligibility.of(plan.getId(), ALREADY_SUBSCRIBED);
+    }
+    return SubscriptionTrialEligibility.of(plan.getId(), ELIGIBLE);
+  }
 
   @Transactional
   public StartedSubscriptionTrial startTrial(String userId, String subscriptionProductId) {

@@ -441,6 +441,44 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  getUserSubscriptionTrialEligibility:
+    get:
+      tags:
+        - User Subscription
+      summary: Whether the user can start a free trial, per subscription plan
+      description: |
+        Read-only, side-effect-free view of the user's free-trial eligibility for every subscribable
+        plan. Lets a consumer decide whether to show a "start free trial" call to action without
+        attempting POST /users/{uId}/subscriptionTrial (which would actually start the trial). A plan
+        is ELIGIBLE only when it offers a trial, the user has not already used that plan's trial, and
+        the user has no active subscription.
+      operationId: getUserSubscriptionTrialEligibility
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      responses:
+        200:
+          description: Free-trial eligibility for each subscribable plan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionTrialEligibility'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   cancelUserSubscription:
     post:
       tags:
@@ -549,6 +587,28 @@ components:
           type: integer
           format: int64
           description: Credits granted for the trial (grantedAnalyses * creditCostPerAnalysis).
+    SubscriptionTrialEligibility:
+      type: object
+      description: Whether the user can start the free trial of a given plan, and why not otherwise.
+      properties:
+        subscriptionPlanIdentifier:
+          type: string
+        eligible:
+          type: boolean
+          description: true only when reason is ELIGIBLE.
+        reason:
+          $ref: '#/components/schemas/SubscriptionTrialIneligibilityReason'
+    SubscriptionTrialIneligibilityReason:
+      type: string
+      description: |
+        ELIGIBLE means the trial can be started. PLAN_HAS_NO_TRIAL: the plan offers no free trial.
+        TRIAL_ALREADY_USED: the user already used this plan's one-time trial. ALREADY_SUBSCRIBED:
+        the user has an active subscription, so no trial is offered.
+      enum:
+        - ELIGIBLE
+        - PLAN_HAS_NO_TRIAL
+        - TRIAL_ALREADY_USED
+        - ALREADY_SUBSCRIBED
     CreateSubscriptionInitiation:
       type: object
       properties:

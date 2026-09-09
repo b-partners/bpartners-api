@@ -75,6 +75,31 @@ public class UserSubscriptionProductService {
     return created;
   }
 
+  @Transactional
+  public UserSubscriptionProduct createTrialAssociation(
+      String userId, SubscriptionProduct plan, Instant startDatetime, Instant endDatetime) {
+    var created =
+        userSubscriptionProductJpaRepository.save(
+            UserSubscriptionProduct.builder()
+                .id(randomUUID().toString())
+                .userId(userId)
+                .subscriptionProduct(plan)
+                .billingInterval(null)
+                .subscriptionStartDatetime(startDatetime)
+                .subscriptionEndDatetime(endDatetime)
+                .creationDatetime(now())
+                .build());
+    log.info(
+        "Created trial UserSubscriptionProduct(id={}) for User(id={}) with SubscriptionProduct("
+            + "id={}) starting on {} and ending on {}",
+        created.getId(),
+        userId,
+        plan.getId(),
+        startDatetime,
+        endDatetime);
+    return created;
+  }
+
   public Optional<SubscriptionProduct> findActiveSubscriptionProduct(String userId) {
     return findActiveUserSubscriptionProduct(userId)
         .map(UserSubscriptionProduct::getSubscriptionProduct);

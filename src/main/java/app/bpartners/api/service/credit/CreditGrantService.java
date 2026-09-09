@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CreditGrantService {
   private static final String DEFAULT_GRANT_LABEL = "Crédits inclus dans l'abonnement";
+  private static final String DEFAULT_TRIAL_GRANT_LABEL = "Crédits d'essai";
   private static final String TRANSITIONAL_GRANT_LABEL =
       "Crédits offerts pendant la transition vers le prépayé";
   private static final Instant TRANSITIONAL_CREDITS_EXPIRATION =
@@ -110,6 +111,46 @@ public class CreditGrantService {
         billingPeriodStart,
         granted.getId());
     return Optional.of(granted);
+  }
+
+  public Optional<CreditTransaction> grantTrialCredits(
+      String userId, SubscriptionProduct plan, Instant expirationDatetime) {
+    var trialCredits = plan.trialCreditsGranted();
+    if (trialCredits <= 0) {
+      log.info(
+          "SubscriptionProduct(id={}) grants no trial credit, nothing granted to User(id={})",
+          plan.getId(),
+          userId);
+      return Optional.empty();
+    }
+    var granted =
+        creditLedgerService.append(
+            CreditTransaction.builder()
+                .userId(userId)
+                .type(SUBSCRIPTION_GRANT)
+                .movementType(CREDIT)
+                .credits(trialCredits)
+                .label(trialGrantLabel(plan))
+                .subscriptionProductId(plan.getId())
+                .grantPeriodStart(null)
+                .expirationDatetime(expirationDatetime)
+                .build());
+    log.info(
+        "Granted {} trial credits ({} analyses) to User(id={}) from SubscriptionProduct(id={}),"
+            + " expiring on {}, CreditTransaction.id={}",
+        trialCredits,
+        plan.trialAnalysisGrantedOrDefault(),
+        userId,
+        plan.getId(),
+        expirationDatetime,
+        granted.getId());
+    return Optional.of(granted);
+  }
+
+  private String trialGrantLabel(SubscriptionProduct plan) {
+    return plan.getName() == null
+        ? DEFAULT_TRIAL_GRANT_LABEL
+        : DEFAULT_TRIAL_GRANT_LABEL + " " + plan.getName();
   }
 
   private boolean alreadyGranted(

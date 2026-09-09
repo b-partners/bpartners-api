@@ -91,6 +91,7 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/users/*/billingPortal", POST.name()),
                         new AntPathRequestMatcher("/users/*/paymentMethods", POST.name()),
                         new AntPathRequestMatcher("/users/*/subscriptionInitiation", POST.name()),
+                        new AntPathRequestMatcher("/users/*/subscriptionTrial", POST.name()),
                         new AntPathRequestMatcher("/webhooks/stripe", POST.name()),
                         new AntPathRequestMatcher("/subscriptionPlans", GET.name()),
                         new AntPathRequestMatcher("/**", OPTIONS.toString()),
@@ -133,6 +134,9 @@ public class SecurityConf {
                     .permitAll()
                     // Authentication check done in user controller for subscription status
                     .requestMatchers(POST, "/users/*/subscriptionInitiation")
+                    .permitAll()
+                    // Authentication check done in user controller for the free trial
+                    .requestMatchers(POST, "/users/*/subscriptionTrial")
                     .permitAll()
                     .requestMatchers(POST, "/webhooks/stripe")
                     .permitAll()

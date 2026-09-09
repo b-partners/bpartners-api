@@ -35,6 +35,7 @@ public class SubscriptionPlanRestMapper {
         .freeUsageThreshold(domain.getFreeUsageThreshold())
         .overageUnitPriceInCents(domain.getOverageUnitPriceInCents())
         .trialPeriodDays(domain.getTrialPeriodDays())
+        .trialAnalysisGranted(domain.getTrialAnalysisGranted())
         .isMostChosen(domain.isMostChosen())
         .isDeprecated(domain.isDeprecated())
         .displayPosition(domain.getDisplayPosition())

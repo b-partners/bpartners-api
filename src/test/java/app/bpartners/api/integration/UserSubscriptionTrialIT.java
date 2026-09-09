@@ -137,6 +137,42 @@ class UserSubscriptionTrialIT extends MockedThirdParties {
     assertEquals(409, conflict.getCode());
   }
 
+  @SneakyThrows
+  @Test
+  void reports_trial_eligibility_per_plan_before_and_after_starting_a_trial() {
+    var before = joeUserSubscriptionApi().getUserSubscriptionTrialEligibility(JOE_DOE_ID);
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.SubscriptionTrialIneligibilityReason.ELIGIBLE,
+        reasonFor(before, ESSENTIAL_PLAN_ID));
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.SubscriptionTrialIneligibilityReason
+            .PLAN_HAS_NO_TRIAL,
+        reasonFor(before, USAGE_BASED_PLAN_ID));
+
+    joeUserSubscriptionApi()
+        .startUserSubscriptionTrial(
+            JOE_DOE_ID,
+            new CreateSubscriptionTrial().subscriptionPlanIdentifier(ESSENTIAL_PLAN_ID));
+
+    var after = joeUserSubscriptionApi().getUserSubscriptionTrialEligibility(JOE_DOE_ID);
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.SubscriptionTrialIneligibilityReason
+            .TRIAL_ALREADY_USED,
+        reasonFor(after, ESSENTIAL_PLAN_ID));
+  }
+
+  private static app.bpartners.api.endpoint.rest.model.SubscriptionTrialIneligibilityReason
+      reasonFor(
+          java.util.List<app.bpartners.api.endpoint.rest.model.SubscriptionTrialEligibility>
+              eligibilities,
+          String planId) {
+    return eligibilities.stream()
+        .filter(e -> planId.equals(e.getSubscriptionPlanIdentifier()))
+        .findFirst()
+        .orElseThrow()
+        .getReason();
+  }
+
   @Test
   void rejects_trial_on_a_plan_without_free_trial() {
     var badRequest =

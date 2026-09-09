@@ -90,8 +90,7 @@ class ExportAreaPictureAnnotationPdfLayoutTest {
                     .showLlmSummary(false));
 
     byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), annotation, tallImage, tallImageBytes));
+        assertDoesNotThrow(() -> subject.process(user(), annotation, tallImage, tallImageBytes));
 
     try (PDDocument document = Loader.loadPDF(pdfBytes)) {
       assertEquals(

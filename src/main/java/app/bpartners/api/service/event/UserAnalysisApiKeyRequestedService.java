@@ -10,9 +10,11 @@ import app.bpartners.api.service.user.UserAnalysisApiKeyService;
 import java.util.List;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserAnalysisApiKeyRequestedService implements Consumer<UserAnalysisApiKeyRequested> {
   private final UserRepository userRepository;
@@ -27,12 +29,12 @@ public class UserAnalysisApiKeyRequestedService implements Consumer<UserAnalysis
 
       user.addUserAnalysisApiKey(analysisApiKey);
 
-      var savedUserWithAnalysisKey =
-          userRepository.save(user.toBuilder().apiKey(analysisApiKey.getApiKey()).build());
+      var savedUserWithAnalysisKey = userRepository.save(user);
 
       eventProducer.accept(
           List.of(new UserOnboardedNotificationRequested(savedUserWithAnalysisKey.getId())));
     } catch (RuntimeException e) {
+      log.error("Unable to create User(id={}) analysis api key", user.getId(), e);
       eventProducer.accept(List.of(new UserOnboardedNotificationRequested(user.getId())));
     }
   }

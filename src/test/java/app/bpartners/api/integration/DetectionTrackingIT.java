@@ -138,7 +138,7 @@ class DetectionTrackingIT extends MockedThirdParties {
 
   @SneakyThrows
   @Test
-  void no_credit_is_debited_while_free_trial_is_active() {
+  void credit_is_debited_even_while_legacy_free_trial_period_is_active() {
     when(userMock.isPaymentMethodExists()).thenReturn(true);
     userSubscriptionEligibleRepository.save(
         UserSubscriptionEligible.builder()
@@ -154,8 +154,8 @@ class DetectionTrackingIT extends MockedThirdParties {
     api.registerDetection(restJoeDoeUser().getId(), someCreateDetectionTracking(now));
 
     verify(subscriptionService).addConsumption(any());
-    assertTrue(consumptionsOfJoeDoe().isEmpty());
-    assertEquals(100L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+    assertEquals(1, consumptionsOfJoeDoe().size());
+    assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
   }
 
   @SneakyThrows

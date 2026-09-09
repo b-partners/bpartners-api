@@ -412,6 +412,60 @@ class SubscriptionServiceTest {
   }
 
   @Test
+  void get_subscription_product_by_e2id_preserves_feature_sections_and_comparison_entries() {
+    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
+        MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {
+      var domainProductId = "planId";
+      var featureSections =
+          List.of(
+              SubscriptionProductFeatureSection.builder()
+                  .title("Section title")
+                  .items(List.of(SubscriptionProductFeatureItem.builder().text("item-a").build()))
+                  .build());
+      var comparisonEntries =
+          List.of(
+              SubscriptionProductComparisonEntry.builder()
+                  .sectionTitle("Comparison section")
+                  .label("Comparison label")
+                  .build());
+      var existing =
+          SubscriptionProduct.builder()
+              .id(domainProductId)
+              .e2Id("stripeProductId")
+              .vatPercent(2000L)
+              .featureSections(featureSections)
+              .comparisonEntries(comparisonEntries)
+              .build();
+      when(subscriptionProductRepositoryMock.findById(domainProductId))
+          .thenReturn(Optional.of(existing));
+      var product = new Product();
+      product.setDefaultPrice("priceId");
+      product.setMarketingFeatures(List.of());
+      product.setImages(List.of());
+      product.setCreated(1L);
+      var price = new Price();
+      var recurring = new Price.Recurring();
+      recurring.setInterval("month");
+      price.setRecurring(recurring);
+      price.setUnitAmount(5880L);
+      productMockedStatic.when(() -> Product.retrieve(any())).thenReturn(product);
+      priceMockedStatic.when(() -> Price.retrieve(any())).thenReturn(price);
+      when(subscriptionProductRepositoryMock.save(any()))
+          .thenAnswer(invocation -> invocation.getArgument(0));
+
+      subject.getSubscriptionProductByE2Id(domainProductId, "stripeProductId");
+
+      var captor = ArgumentCaptor.forClass(SubscriptionProduct.class);
+      verify(subscriptionProductRepositoryMock).save(captor.capture());
+      var saved = captor.getValue();
+      // Stripe carries neither feature sections nor comparison entries, so a re-mirror must keep
+      // the catalog-defined ones instead of nulling them out.
+      assertEquals(featureSections, saved.getFeatureSections());
+      assertEquals(comparisonEntries, saved.getComparisonEntries());
+    }
+  }
+
+  @Test
   void get_subscription_product_by_e2id_reads_vat_from_stripe_metadata() {
     try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class);
         MockedStatic<Price> priceMockedStatic = mockStatic(Price.class)) {

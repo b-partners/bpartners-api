@@ -396,7 +396,9 @@ public class SubscriptionService {
                   .deprecated(existing.isDeprecated())
                   .displayPosition(existing.getDisplayPosition())
                   .includedSubscriptionProductFeatures(
-                      existing.getIncludedSubscriptionProductFeatures());
+                      existing.getIncludedSubscriptionProductFeatures())
+                  .featureSections(existing.getFeatureSections())
+                  .comparisonEntries(existing.getComparisonEntries());
               if (createdStripeProduct.getMarketingFeatures() == null
                   || createdStripeProduct.getMarketingFeatures().isEmpty()) {
                 subscriptionProductToPersistBuilder.features(existing.getFeatures());

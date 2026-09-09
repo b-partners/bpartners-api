@@ -2,6 +2,7 @@ package app.bpartners.api.service.event;
 
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -24,40 +25,57 @@ class UserAnalysisApiKeyRequestedServiceTest {
 
   @Test
   void does_not_throws_exception_and_persist_analysis_key_through_user_repository() {
-    String userIdentifier = randomUUID().toString();
-    List<UserAnalysisApiKey> userAnalysisApiKeysMock = mock();
-    UserAnalysisApiKey apiKeyMock = mock();
+    var userIdentifier = randomUUID().toString();
+    var dashboardApiKey = randomUUID().toString();
     var generatedAnalysisApiKey = randomUUID().toString();
-    var userMockWithApiKey = mock(User.class);
-    var userMock = mock(User.class);
-    var userMockBuilder = mock(User.UserBuilder.class);
-    var userMockBuilderWithApiKey = mock(User.UserBuilder.class);
-    var eventMock = mock(UserAnalysisApiKeyRequested.class);
-    when(userMock.getId()).thenReturn(userIdentifier);
-    when(userMock.toBuilder()).thenReturn(userMockBuilder);
-    when(userMockBuilder.apiKey(generatedAnalysisApiKey)).thenReturn(userMockBuilderWithApiKey);
+    var user = User.builder().id(userIdentifier).apiKey(dashboardApiKey).build();
+    var analysisApiKey = UserAnalysisApiKey.builder().apiKey(generatedAnalysisApiKey).build();
+    when(serviceMock.getAnalysisApiKey(any())).thenReturn(analysisApiKey);
+    when(userRepositoryMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-    when(userRepositoryMock.save(userMock)).thenReturn(userMock);
-    when(userAnalysisApiKeysMock.add(apiKeyMock)).thenReturn(true);
-    when(apiKeyMock.getApiKey()).thenReturn(generatedAnalysisApiKey);
-    when(userMock.getAnalysisApiKeys()).thenReturn(userAnalysisApiKeysMock);
-    when(eventMock.getUser()).thenReturn(userMock);
-    when(userMock.toBuilder()).thenReturn(userMockBuilder);
-    when(userMockBuilder.build()).thenReturn(userMock);
-    when(userMockBuilderWithApiKey.build()).thenReturn(userMockWithApiKey);
-    when(serviceMock.getAnalysisApiKey(userMock)).thenReturn(apiKeyMock);
+    assertDoesNotThrow(() -> subject.accept(new UserAnalysisApiKeyRequested(user)));
 
-    assertDoesNotThrow(() -> subject.accept(eventMock));
-
-    verify(eventMock).getUser();
-    verify(serviceMock).getAnalysisApiKey(userMock);
-    verify(userRepositoryMock).save(userMockWithApiKey);
-    verify(userMock).addUserAnalysisApiKey(apiKeyMock);
+    var savedUserCaptor = ArgumentCaptor.forClass(User.class);
+    verify(userRepositoryMock).save(savedUserCaptor.capture());
+    var savedUser = savedUserCaptor.getValue();
+    assertEquals(userIdentifier, savedUser.getId());
+    assertEquals(List.of(analysisApiKey), savedUser.getAnalysisApiKeys());
     var listCaptor = ArgumentCaptor.forClass(List.class);
     verify(eventProducerMock).accept(listCaptor.capture());
     var userOnboardedNotificationRequested =
         (UserOnboardedNotificationRequested) listCaptor.getValue().getFirst();
     assertEquals(
         new UserOnboardedNotificationRequested(userIdentifier), userOnboardedNotificationRequested);
+  }
+
+  @Test
+  void keeps_user_dashboard_api_key_when_analysis_key_is_created() {
+    var dashboardApiKey = randomUUID().toString();
+    var user = User.builder().id(randomUUID().toString()).apiKey(dashboardApiKey).build();
+    var analysisApiKey = UserAnalysisApiKey.builder().apiKey(randomUUID().toString()).build();
+    when(serviceMock.getAnalysisApiKey(any())).thenReturn(analysisApiKey);
+    when(userRepositoryMock.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    subject.accept(new UserAnalysisApiKeyRequested(user));
+
+    var savedUserCaptor = ArgumentCaptor.forClass(User.class);
+    verify(userRepositoryMock).save(savedUserCaptor.capture());
+    assertEquals(dashboardApiKey, savedUserCaptor.getValue().getApiKey());
+  }
+
+  @Test
+  void notifies_onboarding_even_when_analysis_key_creation_fails() {
+    var userIdentifier = randomUUID().toString();
+    var user = User.builder().id(userIdentifier).apiKey(randomUUID().toString()).build();
+    when(serviceMock.getAnalysisApiKey(any())).thenThrow(new RuntimeException("api down"));
+
+    assertDoesNotThrow(() -> subject.accept(new UserAnalysisApiKeyRequested(user)));
+
+    verify(userRepositoryMock, never()).save(any());
+    var listCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducerMock).accept(listCaptor.capture());
+    assertEquals(
+        new UserOnboardedNotificationRequested(userIdentifier),
+        (UserOnboardedNotificationRequested) listCaptor.getValue().getFirst());
   }
 }

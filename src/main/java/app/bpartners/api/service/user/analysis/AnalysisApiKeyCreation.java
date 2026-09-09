@@ -6,6 +6,7 @@ import java.util.List;
 public record AnalysisApiKeyCreation(
     String consumerName,
     String consumerEmail,
+    String dashboardApiKey,
     ConsumerType consumerType,
     Double maxSurface,
     List<DetectableObjectModel> allowedModels,

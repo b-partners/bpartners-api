@@ -113,9 +113,18 @@ public class AnalysisApiKeyApi {
   }
 
   private AnalysisApiKeyCreation toAnalysisApiKeyCreation(User user) {
+    var dashboardApiKey = user.getApiKey();
+    if (dashboardApiKey == null) {
+      throw new ApiException(
+          SERVER_EXCEPTION,
+          "User(id="
+              + user.getId()
+              + ") has no dashboard api key to associate to its analysis api key");
+    }
     return new AnalysisApiKeyCreation(
         user.getName(),
         user.getEmail(),
+        dashboardApiKey,
         DEFAULT_CONSUMER_TYPE,
         DEFAULT_MAX_SURFACE,
         DEFAULT_ALLOWED_MODELS,

@@ -388,6 +388,7 @@ public class SubscriptionService {
                   .creditCostPerAnalysis(existing.getCreditCostPerAnalysis())
                   .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
                   .trialPeriodDays(existing.getTrialPeriodDays())
+                  .trialAnalysisGranted(existing.getTrialAnalysisGranted())
                   .annualDiscountPercent(existing.getAnnualDiscountPercent())
                   .annualE2PriceId(existing.getAnnualE2PriceId())
                   .annualPriceInCentsWithVat(existing.getAnnualPriceInCentsWithVat())

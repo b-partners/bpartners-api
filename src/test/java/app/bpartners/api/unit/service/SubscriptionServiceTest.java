@@ -327,6 +327,7 @@ class SubscriptionServiceTest {
               .vatPercent(2000L)
               .overageUnitPriceInCents(200L)
               .trialPeriodDays(7)
+              .trialAnalysisGranted(2)
               .features(List.of("feature-a", "feature-b"))
               .mostChosen(true)
               .deprecated(true)
@@ -359,6 +360,7 @@ class SubscriptionServiceTest {
       assertEquals(Long.valueOf(20L), saved.getFreeUsageThreshold());
       assertEquals(Long.valueOf(200L), saved.getOverageUnitPriceInCents());
       assertEquals(Integer.valueOf(7), saved.getTrialPeriodDays());
+      assertEquals(Integer.valueOf(2), saved.getTrialAnalysisGranted());
       assertEquals(Long.valueOf(5880L), saved.getPriceInCentsWithVat());
       // Catalog-only columns must survive a re-mirror even though Stripe does not carry them.
       assertTrue(saved.isMostChosen());

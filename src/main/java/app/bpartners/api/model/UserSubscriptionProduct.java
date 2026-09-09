@@ -37,4 +37,8 @@ public class UserSubscriptionProduct {
 
   @Column(updatable = false)
   private Instant creationDatetime;
+
+  public boolean isTrial() {
+    return billingInterval == null && subscriptionEndDatetime != null;
+  }
 }

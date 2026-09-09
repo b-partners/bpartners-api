@@ -399,6 +399,48 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  startUserSubscriptionTrial:
+    post:
+      tags:
+        - User Subscription
+      summary: Start a free trial on a subscription plan
+      description: |
+        Starts the one-time free trial of the given plan for the user, without any payment. It
+        grants the plan's trial analyses as credits that expire at the end of the trial period, and
+        opens an active subscription that ends when the trial expires. A trial can be started only
+        once per user and per plan, and only when the user has no active subscription.
+      operationId: startUserSubscriptionTrial
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubscriptionTrial'
+      responses:
+        200:
+          description: The started free trial
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionTrial'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        409:
+          $ref: './api.yml#/components/responses/409'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   cancelUserSubscription:
     post:
       tags:
@@ -481,6 +523,32 @@ components:
       type: string
       enum:
         - UNIT
+    CreateSubscriptionTrial:
+      type: object
+      properties:
+        subscriptionPlanIdentifier:
+          type: string
+          description: Identifier of the plan to try (see GET /subscriptionPlans).
+    SubscriptionTrial:
+      type: object
+      description: A free trial started by a user on a subscription plan.
+      properties:
+        subscriptionPlanIdentifier:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+          description: Instant the trial ends; its granted credits expire at the same moment.
+        grantedAnalyses:
+          type: integer
+          description: Number of analyses granted for the trial.
+        grantedCredits:
+          type: integer
+          format: int64
+          description: Credits granted for the trial (grantedAnalyses * creditCostPerAnalysis).
     CreateSubscriptionInitiation:
       type: object
       properties:
@@ -672,6 +740,16 @@ components:
                 Removed once every consumer reads the prepaid credit fields.
             trialPeriodDays:
               type: integer
+              description: |
+                Length, in days, of the one-time free trial this plan grants. A trial is granted
+                only once per user and per plan, the first time the user subscribes to it. Zero or
+                null means the plan has no trial.
+            trialAnalysisGranted:
+              type: integer
+              description: |
+                Number of analyses offered during the free trial. They are converted to credits
+                (analyses * creditCostPerAnalysis) at the start of the trial and expire at the end
+                of the trial period.
             annualDiscountPercent:
               type: integer
               description: Discount, in percent, on the yearly prepaid fixed price.

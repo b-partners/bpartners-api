@@ -67,7 +67,7 @@ public class User implements Serializable {
         .orElse(null);
   }
 
-  private Optional<UserSubscriptionProduct> getActualUserSubscriptionProduct() {
+  public Optional<UserSubscriptionProduct> getActualUserSubscriptionProduct() {
     if (subscriptionProducts == null || subscriptionProducts.isEmpty()) {
       return Optional.empty();
     }

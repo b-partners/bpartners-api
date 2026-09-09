@@ -30,6 +30,8 @@ public class SubscriptionProduct {
 
   public static final long DEFAULT_INCLUDED_CREDITS_PER_BILLING_PERIOD = 0L;
 
+  public static final long DEFAULT_TRIAL_ANALYSIS_GRANTED = 0L;
+
   public static final long DEFAULT_VAT_PERCENT = 2000L;
 
   @Id private String id;
@@ -89,6 +91,9 @@ public class SubscriptionProduct {
 
   @Column(name = "trial_period_days")
   private Integer trialPeriodDays;
+
+  @Column(name = "trial_analysis_granted")
+  private Integer trialAnalysisGranted;
 
   @Column(name = "annual_discount_percent")
   private Integer annualDiscountPercent;
@@ -209,5 +214,21 @@ public class SubscriptionProduct {
     return includedCreditsPerBillingPeriod == null
         ? DEFAULT_INCLUDED_CREDITS_PER_BILLING_PERIOD
         : includedCreditsPerBillingPeriod;
+  }
+
+  public long trialAnalysisGrantedOrDefault() {
+    return trialAnalysisGranted == null ? DEFAULT_TRIAL_ANALYSIS_GRANTED : trialAnalysisGranted;
+  }
+
+  public int trialPeriodDaysOrZero() {
+    return trialPeriodDays == null ? 0 : trialPeriodDays;
+  }
+
+  public boolean offersFreeTrial() {
+    return trialPeriodDaysOrZero() > 0;
+  }
+
+  public long trialCreditsGranted() {
+    return trialAnalysisGrantedOrDefault() * creditCostPerAnalysisOrDefault();
   }
 }

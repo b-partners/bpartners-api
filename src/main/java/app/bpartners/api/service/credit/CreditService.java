@@ -156,12 +156,18 @@ public class CreditService {
   }
 
   private Instant nextGrantDatetime(String userId) {
-    return activePlan(userId).isPresent() ? temporalUtils.startOfNextMonthInstant() : null;
+    return activeUserSubscriptionProduct(userId).filter(product -> !product.isTrial()).isPresent()
+        ? temporalUtils.startOfNextMonthInstant()
+        : null;
+  }
+
+  private Optional<UserSubscriptionProduct> activeUserSubscriptionProduct(String userId) {
+    return userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now()).stream()
+        .findFirst();
   }
 
   private Optional<SubscriptionProduct> activePlan(String userId) {
-    return userSubscriptionProductJpaRepository.findAllActiveByUserId(userId, now()).stream()
-        .findFirst()
+    return activeUserSubscriptionProduct(userId)
         .map(UserSubscriptionProduct::getSubscriptionProduct);
   }
 

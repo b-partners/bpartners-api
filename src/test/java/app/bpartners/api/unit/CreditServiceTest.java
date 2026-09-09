@@ -235,6 +235,23 @@ class CreditServiceTest {
   }
 
   @Test
+  void get_credit_balance_has_no_next_grant_when_active_product_is_a_free_trial() {
+    when(creditTransactionRepository.findAllByUserId("user_id")).thenReturn(List.of());
+    when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
+        .thenReturn(
+            List.of(
+                UserSubscriptionProduct.builder()
+                    .subscriptionProduct(SubscriptionProduct.builder().id("plan_id").build())
+                    .billingInterval(null)
+                    .subscriptionEndDatetime(Instant.now().plus(7, DAYS))
+                    .build()));
+
+    var actual = subject.getCreditBalance("user_id");
+
+    assertNull(actual.getNextGrantDatetime());
+  }
+
+  @Test
   void consume_roof_analysis_debits_plan_cost_and_appends_consumption() {
     when(userSubscriptionProductJpaRepository.findAllActiveByUserId(eq("user_id"), any()))
         .thenReturn(

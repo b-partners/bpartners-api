@@ -148,6 +148,48 @@ class CreditGrantServiceTest {
   }
 
   @Test
+  void grants_trial_credits_converted_from_analyses_expiring_at_trial_end() {
+    var trialPlan =
+        SubscriptionProduct.builder()
+            .id("plan_id")
+            .name("Essentiel")
+            .trialAnalysisGranted(2)
+            .creditCostPerAnalysis(3L)
+            .build();
+    var expiresAt = Instant.parse("2026-09-16T21:59:59Z");
+
+    var actual = subject.grantTrialCredits("user_id", trialPlan, expiresAt);
+
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+    verify(creditLedgerService).append(captor.capture());
+    var appended = captor.getValue();
+    assertTrue(actual.isPresent());
+    assertEquals("user_id", appended.getUserId());
+    assertEquals(SUBSCRIPTION_GRANT, appended.getType());
+    assertEquals(CREDIT, appended.getMovementType());
+    assertEquals(6L, appended.getCredits());
+    assertEquals("Crédits d'essai Essentiel", appended.getLabel());
+    assertEquals("plan_id", appended.getSubscriptionProductId());
+    assertNull(appended.getGrantPeriodStart());
+    assertEquals(expiresAt, appended.getExpirationDatetime());
+  }
+
+  @Test
+  void grants_no_trial_credits_when_plan_grants_zero_analysis() {
+    var trialPlan =
+        SubscriptionProduct.builder()
+            .id("plan_id")
+            .name("Essentiel")
+            .trialAnalysisGranted(0)
+            .build();
+
+    var actual = subject.grantTrialCredits("user_id", trialPlan, now());
+
+    assertTrue(actual.isEmpty());
+    verify(creditLedgerService, never()).append(any());
+  }
+
+  @Test
   void grants_no_transitional_credits_when_amount_is_not_positive() {
     var actual = subject.grantTransitionalCredits("user_id", 0L);
 

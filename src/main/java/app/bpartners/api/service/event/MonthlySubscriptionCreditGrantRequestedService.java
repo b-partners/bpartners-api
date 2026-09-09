@@ -19,11 +19,16 @@ public class MonthlySubscriptionCreditGrantRequestedService
   @Override
   public void accept(MonthlySubscriptionCreditGrantRequested event) {
     var userId = event.getUserId();
-    var activePlan = userSubscriptionProductService.findActiveSubscriptionProduct(userId);
-    if (activePlan.isEmpty()) {
+    var activeProduct = userSubscriptionProductService.findActiveUserSubscriptionProduct(userId);
+    if (activeProduct.isEmpty()) {
       log.info("User(id={}) has no active subscription plan anymore, skipping grant", userId);
       return;
     }
-    creditGrantService.grantIncludedCredits(userId, activePlan.get());
+    if (activeProduct.get().isTrial()) {
+      log.info(
+          "User(id={}) is on a free trial, no recurring subscription credit is granted", userId);
+      return;
+    }
+    creditGrantService.grantIncludedCredits(userId, activeProduct.get().getSubscriptionProduct());
   }
 }

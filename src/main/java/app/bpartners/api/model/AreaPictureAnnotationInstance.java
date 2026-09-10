@@ -52,6 +52,8 @@ public class AreaPictureAnnotationInstance {
       Double height,
       Double globalRateValue,
       String revetement1,
-      String revetement2)
+      String revetement2,
+      String mutation,
+      String fireRisk)
       implements Serializable {}
 }

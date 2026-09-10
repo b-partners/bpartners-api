@@ -123,7 +123,9 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .revetement1("TUILES")
                 .revetement2("AUTRES")
                 .wearness(PARTIAL)
-                .wearLevel(100.0));
+                .wearLevel(100.0)
+                .mutation("deterioration")
+                .fireRisk("MODERE"));
   }
 
   static AreaPictureAnnotationInstance areaPictureAnnotationInstance2() {

@@ -30,6 +30,8 @@ public class AreaPictureAnnotationInstanceMapper {
             .revetement2(entity.getRevetement2())
             .revetement1(entity.getRevetement1())
             .height(entity.getHeight())
+            .mutation(entity.getMutation())
+            .fireRisk(entity.getFireRisk())
             .build();
     return AreaPictureAnnotationInstance.builder()
         .id(entity.getId())
@@ -69,6 +71,8 @@ public class AreaPictureAnnotationInstanceMapper {
         .height(metadata.height())
         .revetement1(metadata.revetement1())
         .revetement2(metadata.revetement2())
+        .mutation(metadata.mutation())
+        .fireRisk(metadata.fireRisk())
         .build();
   }
 }

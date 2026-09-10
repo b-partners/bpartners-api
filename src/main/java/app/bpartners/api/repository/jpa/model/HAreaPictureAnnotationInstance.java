@@ -54,4 +54,7 @@ public class HAreaPictureAnnotationInstance {
 
   @Column(name = "revetement_2")
   private String revetement2;
+
+  private String mutation;
+  private String fireRisk;
 }

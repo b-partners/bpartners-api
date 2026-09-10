@@ -813,6 +813,10 @@ components:
           type: string
         revetement2:
           type: string
+        mutation:
+          type: string
+        fireRisk:
+          type: string
     Wearness:
       type: string
       enum:

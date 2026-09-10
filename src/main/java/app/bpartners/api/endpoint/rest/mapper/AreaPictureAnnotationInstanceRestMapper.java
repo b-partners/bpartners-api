@@ -50,7 +50,9 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .height(domain.height())
         .humidityLevel(domain.humidityLevel())
         .revetement1(domain.revetement1())
-        .revetement2(domain.revetement2());
+        .revetement2(domain.revetement2())
+        .mutation(domain.mutation())
+        .fireRisk(domain.fireRisk());
   }
 
   private Polygon toRest(app.bpartners.api.model.AreaPictureAnnotationInstance.Polygon domain) {
@@ -96,6 +98,8 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .height(rest.getHeight())
         .revetement1(rest.getRevetement1())
         .revetement2(rest.getRevetement2())
+        .mutation(rest.getMutation())
+        .fireRisk(rest.getFireRisk())
         .build();
   }
 

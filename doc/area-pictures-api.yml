@@ -817,6 +817,14 @@ components:
           type: string
         fireRisk:
           type: string
+        mutationRecentImageUrl:
+          type: string
+        mutationRecentImageDate:
+          type: integer
+        mutationOlderImageUrl:
+          type: string
+        mutationOlderImageDate:
+          type: integer
     Wearness:
       type: string
       enum:

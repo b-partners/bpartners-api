@@ -125,7 +125,11 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
                 .wearness(PARTIAL)
                 .wearLevel(100.0)
                 .mutation("deterioration")
-                .fireRisk("MODERE"));
+                .fireRisk("MODERE")
+                .mutationRecentImageUrl("https://geodata.test/new.jpg")
+                .mutationRecentImageDate(2024)
+                .mutationOlderImageUrl("https://geodata.test/old.jpg")
+                .mutationOlderImageDate(2022));
   }
 
   static AreaPictureAnnotationInstance areaPictureAnnotationInstance2() {

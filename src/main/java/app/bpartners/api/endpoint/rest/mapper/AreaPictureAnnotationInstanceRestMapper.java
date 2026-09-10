@@ -52,7 +52,11 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .revetement1(domain.revetement1())
         .revetement2(domain.revetement2())
         .mutation(domain.mutation())
-        .fireRisk(domain.fireRisk());
+        .fireRisk(domain.fireRisk())
+        .mutationRecentImageUrl(domain.mutationRecentImageUrl())
+        .mutationRecentImageDate(domain.mutationRecentImageDate())
+        .mutationOlderImageUrl(domain.mutationOlderImageUrl())
+        .mutationOlderImageDate(domain.mutationOlderImageDate());
   }
 
   private Polygon toRest(app.bpartners.api.model.AreaPictureAnnotationInstance.Polygon domain) {
@@ -100,6 +104,10 @@ public class AreaPictureAnnotationInstanceRestMapper {
         .revetement2(rest.getRevetement2())
         .mutation(rest.getMutation())
         .fireRisk(rest.getFireRisk())
+        .mutationRecentImageUrl(rest.getMutationRecentImageUrl())
+        .mutationRecentImageDate(rest.getMutationRecentImageDate())
+        .mutationOlderImageUrl(rest.getMutationOlderImageUrl())
+        .mutationOlderImageDate(rest.getMutationOlderImageDate())
         .build();
   }
 

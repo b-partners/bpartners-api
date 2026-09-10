@@ -54,6 +54,10 @@ public class AreaPictureAnnotationInstance {
       String revetement1,
       String revetement2,
       String mutation,
-      String fireRisk)
+      String fireRisk,
+      String mutationRecentImageUrl,
+      Integer mutationRecentImageDate,
+      String mutationOlderImageUrl,
+      Integer mutationOlderImageDate)
       implements Serializable {}
 }

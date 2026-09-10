@@ -57,4 +57,8 @@ public class HAreaPictureAnnotationInstance {
 
   private String mutation;
   private String fireRisk;
+  private String mutationRecentImageUrl;
+  private Integer mutationRecentImageDate;
+  private String mutationOlderImageUrl;
+  private Integer mutationOlderImageDate;
 }

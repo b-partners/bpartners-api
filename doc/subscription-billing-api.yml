@@ -1,0 +1,217 @@
+operations:
+  subscriptionBillingStatsOperation:
+    get:
+      tags:
+        - Subscription Billing
+      summary: Get aggregated subscription billing statistics over a period
+      description: |
+        Admin-only reporting endpoint. For the given period it aggregates, from the invoices
+        generated for the platform's own subscribers, how much was sold and for how much:
+
+        * fixed subscriptions, split by billing interval (one sale per billed period, so a user
+          paying two monthly instalments counts as two monthly subscriptions sold),
+        * extra analysis credits sold prepaid, grouped by the buyer's subscription plan at the time
+          of purchase, since the per-credit price varies from one plan to another,
+        * legacy overage analyses billed before the switch to the prepaid model,
+        * and the grand total of all the amounts above.
+
+        Every figure is backed by a generated invoice, so it can be reconciled against the invoices
+        issued to the subscribers. Amounts are expressed in cents, both VAT excluded (HT) and VAT
+        included (TTC). The period bounds are interpreted on the Europe/Paris time zone: `from` at
+        the start of the day, `to` at the end of the day, both inclusive.
+      operationId: getSubscriptionBillingStats
+      parameters:
+        - in: query
+          name: from
+          description: First day of the reporting period, inclusive.
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: to
+          description: Last day of the reporting period, inclusive.
+          schema:
+            type: string
+            format: date
+          required: true
+      responses:
+        200:
+          description: The aggregated subscription billing statistics over the period
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionBillingStats'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+components:
+  schemas:
+    SubscriptionBillingStats:
+      type: object
+      description: |
+        Subscription billing figures aggregated over the requested period, plus a month-by-month
+        breakdown to feed a table.
+      properties:
+        from:
+          type: string
+          format: date
+          description: First day of the reporting period, inclusive, as requested.
+        to:
+          type: string
+          format: date
+          description: Last day of the reporting period, inclusive, as requested.
+        monthlySubscriptions:
+          description: |
+            Monthly fixed subscriptions billed in the period. One sale is counted per billed
+            monthly instalment.
+          allOf:
+            - $ref: '#/components/schemas/SoldItemStats'
+        annualSubscriptions:
+          description: Annual fixed subscriptions billed in the period, one sale per billed year.
+          allOf:
+            - $ref: '#/components/schemas/SoldItemStats'
+        extraAnalysisCredits:
+          description: Prepaid extra analysis credits sold in the period, grouped by plan.
+          allOf:
+            - $ref: '#/components/schemas/ExtraAnalysisCreditStats'
+        consumedCredits:
+          type: integer
+          format: int64
+          description: |
+            Analysis credits actually consumed over the period, that is the credits debited by roof
+            analyses whatever their origin (subscription grant or purchase), net of consumption
+            reversals. A usage figure, not a sale, so it carries no amount.
+        legacyOverages:
+          description: |
+            Overage analyses billed before the switch to the prepaid model. `soldCount` is the
+            number of extra analyses billed as overage over the period. Zero once every subscriber
+            has moved to the prepaid model.
+          allOf:
+            - $ref: '#/components/schemas/SoldItemStats'
+        total:
+          description: |
+            Grand total over the period, that is the sum of the amounts of the monthly and annual
+            subscriptions, the extra analysis credits and the legacy overages.
+          allOf:
+            - $ref: '#/components/schemas/BillingAmount'
+        monthlyBreakdown:
+          type: array
+          description: The same figures broken down per calendar month, oldest month first.
+          items:
+            $ref: '#/components/schemas/SubscriptionBillingMonthlyStats'
+    SubscriptionBillingMonthlyStats:
+      type: object
+      description: Subscription billing figures for a single calendar month of the period.
+      properties:
+        yearMonth:
+          $ref: './api.yml#/components/schemas/YearMonth'
+        monthlySubscriptions:
+          $ref: '#/components/schemas/SoldItemStats'
+        annualSubscriptions:
+          $ref: '#/components/schemas/SoldItemStats'
+        extraAnalysisCredits:
+          $ref: '#/components/schemas/ExtraAnalysisCreditStats'
+        consumedCredits:
+          type: integer
+          format: int64
+          description: |
+            Analysis credits actually consumed during this month, net of consumption reversals,
+            whatever their origin. A usage figure, not a sale.
+        legacyOverages:
+          $ref: '#/components/schemas/SoldItemStats'
+        total:
+          $ref: '#/components/schemas/BillingAmount'
+    SoldItemStats:
+      type: object
+      description: A count of items sold and the corresponding amounts over the period.
+      properties:
+        soldCount:
+          type: integer
+          format: int64
+          description: Number of units sold (subscriptions billed, or overage analyses billed).
+        amountInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: Corresponding amount, VAT excluded (HT), in cents.
+        amountInCentsWithVat:
+          type: integer
+          format: int64
+          description: Corresponding amount, VAT included (TTC), in cents.
+    ExtraAnalysisCreditStats:
+      type: object
+      description: |
+        Prepaid extra analysis credits sold over the period. The totals are the sum of the
+        per-plan rows, which split the sales by the buyer's active plan at purchase time, since the
+        per-credit price depends on the plan.
+      properties:
+        purchaseCount:
+          type: integer
+          format: int64
+          description: Number of completed credit purchases over the period.
+        creditsSold:
+          type: integer
+          format: int64
+          description: Total number of analysis credits sold over the period.
+        amountInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: Total amount of the credit purchases, VAT excluded (HT), in cents.
+        amountInCentsWithVat:
+          type: integer
+          format: int64
+          description: Total amount of the credit purchases, VAT included (TTC), in cents.
+        byPlan:
+          type: array
+          description: Per-plan breakdown of the credit purchases, one row per plan.
+          items:
+            $ref: '#/components/schemas/ExtraAnalysisCreditPlanStats'
+    ExtraAnalysisCreditPlanStats:
+      type: object
+      description: |
+        Credit purchases attributed to one subscription plan, that of the buyer's active
+        subscription when the purchase completed.
+      properties:
+        subscriptionPlanId:
+          type: string
+          description: |
+            Identifier of the plan the purchases are attributed to. Null when the buyer had no
+            active plan at purchase time, in which case the purchases are grouped by the captured
+            unit price instead.
+        subscriptionPlanName:
+          type: string
+          description: Human readable name of the plan, or a fallback label when the plan is null.
+        purchaseCount:
+          type: integer
+          format: int64
+          description: Number of completed credit purchases attributed to this plan.
+        creditsSold:
+          type: integer
+          format: int64
+          description: Number of analysis credits sold under this plan.
+        amountInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: Amount sold under this plan, VAT excluded (HT), in cents.
+        amountInCentsWithVat:
+          type: integer
+          format: int64
+          description: Amount sold under this plan, VAT included (TTC), in cents.
+    BillingAmount:
+      type: object
+      description: A pair of amounts, VAT excluded and VAT included, in cents.
+      properties:
+        amountInCentsWithoutVat:
+          type: integer
+          format: int64
+          description: Amount, VAT excluded (HT), in cents.
+        amountInCentsWithVat:
+          type: integer
+          format: int64
+          description: Amount, VAT included (TTC), in cents.

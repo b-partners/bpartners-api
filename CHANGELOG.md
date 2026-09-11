@@ -1,3 +1,21 @@
+# [0.95.0](https://github.com/b-partners/bpartners-api/compare/v0.94.0...v0.95.0) (2026-09-10)
+
+
+### Bug Fixes
+
+* consume granted credits on analysis during free trial ([2b95b6f](https://github.com/b-partners/bpartners-api/commit/2b95b6f10096800fafe06cd756d3ff398a320481))
+* **db:** exclude Module devis automatisé from PRO ([b7ca3ec](https://github.com/b-partners/bpartners-api/commit/b7ca3ecf7699460b80e670de918e6ff920494f60))
+* include featureSections and comparisonEntries on stripe product concilliation ([de16bac](https://github.com/b-partners/bpartners-api/commit/de16bac0cb71941b1ea0ee40db343da5023195a6))
+* include trial analysis granted on stripe product concilliation ([5160058](https://github.com/b-partners/bpartners-api/commit/5160058f4b3f4f67128f856d6269f517977fbc0f))
+* transmit user dashboard api key to analysis api and keep it on analysis key creation ([e9bc436](https://github.com/b-partners/bpartners-api/commit/e9bc4361befbe39812c74763eada733e18ad2098))
+
+
+### Features
+
+* persist mutation and fireRisk on area picture annotation metadata ([b54f295](https://github.com/b-partners/bpartners-api/commit/b54f295eac5e11756934ff664ae29af76ffb9a33))
+
+
+
 # [0.94.0](https://github.com/b-partners/bpartners-api/compare/v0.93.0...v0.94.0) (2026-09-09)
 
 
@@ -260,15 +278,6 @@
 * optional export annotation content ([ede0cfa](https://github.com/b-partners/bpartners-api/commit/ede0cfa362bb27ecfd1e7818649d429cdd2f3c9c))
 * POST /monthlyUpcomingDebitedCustomers/{year}/{month} for ADMIN_ROLE ([ba49f60](https://github.com/b-partners/bpartners-api/commit/ba49f6039b00738486cbe51a229f61bd89762c66))
 * update invoice statuses ([15953e0](https://github.com/b-partners/bpartners-api/commit/15953e07522d476a89de22f07ec6403fa4b02136))
-
-
-
-# [0.80.0](https://github.com/b-partners/bpartners-api/compare/v0.79.0...v0.80.0) (2026-06-04)
-
-
-### Features
-
-* pan edge label in export pdf ([8c84bb7](https://github.com/b-partners/bpartners-api/commit/8c84bb7d99c7ded698d5d16731af9004e3c89d37))
 
 
 

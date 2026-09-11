@@ -436,9 +436,7 @@ public class SubscriptionService {
     var actualUserSubscription = getSubscriptionByUser(user);
     var latestSubscription = actualUserSubscription.getLatestSubscription();
     if (latestSubscription != null
-        && latestSubscription.isActive()
-        && !(TRIALING).equals(latestSubscription.getStatus())
-        && !(CANCELED).equals(latestSubscription.getStatus())
+        && ACTIVE.equals(latestSubscription.getStatus())
         && !hasPendingCancellationAfterFirstInvoice(user.getUserSubscriptionId())) {
       throw new BadRequestException(
           "User.id="

@@ -47,6 +47,7 @@ public class FileDownloaderIT extends MockedThirdParties {
     System.out.println(downloaded.getAbsolutePath());
   }
 
+  @Disabled("TODO: flaky as server exception with status 502 BAD_GATEWAY return")
   @Test
   void file_downloader_post_shifted_down_ok() {
     var downloaded =

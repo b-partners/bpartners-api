@@ -11,13 +11,16 @@ import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillTr
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
+import app.bpartners.api.endpoint.rest.model.SubscriptionBillingStats;
 import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.service.subscription.SubscriptionBillingStatsService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ public class SubscriptionController {
   private final SubscriptionService service;
   private final SubscriptionConsumptionLogRestMapper subscriptionConsumptionLogRestMapper;
   private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
+  private final SubscriptionBillingStatsService subscriptionBillingStatsService;
 
   @GetMapping("/subscriptionPlans")
   public List<SubscriptionPlan> getSubscriptionPlans(
@@ -92,6 +96,13 @@ public class SubscriptionController {
   public String triggerSubscriptionProductStripeVatBackfill() {
     eventProducer.accept(List.of(new SubscriptionProductStripeVatBackfillTriggered()));
     return "SubscriptionProduct Stripe VAT metadata backfill triggered successfully";
+  }
+
+  @GetMapping("/subscriptionBillingStats")
+  public SubscriptionBillingStats getSubscriptionBillingStats(
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+    return subscriptionBillingStatsService.getStats(from, to);
   }
 
   @GetMapping("/users/{uId}/subscriptionConsumptionLogs")

@@ -17,6 +17,7 @@ import app.bpartners.api.endpoint.rest.model.SubscriptionBillingType;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.service.subscription.SubscriptionBillingStatsService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.util.List;
@@ -30,12 +31,16 @@ class SubscriptionControllerTest {
   EventProducer eventProducerMock = mock(EventProducer.class);
   TemporalUtils temporalUtils = new TemporalUtils();
 
+  SubscriptionBillingStatsService subscriptionBillingStatsServiceMock =
+      mock(SubscriptionBillingStatsService.class);
+
   SubscriptionController subject =
       new SubscriptionController(
           eventProducerMock,
           subscriptionServiceMock,
           consumptionLogRestMapper,
-          subscriptionPlanRestMapper);
+          subscriptionPlanRestMapper,
+          subscriptionBillingStatsServiceMock);
 
   @Test
   void get_subscription_plans() {

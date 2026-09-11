@@ -42,4 +42,13 @@ public interface CreditTransactionRepository extends JpaRepository<CreditTransac
           Instant from,
           Instant to,
           Pageable pageable);
+
+  @Query(
+      "select ct from credit_transaction ct"
+          + " where ct.type in :types"
+          + " and ct.creationDatetime >= :from and ct.creationDatetime < :to")
+  List<CreditTransaction> findByTypesBetween(
+      @Param("types") List<CreditTransactionType> types,
+      @Param("from") Instant from,
+      @Param("to") Instant to);
 }

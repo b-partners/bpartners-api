@@ -3,6 +3,7 @@ package app.bpartners.api.repository.jpa;
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.subscription.BillingInterval;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserSubscriptionProductJpaRepository
     extends JpaRepository<UserSubscriptionProduct, String> {
+  List<UserSubscriptionProduct> findByUserIdIn(Collection<String> userIds);
+
   @Query(
       "select usp from user_subscription_product usp where usp.userId = :userId"
           + " and (usp.subscriptionStartDatetime is null or usp.subscriptionStartDatetime <= :now)"

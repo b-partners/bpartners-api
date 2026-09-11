@@ -11,12 +11,12 @@ import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillTr
 import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
-import app.bpartners.api.endpoint.rest.model.SubscriptionBillingStats;
 import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.service.subscription.SubscriptionBillingStatsHtmlRenderer;
 import app.bpartners.api.service.subscription.SubscriptionBillingStatsService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import java.time.Instant;
@@ -25,6 +25,10 @@ import java.time.YearMonth;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,6 +39,7 @@ public class SubscriptionController {
   private final SubscriptionConsumptionLogRestMapper subscriptionConsumptionLogRestMapper;
   private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
   private final SubscriptionBillingStatsService subscriptionBillingStatsService;
+  private final SubscriptionBillingStatsHtmlRenderer subscriptionBillingStatsHtmlRenderer;
 
   @GetMapping("/subscriptionPlans")
   public List<SubscriptionPlan> getSubscriptionPlans(
@@ -99,10 +104,32 @@ public class SubscriptionController {
   }
 
   @GetMapping("/subscriptionBillingStats")
-  public SubscriptionBillingStats getSubscriptionBillingStats(
+  public ResponseEntity<?> getSubscriptionBillingStats(
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-    return subscriptionBillingStatsService.getStats(from, to);
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+      @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader) {
+    var stats = subscriptionBillingStatsService.getStats(from, to);
+    if (jsonRequested(acceptHeader)) {
+      return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(stats);
+    }
+    return ResponseEntity.ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(subscriptionBillingStatsHtmlRenderer.render(stats));
+  }
+
+  private static boolean jsonRequested(String acceptHeader) {
+    if (acceptHeader == null || acceptHeader.isBlank()) {
+      return false;
+    }
+    try {
+      return MediaType.parseMediaTypes(acceptHeader).stream()
+          .anyMatch(
+              mediaType ->
+                  mediaType.equalsTypeAndSubtype(MediaType.APPLICATION_JSON)
+                      || mediaType.getSubtype().endsWith("+json"));
+    } catch (InvalidMediaTypeException e) {
+      return false;
+    }
   }
 
   @GetMapping("/users/{uId}/subscriptionConsumptionLogs")

@@ -19,6 +19,13 @@ operations:
         issued to the subscribers. Amounts are expressed in cents, both VAT excluded (HT) and VAT
         included (TTC). The period bounds are interpreted on the Europe/Paris time zone: `from` at
         the start of the day, `to` at the end of the day, both inclusive.
+
+        Content negotiation: an `Accept: application/json` request returns the JSON payload below.
+        Any other request, including a plain browser navigation, returns a ready-to-read HTML report
+        (`text/html`), which is the default representation. To let the report be opened straight from
+        a browser, the caller's API key may be supplied as an `apiKey` query parameter instead of the
+        `x-api-key` header (the key still resolves to an admin user; mind that a key placed in the URL
+        can leak through logs and browser history).
       operationId: getSubscriptionBillingStats
       parameters:
         - in: query
@@ -42,6 +49,10 @@ operations:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubscriptionBillingStats'
+            text/html:
+              schema:
+                type: string
+                description: A self-contained HTML report of the statistics, default representation.
         400:
           $ref: './api.yml#/components/responses/400'
         403:

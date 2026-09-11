@@ -714,8 +714,8 @@ public class SubscriptionService {
     return switch (subscriptionStatus) {
       case "active" -> ACTIVE;
       case "trialing" -> TRIALING;
-      case "canceled" -> CANCELED;
-      case "past_due", "unpaid", "incomplete", "incomplete_expired" -> UNPAID;
+      case "canceled", "incomplete_expired" -> CANCELED;
+      case "past_due", "unpaid", "incomplete" -> UNPAID;
       default -> {
         log.error("Unknown subscription status: {}", subscriptionStatus);
         yield UNKNOWN;

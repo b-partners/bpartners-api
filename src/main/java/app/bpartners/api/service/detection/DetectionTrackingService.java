@@ -68,7 +68,7 @@ public class DetectionTrackingService {
                   .comment(comment)
                   .creationDatetime(now())
                   .build());
-          creditService.consumeRoofAnalysis(userId, "Analyse toiture : " + saved.address());
+          creditService.consumeRoofAnalysis(userId, "Analyse toiture : " + saved.zone());
         });
     return savedTracking;
   }

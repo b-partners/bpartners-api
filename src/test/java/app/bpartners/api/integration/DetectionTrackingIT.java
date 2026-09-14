@@ -132,7 +132,7 @@ class DetectionTrackingIT extends MockedThirdParties {
     assertEquals(1, consumptions.size());
     assertEquals(DEBIT, consumptions.getFirst().getMovementType());
     assertEquals(1L, consumptions.getFirst().getCredits());
-    assertEquals("Analyse toiture : dummyAddress", consumptions.getFirst().getLabel());
+    assertEquals("Analyse toiture : dummyZone", consumptions.getFirst().getLabel());
     assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
   }
 

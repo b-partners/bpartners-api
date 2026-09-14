@@ -61,7 +61,7 @@ class DetectionTrackingServiceTest {
     subject.computeTrackingWithSubscriptionConsumptionLog(tracking);
 
     verify(creditServiceMock).consumeRoofAnalysis(eq(userId), labelCaptor.capture());
-    assertEquals("Analyse toiture : some address", labelCaptor.getValue());
+    assertEquals("Analyse toiture : some zone", labelCaptor.getValue());
   }
 
   @Test

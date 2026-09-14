@@ -147,6 +147,53 @@ class DetectionTrackingServiceTest {
   }
 
   @Test
+  void skip_detection_whose_zone_is_already_registered() {
+    var userId = randomUUID().toString();
+    var detectionIdentifier = randomUUID().toString();
+    when(repositoryMock.findByDetectionIdentifier(detectionIdentifier))
+        .thenReturn(Optional.empty());
+    when(repositoryMock.existsByIdUserAndZoneIgnoreCase(userId, "some zone")).thenReturn(true);
+
+    var actual =
+        subject.computeTrackingWithSubscriptionConsumptionLog(
+            List.of(someTracking(userId, detectionIdentifier)));
+
+    assertTrue(actual.isEmpty());
+    verify(repositoryMock).saveAll(List.of());
+    verify(subscriptionServiceMock, never()).addConsumption(any());
+    verify(creditServiceMock, never()).consumeRoofAnalysis(any(), any());
+  }
+
+  @Test
+  void skip_detection_with_known_zone_even_without_detection_identifier() {
+    var userId = randomUUID().toString();
+    when(repositoryMock.existsByIdUserAndZoneIgnoreCase(userId, "some zone")).thenReturn(true);
+
+    var actual =
+        subject.computeTrackingWithSubscriptionConsumptionLog(List.of(someTracking(userId, null)));
+
+    assertTrue(actual.isEmpty());
+    verify(subscriptionServiceMock, never()).addConsumption(any());
+    verify(creditServiceMock, never()).consumeRoofAnalysis(any(), any());
+  }
+
+  @Test
+  void zone_registered_by_another_user_does_not_skip_the_detection() {
+    var userId = randomUUID().toString();
+    var otherUserId = randomUUID().toString();
+    var tracking = someTracking(userId, null);
+    when(repositoryMock.existsByIdUserAndZoneIgnoreCase(otherUserId, "some zone")).thenReturn(true);
+    when(repositoryMock.existsByIdUserAndZoneIgnoreCase(userId, "some zone")).thenReturn(false);
+    when(repositoryMock.saveAll(List.of(tracking))).thenReturn(List.of(tracking));
+
+    var actual = subject.computeTrackingWithSubscriptionConsumptionLog(List.of(tracking));
+
+    assertEquals(List.of(tracking), actual);
+    verify(subscriptionServiceMock, times(1)).addConsumption(any());
+    verify(creditServiceMock, times(1)).consumeRoofAnalysis(eq(userId), anyString());
+  }
+
+  @Test
   void deduplicate_detections_sharing_the_same_identifier_inside_a_batch() {
     var userId = randomUUID().toString();
     var detectionIdentifier = randomUUID().toString();

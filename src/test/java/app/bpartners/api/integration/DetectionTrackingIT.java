@@ -10,6 +10,7 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.U
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,7 +30,9 @@ import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.DetectionTrackingRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
+import app.bpartners.api.repository.jpa.DetectionTrackingJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.repository.jpa.model.detection.HDetectionTracking;
 import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.detection.DetectionTrackingService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -52,6 +55,7 @@ class DetectionTrackingIT extends MockedThirdParties {
   private final String dummyApiKey = "dummyApiKey";
   @Autowired private DetectionTrackingService detectionTrackingService;
   @Autowired private DetectionTrackingRepository detectionTrackingRepository;
+  @Autowired private DetectionTrackingJpaRepository detectionTrackingJpaRepository;
   @Autowired private CreditTransactionRepository creditTransactionRepository;
   @Autowired private UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
   @Autowired private CreditService creditService;
@@ -100,6 +104,7 @@ class DetectionTrackingIT extends MockedThirdParties {
         .findByUserId(JOE_DOE_ID)
         .ifPresent(userSubscriptionEligibleRepository::delete);
     creditTransactionRepository.deleteAll();
+    detectionTrackingJpaRepository.deleteAll();
   }
 
   @SneakyThrows
@@ -197,19 +202,48 @@ class DetectionTrackingIT extends MockedThirdParties {
 
   @SneakyThrows
   @Test
-  void detection_without_identifier_is_always_registered() {
+  void detection_without_identifier_is_deduplicated_by_zone() {
     var api = new DetectionTrackingApi(anApiClient());
     final var now = now().truncatedTo(ChronoUnit.MILLIS);
     var joeDoeId = restJoeDoeUser().getId();
     var payload = someCreateDetectionTracking(now, null);
     api.registerDetection(joeDoeId, payload);
 
-    var actual = api.registerDetection(joeDoeId, payload);
+    var sameZoneAgain = api.registerDetection(joeDoeId, someCreateDetectionTracking(now, null));
 
-    assertEquals(1, actual.size());
+    assertTrue(sameZoneAgain.isEmpty());
+    assertEquals(1, detectionTrackingService.findAllByIdUserBetween(joeDoeId, now, now).size());
+    assertEquals(1, consumptionsOfJoeDoe().size());
+    assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+
+    var otherZone =
+        List.of(someCreateDetectionTracking(now, null).getFirst().zone("zone-" + randomUUID()));
+    var otherActual = api.registerDetection(joeDoeId, otherZone);
+
+    assertEquals(1, otherActual.size());
     assertEquals(2, detectionTrackingService.findAllByIdUserBetween(joeDoeId, now, now).size());
     assertEquals(2, consumptionsOfJoeDoe().size());
     assertEquals(98L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+  }
+
+  @SneakyThrows
+  @Test
+  void zone_registration_is_scoped_by_user() {
+    var scopedZone = "scopedZone-" + randomUUID();
+    detectionTrackingJpaRepository.save(
+        HDetectionTracking.builder()
+            .id(randomUUID().toString())
+            .idUser(JOE_DOE_ID)
+            .zone(scopedZone)
+            .address("dummyAddress")
+            .creationDatetime(now())
+            .build());
+
+    assertTrue(
+        detectionTrackingRepository.existsByIdUserAndZoneIgnoreCase(
+            JOE_DOE_ID, scopedZone.toUpperCase()));
+    assertFalse(
+        detectionTrackingRepository.existsByIdUserAndZoneIgnoreCase("another-user-id", scopedZone));
   }
 
   @SneakyThrows
@@ -219,10 +253,12 @@ class DetectionTrackingIT extends MockedThirdParties {
     var joeDoeId = restJoeDoeUser().getId();
     final var older = now().minusSeconds(60).truncatedTo(ChronoUnit.MILLIS);
     final var newer = now().truncatedTo(ChronoUnit.MILLIS);
-    var olderId =
-        api.registerDetection(joeDoeId, someCreateDetectionTracking(older)).getFirst().getId();
-    var newerId =
-        api.registerDetection(joeDoeId, someCreateDetectionTracking(newer)).getFirst().getId();
+    var olderPayload =
+        List.of(someCreateDetectionTracking(older).getFirst().zone("zone-" + randomUUID()));
+    var newerPayload =
+        List.of(someCreateDetectionTracking(newer).getFirst().zone("zone-" + randomUUID()));
+    var olderId = api.registerDetection(joeDoeId, olderPayload).getFirst().getId();
+    var newerId = api.registerDetection(joeDoeId, newerPayload).getFirst().getId();
 
     var actualIds =
         api.retrieveDetectionTrackingListByUserId(joeDoeId, null, null, null).stream()
@@ -238,8 +274,15 @@ class DetectionTrackingIT extends MockedThirdParties {
     var api = new DetectionTrackingApi(anApiClient());
     var joeDoeId = restJoeDoeUser().getId();
     final var now = now().truncatedTo(ChronoUnit.MILLIS);
-    api.registerDetection(joeDoeId, someCreateDetectionTracking(now.minusSeconds(1)));
-    api.registerDetection(joeDoeId, someCreateDetectionTracking(now));
+    api.registerDetection(
+        joeDoeId,
+        List.of(
+            someCreateDetectionTracking(now.minusSeconds(1))
+                .getFirst()
+                .zone("zone-" + randomUUID())));
+    api.registerDetection(
+        joeDoeId,
+        List.of(someCreateDetectionTracking(now).getFirst().zone("zone-" + randomUUID())));
 
     var firstPage = api.retrieveDetectionTrackingListByUserId(joeDoeId, null, 1, 1);
     var secondPage = api.retrieveDetectionTrackingListByUserId(joeDoeId, null, 2, 1);
@@ -295,10 +338,14 @@ class DetectionTrackingIT extends MockedThirdParties {
     var searchToken = randomUUID().toString();
     var zonePayload = someCreateDetectionTracking(now).getFirst().zone("zone-" + searchToken);
     var addressPayload =
-        someCreateDetectionTracking(now).getFirst().address("address-" + searchToken);
+        someCreateDetectionTracking(now)
+            .getFirst()
+            .zone("zone-" + randomUUID())
+            .address("address-" + searchToken);
     var initiatorPayload =
         someCreateDetectionTracking(now)
             .getFirst()
+            .zone("zone-" + randomUUID())
             .initiator(new DetectionInitiator().name("initiator-" + searchToken));
     var zoneId = api.registerDetection(joeDoeId, List.of(zonePayload)).getFirst().getId();
     var addressId = api.registerDetection(joeDoeId, List.of(addressPayload)).getFirst().getId();

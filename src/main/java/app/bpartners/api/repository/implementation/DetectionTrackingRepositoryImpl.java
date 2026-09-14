@@ -30,6 +30,11 @@ public class DetectionTrackingRepositoryImpl implements DetectionTrackingReposit
   }
 
   @Override
+  public boolean existsByIdUserAndZoneIgnoreCase(String idUser, String zone) {
+    return jpaRepository.existsByIdUserAndZoneIgnoreCase(idUser, zone);
+  }
+
+  @Override
   public List<DetectionTracking> saveAll(List<DetectionTracking> detectionTracking) {
     var entities = detectionTracking.stream().map(mapper::toEntity).toList();
     return jpaRepository.saveAll(entities).stream()

@@ -17,6 +17,7 @@ import app.bpartners.api.model.UserWhiteListed;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
+import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -38,6 +39,8 @@ public class UserRestMapper {
   private final UserWhiteListedJpaRepository userWhiteListedRepository;
   private final TemporalUtils temporalUtils;
   private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
+  private final CreditService creditService;
+  private final CreditBalanceRestMapper creditBalanceRestMapper;
 
   public V2User toRestV2(app.bpartners.api.model.User domain) {
     var subscription = subscriptionService.getSubscriptionByUser(domain);
@@ -98,7 +101,9 @@ public class UserRestMapper {
         .nextSubscription(
             getNextSubscription(domain, subscription, restSubscription.getRenewalStatus()))
         .userParent(toRest(domain.getParentUser()))
-        .logoFileId(domain.getLogoFileId());
+        .logoFileId(domain.getLogoFileId())
+        .creditBalance(
+            creditBalanceRestMapper.toRest(creditService.getCreditBalance(domain.getId())));
   }
 
   public User toRest(app.bpartners.api.model.User domain) {

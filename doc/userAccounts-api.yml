@@ -886,6 +886,8 @@ components:
           $ref: '#/components/schemas/User'
         logoFileId:
           type: string
+        creditBalance:
+          $ref: './credits-api.yml#/components/schemas/CreditBalance'
     User:
       properties:
         id:

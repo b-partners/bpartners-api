@@ -31,6 +31,7 @@ import app.bpartners.api.service.subscription.SubscriptionBillingStatsService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import app.bpartners.api.service.utils.TemporalUtils;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -141,7 +142,9 @@ class SubscriptionControllerTest {
 
     var response = subject.getSubscriptionBillingStats(from, to, null);
 
-    assertEquals(MediaType.TEXT_HTML, response.getHeaders().getContentType());
+    var contentType = response.getHeaders().getContentType();
+    assertTrue(contentType.isCompatibleWith(MediaType.TEXT_HTML));
+    assertEquals(StandardCharsets.UTF_8, contentType.getCharset());
     var body = (String) response.getBody();
     assertNotNull(body);
     assertTrue(body.contains("BIRDIA"));

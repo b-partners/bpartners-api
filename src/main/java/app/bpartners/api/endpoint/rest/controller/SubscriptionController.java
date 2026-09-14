@@ -19,6 +19,7 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.subscription.SubscriptionBillingStatsHtmlRenderer;
 import app.bpartners.api.service.subscription.SubscriptionBillingStatsService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -113,7 +114,7 @@ public class SubscriptionController {
       return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(stats);
     }
     return ResponseEntity.ok()
-        .contentType(MediaType.TEXT_HTML)
+        .contentType(new MediaType(MediaType.TEXT_HTML, StandardCharsets.UTF_8))
         .body(subscriptionBillingStatsHtmlRenderer.render(stats));
   }
 

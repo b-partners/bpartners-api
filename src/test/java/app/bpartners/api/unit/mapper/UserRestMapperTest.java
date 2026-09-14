@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.mapper.AccountRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.CreditBalanceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.UserRestMapper;
 import app.bpartners.api.endpoint.rest.model.BillingInterval;
@@ -28,6 +29,7 @@ import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
+import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -48,6 +50,8 @@ class UserRestMapperTest {
   StripeInvoiceService stripeInvoiceServiceMock = mock();
   UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
   SubscriptionPlanRestMapper subscriptionPlanRestMapperMock = mock();
+  CreditService creditServiceMock = mock();
+  CreditBalanceRestMapper creditBalanceRestMapper = new CreditBalanceRestMapper();
   TemporalUtils temporalUtils = new TemporalUtils();
   UserRestMapper subject =
       new UserRestMapper(
@@ -57,12 +61,17 @@ class UserRestMapperTest {
           subscriptionEligibleJpaRepositoryMock,
           userWhiteListedJpaRepositoryMock,
           temporalUtils,
-          subscriptionPlanRestMapperMock);
+          subscriptionPlanRestMapperMock,
+          creditServiceMock,
+          creditBalanceRestMapper);
 
   @BeforeEach
   void setUp() {
     when(subscriptionEligibleJpaRepositoryMock.findByUserId(any())).thenReturn(Optional.empty());
     when(userWhiteListedJpaRepositoryMock.findByUserId(any())).thenReturn(Optional.empty());
+    when(creditServiceMock.getCreditBalance(any()))
+        .thenReturn(
+            app.bpartners.api.model.credit.CreditBalance.builder().expirations(List.of()).build());
   }
 
   @Test

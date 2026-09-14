@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Facturation des abonnements</title>
+  <style>
+    :root {
+      --ground: #f4f6f8;
+      --surface: #ffffff;
+      --surface-2: #f7f9fc;
+      --ink: #1f2933;
+      --ink-strong: #1f2933;
+      --body: #3e4c59;
+      --muted: #7b8794;
+      --faint: #9aa5b1;
+      --border: #e4e9f0;
+      --border-strong: #d2dae3;
+      --accent: #ea672c;
+      --shadow: 0 1px 3px rgba(31, 41, 51, .10), 0 12px 28px -18px rgba(31, 41, 51, .28);
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --ground: #14181d;
+        --surface: #1c2128;
+        --surface-2: #232a33;
+        --ink: #e7ebf0;
+        --ink-strong: #f3f6f9;
+        --body: #c2cbd6;
+        --muted: #97a2af;
+        --faint: #6c7784;
+        --border: #2b323c;
+        --border-strong: #3a424e;
+        --accent: #f2814c;
+        --shadow: 0 1px 3px rgba(0, 0, 0, .35), 0 14px 32px -20px rgba(0, 0, 0, .7);
+      }
+    }
+    :root[data-theme="dark"] {
+      --ground: #14181d;
+      --surface: #1c2128;
+      --surface-2: #232a33;
+      --ink: #e7ebf0;
+      --ink-strong: #f3f6f9;
+      --body: #c2cbd6;
+      --muted: #97a2af;
+      --faint: #6c7784;
+      --border: #2b323c;
+      --border-strong: #3a424e;
+      --accent: #f2814c;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .35), 0 14px 32px -20px rgba(0, 0, 0, .7);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--body);
+      font-family: var(--sans);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1060px; margin: 0 auto; padding: 32px 24px 72px; }
+
+    .masthead {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: var(--shadow); overflow: hidden; margin-bottom: 26px;
+    }
+    .masthead .bar { background: var(--accent); padding: 22px 28px; }
+    .brand {
+      display: flex; align-items: center; gap: 11px;
+      font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+      color: #ffffff; margin: 0;
+    }
+    .brand .logo {
+      width: 26px; height: 26px; border-radius: 7px; flex: none;
+      background: rgba(255, 255, 255, .18); display: inline-grid; place-items: center;
+      font-size: 15px; line-height: 1;
+    }
+    .brand .tag {
+      font-weight: 500; letter-spacing: .01em; text-transform: none; font-size: 12.5px;
+      color: #f6d6c6; margin-left: 2px;
+    }
+    .masthead .body { padding: 24px 28px 26px; }
+    h1 {
+      font-size: 30px; font-weight: 700; letter-spacing: -.015em;
+      margin: 0; color: var(--ink-strong);
+    }
+    .period {
+      margin: 12px 0 0; color: var(--muted); font-size: 15px;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .period b { color: var(--ink); font-weight: 600; }
+    .period .arrow { color: var(--faint); }
+
+    .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 30px; }
+    @media (min-width: 560px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 860px) { .kpis { grid-template-columns: repeat(6, 1fr); } }
+    .kpi {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 15px 16px 16px; box-shadow: var(--shadow);
+    }
+    .kpi .k-label { font-size: 11.5px; color: var(--muted); font-weight: 500; margin: 0 0 8px; }
+    .kpi .k-val {
+      font-size: 21px; font-weight: 700; color: var(--ink-strong);
+      letter-spacing: -.015em; font-variant-numeric: tabular-nums;
+    }
+    .kpi .k-sub { font-size: 11px; color: var(--faint); margin-top: 3px; font-variant-numeric: tabular-nums; }
+    .kpi.accent { background: var(--accent); border-color: transparent; }
+    .kpi.accent .k-label { color: #f7d8c8; }
+    .kpi.accent .k-val { color: #ffffff; }
+    .kpi.accent .k-sub { color: #f7d8c8; }
+
+    section { margin-bottom: 30px; }
+    .sec-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; }
+    .sec-head h2 { font-size: 16px; font-weight: 600; color: var(--ink-strong); margin: 0; letter-spacing: -.01em; }
+    .sec-head .note { font-size: 12.5px; color: var(--faint); }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead th {
+      text-align: right; font-weight: 600; font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--muted); padding: 12px 16px; border-bottom: 1px solid var(--border); white-space: nowrap;
+      background: var(--surface-2);
+    }
+    thead th:first-child { text-align: left; }
+    tbody td {
+      padding: 12px 16px; border-bottom: 1px solid var(--border); text-align: right;
+      font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap;
+    }
+    tbody td:first-child { text-align: left; font-weight: 600; color: var(--ink-strong); }
+    tbody tr:last-child td { border-bottom: none; }
+    .poste-sub { display: block; font-size: 11.5px; font-weight: 400; color: var(--faint); }
+    td.muted { color: var(--muted); }
+    .ttc { color: var(--ink-strong); font-weight: 600; }
+
+    tr.total-row td { border-top: 2px solid var(--border-strong); background: var(--surface-2); font-weight: 700; }
+    tr.total-row td:first-child { color: var(--ink-strong); }
+    tr.total-row td.grand { color: var(--accent); }
+
+    .plan-name { display: inline-flex; align-items: center; gap: 8px; }
+    .plan-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex: none; }
+
+    footer { margin-top: 38px; color: var(--faint); font-size: 12px; text-align: center; line-height: 1.7; }
+    footer .sig { color: var(--muted); font-weight: 600; letter-spacing: .04em; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <div class="bar">
+      <p class="brand">BIRDIA <span class="tag">Rapport ADMIN</span></p>
+    </div>
+    <div class="body">
+      <h1>Statistiques de facturation des abonnements</h1>
+      <p class="period">
+        Période&nbsp; <b th:text="${fromLabel}">—</b> <span class="arrow">→</span> <b th:text="${toLabel}">—</b>
+      </p>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi" th:each="kpi : ${kpis}" th:classappend="${kpi['accent']} ? 'accent' : ''">
+      <p class="k-label" th:text="${kpi['label']}">Label</p>
+      <div class="k-val" th:text="${kpi['value']}">0</div>
+      <div class="k-sub" th:text="${kpi['sub']}">sub</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>Ventes sur la période</h2>
+      <span class="note">montants en euros, HT et TTC</span>
+    </div>
+    <div class="card scroll">
+      <table>
+        <thead>
+        <tr><th>Poste</th><th>Quantité</th><th>Montant HT</th><th>Montant TTC</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="r : ${salesRows}">
+          <td><span th:text="${r['label']}">Poste</span><span class="poste-sub" th:text="${r['sub']}">sub</span></td>
+          <td class="muted" th:text="${r['qty']}">0</td>
+          <td th:text="${r['ht']}">0</td>
+          <td class="ttc" th:text="${r['ttc']}">0</td>
+        </tr>
+        <tr class="total-row">
+          <td>Total</td>
+          <td></td>
+          <td th:text="${salesTotalHt}">0</td>
+          <td class="grand" th:text="${salesTotalTtc}">0</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Crédits d'analyse par plan</h2>
+      <span class="note">prépayés, ventilés par plan actif à l'achat</span>
+    </div>
+    <div class="card scroll">
+      <table>
+        <thead>
+        <tr><th>Plan</th><th>Achats</th><th>Crédits vendus</th><th>Montant HT</th><th>Montant TTC</th></tr>
+        </thead>
+        <tbody>
+        <tr th:if="${plansEmpty}">
+          <td>Aucune ventilation par plan</td>
+          <td class="muted" th:text="${planTotalPurchases}">0</td>
+          <td class="muted" th:text="${planTotalCredits}">0</td>
+          <td th:text="${planTotalHt}">0</td>
+          <td class="ttc" th:text="${planTotalTtc}">0</td>
+        </tr>
+        <tr th:each="r : ${planRows}">
+          <td><span class="plan-name"><span class="plan-dot"></span><span th:text="${r['name']}">Plan</span></span></td>
+          <td class="muted" th:text="${r['purchases']}">0</td>
+          <td class="muted" th:text="${r['credits']}">0</td>
+          <td th:text="${r['ht']}">0</td>
+          <td class="ttc" th:text="${r['ttc']}">0</td>
+        </tr>
+        <tr class="total-row" th:unless="${plansEmpty}">
+          <td>Total crédits</td>
+          <td th:text="${planTotalPurchases}">0</td>
+          <td th:text="${planTotalCredits}">0</td>
+          <td th:text="${planTotalHt}">0</td>
+          <td class="grand" th:text="${planTotalTtc}">0</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Détail mensuel</h2>
+      <span class="note">du mois le plus ancien au plus récent</span>
+    </div>
+    <div class="card scroll">
+      <table>
+        <thead>
+        <tr>
+          <th>Mois</th><th>Mensuels</th><th>Annuels</th><th>Crédits vendus</th>
+          <th>Consommés</th><th>Overages</th><th>Total HT</th><th>Total TTC</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(monthRows)}">
+          <td colspan="8" class="muted" style="text-align:center">Aucun mois dans la période</td>
+        </tr>
+        <tr th:each="r : ${monthRows}">
+          <td th:text="${r['month']}">Mois</td>
+          <td class="muted" th:text="${r['monthly']}">0</td>
+          <td class="muted" th:text="${r['annual']}">0</td>
+          <td class="muted" th:text="${r['credits']}">0</td>
+          <td class="muted" th:text="${r['consumed']}">0</td>
+          <td class="muted" th:text="${r['overages']}">0</td>
+          <td th:text="${r['ht']}">0</td>
+          <td class="ttc" th:text="${r['ttc']}">0</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p class="sig">L'équipe BIRDIA</p>
+    <p>BIRDIA — Valorisation d'images aériennes par IA</p>
+  </footer>
+</div>
+</body>
+</html>

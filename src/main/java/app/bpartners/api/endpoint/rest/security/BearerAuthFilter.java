@@ -33,8 +33,10 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
     String bearer = request.getHeader(authHeader);
     try {
       if (bearer == null && verifyAntMatcher(request)) {
-        String accessToken = request.getParameterMap().get(BEARER_QUERY_PARAMETER_NAME)[0];
-        bearer = BEARER_PREFIX + accessToken;
+        String accessToken = firstParameterValue(request, BEARER_QUERY_PARAMETER_NAME);
+        if (accessToken != null) {
+          bearer = BEARER_PREFIX + accessToken;
+        }
       }
       var bearerToken = new UsernamePasswordAuthenticationToken(bearer, bearer);
       bearerToken.setDetails(request);
@@ -42,12 +44,17 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
     } catch (Exception ignored) {
       String apiKey = request.getHeader(API_KEY_HEADER);
       if (apiKey == null && verifyAntMatcher(request)) {
-        apiKey = request.getParameterMap().get(API_KEY_QUERY_PARAMETER_NAME)[0];
+        apiKey = firstParameterValue(request, API_KEY_QUERY_PARAMETER_NAME);
       }
       var apiKeyToken = new UsernamePasswordAuthenticationToken(API_KEY_HEADER, apiKey);
       apiKeyToken.setDetails(request);
       return getAuthenticationManager().authenticate(apiKeyToken);
     }
+  }
+
+  private static String firstParameterValue(HttpServletRequest request, String name) {
+    String[] values = request.getParameterMap().get(name);
+    return values == null || values.length == 0 ? null : values[0];
   }
 
   @Override
@@ -62,6 +69,7 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   }
 
   private boolean verifyAntMatcher(HttpServletRequest request) {
-    return new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()).matches(request);
+    return new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()).matches(request)
+        || new AntPathRequestMatcher("/subscriptionBillingStats", GET.name()).matches(request);
   }
 }

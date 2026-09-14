@@ -106,6 +106,8 @@ paths:
     $ref: './user-subscription-api.yml#/operations/subscriptionCommitmentsOperations'
   /users/{uId}/subscriptionCommitments/{sId}/autoRenewalStatus:
     $ref: './user-subscription-api.yml#/operations/subscriptionCommitmentAutoRenewalStatusOperation'
+  /subscriptionBillingStats:
+    $ref: './subscription-billing-api.yml#/operations/subscriptionBillingStatsOperation'
 
   #############################################
   ################ Credits API ################

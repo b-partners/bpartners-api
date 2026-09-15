@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.PageRequest;
@@ -68,7 +69,7 @@ public class DetectionTrackingService {
                   .comment(comment)
                   .creationDatetime(now())
                   .build());
-          creditService.consumeRoofAnalysis(userId, "Analyse toiture : " + saved.address());
+          creditService.consumeRoofAnalysis(userId, "Analyse toiture : " + saved.zone());
         });
     return savedTracking;
   }
@@ -77,14 +78,30 @@ public class DetectionTrackingService {
     var unregistered = new ArrayList<DetectionTracking>();
     var identifiersOfBatch = new HashSet<String>();
     for (var detectionTracking : tracking) {
-      var detectionIdentifier = detectionTracking.detectionIdentifier();
-      if (detectionIdentifier == null
-          || (identifiersOfBatch.add(detectionIdentifier)
-              && repository.findByDetectionIdentifier(detectionIdentifier).isEmpty())) {
+      var identifierRegistered =
+          isIdentifierRegistered(detectionTracking.detectionIdentifier(), identifiersOfBatch);
+      var zoneRegistered =
+          isZoneRegistered(detectionTracking.user().getId(), detectionTracking.zone());
+      if (!identifierRegistered && !zoneRegistered) {
         unregistered.add(detectionTracking);
       }
     }
     return unregistered;
+  }
+
+  private boolean isIdentifierRegistered(
+      String detectionIdentifier, Set<String> identifiersOfBatch) {
+    if (detectionIdentifier == null) {
+      return false;
+    }
+    if (!identifiersOfBatch.add(detectionIdentifier)) {
+      return true;
+    }
+    return repository.findByDetectionIdentifier(detectionIdentifier).isPresent();
+  }
+
+  private boolean isZoneRegistered(String idUser, String zone) {
+    return zone != null && repository.existsByIdUserAndZoneIgnoreCase(idUser, zone);
   }
 
   private @NotNull String getAnalysisComment(DetectionTracking saved) {

@@ -10,6 +10,8 @@ public interface DetectionTrackingRepository {
 
   Optional<DetectionTracking> findByDetectionIdentifier(String detectionIdentifier);
 
+  boolean existsByIdUserAndZoneIgnoreCase(String idUser, String zone);
+
   List<DetectionTracking> saveAll(List<DetectionTracking> trackings);
 
   List<DetectionTracking> findAllByIdUserBetween(String idUser, Instant from, Instant to);

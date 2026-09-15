@@ -18,6 +18,12 @@ public interface DetectionTrackingJpaRepository extends JpaRepository<HDetection
   Optional<HDetectionTracking> findByDetectionIdentifier(String detectionIdentifier);
 
   @Query(
+      "SELECT COUNT(t) > 0 FROM HDetectionTracking t WHERE t.idUser = :idUser AND LOWER(t.zone)"
+          + " LIKE LOWER(:zone)")
+  boolean existsByIdUserAndZoneIgnoreCase(
+      @Param("idUser") String idUser, @Param("zone") String zone);
+
+  @Query(
       "SELECT t FROM HDetectionTracking t WHERE t.idUser = :idUser AND (CAST(:search AS string)"
           + " IS NULL"
           + " OR LOWER(t.zone) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))"

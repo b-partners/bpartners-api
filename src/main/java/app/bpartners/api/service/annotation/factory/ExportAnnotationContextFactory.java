@@ -82,7 +82,7 @@ public class ExportAnnotationContextFactory {
     }
 
     if (annotation.getCustomPages() != null) {
-      context.setVariable("customPages", mapCustomPages(annotation.getCustomPages()));
+      context.setVariable("customPages", mapCustomPages(annotation.getCustomPages(), fileService));
     }
 
     configureLastSectionContext(context, annotation, conf);
@@ -128,7 +128,8 @@ public class ExportAnnotationContextFactory {
   }
 
   private static List<CustomPage> mapCustomPages(
-      List<app.bpartners.api.endpoint.rest.model.CustomPage> customPages) {
+      List<app.bpartners.api.endpoint.rest.model.CustomPage> customPages,
+      FileService fileService) {
     return customPages.stream()
         .map(
             page ->
@@ -136,14 +137,14 @@ public class ExportAnnotationContextFactory {
                     .pageTitle(page.getPageTitle())
                     .sections(
                         page.getSections().stream()
-                            .map(ExportAnnotationContextFactory::mapSection)
+                            .map(section -> mapSection(section, fileService))
                             .toList())
                     .build())
         .toList();
   }
 
   private static PageSection mapSection(
-      app.bpartners.api.endpoint.rest.model.PageSection restSection) {
+      app.bpartners.api.endpoint.rest.model.PageSection restSection, FileService fileService) {
     SectionPriority priority = SectionPriority.valueOf(restSection.getPriority().name());
     if (restSection instanceof app.bpartners.api.endpoint.rest.model.TextSection textRestSection) {
       return app.bpartners.api.service.annotation.model.custompage.TextSection.builder()
@@ -152,26 +153,9 @@ public class ExportAnnotationContextFactory {
           .build();
     } else if (restSection
         instanceof app.bpartners.api.endpoint.rest.model.ImageSection imageRestSection) {
-      String imageUri = String.valueOf(imageRestSection.getUrl());
-      try {
-        URI uri = new URI(imageUri);
-        String scheme = uri.getScheme();
-        if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
-          var image = ImageIO.read(uri.toURL());
-          if (image != null) {
-            imageUri = ImageUriUtils.bufferedImageToUri(image);
-          } else {
-            log.warn("Could not read image from url: {}", imageUri);
-          }
-        } else {
-          log.warn("Blocked non-http/https image url: {}", imageUri);
-        }
-      } catch (IOException | URISyntaxException | IllegalArgumentException e) {
-        log.error("Could not download image from url: {}", imageRestSection.getUrl(), e);
-      }
       return app.bpartners.api.service.annotation.model.custompage.ImageSection.builder()
           .priority(priority)
-          .url(imageUri)
+          .url(resolveImageSectionUri(imageRestSection, fileService))
           .caption(imageRestSection.getCaption())
           .build();
     } else if (restSection
@@ -190,17 +174,64 @@ public class ExportAnnotationContextFactory {
         instanceof app.bpartners.api.endpoint.rest.model.SplitSection splitRestSection) {
       return new app.bpartners.api.service.annotation.model.custompage.SplitSection(
           priority,
-          mapSection(splitRestSection.getLeftSection()),
-          mapSection(splitRestSection.getRightSection()));
+          mapSection(splitRestSection.getLeftSection(), fileService),
+          mapSection(splitRestSection.getRightSection(), fileService));
     } else if (restSection
         instanceof app.bpartners.api.endpoint.rest.model.ThreeSplitSection threeSplitRestSection) {
       return new app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection(
           priority,
-          mapSection(threeSplitRestSection.getLeftSection()),
-          mapSection(threeSplitRestSection.getMiddleSection()),
-          mapSection(threeSplitRestSection.getRightSection()));
+          mapSection(threeSplitRestSection.getLeftSection(), fileService),
+          mapSection(threeSplitRestSection.getMiddleSection(), fileService),
+          mapSection(threeSplitRestSection.getRightSection(), fileService));
     }
     throw new IllegalArgumentException("Unknown section type: " + restSection.getClass());
+  }
+
+  private static String resolveImageSectionUri(
+      app.bpartners.api.endpoint.rest.model.ImageSection imageRestSection,
+      FileService fileService) {
+    String fileId = imageRestSection.getFileId();
+    if (fileId != null && !fileId.isBlank()) {
+      try {
+        var fileInfo = fileService.findById(fileId);
+        if (fileInfo == null) {
+          log.warn("Can't get image file for file id: {}", fileId);
+        } else {
+          var file =
+              fileService.downloadFile(
+                  FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
+          if (file == null) {
+            log.warn("Can't download image file for file id: {}", fileId);
+          } else {
+            var image = ImageIO.read(file);
+            if (image != null) {
+              return ImageUriUtils.bufferedImageToUri(image);
+            }
+            log.warn("Could not read image from file id: {}", fileId);
+          }
+        }
+      } catch (IOException e) {
+        log.error("Could not download image from file id: {}", fileId, e);
+      }
+    }
+
+    String imageUri = String.valueOf(imageRestSection.getUrl());
+    try {
+      URI uri = new URI(imageUri);
+      String scheme = uri.getScheme();
+      if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+        var image = ImageIO.read(uri.toURL());
+        if (image != null) {
+          return ImageUriUtils.bufferedImageToUri(image);
+        }
+        log.warn("Could not read image from url: {}", imageUri);
+      } else {
+        log.warn("Blocked non-http/https image url: {}", imageUri);
+      }
+    } catch (IOException | URISyntaxException | IllegalArgumentException e) {
+      log.error("Could not download image from url: {}", imageRestSection.getUrl(), e);
+    }
+    return imageUri;
   }
 
   static void configureAnnotationSummaryContext(

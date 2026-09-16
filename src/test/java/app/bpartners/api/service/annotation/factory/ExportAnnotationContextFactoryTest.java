@@ -646,6 +646,81 @@ public class ExportAnnotationContextFactoryTest {
   }
 
   @Test
+  void map_section_should_map_image_section_using_file_id() throws IOException {
+    File imageFile = new ClassPathResource("files/image-with-vegetation.jpg").getFile();
+    ImageSection restSection = new ImageSection();
+    restSection.setType(TypeEnum.IMAGE);
+    restSection.setPriority(PriorityEnum.SMALL);
+    restSection.setFileId("file-id");
+    restSection.setCaption("A caption");
+    when(fileService.findById("file-id"))
+        .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
+    when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(imageFile);
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.ImageSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.ImageSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals(SectionPriority.SMALL, mapped.getPriority());
+    assertEquals("A caption", mapped.getCaption());
+    assertTrue(mapped.getUrl().startsWith("data:image/jpeg;base64,"));
+  }
+
+  @Test
+  void map_section_should_fallback_to_url_when_file_id_not_found() {
+    ImageSection restSection = new ImageSection();
+    restSection.setType(TypeEnum.IMAGE);
+    restSection.setPriority(PriorityEnum.SMALL);
+    restSection.setFileId("unknown-file-id");
+    restSection.setUrl(URI.create("file:///etc/passwd"));
+    when(fileService.findById("unknown-file-id")).thenReturn(null);
+
+    ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
+    annotation.setCustomPages(
+        List.of(new CustomPage().pageTitle("Title").sections(List.of(restSection))));
+    annotation.setAnnotations(List.of());
+    annotation.setAddress("Paris");
+
+    Context context =
+        ExportAnnotationContextFactory.createContext(
+            new User(),
+            null,
+            annotation,
+            new Pair<>("a", List.of()),
+            new Pair<>("b", List.of()),
+            fileService,
+            image3DGenerator,
+            areaPictureAnnotationConfRestMapper);
+    List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
+        (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
+            context.getVariable("customPages");
+
+    app.bpartners.api.service.annotation.model.custompage.ImageSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.ImageSection)
+            customPages.get(0).getSections().get(0);
+    assertEquals("file:///etc/passwd", mapped.getUrl());
+  }
+
+  @Test
   void map_section_should_throw_on_unknown_section_type() {
     app.bpartners.api.endpoint.rest.model.PageSection unknownSection =
         new app.bpartners.api.endpoint.rest.model.PageSection() {};

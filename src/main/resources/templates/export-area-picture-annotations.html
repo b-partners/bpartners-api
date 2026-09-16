@@ -17,7 +17,7 @@
 
         @page {
             size: A4;
-            margin: 18px 28px;
+            margin: 20px 32px;
         }
 
         /* Prevent trailing blank page at the end of document rendering */
@@ -77,15 +77,20 @@
         }
 
         .title {
-            font-size: 1.7rem;
-            text-align: center;
-            font-weight: bold;
-            margin: 20px auto;
+            font-size: 1.6rem;
+            text-align: left;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+            color: #2b2b2a;
+            padding-bottom: 12px;
+            border-bottom: 2.5px solid #FF521B;
         }
 
         .title-value {
-            color: #FF521B;
-            margin: 5px 0px;
+            color: #2b2b2a;
+            margin: 8px 0 0 0;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
         .main-image {
@@ -100,7 +105,8 @@
             text-align: center;
             display: block;
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            margin-top: 8px;
         }
 
         .main-image-3d {
@@ -112,7 +118,12 @@
         .annotation-item {
             display: block;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 16px;
+            margin-bottom: 16px;
+            padding: 14px;
+            border: 0.5px solid #e8e8e8;
+            border-radius: 6px;
+            background-color: #fafafa;
             page-break-inside: avoid;
         }
 
@@ -169,29 +180,48 @@
         }
 
         .annotation-information-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #FF521B;
-            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2b2b2a;
+            text-align: left;
             page-break-after: avoid;
+            padding-bottom: 10px;
+            border-bottom: 2.5px solid #FF521B;
         }
 
         .section-description {
-            font-size: 0.95rem;
-            color: #6b6b6b;
-            text-align: center;
-            margin: -12px 0 20px;
-            line-height: 1.4;
+            font-size: 0.9rem;
+            color: #888;
+            text-align: left;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
 
-        .annotation-item-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
-        .annotation-item-title-value { margin-right: 15px; }
-        .annotation-item-info-label { font-weight: bold; }
-        .annotation-item-info-value { font-weight: normal; }
+        .annotation-item-title { 
+            font-size: 1.05rem; 
+            font-weight: 600; 
+            margin-bottom: 10px; 
+            color: #2b2b2a;
+            padding-left: 8px;
+            border-left: 3px solid #FF521B;
+        }
+        .annotation-item-title-value { 
+            margin-right: 15px; 
+            color: #FF521B;
+        }
+        .annotation-item-info-label { 
+            font-weight: 600; 
+            color: #666;
+        }
+        .annotation-item-info-value { 
+            font-weight: normal; 
+            color: #2b2b2a;
+        }
         .annotation-item-info-item {
-            font-size: 1rem;
+            font-size: 0.95rem;
             margin: 6px 0;
+            line-height: 1.5;
         }
 
         .roof-slope-boundaries-legend {
@@ -221,20 +251,23 @@
         .degradation-container {
             display: block;
             width: 100%;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 14px;
-            margin-top: 20px;
+            border: 0.5px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+            background-color: #ffffff;
             page-break-inside: avoid;
         }
 
         .degradation-section-title {
             font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.08em;
-            color: #6b6b6b;
-            margin: 0 0 10px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #888;
+            margin: 0 0 14px;
             text-transform: uppercase;
+            padding-bottom: 8px;
+            border-bottom: 1.5px solid #FF521B;
         }
 
         .degradation-levels-table {
@@ -359,21 +392,35 @@
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 10px 0;
-            font-size: 0.85rem;
+            margin: 12px 0;
+            font-size: 0.9rem;
         }
 
         .data-table th,
         .data-table td {
-            border: 1px solid #ddd;
-            padding: 6px 8px;
+            border: 0.5px solid #e8e8e8;
+            padding: 8px 10px;
             text-align: left;
-            line-height: 1.3;
+            line-height: 1.4;
         }
 
         .data-table th {
-            background-color: #f7f7f5;
-            font-weight: bold;
+            background-color: #fafafa;
+            font-weight: 600;
+            color: #666;
+            font-size: 0.85rem;
+            letter-spacing: 0.02em;
+        }
+        
+        .data-table tbody tr {
+            background-color: #ffffff;
+        }
+        
+        .data-table tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .data-table td {
             color: #2b2b2a;
         }
 
@@ -512,15 +559,17 @@
         }
 
         .custom-page-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #FF521B;
-            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+            font-weight: 600;
+            color: #2b2b2a;
+            text-align: left;
+            padding-bottom: 10px;
+            border-bottom: 2.5px solid #FF521B;
         }
 
         .custom-section {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             page-break-inside: avoid;
             display: block;
             width: 100%;

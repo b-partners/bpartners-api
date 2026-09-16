@@ -128,8 +128,7 @@ public class ExportAnnotationContextFactory {
   }
 
   private static List<CustomPage> mapCustomPages(
-      List<app.bpartners.api.endpoint.rest.model.CustomPage> customPages,
-      FileService fileService) {
+      List<app.bpartners.api.endpoint.rest.model.CustomPage> customPages, FileService fileService) {
     return customPages.stream()
         .map(
             page ->

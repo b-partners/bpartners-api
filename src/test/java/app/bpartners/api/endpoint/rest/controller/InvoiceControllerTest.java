@@ -75,11 +75,12 @@ class InvoiceControllerTest {
     var yearMonth = YearMonth.of(2024, 3);
     var domain = app.bpartners.api.model.Invoice.builder().id("invoice_id").build();
     var rest = new SubscriptionInvoice();
-    when(subscriptionInvoiceServiceMock.getSubscriptionInvoices(userIdentifier, yearMonth))
+    when(subscriptionInvoiceServiceMock.getSubscriptionInvoices(userIdentifier, yearMonth, null))
         .thenReturn(List.of(domain));
-    when(subscriptionInvoiceRestMapperMock.toRest(domain)).thenReturn(rest);
+    when(subscriptionInvoiceRestMapperMock.toRest(userIdentifier, List.of(domain)))
+        .thenReturn(List.of(rest));
 
-    var actual = subject.getUserSubscriptionInvoices(userIdentifier, yearMonth);
+    var actual = subject.getUserSubscriptionInvoices(userIdentifier, yearMonth, null);
 
     assertEquals(List.of(rest), actual);
   }
@@ -88,13 +89,13 @@ class InvoiceControllerTest {
   void get_user_subscription_invoices_returns_empty_ok() {
     var userIdentifier = randomUUID().toString();
     var yearMonth = YearMonth.of(2024, 3);
-    when(subscriptionInvoiceServiceMock.getSubscriptionInvoices(userIdentifier, yearMonth))
+    when(subscriptionInvoiceServiceMock.getSubscriptionInvoices(userIdentifier, yearMonth, null))
         .thenReturn(List.of());
+    when(subscriptionInvoiceRestMapperMock.toRest(userIdentifier, List.of())).thenReturn(List.of());
 
-    var actual = subject.getUserSubscriptionInvoices(userIdentifier, yearMonth);
+    var actual = subject.getUserSubscriptionInvoices(userIdentifier, yearMonth, null);
 
     assertTrue(actual.isEmpty());
-    verifyNoInteractions(subscriptionInvoiceRestMapperMock);
   }
 
   @Test

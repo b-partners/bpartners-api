@@ -12,6 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserStripeCustomerEmailCorrespondence;
@@ -83,6 +84,27 @@ class SubscriptionInvoiceServiceTest {
 
     assertEquals(List.of(expected), actual);
     verify(invoiceServiceMock, never()).findAllByCriteria(any());
+  }
+
+  @Test
+  void filter_by_payment_statuses_ok() {
+    var paidInvoice = Invoice.builder().id("paid_invoice").status(PAID).build();
+    var unpaidInvoice = Invoice.builder().id("unpaid_invoice").status(CONFIRMED).build();
+    when(invoiceServiceMock.findAllByCriteria(any()))
+        .thenReturn(List.of(paidInvoice, unpaidInvoice));
+
+    assertEquals(
+        List.of(unpaidInvoice),
+        subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, List.of(PaymentStatus.UNPAID)));
+    assertEquals(
+        List.of(paidInvoice),
+        subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, List.of(PaymentStatus.PAID)));
+    assertEquals(
+        List.of(paidInvoice, unpaidInvoice),
+        subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, List.of()));
+    assertEquals(
+        List.of(paidInvoice, unpaidInvoice),
+        subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, null));
   }
 
   @Test

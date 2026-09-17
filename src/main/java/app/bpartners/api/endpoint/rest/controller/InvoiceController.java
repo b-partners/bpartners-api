@@ -55,9 +55,12 @@ public class InvoiceController {
 
   @GetMapping("users/{uId}/subscriptionInvoices")
   public List<SubscriptionInvoice> getUserSubscriptionInvoices(
-      @PathVariable String uId, @RequestParam YearMonth yearMonth) {
-    var subscriptionInvoices = subscriptionInvoiceService.getSubscriptionInvoices(uId, yearMonth);
-    return subscriptionInvoices.stream().map(subscriptionInvoiceRestMapper::toRest).toList();
+      @PathVariable String uId,
+      @RequestParam YearMonth yearMonth,
+      @RequestParam(required = false) List<PaymentStatus> paymentStatuses) {
+    var subscriptionInvoices =
+        subscriptionInvoiceService.getSubscriptionInvoices(uId, yearMonth, paymentStatuses);
+    return subscriptionInvoiceRestMapper.toRest(uId, subscriptionInvoices);
   }
 
   @GetMapping("users/{uId}/invoiceExportRequests/{requestId}")

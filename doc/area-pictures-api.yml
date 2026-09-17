@@ -1065,13 +1065,15 @@ components:
       allOf:
         - $ref: '#/components/schemas/PageSection'
         - type: object
-          required:
-            - url
           properties:
             url:
               type: string
               format: uri
               example: "https://your-storage.com/images/photo_accent.jpg"
+            fileId:
+              type: string
+              description: "Id of a previously uploaded file to use as the image source, as an alternative to url."
+              example: "8400f4f5-0e2a-4b1b-9e3b-2f6a1a9d4b9d"
             caption:
               type: string
               example: "Vue rapprochée de la souche de cheminée"

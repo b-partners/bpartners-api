@@ -80,7 +80,12 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(
-            pdfGenerator, imageGenerator, image3DGenerator, fileService, imageCompressor);
+            pdfGenerator,
+            imageGenerator,
+            image3DGenerator,
+            fileService,
+            imageCompressor,
+            areaPictureAnnotationConfRestMapper);
   }
 
   private static app.bpartners.api.model.FileInfo imageFileInfo() {

@@ -46,9 +46,27 @@ public class ExportAreaPictureAnnotationAdjustment {
     if (originalImage == null || compressedImage == null) {
       return new RescaleValue(1.0, 1.0);
     }
+    return adjustAnnotation(
+        exportAnnotation, originalImage.getWidth(), originalImage.getHeight(), compressedImage);
+  }
 
-    double scaleX = (double) compressedImage.getWidth() / originalImage.getWidth();
-    double scaleY = (double) compressedImage.getHeight() / originalImage.getHeight();
+  /**
+   * Same as {@link #adjustAnnotation(ExportAreaPictureAnnotation, BufferedImage, BufferedImage)}
+   * but takes the source image's true dimensions directly, so callers that decode a
+   * memory-bounded/subsampled version of a very large source photo can still rescale annotation
+   * coordinates against the real, full-resolution size the frontend annotated against.
+   */
+  public static RescaleValue adjustAnnotation(
+      ExportAreaPictureAnnotation exportAnnotation,
+      int originalWidth,
+      int originalHeight,
+      BufferedImage compressedImage) {
+    if (compressedImage == null) {
+      return new RescaleValue(1.0, 1.0);
+    }
+
+    double scaleX = (double) compressedImage.getWidth() / originalWidth;
+    double scaleY = (double) compressedImage.getHeight() / originalHeight;
 
     for (var annotation : exportAnnotation.getAnnotations()) {
       if (annotation.getPolygon().getPoints() != null) {

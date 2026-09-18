@@ -66,7 +66,12 @@ class ExportAreaPictureAnnotationPdfLayoutTest {
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(
-            pdfGenerator, imageGenerator, image3DGenerator, fileService, imageCompressor);
+            pdfGenerator,
+            imageGenerator,
+            image3DGenerator,
+            fileService,
+            imageCompressor,
+            areaPictureAnnotationConfRestMapper);
   }
 
   @Test

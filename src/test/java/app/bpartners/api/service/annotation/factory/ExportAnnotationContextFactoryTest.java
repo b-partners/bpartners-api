@@ -208,7 +208,7 @@ public class ExportAnnotationContextFactoryTest {
     Pair<String, List<String>> images = new Pair<>("main3d", List.of("a", "b"));
 
     ExportAnnotationContextFactory.configureAnnotation3DContext(
-        context, annotation3D, images, fileService);
+        context, annotation3D, images, fileService, true);
     assertEquals("data:image/jpeg;base64,main3d", context.getVariable("mainImage3D"));
     List<List<String>> subImagesPages =
         (List<List<String>>) context.getVariable("topViewPanImagesUris");
@@ -255,6 +255,24 @@ public class ExportAnnotationContextFactoryTest {
     assertEquals(2, pagesFacade3D.get(0).size());
     assertEquals("Facade 1", pagesFacade3D.get(0).get(0).getName());
     assertEquals("Facade 2", pagesFacade3D.get(0).get(1).getName());
+  }
+
+  @Test
+  void configure_annotation_3d_context_should_skip_pan_images_when_pages_hidden() {
+    Context context = new Context();
+    ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
+    annotation3D.setPans(List.of(export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150)));
+    Pair<String, List<String>> images = new Pair<>("main3d", List.of("a"));
+
+    ExportAnnotationContextFactory.configureAnnotation3DContext(
+        context, annotation3D, images, fileService, false);
+
+    assertNull(context.getVariable("mainImage3D"));
+    assertEquals(List.of(), context.getVariable("topViewPanImagesUris"));
+    assertEquals(List.of(), context.getVariable("pansImages3DUris"));
+    // Cheap, always-needed data (used by the independent measurement summary) still populated.
+    assertNotNull(context.getVariable("pages3D"));
+    assertNotNull(context.getVariable("roofSlopeBoundariesPerPage"));
   }
 
   @Test

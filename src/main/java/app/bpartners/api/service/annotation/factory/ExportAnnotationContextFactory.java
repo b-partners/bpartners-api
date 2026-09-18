@@ -46,12 +46,13 @@ public class ExportAnnotationContextFactory {
       AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
     var context = new Context();
 
+    var conf = areaPictureAnnotationConfRestMapper.toDomain(annotation.getConf());
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
-    var mainImageUri = base64ToUri(annotationImages.first());
+    var mainImageUri =
+        annotationImages.first() == null ? null : base64ToUri(annotationImages.first());
     var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var defaultAccountHolder = user.getDefaultHolder();
     var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
-    var conf = areaPictureAnnotationConfRestMapper.toDomain(annotation.getConf());
 
     context.setVariable("user", user);
     context.setVariable("userWebsite", user.getDefaultWebsite());
@@ -76,8 +77,15 @@ public class ExportAnnotationContextFactory {
       configureGlobalRateContext(context, annotation);
     }
     if (annotation.get3d() != null) {
-      configureAnnotation3DContext(context, annotation.get3d(), annotation3DImages, fileService);
-      configureAnnotationFacade3DContext(context, annotation.get3d(), fileService);
+      configureAnnotation3DContext(
+          context,
+          annotation.get3d(),
+          annotation3DImages,
+          fileService,
+          conf.isShowAnnotation3dPages());
+      if (conf.isShowAnnotation3dPages()) {
+        configureAnnotationFacade3DContext(context, annotation.get3d(), fileService);
+      }
       configureAnnotationSummaryContext(context, annotation, annotationImage3DGenerator);
     }
 
@@ -266,17 +274,26 @@ public class ExportAnnotationContextFactory {
       Context context,
       ExportAreaPictureAnnotation3D annotation3D,
       Pair<String, List<String>> annotation3DImages,
-      FileService fileService) {
+      FileService fileService,
+      boolean showAnnotation3dPages) {
     var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
+    context.setVariable("pages3D", pages3D);
+    context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
+    context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
+
+    if (!showAnnotation3dPages) {
+      context.setVariable("mainImage3D", null);
+      context.setVariable("topViewPanImagesUris", List.of());
+      context.setVariable("pansImages3DUris", List.of());
+      return;
+    }
+
     var mainImage3DUri = base64ToUri(annotation3DImages.first());
     var subImages3DUris =
         annotation3DImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
     var pansScreenshootImages3D = getPansImages3DContext(annotation3D, fileService);
 
-    context.setVariable("pages3D", pages3D);
     context.setVariable("mainImage3D", mainImage3DUri);
-    context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
-    context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
     context.setVariable("topViewPanImagesUris", groupByFirstPage(subImages3DUris, 3, 4));
     context.setVariable("pansImages3DUris", groupByFirstPage(pansScreenshootImages3D, 3, 4));
   }

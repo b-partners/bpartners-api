@@ -77,6 +77,39 @@ class ExportAreaPictureAnnotationAdjustmentTest {
   }
 
   @Test
+  void adjustAnnotation_with_true_dimensions_ok() {
+    ExportAreaPictureAnnotation exportAnnotation = mock(ExportAreaPictureAnnotation.class);
+    ExportAreaPictureAnnotationInstance annotation =
+        mock(ExportAreaPictureAnnotationInstance.class);
+    Polygon polygon = mock(Polygon.class);
+    Point point = new Point();
+    point.setX(100.0);
+    point.setY(200.0);
+    when(exportAnnotation.getAnnotations()).thenReturn(List.of(annotation));
+    when(annotation.getPolygon()).thenReturn(polygon);
+    when(polygon.getPoints()).thenReturn(List.of(point));
+    // Simulates a subsampled decode: the true source image is 1000x1000, but the BufferedImage
+    // actually held in memory was already downsampled to 500x500 before compression ran.
+    BufferedImage compressedImg = new BufferedImage(250, 125, BufferedImage.TYPE_INT_RGB);
+
+    ExportAreaPictureAnnotationAdjustment.RescaleValue actualRescale =
+        ExportAreaPictureAnnotationAdjustment.adjustAnnotation(
+            exportAnnotation, 1000, 1000, compressedImg);
+
+    assertEquals(0.25, actualRescale.x());
+    assertEquals(0.125, actualRescale.y());
+    assertEquals(25.0, point.getX());
+    assertEquals(25.0, point.getY());
+  }
+
+  @Test
+  void adjustAnnotation_with_true_dimensions_null_compressed_image() {
+    var rescale = ExportAreaPictureAnnotationAdjustment.adjustAnnotation(null, 1000, 1000, null);
+    assertEquals(1.0, rescale.x());
+    assertEquals(1.0, rescale.y());
+  }
+
+  @Test
   void adjustAnnotation_null_params() {
     var rescale = ExportAreaPictureAnnotationAdjustment.adjustAnnotation(null, null, null);
     assertEquals(1.0, rescale.x());

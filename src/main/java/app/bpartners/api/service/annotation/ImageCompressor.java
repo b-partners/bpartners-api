@@ -98,9 +98,7 @@ public class ImageCompressor {
       long currentSize = params.originalSize();
       float currentQuality = params.quality();
       BufferedImage temp = originalImage;
-      while (getImageSizeBytes(temp) > imageTargetSize
-          && currentQuality > 0.1f
-          && attempts++ < 10) {
+      while (currentSize > imageTargetSize && currentQuality > 0.1f && attempts++ < 10) {
         temp =
             Thumbnails.of(originalImage)
                 .size(params.targetWidth(), params.targetHeight())

@@ -6,6 +6,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.UserStripeCustomerEmailCorrespondence;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
@@ -34,6 +35,17 @@ public class SubscriptionInvoiceService {
   private final UserStripeCustomerEmailCorrespondenceJpaRepository
       stripeCustomerEmailCorrespondenceJpaRepository;
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
+
+  public List<Invoice> getSubscriptionInvoices(
+      String concernedUserIdentifier, YearMonth yearMonth, List<PaymentStatus> paymentStatuses) {
+    var invoices = getSubscriptionInvoices(concernedUserIdentifier, yearMonth);
+    if (paymentStatuses == null || paymentStatuses.isEmpty()) {
+      return invoices;
+    }
+    return invoices.stream()
+        .filter(invoice -> paymentStatuses.contains(invoice.paymentStatus()))
+        .toList();
+  }
 
   public List<Invoice> getSubscriptionInvoices(
       String concernedUserIdentifier, YearMonth yearMonth) {

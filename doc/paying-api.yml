@@ -1411,7 +1411,7 @@ operations:
         - Paying
       summary: Get provided user subscription invoices
       description: |
-
+        Get provided user subscription invoices and its payment statuses
       operationId: getUserSubscriptionInvoices
       parameters:
         - in: path
@@ -1424,6 +1424,15 @@ operations:
           schema:
             $ref: './api.yml#/components/schemas/YearMonth'
           required: true
+        - in: query
+          name: paymentStatuses
+          required: false
+          description: |
+            Optional. When omitted, no filter is applied, returning both PAID and UNPAID subscription invoices.
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/PaymentStatus'
       responses:
         200:
           description:
@@ -2080,3 +2089,10 @@ components:
           $ref: './api.yml#/components/schemas/PreSignedURL'
         invoice:
           $ref: '#/components/schemas/Invoice'
+        paymentStatus:
+          $ref: '#/components/schemas/PaymentStatus'
+        paymentUrl:
+          type: string
+          description: |
+            Optional. Only set when subscription invoice payment status is UNPAID.
+            Sourced from Stripe as the hosted invoice URL to complete the payment.

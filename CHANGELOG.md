@@ -1,18 +1,43 @@
-# [0.95.0](https://github.com/b-partners/bpartners-api/compare/v0.94.0...v0.95.0) (2026-09-10)
+# [0.97.0](https://github.com/b-partners/bpartners-api/compare/v0.96.0...v0.97.0) (2026-09-18)
+
+
+### Features
+
+* allow listing UNPAID subscriptionInvoices without yearMonth ([2acf61f](https://github.com/b-partners/bpartners-api/commit/2acf61fcee14a1b7b05f6c293d0cfab74fd995a2))
+
+
+
+# [0.96.0](https://github.com/b-partners/bpartners-api/compare/v0.94.0...v0.96.0) (2026-09-18)
 
 
 ### Bug Fixes
 
+* add payment status and payment URL on subscriptionInvoice ([a4f6272](https://github.com/b-partners/bpartners-api/commit/a4f6272a39ee873429b18f0caf00ca2231735215))
+* **billing stats HTML:** serve text/html as UTF-8 ([4185286](https://github.com/b-partners/bpartners-api/commit/4185286d8ade5babddfc2ebdb96bba76f2b49307))
 * consume granted credits on analysis during free trial ([2b95b6f](https://github.com/b-partners/bpartners-api/commit/2b95b6f10096800fafe06cd756d3ff398a320481))
 * **db:** exclude Module devis automatisé from PRO ([b7ca3ec](https://github.com/b-partners/bpartners-api/commit/b7ca3ecf7699460b80e670de918e6ff920494f60))
+* **db:** remove deprecated entries from susbcription_products comparison and features ([0b61f6a](https://github.com/b-partners/bpartners-api/commit/0b61f6a33a455e3c100050cd37e6e01db2231796))
+* **DetectionTrackingService:** persist detection tracking zone as address log ([326f0ff](https://github.com/b-partners/bpartners-api/commit/326f0ffd2780df6eb33f3bd76a8fcdb4f05ea28b))
+* **DetectionTrackingService:** skip debit when zone already registered per user ([447f271](https://github.com/b-partners/bpartners-api/commit/447f271a968c34c2b265eae2a36523fc45136790))
+* handle billing statistics on HTML ([b20001c](https://github.com/b-partners/bpartners-api/commit/b20001c2d5725c1eb17828e802a1e87d343e593c))
 * include featureSections and comparisonEntries on stripe product concilliation ([de16bac](https://github.com/b-partners/bpartners-api/commit/de16bac0cb71941b1ea0ee40db343da5023195a6))
 * include trial analysis granted on stripe product concilliation ([5160058](https://github.com/b-partners/bpartners-api/commit/5160058f4b3f4f67128f856d6269f517977fbc0f))
+* reconcile subscription invoice with stripe by amount and period to disambiguate several unpaid invoices ([1d40436](https://github.com/b-partners/bpartners-api/commit/1d40436ac6da2f18446b5a3be253e4e7085cafff))
+* return credit balance on GET /users V2 ([bf7ee64](https://github.com/b-partners/bpartners-api/commit/bf7ee64c7eecddde61bd787e18a0cec4e6ea886a))
+* return credit balance on GET /users V2 ([466e7e2](https://github.com/b-partners/bpartners-api/commit/466e7e22b9de49f61d890ee6891682c03a963bc4))
+* **SubscriptionService:** do not consider UNPAID as active susbcription ([c5be374](https://github.com/b-partners/bpartners-api/commit/c5be374700239d197074d2d50794ea55411d1821))
+* **SubscriptionService:** do not consider UNPAID as active susbcription ([db0f34a](https://github.com/b-partners/bpartners-api/commit/db0f34aa329fe1fa93b11d6cf612657c5ea8858e))
+* **SubscriptionStatus:** map incomplete_expired as CANCELED not UNPAID ([8add6e5](https://github.com/b-partners/bpartners-api/commit/8add6e5f17084c2812aefba9b4e2561885f5c026))
+* **SubscriptionStatus:** map incomplete_expired as CANCELED not UNPAID ([56e8e3a](https://github.com/b-partners/bpartners-api/commit/56e8e3aaa31bca3132471628d145df2e8dd4fe4c))
+* transmit user dashboard api key to analysis api and keep it on analysis key creation ([af039ba](https://github.com/b-partners/bpartners-api/commit/af039ba4daf6eaed5120dc8fb02a8e3a83346983))
 * transmit user dashboard api key to analysis api and keep it on analysis key creation ([e9bc436](https://github.com/b-partners/bpartners-api/commit/e9bc4361befbe39812c74763eada733e18ad2098))
 
 
 ### Features
 
-* persist mutation and fireRisk on area picture annotation metadata ([b54f295](https://github.com/b-partners/bpartners-api/commit/b54f295eac5e11756934ff664ae29af76ffb9a33))
+* add admin subscription billing stats endpoint ([64a8416](https://github.com/b-partners/bpartners-api/commit/64a8416e489cebaa2fe91307f2f009a351dc67eb))
+* persist mutation and fireRisk on area picture annotation metadata ([677608a](https://github.com/b-partners/bpartners-api/commit/677608a9aa0bff452715b8fd9eb285a9b36b9070))
+* support fileId as an alternative to url in export pdf ImageSection ([74eeea5](https://github.com/b-partners/bpartners-api/commit/74eeea53a172fafde4d8cbe7916fadb7c56e37df))
 
 
 
@@ -248,36 +273,6 @@
 ### Features
 
 * add facade measurements to pdf ([75c961a](https://github.com/b-partners/bpartners-api/commit/75c961aec63d73e897d08b70966b5fa30a3ad66a))
-
-
-
-# [0.81.0](https://github.com/b-partners/bpartners-api/compare/v0.80.0...v0.81.0) (2026-07-09)
-
-
-### Bug Fixes
-
-* **CustomerExportFunction:** export row only for non null CustomerExport payload ([79fe3f6](https://github.com/b-partners/bpartners-api/commit/79fe3f63681b4f54ce5515f112423819bd1a6820))
-* **export-pdf:** use user address in user info ([1c516d7](https://github.com/b-partners/bpartners-api/commit/1c516d712b7b7e3d00a0dba94c357ecbb1da7c2f))
-* implement GET /users for ADMIN role with V2User ([e84ec3f](https://github.com/b-partners/bpartners-api/commit/e84ec3f302a203c5fe1ad73c5995c81c321d5f74))
-* **MonthlySubscriptionInvoiceRequestedService:** avoid duplication on retryer through title and user debited id ([51e57fa](https://github.com/b-partners/bpartners-api/commit/51e57faabac13bfbfb51835162259f4a81fac12c))
-* **MonthlySubscriptionInvoiceRequestedService:** configure invoice date period to actual month ([b5653e9](https://github.com/b-partners/bpartners-api/commit/b5653e93c3bc873b9ebfbcf64bd9bc10d56655fd))
-* **MonthlySubscriptionInvoiceRequestedService:** verify upcoming invoice is before next month not actual month ([59f2a24](https://github.com/b-partners/bpartners-api/commit/59f2a2447b320640f196319e3d178476a5e8affa))
-* **MonthlySubscriptionInvoiceTriggeredService:** export upcoming debited customer for actual month not next ([3d509a1](https://github.com/b-partners/bpartners-api/commit/3d509a1feead424e4ad53b398fe486326874096a))
-* **OnboardingService:** use spring proxy to apply transactional commit on each user onboarding ([e804ec8](https://github.com/b-partners/bpartners-api/commit/e804ec852d5142fbad340c780f445cc8b2c69c2e))
-* **RefreshInvoiceSummaryTriggeredService:** isolate each user invoice summary refresh event ([39062d1](https://github.com/b-partners/bpartners-api/commit/39062d15ac98ab8a984eddf3639728faac780ae0))
-* retrieve paymentMethod during GET /users ([ad2cba3](https://github.com/b-partners/bpartners-api/commit/ad2cba33bc2d0265eeb64837d8b8bea5a80ca654))
-* **UserOnboardedService:** verify if user not already linked to stripe customer before (re)processing ([14e9dc8](https://github.com/b-partners/bpartners-api/commit/14e9dc8979b298fe42bda97cd89913fdf2cc98ae))
-* **UserRepositoryImpl:** do not retrieve payment method from stripe on list retrieving ([ea347ef](https://github.com/b-partners/bpartners-api/commit/ea347efff852562b755997a267e6d3b0bc87b88a))
-* **UserRepository:** pagination offest computed using both page and size not page only ([971be80](https://github.com/b-partners/bpartners-api/commit/971be805bc32f0fa483ae9604ca7832f10910c45))
-* **UserRestMapper:** avoid NPE for provided null domain ([aafb184](https://github.com/b-partners/bpartners-api/commit/aafb1845ce3e517f6444e274961c69471d7c1280))
-
-
-### Features
-
-* **export-pdf:** customizable pages ([11277e0](https://github.com/b-partners/bpartners-api/commit/11277e0284e2dab2c4ce3b9b177c80ba27ad5f75))
-* optional export annotation content ([ede0cfa](https://github.com/b-partners/bpartners-api/commit/ede0cfa362bb27ecfd1e7818649d429cdd2f3c9c))
-* POST /monthlyUpcomingDebitedCustomers/{year}/{month} for ADMIN_ROLE ([ba49f60](https://github.com/b-partners/bpartners-api/commit/ba49f6039b00738486cbe51a229f61bd89762c66))
-* update invoice statuses ([15953e0](https://github.com/b-partners/bpartners-api/commit/15953e07522d476a89de22f07ec6403fa4b02136))
 
 
 

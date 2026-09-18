@@ -180,6 +180,11 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       predicates.add(
           builder.equal(builder.lower(root.get("title")), criteria.exactTitle().toLowerCase()));
     }
+    if (criteria.titlePrefix() != null) {
+      predicates.add(
+          builder.like(
+              builder.lower(root.get("title")), criteria.titlePrefix().toLowerCase() + "%"));
+    }
     if (criteria.customerEmail() != null) {
       predicates.add(
           builder.equal(

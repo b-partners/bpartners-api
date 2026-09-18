@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.*;
@@ -13,12 +15,11 @@ import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URL;
+import java.util.List;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 import org.springframework.core.io.ClassPathResource;
 
 class ExportAreaPictureAnnotationPdfProcessorTest {
@@ -32,6 +33,8 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
       mock();
   FileService fileServiceMock = mock();
   ImageCompressor imageCompressor = new ImageCompressor();
+  AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
+      new AreaPictureAnnotationConfRestMapper();
 
   ExportAreaPictureAnnotationPDFProcessor subject =
       new ExportAreaPictureAnnotationPDFProcessor(
@@ -39,7 +42,8 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
           exportAreaPictureAnnotationImageGeneratorMock,
           exportAreaPictureAnnotationImage3DGeneratorMock,
           fileServiceMock,
-          imageCompressor);
+          imageCompressor,
+          areaPictureAnnotationConfRestMapper);
 
   @BeforeAll
   static void createMockImage() throws IOException {
@@ -57,34 +61,47 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
 
     when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any(), any()))
         .thenReturn(fileMock);
-    when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("https://dummy.com");
+    when(exportAreaPictureAnnotationMock.getImageUrl())
+        .thenReturn(
+            new ClassPathResource("files/downloaded-annotation-image.jpeg")
+                .getFile()
+                .toURI()
+                .toString());
     when(fileServiceMock.downloadFile(any(), any(), any()))
         .thenReturn(new ClassPathResource("files/downloaded-annotation-image.jpeg").getFile());
   }
 
   @Test
   void process_pdf_ok() throws IOException {
-    MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class);
-    mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenReturn(mockImage);
-    subject =
-        new ExportAreaPictureAnnotationPDFProcessor(
-            exportAreaPictureAnnotationPDFGenerator,
-            exportAreaPictureAnnotationImageGeneratorMock,
-            exportAreaPictureAnnotationImage3DGeneratorMock,
-            fileServiceMock,
-            imageCompressor);
     var expected = fileMock;
 
     var actual = subject.process(user(), exportAreaPictureAnnotationMock);
 
     assertEquals(expected, actual);
-    mockedImageIo.close();
+  }
+
+  @Test
+  void process_pdf_skips_image_generation_when_all_pages_hidden() throws IOException {
+    // A malformed URL: if the visibility gating is ever broken, the download would be attempted
+    // and fail loudly here instead of silently reading the real fallback image.
+    when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("not a url");
+    when(exportAreaPictureAnnotationMock.getConf())
+        .thenReturn(
+            new ExportAreaPictureAnnotationConf()
+                .showTitlePage(false)
+                .showAnnotationPages(false)
+                .showAnnotation3dPages(false));
+
+    subject.process(user(), exportAreaPictureAnnotationMock);
+
+    verify(exportAreaPictureAnnotationPDFGenerator)
+        .apply(any(), isNull(), any(), eq(new Pair<>(null, List.of())), isNull());
   }
 
   @Test
   void should_throw_if_cannot_read_the_image() {
-    MockedStatic<ImageIO> mockedImageIo = mockStatic(ImageIO.class);
-    mockedImageIo.when(() -> ImageIO.read(any(URL.class))).thenThrow(new IOException());
+    when(exportAreaPictureAnnotationMock.getImageUrl())
+        .thenReturn("file:///no/such/image-does-not-exist.jpg");
 
     var error =
         assertThrows(
@@ -92,7 +109,6 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
             () -> subject.process(user(), exportAreaPictureAnnotationMock));
 
     assertEquals("Cannot read the image from the url", error.getMessage());
-    mockedImageIo.close();
   }
 
   User user() {

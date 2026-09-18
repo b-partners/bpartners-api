@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.PaymentMethod;
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.io.InputStream;
 import java.time.Instant;
@@ -86,6 +87,10 @@ public class Invoice {
 
   public String getUpdatedAtFrenchDate() {
     return new CustomDateFormatter().formatFrenchDate(updatedAt);
+  }
+
+  public PaymentStatus paymentStatus() {
+    return status == InvoiceStatus.PAID ? PaymentStatus.PAID : PaymentStatus.UNPAID;
   }
 
   public String getRealReference() {

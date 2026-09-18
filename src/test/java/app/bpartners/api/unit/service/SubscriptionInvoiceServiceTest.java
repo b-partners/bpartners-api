@@ -4,6 +4,8 @@ import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -12,9 +14,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserStripeCustomerEmailCorrespondence;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
@@ -83,6 +87,27 @@ class SubscriptionInvoiceServiceTest {
 
     assertEquals(List.of(expected), actual);
     verify(invoiceServiceMock, never()).findAllByCriteria(any());
+  }
+
+  @Test
+  void filter_by_payment_statuses_ok() {
+    var paidInvoice = Invoice.builder().id("paid_invoice").status(PAID).build();
+    var unpaidInvoice = Invoice.builder().id("unpaid_invoice").status(CONFIRMED).build();
+    when(invoiceServiceMock.findAllByCriteria(any()))
+        .thenReturn(List.of(paidInvoice, unpaidInvoice));
+
+    assertEquals(
+        List.of(unpaidInvoice),
+        subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, List.of(PaymentStatus.UNPAID)));
+    assertEquals(
+        List.of(paidInvoice),
+        subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, List.of(PaymentStatus.PAID)));
+    assertEquals(
+        List.of(paidInvoice, unpaidInvoice),
+        subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, List.of()));
+    assertEquals(
+        List.of(paidInvoice, unpaidInvoice),
+        subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, null));
   }
 
   @Test
@@ -165,6 +190,61 @@ class SubscriptionInvoiceServiceTest {
 
     assertTrue(actual.isEmpty());
     // a null customer email would be read as "no filter" and leak every other customer invoice
+    verify(invoiceServiceMock, never()).findAllByCriteria(any());
+  }
+
+  @Test
+  void list_unpaid_without_year_month_ok() {
+    var unpaidInvoice = Invoice.builder().id("unpaid_invoice").status(CONFIRMED).build();
+    when(invoiceServiceMock.findAllByCriteria(any())).thenReturn(List.of(unpaidInvoice));
+
+    var actual = subject.getSubscriptionInvoices(USER_ID, null, List.of(PaymentStatus.UNPAID));
+
+    assertEquals(List.of(unpaidInvoice), actual);
+    var criteria = capturedCriteria();
+    assertEquals(USER_TO_CREDIT_ID, criteria.idUser());
+    assertEquals(USER_EMAIL, criteria.customerEmail());
+    assertEquals(List.of(CONFIRMED), criteria.statusList());
+    assertEquals(ENABLED, criteria.archiveStatus());
+    assertEquals(SubscriptionInvoiceTitleComputer.TITLE_PREFIX, criteria.titlePrefix());
+    assertNull(criteria.exactTitle());
+    assertNull(criteria.sendingDateFrom());
+    assertNull(criteria.sendingDateTo());
+    verify(subscriptionPaymentRepositoryMock, never())
+        .findByUserIdAndInvoiceIdIsNotNullAndPaymentDatetimeBetweenOrderByPaymentDatetimeDesc(
+            any(), any(), any());
+  }
+
+  @Test
+  void list_unpaid_without_year_month_falls_back_on_stripe_email_ok() {
+    var expected = List.of(invoice());
+    when(invoiceServiceMock.findAllByCriteria(any())).thenReturn(List.of()).thenReturn(expected);
+    when(correspondenceRepositoryMock.findByUserId(USER_ID))
+        .thenReturn(Optional.of(correspondence(STRIPE_EMAIL)));
+
+    var actual = subject.getSubscriptionInvoices(USER_ID, null, List.of(PaymentStatus.UNPAID));
+
+    assertEquals(expected, actual);
+    var criteria = allCapturedCriteria();
+    assertEquals(2, criteria.size());
+    assertEquals(USER_EMAIL, criteria.get(0).customerEmail());
+    assertEquals(STRIPE_EMAIL, criteria.get(1).customerEmail());
+  }
+
+  @Test
+  void reject_missing_year_month_when_not_unpaid_only() {
+    assertThrows(
+        BadRequestException.class, () -> subject.getSubscriptionInvoices(USER_ID, null, null));
+    assertThrows(
+        BadRequestException.class, () -> subject.getSubscriptionInvoices(USER_ID, null, List.of()));
+    assertThrows(
+        BadRequestException.class,
+        () -> subject.getSubscriptionInvoices(USER_ID, null, List.of(PaymentStatus.PAID)));
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            subject.getSubscriptionInvoices(
+                USER_ID, null, List.of(PaymentStatus.UNPAID, PaymentStatus.PAID)));
     verify(invoiceServiceMock, never()).findAllByCriteria(any());
   }
 

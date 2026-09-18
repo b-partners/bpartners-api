@@ -1423,12 +1423,17 @@ operations:
           name: yearMonth
           schema:
             $ref: './api.yml#/components/schemas/YearMonth'
-          required: true
+          required: false
+          description: |
+            Optional. When omitted, `paymentStatuses` must be exactly `[UNPAID]`, and every UNPAID
+            subscription invoice of the user is returned regardless of its period. Any other case
+            without `yearMonth` is rejected with a 400.
         - in: query
           name: paymentStatuses
           required: false
           description: |
             Optional. When omitted, no filter is applied, returning both PAID and UNPAID subscription invoices.
+            Must be exactly `[UNPAID]` when `yearMonth` is omitted.
           schema:
             type: array
             items:

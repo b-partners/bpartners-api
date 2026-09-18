@@ -3,12 +3,14 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
+import static app.bpartners.api.endpoint.rest.model.PaymentStatus.UNPAID;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
 
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.UserStripeCustomerEmailCorrespondence;
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
@@ -38,13 +40,58 @@ public class SubscriptionInvoiceService {
 
   public List<Invoice> getSubscriptionInvoices(
       String concernedUserIdentifier, YearMonth yearMonth, List<PaymentStatus> paymentStatuses) {
-    var invoices = getSubscriptionInvoices(concernedUserIdentifier, yearMonth);
+    if (yearMonth == null && !isUnpaidOnly(paymentStatuses)) {
+      throw new BadRequestException(
+          "yearMonth is required unless paymentStatuses is exactly [UNPAID]");
+    }
+    var invoices =
+        yearMonth == null
+            ? findUnpaidSubscriptionInvoices(concernedUserIdentifier)
+            : getSubscriptionInvoices(concernedUserIdentifier, yearMonth);
     if (paymentStatuses == null || paymentStatuses.isEmpty()) {
       return invoices;
     }
     return invoices.stream()
         .filter(invoice -> paymentStatuses.contains(invoice.paymentStatus()))
         .toList();
+  }
+
+  private static boolean isUnpaidOnly(List<PaymentStatus> paymentStatuses) {
+    return paymentStatuses != null
+        && !paymentStatuses.isEmpty()
+        && paymentStatuses.stream().allMatch(status -> status == UNPAID);
+  }
+
+  private List<Invoice> findUnpaidSubscriptionInvoices(String concernedUserIdentifier) {
+    var concernedUser = userService.getUserById(concernedUserIdentifier);
+
+    var invoices = findUnpaidByCustomerEmail(concernedUser.getEmail());
+    if (!invoices.isEmpty()) {
+      return invoices;
+    }
+
+    return stripeCustomerEmailCorrespondenceJpaRepository
+        .findByUserId(concernedUserIdentifier)
+        .map(UserStripeCustomerEmailCorrespondence::getEmail)
+        .filter(stripeEmail -> !stripeEmail.equalsIgnoreCase(concernedUser.getEmail()))
+        .map(this::findUnpaidByCustomerEmail)
+        .orElse(List.of());
+  }
+
+  private List<Invoice> findUnpaidByCustomerEmail(String customerEmail) {
+    if (customerEmail == null) {
+      return List.of();
+    }
+    return invoiceService.findAllByCriteria(
+        InvoiceCriteria.builder()
+            .idUser(userSubscriptionConf.getUserToCreditId())
+            .statusList(List.of(CONFIRMED))
+            .archiveStatus(ENABLED)
+            .customerEmail(customerEmail)
+            .titlePrefix(SubscriptionInvoiceTitleComputer.TITLE_PREFIX)
+            .page(MIN_PAGE - 1)
+            .pageSize(MAX_SIZE)
+            .build());
   }
 
   public List<Invoice> getSubscriptionInvoices(

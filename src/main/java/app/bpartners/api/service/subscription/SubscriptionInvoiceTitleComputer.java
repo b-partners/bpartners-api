@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class SubscriptionInvoiceTitleComputer implements Function<YearMonth, String> {
+  public static final String TITLE_PREFIX = "Facture pour la période de ";
   private final CustomDateFormatter customDateFormatter;
 
   @Override

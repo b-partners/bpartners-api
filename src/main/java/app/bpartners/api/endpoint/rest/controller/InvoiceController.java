@@ -56,7 +56,7 @@ public class InvoiceController {
   @GetMapping("users/{uId}/subscriptionInvoices")
   public List<SubscriptionInvoice> getUserSubscriptionInvoices(
       @PathVariable String uId,
-      @RequestParam YearMonth yearMonth,
+      @RequestParam(required = false) YearMonth yearMonth,
       @RequestParam(required = false) List<PaymentStatus> paymentStatuses) {
     var subscriptionInvoices =
         subscriptionInvoiceService.getSubscriptionInvoices(uId, yearMonth, paymentStatuses);

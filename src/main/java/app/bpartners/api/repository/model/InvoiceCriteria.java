@@ -15,6 +15,7 @@ public record InvoiceCriteria(
     List<String> keywords,
     String customerEmail,
     String exactTitle,
+    String titlePrefix,
     LocalDate sendingDateFrom,
     LocalDate sendingDateTo,
     Integer page,

@@ -48,4 +48,11 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
   List<HInvoice> findAllByToBeRelaunched(boolean toBeRelaunched);
 
   List<HInvoice> findAllByIdUserAndArchiveStatus(String idUser, ArchiveStatus archiveStatus);
+
+  @Query(
+      "select i from HInvoice i"
+          + " where i.status = :status"
+          + " and i.createdDatetime >= :from and i.createdDatetime < :to")
+  List<HInvoice> findByStatusAndCreatedDatetimeBetween(
+      @Param("status") InvoiceStatus status, @Param("from") Instant from, @Param("to") Instant to);
 }

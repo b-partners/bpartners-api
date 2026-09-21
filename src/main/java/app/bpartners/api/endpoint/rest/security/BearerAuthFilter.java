@@ -18,7 +18,6 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Slf4j
 public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
-  private static final String API_KEY_QUERY_PARAMETER_NAME = "apiKey";
   private static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   private final String authHeader;
 
@@ -43,8 +42,8 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
       return getAuthenticationManager().authenticate(bearerToken);
     } catch (Exception ignored) {
       String apiKey = request.getHeader(API_KEY_HEADER);
-      if (apiKey == null && verifyAntMatcher(request)) {
-        apiKey = firstParameterValue(request, API_KEY_QUERY_PARAMETER_NAME);
+      if (apiKey == null) {
+        apiKey = firstCookieValue(request, API_KEY_HEADER);
       }
       var apiKeyToken = new UsernamePasswordAuthenticationToken(API_KEY_HEADER, apiKey);
       apiKeyToken.setDetails(request);
@@ -55,6 +54,19 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   private static String firstParameterValue(HttpServletRequest request, String name) {
     String[] values = request.getParameterMap().get(name);
     return values == null || values.length == 0 ? null : values[0];
+  }
+
+  private static String firstCookieValue(HttpServletRequest request, String name) {
+    var cookies = request.getCookies();
+    if (cookies == null) {
+      return null;
+    }
+    for (var cookie : cookies) {
+      if (name.equals(cookie.getName())) {
+        return cookie.getValue();
+      }
+    }
+    return null;
   }
 
   @Override
@@ -69,7 +81,6 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   }
 
   private boolean verifyAntMatcher(HttpServletRequest request) {
-    return new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()).matches(request)
-        || new AntPathRequestMatcher("/subscriptionBillingStats", GET.name()).matches(request);
+    return new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()).matches(request);
   }
 }

@@ -18,6 +18,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Slf4j
 public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
+  private static final String API_KEY_QUERY_PARAMETER_NAME = "apiKey";
   private static final String BEARER_QUERY_PARAMETER_NAME = "accessToken";
   private final String authHeader;
 
@@ -44,6 +45,9 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
       String apiKey = request.getHeader(API_KEY_HEADER);
       if (apiKey == null) {
         apiKey = firstCookieValue(request, API_KEY_HEADER);
+      }
+      if (apiKey == null && verifyAntMatcher(request)) {
+        apiKey = firstParameterValue(request, API_KEY_QUERY_PARAMETER_NAME);
       }
       var apiKeyToken = new UsernamePasswordAuthenticationToken(API_KEY_HEADER, apiKey);
       apiKeyToken.setDetails(request);

@@ -1,3 +1,12 @@
+# [0.98.0](https://github.com/b-partners/bpartners-api/compare/v0.97.0...v0.98.0) (2026-09-22)
+
+
+### Features
+
+* **export-pdf:** make degradation rate section optional ([5104c7d](https://github.com/b-partners/bpartners-api/commit/5104c7d13e4eba1e02a4f7af608f16dc48e28bf9))
+
+
+
 # [0.97.0](https://github.com/b-partners/bpartners-api/compare/v0.96.0...v0.97.0) (2026-09-18)
 
 
@@ -258,21 +267,6 @@
 ### Features
 
 * handle invoice export asynchronously ([d9e54e3](https://github.com/b-partners/bpartners-api/commit/d9e54e3c032f9247a2c9413b2ce105bb5761de3a))
-
-
-
-# [0.82.0](https://github.com/b-partners/bpartners-api/compare/v0.81.0...v0.82.0) (2026-07-15)
-
-
-### Bug Fixes
-
-* download image from current layer on first iteration ([ddbf444](https://github.com/b-partners/bpartners-api/commit/ddbf444983ae9a115d6b535a6320971021d76aba))
-* **WmsImageSourceFacade:** iterate over all available layers ([874dc44](https://github.com/b-partners/bpartners-api/commit/874dc44d46cb8be6776d308b0bdf2f0c2eb29b2d))
-
-
-### Features
-
-* add facade measurements to pdf ([75c961a](https://github.com/b-partners/bpartners-api/commit/75c961aec63d73e897d08b70966b5fa30a3ad66a))
 
 
 

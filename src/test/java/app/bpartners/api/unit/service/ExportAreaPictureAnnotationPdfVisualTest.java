@@ -397,6 +397,34 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
+  void generate_toulouse_cover_page_without_degradation_note() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromToulousePayload();
+    exportAreaPictureAnnotation.setConf(
+        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
+            .showTitlePage(true)
+            .showAnnotationPages(false)
+            .showAnnotation3dPages(false)
+            .showMeasurementSummary(false)
+            .showPitchSummary(false)
+            .showAreaSummary(false)
+            .showOverallSummary(false)
+            .showLlmSummary(false)
+            .showDegradationSummary(false));
+    mockImage =
+        ImageIO.read(
+            new ClassPathResource("files/17 Rue Pierre Bénech, 31100 Toulouse.png")
+                .getInputStream());
+    mockImageBytes = toByteStream(mockImage);
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "toulouse-cover-only-no-degradation");
+  }
+
+  @Test
   void generate_visual_pdf() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = fullExportAreaPictureAnnotation();
 

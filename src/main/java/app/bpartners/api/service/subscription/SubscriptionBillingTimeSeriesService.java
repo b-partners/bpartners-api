@@ -16,8 +16,10 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
 import app.bpartners.api.model.subscription.BillingInterval;
+import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
@@ -55,6 +57,7 @@ public class SubscriptionBillingTimeSeriesService {
   private final UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository;
   private final InvoiceJpaRepository invoiceJpaRepository;
   private final InvoiceProductMapper invoiceProductMapper;
+  private final SubscriptionPaymentRepository subscriptionPaymentRepository;
 
   public SubscriptionBillingTimeSeries getTimeSeries(
       LocalDate from, LocalDate to, BillingGranularity granularity) {
@@ -165,11 +168,52 @@ public class SubscriptionBillingTimeSeriesService {
       paidAmount[idx] += invoiceAmountInCentsWithVat(invoice);
     }
 
+    long[] newMonthly = new long[n];
+    long[] newAnnual = new long[n];
+    for (UserSubscriptionProduct usp : overlappingSubs) {
+      var start = usp.getSubscriptionStartDatetime();
+      if (start == null || start.isBefore(fromInstant) || !start.isBefore(toInstant)) {
+        continue;
+      }
+      int idx = bucketIndexOf(indexByBucket, start, granularity);
+      if (idx < 0) {
+        continue;
+      }
+      if (usp.getBillingInterval() == BillingInterval.MONTHLY) {
+        newMonthly[idx] += 1;
+      } else if (usp.getBillingInterval() == BillingInterval.YEARLY) {
+        newAnnual[idx] += 1;
+      }
+    }
+
+    long[] billedMonthly = new long[n];
+    long[] billedAnnual = new long[n];
+    for (SubscriptionPayment payment :
+        subscriptionPaymentRepository.findInvoicedBetween(fromInstant, toInstant)) {
+      var when = payment.getPaymentDatetime();
+      if (when == null) {
+        continue;
+      }
+      int idx = bucketIndexOf(indexByBucket, when, granularity);
+      if (idx < 0) {
+        continue;
+      }
+      if (payment.getBillingInterval() == BillingInterval.YEARLY) {
+        billedAnnual[idx] += 1;
+      } else {
+        billedMonthly[idx] += 1;
+      }
+    }
+
     return SubscriptionBillingTimeSeries.builder()
         .granularity(granularity)
         .labels(labels)
         .activeMonthlySubscriptions(activeMonthly)
         .activeAnnualSubscriptions(activeAnnual)
+        .newMonthlySubscriptions(toList(newMonthly))
+        .newAnnualSubscriptions(toList(newAnnual))
+        .billedMonthlyInstalments(toList(billedMonthly))
+        .billedAnnualInstalments(toList(billedAnnual))
         .requestsWithoutPlan(toList(withoutPlan))
         .overageRequestsByPlan(planSeries(overageByPlan))
         .paidInvoicesCount(toList(paidCount))
@@ -190,7 +234,7 @@ public class SubscriptionBillingTimeSeriesService {
       List<UserSubscriptionProduct> subs, Instant at, BillingInterval interval) {
     Set<String> userIds = new HashSet<>();
     for (UserSubscriptionProduct usp : subs) {
-      if (usp.getBillingInterval() == interval && isActiveAt(usp, at)) {
+      if (usp.getBillingInterval() == interval && isNotExpiredAt(usp, at)) {
         userIds.add(usp.getUserId());
       }
     }
@@ -217,6 +261,11 @@ public class SubscriptionBillingTimeSeriesService {
     var start = usp.getSubscriptionStartDatetime();
     var end = usp.getSubscriptionEndDatetime();
     return (start == null || !start.isAfter(instant)) && (end == null || end.isAfter(instant));
+  }
+
+  private static boolean isNotExpiredAt(UserSubscriptionProduct usp, Instant instant) {
+    var end = usp.getSubscriptionEndDatetime();
+    return end == null || end.isAfter(instant);
   }
 
   private List<SubscriptionBillingTimeSeries.PlanSeries> planSeries(Map<String, long[]> byPlan) {

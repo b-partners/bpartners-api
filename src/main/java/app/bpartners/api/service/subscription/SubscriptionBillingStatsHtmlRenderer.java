@@ -85,6 +85,10 @@ public class SubscriptionBillingStatsHtmlRenderer {
     data.put("labels", series.getLabels());
     data.put("activeMonthly", series.getActiveMonthlySubscriptions());
     data.put("activeAnnual", series.getActiveAnnualSubscriptions());
+    data.put("newMonthly", series.getNewMonthlySubscriptions());
+    data.put("newAnnual", series.getNewAnnualSubscriptions());
+    data.put("billedMonthly", series.getBilledMonthlyInstalments());
+    data.put("billedAnnual", series.getBilledAnnualInstalments());
     data.put("requestsWithoutPlan", series.getRequestsWithoutPlan());
     var overage = new ArrayList<Map<String, Object>>();
     for (var plan : series.getOverageRequestsByPlan()) {

@@ -233,6 +233,16 @@
         <span class="note">snapshot en fin de chaque période</span>
         <div class="canvas-wrap"><canvas id="chartActiveAnnual"></canvas></div>
       </div>
+      <div class="chart-card">
+        <h3>Nouveaux abonnements</h3>
+        <span class="note">démarrages sur la période (par date de début)</span>
+        <div class="canvas-wrap"><canvas id="chartNewSubs"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Instalments facturés</h3>
+        <span class="note">paiements d'abonnement facturés (1 vente par instalment)</span>
+        <div class="canvas-wrap"><canvas id="chartBilled"></canvas></div>
+      </div>
       <div class="chart-card full">
         <h3>Requêtes au-delà du quota, par plan</h3>
         <span class="note">requêtes dépassant le quota mensuel inclus (approximation)</span>
@@ -388,6 +398,24 @@
       type: 'line',
       data: { labels: data.labels, datasets: [{ label: 'Annuels actifs', data: data.activeAnnual, borderColor: '#2f80ed', backgroundColor: '#2f80ed', tension: 0.25, fill: false }] },
       options: Object.assign(baseOpts(), { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
+    });
+
+    new Chart(document.getElementById('chartNewSubs'), {
+      type: 'line',
+      data: { labels: data.labels, datasets: [
+        { label: 'Mensuels', data: data.newMonthly, borderColor: accent, backgroundColor: accent, tension: 0.25, fill: false },
+        { label: 'Annuels', data: data.newAnnual, borderColor: '#2f80ed', backgroundColor: '#2f80ed', tension: 0.25, fill: false }
+      ] },
+      options: withLegend({ scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
+    });
+
+    new Chart(document.getElementById('chartBilled'), {
+      type: 'bar',
+      data: { labels: data.labels, datasets: [
+        { label: 'Mensuels', data: data.billedMonthly, backgroundColor: accent },
+        { label: 'Annuels', data: data.billedAnnual, backgroundColor: '#2f80ed' }
+      ] },
+      options: withLegend({ scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
     });
 
     var overageDatasets = (data.overageByPlan || []).map(function (p, i) {

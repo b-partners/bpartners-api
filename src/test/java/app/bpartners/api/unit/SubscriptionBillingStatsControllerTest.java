@@ -58,6 +58,8 @@ class SubscriptionBillingStatsControllerTest {
     assertTrue(body.contains("Total TTC"));
     assertTrue(body.contains("Périodicité"));
     assertTrue(body.contains("chartOverage"));
+    assertTrue(body.contains("chartNewSubs"));
+    assertTrue(body.contains("chartBilled"));
     assertTrue(body.contains("chart.js"));
     assertTrue(body.contains("Se déconnecter"));
     assertTrue(body.contains("2025-01-01"));
@@ -162,6 +164,10 @@ class SubscriptionBillingStatsControllerTest {
         .labels(List.of("1 janv.", "2 janv."))
         .activeMonthlySubscriptions(List.of(3L, 4L))
         .activeAnnualSubscriptions(List.of(1L, 1L))
+        .newMonthlySubscriptions(List.of(1L, 0L))
+        .newAnnualSubscriptions(List.of(0L, 1L))
+        .billedMonthlyInstalments(List.of(2L, 1L))
+        .billedAnnualInstalments(List.of(0L, 1L))
         .requestsWithoutPlan(List.of(0L, 2L))
         .overageRequestsByPlan(
             List.of(

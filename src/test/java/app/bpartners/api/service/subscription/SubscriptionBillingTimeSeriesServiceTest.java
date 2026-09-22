@@ -17,9 +17,11 @@ import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.model.credit.CreditTransactionType;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
 import app.bpartners.api.model.subscription.BillingInterval;
+import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.InvoiceJpaRepository;
+import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.repository.jpa.model.HInvoice;
 import app.bpartners.api.repository.jpa.model.HInvoiceProduct;
@@ -33,13 +35,15 @@ class SubscriptionBillingTimeSeriesServiceTest {
   CreditTransactionRepository creditTransactionRepository = mock();
   UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository = mock();
   InvoiceJpaRepository invoiceJpaRepository = mock();
+  SubscriptionPaymentRepository subscriptionPaymentRepository = mock();
 
   SubscriptionBillingTimeSeriesService subject =
       new SubscriptionBillingTimeSeriesService(
           creditTransactionRepository,
           userSubscriptionProductJpaRepository,
           invoiceJpaRepository,
-          new InvoiceProductMapper());
+          new InvoiceProductMapper(),
+          subscriptionPaymentRepository);
 
   static final LocalDate FROM = LocalDate.of(2025, 1, 1);
   static final LocalDate TO = LocalDate.of(2025, 1, 31);
@@ -53,6 +57,7 @@ class SubscriptionBillingTimeSeriesServiceTest {
     when(creditTransactionRepository.findByTypesBetween(any(), any(), any())).thenReturn(List.of());
     when(invoiceJpaRepository.findByStatusAndCreatedDatetimeBetween(any(), any(), any()))
         .thenReturn(List.of());
+    when(subscriptionPaymentRepository.findInvoicedBetween(any(), any())).thenReturn(List.of());
   }
 
   @Test
@@ -71,6 +76,47 @@ class SubscriptionBillingTimeSeriesServiceTest {
     assertEquals(List.of(0L), series.getRequestsWithoutPlan());
     assertTrue(series.getOverageRequestsByPlan().isEmpty());
     assertEquals(List.of(0L), series.getPaidInvoicesCount());
+  }
+
+  @Test
+  void counts_a_subscription_as_active_until_its_end_regardless_of_start() {
+    when(userSubscriptionProductJpaRepository.findAllOverlapping(any(), any()))
+        .thenReturn(
+            List.of(
+                sub("u_future", plan("p_m", "Mensuel"), MONTHLY, instant("2025-03-01"), null),
+                sub(
+                    "u_expired",
+                    plan("p_m2", "Mensuel"),
+                    MONTHLY,
+                    instant("2024-01-01"),
+                    instant("2024-06-01"))));
+
+    var series = subject.getTimeSeries(FROM, TO, BillingGranularity.MONTH);
+
+    assertEquals(List.of(1L), series.getActiveMonthlySubscriptions());
+  }
+
+  @Test
+  void counts_new_subscriptions_by_start_and_billed_instalments_by_payment() {
+    when(userSubscriptionProductJpaRepository.findAllOverlapping(any(), any()))
+        .thenReturn(
+            List.of(
+                sub("u_new_m", plan("p_m", "Mensuel"), MONTHLY, instant("2025-01-10"), null),
+                sub("u_new_y", plan("p_y", "Annuel"), YEARLY, instant("2025-01-20"), null),
+                sub("u_old", plan("p_m", "Mensuel"), MONTHLY, instant("2024-12-01"), null)));
+    when(subscriptionPaymentRepository.findInvoicedBetween(any(), any()))
+        .thenReturn(
+            List.of(
+                payment(MONTHLY, instant("2025-01-05")),
+                payment(MONTHLY, instant("2025-01-15")),
+                payment(YEARLY, instant("2025-01-25"))));
+
+    var series = subject.getTimeSeries(FROM, TO, BillingGranularity.MONTH);
+
+    assertEquals(List.of(1L), series.getNewMonthlySubscriptions());
+    assertEquals(List.of(1L), series.getNewAnnualSubscriptions());
+    assertEquals(List.of(2L), series.getBilledMonthlyInstalments());
+    assertEquals(List.of(1L), series.getBilledAnnualInstalments());
   }
 
   @Test
@@ -157,6 +203,17 @@ class SubscriptionBillingTimeSeriesServiceTest {
         .billingInterval(interval)
         .subscriptionStartDatetime(start)
         .subscriptionEndDatetime(end)
+        .build();
+  }
+
+  private static SubscriptionPayment payment(BillingInterval interval, Instant when) {
+    return SubscriptionPayment.builder()
+        .id(randomUUID().toString())
+        .billingInterval(interval)
+        .amountInCentsWithoutVat(1000L)
+        .amountInCentsWithVat(1200L)
+        .paymentDatetime(when)
+        .invoiceId("inv-" + randomUUID())
         .build();
   }
 

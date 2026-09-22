@@ -11,6 +11,10 @@ public class SubscriptionBillingTimeSeries {
   List<String> labels;
   List<Long> activeMonthlySubscriptions;
   List<Long> activeAnnualSubscriptions;
+  List<Long> newMonthlySubscriptions;
+  List<Long> newAnnualSubscriptions;
+  List<Long> billedMonthlyInstalments;
+  List<Long> billedAnnualInstalments;
   List<Long> requestsWithoutPlan;
   List<PlanSeries> overageRequestsByPlan;
   List<Long> paidInvoicesCount;

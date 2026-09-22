@@ -421,6 +421,14 @@
             display: inline-block;
         }
 
+        /* A4 printable area (297mm) minus the @page top/bottom margins (18px each),
+           used as an explicit reference box so the footer can be pinned to its bottom. */
+        .cover-container {
+            position: relative;
+            width: 100%;
+            height: 1086px;
+        }
+
         .footer-info {
             position: absolute;
             left: 0;
@@ -582,6 +590,7 @@
 </head>
 <body>
 <section class="page" th:if="${conf.showTitlePage}">
+  <div class="cover-container">
     <h1 class="title">
         <span class="title-label">Rapport d'analyse de l'adresse : </span>
         <br />
@@ -648,6 +657,7 @@
             </tr>
         </table>
     </div>
+  </div>
 </section>
 
 <section th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and annotationPagesIsLast} ? ' last-page' : ''">

@@ -1,0 +1,71 @@
+name: Visual Test - Toulouse Cover Page (no degradation note)
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  STRIPE_PRIVATE_API_KEY: ${{ secrets.STRIPE_PRIVATE_API_KEY }}
+  GOOGLE_GEOCODE_API_KEY: ${{ secrets.GOOGLE_GEOCODE_API_KEY }}
+  GEODATA_IMAGERY_BASEURL: ${{secrets.GEODATA_IMAGERY_BASEURL}}
+
+jobs:
+  visual-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4.1.6
+
+      - name: Enable visual tests by removing @Disabled annotation
+        run: |
+          sed -i 's/@Disabled("This is a visual test to generate a PDF file for manual inspection.")//g' src/test/java/app/bpartners/api/unit/service/ExportAreaPictureAnnotationPdfVisualTest.java
+          echo "Removed @Disabled annotation to enable visual tests"
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - uses: actions/setup-java@v4.2.1
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Run only the Toulouse cover-page visual test
+        run: |
+          ./gradlew test \
+            --tests "app.bpartners.api.unit.service.ExportAreaPictureAnnotationPdfVisualTest.generate_toulouse_cover_page_without_degradation_note" \
+            --no-daemon \
+            --info \
+            --continue
+
+      - name: Check test results
+        run: |
+          if [ -d "build/test-results/test" ]; then
+            FAILED_TESTS=$(find build/test-results/test -name "*.xml" -exec grep -l "<failure" {} \; | wc -l)
+            if [ $FAILED_TESTS -gt 0 ]; then
+              echo "Found $FAILED_TESTS failed test(s)"
+              exit 1
+            else
+              echo "No test failures found"
+            fi
+          else
+            echo "Test results directory not found - assuming tests ran successfully"
+          fi
+
+      - name: Upload generated PDF as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: toulouse-cover-pdf
+          path: build/annotation-export-*.pdf
+          retention-days: 30

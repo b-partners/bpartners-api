@@ -51,4 +51,13 @@ public interface CreditTransactionRepository extends JpaRepository<CreditTransac
       @Param("types") List<CreditTransactionType> types,
       @Param("from") Instant from,
       @Param("to") Instant to);
+
+  @Query(
+      "select ct from credit_transaction ct"
+          + " where ct.type = :type"
+          + " and ct.grantPeriodStart >= :firstMonth and ct.grantPeriodStart <= :lastMonth")
+  List<CreditTransaction> findByTypeAndGrantPeriodStartBetween(
+      @Param("type") CreditTransactionType type,
+      @Param("firstMonth") LocalDate firstMonth,
+      @Param("lastMonth") LocalDate lastMonth);
 }

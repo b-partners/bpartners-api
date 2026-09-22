@@ -13,6 +13,8 @@ import app.bpartners.api.endpoint.rest.security.matcher.SelfUserAccountMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfUserMatcher;
 import app.bpartners.api.model.exception.ForbiddenException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -62,14 +64,10 @@ public class SecurityConf {
                         // https://stackoverflow.com/questions/59417122/how-to-handle-usernamenotfoundexception-spring-security
                         // issues like when a user tries to access a resource
                         // without appropriate authentication elements
-                        (req, res, e) ->
-                            exceptionResolver.resolveException(
-                                req, res, null, forbiddenWithRemoteInfo(e, req)))
+                        (req, res, e) -> handleAccessFailure(req, res, e))
                     .accessDeniedHandler(
                         // note(spring-exception): issues like when a user not having required roles
-                        (req, res, e) ->
-                            exceptionResolver.resolveException(
-                                req, res, null, forbiddenWithRemoteInfo(e, req))))
+                        (req, res, e) -> handleAccessFailure(req, res, e)))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         // authenticate
@@ -94,6 +92,8 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/users/*/subscriptionTrial", POST.name()),
                         new AntPathRequestMatcher("/webhooks/stripe", POST.name()),
                         new AntPathRequestMatcher("/subscriptionPlans", GET.name()),
+                        new AntPathRequestMatcher("/subscriptionBillingStats/signin"),
+                        new AntPathRequestMatcher("/subscriptionBillingStats/logout", GET.name()),
                         new AntPathRequestMatcher("/**", OPTIONS.toString()),
                         new AntPathRequestMatcher("/whois/*", GET.name()),
                         new AntPathRequestMatcher("/health/db", GET.name()),
@@ -248,6 +248,12 @@ public class SecurityConf {
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/creditPurchases/invoiceBackfill")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(GET, "/subscriptionBillingStats/signin")
+                    .permitAll()
+                    .requestMatchers(POST, "/subscriptionBillingStats/signin")
+                    .permitAll()
+                    .requestMatchers(GET, "/subscriptionBillingStats/logout")
+                    .permitAll()
                     .requestMatchers(GET, "/subscriptionBillingStats")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(
@@ -732,6 +738,23 @@ public class SecurityConf {
     return new ForbiddenException(e.getMessage());
   }
 
+  private void handleAccessFailure(HttpServletRequest req, HttpServletResponse res, Exception e)
+      throws IOException {
+    if (isBillingStatsHtmlPage(req)) {
+      res.sendRedirect("/subscriptionBillingStats/signin");
+      return;
+    }
+    exceptionResolver.resolveException(req, res, null, forbiddenWithRemoteInfo(e, req));
+  }
+
+  private static boolean isBillingStatsHtmlPage(HttpServletRequest req) {
+    var accept = req.getHeader("Accept");
+    return GET.name().equalsIgnoreCase(req.getMethod())
+        && "/subscriptionBillingStats".equals(req.getServletPath())
+        && accept != null
+        && accept.contains("text/html");
+  }
+
   @Bean
   public AuthenticationManager authenticationManager() {
     return new ProviderManager(authProvider);
@@ -743,13 +766,12 @@ public class SecurityConf {
     bearerFilter.setAuthenticationSuccessHandler(
         (httpServletRequest, httpServletResponse, authentication) -> {});
     bearerFilter.setAuthenticationFailureHandler(
-        (req, res, e) ->
-            // note(spring-exception)
-            // issues like when a user is not found(i.e. UsernameNotFoundException)
-            // or other exceptions thrown inside authentication provider.
-            // In fact, this handles other authentication exceptions that are
-            // not handled by AccessDeniedException and AuthenticationEntryPoint
-            exceptionResolver.resolveException(req, res, null, forbiddenWithRemoteInfo(e, req)));
+        // note(spring-exception)
+        // issues like when a user is not found(i.e. UsernameNotFoundException)
+        // or other exceptions thrown inside authentication provider.
+        // In fact, this handles other authentication exceptions that are
+        // not handled by AccessDeniedException and AuthenticationEntryPoint
+        (req, res, e) -> handleAccessFailure(req, res, e));
     return bearerFilter;
   }
 }

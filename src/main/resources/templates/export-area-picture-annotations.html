@@ -588,7 +588,7 @@
     <div class="image-wrapper" style="margin-top: 20px;">
         <img alt="annotation" class="main-image" th:src="${mainImage}"/>
     </div>
-    <div class="degradation-container clearfix" th:if="${globalRateType != null}">
+    <div class="degradation-container clearfix" th:if="${globalRateType != null and conf.showDegradationSummary}">
         <p class="degradation-section-title">ÉTAT APPARENT DE LA TOITURE</p>
 
         <table class="degradation-levels-table" th:if="${degradationLevels != null} and ${activeDegradationLevel != null}">

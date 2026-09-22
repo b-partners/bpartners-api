@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ExportAreaPictureAnnotationConf {
   public static final ExportAreaPictureAnnotationConf DEFAULT =
-      new ExportAreaPictureAnnotationConf(true, true, true, true, true, true, true, true);
+      new ExportAreaPictureAnnotationConf(
+          true, true, true, true, true, true, true, true, true);
   private final boolean showTitlePage;
   private final boolean showAnnotationPages;
   private final boolean showAnnotation3dPages;
@@ -18,4 +19,5 @@ public class ExportAreaPictureAnnotationConf {
   private final boolean showAreaSummary;
   private final boolean showOverallSummary;
   private final boolean showLlmSummary;
+  private final boolean showDegradationSummary;
 }

@@ -54,7 +54,7 @@ public class SubscriptionPaymentInvoiceRequestedService
   private static final int MONTHS_PER_YEAR = 12;
   private static final int BASIS_POINTS = 10_000;
   static AnnualInvoiceBillingType annualInvoiceBillingType =
-      AnnualInvoiceBillingType.MONTHLY_QUANTITY;
+      AnnualInvoiceBillingType.MONTHLY_DETAILED;
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
   private final SubscriptionPaymentService subscriptionPaymentService;
   private final UserRepository userRepository;

@@ -84,7 +84,7 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
   @AfterEach
   void resetBillingType() {
     SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
-        AnnualInvoiceBillingType.MONTHLY_QUANTITY;
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
   }
 
   @Test

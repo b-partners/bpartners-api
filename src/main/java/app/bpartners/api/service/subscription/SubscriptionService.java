@@ -303,31 +303,6 @@ public class SubscriptionService {
     return vatPercent == null ? SubscriptionProduct.DEFAULT_VAT_PERCENT : vatPercent;
   }
 
-  public void backfillStripeProductsVatMetadata() {
-    var products = subscriptionProductRepository.findAll();
-    log.info(
-        "Stripe VAT metadata backfill starting for {} subscription product(s)", products.size());
-    for (var product : products) {
-      if (product.getE2Id() == null || product.getVatPercent() == null) {
-        continue;
-      }
-      try {
-        Product.retrieve(product.getE2Id())
-            .update(
-                ProductUpdateParams.builder()
-                    .putMetadata(VAT_PERCENT_METADATA_KEY, String.valueOf(product.getVatPercent()))
-                    .build());
-        log.info(
-            "Backfilled VAT metadata (vat_percent={}) on Stripe product {}",
-            product.getVatPercent(),
-            product.getE2Id());
-      } catch (StripeException e) {
-        log.error(
-            "Failed to backfill VAT metadata on Stripe product {}, skipping", product.getE2Id(), e);
-      }
-    }
-  }
-
   private static long vatPercentFromMetadata(Product stripeProduct) {
     var metadata = stripeProduct.getMetadata();
     var rawVatPercent = metadata == null ? null : metadata.get(VAT_PERCENT_METADATA_KEY);

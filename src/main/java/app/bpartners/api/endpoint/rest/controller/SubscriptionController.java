@@ -8,7 +8,6 @@ import app.bpartners.api.endpoint.event.model.SubscriptionProductStripeVatBackfi
 import app.bpartners.api.endpoint.event.model.TransitionalSubscriptionCreditGrantTriggered;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillTriggered;
-import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
@@ -72,13 +71,6 @@ public class SubscriptionController {
   public String triggerImmediateSubscriptionCancellation() {
     eventProducer.accept(List.of(new ImmediateSubscriptionCancellationTriggered()));
     return "Immediate subscription cancellation triggered successfully";
-  }
-
-  // TODO: temporary endpoint to backfill historical Essential UserSubscriptionProduct for users who
-  @PostMapping("/users/subscriptionProductBackfill")
-  public String triggerUserSubscriptionProductBackfill() {
-    eventProducer.accept(List.of(new UserSubscriptionProductBackfillTriggered()));
-    return "UserSubscriptionProduct backfill triggered successfully";
   }
 
   @PostMapping("/users/defaultPaymentMethodBackfill")

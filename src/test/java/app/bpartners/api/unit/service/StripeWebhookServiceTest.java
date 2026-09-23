@@ -1,7 +1,5 @@
 package app.bpartners.api.unit.service;
 
-import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
-import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,7 +9,6 @@ import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillRequested;
-import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.credit.CreditPurchase;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -32,10 +29,8 @@ import com.stripe.model.InvoiceLineItemCollection;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.Price;
 import com.stripe.model.Subscription;
-import com.stripe.model.SubscriptionSchedule;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -75,12 +70,6 @@ class StripeWebhookServiceTest {
   @BeforeEach
   void setUp() {
     when(stripeConf.getWebhookSecret()).thenReturn(SECRET);
-    lenient()
-        .when(subscriptionService.resolveSubscribedPlan(any(Subscription.class)))
-        .thenReturn(Optional.empty());
-    lenient()
-        .when(subscriptionService.resolveSubscribedPlan(any(SubscriptionSchedule.class)))
-        .thenReturn(Optional.empty());
   }
 
   private Event givenEvent(String type, String subscriptionStatus) {
@@ -99,165 +88,6 @@ class StripeWebhookServiceTest {
     when(event.getType()).thenReturn(type);
     lenient().when(event.getDataObjectDeserializer()).thenReturn(deserializer);
     return event;
-  }
-
-  private Event givenScheduleEvent(String scheduleStatus, Long canceledAt) {
-    return givenScheduleEvent(scheduleStatus, canceledAt, null);
-  }
-
-  private Event givenScheduleEvent(String scheduleStatus, Long canceledAt, Long phaseStartDate) {
-    var schedule = mock(SubscriptionSchedule.class);
-    lenient().when(schedule.getStatus()).thenReturn(scheduleStatus);
-    lenient().when(schedule.getCanceledAt()).thenReturn(canceledAt);
-    lenient().when(schedule.getCustomer()).thenReturn(CUSTOMER_ID);
-    if (phaseStartDate != null) {
-      var phase = mock(SubscriptionSchedule.Phase.class);
-      lenient().when(phase.getStartDate()).thenReturn(phaseStartDate);
-      lenient().when(schedule.getPhases()).thenReturn(List.of(phase));
-    }
-    var deserializer = mock(EventDataObjectDeserializer.class);
-    lenient().when(deserializer.getObject()).thenReturn(Optional.of(schedule));
-    var event = mock(Event.class);
-    when(event.getType()).thenReturn("subscription_schedule.created");
-    lenient().when(event.getDataObjectDeserializer()).thenReturn(deserializer);
-    return event;
-  }
-
-  @Test
-  void not_started_schedule_requests_creation_for_matched_user() {
-    var userId = randomUUID().toString();
-    var planId = "usage_based_plan_id";
-    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
-        .thenReturn(Optional.of(User.builder().id(userId).build()));
-    when(subscriptionService.resolveSubscribedPlan(any(SubscriptionSchedule.class)))
-        .thenReturn(Optional.of(new SubscriptionService.SubscribedPlan(planId, YEARLY)));
-    var event = givenScheduleEvent("not_started", null);
-
-    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
-      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
-
-      subject.handleEvent(PAYLOAD, SIGNATURE);
-    }
-
-    verify(eventProducer)
-        .accept(
-            List.of(
-                UserSubscriptionProductBackfillRequested.builder()
-                    .userId(userId)
-                    .subscriptionProductId(planId)
-                    .billingInterval(YEARLY)
-                    .build()));
-  }
-
-  @Test
-  void not_started_schedule_requests_creation_starting_on_the_first_phase() {
-    var userId = randomUUID().toString();
-    var planId = "essential_plan_id";
-    var phaseStartDate = 1_800_000_000L;
-    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
-        .thenReturn(Optional.of(User.builder().id(userId).build()));
-    when(subscriptionService.resolveSubscribedPlan(any(SubscriptionSchedule.class)))
-        .thenReturn(Optional.of(new SubscriptionService.SubscribedPlan(planId, MONTHLY)));
-    var event = givenScheduleEvent("not_started", null, phaseStartDate);
-
-    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
-      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
-
-      subject.handleEvent(PAYLOAD, SIGNATURE);
-    }
-
-    verify(eventProducer)
-        .accept(
-            List.of(
-                UserSubscriptionProductBackfillRequested.builder()
-                    .userId(userId)
-                    .subscriptionProductId(planId)
-                    .billingInterval(MONTHLY)
-                    .subscriptionStartDatetime(Instant.ofEpochSecond(phaseStartDate))
-                    .build()));
-  }
-
-  @Test
-  void canceled_schedule_produces_no_event() {
-    var event = givenScheduleEvent("not_started", 1_700_000_000L);
-
-    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
-      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
-
-      subject.handleEvent(PAYLOAD, SIGNATURE);
-    }
-
-    verify(eventProducer, never()).accept(anyList());
-    verify(userRepository, never()).findByStripeCustomerId(any());
-  }
-
-  @Test
-  void released_schedule_produces_no_event() {
-    var event = givenScheduleEvent("released", null);
-
-    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
-      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
-
-      subject.handleEvent(PAYLOAD, SIGNATURE);
-    }
-
-    verify(eventProducer, never()).accept(anyList());
-    verify(userRepository, never()).findByStripeCustomerId(any());
-  }
-
-  @Test
-  void active_subscription_requests_creation_for_matched_user() {
-    var userId = randomUUID().toString();
-    var planId = "usage_based_plan_id";
-    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
-        .thenReturn(Optional.of(User.builder().id(userId).build()));
-    when(subscriptionService.resolveSubscribedPlan(any(Subscription.class)))
-        .thenReturn(Optional.of(new SubscriptionService.SubscribedPlan(planId, MONTHLY)));
-    var event = givenEvent("customer.subscription.updated", "active");
-
-    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
-      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
-
-      subject.handleEvent(PAYLOAD, SIGNATURE);
-    }
-
-    verify(eventProducer)
-        .accept(
-            List.of(
-                UserSubscriptionProductBackfillRequested.builder()
-                    .userId(userId)
-                    .subscriptionProductId(planId)
-                    .billingInterval(MONTHLY)
-                    .subscriptionStartDatetime(Instant.ofEpochSecond(CURRENT_PERIOD_START))
-                    .build()));
-  }
-
-  @Test
-  void non_active_subscription_produces_no_event() {
-    var event = givenEvent("customer.subscription.updated", "trialing");
-
-    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
-      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
-
-      subject.handleEvent(PAYLOAD, SIGNATURE);
-    }
-
-    verify(eventProducer, never()).accept(anyList());
-    verify(userRepository, never()).findByStripeCustomerId(any());
-  }
-
-  @Test
-  void subscription_cancelled_at_period_end_produces_no_event() {
-    var event = givenEvent("customer.subscription.updated", "active", true);
-
-    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
-      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
-
-      subject.handleEvent(PAYLOAD, SIGNATURE);
-    }
-
-    verify(eventProducer, never()).accept(anyList());
-    verify(userRepository, never()).findByStripeCustomerId(any());
   }
 
   @Test
@@ -400,20 +230,6 @@ class StripeWebhookServiceTest {
 
     verify(subscriptionService, never()).cancelScheduledSubscriptionAfterInvoicePaid(any());
     verify(subscriptionPaymentService, never()).recordPaidStripeInvoice(any());
-  }
-
-  @Test
-  void unmatched_customer_produces_no_event() {
-    when(userRepository.findByStripeCustomerId(CUSTOMER_ID)).thenReturn(Optional.empty());
-    var event = givenEvent("customer.subscription.created", "active");
-
-    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
-      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
-
-      subject.handleEvent(PAYLOAD, SIGNATURE);
-    }
-
-    verify(eventProducer, never()).accept(anyList());
   }
 
   @Test

@@ -5,9 +5,7 @@ import static app.bpartners.api.service.subscription.StripeSetupService.isPaymen
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillRequested;
-import app.bpartners.api.endpoint.event.model.UserSubscriptionProductBackfillRequested;
 import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
@@ -19,11 +17,8 @@ import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
-import com.stripe.model.Subscription;
-import com.stripe.model.SubscriptionSchedule;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,16 +30,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class StripeWebhookService {
-  private static final String SUBSCRIPTION_CREATED = "customer.subscription.created";
-  private static final String SUBSCRIPTION_UPDATED = "customer.subscription.updated";
-  private static final String SUBSCRIPTION_SCHEDULE_CREATED = "subscription_schedule.created";
   private static final String INVOICE_PAID = "invoice.paid";
   private static final String PAYMENT_INTENT_SUCCEEDED = "payment_intent.succeeded";
   private static final String CHECKOUT_SESSION_COMPLETED = "checkout.session.completed";
   private static final String STRIPE_CHECKOUT_PAID_STATUS = "paid";
   private static final String STRIPE_CHECKOUT_SETUP_MODE = "setup";
-  private static final String STRIPE_ACTIVE_STATUS = "active";
-  private static final String STRIPE_SCHEDULE_NOT_STARTED_STATUS = "not_started";
 
   private final StripeConf stripeConf;
   private final UserRepository userRepository;
@@ -70,28 +60,7 @@ public class StripeWebhookService {
       handleCheckoutSessionCompleted(event);
       return;
     }
-    var eligible = extractEligibleSubscription(event);
-    if (eligible == null || eligible.customerId() == null) {
-      return;
-    }
-    var optionalUser = userRepository.findByStripeCustomerId(eligible.customerId());
-    if (optionalUser.isEmpty()) {
-      log.warn("No user found for Stripe customer id={}, skipping", eligible.customerId());
-      return;
-    }
-    var userId = optionalUser.get().getId();
-    eventProducer.accept(
-        List.of(
-            UserSubscriptionProductBackfillRequested.builder()
-                .userId(userId)
-                .subscriptionProductId(eligible.subscriptionPlanIdentifier())
-                .billingInterval(eligible.billingInterval())
-                .subscriptionStartDatetime(eligible.subscriptionStartDatetime())
-                .build()));
-    log.info(
-        "Requested UserSubscriptionProduct creation for User(id={}) from Stripe event={}",
-        userId,
-        event.getType());
+    log.info("Ignoring unhandled Stripe event type={}", event.getType());
   }
 
   private void handleInvoicePaid(Event event) {
@@ -260,53 +229,6 @@ public class StripeWebhookService {
                     completed.getCreditTransactionId()));
   }
 
-  private EligibleSubscription extractEligibleSubscription(Event event) {
-    var type = event.getType();
-
-    if (SUBSCRIPTION_CREATED.equals(type) || SUBSCRIPTION_UPDATED.equals(type)) {
-      var subscription = extractStripeObject(event, Subscription.class);
-      if (subscription == null || !isEligibleSubscription(subscription)) {
-        log.info(
-            "Stripe event={} subscription not active or cancelled at period end (status={},"
-                + " cancelAtPeriodEnd={}), skipping",
-            type,
-            subscription == null ? null : subscription.getStatus(),
-            subscription == null ? null : subscription.getCancelAtPeriodEnd());
-        return null;
-      }
-      var subscribedPlan = subscriptionService.resolveSubscribedPlan(subscription).orElse(null);
-      return eligibleSubscriptionOf(
-          subscription.getCustomer(), subscribedPlan, startDatetimeOf(subscription));
-    }
-
-    if (SUBSCRIPTION_SCHEDULE_CREATED.equals(type)) {
-      var schedule = extractStripeObject(event, SubscriptionSchedule.class);
-      if (schedule == null || !isEligibleSchedule(schedule)) {
-        log.info(
-            "Stripe event={} subscription schedule not eligible (status={}), skipping",
-            type,
-            schedule == null ? null : schedule.getStatus());
-        return null;
-      }
-      var subscribedPlan = subscriptionService.resolveSubscribedPlan(schedule).orElse(null);
-      return eligibleSubscriptionOf(
-          schedule.getCustomer(), subscribedPlan, startDatetimeOf(schedule));
-    }
-    log.info("Ignoring unhandled Stripe event type={}", type);
-    return null;
-  }
-
-  private boolean isEligibleSubscription(Subscription subscription) {
-    return STRIPE_ACTIVE_STATUS.equals(subscription.getStatus())
-        && !Boolean.TRUE.equals(subscription.getCancelAtPeriodEnd());
-  }
-
-  private boolean isEligibleSchedule(SubscriptionSchedule schedule) {
-    return schedule.getCanceledAt() == null
-        && (STRIPE_SCHEDULE_NOT_STARTED_STATUS.equals(schedule.getStatus())
-            || STRIPE_ACTIVE_STATUS.equals(schedule.getStatus()));
-  }
-
   private Event verifySignature(String payload, String signatureHeader) {
     var webhookSecret = stripeConf.getWebhookSecret();
     if (webhookSecret == null || webhookSecret.isBlank()) {
@@ -336,37 +258,4 @@ public class StripeWebhookService {
     log.error("Stripe event={} data object is not a {}", event.getType(), type.getSimpleName());
     return null;
   }
-
-  private static EligibleSubscription eligibleSubscriptionOf(
-      String customerId,
-      SubscriptionService.SubscribedPlan subscribedPlan,
-      Instant subscriptionStartDatetime) {
-    return subscribedPlan == null
-        ? new EligibleSubscription(customerId, null, null, subscriptionStartDatetime)
-        : new EligibleSubscription(
-            customerId,
-            subscribedPlan.planId(),
-            subscribedPlan.billingInterval(),
-            subscriptionStartDatetime);
-  }
-
-  private static Instant startDatetimeOf(Subscription subscription) {
-    var currentPeriodStart = subscription.getCurrentPeriodStart();
-    return currentPeriodStart == null ? null : Instant.ofEpochSecond(currentPeriodStart);
-  }
-
-  private static Instant startDatetimeOf(SubscriptionSchedule schedule) {
-    var phases = schedule.getPhases();
-    if (phases == null || phases.isEmpty()) {
-      return null;
-    }
-    var startDate = phases.getFirst().getStartDate();
-    return startDate == null ? null : Instant.ofEpochSecond(startDate);
-  }
-
-  private record EligibleSubscription(
-      String customerId,
-      String subscriptionPlanIdentifier,
-      BillingInterval billingInterval,
-      Instant subscriptionStartDatetime) {}
 }

@@ -43,6 +43,9 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
       return getAuthenticationManager().authenticate(bearerToken);
     } catch (Exception ignored) {
       String apiKey = request.getHeader(API_KEY_HEADER);
+      if (apiKey == null) {
+        apiKey = firstCookieValue(request, API_KEY_HEADER);
+      }
       if (apiKey == null && verifyAntMatcher(request)) {
         apiKey = firstParameterValue(request, API_KEY_QUERY_PARAMETER_NAME);
       }
@@ -57,6 +60,19 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
     return values == null || values.length == 0 ? null : values[0];
   }
 
+  private static String firstCookieValue(HttpServletRequest request, String name) {
+    var cookies = request.getCookies();
+    if (cookies == null) {
+      return null;
+    }
+    for (var cookie : cookies) {
+      if (name.equals(cookie.getName())) {
+        return cookie.getValue();
+      }
+    }
+    return null;
+  }
+
   @Override
   protected void successfulAuthentication(
       HttpServletRequest request,
@@ -69,7 +85,6 @@ public class BearerAuthFilter extends AbstractAuthenticationProcessingFilter {
   }
 
   private boolean verifyAntMatcher(HttpServletRequest request) {
-    return new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()).matches(request)
-        || new AntPathRequestMatcher("/subscriptionBillingStats", GET.name()).matches(request);
+    return new AntPathRequestMatcher("/accounts/*/files/*/raw", GET.name()).matches(request);
   }
 }

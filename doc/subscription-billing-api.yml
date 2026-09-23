@@ -22,26 +22,47 @@ operations:
 
         Content negotiation: an `Accept: application/json` request returns the JSON payload below.
         Any other request, including a plain browser navigation, returns a ready-to-read HTML report
-        (`text/html`), which is the default representation. To let the report be opened straight from
-        a browser, the caller's API key may be supplied as an `apiKey` query parameter instead of the
-        `x-api-key` header (the key still resolves to an admin user; mind that a key placed in the URL
-        can leak through logs and browser history).
+        (`text/html`), which is the default representation. The HTML report is interactive: it embeds
+        a form to pick the date range and the periodicity (day / week / month) straight from the page
+        (the choices are carried back as query parameters), and Chart.js graphs of active monthly and
+        annual subscriptions, requests beyond the plan quota grouped by plan, requests made without a
+        plan, and paid invoices (count and amount). To open the report straight from a browser (which
+        cannot set the `x-api-key` header on a plain navigation), a sign-in page at
+        `GET /subscriptionBillingStats/signin` lets the admin submit the API key once; it is stored in
+        a secure `HttpOnly` cookie (never in the URL) and sent automatically on subsequent
+        navigations. `GET /subscriptionBillingStats/logout` clears that cookie. Programmatic callers
+        keep using the `x-api-key` header.
+
+        `from` and `to` are optional; when omitted they default to the current month (`from` = first
+        day of the current month, `to` = today, Europe/Paris).
       operationId: getSubscriptionBillingStats
       parameters:
         - in: query
           name: from
-          description: First day of the reporting period, inclusive.
+          description: First day of the reporting period, inclusive. Defaults to the first day of the current month.
           schema:
             type: string
             format: date
-          required: true
+          required: false
         - in: query
           name: to
-          description: Last day of the reporting period, inclusive.
+          description: Last day of the reporting period, inclusive. Defaults to today (Europe/Paris).
           schema:
             type: string
             format: date
-          required: true
+          required: false
+        - in: query
+          name: granularity
+          description: |
+            Time bucket used by the HTML report's charts. Ignored by the JSON representation.
+            Defaults to DAY.
+          schema:
+            type: string
+            enum:
+              - DAY
+              - WEEK
+              - MONTH
+          required: false
       responses:
         200:
           description: The aggregated subscription billing statistics over the period

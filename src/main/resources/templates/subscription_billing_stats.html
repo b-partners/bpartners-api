@@ -147,6 +147,33 @@
 
     footer { margin-top: 38px; color: var(--faint); font-size: 12px; text-align: center; line-height: 1.7; }
     footer .sig { color: var(--muted); font-weight: 600; letter-spacing: .04em; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 18px; }
+    .controls .field { display: flex; flex-direction: column; gap: 5px; }
+    .controls label { font-size: 11.5px; color: var(--muted); font-weight: 600; letter-spacing: .02em; }
+    .controls input[type="date"], .controls select {
+      font-family: var(--sans); font-size: 13.5px; color: var(--ink);
+      background: var(--surface); border: 1px solid var(--border-strong); border-radius: 8px;
+      padding: 8px 10px; min-width: 150px;
+    }
+    .controls button {
+      font-family: var(--sans); font-size: 13.5px; font-weight: 600; color: #ffffff;
+      background: var(--accent); border: none; border-radius: 8px; padding: 9px 18px; cursor: pointer;
+    }
+    .controls button:hover { filter: brightness(1.05); }
+    .controls .signout { align-self: center; margin-left: auto; font-size: 12.5px; color: var(--muted); text-decoration: none; }
+    .controls .signout:hover { color: var(--accent); text-decoration: underline; }
+
+    .charts { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 760px) { .charts { grid-template-columns: 1fr 1fr; } }
+    .chart-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: var(--shadow); padding: 16px 18px 18px;
+    }
+    .chart-card h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--ink-strong); }
+    .chart-card .note { font-size: 11.5px; color: var(--faint); display: block; margin-bottom: 10px; }
+    .chart-card .canvas-wrap { position: relative; height: 240px; }
+    .chart-card.full { grid-column: 1 / -1; }
   </style>
 </head>
 <body>
@@ -160,6 +187,25 @@
       <p class="period">
         Période&nbsp; <b th:text="${fromLabel}">—</b> <span class="arrow">→</span> <b th:text="${toLabel}">—</b>
       </p>
+      <form class="controls" method="get" action="/subscriptionBillingStats">
+        <div class="field">
+          <label for="from">Du</label>
+          <input type="date" id="from" name="from" th:value="${fromValue}"/>
+        </div>
+        <div class="field">
+          <label for="to">Au</label>
+          <input type="date" id="to" name="to" th:value="${toValue}"/>
+        </div>
+        <div class="field">
+          <label for="granularity">Périodicité</label>
+          <select id="granularity" name="granularity">
+            <option th:each="opt : ${granularityOptions}" th:value="${opt['value']}"
+                    th:text="${opt['label']}" th:selected="${opt['selected']}">Jour</option>
+          </select>
+        </div>
+        <button type="submit">Appliquer</button>
+        <a class="signout" href="/subscriptionBillingStats/logout">Se déconnecter</a>
+      </form>
     </div>
   </div>
 
@@ -170,6 +216,50 @@
       <div class="k-sub" th:text="${kpi['sub']}">sub</div>
     </div>
   </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>Graphiques</h2>
+      <span class="note">évolution sur la période, selon la périodicité choisie</span>
+    </div>
+    <div class="charts">
+      <div class="chart-card">
+        <h3>Abonnements mensuels actifs</h3>
+        <span class="note">snapshot en fin de chaque période</span>
+        <div class="canvas-wrap"><canvas id="chartActiveMonthly"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Abonnements annuels actifs</h3>
+        <span class="note">snapshot en fin de chaque période</span>
+        <div class="canvas-wrap"><canvas id="chartActiveAnnual"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Nouveaux abonnements</h3>
+        <span class="note">démarrages sur la période (par date de début)</span>
+        <div class="canvas-wrap"><canvas id="chartNewSubs"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Instalments facturés</h3>
+        <span class="note">paiements d'abonnement facturés (1 vente par instalment)</span>
+        <div class="canvas-wrap"><canvas id="chartBilled"></canvas></div>
+      </div>
+      <div class="chart-card full">
+        <h3>Requêtes au-delà du quota, par plan</h3>
+        <span class="note">requêtes dépassant le quota mensuel inclus (approximation)</span>
+        <div class="canvas-wrap"><canvas id="chartOverage"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Requêtes sans plan</h3>
+        <span class="note">analyses par des utilisateurs sans abonnement actif</span>
+        <div class="canvas-wrap"><canvas id="chartWithoutPlan"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Factures payées</h3>
+        <span class="note">nombre (barres) &amp; montant TTC en € (ligne)</span>
+        <div class="canvas-wrap"><canvas id="chartInvoices"></canvas></div>
+      </div>
+    </div>
+  </section>
 
   <section>
     <div class="sec-head">
@@ -273,5 +363,88 @@
     <p>BIRDIA — Valorisation d'images aériennes par IA</p>
   </footer>
 </div>
+
+<script id="chart-data" type="application/json" th:utext="${chartsJson}">{}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+  (function () {
+    var el = document.getElementById('chart-data');
+    var data = {};
+    try { data = JSON.parse((el && el.textContent) || '{}'); } catch (e) { data = {}; }
+    if (!window.Chart || !data.labels) { return; }
+
+    var css = getComputedStyle(document.documentElement);
+    var accent = (css.getPropertyValue('--accent') || '#ea672c').trim();
+    var ink = (css.getPropertyValue('--body') || '#3e4c59').trim();
+    var grid = (css.getPropertyValue('--border') || '#e4e9f0').trim();
+    Chart.defaults.color = ink;
+    Chart.defaults.borderColor = grid;
+    var palette = ['#ea672c', '#2f80ed', '#27ae60', '#9b51e0', '#e2b93b', '#eb5757', '#56ccf2', '#6fcf97'];
+
+    function baseOpts() {
+      return { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+    }
+    function withLegend(extra) {
+      return Object.assign(baseOpts(), { plugins: { legend: { display: true, position: 'bottom' } } }, extra || {});
+    }
+
+    new Chart(document.getElementById('chartActiveMonthly'), {
+      type: 'line',
+      data: { labels: data.labels, datasets: [{ label: 'Mensuels actifs', data: data.activeMonthly, borderColor: accent, backgroundColor: accent, tension: 0.25, fill: false }] },
+      options: Object.assign(baseOpts(), { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
+    });
+
+    new Chart(document.getElementById('chartActiveAnnual'), {
+      type: 'line',
+      data: { labels: data.labels, datasets: [{ label: 'Annuels actifs', data: data.activeAnnual, borderColor: '#2f80ed', backgroundColor: '#2f80ed', tension: 0.25, fill: false }] },
+      options: Object.assign(baseOpts(), { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
+    });
+
+    new Chart(document.getElementById('chartNewSubs'), {
+      type: 'line',
+      data: { labels: data.labels, datasets: [
+        { label: 'Mensuels', data: data.newMonthly, borderColor: accent, backgroundColor: accent, tension: 0.25, fill: false },
+        { label: 'Annuels', data: data.newAnnual, borderColor: '#2f80ed', backgroundColor: '#2f80ed', tension: 0.25, fill: false }
+      ] },
+      options: withLegend({ scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
+    });
+
+    new Chart(document.getElementById('chartBilled'), {
+      type: 'bar',
+      data: { labels: data.labels, datasets: [
+        { label: 'Mensuels', data: data.billedMonthly, backgroundColor: accent },
+        { label: 'Annuels', data: data.billedAnnual, backgroundColor: '#2f80ed' }
+      ] },
+      options: withLegend({ scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
+    });
+
+    var overageDatasets = (data.overageByPlan || []).map(function (p, i) {
+      return { label: p.planName, data: p.values, backgroundColor: palette[i % palette.length] };
+    });
+    new Chart(document.getElementById('chartOverage'), {
+      type: 'bar',
+      data: { labels: data.labels, datasets: overageDatasets },
+      options: withLegend({ scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } } })
+    });
+
+    new Chart(document.getElementById('chartWithoutPlan'), {
+      type: 'bar',
+      data: { labels: data.labels, datasets: [{ label: 'Requêtes sans plan', data: data.requestsWithoutPlan, backgroundColor: '#9b51e0' }] },
+      options: Object.assign(baseOpts(), { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
+    });
+
+    new Chart(document.getElementById('chartInvoices'), {
+      type: 'bar',
+      data: { labels: data.labels, datasets: [
+        { label: 'Factures payées', data: data.paidInvoicesCount, backgroundColor: accent, yAxisID: 'y', order: 2 },
+        { type: 'line', label: 'Montant TTC (€)', data: data.paidInvoicesAmountEuros, borderColor: '#27ae60', backgroundColor: '#27ae60', yAxisID: 'y1', tension: 0.25, fill: false, order: 1 }
+      ] },
+      options: withLegend({ scales: {
+        y: { type: 'linear', position: 'left', beginAtZero: true, ticks: { precision: 0 } },
+        y1: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } }
+      } })
+    });
+  })();
+</script>
 </body>
 </html>

@@ -49,4 +49,12 @@ public interface UserSubscriptionProductJpaRepository
           + " (usp.subscriptionEndDatetime is null or usp.subscriptionEndDatetime > :now)")
   List<String> findUserIdsWithActiveSubscriptionProductByInterval(
       @Param("now") Instant now, @Param("billingInterval") BillingInterval billingInterval);
+
+  @Query(
+      "select usp from user_subscription_product usp"
+          + " where usp.subscriptionProduct is not null"
+          + " and (usp.subscriptionEndDatetime is null or usp.subscriptionEndDatetime > :from)"
+          + " and (usp.subscriptionStartDatetime is null or usp.subscriptionStartDatetime < :to)")
+  List<UserSubscriptionProduct> findAllOverlapping(
+      @Param("from") Instant from, @Param("to") Instant to);
 }

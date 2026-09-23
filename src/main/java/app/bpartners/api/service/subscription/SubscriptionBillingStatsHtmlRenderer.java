@@ -7,6 +7,8 @@ import app.bpartners.api.endpoint.rest.model.SoldItemStats;
 import app.bpartners.api.endpoint.rest.model.SubscriptionBillingMonthlyStats;
 import app.bpartners.api.endpoint.rest.model.SubscriptionBillingStats;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -24,15 +26,89 @@ import org.thymeleaf.context.Context;
 @RequiredArgsConstructor
 public class SubscriptionBillingStatsHtmlRenderer {
   static final String TEMPLATE = "subscription_billing_stats";
+  static final String SIGNIN_TEMPLATE = "subscription_billing_stats_signin";
   private static final DateTimeFormatter DAY_FORMAT =
       DateTimeFormatter.ofPattern("d MMM yyyy", Locale.FRANCE);
   private static final DateTimeFormatter MONTH_FORMAT =
       DateTimeFormatter.ofPattern("MMM yyyy", Locale.FRANCE);
+  private static final ObjectMapper CHART_MAPPER = new ObjectMapper();
 
   private final TemplateResolverEngine templateResolverEngine;
 
   public String render(SubscriptionBillingStats stats) {
     return templateResolverEngine.parseTemplateResolver(TEMPLATE, toContext(stats));
+  }
+
+  public String render(
+      SubscriptionBillingStats stats,
+      SubscriptionBillingTimeSeries series,
+      LocalDate from,
+      LocalDate to,
+      BillingGranularity granularity) {
+    var context = toContext(stats);
+    context.setVariable("fromValue", from == null ? "" : from.toString());
+    context.setVariable("toValue", to == null ? "" : to.toString());
+    context.setVariable("granularity", granularity.name());
+    context.setVariable("granularityOptions", granularityOptions(granularity));
+    context.setVariable("chartsJson", chartsJson(series));
+    return templateResolverEngine.parseTemplateResolver(TEMPLATE, context);
+  }
+
+  public String renderSignin(boolean error) {
+    var context = new Context();
+    context.setVariable("error", error);
+    return templateResolverEngine.parseTemplateResolver(SIGNIN_TEMPLATE, context);
+  }
+
+  private List<Map<String, Object>> granularityOptions(BillingGranularity selected) {
+    var options = new ArrayList<Map<String, Object>>();
+    options.add(granularityOption(BillingGranularity.DAY, "Jour", selected));
+    options.add(granularityOption(BillingGranularity.WEEK, "Semaine", selected));
+    options.add(granularityOption(BillingGranularity.MONTH, "Mois", selected));
+    return options;
+  }
+
+  private Map<String, Object> granularityOption(
+      BillingGranularity value, String label, BillingGranularity selected) {
+    var option = new LinkedHashMap<String, Object>();
+    option.put("value", value.name());
+    option.put("label", label);
+    option.put("selected", value == selected);
+    return option;
+  }
+
+  private String chartsJson(SubscriptionBillingTimeSeries series) {
+    var data = new LinkedHashMap<String, Object>();
+    if (series == null) {
+      return "{}";
+    }
+    data.put("labels", series.getLabels());
+    data.put("activeMonthly", series.getActiveMonthlySubscriptions());
+    data.put("activeAnnual", series.getActiveAnnualSubscriptions());
+    data.put("newMonthly", series.getNewMonthlySubscriptions());
+    data.put("newAnnual", series.getNewAnnualSubscriptions());
+    data.put("billedMonthly", series.getBilledMonthlyInstalments());
+    data.put("billedAnnual", series.getBilledAnnualInstalments());
+    data.put("requestsWithoutPlan", series.getRequestsWithoutPlan());
+    var overage = new ArrayList<Map<String, Object>>();
+    for (var plan : series.getOverageRequestsByPlan()) {
+      var entry = new LinkedHashMap<String, Object>();
+      entry.put("planName", plan.getPlanName());
+      entry.put("values", plan.getValues());
+      overage.add(entry);
+    }
+    data.put("overageByPlan", overage);
+    data.put("paidInvoicesCount", series.getPaidInvoicesCount());
+    var paidEuros = new ArrayList<Double>();
+    for (Long cents : series.getPaidInvoicesAmountInCentsWithVat()) {
+      paidEuros.add((cents == null ? 0L : cents) / 100.0);
+    }
+    data.put("paidInvoicesAmountEuros", paidEuros);
+    try {
+      return CHART_MAPPER.writeValueAsString(data);
+    } catch (JsonProcessingException e) {
+      return "{}";
+    }
   }
 
   private Context toContext(SubscriptionBillingStats stats) {

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Accès rapport ADMIN</title>
+  <style>
+    :root {
+      --ground: #f4f6f8;
+      --surface: #ffffff;
+      --ink: #1f2933;
+      --ink-strong: #1f2933;
+      --body: #3e4c59;
+      --muted: #7b8794;
+      --faint: #9aa5b1;
+      --border: #e4e9f0;
+      --border-strong: #d2dae3;
+      --accent: #ea672c;
+      --danger: #eb5757;
+      --shadow: 0 1px 3px rgba(31, 41, 51, .10), 0 12px 28px -18px rgba(31, 41, 51, .28);
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --ground: #14181d; --surface: #1c2128; --ink: #e7ebf0; --ink-strong: #f3f6f9;
+        --body: #c2cbd6; --muted: #97a2af; --faint: #6c7784; --border: #2b323c;
+        --border-strong: #3a424e; --accent: #f2814c; --danger: #f2716f;
+        --shadow: 0 1px 3px rgba(0, 0, 0, .35), 0 14px 32px -20px rgba(0, 0, 0, .7);
+      }
+    }
+    :root[data-theme="dark"] {
+      --ground: #14181d; --surface: #1c2128; --ink: #e7ebf0; --ink-strong: #f3f6f9;
+      --body: #c2cbd6; --muted: #97a2af; --faint: #6c7784; --border: #2b323c;
+      --border-strong: #3a424e; --accent: #f2814c; --danger: #f2716f;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .35), 0 14px 32px -20px rgba(0, 0, 0, .7);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: var(--ground); color: var(--body);
+      font-family: var(--sans); line-height: 1.5; display: grid; place-items: center; padding: 24px;
+    }
+    .card {
+      width: 100%; max-width: 420px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
+    }
+    .bar { background: var(--accent); padding: 20px 26px; }
+    .brand {
+      display: flex; align-items: center; gap: 10px; margin: 0; color: #ffffff;
+      font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+    }
+    .brand .tag { font-weight: 500; letter-spacing: .01em; text-transform: none; font-size: 12.5px; color: #f6d6c6; }
+    .body { padding: 24px 26px 26px; }
+    h1 { font-size: 20px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 6px; color: var(--ink-strong); }
+    p.lead { margin: 0 0 18px; font-size: 13.5px; color: var(--muted); }
+    label { display: block; font-size: 11.5px; color: var(--muted); font-weight: 600; letter-spacing: .02em; margin-bottom: 6px; }
+    input[type="password"] {
+      width: 100%; font-family: var(--sans); font-size: 14px; color: var(--ink);
+      background: var(--surface); border: 1px solid var(--border-strong); border-radius: 9px; padding: 11px 12px;
+    }
+    button {
+      margin-top: 16px; width: 100%; font-family: var(--sans); font-size: 14px; font-weight: 600;
+      color: #ffffff; background: var(--accent); border: none; border-radius: 9px; padding: 11px 14px; cursor: pointer;
+    }
+    button:hover { filter: brightness(1.05); }
+    .error {
+      margin: 0 0 16px; padding: 10px 12px; border-radius: 9px; font-size: 13px;
+      color: var(--danger); border: 1px solid var(--danger); background: transparent;
+    }
+    .hint { margin-top: 14px; font-size: 11.5px; color: var(--faint); }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="bar">
+    <p class="brand">BIRDIA <span class="tag">Rapport ADMIN</span></p>
+  </div>
+  <div class="body">
+    <h1>Accès au rapport de facturation</h1>
+    <p class="lead">Saisissez votre clé d'API administrateur pour ouvrir le rapport.</p>
+    <p class="error" th:if="${error}">Clé invalide ou accès refusé. Réessayez.</p>
+    <form method="post" action="/subscriptionBillingStats/signin">
+      <label for="apiKey">Clé d'API</label>
+      <input type="password" id="apiKey" name="apiKey" autocomplete="current-password" autofocus/>
+      <button type="submit">Ouvrir le rapport</button>
+    </form>
+    <p class="hint">La clé est conservée dans un cookie sécurisé (HttpOnly), jamais dans l'URL.</p>
+  </div>
+</div>
+</body>
+</html>

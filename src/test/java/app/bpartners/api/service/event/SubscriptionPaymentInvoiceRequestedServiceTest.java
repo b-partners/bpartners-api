@@ -22,7 +22,10 @@ import app.bpartners.api.endpoint.rest.model.PaymentMethod;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.subscription.AnnualInvoiceBillingType;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
@@ -35,6 +38,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -67,6 +71,12 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     when(userSubscriptionConf.getUserToCreditId()).thenReturn(ADMIN_USER_ID);
     when(invoiceService.crupdateSubscriptionInvoice(any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
+  }
+
+  @AfterEach
+  void resetBillingType() {
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_QUANTITY;
   }
 
   @Test
@@ -130,6 +140,52 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     assertEquals(1, product.getQuantity());
     assertEquals(parseFraction(4083), product.getUnitPrice());
     assertEquals(parseFraction(2000), product.getVatPercent());
+  }
+
+  @Test
+  void yearly_payment_bills_a_single_monthly_line_with_quantity_twelve_and_ten_percent_discount() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_QUANTITY;
+    givenPayment(someYearlyPayment().build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(1, invoice.getProducts().size());
+    var product = invoice.getProducts().getFirst();
+    assertEquals(12, product.getQuantity());
+    assertEquals("Abonnement mensuel du 04/03/2026 au 04/03/2027", product.getDescription());
+    assertEquals(100.0, product.getUnitPrice().getCentsAsDecimal());
+    assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(1200.0, invoice.getTotalPriceWithoutDiscount().getCentsAsDecimal());
+    assertEquals(120.0, invoice.getDiscount().getAmountValue().getCentsAsDecimal());
+    assertEquals(1080.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(1296.0, invoice.getTotalPriceWithVat().getCentsAsDecimal());
+  }
+
+  @Test
+  void yearly_payment_can_bill_twelve_detailed_monthly_lines_each_with_its_period() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(someYearlyPayment().build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(12, invoice.getProducts().size());
+    assertTrue(invoice.getProducts().stream().allMatch(product -> product.getQuantity() == 1));
+    assertEquals(
+        "Abonnement mensuel du 04/03/2026 au 03/04/2026",
+        invoice.getProducts().getFirst().getDescription());
+    assertEquals(
+        "Abonnement mensuel du 04/02/2027 au 03/03/2027",
+        invoice.getProducts().getLast().getDescription());
+    assertEquals(100.0, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(1080.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(1296.0, invoice.getTotalPriceWithVat().getCentsAsDecimal());
   }
 
   @Test
@@ -216,6 +272,23 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
         .vatPercent(2_000L)
         .periodStartDatetime(PERIOD_START)
         .periodEndDatetime(PERIOD_END)
+        .paymentDatetime(PAID_AT);
+  }
+
+  private SubscriptionPayment.SubscriptionPaymentBuilder someYearlyPayment() {
+    return SubscriptionPayment.builder()
+        .id(PAYMENT_ID)
+        .userId("subscriber_id")
+        .stripeInvoiceId("in_123")
+        .label("Essentiel")
+        .billingInterval(BillingInterval.YEARLY)
+        .subscriptionProduct(
+            SubscriptionProduct.builder().name("Essentiel").annualDiscountPercent(10).build())
+        .amountInCentsWithoutVat(108_000L)
+        .amountInCentsWithVat(129_600L)
+        .vatPercent(2_000L)
+        .periodStartDatetime(PERIOD_START)
+        .periodEndDatetime(Instant.parse("2027-03-04T09:30:00Z"))
         .paymentDatetime(PAID_AT);
   }
 

@@ -888,6 +888,9 @@ components:
         showLlmSummary:
           type: boolean
           default: true
+        showDegradationSummary:
+          type: boolean
+          default: true
     ExportAreaPictureAnnotationMeasurement:
       type: object
       properties:

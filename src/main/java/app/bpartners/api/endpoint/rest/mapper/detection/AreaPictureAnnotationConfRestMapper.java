@@ -22,6 +22,7 @@ public class AreaPictureAnnotationConfRestMapper {
         .showAreaSummary(defaultTrue(rest.getShowAreaSummary()))
         .showOverallSummary(defaultTrue(rest.getShowOverallSummary()))
         .showLlmSummary(defaultTrue(rest.getShowLlmSummary()))
+        .showDegradationSummary(defaultTrue(rest.getShowDegradationSummary()))
         .build();
   }
 

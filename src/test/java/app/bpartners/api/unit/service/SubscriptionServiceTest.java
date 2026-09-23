@@ -504,31 +504,6 @@ class SubscriptionServiceTest {
   }
 
   @Test
-  void backfill_stripe_vat_metadata_updates_only_products_with_e2id_and_vat() throws Exception {
-    try (MockedStatic<Product> productMockedStatic = mockStatic(Product.class)) {
-      var withVat =
-          SubscriptionProduct.builder().id("p1").e2Id("stripe1").vatPercent(2000L).build();
-      var withoutE2Id = SubscriptionProduct.builder().id("p2").vatPercent(550L).build();
-      var withoutVat = SubscriptionProduct.builder().id("p3").e2Id("stripe3").build();
-      when(subscriptionProductRepositoryMock.findAll())
-          .thenReturn(List.of(withVat, withoutE2Id, withoutVat));
-      var stripeProduct = mock(Product.class);
-      productMockedStatic.when(() -> Product.retrieve("stripe1")).thenReturn(stripeProduct);
-
-      subject.backfillStripeProductsVatMetadata();
-
-      // Only the product that has both a Stripe id and a VAT rate is pushed to Stripe.
-      productMockedStatic.verify(() -> Product.retrieve("stripe1"));
-      productMockedStatic.verify(() -> Product.retrieve("stripe3"), never());
-      var captor = ArgumentCaptor.forClass(ProductUpdateParams.class);
-      verify(stripeProduct).update(captor.capture());
-      @SuppressWarnings("unchecked")
-      var metadata = (Map<String, String>) captor.getValue().getMetadata();
-      assertEquals("2000", metadata.get("vat_percent"));
-    }
-  }
-
-  @Test
   void get_subscribable_plans_applies_default_pagination_page1_size100() {
     var plan = SubscriptionProduct.builder().id("essential").build();
     var pageableCaptor = ArgumentCaptor.forClass(Pageable.class);

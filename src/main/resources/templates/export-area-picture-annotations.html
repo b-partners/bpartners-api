@@ -17,7 +17,7 @@
 
         @page {
             size: A4;
-            margin: 18px 28px;
+            margin: 20px 32px;
         }
 
         /* Prevent trailing blank page at the end of document rendering */
@@ -112,7 +112,12 @@
         .annotation-item {
             display: block;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 16px;
+            margin-bottom: 16px;
+            padding: 14px;
+            border: 0.5px solid #e8e8e8;
+            border-radius: 6px;
+            background-color: #fafafa;
             page-break-inside: avoid;
         }
 
@@ -169,29 +174,48 @@
         }
 
         .annotation-information-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #FF521B;
-            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2b2b2a;
+            text-align: left;
             page-break-after: avoid;
+            padding-bottom: 10px;
+            border-bottom: 2.5px solid #FF521B;
         }
 
         .section-description {
-            font-size: 0.95rem;
-            color: #6b6b6b;
-            text-align: center;
-            margin: -12px 0 20px;
-            line-height: 1.4;
+            font-size: 0.9rem;
+            color: #888;
+            text-align: left;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
 
-        .annotation-item-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
-        .annotation-item-title-value { margin-right: 15px; }
-        .annotation-item-info-label { font-weight: bold; }
-        .annotation-item-info-value { font-weight: normal; }
+        .annotation-item-title { 
+            font-size: 1.05rem; 
+            font-weight: 600; 
+            margin-bottom: 10px; 
+            color: #2b2b2a;
+            padding-left: 8px;
+            border-left: 3px solid #FF521B;
+        }
+        .annotation-item-title-value { 
+            margin-right: 15px; 
+            color: #FF521B;
+        }
+        .annotation-item-info-label { 
+            font-weight: 600; 
+            color: #666;
+        }
+        .annotation-item-info-value { 
+            font-weight: normal; 
+            color: #2b2b2a;
+        }
         .annotation-item-info-item {
-            font-size: 1rem;
+            font-size: 0.95rem;
             margin: 6px 0;
+            line-height: 1.5;
         }
 
         .roof-slope-boundaries-legend {
@@ -221,20 +245,23 @@
         .degradation-container {
             display: block;
             width: 100%;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 14px;
-            margin-top: 20px;
+            border: 0.5px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+            background-color: #ffffff;
             page-break-inside: avoid;
         }
 
         .degradation-section-title {
             font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.08em;
-            color: #6b6b6b;
-            margin: 0 0 10px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #888;
+            margin: 0 0 14px;
             text-transform: uppercase;
+            padding-bottom: 8px;
+            border-bottom: 1.5px solid #FF521B;
         }
 
         .degradation-levels-table {
@@ -355,31 +382,46 @@
             clear: both;
         }
 
-        .measurements-table {
+        /* Unified professional style for all data tables */
+        .data-table {
             width: 100%;
             border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.9rem;
         }
 
-        .measurements-table td {
-            padding: 4px 0;
-            font-size: 0.95rem;
-            line-height: 1.3;
+        .data-table th,
+        .data-table td {
+            border: 0.5px solid #e8e8e8;
+            padding: 8px 10px;
+            text-align: left;
+            line-height: 1.4;
         }
 
-        .measurements-table td:first-child {
+        .data-table th {
+            background-color: #fafafa;
+            font-weight: 600;
+            color: #666;
+            font-size: 0.85rem;
+            letter-spacing: 0.02em;
+        }
+        
+        .data-table tbody tr {
+            background-color: #ffffff;
+        }
+        
+        .data-table tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        .data-table td {
+            color: #2b2b2a;
+        }
+
+        /* Modifier for label/value tables where the first column is the row header */
+        .data-table-transposed td:first-child {
             font-weight: bold;
             width: 55%;
-        }
-
-        .roof-face-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-        }
-
-        .roof-face-table td {
-            padding: 4px 6px;
-            line-height: 1.3;
         }
 
         /* LLM Formatting Layouts */
@@ -511,15 +553,17 @@
         }
 
         .custom-page-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #FF521B;
-            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+            font-weight: 600;
+            color: #2b2b2a;
+            text-align: left;
+            padding-bottom: 10px;
+            border-bottom: 2.5px solid #FF521B;
         }
 
         .custom-section {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             page-break-inside: avoid;
             display: block;
             width: 100%;
@@ -545,23 +589,6 @@
             color: #666;
             margin-top: 5px;
             font-style: italic;
-        }
-
-        .custom-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        .custom-table th, .custom-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .custom-table th {
-            background-color: #f2f2f2;
-            font-weight: bold;
         }
 
         /* Priority styles for Text */
@@ -866,7 +893,7 @@
 
     <div class="degradation-container">
         <p class="degradation-section-title">Mesures</p>
-        <table class="measurements-table">
+        <table class="data-table data-table-transposed">
             <tr th:each="m : ${roofSummary.measurements}">
                 <td th:text="${m.label}"></td>
                 <td th:text="${m.value}"></td>
@@ -881,37 +908,37 @@
 
     <div class="degradation-container" th:if="${roofSummary != null and roofSummary.pitchBreakdown != null}" style="margin-top:0;">
         <p class="degradation-section-title">Répartition des pentes</p>
-        <table style="width:100%; border-collapse: collapse;">
+        <table class="data-table data-table-transposed">
             <tr>
-                <td style="font-weight:bold; padding:4px 8px;">Pente</td>
-                <td style="padding:4px 8px;" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.pitch}"></td>
+                <td>Pente</td>
+                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.pitch}"></td>
             </tr>
             <tr>
-                <td style="font-weight:bold; padding:4px 8px;">Surface</td>
-                <td style="padding:4px 8px;" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.area}"></td>
+                <td>Surface</td>
+                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.area}"></td>
             </tr>
             <tr>
-                <td style="font-weight:bold; padding:4px 8px;">Toit %</td>
-                <td style="padding:4px 8px;" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.roofPercent}"></td>
+                <td>Toit %</td>
+                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.roofPercent}"></td>
             </tr>
         </table>
     </div>
 
     <div class="degradation-container" th:if="${roofSummary != null and roofSummary.wasteTable != null}">
         <p class="degradation-section-title">Waste Calculation Table</p>
-        <table style="width:100%; border-collapse: collapse; font-size: 0.9rem;">
+        <table class="data-table data-table-transposed">
             <tr>
-                <td style="font-weight:bold; padding:4px 6px;">Waste</td>
-                <td style="padding:4px 6px; text-align:center;"
+                <td>Waste</td>
+                <td style="text-align:center;"
                     th:each="w : ${roofSummary.wasteTable}"
-                    th:style="${w.suggested} ? 'background-color:#e8f5e9; font-weight:bold;' : ''"
+                    th:style="${w.suggested} ? 'background-color:#e8f5e9; font-weight:bold; text-align:center;' : 'text-align:center;'"
                     th:text="${w.percent}"></td>
             </tr>
             <tr>
-                <td style="font-weight:bold; padding:4px 6px;">Area</td>
-                <td style="padding:4px 6px; text-align:center;"
+                <td>Area</td>
+                <td style="text-align:center;"
                     th:each="w : ${roofSummary.wasteTable}"
-                    th:style="${w.suggested} ? 'background-color:#e8f5e9; font-weight:bold;' : ''"
+                    th:style="${w.suggested} ? 'background-color:#e8f5e9; font-weight:bold; text-align:center;' : 'text-align:center;'"
                     th:text="${w.area}"></td>
             </tr>
         </table>
@@ -921,15 +948,18 @@
 
     <div class="degradation-container" th:if="${roofSummary != null and roofSummary.faces != null}">
         <p class="degradation-section-title">Résumé par Pan</p>
-        <table class="roof-face-table">
-            <tr style="background-color:#f7f7f5;">
-                <td style="font-weight:bold;">Pan</td>
-                <td style="font-weight:bold;">Surface (m²)</td>
-                <td style="font-weight:bold;">Pente (°)</td>
-                <td style="font-weight:bold;">Toit %</td>
-                <td style="font-weight:bold;">Surface (m²) avec +10% de perte</td>
-                <td style="font-weight:bold;">Surface (m²) avec +20% de perte</td>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Pan</th>
+                <th>Surface (m²)</th>
+                <th>Pente (°)</th>
+                <th>Toit %</th>
+                <th>Surface (m²) avec +10% de perte</th>
+                <th>Surface (m²) avec +20% de perte</th>
             </tr>
+            </thead>
+            <tbody>
             <tr th:each="f : ${roofSummary.faces}">
                 <td th:text="${f.name}"></td>
                 <td th:text="${f.area}"></td>
@@ -938,6 +968,7 @@
                 <td th:text="${f.area10}"></td>
                 <td th:text="${f.area20}"></td>
             </tr>
+            </tbody>
         </table>
         <p class="degradation-disclaimer">
             Avertissement : Ces calculs sont des estimations et leur exactitude n’est pas garantie.
@@ -961,9 +992,9 @@
 
         <!-- 3. TABLE Section -->
         <div class="degradation-container" th:case="'TABLE'">
-            <table class="roof-face-table">
+            <table class="data-table">
                 <thead>
-                <tr style="background-color:#f7f7f5;">
+                <tr>
                     <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>
                 </tr>
                 </thead>
@@ -1015,9 +1046,9 @@
 
     <!-- Child TABLE -->
     <div class="degradation-container" th:case="'TABLE'" style="margin-top: 5px;">
-        <table class="roof-face-table">
+        <table class="data-table">
             <thead>
-            <tr style="background-color:#f7f7f5;">
+            <tr>
                 <th th:each="header : ${section.tableData.headers}" th:text="${header}"></th>
             </tr>
             </thead>

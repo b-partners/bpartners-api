@@ -391,11 +391,11 @@ public class ExportAnnotationContextFactory {
     if (annotation3D.getFacades() == null) {
       return;
     }
-    var pagesFacade3D = groupByFirstPage(annotation3D.getFacades(), 3, 4);
+    var pagesFacade3D = groupByFirstPage(annotation3D.getFacades(), 3, 3);
     var facadesImages3D = getFacadesImages3DContext(annotation3D, fileService);
 
     context.setVariable("pagesFacade3D", pagesFacade3D);
-    context.setVariable("facadesImages3DUris", groupByFirstPage(facadesImages3D, 3, 4));
+    context.setVariable("facadesImages3DUris", groupByFirstPage(facadesImages3D, 3, 3));
   }
 
   static List<String> getFacadesImages3DContext(

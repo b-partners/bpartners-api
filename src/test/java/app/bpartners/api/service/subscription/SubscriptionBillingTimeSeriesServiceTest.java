@@ -61,7 +61,7 @@ class SubscriptionBillingTimeSeriesServiceTest {
   }
 
   @Test
-  void counts_active_monthly_and_annual_subscriptions_as_a_snapshot() {
+  void counts_pre_existing_subscriptions_as_active_baseline() {
     when(userSubscriptionProductJpaRepository.findAllOverlapping(any(), any()))
         .thenReturn(
             List.of(
@@ -79,21 +79,25 @@ class SubscriptionBillingTimeSeriesServiceTest {
   }
 
   @Test
-  void counts_a_subscription_as_active_until_its_end_regardless_of_start() {
+  void active_subscriptions_accumulate_new_and_net_out_expirations_over_the_period() {
     when(userSubscriptionProductJpaRepository.findAllOverlapping(any(), any()))
         .thenReturn(
             List.of(
-                sub("u_future", plan("p_m", "Mensuel"), MONTHLY, instant("2025-03-01"), null),
+                sub("u_base", plan("p_m", "Mensuel"), MONTHLY, instant("2024-12-15"), null),
                 sub(
-                    "u_expired",
-                    plan("p_m2", "Mensuel"),
+                    "u_churn",
+                    plan("p_m", "Mensuel"),
                     MONTHLY,
-                    instant("2024-01-01"),
-                    instant("2024-06-01"))));
+                    instant("2024-12-20"),
+                    instant("2025-01-03")),
+                sub("u_new", plan("p_m", "Mensuel"), MONTHLY, instant("2025-01-02"), null)));
 
-    var series = subject.getTimeSeries(FROM, TO, BillingGranularity.MONTH);
+    var series =
+        subject.getTimeSeries(
+            LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 3), BillingGranularity.DAY);
 
-    assertEquals(List.of(1L), series.getActiveMonthlySubscriptions());
+    assertEquals(List.of(2L, 3L, 2L), series.getActiveMonthlySubscriptions());
+    assertEquals(List.of(0L, 0L, 0L), series.getActiveAnnualSubscriptions());
   }
 
   @Test

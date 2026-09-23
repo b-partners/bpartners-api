@@ -31,12 +31,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -84,13 +82,15 @@ public class SubscriptionBillingTimeSeriesService {
     Map<String, List<UserSubscriptionProduct>> subsByUser =
         overlappingSubs.stream().collect(groupingBy(UserSubscriptionProduct::getUserId));
 
-    List<Long> activeMonthly = new ArrayList<>(n);
-    List<Long> activeAnnual = new ArrayList<>(n);
-    for (LocalDate bucket : buckets) {
-      var at = snapshotInstant(bucket, granularity, toInstant);
-      activeMonthly.add(activeCount(overlappingSubs, at, BillingInterval.MONTHLY));
-      activeAnnual.add(activeCount(overlappingSubs, at, BillingInterval.YEARLY));
-    }
+    var subscriptionFlows =
+        SubscriptionFlows.aggregate(
+            overlappingSubs,
+            fromInstant,
+            toInstant,
+            n,
+            when -> bucketIndexOf(indexByBucket, when, granularity));
+    List<Long> activeMonthly = subscriptionFlows.activeMonthlySubscriptions();
+    List<Long> activeAnnual = subscriptionFlows.activeAnnualSubscriptions();
 
     LocalDate firstMonth = from.withDayOfMonth(1);
     LocalDate lastMonth = to.withDayOfMonth(1);
@@ -168,24 +168,6 @@ public class SubscriptionBillingTimeSeriesService {
       paidAmount[idx] += invoiceAmountInCentsWithVat(invoice);
     }
 
-    long[] newMonthly = new long[n];
-    long[] newAnnual = new long[n];
-    for (UserSubscriptionProduct usp : overlappingSubs) {
-      var start = usp.getSubscriptionStartDatetime();
-      if (start == null || start.isBefore(fromInstant) || !start.isBefore(toInstant)) {
-        continue;
-      }
-      int idx = bucketIndexOf(indexByBucket, start, granularity);
-      if (idx < 0) {
-        continue;
-      }
-      if (usp.getBillingInterval() == BillingInterval.MONTHLY) {
-        newMonthly[idx] += 1;
-      } else if (usp.getBillingInterval() == BillingInterval.YEARLY) {
-        newAnnual[idx] += 1;
-      }
-    }
-
     long[] billedMonthly = new long[n];
     long[] billedAnnual = new long[n];
     for (SubscriptionPayment payment :
@@ -210,8 +192,8 @@ public class SubscriptionBillingTimeSeriesService {
         .labels(labels)
         .activeMonthlySubscriptions(activeMonthly)
         .activeAnnualSubscriptions(activeAnnual)
-        .newMonthlySubscriptions(toList(newMonthly))
-        .newAnnualSubscriptions(toList(newAnnual))
+        .newMonthlySubscriptions(subscriptionFlows.newMonthlySubscriptions())
+        .newAnnualSubscriptions(subscriptionFlows.newAnnualSubscriptions())
         .billedMonthlyInstalments(toList(billedMonthly))
         .billedAnnualInstalments(toList(billedAnnual))
         .requestsWithoutPlan(toList(withoutPlan))
@@ -228,17 +210,6 @@ public class SubscriptionBillingTimeSeriesService {
     var discount = parseFraction(invoice.getDiscountPercent());
     return InvoiceMapper.computeTotalPriceWithVatAndDiscount(discount, domainProducts)
         .getCentsRoundUp();
-  }
-
-  private long activeCount(
-      List<UserSubscriptionProduct> subs, Instant at, BillingInterval interval) {
-    Set<String> userIds = new HashSet<>();
-    for (UserSubscriptionProduct usp : subs) {
-      if (usp.getBillingInterval() == interval && isNotExpiredAt(usp, at)) {
-        userIds.add(usp.getUserId());
-      }
-    }
-    return userIds.size();
   }
 
   private UserSubscriptionProduct resolvePlan(
@@ -261,11 +232,6 @@ public class SubscriptionBillingTimeSeriesService {
     var start = usp.getSubscriptionStartDatetime();
     var end = usp.getSubscriptionEndDatetime();
     return (start == null || !start.isAfter(instant)) && (end == null || end.isAfter(instant));
-  }
-
-  private static boolean isNotExpiredAt(UserSubscriptionProduct usp, Instant instant) {
-    var end = usp.getSubscriptionEndDatetime();
-    return end == null || end.isAfter(instant);
   }
 
   private List<SubscriptionBillingTimeSeries.PlanSeries> planSeries(Map<String, long[]> byPlan) {
@@ -306,13 +272,6 @@ public class SubscriptionBillingTimeSeriesService {
       case WEEK -> bucketStart.plusWeeks(1);
       case MONTH -> bucketStart.plusMonths(1);
     };
-  }
-
-  private Instant snapshotInstant(
-      LocalDate bucketStart, BillingGranularity granularity, Instant toInstant) {
-    var endExclusive =
-        nextBucketStart(bucketStart, granularity).atStartOfDay(PARIS_ZONE).toInstant();
-    return endExclusive.isAfter(toInstant) ? toInstant : endExclusive;
   }
 
   private int bucketIndexOf(

@@ -239,6 +239,58 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void yearly_payment_reads_the_declared_discount_for_the_pro_plan() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(
+        someYearlyPayment()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .name("Pro")
+                    .annualDiscountPercent(1000)
+                    .priceInCentsWithoutVat(9_900L)
+                    .build())
+            .amountInCentsWithoutVat(106_900L)
+            .amountInCentsWithVat(128_280L)
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(98.98, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(1069.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(1282.8, invoice.getTotalPriceWithVat().getCentsAsDecimal());
+  }
+
+  @Test
+  void yearly_payment_reads_the_declared_discount_for_the_expert_plan() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(
+        someYearlyPayment()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .name("Expert")
+                    .annualDiscountPercent(1000)
+                    .priceInCentsWithoutVat(19_900L)
+                    .build())
+            .amountInCentsWithoutVat(214_900L)
+            .amountInCentsWithVat(257_880L)
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(198.98, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(2149.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(2578.8, invoice.getTotalPriceWithVat().getCentsAsDecimal());
+  }
+
+  @Test
   void yearly_payment_reconstructs_the_discount_column_from_the_catalog_monthly_price() {
     givenDefaultUsersAndCustomer();
     SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =

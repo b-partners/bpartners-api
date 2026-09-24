@@ -265,25 +265,42 @@ public class SubscriptionPaymentInvoiceRequestedService
 
   private AnnualLinePricing annualLinePricing(SubscriptionPayment subscriptionPayment) {
     var netAnnualInCents = BigInteger.valueOf(subscriptionPayment.amountInCentsWithoutVatOrZero());
-    var listMonthlyInCents = monthlyListPriceInCents(subscriptionPayment);
-    if (listMonthlyInCents != null) {
-      var grossAnnualInCents = listMonthlyInCents.multiply(BigInteger.valueOf(MONTHS_PER_YEAR));
-      if (grossAnnualInCents.compareTo(netAnnualInCents) > 0) {
-        var discount =
-            new Fraction(
-                BigInteger.valueOf(BASIS_POINTS)
-                    .multiply(grossAnnualInCents.subtract(netAnnualInCents)),
-                grossAnnualInCents);
-        return new AnnualLinePricing(new Fraction(listMonthlyInCents), discount);
-      }
+    var declaredDiscountBasisPoints = annualDiscountBasisPoints(subscriptionPayment);
+    if (declaredDiscountBasisPoints > 0) {
+      return reconstructedPricing(netAnnualInCents, declaredDiscountBasisPoints);
     }
-    var discountBasisPoints = annualDiscountBasisPoints(subscriptionPayment);
+    var catalogPricing = catalogPricing(subscriptionPayment, netAnnualInCents);
+    if (catalogPricing != null) {
+      return catalogPricing;
+    }
+    return reconstructedPricing(netAnnualInCents, 0);
+  }
+
+  private AnnualLinePricing reconstructedPricing(
+      BigInteger netAnnualInCents, int discountBasisPoints) {
     var monthlyUnitPrice =
         new Fraction(
             netAnnualInCents.multiply(BigInteger.valueOf(BASIS_POINTS)),
             BigInteger.valueOf((long) (BASIS_POINTS - discountBasisPoints) * MONTHS_PER_YEAR));
     return new AnnualLinePricing(
         monthlyUnitPrice, new Fraction(BigInteger.valueOf(discountBasisPoints)));
+  }
+
+  private AnnualLinePricing catalogPricing(
+      SubscriptionPayment subscriptionPayment, BigInteger netAnnualInCents) {
+    var listMonthlyInCents = monthlyListPriceInCents(subscriptionPayment);
+    if (listMonthlyInCents == null) {
+      return null;
+    }
+    var grossAnnualInCents = listMonthlyInCents.multiply(BigInteger.valueOf(MONTHS_PER_YEAR));
+    if (grossAnnualInCents.compareTo(netAnnualInCents) <= 0) {
+      return null;
+    }
+    var discount =
+        new Fraction(
+            BigInteger.valueOf(BASIS_POINTS).multiply(grossAnnualInCents.subtract(netAnnualInCents)),
+            grossAnnualInCents);
+    return new AnnualLinePricing(new Fraction(listMonthlyInCents), discount);
   }
 
   private BigInteger monthlyListPriceInCents(SubscriptionPayment subscriptionPayment) {

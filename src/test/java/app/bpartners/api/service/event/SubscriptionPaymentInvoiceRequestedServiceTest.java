@@ -189,6 +189,30 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void yearly_payment_prefers_the_declared_discount_over_the_catalog_price() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_QUANTITY;
+    givenPayment(
+        someYearlyPayment()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .name("Essentiel")
+                    .annualDiscountPercent(10)
+                    .priceInCentsWithoutVat(11_000L)
+                    .build())
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    var product = invoice.getProducts().getFirst();
+    assertEquals(100.0, product.getUnitPrice().getCentsAsDecimal());
+    assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(1080.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+  }
+
+  @Test
   void yearly_payment_reconstructs_the_discount_column_from_the_catalog_monthly_price() {
     givenDefaultUsersAndCustomer();
     SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =

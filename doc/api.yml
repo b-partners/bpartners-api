@@ -206,6 +206,8 @@ paths:
   #############################################
   /areaPictureMapLayers:
     $ref: './area-pictures-api.yml#/operations/areaPictureMapLayerOperations'
+  /map/layers:
+    $ref: './area-pictures-api.yml#/operations/mapLayersOperations'
   /accounts/{aId}/areaPictures:
     $ref: './area-pictures-api.yml#/operations/getAllAreaPictures'
   /accounts/{aId}/areaPictures/{id}:

@@ -50,5 +50,6 @@ public class EnvConf {
     registry.add("geo.jobs.admin.api.key", () -> "dummy");
     registry.add("geo.jobs.base.url", () -> "https://dum.my");
     registry.add("geodata.imagery.baseurl", () -> "https://dummy.com");
+    registry.add("geodata.api.key", () -> "dummy");
   }
 }

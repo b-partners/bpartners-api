@@ -436,6 +436,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(GET, "/areaPictureMapLayers")
                     .authenticated()
+                    .requestMatchers(GET, "/map/layers")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures", authResourceProvider))

@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 class AreaPictureMapLayerServiceTest {
   private final HttpClient httpClient = HttpClient.newHttpClient();
   ImageryService imageryService =
-      new ImageryService(System.getenv("GEODATA_IMAGERY_BASEURL"), httpClient);
+      new ImageryService(
+          System.getenv("GEODATA_IMAGERY_BASEURL"), System.getenv("GEODATA_API_KEY"), httpClient);
   AreaPictureMapLayerMapper areaPictureMapLayerMapper = new AreaPictureMapLayerMapper();
   AreaPictureMapLayerService subject =
       new AreaPictureMapLayerService(imageryService, areaPictureMapLayerMapper);

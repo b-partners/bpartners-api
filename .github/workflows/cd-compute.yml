@@ -30,6 +30,7 @@ jobs:
       STRIPE_PRIVATE_API_KEY: ${{ secrets.STRIPE_PRIVATE_API_KEY }}
       GOOGLE_GEOCODE_API_KEY: ${{ secrets.GOOGLE_GEOCODE_API_KEY }}
       GEODATA_IMAGERY_BASEURL: ${{secrets.GEODATA_IMAGERY_BASEURL}}
+      GEODATA_API_KEY: ${{secrets.GEODATA_API_KEY}}
 
     steps:
       - uses: actions/checkout@v4.1.6

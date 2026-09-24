@@ -198,7 +198,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
             .subscriptionProduct(
                 SubscriptionProduct.builder()
                     .name("Essentiel")
-                    .annualDiscountPercent(10)
+                    .annualDiscountPercent(1000)
                     .priceInCentsWithoutVat(11_000L)
                     .build())
             .build());
@@ -210,6 +210,32 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     assertEquals(100.0, product.getUnitPrice().getCentsAsDecimal());
     assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
     assertEquals(1080.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+  }
+
+  @Test
+  void yearly_payment_reads_the_declared_discount_stored_in_hundredths_of_percent() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(
+        someYearlyPayment()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .name("Essentiel")
+                    .annualDiscountPercent(1000)
+                    .priceInCentsWithoutVat(4_900L)
+                    .build())
+            .amountInCentsWithoutVat(52_900L)
+            .amountInCentsWithVat(63_480L)
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(48.98, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(529.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(634.8, invoice.getTotalPriceWithVat().getCentsAsDecimal());
   }
 
   @Test
@@ -325,7 +351,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
         .label("Essentiel")
         .billingInterval(BillingInterval.YEARLY)
         .subscriptionProduct(
-            SubscriptionProduct.builder().name("Essentiel").annualDiscountPercent(10).build())
+            SubscriptionProduct.builder().name("Essentiel").annualDiscountPercent(1000).build())
         .amountInCentsWithoutVat(108_000L)
         .amountInCentsWithVat(129_600L)
         .vatPercent(2_000L)

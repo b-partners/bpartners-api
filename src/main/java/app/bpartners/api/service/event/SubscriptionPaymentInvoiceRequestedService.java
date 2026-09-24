@@ -319,7 +319,7 @@ public class SubscriptionPaymentInvoiceRequestedService
     if (subscriptionProduct == null || subscriptionProduct.getAnnualDiscountPercent() == null) {
       return 0;
     }
-    var basisPoints = subscriptionProduct.getAnnualDiscountPercent() * 100;
+    var basisPoints = subscriptionProduct.getAnnualDiscountPercent();
     if (basisPoints <= 0 || basisPoints >= BASIS_POINTS) {
       return 0;
     }

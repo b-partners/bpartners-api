@@ -189,6 +189,24 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void yearly_payment_reconstructs_the_discount_column_from_the_catalog_monthly_price() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(yearlyPaymentWithoutDeclaredDiscount().build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(12, invoice.getProducts().size());
+    assertEquals(48.98, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(587.76, invoice.getTotalPriceWithoutDiscount().getCentsAsDecimal());
+    assertEquals(528.96, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(634.75, invoice.getTotalPriceWithVat().getCentsAsDecimal());
+  }
+
+  @Test
   void titles_the_invoice_on_the_payment_date_when_the_period_is_unknown() {
     givenDefaultUsersAndCustomer();
     givenPayment(somePayment().periodStartDatetime(null).periodEndDatetime(null).build());
@@ -286,6 +304,23 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
             SubscriptionProduct.builder().name("Essentiel").annualDiscountPercent(10).build())
         .amountInCentsWithoutVat(108_000L)
         .amountInCentsWithVat(129_600L)
+        .vatPercent(2_000L)
+        .periodStartDatetime(PERIOD_START)
+        .periodEndDatetime(Instant.parse("2027-03-04T09:30:00Z"))
+        .paymentDatetime(PAID_AT);
+  }
+
+  private SubscriptionPayment.SubscriptionPaymentBuilder yearlyPaymentWithoutDeclaredDiscount() {
+    return SubscriptionPayment.builder()
+        .id(PAYMENT_ID)
+        .userId("subscriber_id")
+        .stripeInvoiceId("in_123")
+        .label("Essentiel")
+        .billingInterval(BillingInterval.YEARLY)
+        .subscriptionProduct(
+            SubscriptionProduct.builder().name("Essentiel").priceInCentsWithoutVat(4_898L).build())
+        .amountInCentsWithoutVat(52_896L)
+        .amountInCentsWithVat(63_475L)
         .vatPercent(2_000L)
         .periodStartDatetime(PERIOD_START)
         .periodEndDatetime(Instant.parse("2027-03-04T09:30:00Z"))

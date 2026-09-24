@@ -253,19 +253,47 @@ public class SubscriptionPaymentInvoiceRequestedService
   }
 
   private Fraction grossMonthlyUnitPrice(SubscriptionPayment subscriptionPayment) {
-    var netAnnualInCents = BigInteger.valueOf(subscriptionPayment.amountInCentsWithoutVatOrZero());
-    var discountBasisPoints = annualDiscountBasisPoints(subscriptionPayment);
-    var numerator = netAnnualInCents.multiply(BigInteger.valueOf(BASIS_POINTS));
-    var denominator =
-        BigInteger.valueOf((long) (BASIS_POINTS - discountBasisPoints) * MONTHS_PER_YEAR);
-    return new Fraction(numerator, denominator);
+    return annualLinePricing(subscriptionPayment).monthlyUnitPrice();
   }
 
   private Fraction annualDiscountFraction(SubscriptionPayment subscriptionPayment) {
     if (!isYearly(subscriptionPayment)) {
       return new Fraction(BigInteger.ZERO);
     }
-    return new Fraction(BigInteger.valueOf(annualDiscountBasisPoints(subscriptionPayment)));
+    return annualLinePricing(subscriptionPayment).discount();
+  }
+
+  private AnnualLinePricing annualLinePricing(SubscriptionPayment subscriptionPayment) {
+    var netAnnualInCents = BigInteger.valueOf(subscriptionPayment.amountInCentsWithoutVatOrZero());
+    var listMonthlyInCents = monthlyListPriceInCents(subscriptionPayment);
+    if (listMonthlyInCents != null) {
+      var grossAnnualInCents = listMonthlyInCents.multiply(BigInteger.valueOf(MONTHS_PER_YEAR));
+      if (grossAnnualInCents.compareTo(netAnnualInCents) > 0) {
+        var discount =
+            new Fraction(
+                BigInteger.valueOf(BASIS_POINTS)
+                    .multiply(grossAnnualInCents.subtract(netAnnualInCents)),
+                grossAnnualInCents);
+        return new AnnualLinePricing(new Fraction(listMonthlyInCents), discount);
+      }
+    }
+    var discountBasisPoints = annualDiscountBasisPoints(subscriptionPayment);
+    var monthlyUnitPrice =
+        new Fraction(
+            netAnnualInCents.multiply(BigInteger.valueOf(BASIS_POINTS)),
+            BigInteger.valueOf((long) (BASIS_POINTS - discountBasisPoints) * MONTHS_PER_YEAR));
+    return new AnnualLinePricing(
+        monthlyUnitPrice, new Fraction(BigInteger.valueOf(discountBasisPoints)));
+  }
+
+  private BigInteger monthlyListPriceInCents(SubscriptionPayment subscriptionPayment) {
+    var subscriptionProduct = subscriptionPayment.getSubscriptionProduct();
+    if (subscriptionProduct == null
+        || subscriptionProduct.getPriceInCentsWithoutVat() == null
+        || subscriptionProduct.getPriceInCentsWithoutVat() <= 0) {
+      return null;
+    }
+    return BigInteger.valueOf(subscriptionProduct.getPriceInCentsWithoutVat());
   }
 
   private int annualDiscountBasisPoints(SubscriptionPayment subscriptionPayment) {
@@ -293,4 +321,6 @@ public class SubscriptionPaymentInvoiceRequestedService
   private boolean isYearly(SubscriptionPayment subscriptionPayment) {
     return subscriptionPayment.getBillingInterval() == BillingInterval.YEARLY;
   }
+
+  private record AnnualLinePricing(Fraction monthlyUnitPrice, Fraction discount) {}
 }

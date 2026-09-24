@@ -217,9 +217,9 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
         .label("Essentiel")
         .billingInterval(BillingInterval.YEARLY)
         .subscriptionProduct(
-            SubscriptionProduct.builder().name("Essentiel").annualDiscountPercent(10).build())
-        .amountInCentsWithoutVat(108_000L)
-        .amountInCentsWithVat(129_600L)
+            SubscriptionProduct.builder().name("Essentiel").priceInCentsWithoutVat(4_898L).build())
+        .amountInCentsWithoutVat(52_896L)
+        .amountInCentsWithVat(63_475L)
         .vatPercent(2_000L)
         .periodStartDatetime(PERIOD_START)
         .periodEndDatetime(PERIOD_END)

@@ -30,11 +30,13 @@ import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.lowagie.text.DocumentException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -117,6 +119,7 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
     assertEquals(12, invoice.getProducts().size());
     assertEquals(12, countOccurrences(html, "Abonnement mensuel du"));
     assertTrue(html.contains("Remise"));
+    assertEquals(1, pdfPageCount(html));
     System.out.println(
         "Aperçu PDF (12 lignes mensuelles détaillées) : " + previewFile.toAbsolutePath());
   }
@@ -152,6 +155,22 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
     }
     file.toFile().deleteOnExit();
     return file;
+  }
+
+  private int pdfPageCount(String html) throws DocumentException, IOException {
+    var renderer = new ITextRenderer();
+    renderer.setDocumentFromString(html);
+    renderer.layout();
+    try (var outputStream = new ByteArrayOutputStream()) {
+      renderer.createPDF(outputStream);
+      var content = new String(outputStream.toByteArray(), StandardCharsets.ISO_8859_1);
+      var matcher = Pattern.compile("/Type\\s*/Page(?!s)").matcher(content);
+      var count = 0;
+      while (matcher.find()) {
+        count++;
+      }
+      return count;
+    }
   }
 
   private static int countOccurrences(String text, String token) {

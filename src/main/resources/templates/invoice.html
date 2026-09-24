@@ -127,6 +127,38 @@
             position: relative;
             text-align: center;
         }
+
+        .subscription-invoice th,
+        .subscription-invoice td {
+            padding: 2px 6px;
+            font-size: 10px;
+        }
+
+        .subscription-invoice .main-table {
+            margin: 6px 0 10px 0 !important;
+        }
+
+        .subscription-invoice .main-table th:first-child,
+        .subscription-invoice .main-table td:first-child {
+            width: 230px !important;
+        }
+
+        .subscription-invoice header h1 {
+            margin: 6px 0;
+        }
+
+        .subscription-invoice header p {
+            margin: 2px 0;
+        }
+
+        .subscription-invoice .amount-section p {
+            padding: 2px 8px;
+        }
+
+        .subscription-invoice li {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
     </style>
     <style>
         #footer {
@@ -149,7 +181,7 @@
         }
     </style>
 </head>
-<body>
+<body th:classappend="${invoice.isSubscriptionInvoice()} ? 'subscription-invoice' : ''">
 <header>
     <h1 class="text-center text-underline">FACTURE</h1>
     <table class="table-head">

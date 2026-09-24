@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.model.exception.ImageryServiceException;
+import app.bpartners.api.model.exception.NotFoundException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -248,5 +249,47 @@ class ImageryServiceTest {
     assertEquals("PCRS", actual.getActualLayer().getName());
     assertEquals("token", actual.getSecureLinkToken().getValue());
     assertEquals(1790251200L, actual.getSecureLinkToken().getExpiresAtEpochSecond());
+  }
+
+  @Test
+  void get_actual_map_layer_sends_geodata_api_key_ok() throws Exception {
+    when(httpResponse.statusCode()).thenReturn(200);
+    when(httpResponse.body())
+        .thenReturn(
+            """
+            {
+              "wmsBaseUrl": "https://wms.dummy.com",
+              "layer": { "id": "pcrs", "name": "PCRS", "source": "GEOSERVER" },
+              "secureLinkToken": {
+                "value": "token",
+                "expiresAt": "2026-09-24T12:00:00Z",
+                "expiresAtEpochSecond": 1790251200
+              }
+            }
+            """);
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(httpResponse);
+
+    var actual = subject.getActualMapLayer(43.71, 7.26);
+
+    var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+    verify(httpClient).send(requestCaptor.capture(), any(HttpResponse.BodyHandler.class));
+    var request = requestCaptor.getValue();
+    assertEquals("dummy-api-key", request.headers().firstValue("x-api-key").orElseThrow());
+    assertEquals("/map/layers/actual", request.uri().getPath());
+    assertTrue(request.uri().getQuery().contains("lat=43.71"));
+    assertTrue(request.uri().getQuery().contains("lon=7.26"));
+    assertEquals("PCRS", actual.getLayer().getName());
+    assertEquals(1790251200L, actual.getSecureLinkToken().getExpiresAtEpochSecond());
+  }
+
+  @Test
+  void get_actual_map_layer_throws_not_found_when_geodata_returns_404() throws Exception {
+    when(httpResponse.statusCode()).thenReturn(404);
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(httpResponse);
+
+    assertThatThrownBy(() -> subject.getActualMapLayer(43.71, 7.26))
+        .isInstanceOf(NotFoundException.class);
   }
 }

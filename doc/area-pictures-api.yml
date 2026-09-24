@@ -62,6 +62,38 @@ operations:
             application/json:
               schema:
                 $ref: "#/components/schemas/MapLayersReachability"
+  mapLayerActualOperations:
+    get:
+      tags:
+        - AreaPicture
+      summary: Get the single map layer that should actually be used for a position, fast
+      description: |
+        Same candidate resolution as /map/layers, but stops at the first reachable candidate
+        instead of checking every one, so it's faster. Returns 404 if none of the candidates are
+        reachable.
+      operationId: getActualMapLayer
+      parameters:
+        - in: query
+          name: lat
+          schema:
+            type: number
+          required: true
+        - in: query
+          name: lon
+          schema:
+            type: number
+          required: true
+      responses:
+        200:
+          description: |
+            The map layer to actually use for this position, the wmsBaseUrl to use it with, and the
+            secure link token to query the WMS with
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapLayerActual"
+        404:
+          $ref: './api.yml#/components/responses/404'
   getAllAreaPictures:
     get:
       tags:
@@ -675,6 +707,15 @@ components:
           items:
             $ref: "#/components/schemas/MapLayerReachability"
         actualLayer:
+          $ref: "#/components/schemas/AreaPictureMapLayer"
+        secureLinkToken:
+          $ref: "#/components/schemas/SecureLinkToken"
+    MapLayerActual:
+      type: object
+      properties:
+        wmsBaseUrl:
+          type: string
+        layer:
           $ref: "#/components/schemas/AreaPictureMapLayer"
         secureLinkToken:
           $ref: "#/components/schemas/SecureLinkToken"

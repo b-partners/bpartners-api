@@ -208,6 +208,8 @@ paths:
     $ref: './area-pictures-api.yml#/operations/areaPictureMapLayerOperations'
   /map/layers:
     $ref: './area-pictures-api.yml#/operations/mapLayersOperations'
+  /map/layers/actual:
+    $ref: './area-pictures-api.yml#/operations/mapLayerActualOperations'
   /accounts/{aId}/areaPictures:
     $ref: './area-pictures-api.yml#/operations/getAllAreaPictures'
   /accounts/{aId}/areaPictures/{id}:

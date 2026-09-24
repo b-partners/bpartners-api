@@ -298,7 +298,8 @@ public class SubscriptionPaymentInvoiceRequestedService
     }
     var discount =
         new Fraction(
-            BigInteger.valueOf(BASIS_POINTS).multiply(grossAnnualInCents.subtract(netAnnualInCents)),
+            BigInteger.valueOf(BASIS_POINTS)
+                .multiply(grossAnnualInCents.subtract(netAnnualInCents)),
             grossAnnualInCents);
     return new AnnualLinePricing(new Fraction(listMonthlyInCents), discount);
   }

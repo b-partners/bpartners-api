@@ -50,9 +50,9 @@ import org.xhtmlrenderer.pdf.ITextRenderer;
 class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
   private static final String ADMIN_USER_ID = "admin_user_id";
   private static final String PAYMENT_ID = "subscription_payment_id";
-  private static final Instant PAID_AT = Instant.parse("2026-01-01T09:30:00Z");
-  private static final Instant PERIOD_START = Instant.parse("2026-01-01T09:30:00Z");
-  private static final Instant PERIOD_END = Instant.parse("2027-01-01T09:30:00Z");
+  private static final Instant PAID_AT = Instant.parse("2026-09-15T09:30:00Z");
+  private static final Instant PERIOD_START = Instant.parse("2026-09-15T09:30:00Z");
+  private static final Instant PERIOD_END = Instant.parse("2027-09-14T09:30:00Z");
   private static final Path PREVIEW_DIR = Path.of("build", "annual-invoice-previews");
 
   SubscriptionPaymentRepository subscriptionPaymentRepository = mock();
@@ -105,7 +105,7 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
 
     assertEquals(1, invoice.getProducts().size());
     assertEquals(12, invoice.getProducts().getFirst().getQuantity());
-    assertTrue(html.contains("Abonnement mensuel"));
+    assertTrue(html.contains("Abonnement Essentiel"));
     assertTrue(html.contains("Remise"));
     System.out.println("Aperçu PDF (Abonnement mensuel x12) : " + previewFile.toAbsolutePath());
   }
@@ -120,8 +120,8 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
     var html = render(invoice);
     var previewFile = writePdf("annual-invoice-monthly-detailed.pdf", html);
 
-    assertEquals(12, invoice.getProducts().size());
-    assertEquals(12, countOccurrences(html, "Abonnement mensuel du"));
+    assertEquals(13, invoice.getProducts().size());
+    assertEquals(13, countOccurrences(html, "Abonnement Essentiel du"));
     assertTrue(html.contains("Remise"));
     assertEquals(1, pdfPageCount(html));
     System.out.println(

@@ -38,6 +38,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -208,18 +209,62 @@ public class SubscriptionPaymentInvoiceRequestedService
       Fraction vatPercent) {
     var products = new ArrayList<InvoiceProduct>();
     var periodStart = billingPeriodStart(subscriptionPayment);
-    for (int month = 0; month < MONTHS_PER_YEAR; month++) {
-      var monthStart = periodStart.plusMonths(month);
-      var monthEnd = monthStart.plusMonths(1).minusDays(1);
-      var description =
-          "Abonnement mensuel du "
-              + customDateFormatter.formatFrenchDate(monthStart)
-              + " au "
-              + customDateFormatter.formatFrenchDate(monthEnd);
+    var periodEnd = billingPeriodEnd(subscriptionPayment, periodStart);
+    var segments = calendarMonthSegments(periodStart, periodEnd);
+    var partialDaysTotal =
+        segments.stream().filter(segment -> !segment.fullMonth()).mapToInt(MonthSegment::days).sum();
+    for (var segment : segments) {
+      var unitPrice =
+          segment.fullMonth()
+              ? monthlyGrossUnitPrice
+              : proratedUnitPrice(monthlyGrossUnitPrice, segment.days(), partialDaysTotal);
       products.add(
-          invoiceProduct(invoiceIdentifier, description, 1, monthlyGrossUnitPrice, vatPercent));
+          invoiceProduct(
+              invoiceIdentifier,
+              subscriptionLineLabel(subscriptionPayment, segment.start(), segment.end()),
+              1,
+              unitPrice,
+              vatPercent));
     }
     return products;
+  }
+
+  private List<MonthSegment> calendarMonthSegments(LocalDate periodStart, LocalDate periodEnd) {
+    var segments = new ArrayList<MonthSegment>();
+    var cursor = periodStart;
+    while (!cursor.isAfter(periodEnd)) {
+      var monthEnd = cursor.withDayOfMonth(cursor.lengthOfMonth());
+      var segmentEnd = monthEnd.isAfter(periodEnd) ? periodEnd : monthEnd;
+      var fullMonth = cursor.getDayOfMonth() == 1 && segmentEnd.equals(monthEnd);
+      var days = (int) ChronoUnit.DAYS.between(cursor, segmentEnd) + 1;
+      segments.add(new MonthSegment(cursor, segmentEnd, fullMonth, days));
+      cursor = monthEnd.plusDays(1);
+    }
+    return segments;
+  }
+
+  private Fraction proratedUnitPrice(Fraction monthlyGrossUnitPrice, int days, int partialDaysTotal) {
+    if (partialDaysTotal <= 0) {
+      return monthlyGrossUnitPrice;
+    }
+    return new Fraction(
+        monthlyGrossUnitPrice.getNumerator().multiply(BigInteger.valueOf(days)),
+        monthlyGrossUnitPrice.getDenominator().multiply(BigInteger.valueOf(partialDaysTotal)));
+  }
+
+  private String subscriptionLineLabel(
+      SubscriptionPayment subscriptionPayment, LocalDate start, LocalDate end) {
+    return subscriptionLabelPrefix(subscriptionPayment)
+        + " du "
+        + customDateFormatter.formatFrenchDate(start)
+        + " au "
+        + customDateFormatter.formatFrenchDate(end);
+  }
+
+  private String subscriptionLabelPrefix(SubscriptionPayment subscriptionPayment) {
+    var subscriptionProduct = subscriptionPayment.getSubscriptionProduct();
+    var planName = subscriptionProduct == null ? null : subscriptionProduct.getName();
+    return planName == null || planName.isBlank() ? "Abonnement" : "Abonnement " + planName;
   }
 
   private InvoiceProduct invoiceProduct(
@@ -244,9 +289,10 @@ public class SubscriptionPaymentInvoiceRequestedService
     var periodStart = subscriptionPayment.getPeriodStartDatetime();
     var periodEnd = subscriptionPayment.getPeriodEndDatetime();
     if (periodStart == null || periodEnd == null) {
-      return "Abonnement mensuel";
+      return subscriptionLabelPrefix(subscriptionPayment);
     }
-    return "Abonnement mensuel du "
+    return subscriptionLabelPrefix(subscriptionPayment)
+        + " du "
         + customDateFormatter.formatFrenchDate(periodStart)
         + " au "
         + customDateFormatter.formatFrenchDate(periodEnd);
@@ -336,9 +382,19 @@ public class SubscriptionPaymentInvoiceRequestedService
     return instant.atZone(PARIS).toLocalDate();
   }
 
+  private LocalDate billingPeriodEnd(SubscriptionPayment subscriptionPayment, LocalDate periodStart) {
+    var periodEnd = subscriptionPayment.getPeriodEndDatetime();
+    if (periodEnd == null) {
+      return periodStart.plusYears(1).minusDays(1);
+    }
+    return periodEnd.atZone(PARIS).toLocalDate();
+  }
+
   private boolean isYearly(SubscriptionPayment subscriptionPayment) {
     return subscriptionPayment.getBillingInterval() == BillingInterval.YEARLY;
   }
 
   private record AnnualLinePricing(Fraction monthlyUnitPrice, Fraction discount) {}
+
+  private record MonthSegment(LocalDate start, LocalDate end, boolean fullMonth, int days) {}
 }

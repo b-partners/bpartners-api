@@ -155,7 +155,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     assertEquals(1, invoice.getProducts().size());
     var product = invoice.getProducts().getFirst();
     assertEquals(12, product.getQuantity());
-    assertEquals("Abonnement mensuel du 04/03/2026 au 04/03/2027", product.getDescription());
+    assertEquals("Abonnement Essentiel du 01/01/2026 au 31/12/2026", product.getDescription());
     assertEquals(100.0, product.getUnitPrice().getCentsAsDecimal());
     assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
     assertEquals(1200.0, invoice.getTotalPriceWithoutDiscount().getCentsAsDecimal());
@@ -177,13 +177,44 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     assertEquals(12, invoice.getProducts().size());
     assertTrue(invoice.getProducts().stream().allMatch(product -> product.getQuantity() == 1));
     assertEquals(
-        "Abonnement mensuel du 04/03/2026 au 03/04/2026",
+        "Abonnement Essentiel du 01/01/2026 au 31/01/2026",
         invoice.getProducts().getFirst().getDescription());
     assertEquals(
-        "Abonnement mensuel du 04/02/2027 au 03/03/2027",
+        "Abonnement Essentiel du 01/12/2026 au 31/12/2026",
         invoice.getProducts().getLast().getDescription());
     assertEquals(100.0, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
     assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(1080.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(1296.0, invoice.getTotalPriceWithVat().getCentsAsDecimal());
+  }
+
+  @Test
+  void yearly_payment_prorates_the_first_and_last_month_on_calendar_months() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(
+        someYearlyPayment()
+            .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+            .periodEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    var products = invoice.getProducts();
+    assertEquals(13, products.size());
+    assertTrue(products.stream().allMatch(product -> product.getQuantity() == 1));
+    assertEquals(
+        "Abonnement Essentiel du 15/09/2026 au 30/09/2026", products.getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/10/2026 au 31/10/2026", products.get(1).getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/09/2027 au 14/09/2027", products.getLast().getDescription());
+    assertEquals(53.33, products.getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(100.0, products.get(1).getUnitPrice().getCentsAsDecimal());
+    assertEquals(46.67, products.getLast().getUnitPrice().getCentsAsDecimal());
+    assertEquals(1200.0, invoice.getTotalPriceWithoutDiscount().getCentsAsDecimal());
     assertEquals(1080.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
     assertEquals(1296.0, invoice.getTotalPriceWithVat().getCentsAsDecimal());
   }
@@ -407,8 +438,8 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
         .amountInCentsWithoutVat(108_000L)
         .amountInCentsWithVat(129_600L)
         .vatPercent(2_000L)
-        .periodStartDatetime(PERIOD_START)
-        .periodEndDatetime(Instant.parse("2027-03-04T09:30:00Z"))
+        .periodStartDatetime(Instant.parse("2026-01-01T09:30:00Z"))
+        .periodEndDatetime(Instant.parse("2026-12-31T09:30:00Z"))
         .paymentDatetime(PAID_AT);
   }
 
@@ -424,8 +455,8 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
         .amountInCentsWithoutVat(52_896L)
         .amountInCentsWithVat(63_475L)
         .vatPercent(2_000L)
-        .periodStartDatetime(PERIOD_START)
-        .periodEndDatetime(Instant.parse("2027-03-04T09:30:00Z"))
+        .periodStartDatetime(Instant.parse("2026-01-01T09:30:00Z"))
+        .periodEndDatetime(Instant.parse("2026-12-31T09:30:00Z"))
         .paymentDatetime(PAID_AT);
   }
 

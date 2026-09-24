@@ -212,7 +212,10 @@ public class SubscriptionPaymentInvoiceRequestedService
     var periodEnd = billingPeriodEnd(subscriptionPayment, periodStart);
     var segments = calendarMonthSegments(periodStart, periodEnd);
     var partialDaysTotal =
-        segments.stream().filter(segment -> !segment.fullMonth()).mapToInt(MonthSegment::days).sum();
+        segments.stream()
+            .filter(segment -> !segment.fullMonth())
+            .mapToInt(MonthSegment::days)
+            .sum();
     for (var segment : segments) {
       var unitPrice =
           segment.fullMonth()
@@ -243,7 +246,8 @@ public class SubscriptionPaymentInvoiceRequestedService
     return segments;
   }
 
-  private Fraction proratedUnitPrice(Fraction monthlyGrossUnitPrice, int days, int partialDaysTotal) {
+  private Fraction proratedUnitPrice(
+      Fraction monthlyGrossUnitPrice, int days, int partialDaysTotal) {
     if (partialDaysTotal <= 0) {
       return monthlyGrossUnitPrice;
     }
@@ -382,7 +386,8 @@ public class SubscriptionPaymentInvoiceRequestedService
     return instant.atZone(PARIS).toLocalDate();
   }
 
-  private LocalDate billingPeriodEnd(SubscriptionPayment subscriptionPayment, LocalDate periodStart) {
+  private LocalDate billingPeriodEnd(
+      SubscriptionPayment subscriptionPayment, LocalDate periodStart) {
     var periodEnd = subscriptionPayment.getPeriodEndDatetime();
     if (periodEnd == null) {
       return periodStart.plusYears(1).minusDays(1);

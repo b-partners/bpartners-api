@@ -225,7 +225,11 @@ class ImageryServiceTest {
                 }
               ],
               "actualLayer": { "id": "pcrs", "name": "PCRS", "source": "GEOSERVER" },
-              "secureLinkToken": { "value": "token", "expiresAt": "2026-09-24T12:00:00Z" }
+              "secureLinkToken": {
+                "value": "token",
+                "expiresAt": "2026-09-24T12:00:00Z",
+                "expiresAtEpochSecond": 1790251200
+              }
             }
             """);
     when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
@@ -243,5 +247,6 @@ class ImageryServiceTest {
     assertTrue(request.uri().getQuery().contains("onlyReachable=true"));
     assertEquals("PCRS", actual.getActualLayer().getName());
     assertEquals("token", actual.getSecureLinkToken().getValue());
+    assertEquals(1790251200L, actual.getSecureLinkToken().getExpiresAtEpochSecond());
   }
 }

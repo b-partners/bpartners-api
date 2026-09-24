@@ -682,13 +682,17 @@ components:
       type: object
       description: |
         Token granting direct access to the geoserver WMS (nginx secure_link). Send `value` as the
-        `token` query param and `expiresAt` as a unix timestamp in the `expires` query param.
+        `token` query param and `expiresAtEpochSecond` as the `expires` query param.
       properties:
         value:
           type: string
         expiresAt:
           type: string
           format: date-time
+        expiresAtEpochSecond:
+          type: integer
+          format: int64
+          description: expiresAt as a unix timestamp in seconds, ready to be sent as `expires`
     OpenStreetMapLayer:
       deprecated: true
       description: deprecated, use AreaMapLayer

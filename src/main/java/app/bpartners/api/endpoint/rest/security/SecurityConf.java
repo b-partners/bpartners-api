@@ -438,6 +438,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(GET, "/map/layers")
                     .authenticated()
+                    .requestMatchers(GET, "/map/layers/actual")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures", authResourceProvider))

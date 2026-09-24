@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.MapLayerActual;
 import app.bpartners.api.endpoint.rest.model.MapLayersReachability;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.service.areapicture.AreaPictureService;
@@ -72,5 +73,11 @@ public class AreaPictureController {
       @RequestParam(name = "onlyReachable", required = false, defaultValue = "false")
           boolean onlyReachable) {
     return mapLayerService.getMapLayers(lat, lon, onlyReachable);
+  }
+
+  @GetMapping("/map/layers/actual")
+  public MapLayerActual getActualMapLayer(
+      @RequestParam(name = "lat") Double lat, @RequestParam(name = "lon") Double lon) {
+    return mapLayerService.getActualMapLayer(lat, lon);
   }
 }

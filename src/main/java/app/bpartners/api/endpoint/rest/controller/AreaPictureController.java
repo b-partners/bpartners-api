@@ -5,8 +5,10 @@ import app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.MapLayersReachability;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.service.areapicture.AreaPictureService;
+import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -23,6 +25,7 @@ public class AreaPictureController {
   private final AreaPictureService service;
   private final AreaPictureRestMapper mapper;
   private final AreaPictureMapLayerRestMapper layerMapper;
+  private final AreaPictureMapLayerService mapLayerService;
 
   @SneakyThrows
   @GetMapping(value = "/accounts/{accountId}/areaPictures")
@@ -60,5 +63,14 @@ public class AreaPictureController {
       @RequestParam(name = "longitude") Double longitude,
       @RequestParam(name = "latitude") Double latitude) {
     return service.getMapLayers(longitude, latitude).stream().map(layerMapper::toRest).toList();
+  }
+
+  @GetMapping("/map/layers")
+  public MapLayersReachability getMapLayers(
+      @RequestParam(name = "lat") Double lat,
+      @RequestParam(name = "lon") Double lon,
+      @RequestParam(name = "onlyReachable", required = false, defaultValue = "false")
+          boolean onlyReachable) {
+    return mapLayerService.getMapLayers(lat, lon, onlyReachable);
   }
 }

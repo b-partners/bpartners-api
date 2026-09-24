@@ -2,7 +2,9 @@ package app.bpartners.api.service.geodata;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,7 +30,7 @@ class ImageryServiceTest {
 
   @BeforeEach
   void setUp() {
-    subject = new ImageryService("http://dummy.com", httpClient);
+    subject = new ImageryService("http://dummy.com", "dummy-api-key", httpClient);
   }
 
   @Test
@@ -205,5 +208,45 @@ class ImageryServiceTest {
     assertThatThrownBy(() -> subject.getById("area-picture-id"))
         .isInstanceOf(ImageryServiceException.class)
         .hasMessageContaining("GeoData Imagery API request failed");
+  }
+
+  @Test
+  void get_map_layers_sends_geodata_api_key_ok() throws Exception {
+    when(httpResponse.statusCode()).thenReturn(200);
+    when(httpResponse.body())
+        .thenReturn(
+            """
+            {
+              "wmsBaseUrl": "https://wms.dummy.com",
+              "layers": [
+                {
+                  "layer": { "id": "pcrs", "name": "PCRS", "source": "GEOSERVER" },
+                  "reachable": true
+                }
+              ],
+              "actualLayer": { "id": "pcrs", "name": "PCRS", "source": "GEOSERVER" },
+              "secureLinkToken": {
+                "value": "token",
+                "expiresAt": "2026-09-24T12:00:00Z",
+                "expiresAtEpochSecond": 1790251200
+              }
+            }
+            """);
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(httpResponse);
+
+    var actual = subject.getMapLayers(43.71, 7.26, true);
+
+    var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+    verify(httpClient).send(requestCaptor.capture(), any(HttpResponse.BodyHandler.class));
+    var request = requestCaptor.getValue();
+    assertEquals("dummy-api-key", request.headers().firstValue("x-api-key").orElseThrow());
+    assertEquals("/map/layers", request.uri().getPath());
+    assertTrue(request.uri().getQuery().contains("lat=43.71"));
+    assertTrue(request.uri().getQuery().contains("lon=7.26"));
+    assertTrue(request.uri().getQuery().contains("onlyReachable=true"));
+    assertEquals("PCRS", actual.getActualLayer().getName());
+    assertEquals("token", actual.getSecureLinkToken().getValue());
+    assertEquals(1790251200L, actual.getSecureLinkToken().getExpiresAtEpochSecond());
   }
 }

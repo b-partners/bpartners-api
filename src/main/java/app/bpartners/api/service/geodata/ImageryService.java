@@ -1,8 +1,11 @@
 package app.bpartners.api.service.geodata;
 
+import static app.bpartners.api.service.utils.SecurityUtils.API_KEY_HEADER;
+
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.MapLayersReachability;
 import app.bpartners.api.model.exception.ImageryServiceException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -26,15 +29,20 @@ public class ImageryService {
   private static final String AREA_PICTURE_ENDPOINT = "/areaPicture";
   private static final String AREA_PICTURE_MAP_LAYER_ENDPOINT = "/areaPictureMapLayer";
   private static final String AREA_PICTURE_MAP_LAYERS_ENDPOINT = "/areaPictureMapLayers";
+  private static final String MAP_LAYERS_ENDPOINT = "/map/layers";
   private static final String JSON_CONTENT_TYPE = "application/json";
   private static final String ACCEPT = "Accept";
   private final String geodataImageryBaseurl;
+  private final String geodataApiKey;
   private final ObjectMapper om;
   private final HttpClient httpClient;
 
   public ImageryService(
-      @Value("${geodata.imagery.baseurl}") String geoDataBaseUrl, HttpClient httpClient) {
+      @Value("${geodata.imagery.baseurl}") String geoDataBaseUrl,
+      @Value("${geodata.api.key}") String geodataApiKey,
+      HttpClient httpClient) {
     this.geodataImageryBaseurl = geoDataBaseUrl;
+    this.geodataApiKey = geodataApiKey;
     this.om = new ObjectMapper().registerModule(new JavaTimeModule());
     this.httpClient = httpClient;
   }
@@ -102,6 +110,35 @@ public class ImageryService {
       return om.readValue(
           response.body(),
           om.getTypeFactory().constructCollectionType(List.class, AreaPictureMapLayer.class));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ImageryServiceException(
+          "Thread was interrupted while calling GeoData Imagery service", e);
+    } catch (IOException e) {
+      throw new ImageryServiceException("Failed to process GeoData Imagery service response", e);
+    }
+  }
+
+  public MapLayersReachability getMapLayers(
+      Double latitude, Double longitude, boolean onlyReachable) {
+    String queryString =
+        Map.of("lat", latitude, "lon", longitude, "onlyReachable", onlyReachable)
+            .entrySet()
+            .stream()
+            .map(entry -> encode(entry.getKey()) + "=" + encode(String.valueOf(entry.getValue())))
+            .collect(Collectors.joining("&"));
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(URI.create(buildUri(MAP_LAYERS_ENDPOINT) + "?" + queryString))
+            .header(ACCEPT, JSON_CONTENT_TYPE)
+            .header(API_KEY_HEADER, geodataApiKey)
+            .GET()
+            .build();
+
+    try {
+      HttpResponse<String> response = send(request);
+      validateResponse(response);
+      return om.readValue(response.body(), MapLayersReachability.class);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ImageryServiceException(

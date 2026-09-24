@@ -27,6 +27,41 @@ operations:
                 type: array
                 items:
                   $ref: "#/components/schemas/AreaPictureMapLayer"
+  mapLayersOperations:
+    get:
+      tags:
+        - AreaPicture
+      summary: Get the candidate map layers for a position, each with its reachable status
+      description: |
+        Candidate map layers for the given position, ordered by priority and annotated with whether
+        they're reachable, the layer to actually use, and the secure link token to query the WMS with.
+      operationId: getMapLayers
+      parameters:
+        - in: query
+          name: lat
+          schema:
+            type: number
+          required: true
+        - in: query
+          name: lon
+          schema:
+            type: number
+          required: true
+        - in: query
+          name: onlyReachable
+          description: When true, only the reachable candidates are included in the response.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        200:
+          description: |
+            Candidate map layers with their reachable status, the layer to actually use, and the
+            secure link token to query the WMS with
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MapLayersReachability"
   getAllAreaPictures:
     get:
       tags:
@@ -623,6 +658,41 @@ components:
         expiredAt:
           type: string
           format: date-time
+    MapLayerReachability:
+      type: object
+      properties:
+        layer:
+          $ref: "#/components/schemas/AreaPictureMapLayer"
+        reachable:
+          type: boolean
+    MapLayersReachability:
+      type: object
+      properties:
+        wmsBaseUrl:
+          type: string
+        layers:
+          type: array
+          items:
+            $ref: "#/components/schemas/MapLayerReachability"
+        actualLayer:
+          $ref: "#/components/schemas/AreaPictureMapLayer"
+        secureLinkToken:
+          $ref: "#/components/schemas/SecureLinkToken"
+    SecureLinkToken:
+      type: object
+      description: |
+        Token granting direct access to the geoserver WMS (nginx secure_link). Send `value` as the
+        `token` query param and `expiresAtEpochSecond` as the `expires` query param.
+      properties:
+        value:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        expiresAtEpochSecond:
+          type: integer
+          format: int64
+          description: expiresAt as a unix timestamp in seconds, ready to be sent as `expires`
     OpenStreetMapLayer:
       deprecated: true
       description: deprecated, use AreaMapLayer

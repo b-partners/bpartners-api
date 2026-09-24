@@ -28,15 +28,19 @@ import app.bpartners.api.service.subscription.SubscriptionPaymentService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.lowagie.text.DocumentException;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -137,10 +141,25 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
   private String render(Invoice invoice) {
     var context = new Context();
     context.setVariable("invoice", invoice);
-    context.setVariable("logo", null);
+    context.setVariable("logo", issuerLogoBase64());
     context.setVariable("account", invoice.getActualAccount());
     context.setVariable("accountHolder", invoice.getActualHolder());
     return new TemplateResolverEngine().getTemplateEngine().process("invoice", context);
+  }
+
+  private static String issuerLogoBase64() {
+    try {
+      var image = new BufferedImage(120, 120, BufferedImage.TYPE_INT_RGB);
+      var graphics = image.createGraphics();
+      graphics.setColor(new Color(30, 90, 180));
+      graphics.fillRect(0, 0, 120, 120);
+      graphics.dispose();
+      var out = new ByteArrayOutputStream();
+      ImageIO.write(image, "jpeg", out);
+      return Base64.getEncoder().encodeToString(out.toByteArray());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private Path writePdf(String fileName, String html) throws IOException, DocumentException {

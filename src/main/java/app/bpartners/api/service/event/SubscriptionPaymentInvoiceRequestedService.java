@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apfloat.Aprational;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -211,16 +212,28 @@ public class SubscriptionPaymentInvoiceRequestedService
     var periodStart = billingPeriodStart(subscriptionPayment);
     var periodEnd = billingPeriodEnd(subscriptionPayment, periodStart);
     var segments = calendarMonthSegments(periodStart, periodEnd);
+    var fullMonthUnitPrice = fullMonthUnitPrice(subscriptionPayment, monthlyGrossUnitPrice);
+    var annualGrossTarget =
+        monthlyGrossUnitPrice.operate(
+            new Fraction(BigInteger.valueOf(MONTHS_PER_YEAR)), Aprational::multiply);
     var partialDaysTotal =
         segments.stream()
             .filter(segment -> !segment.fullMonth())
             .mapToInt(MonthSegment::days)
             .sum();
-    for (var segment : segments) {
+    var allocatedGross = new Fraction(BigInteger.ZERO);
+    for (var index = 0; index < segments.size(); index++) {
+      var segment = segments.get(index);
+      var lastSegment = index == segments.size() - 1;
       var unitPrice =
-          segment.fullMonth()
-              ? monthlyGrossUnitPrice
-              : proratedUnitPrice(monthlyGrossUnitPrice, segment.days(), partialDaysTotal);
+          lastSegment
+              ? annualGrossTarget.operate(allocatedGross, Aprational::subtract)
+              : segment.fullMonth()
+                  ? fullMonthUnitPrice
+                  : proratedUnitPrice(fullMonthUnitPrice, segment.days(), partialDaysTotal);
+      if (!lastSegment) {
+        allocatedGross = allocatedGross.operate(unitPrice, Aprational::add);
+      }
       products.add(
           invoiceProduct(
               invoiceIdentifier,
@@ -230,6 +243,12 @@ public class SubscriptionPaymentInvoiceRequestedService
               vatPercent));
     }
     return products;
+  }
+
+  private Fraction fullMonthUnitPrice(
+      SubscriptionPayment subscriptionPayment, Fraction monthlyGrossUnitPrice) {
+    var listMonthlyInCents = monthlyListPriceInCents(subscriptionPayment);
+    return listMonthlyInCents == null ? monthlyGrossUnitPrice : new Fraction(listMonthlyInCents);
   }
 
   private List<MonthSegment> calendarMonthSegments(LocalDate periodStart, LocalDate periodEnd) {

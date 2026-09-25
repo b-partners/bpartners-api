@@ -220,6 +220,38 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void yearly_payment_keeps_full_months_at_catalog_price_and_absorbs_rounding_on_the_last_line() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(
+        someYearlyPayment()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .name("Essentiel")
+                    .annualDiscountPercent(1000)
+                    .priceInCentsWithoutVat(4_900L)
+                    .build())
+            .amountInCentsWithoutVat(52_900L)
+            .amountInCentsWithVat(63_480L)
+            .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+            .periodEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    var products = invoice.getProducts();
+    assertEquals(13, products.size());
+    assertEquals(26.13, products.getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(49.0, products.get(1).getUnitPrice().getCentsAsDecimal());
+    assertEquals(22.64, products.getLast().getUnitPrice().getCentsAsDecimal());
+    assertEquals(587.78, invoice.getTotalPriceWithoutDiscount().getCentsAsDecimal());
+    assertEquals(529.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(634.8, invoice.getTotalPriceWithVat().getCentsAsDecimal());
+  }
+
+  @Test
   void yearly_payment_prefers_the_declared_discount_over_the_catalog_price() {
     givenDefaultUsersAndCustomer();
     SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
@@ -263,7 +295,8 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     subject.accept(someEvent());
 
     var invoice = capturedInvoice();
-    assertEquals(48.98, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(49.0, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(48.78, invoice.getProducts().getLast().getUnitPrice().getCentsAsDecimal());
     assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
     assertEquals(529.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
     assertEquals(634.8, invoice.getTotalPriceWithVat().getCentsAsDecimal());
@@ -289,7 +322,8 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     subject.accept(someEvent());
 
     var invoice = capturedInvoice();
-    assertEquals(98.98, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(99.0, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(98.78, invoice.getProducts().getLast().getUnitPrice().getCentsAsDecimal());
     assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
     assertEquals(1069.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
     assertEquals(1282.8, invoice.getTotalPriceWithVat().getCentsAsDecimal());
@@ -315,7 +349,8 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     subject.accept(someEvent());
 
     var invoice = capturedInvoice();
-    assertEquals(198.98, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(199.0, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+    assertEquals(198.78, invoice.getProducts().getLast().getUnitPrice().getCentsAsDecimal());
     assertEquals(10.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
     assertEquals(2149.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
     assertEquals(2578.8, invoice.getTotalPriceWithVat().getCentsAsDecimal());

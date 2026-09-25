@@ -156,10 +156,39 @@
             margin: 1px 0;
         }
 
-        .subscription-invoice .amount-section p {
-            padding: 1px 8px;
-            margin-left: auto;
-            margin-right: 0;
+        .subscription-invoice .totals-aligned {
+            margin: 2px 0 6px 0;
+        }
+
+        .subscription-invoice .totals-aligned > tbody > tr > td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .subscription-invoice .payment-cell {
+            font-size: 10px;
+        }
+
+        .subscription-invoice .totals-inner td {
+            border: none;
+            padding: 3px 6px;
+            font-size: 10px;
+        }
+
+        .subscription-invoice .totals-inner .totals-label {
+            text-align: left;
+        }
+
+        .subscription-invoice .totals-inner .totals-value {
+            width: 1%;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .subscription-invoice .totals-inner .totals-total td {
+            border-top: 1px solid #000;
+            font-weight: bold;
         }
 
         .subscription-invoice li {
@@ -340,7 +369,81 @@
             </th:block>
             </tbody>
         </table>
-        <table class="table-head">
+        <table th:if="${invoice.isSubscriptionInvoice()}" class="totals-aligned"
+               style="table-layout: fixed;">
+            <colgroup>
+                <col style="width: 230px"/>
+                <col/><col/><col/><col/><col/><col/><col/>
+            </colgroup>
+            <tbody>
+            <tr>
+                <td colspan="5" class="payment-cell">
+                    <p th:style="${(invoice.paymentMethod != null && invoice.status != null
+                     && invoice.status.toString() == 'PAID') ? '' : 'margin-bottom: 90px'}">Mode de règlement :
+                        <strong
+                                th:if="${invoice.paymentType == null  ||
+                            (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
+                            AU COMPTANT
+                        </strong>
+                        <strong th:unless="${invoice.paymentType == null  ||
+                            (invoice.paymentType != null && invoice.paymentType.getValue() == 'CASH')}">
+                            EN PLUSIEURS FOIS
+                        </strong>
+                        <br/>
+                        <th:block th:if="${invoice.getStatus() != null && invoice.getStatus().toString() == 'PAID'}">
+                            <img class="stamp"
+                                 th:if="${invoice.stamp != null}"
+                                 th:src="${'data:image/jpeg;base64,' + invoice.stamp}" alt="stamp"/>
+                            <br/>
+                            <span>Payée le <span
+                                    th:text="${invoice.getUpdatedAtFrenchDate()}"></span>
+                            </span>
+                        </th:block>
+                    </p>
+                </td>
+                <td colspan="3" class="totals-cell">
+                    <table class="totals-inner">
+                        <tbody>
+                        <tr th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
+                            <td class="totals-label"><strong>Sous-Total</strong></td>
+                            <td class="totals-value">
+                                <span th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutDiscount.getCentsAsDecimal(), 1, 2)}"></span> €
+                            </td>
+                        </tr>
+                        <tr th:if="${invoice.discount.percentValue.getCentsAsDecimal() > 0}">
+                            <td class="totals-label"><strong>Remise</strong></td>
+                            <td class="totals-value">
+                                <span th:text="${#numbers.formatDecimal(invoice.discount.amountValue.getCentsAsDecimal(), 1, 2)}"></span> €
+                            </td>
+                        </tr>
+                        <tr th:if="${accountHolder.isSubjectToVat()}">
+                            <td class="totals-label"><strong>Total HT</strong></td>
+                            <td class="totals-value">
+                                <span th:text="${#numbers.formatDecimal(invoice.totalPriceWithoutVat.getCentsAsDecimal(), 1, 2)}"></span> €
+                            </td>
+                        </tr>
+                        <tr th:if="${accountHolder.isSubjectToVat()}">
+                            <td class="totals-label"><strong>Total TVA</strong></td>
+                            <td class="totals-value">
+                                <span th:text="${#numbers.formatDecimal(invoice.totalVat.getCentsAsDecimal(), 1, 2)}"></span> €
+                            </td>
+                        </tr>
+                        <tr class="totals-total">
+                            <td class="totals-label">
+                                <strong th:if="${accountHolder.isSubjectToVat()}">Total TTC</strong>
+                                <strong th:unless="${accountHolder.isSubjectToVat()}">Total HT</strong>
+                            </td>
+                            <td class="totals-value">
+                                <span th:text="${#numbers.formatDecimal(invoice.totalPriceWithVat.getCentsAsDecimal(), 1, 2)}"></span> €
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <table class="table-head" th:unless="${invoice.isSubscriptionInvoice()}">
             <tr>
                 <td>
                     <p th:style="${(invoice.paymentMethod != null && invoice.status != null

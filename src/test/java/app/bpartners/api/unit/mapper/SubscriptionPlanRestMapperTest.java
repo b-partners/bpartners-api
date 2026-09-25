@@ -5,22 +5,31 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.model.SubscriptionBillingType;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanComparisonCellKind;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureStyle;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.SubscriptionProductComparisonCellKind;
 import app.bpartners.api.model.subscription.SubscriptionProductComparisonEntry;
 import app.bpartners.api.model.subscription.SubscriptionProductFeatureItem;
 import app.bpartners.api.model.subscription.SubscriptionProductFeatureSection;
 import app.bpartners.api.model.subscription.SubscriptionProductFeatureStyle;
+import app.bpartners.api.repository.jpa.UserIgnoredTrialPeriodJpaRepository;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 class SubscriptionPlanRestMapperTest {
-  SubscriptionPlanRestMapper subject = new SubscriptionPlanRestMapper();
+  UserIgnoredTrialPeriodJpaRepository userIgnoredTrialPeriodJpaRepository =
+      mock(UserIgnoredTrialPeriodJpaRepository.class);
+  SubscriptionPlanRestMapper subject =
+      new SubscriptionPlanRestMapper(userIgnoredTrialPeriodJpaRepository);
 
   private static SubscriptionProduct subscriptionProduct(
       app.bpartners.api.model.subscription.SubscriptionBillingType billingType) {
@@ -99,6 +108,41 @@ class SubscriptionPlanRestMapperTest {
 
     assertEquals(0L, actual.getIncludedCreditsPerBillingPeriod());
     assertEquals(1L, actual.getCreditCostPerAnalysis());
+  }
+
+  @Test
+  void to_rest_maps_trial_period_days_from_domain_when_user_not_ignored() {
+    var domain = subscriptionProduct(COMMITMENT).toBuilder().trialPeriodDays(7).build();
+
+    try (MockedStatic<AuthProvider> authProvider = mockStatic(AuthProvider.class)) {
+      authProvider.when(AuthProvider::getAuthenticatedUserId).thenReturn("user_id");
+      when(userIgnoredTrialPeriodJpaRepository.existsByUserId("user_id")).thenReturn(false);
+
+      assertEquals(7, subject.toRest(domain).getTrialPeriodDays());
+    }
+  }
+
+  @Test
+  void to_rest_maps_trial_period_days_to_zero_when_user_is_ignored() {
+    var domain = subscriptionProduct(COMMITMENT).toBuilder().trialPeriodDays(7).build();
+
+    try (MockedStatic<AuthProvider> authProvider = mockStatic(AuthProvider.class)) {
+      authProvider.when(AuthProvider::getAuthenticatedUserId).thenReturn("ignored_user_id");
+      when(userIgnoredTrialPeriodJpaRepository.existsByUserId("ignored_user_id")).thenReturn(true);
+
+      assertEquals(0, subject.toRest(domain).getTrialPeriodDays());
+    }
+  }
+
+  @Test
+  void to_rest_maps_trial_period_days_from_domain_when_no_authenticated_user() {
+    var domain = subscriptionProduct(COMMITMENT).toBuilder().trialPeriodDays(7).build();
+
+    try (MockedStatic<AuthProvider> authProvider = mockStatic(AuthProvider.class)) {
+      authProvider.when(AuthProvider::getAuthenticatedUserId).thenReturn(null);
+
+      assertEquals(7, subject.toRest(domain).getTrialPeriodDays());
+    }
   }
 
   @Test

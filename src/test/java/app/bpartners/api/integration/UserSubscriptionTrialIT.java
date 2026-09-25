@@ -22,9 +22,11 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.CreateSubscriptionTrial;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
+import app.bpartners.api.model.UserIgnoredTrialPeriod;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
+import app.bpartners.api.repository.jpa.UserIgnoredTrialPeriodJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionTrialJpaRepository;
 import app.bpartners.api.service.credit.CreditService;
@@ -43,6 +45,7 @@ class UserSubscriptionTrialIT extends MockedThirdParties {
   private static final String USAGE_BASED_PLAN_ID = "4219611e-7584-4636-a3c5-ba212600715b";
 
   @Autowired private UserSubscriptionTrialJpaRepository userSubscriptionTrialJpaRepository;
+  @Autowired private UserIgnoredTrialPeriodJpaRepository userIgnoredTrialPeriodJpaRepository;
   @Autowired private UserSubscriptionProductJpaRepository userSubscriptionProductJpaRepository;
   @Autowired private CreditTransactionRepository creditTransactionRepository;
   @Autowired private SubscriptionProductRepository subscriptionProductRepository;
@@ -77,7 +80,17 @@ class UserSubscriptionTrialIT extends MockedThirdParties {
   private void clearTrialState() {
     creditTransactionRepository.deleteAll();
     userSubscriptionTrialJpaRepository.deleteAll();
+    userIgnoredTrialPeriodJpaRepository.deleteAll();
     userSubscriptionProductJpaRepository.deleteAll();
+  }
+
+  private void ignoreTrialPeriodFor(String userId) {
+    userIgnoredTrialPeriodJpaRepository.save(
+        UserIgnoredTrialPeriod.builder()
+            .id(java.util.UUID.randomUUID().toString())
+            .userId(userId)
+            .creationDatetime(java.time.Instant.now())
+            .build());
   }
 
   @SneakyThrows
@@ -215,6 +228,29 @@ class UserSubscriptionTrialIT extends MockedThirdParties {
     assertEquals(
         app.bpartners.api.endpoint.rest.model.UserSubscriptionStatus.ACTIVE,
         user.getSubscriptionStatus());
+  }
+
+  @SneakyThrows
+  @Test
+  void ignored_user_gets_no_trial_in_eligibility_and_cannot_start_a_trial() {
+    ignoreTrialPeriodFor(JOE_DOE_ID);
+
+    var eligibility = joeUserSubscriptionApi().getUserSubscriptionTrialEligibility(JOE_DOE_ID);
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.SubscriptionTrialIneligibilityReason
+            .PLAN_HAS_NO_TRIAL,
+        reasonFor(eligibility, ESSENTIAL_PLAN_ID));
+
+    var badRequest =
+        assertThrows(
+            ApiException.class,
+            () ->
+                joeUserSubscriptionApi()
+                    .startUserSubscriptionTrial(
+                        JOE_DOE_ID,
+                        new CreateSubscriptionTrial()
+                            .subscriptionPlanIdentifier(ESSENTIAL_PLAN_ID)));
+    assertEquals(400, badRequest.getCode());
   }
 
   @Test

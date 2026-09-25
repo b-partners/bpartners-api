@@ -16,6 +16,7 @@ import app.bpartners.api.model.exception.ConflictException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.TrialIneligibilityReason;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
+import app.bpartners.api.repository.jpa.UserIgnoredTrialPeriodJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionTrialJpaRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
@@ -32,12 +33,14 @@ import org.mockito.ArgumentCaptor;
 
 class UserSubscriptionTrialServiceTest {
   UserSubscriptionTrialJpaRepository userSubscriptionTrialJpaRepository = mock();
+  UserIgnoredTrialPeriodJpaRepository userIgnoredTrialPeriodJpaRepository = mock();
   SubscriptionProductRepository subscriptionProductRepository = mock();
   UserSubscriptionProductService userSubscriptionProductService = mock();
   CreditGrantService creditGrantService = mock();
   UserSubscriptionTrialService subject =
       new UserSubscriptionTrialService(
           userSubscriptionTrialJpaRepository,
+          userIgnoredTrialPeriodJpaRepository,
           subscriptionProductRepository,
           userSubscriptionProductService,
           creditGrantService);
@@ -92,6 +95,34 @@ class UserSubscriptionTrialServiceTest {
     verify(userSubscriptionProductService, never())
         .createTrialAssociation(any(), any(), any(), any());
     verify(creditGrantService, never()).grantTrialCredits(any(), any(), any());
+  }
+
+  @Test
+  void rejects_when_user_trial_period_is_ignored() {
+    when(userIgnoredTrialPeriodJpaRepository.existsByUserId("user_id")).thenReturn(true);
+
+    assertThrows(BadRequestException.class, () -> subject.startTrial("user_id", "plan_id"));
+    verify(userSubscriptionProductService, never())
+        .createTrialAssociation(any(), any(), any(), any());
+    verify(creditGrantService, never()).grantTrialCredits(any(), any(), any());
+  }
+
+  @Test
+  void eligibility_reports_no_trial_for_all_plans_when_user_trial_period_is_ignored() {
+    when(userIgnoredTrialPeriodJpaRepository.existsByUserId("user_id")).thenReturn(true);
+    when(subscriptionProductRepository.findAllByBillingTypeNotNull(any()))
+        .thenReturn(List.of(planWithTrialDays("eligible", 7), planWithTrialDays("no_trial", 0)));
+
+    Map<String, TrialIneligibilityReason> byPlan =
+        subject.getTrialEligibility("user_id").stream()
+            .collect(
+                Collectors.toMap(
+                    app.bpartners.api.model.subscription.SubscriptionTrialEligibility
+                        ::subscriptionProductId,
+                    app.bpartners.api.model.subscription.SubscriptionTrialEligibility::reason));
+
+    assertEquals(TrialIneligibilityReason.PLAN_HAS_NO_TRIAL, byPlan.get("eligible"));
+    assertEquals(TrialIneligibilityReason.PLAN_HAS_NO_TRIAL, byPlan.get("no_trial"));
   }
 
   @Test

@@ -15,6 +15,7 @@ import app.bpartners.api.model.subscription.StartedSubscriptionTrial;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.SubscriptionTrialEligibility;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
+import app.bpartners.api.repository.jpa.UserIgnoredTrialPeriodJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionTrialJpaRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import java.time.ZoneId;
@@ -33,6 +34,7 @@ public class UserSubscriptionTrialService {
   private static final int SUBSCRIBABLE_PLANS_PAGE_SIZE = 100;
 
   private final UserSubscriptionTrialJpaRepository userSubscriptionTrialJpaRepository;
+  private final UserIgnoredTrialPeriodJpaRepository userIgnoredTrialPeriodJpaRepository;
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final UserSubscriptionProductService userSubscriptionProductService;
   private final CreditGrantService creditGrantService;
@@ -40,16 +42,20 @@ public class UserSubscriptionTrialService {
   public List<SubscriptionTrialEligibility> getTrialEligibility(String userId) {
     var hasActiveSubscription =
         userSubscriptionProductService.findActiveUserSubscriptionProduct(userId).isPresent();
+    var trialIgnored = userIgnoredTrialPeriodJpaRepository.existsByUserId(userId);
     return subscriptionProductRepository
         .findAllByBillingTypeNotNull(PageRequest.of(0, SUBSCRIBABLE_PLANS_PAGE_SIZE))
         .stream()
-        .map(plan -> eligibilityOf(userId, plan, hasActiveSubscription))
+        .map(plan -> eligibilityOf(userId, plan, hasActiveSubscription, trialIgnored))
         .toList();
   }
 
   private SubscriptionTrialEligibility eligibilityOf(
-      String userId, SubscriptionProduct plan, boolean hasActiveSubscription) {
-    if (!plan.offersFreeTrial()) {
+      String userId,
+      SubscriptionProduct plan,
+      boolean hasActiveSubscription,
+      boolean trialIgnored) {
+    if (trialIgnored || !plan.offersFreeTrial()) {
       return SubscriptionTrialEligibility.of(plan.getId(), PLAN_HAS_NO_TRIAL);
     }
     if (userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
@@ -65,7 +71,7 @@ public class UserSubscriptionTrialService {
   @Transactional
   public StartedSubscriptionTrial startTrial(String userId, String subscriptionProductId) {
     var plan = getPlan(subscriptionProductId);
-    if (!plan.offersFreeTrial()) {
+    if (userIgnoredTrialPeriodJpaRepository.existsByUserId(userId) || !plan.offersFreeTrial()) {
       throw new BadRequestException(
           "SubscriptionProduct(id=" + plan.getId() + ") offers no free trial");
     }

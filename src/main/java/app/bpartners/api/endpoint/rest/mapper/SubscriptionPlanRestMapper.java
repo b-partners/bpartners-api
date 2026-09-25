@@ -8,14 +8,19 @@ import app.bpartners.api.endpoint.rest.model.SubscriptionPlanDescription;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureItem;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureSection;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlanFeatureStyle;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.SubscriptionProductComparisonEntry;
 import app.bpartners.api.model.subscription.SubscriptionProductFeatureSection;
+import app.bpartners.api.repository.jpa.UserIgnoredTrialPeriodJpaRepository;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class SubscriptionPlanRestMapper {
+  private final UserIgnoredTrialPeriodJpaRepository userIgnoredTrialPeriodJpaRepository;
 
   public SubscriptionPlan toRest(SubscriptionProduct domain) {
     return new SubscriptionPlan()
@@ -34,7 +39,7 @@ public class SubscriptionPlanRestMapper {
         .creditCostPerAnalysis(domain.creditCostPerAnalysisOrDefault())
         .freeUsageThreshold(domain.getFreeUsageThreshold())
         .overageUnitPriceInCents(domain.getOverageUnitPriceInCents())
-        .trialPeriodDays(domain.getTrialPeriodDays())
+        .trialPeriodDays(trialPeriodDaysToRest(domain))
         .trialAnalysisGranted(domain.getTrialAnalysisGranted())
         .isMostChosen(domain.isMostChosen())
         .isDeprecated(domain.isDeprecated())
@@ -42,6 +47,14 @@ public class SubscriptionPlanRestMapper {
         .annualDiscountPercent(domain.getAnnualDiscountPercent())
         .annualPriceInCentsWithVat(domain.getAnnualPriceInCentsWithVat())
         .annualPriceInCentsWithoutVat(domain.getAnnualPriceInCentsWithoutVat());
+  }
+
+  private Integer trialPeriodDaysToRest(SubscriptionProduct domain) {
+    String userId = AuthProvider.getAuthenticatedUserId();
+    if (userId != null && userIgnoredTrialPeriodJpaRepository.existsByUserId(userId)) {
+      return 0;
+    }
+    return domain.getTrialPeriodDays();
   }
 
   public SubscriptionPlanDescription toRestDescription(SubscriptionProduct domain) {

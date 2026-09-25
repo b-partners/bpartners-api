@@ -25,7 +25,9 @@ import org.junit.jupiter.api.Test;
 class SubscriptionControllerTest {
   SubscriptionConsumptionLogRestMapper consumptionLogRestMapper =
       new SubscriptionConsumptionLogRestMapper();
-  SubscriptionPlanRestMapper subscriptionPlanRestMapper = new SubscriptionPlanRestMapper();
+  SubscriptionPlanRestMapper subscriptionPlanRestMapper =
+      new SubscriptionPlanRestMapper(
+          mock(app.bpartners.api.repository.jpa.UserIgnoredTrialPeriodJpaRepository.class));
   SubscriptionService subscriptionServiceMock = mock(SubscriptionService.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
   TemporalUtils temporalUtils = new TemporalUtils();

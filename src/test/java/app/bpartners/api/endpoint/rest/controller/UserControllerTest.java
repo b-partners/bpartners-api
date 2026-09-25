@@ -51,7 +51,9 @@ class UserControllerTest {
   UserService userServiceMock = mock();
   SubscriptionService subscriptionServiceMock = mock();
   SubscriptionProductRepository subscriptionProductRepositoryMock = mock();
-  SubscriptionPlanRestMapper subscriptionPlanRestMapper = new SubscriptionPlanRestMapper();
+  SubscriptionPlanRestMapper subscriptionPlanRestMapper =
+      new SubscriptionPlanRestMapper(
+          mock(app.bpartners.api.repository.jpa.UserIgnoredTrialPeriodJpaRepository.class));
   UserSubscriptionCommitmentRestMapper userSubscriptionCommitmentRestMapper =
       new UserSubscriptionCommitmentRestMapper(
           subscriptionProductRepositoryMock, subscriptionPlanRestMapper);

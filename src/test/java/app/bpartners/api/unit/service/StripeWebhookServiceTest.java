@@ -11,6 +11,9 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillRequested;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.credit.CreditPurchase;
+import app.bpartners.api.model.subscription.BillingInterval;
+import app.bpartners.api.model.subscription.SubscriptionPayment;
+import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
@@ -28,6 +31,7 @@ import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
 import com.stripe.model.InvoiceLineItemCollection;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Plan;
 import com.stripe.model.Price;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
@@ -326,6 +330,113 @@ class StripeWebhookServiceTest {
     }
 
     verify(subscriptionPaymentService, never()).markRefunded(any(), any());
+  }
+
+  private SubscriptionPayment paidPayment(SubscriptionProduct plan) {
+    return SubscriptionPayment.builder()
+        .id("payment_id")
+        .userId("user_id")
+        .subscriptionProduct(plan)
+        .billingInterval(BillingInterval.YEARLY)
+        .build();
+  }
+
+  @Test
+  void a_paid_subscription_grants_the_included_credits_of_its_plan() {
+    var plan = SubscriptionProduct.builder().id("plan_id").name("Pro").build();
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    when(subscriptionPaymentService.recordPaidStripeInvoice(invoice))
+        .thenReturn(Optional.of(paidPayment(plan)));
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(userSubscriptionProductService)
+        .ensureActiveSubscriptionProduct("user_id", "plan_id", BillingInterval.YEARLY);
+    verify(creditGrantService).grantIncludedCredits("user_id", plan);
+  }
+
+  @Test
+  void a_paid_subscription_without_resolved_plan_grants_nothing() {
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    when(subscriptionPaymentService.recordPaidStripeInvoice(invoice))
+        .thenReturn(Optional.of(paidPayment(null)));
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(userSubscriptionProductService, never())
+        .ensureActiveSubscriptionProduct(any(), any(), any());
+    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
+  }
+
+  @Test
+  void an_invoice_without_lines_bills_no_essential_product() {
+    when(stripeConf.getEssentialSubscriptionProductId()).thenReturn(ESSENTIAL_PRODUCT_ID);
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    when(invoice.getLines()).thenReturn(null);
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionService, never()).cancelSubscriptionImmediately(any());
+    verify(subscriptionPaymentService).recordPaidStripeInvoice(invoice);
+  }
+
+  @Test
+  void the_billed_product_is_read_from_the_legacy_plan_when_no_price_carries_it() {
+    when(stripeConf.getEssentialSubscriptionProductId()).thenReturn(ESSENTIAL_PRODUCT_ID);
+    var plan = mock(Plan.class);
+    when(plan.getProduct()).thenReturn(ESSENTIAL_PRODUCT_ID);
+    var line = mock(InvoiceLineItem.class);
+    when(line.getPlan()).thenReturn(plan);
+    var lines = mock(InvoiceLineItemCollection.class);
+    when(lines.getData()).thenReturn(List.of(line));
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    when(invoice.getLines()).thenReturn(lines);
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionService).cancelSubscriptionImmediately("sub_123");
+  }
+
+  @Test
+  void an_undeserializable_event_object_is_noop() throws Exception {
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    when(deserializer.getObject()).thenReturn(Optional.empty());
+    when(deserializer.deserializeUnsafe()).thenThrow(new IllegalStateException("unknown version"));
+    var event = mock(Event.class);
+    when(event.getType()).thenReturn("invoice.paid");
+    when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionPaymentService, never()).recordPaidStripeInvoice(any());
   }
 
   @Test

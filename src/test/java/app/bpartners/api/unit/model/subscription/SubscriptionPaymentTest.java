@@ -45,7 +45,9 @@ class SubscriptionPaymentTest {
   void payment_label_prefers_the_stored_label() {
     assertEquals(
         "Abonnement Pro du 1 juin au 30 juin",
-        SubscriptionPayment.builder().label("Abonnement Pro du 1 juin au 30 juin").build()
+        SubscriptionPayment.builder()
+            .label("Abonnement Pro du 1 juin au 30 juin")
+            .build()
             .paymentLabel());
   }
 
@@ -54,7 +56,11 @@ class SubscriptionPaymentTest {
     var plan = SubscriptionProduct.builder().name("Pro").build();
 
     assertEquals(
-        "Pro", SubscriptionPayment.builder().label("   ").subscriptionProduct(plan).build()
+        "Pro",
+        SubscriptionPayment.builder()
+            .label("   ")
+            .subscriptionProduct(plan)
+            .build()
             .paymentLabel());
     assertEquals(
         "Pro", SubscriptionPayment.builder().subscriptionProduct(plan).build().paymentLabel());

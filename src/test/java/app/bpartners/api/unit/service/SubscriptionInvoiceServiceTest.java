@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -66,20 +67,17 @@ class SubscriptionInvoiceServiceTest {
   void setUp() {
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(USER_TO_CREDIT_ID);
     when(userServiceMock.getUserById(USER_ID)).thenReturn(user(USER_EMAIL));
-    when(subscriptionPaymentRepositoryMock
-            .findByUserIdAndInvoiceIdIsNotNullAndPaymentDatetimeBetweenOrderByPaymentDatetimeDesc(
-                any(), any(), any()))
+    when(subscriptionPaymentRepositoryMock.findInvoicedByUserIdBetween(any(), any(), any()))
         .thenReturn(List.of());
   }
 
   @Test
   void prepaid_subscription_invoices_come_first_ok() {
     var expected = invoice();
-    when(subscriptionPaymentRepositoryMock
-            .findByUserIdAndInvoiceIdIsNotNullAndPaymentDatetimeBetweenOrderByPaymentDatetimeDesc(
-                USER_ID,
-                Instant.parse("2024-02-29T23:00:00Z"),
-                Instant.parse("2024-03-31T21:59:59.999999999Z")))
+    when(subscriptionPaymentRepositoryMock.findInvoicedByUserIdBetween(
+            USER_ID,
+            Instant.parse("2024-02-29T23:00:00Z"),
+            Instant.parse("2024-03-31T21:59:59.999999999Z")))
         .thenReturn(List.of(prepaidPayment()));
     when(invoiceServiceMock.getById("invoice_id")).thenReturn(expected);
 
@@ -211,8 +209,7 @@ class SubscriptionInvoiceServiceTest {
     assertNull(criteria.sendingDateFrom());
     assertNull(criteria.sendingDateTo());
     verify(subscriptionPaymentRepositoryMock, never())
-        .findByUserIdAndInvoiceIdIsNotNullAndPaymentDatetimeBetweenOrderByPaymentDatetimeDesc(
-            any(), any(), any());
+        .findInvoicedByUserIdBetween(any(), any(), any());
   }
 
   @Test
@@ -229,6 +226,57 @@ class SubscriptionInvoiceServiceTest {
     assertEquals(2, criteria.size());
     assertEquals(USER_EMAIL, criteria.get(0).customerEmail());
     assertEquals(STRIPE_EMAIL, criteria.get(1).customerEmail());
+  }
+
+  @Test
+  void refunded_subscription_invoices_are_hidden_from_the_subscriber() {
+    var refunded = Invoice.builder().id("refunded_invoice").status(CONFIRMED).build();
+    var kept = Invoice.builder().id("kept_invoice").status(CONFIRMED).build();
+    when(invoiceServiceMock.findAllByCriteria(any())).thenReturn(List.of(refunded, kept));
+    when(subscriptionPaymentRepositoryMock.findRefundedInvoiceIdsByUserId(USER_ID))
+        .thenReturn(List.of("refunded_invoice"));
+
+    var actual = subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, null);
+
+    assertEquals(List.of(kept), actual);
+  }
+
+  @Test
+  void refunded_prepaid_invoices_are_hidden_from_the_subscriber() {
+    var refunded = Invoice.builder().id("invoice_id").status(CONFIRMED).build();
+    when(subscriptionPaymentRepositoryMock.findInvoicedByUserIdBetween(eq(USER_ID), any(), any()))
+        .thenReturn(List.of(prepaidPayment()));
+    when(invoiceServiceMock.getById("invoice_id")).thenReturn(refunded);
+    when(subscriptionPaymentRepositoryMock.findRefundedInvoiceIdsByUserId(USER_ID))
+        .thenReturn(List.of("invoice_id"));
+    when(invoiceServiceMock.findAllByCriteria(any())).thenReturn(List.of());
+
+    var actual = subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, null);
+
+    assertEquals(List.of(), actual);
+  }
+
+  @Test
+  void list_unpaid_never_queries_without_a_customer_email() {
+    when(userServiceMock.getUserById(USER_ID)).thenReturn(user(null));
+    when(correspondenceRepositoryMock.findByUserId(USER_ID)).thenReturn(Optional.empty());
+
+    var actual = subject.getSubscriptionInvoices(USER_ID, null, List.of(PaymentStatus.UNPAID));
+
+    assertEquals(List.of(), actual);
+    verify(invoiceServiceMock, never()).findAllByCriteria(any());
+  }
+
+  @Test
+  void a_stripe_email_equal_to_the_account_email_is_not_queried_twice() {
+    when(invoiceServiceMock.findAllByCriteria(any())).thenReturn(List.of());
+    when(correspondenceRepositoryMock.findByUserId(USER_ID))
+        .thenReturn(Optional.of(correspondence(USER_EMAIL.toUpperCase())));
+
+    var actual = subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, null);
+
+    assertEquals(List.of(), actual);
+    verify(invoiceServiceMock, times(1)).findAllByCriteria(any());
   }
 
   @Test

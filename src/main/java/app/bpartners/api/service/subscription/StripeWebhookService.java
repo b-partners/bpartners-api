@@ -12,6 +12,7 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.credit.CreditPurchaseService;
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.model.Charge;
 import com.stripe.model.Event;
 import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
@@ -19,6 +20,7 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class StripeWebhookService {
   private static final String INVOICE_PAID = "invoice.paid";
+  private static final String CHARGE_REFUNDED = "charge.refunded";
   private static final String PAYMENT_INTENT_SUCCEEDED = "payment_intent.succeeded";
   private static final String CHECKOUT_SESSION_COMPLETED = "checkout.session.completed";
   private static final String STRIPE_CHECKOUT_PAID_STATUS = "paid";
@@ -50,6 +53,10 @@ public class StripeWebhookService {
     var event = verifySignature(payload, signatureHeader);
     if (INVOICE_PAID.equals(event.getType())) {
       handleInvoicePaid(event);
+      return;
+    }
+    if (CHARGE_REFUNDED.equals(event.getType())) {
+      handleChargeRefunded(event);
       return;
     }
     if (PAYMENT_INTENT_SUCCEEDED.equals(event.getType())) {
@@ -78,6 +85,35 @@ public class StripeWebhookService {
     subscriptionPaymentService
         .recordPaidStripeInvoice(invoice)
         .ifPresent(this::grantIncludedCreditsForPaidSubscription);
+  }
+
+  private void handleChargeRefunded(Event event) {
+    var charge = extractStripeObject(event, Charge.class);
+    if (charge == null) {
+      return;
+    }
+    var stripeInvoiceId = charge.getInvoice();
+    if (stripeInvoiceId == null) {
+      log.info(
+          "Stripe Charge(id={}) is not attached to an invoice, no subscription payment to refund",
+          charge.getId());
+      return;
+    }
+    if (!Boolean.TRUE.equals(charge.getRefunded())) {
+      log.info(
+          "Stripe Charge(id={}) is only partially refunded (amountRefunded={} of {}), keeping"
+              + " SubscriptionPayment of Invoice(id={}) as billed",
+          charge.getId(),
+          charge.getAmountRefunded(),
+          charge.getAmount(),
+          stripeInvoiceId);
+      return;
+    }
+    subscriptionPaymentService.markRefunded(stripeInvoiceId, refundedAtOf(event));
+  }
+
+  private Instant refundedAtOf(Event event) {
+    return event.getCreated() == null ? null : Instant.ofEpochSecond(event.getCreated());
   }
 
   private void requestDefaultPaymentMethodBackfill(

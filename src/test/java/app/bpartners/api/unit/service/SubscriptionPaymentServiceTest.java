@@ -3,6 +3,7 @@ package app.bpartners.api.unit.service;
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.SubscriptionBillingType.COMMITMENT;
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -66,6 +67,177 @@ class SubscriptionPaymentServiceTest {
     when(subscriptionPaymentRepository.save(any()))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(subscriptionProductRepository.findByE2Id(any())).thenReturn(Optional.empty());
+  }
+
+  @Test
+  void mark_refunded_stamps_the_recorded_payment() {
+    var refundedAt = Instant.ofEpochSecond(1_790_000_000L);
+    when(subscriptionPaymentRepository.findByStripeInvoiceId(STRIPE_INVOICE_ID))
+        .thenReturn(
+            Optional.of(
+                SubscriptionPayment.builder()
+                    .id("payment_id")
+                    .stripeInvoiceId(STRIPE_INVOICE_ID)
+                    .build()));
+
+    var refunded = subject.markRefunded(STRIPE_INVOICE_ID, refundedAt);
+
+    assertTrue(refunded.isPresent());
+    assertEquals(refundedAt, refunded.get().getRefundedDatetime());
+    assertTrue(refunded.get().isRefunded());
+  }
+
+  @Test
+  void mark_refunded_without_date_stamps_the_payment_now() {
+    when(subscriptionPaymentRepository.findByStripeInvoiceId(STRIPE_INVOICE_ID))
+        .thenReturn(
+            Optional.of(
+                SubscriptionPayment.builder()
+                    .id("payment_id")
+                    .stripeInvoiceId(STRIPE_INVOICE_ID)
+                    .build()));
+    var before = Instant.now();
+
+    var refunded = subject.markRefunded(STRIPE_INVOICE_ID, null);
+
+    var refundedAt = refunded.orElseThrow().getRefundedDatetime();
+    assertTrue(refundedAt != null && !refundedAt.isBefore(before));
+  }
+
+  @Test
+  void mark_refunded_of_an_unknown_stripe_invoice_saves_nothing() {
+    when(subscriptionPaymentRepository.findByStripeInvoiceId(STRIPE_INVOICE_ID))
+        .thenReturn(Optional.empty());
+
+    assertTrue(subject.markRefunded(STRIPE_INVOICE_ID, Instant.now()).isEmpty());
+    verify(subscriptionPaymentRepository, never()).save(any());
+  }
+
+  @Test
+  void mark_refunded_is_idempotent() {
+    var firstRefundedAt = Instant.ofEpochSecond(1_790_000_000L);
+    when(subscriptionPaymentRepository.findByStripeInvoiceId(STRIPE_INVOICE_ID))
+        .thenReturn(
+            Optional.of(
+                SubscriptionPayment.builder()
+                    .id("payment_id")
+                    .stripeInvoiceId(STRIPE_INVOICE_ID)
+                    .refundedDatetime(firstRefundedAt)
+                    .build()));
+
+    var refunded = subject.markRefunded(STRIPE_INVOICE_ID, Instant.ofEpochSecond(1_800_000_000L));
+
+    assertEquals(firstRefundedAt, refunded.orElseThrow().getRefundedDatetime());
+    verify(subscriptionPaymentRepository, never()).save(any());
+  }
+
+  @Test
+  void invoiced_by_stamps_the_generated_invoice_on_the_payment() {
+    var payment = SubscriptionPayment.builder().id("payment_id").build();
+
+    var invoiced = subject.invoicedBy(payment, "invoice_id");
+
+    assertEquals("invoice_id", invoiced.getInvoiceId());
+    assertEquals("payment_id", invoiced.getId());
+  }
+
+  @Test
+  void a_bare_stripe_invoice_falls_back_on_every_default() {
+    givenSubscribedUser(null);
+    givenNotYetRecorded();
+    var stripeInvoice = mock(Invoice.class);
+    when(stripeInvoice.getId()).thenReturn(STRIPE_INVOICE_ID);
+    when(stripeInvoice.getCustomer()).thenReturn(STRIPE_CUSTOMER_ID);
+    when(stripeInvoice.getSubscription()).thenReturn(STRIPE_SUBSCRIPTION_ID);
+    when(stripeInvoice.getTotal()).thenReturn(null);
+    when(stripeInvoice.getAmountPaid()).thenReturn(4_900L);
+    when(stripeInvoice.getLines()).thenReturn(null);
+    when(stripeInvoice.getStatusTransitions()).thenReturn(null);
+    when(stripeInvoice.getPeriodStart()).thenReturn(null);
+    when(stripeInvoice.getPeriodEnd()).thenReturn(null);
+    var before = Instant.now();
+
+    subject.recordPaidStripeInvoice(stripeInvoice);
+
+    var payment = capturedSubscriptionPayment();
+    assertEquals(4_900L, payment.getAmountInCentsWithVat());
+    assertNull(payment.getPeriodStartDatetime());
+    assertNull(payment.getPeriodEndDatetime());
+    assertNull(payment.getSubscriptionProduct());
+    assertEquals("Abonnement", payment.paymentLabel());
+    assertTrue(!payment.getPaymentDatetime().isBefore(before.truncatedTo(MILLIS)));
+  }
+
+  @Test
+  void an_empty_line_collection_resolves_no_plan_and_no_period() {
+    givenSubscribedUser(null);
+    givenNotYetRecorded();
+    var lines = mock(InvoiceLineItemCollection.class);
+    when(lines.getData()).thenReturn(List.of());
+    var stripeInvoice = mock(Invoice.class);
+    when(stripeInvoice.getId()).thenReturn(STRIPE_INVOICE_ID);
+    when(stripeInvoice.getCustomer()).thenReturn(STRIPE_CUSTOMER_ID);
+    when(stripeInvoice.getSubscription()).thenReturn(STRIPE_SUBSCRIPTION_ID);
+    when(stripeInvoice.getTotal()).thenReturn(4_900L);
+    when(stripeInvoice.getLines()).thenReturn(lines);
+    when(stripeInvoice.getPeriodStart()).thenReturn(PERIOD_START);
+    when(stripeInvoice.getPeriodEnd()).thenReturn(PERIOD_END);
+
+    subject.recordPaidStripeInvoice(stripeInvoice);
+
+    var payment = capturedSubscriptionPayment();
+    assertEquals(Instant.ofEpochSecond(PERIOD_START), payment.getPeriodStartDatetime());
+    assertEquals(Instant.ofEpochSecond(PERIOD_END - 1), payment.getPeriodEndDatetime());
+    assertNull(payment.getSubscriptionProduct());
+  }
+
+  @Test
+  void a_line_carrying_neither_plan_nor_price_resolves_no_plan() {
+    givenSubscribedUser(null);
+    givenNotYetRecorded();
+    var line = mock(InvoiceLineItem.class);
+    when(line.getPlan()).thenReturn(null);
+    when(line.getPrice()).thenReturn(null);
+    when(line.getPeriod()).thenReturn(null);
+    var lines = mock(InvoiceLineItemCollection.class);
+    when(lines.getData()).thenReturn(List.of(line));
+    var stripeInvoice = mock(Invoice.class);
+    when(stripeInvoice.getId()).thenReturn(STRIPE_INVOICE_ID);
+    when(stripeInvoice.getCustomer()).thenReturn(STRIPE_CUSTOMER_ID);
+    when(stripeInvoice.getSubscription()).thenReturn(STRIPE_SUBSCRIPTION_ID);
+    when(stripeInvoice.getTotal()).thenReturn(4_900L);
+    when(stripeInvoice.getLines()).thenReturn(lines);
+    when(stripeInvoice.getPeriodStart()).thenReturn(PERIOD_START);
+    when(stripeInvoice.getPeriodEnd()).thenReturn(PERIOD_END);
+
+    subject.recordPaidStripeInvoice(stripeInvoice);
+
+    assertNull(capturedSubscriptionPayment().getSubscriptionProduct());
+  }
+
+  @Test
+  void a_period_shorter_than_a_second_keeps_the_stripe_end() {
+    givenSubscribedUser(essentialPlan());
+    givenNotYetRecorded();
+    var linePeriod = mock(InvoiceLineItem.Period.class);
+    when(linePeriod.getStart()).thenReturn(PERIOD_START);
+    when(linePeriod.getEnd()).thenReturn(PERIOD_START);
+    var line = mock(InvoiceLineItem.class);
+    when(line.getPeriod()).thenReturn(linePeriod);
+    var lines = mock(InvoiceLineItemCollection.class);
+    when(lines.getData()).thenReturn(List.of(line));
+    var stripeInvoice = mock(Invoice.class);
+    when(stripeInvoice.getId()).thenReturn(STRIPE_INVOICE_ID);
+    when(stripeInvoice.getCustomer()).thenReturn(STRIPE_CUSTOMER_ID);
+    when(stripeInvoice.getSubscription()).thenReturn(STRIPE_SUBSCRIPTION_ID);
+    when(stripeInvoice.getTotal()).thenReturn(4_900L);
+    when(stripeInvoice.getLines()).thenReturn(lines);
+
+    subject.recordPaidStripeInvoice(stripeInvoice);
+
+    var payment = capturedSubscriptionPayment();
+    assertEquals(Instant.ofEpochSecond(PERIOD_START), payment.getPeriodStartDatetime());
+    assertEquals(Instant.ofEpochSecond(PERIOD_START), payment.getPeriodEndDatetime());
   }
 
   @Test

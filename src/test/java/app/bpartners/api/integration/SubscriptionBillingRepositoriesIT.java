@@ -89,6 +89,17 @@ class SubscriptionBillingRepositoriesIT extends MockedThirdParties {
   }
 
   @Test
+  void findInvoicedBetween_ignores_refunded_payments() {
+    persistPayment(1000L, IN_RANGE, "inv-1");
+    persistPayment(2000L, IN_RANGE, "inv-2", IN_RANGE);
+
+    var rows = subscriptionPaymentRepository.findInvoicedBetween(FROM, TO);
+
+    assertEquals(1, rows.size());
+    assertEquals(1000L, rows.getFirst().getAmountInCentsWithoutVat());
+  }
+
+  @Test
   void findByStatusBetween_returns_only_completed_purchases_in_range() {
     persistPurchase(COMPLETED, IN_RANGE);
     persistPurchase(COMPLETED, IN_RANGE);
@@ -183,6 +194,11 @@ class SubscriptionBillingRepositoriesIT extends MockedThirdParties {
   }
 
   private void persistPayment(long ht, Instant paymentDatetime, String invoiceId) {
+    persistPayment(ht, paymentDatetime, invoiceId, null);
+  }
+
+  private void persistPayment(
+      long ht, Instant paymentDatetime, String invoiceId, Instant refundedDatetime) {
     subscriptionPaymentRepository.save(
         SubscriptionPayment.builder()
             .id(randomUUID().toString())
@@ -194,6 +210,7 @@ class SubscriptionBillingRepositoriesIT extends MockedThirdParties {
             .vatPercent(2000L)
             .paymentDatetime(paymentDatetime)
             .invoiceId(invoiceId)
+            .refundedDatetime(refundedDatetime)
             .build());
   }
 

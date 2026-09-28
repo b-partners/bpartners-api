@@ -69,6 +69,51 @@ class SubscriptionPaymentServiceTest {
   }
 
   @Test
+  void mark_refunded_stamps_the_recorded_payment() {
+    var refundedAt = Instant.ofEpochSecond(1_790_000_000L);
+    when(subscriptionPaymentRepository.findByStripeInvoiceId(STRIPE_INVOICE_ID))
+        .thenReturn(
+            Optional.of(
+                SubscriptionPayment.builder()
+                    .id("payment_id")
+                    .stripeInvoiceId(STRIPE_INVOICE_ID)
+                    .build()));
+
+    var refunded = subject.markRefunded(STRIPE_INVOICE_ID, refundedAt);
+
+    assertTrue(refunded.isPresent());
+    assertEquals(refundedAt, refunded.get().getRefundedDatetime());
+    assertTrue(refunded.get().isRefunded());
+  }
+
+  @Test
+  void mark_refunded_of_an_unknown_stripe_invoice_saves_nothing() {
+    when(subscriptionPaymentRepository.findByStripeInvoiceId(STRIPE_INVOICE_ID))
+        .thenReturn(Optional.empty());
+
+    assertTrue(subject.markRefunded(STRIPE_INVOICE_ID, Instant.now()).isEmpty());
+    verify(subscriptionPaymentRepository, never()).save(any());
+  }
+
+  @Test
+  void mark_refunded_is_idempotent() {
+    var firstRefundedAt = Instant.ofEpochSecond(1_790_000_000L);
+    when(subscriptionPaymentRepository.findByStripeInvoiceId(STRIPE_INVOICE_ID))
+        .thenReturn(
+            Optional.of(
+                SubscriptionPayment.builder()
+                    .id("payment_id")
+                    .stripeInvoiceId(STRIPE_INVOICE_ID)
+                    .refundedDatetime(firstRefundedAt)
+                    .build()));
+
+    var refunded = subject.markRefunded(STRIPE_INVOICE_ID, Instant.ofEpochSecond(1_800_000_000L));
+
+    assertEquals(firstRefundedAt, refunded.orElseThrow().getRefundedDatetime());
+    verify(subscriptionPaymentRepository, never()).save(any());
+  }
+
+  @Test
   void records_the_payment_and_requests_its_invoice() {
     givenSubscribedUser(essentialPlan());
     givenNotYetRecorded();

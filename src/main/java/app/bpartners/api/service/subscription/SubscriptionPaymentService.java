@@ -82,6 +82,32 @@ public class SubscriptionPaymentService {
     return Optional.of(saved);
   }
 
+  public Optional<SubscriptionPayment> markRefunded(String stripeInvoiceId, Instant refundedAt) {
+    var optionalPayment = subscriptionPaymentRepository.findByStripeInvoiceId(stripeInvoiceId);
+    if (optionalPayment.isEmpty()) {
+      log.info(
+          "No SubscriptionPayment recorded for Stripe Invoice(id={}), nothing to refund",
+          stripeInvoiceId);
+      return Optional.empty();
+    }
+    var payment = optionalPayment.get();
+    if (payment.isRefunded()) {
+      log.info(
+          "SubscriptionPayment(id={}) is already refunded at {}, skipping",
+          payment.getId(),
+          payment.getRefundedDatetime());
+      return Optional.of(payment);
+    }
+    var refunded =
+        subscriptionPaymentRepository.save(
+            payment.toBuilder().refundedDatetime(refundedAt == null ? now() : refundedAt).build());
+    log.info(
+        "SubscriptionPayment(id={}) marked as refunded from Stripe Invoice(id={})",
+        refunded.getId(),
+        stripeInvoiceId);
+    return Optional.of(refunded);
+  }
+
   public SubscriptionPayment invoicedBy(SubscriptionPayment subscriptionPayment, String invoiceId) {
     return subscriptionPaymentRepository.save(
         subscriptionPayment.toBuilder().invoiceId(invoiceId).build());

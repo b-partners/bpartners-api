@@ -971,7 +971,7 @@
     </div>
 
     <div class="degradation-container"
-         th:if="${roofSummary != null and roofSummary.wasteTable != null and roofSummary.wasteTable.size() > 0}">
+         th:if="${roofSummary != null and not #lists.isEmpty(roofSummary.wasteTable)}">
         <p class="degradation-section-title">Calcul des pertes</p>
         <table class="data-table data-table-waste">
             <thead>

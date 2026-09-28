@@ -115,8 +115,8 @@ class AnnotationSummaryFactoryTest {
     assertThat(summary.wasteTable())
         .extracting(AnnotationWaste::percent)
         .containsExactly(
-            "0.0 %", "2.5 %", "5.0 %", "7.5 %", "10.0 %", "12.5 %", "15.0 %", "17.5 %", "20.0 %",
-            "22.5 %");
+            "0.0 %",
+            "2.5 %", "5.0 %", "7.5 %", "10.0 %", "12.5 %", "15.0 %", "17.5 %", "20.0 %", "22.5 %");
     assertThat(summary.wasteTable())
         .extracting(AnnotationWaste::area)
         .containsExactly(
@@ -149,9 +149,7 @@ class AnnotationSummaryFactoryTest {
                 new ExportAreaPictureAnnotationInstanceInfo()
                     .label("edgeTypes")
                     .value("[\"egout\", \"faitage\", \"aretier\"]"),
-                new ExportAreaPictureAnnotationInstanceInfo()
-                    .label("Pente")
-                    .value("30"),
+                new ExportAreaPictureAnnotationInstanceInfo().label("Pente").value("30"),
                 new ExportAreaPictureAnnotationInstanceInfo()
                     .label("Surface rampante")
                     .value(rampantArea)));

@@ -56,7 +56,7 @@ public class AnnotationSummaryFactory {
     List<AnnotationRoofSlopeSummary> faces = faces(annotation);
     List<AnnotationMeasurementSummary> measurements = getMeasurementsSummary(faces, annotation);
     List<AnnotationPitch> pitchBreakdown = pitchBreakdown(faces);
-    List<AnnotationWaste> wasteTable = wasteTable(faces);
+    List<AnnotationWaste> wasteTable = wasteTable(totalRampantArea(annotation));
 
     return new AnnotationSummary(
         baseImageWithRoofSlopeBoundariesUri,
@@ -75,7 +75,7 @@ public class AnnotationSummaryFactory {
     var measurementSummaries = new ArrayList<AnnotationMeasurementSummary>();
 
     // Sum all pan areas — faces() stores clean "%.2f" numeric strings, no unit suffix
-    double totalArea = totalArea(roofSlopes);
+    double totalArea = totalRampantArea(annotation);
     String totalAreaFormatted =
         totalArea > 0 ? String.format("%.2fm²", totalArea) : UNKNOWN_VALUE_PLACEHOLDER;
 
@@ -167,8 +167,7 @@ public class AnnotationSummaryFactory {
     return String.format("%.3f,%.3f", point.getX(), point.getY());
   }
 
-  private static List<AnnotationWaste> wasteTable(List<AnnotationRoofSlopeSummary> faces) {
-    double totalArea = totalArea(faces);
+  private static List<AnnotationWaste> wasteTable(double totalArea) {
     if (totalArea == 0) {
       return List.of();
     }
@@ -183,16 +182,32 @@ public class AnnotationSummaryFactory {
         .toList();
   }
 
-  private static double totalArea(List<AnnotationRoofSlopeSummary> faces) {
-    return faces.stream().mapToDouble(AnnotationSummaryFactory::parseArea).sum();
+  // Reads the pan's own value rather than a formatted face area: those are rendered with the
+  // default locale, so re-parsing them would yield 0 wherever the decimal separator is a comma.
+  private static double rampantArea(ExportAreaPictureAnnotation3DPan pan, String faceName) {
+    return pan.getInfos().stream()
+        .filter(info -> info.getLabel().toLowerCase().startsWith("surface rampant"))
+        .findFirst()
+        .map(ExportAreaPictureAnnotationInstanceInfo::getValue)
+        .map(
+            v -> {
+              try {
+                return Double.parseDouble(strip(v).replace("m²", "").replace("m", ""));
+              } catch (Exception e) {
+                log.warn("Could not parse area '{}' for face {}", v, faceName);
+                return 0d;
+              }
+            })
+        .orElse(0d);
   }
 
-  private static double parseArea(AnnotationRoofSlopeSummary face) {
-    try {
-      return Double.parseDouble(face.area());
-    } catch (Exception e) {
-      return 0d;
+  private static double totalRampantArea(ExportAreaPictureAnnotation annotation) {
+    var pans = annotation.get3d().getPans();
+    double total = 0d;
+    for (int index = 0; index < pans.size(); index++) {
+      total += rampantArea(pans.get(index), "P" + (index + 1));
     }
+    return total;
   }
 
   private static String formatPercent(double percent) {
@@ -262,24 +277,8 @@ public class AnnotationSummaryFactory {
               .map(AnnotationSummaryFactory::formatPitch)
               .orElse(UNKNOWN_VALUE_PLACEHOLDER);
 
-      int finalIndex = index;
-      double areaParsed =
-          pan.getInfos().stream()
-              .filter(info -> info.getLabel().toLowerCase().startsWith("surface rampant"))
-              .findFirst()
-              .map(ExportAreaPictureAnnotationInstanceInfo::getValue)
-              .map(
-                  v -> {
-                    try {
-                      return Double.parseDouble(strip(v).replace("m²", "").replace("m", ""));
-                    } catch (Exception e) {
-                      log.warn("Could not parse area '{}' for face P{}", v, (finalIndex + 1));
-                      return 0d;
-                    }
-                  })
-              .orElse(0d);
-
-      raw.add(new RawFace("P" + (index + 1), pitchFormatted, areaParsed));
+      String faceName = "P" + (index + 1);
+      raw.add(new RawFace(faceName, pitchFormatted, rampantArea(pan, faceName)));
     }
 
     double totalArea = raw.stream().mapToDouble(RawFace::areaParsed).sum();

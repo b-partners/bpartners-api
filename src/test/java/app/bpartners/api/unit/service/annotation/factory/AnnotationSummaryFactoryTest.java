@@ -101,9 +101,10 @@ class AnnotationSummaryFactoryTest {
 
   @Test
   void create_should_build_waste_ladder_from_total_roof_area() {
-    // Two pans of 100.00 m² and 55.50 m² of rampant area, so the ladder is based on 155.50 m².
-    var pan1 = wastePan(0d, "100");
-    var pan2 = wastePan(10d, "55.5");
+    // Two pans of 120 m² and 80 m² of rampant area, so the ladder is based on 200 m² and every
+    // step lands on an exact two-decimal value.
+    var pan1 = wastePan(0d, "120");
+    var pan2 = wastePan(10d, "80");
 
     var annotation =
         new ExportAreaPictureAnnotation()
@@ -120,8 +121,8 @@ class AnnotationSummaryFactoryTest {
     assertThat(summary.wasteTable())
         .extracting(AnnotationWaste::area)
         .containsExactly(
-            "155.50", "159.39", "163.28", "167.16", "171.05", "174.94", "178.82", "182.71",
-            "186.60", "190.49");
+            "200.00", "205.00", "210.00", "215.00", "220.00", "225.00", "230.00", "235.00",
+            "240.00", "245.00");
     assertThat(summary.wasteTable())
         .filteredOn(AnnotationWaste::suggested)
         .extracting(AnnotationWaste::percent)

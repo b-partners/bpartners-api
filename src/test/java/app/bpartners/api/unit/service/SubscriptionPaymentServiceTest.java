@@ -87,6 +87,23 @@ class SubscriptionPaymentServiceTest {
   }
 
   @Test
+  void mark_refunded_without_date_stamps_the_payment_now() {
+    when(subscriptionPaymentRepository.findByStripeInvoiceId(STRIPE_INVOICE_ID))
+        .thenReturn(
+            Optional.of(
+                SubscriptionPayment.builder()
+                    .id("payment_id")
+                    .stripeInvoiceId(STRIPE_INVOICE_ID)
+                    .build()));
+    var before = Instant.now();
+
+    var refunded = subject.markRefunded(STRIPE_INVOICE_ID, null);
+
+    var refundedAt = refunded.orElseThrow().getRefundedDatetime();
+    assertTrue(refundedAt != null && !refundedAt.isBefore(before));
+  }
+
+  @Test
   void mark_refunded_of_an_unknown_stripe_invoice_saves_nothing() {
     when(subscriptionPaymentRepository.findByStripeInvoiceId(STRIPE_INVOICE_ID))
         .thenReturn(Optional.empty());

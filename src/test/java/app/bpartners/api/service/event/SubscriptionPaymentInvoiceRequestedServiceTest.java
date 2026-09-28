@@ -429,6 +429,103 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     assertEquals(Duration.ofMinutes(1L), event.maxConsumerBackoffBetweenRetries());
   }
 
+  @Test
+  void yearly_payment_without_period_dates_labels_the_grouped_line_with_the_plan_only() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_QUANTITY;
+    givenPayment(someYearlyPayment().periodStartDatetime(null).periodEndDatetime(null).build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals("Facture d'abonnement du 04/03/2026", invoice.getTitle());
+    assertEquals("Abonnement Essentiel", invoice.getProducts().getFirst().getDescription());
+  }
+
+  @Test
+  void yearly_payment_without_period_end_bills_the_twelve_months_after_the_start() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(someYearlyPayment().periodEndDatetime(null).build());
+
+    subject.accept(someEvent());
+
+    var products = capturedInvoice().getProducts();
+    assertEquals(12, products.size());
+    assertEquals(
+        "Abonnement Essentiel du 01/01/2026 au 31/01/2026", products.getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/12/2026 au 31/12/2026", products.getLast().getDescription());
+    assertEquals(100.0, products.getFirst().getUnitPrice().getCentsAsDecimal());
+  }
+
+  @Test
+  void yearly_payment_without_any_catalog_price_spreads_the_amount_paid_over_twelve_months() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_QUANTITY;
+    givenPayment(someYearlyPayment().subscriptionProduct(null).build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    var product = invoice.getProducts().getFirst();
+    assertEquals("Abonnement du 01/01/2026 au 31/12/2026", product.getDescription());
+    assertEquals(12, product.getQuantity());
+    assertEquals(90.0, product.getUnitPrice().getCentsAsDecimal());
+    assertEquals(0.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(0.0, invoice.getDiscount().getAmountValue().getCentsAsDecimal());
+    assertEquals(1080.0, invoice.getTotalPriceWithoutDiscount().getCentsAsDecimal());
+    assertEquals(1080.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(1296.0, invoice.getTotalPriceWithVat().getCentsAsDecimal());
+  }
+
+  @Test
+  void yearly_payment_ignores_a_catalog_price_not_above_the_amount_paid() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_QUANTITY;
+    givenPayment(
+        someYearlyPayment()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .name("Essentiel")
+                    .priceInCentsWithoutVat(4_000L)
+                    .build())
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    var product = invoice.getProducts().getFirst();
+    assertEquals(90.0, product.getUnitPrice().getCentsAsDecimal());
+    assertEquals(0.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(1080.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+  }
+
+  @Test
+  void monthly_payment_is_not_discounted_even_when_the_plan_declares_an_annual_discount() {
+    givenDefaultUsersAndCustomer();
+    givenPayment(
+        somePayment()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .name("Essentiel")
+                    .annualDiscountPercent(1000)
+                    .priceInCentsWithoutVat(4_900L)
+                    .build())
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(1, invoice.getProducts().size());
+    assertEquals(0.0, invoice.getDiscount().getPercentValue().getCentsAsDecimal());
+    assertEquals(40.83, invoice.getProducts().getFirst().getUnitPrice().getCentsAsDecimal());
+  }
+
   private void givenDefaultUsersAndCustomer() {
     var adminUser = User.builder().id(ADMIN_USER_ID).build();
     var subscriber = User.builder().id("subscriber_id").email("subscriber@email.com").build();

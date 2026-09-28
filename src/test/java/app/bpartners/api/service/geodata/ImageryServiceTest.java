@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
 import app.bpartners.api.model.exception.ImageryServiceException;
 import app.bpartners.api.model.exception.NotFoundException;
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -291,5 +292,88 @@ class ImageryServiceTest {
 
     assertThatThrownBy(() -> subject.getActualMapLayer(43.71, 7.26))
         .isInstanceOf(NotFoundException.class);
+  }
+
+  @Test
+  void get_map_layers_wraps_an_interruption_into_an_imagery_service_exception() throws Exception {
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenThrow(new InterruptedException("interrupted"));
+
+    assertThatThrownBy(() -> subject.getMapLayers(43.71, 7.26, false))
+        .isInstanceOf(ImageryServiceException.class)
+        .hasMessageContaining("Thread was interrupted while calling GeoData Imagery service");
+    assertTrue(Thread.interrupted());
+  }
+
+  @Test
+  void get_map_layers_wraps_a_transport_failure_into_an_imagery_service_exception()
+      throws Exception {
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenThrow(new IOException("connection reset"));
+
+    assertThatThrownBy(() -> subject.getMapLayers(43.71, 7.26, false))
+        .isInstanceOf(ImageryServiceException.class)
+        .hasMessageContaining("Failed to process GeoData Imagery service response");
+  }
+
+  @Test
+  void get_map_layers_wraps_an_unreadable_payload_into_an_imagery_service_exception()
+      throws Exception {
+    when(httpResponse.statusCode()).thenReturn(200);
+    when(httpResponse.body()).thenReturn("not json");
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(httpResponse);
+
+    assertThatThrownBy(() -> subject.getMapLayers(43.71, 7.26, false))
+        .isInstanceOf(ImageryServiceException.class)
+        .hasMessageContaining("Failed to process GeoData Imagery service response");
+  }
+
+  @Test
+  void get_map_layers_throws_when_geodata_answers_an_error_status() throws Exception {
+    when(httpResponse.statusCode()).thenReturn(500);
+    when(httpResponse.body()).thenReturn("Internal Server Error");
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(httpResponse);
+
+    assertThatThrownBy(() -> subject.getMapLayers(43.71, 7.26, false))
+        .isInstanceOf(ImageryServiceException.class)
+        .hasMessageContaining("GeoData Imagery API request failed");
+  }
+
+  @Test
+  void get_actual_map_layer_wraps_an_interruption_into_an_imagery_service_exception()
+      throws Exception {
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenThrow(new InterruptedException("interrupted"));
+
+    assertThatThrownBy(() -> subject.getActualMapLayer(43.71, 7.26))
+        .isInstanceOf(ImageryServiceException.class)
+        .hasMessageContaining("Thread was interrupted while calling GeoData Imagery service");
+    assertTrue(Thread.interrupted());
+  }
+
+  @Test
+  void get_actual_map_layer_wraps_a_transport_failure_into_an_imagery_service_exception()
+      throws Exception {
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenThrow(new IOException("connection reset"));
+
+    assertThatThrownBy(() -> subject.getActualMapLayer(43.71, 7.26))
+        .isInstanceOf(ImageryServiceException.class)
+        .hasMessageContaining("Failed to process GeoData Imagery service response");
+  }
+
+  @Test
+  void get_actual_map_layer_wraps_an_unreadable_payload_into_an_imagery_service_exception()
+      throws Exception {
+    when(httpResponse.statusCode()).thenReturn(200);
+    when(httpResponse.body()).thenReturn("not json");
+    when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(httpResponse);
+
+    assertThatThrownBy(() -> subject.getActualMapLayer(43.71, 7.26))
+        .isInstanceOf(ImageryServiceException.class)
+        .hasMessageContaining("Failed to process GeoData Imagery service response");
   }
 }

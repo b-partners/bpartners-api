@@ -21,6 +21,7 @@ import app.bpartners.api.service.subscription.StripeWebhookService;
 import app.bpartners.api.service.subscription.SubscriptionPaymentService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
+import com.stripe.model.Charge;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.Invoice;
@@ -31,6 +32,7 @@ import com.stripe.model.Price;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,6 +47,7 @@ class StripeWebhookServiceTest {
   static final String CUSTOMER_ID = "cus_123";
   static final String ESSENTIAL_PRODUCT_ID = "prod_essential";
   static final Long CURRENT_PERIOD_START = 1_780_000_000L;
+  static final Long REFUND_EPOCH_SECOND = 1_790_000_000L;
 
   StripeConf stripeConf = mock();
   UserRepository userRepository = mock();
@@ -230,6 +233,66 @@ class StripeWebhookServiceTest {
 
     verify(subscriptionService, never()).cancelScheduledSubscriptionAfterInvoicePaid(any());
     verify(subscriptionPaymentService, never()).recordPaidStripeInvoice(any());
+  }
+
+  private Event givenChargeRefundedEvent(Charge charge, Long createdEpochSecond) {
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    when(deserializer.getObject()).thenReturn(Optional.of(charge));
+    var event = mock(Event.class);
+    when(event.getType()).thenReturn("charge.refunded");
+    when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+    lenient().when(event.getCreated()).thenReturn(createdEpochSecond);
+    return event;
+  }
+
+  @Test
+  void fully_refunded_charge_marks_the_subscription_payment_as_refunded() {
+    var charge = mock(Charge.class);
+    when(charge.getInvoice()).thenReturn("in_123");
+    when(charge.getRefunded()).thenReturn(true);
+    var event = givenChargeRefundedEvent(charge, REFUND_EPOCH_SECOND);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionPaymentService)
+        .markRefunded("in_123", Instant.ofEpochSecond(REFUND_EPOCH_SECOND));
+  }
+
+  @Test
+  void partially_refunded_charge_keeps_the_subscription_payment_billed() {
+    var charge = mock(Charge.class);
+    when(charge.getInvoice()).thenReturn("in_123");
+    when(charge.getRefunded()).thenReturn(false);
+    lenient().when(charge.getAmount()).thenReturn(10_000L);
+    lenient().when(charge.getAmountRefunded()).thenReturn(2_500L);
+    var event = givenChargeRefundedEvent(charge, REFUND_EPOCH_SECOND);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionPaymentService, never()).markRefunded(any(), any());
+  }
+
+  @Test
+  void refunded_charge_without_invoice_is_noop() {
+    var charge = mock(Charge.class);
+    when(charge.getInvoice()).thenReturn(null);
+    var event = givenChargeRefundedEvent(charge, REFUND_EPOCH_SECOND);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionPaymentService, never()).markRefunded(any(), any());
   }
 
   @Test

@@ -23,6 +23,7 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +57,21 @@ public class SubscriptionInvoiceService {
         .toList();
   }
 
+  private List<Invoice> withoutRefunded(String concernedUserIdentifier, List<Invoice> invoices) {
+    if (invoices.isEmpty()) {
+      return invoices;
+    }
+    var refundedInvoiceIds =
+        Set.copyOf(
+            subscriptionPaymentRepository.findRefundedInvoiceIdsByUserId(concernedUserIdentifier));
+    if (refundedInvoiceIds.isEmpty()) {
+      return invoices;
+    }
+    return invoices.stream()
+        .filter(invoice -> !refundedInvoiceIds.contains(invoice.getId()))
+        .toList();
+  }
+
   private static boolean isUnpaidOnly(List<PaymentStatus> paymentStatuses) {
     return paymentStatuses != null
         && !paymentStatuses.isEmpty()
@@ -65,7 +81,9 @@ public class SubscriptionInvoiceService {
   private List<Invoice> findUnpaidSubscriptionInvoices(String concernedUserIdentifier) {
     var concernedUser = userService.getUserById(concernedUserIdentifier);
 
-    var invoices = findUnpaidByCustomerEmail(concernedUser.getEmail());
+    var invoices =
+        withoutRefunded(
+            concernedUserIdentifier, findUnpaidByCustomerEmail(concernedUser.getEmail()));
     if (!invoices.isEmpty()) {
       return invoices;
     }
@@ -74,7 +92,9 @@ public class SubscriptionInvoiceService {
         .findByUserId(concernedUserIdentifier)
         .map(UserStripeCustomerEmailCorrespondence::getEmail)
         .filter(stripeEmail -> !stripeEmail.equalsIgnoreCase(concernedUser.getEmail()))
-        .map(this::findUnpaidByCustomerEmail)
+        .map(
+            stripeEmail ->
+                withoutRefunded(concernedUserIdentifier, findUnpaidByCustomerEmail(stripeEmail)))
         .orElse(List.of());
   }
 
@@ -96,14 +116,18 @@ public class SubscriptionInvoiceService {
 
   public List<Invoice> getSubscriptionInvoices(
       String concernedUserIdentifier, YearMonth yearMonth) {
-    var prepaidInvoices = findPrepaidInvoices(concernedUserIdentifier, yearMonth);
+    var prepaidInvoices =
+        withoutRefunded(
+            concernedUserIdentifier, findPrepaidInvoices(concernedUserIdentifier, yearMonth));
     if (!prepaidInvoices.isEmpty()) {
       return prepaidInvoices;
     }
 
     var concernedUser = userService.getUserById(concernedUserIdentifier);
 
-    var invoices = findByCustomerEmail(concernedUser.getEmail(), yearMonth);
+    var invoices =
+        withoutRefunded(
+            concernedUserIdentifier, findByCustomerEmail(concernedUser.getEmail(), yearMonth));
     if (!invoices.isEmpty()) {
       return invoices;
     }
@@ -112,7 +136,10 @@ public class SubscriptionInvoiceService {
         .findByUserId(concernedUserIdentifier)
         .map(UserStripeCustomerEmailCorrespondence::getEmail)
         .filter(stripeEmail -> !stripeEmail.equalsIgnoreCase(concernedUser.getEmail()))
-        .map(stripeEmail -> findByCustomerEmail(stripeEmail, yearMonth))
+        .map(
+            stripeEmail ->
+                withoutRefunded(
+                    concernedUserIdentifier, findByCustomerEmail(stripeEmail, yearMonth)))
         .orElse(List.of());
   }
 
@@ -121,8 +148,7 @@ public class SubscriptionInvoiceService {
       return List.of();
     }
     return subscriptionPaymentRepository
-        .findByUserIdAndInvoiceIdIsNotNullAndPaymentDatetimeBetweenOrderByPaymentDatetimeDesc(
-            concernedUserIdentifier, startOf(yearMonth), endOf(yearMonth))
+        .findInvoicedByUserIdBetween(concernedUserIdentifier, startOf(yearMonth), endOf(yearMonth))
         .stream()
         .map(SubscriptionPayment::getInvoiceId)
         .map(invoiceService::getById)

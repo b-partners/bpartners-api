@@ -73,6 +73,9 @@ public class SubscriptionPayment {
   @Column(name = "invoice_id")
   private String invoiceId;
 
+  @Column(name = "refunded_datetime")
+  private Instant refundedDatetime;
+
   @Column(updatable = false)
   private Instant creationDatetime;
 
@@ -82,6 +85,10 @@ public class SubscriptionPayment {
 
   public Instant getPaymentDatetime() {
     return paymentDatetime == null ? null : paymentDatetime.truncatedTo(ChronoUnit.MILLIS);
+  }
+
+  public boolean isRefunded() {
+    return refundedDatetime != null;
   }
 
   public String paymentLabel() {

@@ -424,6 +424,40 @@
             width: 55%;
         }
 
+        /* Waste ladder: ten value columns need tighter metrics than the default data table */
+        .data-table.data-table-waste {
+            table-layout: fixed;
+        }
+
+        .data-table.data-table-waste td {
+            padding: 6px 2px;
+            text-align: center;
+            font-size: 0.75rem;
+        }
+
+        .data-table.data-table-waste td:first-child {
+            width: 12%;
+            padding-left: 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .data-table.data-table-waste td.suggested {
+            background-color: #e8f5e9;
+            font-weight: bold;
+        }
+
+        /* Marker floating above the recommended column, deliberately without cell chrome */
+        .data-table.data-table-waste th {
+            border: none;
+            background: none;
+            padding: 0 2px 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #FF521B;
+            text-align: center;
+        }
+
         /* LLM Formatting Layouts */
         .llm h2 {
             font-size: 1.5rem !important;
@@ -936,26 +970,33 @@
         </table>
     </div>
 
-    <div class="degradation-container" th:if="${roofSummary != null and roofSummary.wasteTable != null}">
-        <p class="degradation-section-title">Waste Calculation Table</p>
-        <table class="data-table data-table-transposed">
+    <div class="degradation-container"
+         th:if="${roofSummary != null and roofSummary.wasteTable != null and roofSummary.wasteTable.size() > 0}">
+        <p class="degradation-section-title">Calcul des pertes</p>
+        <table class="data-table data-table-waste">
+            <thead>
             <tr>
-                <td>Waste</td>
-                <td style="text-align:center;"
-                    th:each="w : ${roofSummary.wasteTable}"
-                    th:style="${w.suggested} ? 'background-color:#e8f5e9; font-weight:bold; text-align:center;' : 'text-align:center;'"
+                <th></th>
+                <th th:each="w : ${roofSummary.wasteTable}" th:text="${w.suggested} ? 'Suggéré' : ''"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Perte</td>
+                <td th:each="w : ${roofSummary.wasteTable}"
+                    th:classappend="${w.suggested} ? 'suggested' : ''"
                     th:text="${w.percent}"></td>
             </tr>
             <tr>
-                <td>Area</td>
-                <td style="text-align:center;"
-                    th:each="w : ${roofSummary.wasteTable}"
-                    th:style="${w.suggested} ? 'background-color:#e8f5e9; font-weight:bold; text-align:center;' : 'text-align:center;'"
+                <td>Surface (m²)</td>
+                <td th:each="w : ${roofSummary.wasteTable}"
+                    th:classappend="${w.suggested} ? 'suggested' : ''"
                     th:text="${w.area}"></td>
             </tr>
+            </tbody>
         </table>
         <p class="annotation-item-info-item" style="margin-top:10px;"
-           th:utext="'Aether recommends &lt;strong&gt;' + ${roofSummary.suggestedWastePercent} + '&lt;/strong&gt; waste factor. Please use Aether suggestions with caution.'"></p>
+           th:utext="'Nous recommandons un taux de perte de &lt;strong&gt;' + ${roofSummary.suggestedWastePercent} + '&lt;/strong&gt;. Ces estimations sont à utiliser avec précaution.'"></p>
     </div>
 
     <div class="degradation-container" th:if="${roofSummary != null and roofSummary.faces != null}">

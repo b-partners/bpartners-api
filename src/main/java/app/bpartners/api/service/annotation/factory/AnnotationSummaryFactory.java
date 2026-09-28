@@ -11,7 +11,9 @@ import app.bpartners.api.service.annotation.model.summary.AnnotationMeasurementS
 import app.bpartners.api.service.annotation.model.summary.AnnotationPitch;
 import app.bpartners.api.service.annotation.model.summary.AnnotationRoofSlopeSummary;
 import app.bpartners.api.service.annotation.model.summary.AnnotationSummary;
+import app.bpartners.api.service.annotation.model.summary.AnnotationWaste;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +28,11 @@ public class AnnotationSummaryFactory {
   private AnnotationSummaryFactory() {}
 
   private static final String UNKNOWN_VALUE_PLACEHOLDER = "-";
+  private static final double[] WASTE_PERCENTS = {
+    0d, 2.5d, 5d, 7.5d, 10d, 12.5d, 15d, 17.5d, 20d, 22.5d
+  };
+  // Matches the +10% column already used in the per-face summary below.
+  private static final double SUGGESTED_WASTE_PERCENT = 10d;
 
   public static AnnotationSummary create(
       ExportAreaPictureAnnotation annotation,
@@ -49,6 +56,7 @@ public class AnnotationSummaryFactory {
     List<AnnotationRoofSlopeSummary> faces = faces(annotation);
     List<AnnotationMeasurementSummary> measurements = getMeasurementsSummary(faces, annotation);
     List<AnnotationPitch> pitchBreakdown = pitchBreakdown(faces);
+    List<AnnotationWaste> wasteTable = wasteTable(faces);
 
     return new AnnotationSummary(
         baseImageWithRoofSlopeBoundariesUri,
@@ -57,9 +65,9 @@ public class AnnotationSummaryFactory {
         baseImageWithPitchesUri,
         measurements,
         pitchBreakdown,
-        null,
+        wasteTable,
         faces,
-        null);
+        formatPercent(SUGGESTED_WASTE_PERCENT));
   }
 
   private static List<AnnotationMeasurementSummary> getMeasurementsSummary(
@@ -67,17 +75,7 @@ public class AnnotationSummaryFactory {
     var measurementSummaries = new ArrayList<AnnotationMeasurementSummary>();
 
     // Sum all pan areas — faces() stores clean "%.2f" numeric strings, no unit suffix
-    double totalArea =
-        roofSlopes.stream()
-            .mapToDouble(
-                face -> {
-                  try {
-                    return Double.parseDouble(face.area());
-                  } catch (Exception e) {
-                    return 0d;
-                  }
-                })
-            .sum();
+    double totalArea = totalArea(roofSlopes);
     String totalAreaFormatted =
         totalArea > 0 ? String.format("%.2fm²", totalArea) : UNKNOWN_VALUE_PLACEHOLDER;
 
@@ -167,6 +165,38 @@ public class AnnotationSummaryFactory {
 
   private static String roundedPoint(Point point) {
     return String.format("%.3f,%.3f", point.getX(), point.getY());
+  }
+
+  private static List<AnnotationWaste> wasteTable(List<AnnotationRoofSlopeSummary> faces) {
+    double totalArea = totalArea(faces);
+    if (totalArea == 0) {
+      return List.of();
+    }
+
+    return Arrays.stream(WASTE_PERCENTS)
+        .mapToObj(
+            percent ->
+                new AnnotationWaste(
+                    percent == SUGGESTED_WASTE_PERCENT,
+                    formatPercent(percent),
+                    String.format(Locale.ROOT, "%.2f", totalArea * (1 + percent / 100.0))))
+        .toList();
+  }
+
+  private static double totalArea(List<AnnotationRoofSlopeSummary> faces) {
+    return faces.stream().mapToDouble(AnnotationSummaryFactory::parseArea).sum();
+  }
+
+  private static double parseArea(AnnotationRoofSlopeSummary face) {
+    try {
+      return Double.parseDouble(face.area());
+    } catch (Exception e) {
+      return 0d;
+    }
+  }
+
+  private static String formatPercent(double percent) {
+    return String.format(Locale.ROOT, "%.1f %%", percent);
   }
 
   private static List<AnnotationPitch> pitchBreakdown(List<AnnotationRoofSlopeSummary> faces) {

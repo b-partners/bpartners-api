@@ -296,6 +296,39 @@ class StripeWebhookServiceTest {
   }
 
   @Test
+  void refunded_charge_without_event_creation_date_is_refunded_now() {
+    var charge = mock(Charge.class);
+    when(charge.getInvoice()).thenReturn("in_123");
+    when(charge.getRefunded()).thenReturn(true);
+    var event = givenChargeRefundedEvent(charge, null);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionPaymentService).markRefunded("in_123", null);
+  }
+
+  @Test
+  void charge_refunded_carrying_another_stripe_object_is_noop() throws Exception {
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    when(deserializer.getObject()).thenReturn(Optional.of(mock(Invoice.class)));
+    var event = mock(Event.class);
+    when(event.getType()).thenReturn("charge.refunded");
+    when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionPaymentService, never()).markRefunded(any(), any());
+  }
+
+  @Test
   void blank_secret_throws_bad_request() {
     when(stripeConf.getWebhookSecret()).thenReturn("");
 

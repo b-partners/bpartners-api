@@ -1,6 +1,7 @@
 package app.bpartners.api.service.event;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -21,6 +22,7 @@ import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -58,6 +60,7 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
   SubscriptionPaymentRepository subscriptionPaymentRepository = mock();
   SubscriptionPaymentService subscriptionPaymentService = mock();
   UserRepository userRepository = mock();
+  UserSubscriptionCommitmentJpaRepository userSubscriptionCommitmentRepository = mock();
   UserSubscriptionConf userSubscriptionConf = mock();
   SubscriptionCustomerResolver subscriptionCustomerResolver = mock();
   InvoiceService invoiceService = mock();
@@ -67,6 +70,7 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
           subscriptionPaymentRepository,
           subscriptionPaymentService,
           userRepository,
+          userSubscriptionCommitmentRepository,
           userSubscriptionConf,
           subscriptionCustomerResolver,
           invoiceService,
@@ -91,6 +95,7 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
   void resetBillingType() {
     SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
         AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    SubscriptionPaymentInvoiceRequestedService.excludesAlreadyInvoicedPeriods = true;
   }
 
   @Test
@@ -126,6 +131,39 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
     assertEquals(1, pdfPageCount(html));
     System.out.println(
         "Aperçu PDF (12 lignes mensuelles détaillées) : " + previewFile.toAbsolutePath());
+  }
+
+  @Test
+  void renders_a_preview_for_the_monthly_commitment_schedule()
+      throws IOException, DocumentException {
+    when(subscriptionPaymentRepository.findById(PAYMENT_ID))
+        .thenReturn(Optional.of(monthlyCommitmentPayment()));
+
+    var invoice = producedInvoice();
+    var html = render(invoice);
+    var previewFile = writePdf("monthly-commitment-schedule.pdf", html);
+
+    assertEquals(12, invoice.getProducts().size());
+    assertTrue(html.contains("EN PLUSIEURS FOIS"));
+    assertTrue(html.contains("Chaque échéance est exigible au 1"));
+    assertTrue(html.contains("Abonnement Essentiel du 01/08/2027 au 31/08/2027"));
+    assertFalse(html.contains("Calendrier des échéances"));
+    assertFalse(html.contains("Remise"));
+    assertEquals(1, pdfPageCount(html));
+    System.out.println(
+        "Aperçu PDF (facture-échéancier mensuelle) : " + previewFile.toAbsolutePath());
+  }
+
+  private SubscriptionPayment monthlyCommitmentPayment() {
+    return yearlyPayment().toBuilder()
+        .billingInterval(BillingInterval.MONTHLY)
+        .subscriptionProduct(
+            SubscriptionProduct.builder().name("Essentiel").priceInCentsWithoutVat(4_900L).build())
+        .amountInCentsWithoutVat(2_613L)
+        .amountInCentsWithVat(3_136L)
+        .periodStartDatetime(PERIOD_START)
+        .periodEndDatetime(Instant.parse("2026-10-14T09:30:00Z"))
+        .build();
   }
 
   private Invoice producedInvoice() {

@@ -15,6 +15,8 @@ public interface SubscriptionPaymentRepository extends JpaRepository<Subscriptio
 
   List<SubscriptionPayment> findByInvoiceIdIsNull();
 
+  List<SubscriptionPayment> findByUserIdAndInvoiceIdIsNotNull(String userId);
+
   List<SubscriptionPayment>
       findByUserIdAndInvoiceIdIsNotNullAndPaymentDatetimeBetweenOrderByPaymentDatetimeDesc(
           String userId, Instant from, Instant to);

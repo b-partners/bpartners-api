@@ -1,5 +1,6 @@
 package app.bpartners.api.service.event;
 
+import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.ProductStatus.ENABLED;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceNoVatWithDiscount;
@@ -8,6 +9,7 @@ import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalDiscountA
 import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalPriceWithVatAndDiscount;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalVatWithDiscount;
 import static java.time.Instant.now;
+import static java.util.Comparator.comparing;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -22,11 +24,13 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.subscription.AnnualInvoiceBillingType;
 import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -40,7 +44,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,11 +62,16 @@ public class SubscriptionPaymentInvoiceRequestedService
   private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
   private static final int MONTHS_PER_YEAR = 12;
   private static final int BASIS_POINTS = 10_000;
+  private static final Comparator<UserSubscriptionCommitment> BY_RECENCY =
+      comparing(SubscriptionPaymentInvoiceRequestedService::startedAt)
+          .thenComparing(SubscriptionPaymentInvoiceRequestedService::recordedAt);
   static AnnualInvoiceBillingType annualInvoiceBillingType =
       AnnualInvoiceBillingType.MONTHLY_DETAILED;
+  static boolean excludesAlreadyInvoicedPeriods = true;
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
   private final SubscriptionPaymentService subscriptionPaymentService;
   private final UserRepository userRepository;
+  private final UserSubscriptionCommitmentJpaRepository userSubscriptionCommitmentRepository;
   private final UserSubscriptionConf userSubscriptionConf;
   private final SubscriptionCustomerResolver subscriptionCustomerResolver;
   private final InvoiceService invoiceService;
@@ -111,23 +123,26 @@ public class SubscriptionPaymentInvoiceRequestedService
     var invoiceIdentifier = randomUUID().toString();
     var paidAt = paidAt(subscriptionPayment);
     var sendingDate = paidAt.atZone(PARIS).toLocalDate();
-    var invoiceProducts = computeSubscriptionProducts(invoiceIdentifier, subscriptionPayment);
+    var billedMonths = billedMonthsOf(subscriptionPayment);
+    var invoiceProducts =
+        computeSubscriptionProducts(invoiceIdentifier, subscriptionPayment, billedMonths);
     var discount = annualDiscountFraction(subscriptionPayment);
     var referenceGenerator = new ReferenceGenerator(() -> LocalDateTime.ofInstant(paidAt, PARIS));
     return Invoice.builder()
         .id(invoiceIdentifier)
         .ref(referenceGenerator.get())
-        .title(titleOf(subscriptionPayment, paidAt))
+        .title(titleOf(subscriptionPayment, paidAt, billedMonths))
         .subscriptionInvoice(true)
-        .status(PAID)
+        .subscriptionBillingInterval(subscriptionPayment.getBillingInterval())
+        .status(billedMonths.isEmpty() ? PAID : CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(sendingDate)
+        .toPayAt(billedMonths.isEmpty() ? sendingDate : billedMonths.getFirst().start())
         .sendingDate(sendingDate)
         .validityDate(null)
         .paymentMethod(PaymentMethod.CREDIT_CARD)
         .user(userToCredit)
-        .paymentType(PaymentTypeEnum.CASH)
+        .paymentType(billedMonths.isEmpty() ? PaymentTypeEnum.CASH : PaymentTypeEnum.IN_INSTALMENT)
         .paymentRegulations(new ArrayList<>())
         .products(invoiceProducts)
         .totalPriceWithoutDiscount(computePriceWithoutDiscount(invoiceProducts))
@@ -145,11 +160,97 @@ public class SubscriptionPaymentInvoiceRequestedService
         .build();
   }
 
-  private String titleOf(SubscriptionPayment subscriptionPayment, Instant paidAt) {
+  private String titleOf(
+      SubscriptionPayment subscriptionPayment, Instant paidAt, List<MonthSegment> billedMonths) {
+    if (!billedMonths.isEmpty()) {
+      return "Facture d'abonnement pour la période du "
+          + customDateFormatter.formatFrenchDate(billedMonths.getFirst().start())
+          + " au "
+          + customDateFormatter.formatFrenchDate(billedMonths.getLast().end());
+    }
     var billedPeriod = billedPeriodOf(subscriptionPayment);
     return billedPeriod == null
         ? "Facture d'abonnement du " + customDateFormatter.formatFrenchDate(paidAt)
         : "Facture d'abonnement " + billedPeriod;
+  }
+
+  private List<MonthSegment> billedMonthsOf(SubscriptionPayment subscriptionPayment) {
+    if (subscriptionPayment.getBillingInterval() != BillingInterval.MONTHLY) {
+      return List.of();
+    }
+    var paymentPeriodStart = billingPeriodStart(subscriptionPayment);
+    var commitment = latestCommitmentOf(subscriptionPayment, paymentPeriodStart);
+    var start = billingStartOf(subscriptionPayment, commitment, paymentPeriodStart);
+    var commitmentEnd = commitmentEndOf(commitment, paymentPeriodStart);
+    var lastBilledMonthEnd =
+        commitmentEnd.isBefore(start) ? start.withDayOfMonth(start.lengthOfMonth()) : commitmentEnd;
+    return calendarMonthSegments(start, lastBilledMonthEnd);
+  }
+
+  private LocalDate billingStartOf(
+      SubscriptionPayment subscriptionPayment,
+      Optional<UserSubscriptionCommitment> commitment,
+      LocalDate paymentPeriodStart) {
+    if (!excludesAlreadyInvoicedPeriods) {
+      return commitment
+          .map(UserSubscriptionCommitment::getCommitmentStartDatetime)
+          .filter(Objects::nonNull)
+          .map(startDatetime -> startDatetime.atZone(PARIS).toLocalDate())
+          .orElse(paymentPeriodStart);
+    }
+    return alreadyInvoicedPeriodEnd(subscriptionPayment)
+        .map(invoicedUntil -> invoicedUntil.plusDays(1))
+        .map(nextDay -> nextDay.isAfter(paymentPeriodStart) ? nextDay : paymentPeriodStart)
+        .orElse(paymentPeriodStart);
+  }
+
+  private Optional<LocalDate> alreadyInvoicedPeriodEnd(SubscriptionPayment subscriptionPayment) {
+    return subscriptionPaymentRepository
+        .findByUserIdAndInvoiceIdIsNotNull(subscriptionPayment.getUserId())
+        .stream()
+        .filter(payment -> !payment.getId().equals(subscriptionPayment.getId()))
+        .map(SubscriptionPayment::getPeriodEndDatetime)
+        .filter(Objects::nonNull)
+        .map(periodEnd -> periodEnd.atZone(PARIS).toLocalDate())
+        .max(LocalDate::compareTo);
+  }
+
+  private Optional<UserSubscriptionCommitment> latestCommitmentOf(
+      SubscriptionPayment subscriptionPayment, LocalDate paymentPeriodStart) {
+    return userSubscriptionCommitmentRepository
+        .findAllByUserId(subscriptionPayment.getUserId())
+        .stream()
+        .filter(commitment -> commitment.getCommitmentEndDatetime() != null)
+        .filter(commitment -> endDateOf(commitment).isAfter(paymentPeriodStart))
+        .max(BY_RECENCY);
+  }
+
+  private LocalDate commitmentEndOf(
+      Optional<UserSubscriptionCommitment> commitment, LocalDate paymentPeriodStart) {
+    return lastFullMonthEnd(
+        commitment.map(this::endDateOf).orElseGet(() -> paymentPeriodStart.plusYears(1)));
+  }
+
+  private static Instant startedAt(UserSubscriptionCommitment commitment) {
+    return commitment.getCommitmentStartDatetime() == null
+        ? Instant.EPOCH
+        : commitment.getCommitmentStartDatetime();
+  }
+
+  private static Instant recordedAt(UserSubscriptionCommitment commitment) {
+    return commitment.getCreationDatetime() == null
+        ? Instant.EPOCH
+        : commitment.getCreationDatetime();
+  }
+
+  private LocalDate endDateOf(UserSubscriptionCommitment commitment) {
+    return commitment.getCommitmentEndDatetime().atZone(PARIS).toLocalDate();
+  }
+
+  private LocalDate lastFullMonthEnd(LocalDate endDate) {
+    return endDate.getDayOfMonth() == endDate.lengthOfMonth()
+        ? endDate
+        : endDate.withDayOfMonth(1).minusDays(1);
   }
 
   private String billedPeriodOf(SubscriptionPayment subscriptionPayment) {
@@ -171,9 +272,14 @@ public class SubscriptionPaymentInvoiceRequestedService
   }
 
   private List<InvoiceProduct> computeSubscriptionProducts(
-      String invoiceIdentifier, SubscriptionPayment subscriptionPayment) {
+      String invoiceIdentifier,
+      SubscriptionPayment subscriptionPayment,
+      List<MonthSegment> billedMonths) {
     if (isYearly(subscriptionPayment)) {
       return computeYearlySubscriptionProducts(invoiceIdentifier, subscriptionPayment);
+    }
+    if (!billedMonths.isEmpty()) {
+      return computeMonthlyCommitmentProducts(invoiceIdentifier, subscriptionPayment, billedMonths);
     }
     var unitPrice =
         new Fraction(BigInteger.valueOf(subscriptionPayment.amountInCentsWithoutVatOrZero()));
@@ -184,6 +290,40 @@ public class SubscriptionPaymentInvoiceRequestedService
             1,
             unitPrice,
             vatPercentOf(subscriptionPayment)));
+  }
+
+  private List<InvoiceProduct> computeMonthlyCommitmentProducts(
+      String invoiceIdentifier,
+      SubscriptionPayment subscriptionPayment,
+      List<MonthSegment> billedMonths) {
+    var fullMonthUnitPrice = monthlyCommitmentUnitPrice(subscriptionPayment);
+    var vatPercent = vatPercentOf(subscriptionPayment);
+    return billedMonths.stream()
+        .map(
+            segment ->
+                invoiceProduct(
+                    invoiceIdentifier,
+                    subscriptionLineLabel(subscriptionPayment, segment.start(), segment.end()),
+                    1,
+                    segment.fullMonth()
+                        ? fullMonthUnitPrice
+                        : proratedOnMonthLength(
+                            fullMonthUnitPrice, segment.days(), segment.start().lengthOfMonth()),
+                    vatPercent))
+        .toList();
+  }
+
+  private Fraction monthlyCommitmentUnitPrice(SubscriptionPayment subscriptionPayment) {
+    var listMonthlyInCents = monthlyListPriceInCents(subscriptionPayment);
+    return listMonthlyInCents == null
+        ? new Fraction(BigInteger.valueOf(subscriptionPayment.amountInCentsWithoutVatOrZero()))
+        : new Fraction(listMonthlyInCents);
+  }
+
+  private Fraction proratedOnMonthLength(Fraction monthlyUnitPrice, int days, int monthLength) {
+    return new Fraction(
+        monthlyUnitPrice.getNumerator().multiply(BigInteger.valueOf(days)),
+        monthlyUnitPrice.getDenominator().multiply(BigInteger.valueOf(monthLength)));
   }
 
   private List<InvoiceProduct> computeYearlySubscriptionProducts(

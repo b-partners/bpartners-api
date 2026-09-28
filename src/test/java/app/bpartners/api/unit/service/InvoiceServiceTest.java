@@ -6,6 +6,7 @@ import static app.bpartners.api.endpoint.rest.model.PaymentMethod.CASH;
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.UNPAID;
 import static app.bpartners.api.integration.UserTokenServiceIT.ACCOUNT_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -18,6 +19,7 @@ import app.bpartners.api.model.CreatePaymentRegulation;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.PaymentRequest;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.PaymentRequestRepository;
 import app.bpartners.api.repository.UserRepository;
@@ -97,6 +99,41 @@ class InvoiceServiceTest {
     verify(repositoryMock).pwFindOptionalById(any());
     verify(repositoryMock).save(any());
     verify(invoicePDFProcessorMock).accept(any());
+  }
+
+  @Test
+  void crupdate_subscription_invoice_hands_the_billing_interval_to_the_pdf() {
+    var user =
+        User.builder()
+            .preferredAccountId("preferredAccountId")
+            .accountHolders(List.of(AccountHolder.builder().subjectToVat(false).build()))
+            .build();
+    var invoice =
+        Invoice.builder()
+            .products(List.of(InvoiceProduct.builder().build()))
+            .fileId("fileId")
+            .status(DRAFT)
+            .paymentRegulations(List.of())
+            .user(user)
+            .subscriptionInvoice(true)
+            .subscriptionBillingInterval(BillingInterval.MONTHLY)
+            .build();
+    when(paymentRegulationComputingMock.apply(any())).thenReturn(List.of());
+    when(repositoryMock.pwFindOptionalById(any())).thenReturn(Optional.empty());
+    when(repositoryMock.save(any()))
+        .thenAnswer(
+            invocation ->
+                ((Invoice) invocation.getArgument(0))
+                    .toBuilder()
+                        .subscriptionInvoice(false)
+                        .subscriptionBillingInterval(null)
+                        .build());
+
+    subject.crupdateSubscriptionInvoice(invoice);
+
+    var captor = ArgumentCaptor.forClass(Invoice.class);
+    verify(invoicePDFProcessorMock).accept(captor.capture());
+    assertTrue(captor.getValue().isMonthlySubscriptionInvoice());
   }
 
   @Test

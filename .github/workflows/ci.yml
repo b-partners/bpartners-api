@@ -27,6 +27,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4.1.6
+        with:
+          fetch-depth: 0
 
       - name: Cache Gradle deps
         uses: actions/cache@v3

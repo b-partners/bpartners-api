@@ -257,6 +257,29 @@ class SubscriptionInvoiceServiceTest {
   }
 
   @Test
+  void list_unpaid_never_queries_without_a_customer_email() {
+    when(userServiceMock.getUserById(USER_ID)).thenReturn(user(null));
+    when(correspondenceRepositoryMock.findByUserId(USER_ID)).thenReturn(Optional.empty());
+
+    var actual = subject.getSubscriptionInvoices(USER_ID, null, List.of(PaymentStatus.UNPAID));
+
+    assertEquals(List.of(), actual);
+    verify(invoiceServiceMock, never()).findAllByCriteria(any());
+  }
+
+  @Test
+  void a_stripe_email_equal_to_the_account_email_is_not_queried_twice() {
+    when(invoiceServiceMock.findAllByCriteria(any())).thenReturn(List.of());
+    when(correspondenceRepositoryMock.findByUserId(USER_ID))
+        .thenReturn(Optional.of(correspondence(USER_EMAIL.toUpperCase())));
+
+    var actual = subject.getSubscriptionInvoices(USER_ID, YEAR_MONTH, null);
+
+    assertEquals(List.of(), actual);
+    verify(invoiceServiceMock, times(1)).findAllByCriteria(any());
+  }
+
+  @Test
   void reject_missing_year_month_when_not_unpaid_only() {
     assertThrows(
         BadRequestException.class, () -> subject.getSubscriptionInvoices(USER_ID, null, null));

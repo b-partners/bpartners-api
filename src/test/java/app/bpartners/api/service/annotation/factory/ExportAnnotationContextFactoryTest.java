@@ -18,6 +18,7 @@ import app.bpartners.api.endpoint.rest.model.TextSection;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.User;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.custompage.SectionPriority;
@@ -1063,5 +1064,20 @@ public class ExportAnnotationContextFactoryTest {
                 new Point().x((double) x2).y((double) y2),
                 new Point().x((double) x1).y((double) y2),
                 new Point().x((double) x1).y((double) y1)));
+  }
+
+  @Test
+  void configure_last_section_context_should_never_mark_measures_page_as_last() {
+    Context context = new Context();
+    var annotation =
+        new ExportAreaPictureAnnotation()._3d(new ExportAreaPictureAnnotation3D().pans(List.of()));
+
+    ExportAnnotationContextFactory.configureLastSectionContext(
+        context, annotation, ExportAreaPictureAnnotationConf.DEFAULT);
+
+    // The per-pan page always follows the measures page, so only the former may carry
+    // .last-page; marking both made openhtmltopdf emit a blank page before the measures page.
+    assertEquals(false, context.getVariable("overallSummaryIsLast"));
+    assertEquals(true, context.getVariable("facesSummaryIsLast"));
   }
 }

@@ -7,6 +7,7 @@ import static javax.mail.Message.RecipientType.TO;
 import static org.reflections.Reflections.log;
 
 import app.bpartners.api.endpoint.event.SesConf;
+import app.bpartners.api.mail.EmailSubjectPrefixer;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.utils.FileInfoUtils;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.services.ses.model.VerifyEmailIdentityRequest;
 public class SesService {
   private final SesConf sesConf;
   private final SesClient client;
+  private final EmailSubjectPrefixer subjectPrefixer;
 
   private static void addBodyPart(MimeMultipart mimeMultipart, MimeBodyPart e) {
     try {
@@ -139,7 +141,7 @@ public class SesService {
       throws MessagingException {
     MimeMessage message = new MimeMessage(session);
     // Add subject, from and to lines.
-    message.setSubject(subject, "UTF-8");
+    message.setSubject(subjectPrefixer.apply(subject), "UTF-8");
     message.setFrom(new InternetAddress(sesConf.getSesSource()));
     message.setRecipients(TO, InternetAddress.parse(recipient));
     if (concerned != null) {
@@ -157,7 +159,7 @@ public class SesService {
       throws MessagingException {
     MimeMessage message = new MimeMessage(session);
     // Add subject, from and to lines.
-    message.setSubject(subject, "UTF-8");
+    message.setSubject(subjectPrefixer.apply(subject), "UTF-8");
     message.setFrom(new InternetAddress(sesConf.getSesSource()));
     message.setRecipients(TO, InternetAddress.parse(recipient));
     if (concerned != null) {

@@ -96,14 +96,24 @@ public class SubscriptionPaymentInvoiceRequestedService
       return;
     }
 
+    var monthlyBilling = monthlyBillingOf(subscriptionPayment);
+    if (monthlyBilling.alreadyInvoiced()) {
+      attachToCoveringInvoice(subscriptionPayment, monthlyBilling.coveringPayment());
+      return;
+    }
+
     var userToCredit = userRepository.getById(userSubscriptionConf.getUserToCreditId());
     var userToDebit = userRepository.getById(subscriptionPayment.getUserId());
     var customerToDebit = subscriptionCustomerResolver.apply(userToCredit, userToDebit);
 
+    var billedMonths = monthlyBilling.instalments();
     var createdInvoice =
         invoiceService.crupdateSubscriptionInvoice(
-            computeSubscriptionInvoice(userToCredit, customerToDebit, subscriptionPayment));
-    subscriptionPaymentService.invoicedBy(subscriptionPayment, createdInvoice.getId());
+            computeSubscriptionInvoice(
+                userToCredit, customerToDebit, subscriptionPayment, billedMonths));
+    var invoicedPeriod = invoicedPeriodOf(subscriptionPayment, billedMonths);
+    subscriptionPaymentService.invoicedBy(
+        subscriptionPayment, createdInvoice.getId(), invoicedPeriod.start(), invoicedPeriod.end());
     log.info(
         "Invoice(id={}, ref={}) created for SubscriptionPayment(id={}) of User(id={})",
         createdInvoice.getId(),
@@ -118,12 +128,44 @@ public class SubscriptionPaymentInvoiceRequestedService
                 .build()));
   }
 
+  private void attachToCoveringInvoice(
+      SubscriptionPayment subscriptionPayment, SubscriptionPayment coveringPayment) {
+    subscriptionPaymentService.invoicedBy(
+        subscriptionPayment,
+        coveringPayment.getInvoiceId(),
+        coveringPayment.invoicedPeriodStartOrPeriodStart(),
+        coveringPayment.invoicedPeriodEndOrPeriodEnd());
+    log.info(
+        "SubscriptionPayment(id={}) is already covered by Invoice(id={}) until {},"
+            + " no subscription invoice issued nor sent",
+        subscriptionPayment.getId(),
+        coveringPayment.getInvoiceId(),
+        coveringPayment.invoicedPeriodEndOrPeriodEnd());
+  }
+
+  private InvoicedPeriod invoicedPeriodOf(
+      SubscriptionPayment subscriptionPayment, List<MonthSegment> billedMonths) {
+    if (!billedMonths.isEmpty()) {
+      return new InvoicedPeriod(
+          startOfDay(billedMonths.getFirst().start()), startOfDay(billedMonths.getLast().end()));
+    }
+    var periodStart = billingPeriodStart(subscriptionPayment);
+    return new InvoicedPeriod(
+        startOfDay(periodStart), startOfDay(billingPeriodEnd(subscriptionPayment, periodStart)));
+  }
+
+  private Instant startOfDay(LocalDate date) {
+    return date.atStartOfDay(PARIS).toInstant();
+  }
+
   private Invoice computeSubscriptionInvoice(
-      User userToCredit, Customer customerToDebit, SubscriptionPayment subscriptionPayment) {
+      User userToCredit,
+      Customer customerToDebit,
+      SubscriptionPayment subscriptionPayment,
+      List<MonthSegment> billedMonths) {
     var invoiceIdentifier = randomUUID().toString();
     var paidAt = paidAt(subscriptionPayment);
     var sendingDate = paidAt.atZone(PARIS).toLocalDate();
-    var billedMonths = billedMonthsOf(subscriptionPayment);
     var invoiceProducts =
         computeSubscriptionProducts(invoiceIdentifier, subscriptionPayment, billedMonths);
     var discount = annualDiscountFraction(subscriptionPayment);
@@ -174,27 +216,32 @@ public class SubscriptionPaymentInvoiceRequestedService
         : "Facture d'abonnement " + billedPeriod;
   }
 
-  private List<MonthSegment> billedMonthsOf(SubscriptionPayment subscriptionPayment) {
+  private MonthlyBilling monthlyBillingOf(SubscriptionPayment subscriptionPayment) {
     if (subscriptionPayment.getBillingInterval() != BillingInterval.MONTHLY) {
-      return List.of();
+      return MonthlyBilling.notMonthly();
     }
     var paymentPeriodStart = billingPeriodStart(subscriptionPayment);
     var commitment = latestCommitmentOf(subscriptionPayment, paymentPeriodStart);
     var commitmentEnd = commitmentEndOf(commitment, paymentPeriodStart);
     if (!excludesAlreadyInvoicedPeriods) {
-      return monthlyInstalments(commitmentStartOf(commitment, paymentPeriodStart), commitmentEnd);
+      return MonthlyBilling.toInvoice(
+          monthlyInstalments(commitmentStartOf(commitment, paymentPeriodStart), commitmentEnd));
     }
-    var alreadyInvoicedUntil = alreadyInvoicedPeriodEnd(subscriptionPayment, commitmentEnd);
-    if (alreadyInvoicedUntil.isEmpty()) {
-      return monthlyInstalments(paymentPeriodStart, commitmentEnd);
+    var alreadyInvoicedPayment = latestInvoicedPaymentOf(subscriptionPayment, commitmentEnd);
+    if (alreadyInvoicedPayment.isEmpty()) {
+      return MonthlyBilling.toInvoice(monthlyInstalments(paymentPeriodStart, commitmentEnd));
     }
-    var firstUninvoicedDay = alreadyInvoicedUntil.get().plusDays(1);
+    var coveringPayment = alreadyInvoicedPayment.get();
+    var firstUninvoicedDay = invoicedPeriodEndDateOf(coveringPayment).plusDays(1);
     if (firstUninvoicedDay.isAfter(commitmentEnd)) {
-      return List.of();
+      return MonthlyBilling.alreadyCoveredBy(coveringPayment);
     }
-    return monthlyInstalments(
-        firstUninvoicedDay.isAfter(paymentPeriodStart) ? firstUninvoicedDay : paymentPeriodStart,
-        commitmentEnd);
+    return MonthlyBilling.toInvoice(
+        monthlyInstalments(
+            firstUninvoicedDay.isAfter(paymentPeriodStart)
+                ? firstUninvoicedDay
+                : paymentPeriodStart,
+            commitmentEnd));
   }
 
   private List<MonthSegment> monthlyInstalments(LocalDate start, LocalDate commitmentEnd) {
@@ -212,18 +259,20 @@ public class SubscriptionPaymentInvoiceRequestedService
         .orElse(paymentPeriodStart);
   }
 
-  private Optional<LocalDate> alreadyInvoicedPeriodEnd(
+  private Optional<SubscriptionPayment> latestInvoicedPaymentOf(
       SubscriptionPayment subscriptionPayment, LocalDate commitmentEnd) {
     return subscriptionPaymentRepository
         .findByUserIdAndInvoiceIdIsNotNull(subscriptionPayment.getUserId())
         .stream()
         .filter(payment -> !payment.getId().equals(subscriptionPayment.getId()))
         .filter(payment -> !payment.isRefunded())
-        .map(SubscriptionPayment::getPeriodEndDatetime)
-        .filter(Objects::nonNull)
-        .map(periodEnd -> periodEnd.atZone(PARIS).toLocalDate())
-        .filter(periodEnd -> !periodEnd.isAfter(commitmentEnd))
-        .max(LocalDate::compareTo);
+        .filter(payment -> payment.invoicedPeriodEndOrPeriodEnd() != null)
+        .filter(payment -> !invoicedPeriodEndDateOf(payment).isAfter(commitmentEnd))
+        .max(comparing(this::invoicedPeriodEndDateOf));
+  }
+
+  private LocalDate invoicedPeriodEndDateOf(SubscriptionPayment subscriptionPayment) {
+    return subscriptionPayment.invoicedPeriodEndOrPeriodEnd().atZone(PARIS).toLocalDate();
   }
 
   private Optional<UserSubscriptionCommitment> latestCommitmentOf(
@@ -570,6 +619,27 @@ public class SubscriptionPaymentInvoiceRequestedService
   }
 
   private record AnnualLinePricing(Fraction monthlyUnitPrice, Fraction discount) {}
+
+  private record InvoicedPeriod(Instant start, Instant end) {}
+
+  private record MonthlyBilling(
+      List<MonthSegment> instalments, SubscriptionPayment coveringPayment) {
+    private static MonthlyBilling notMonthly() {
+      return new MonthlyBilling(List.of(), null);
+    }
+
+    private static MonthlyBilling toInvoice(List<MonthSegment> instalments) {
+      return new MonthlyBilling(instalments, null);
+    }
+
+    private static MonthlyBilling alreadyCoveredBy(SubscriptionPayment coveringPayment) {
+      return new MonthlyBilling(List.of(), coveringPayment);
+    }
+
+    private boolean alreadyInvoiced() {
+      return coveringPayment != null;
+    }
+  }
 
   private record MonthSegment(LocalDate start, LocalDate end, boolean fullMonth, int days) {}
 }

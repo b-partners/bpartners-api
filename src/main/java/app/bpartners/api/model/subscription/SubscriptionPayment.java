@@ -73,6 +73,12 @@ public class SubscriptionPayment {
   @Column(name = "invoice_id")
   private String invoiceId;
 
+  @Column(name = "invoiced_period_start_datetime")
+  private Instant invoicedPeriodStartDatetime;
+
+  @Column(name = "invoiced_period_end_datetime")
+  private Instant invoicedPeriodEndDatetime;
+
   @Column(name = "refunded_datetime")
   private Instant refundedDatetime;
 
@@ -110,5 +116,13 @@ public class SubscriptionPayment {
 
   public long vatPercentOrZero() {
     return vatPercent == null ? 0L : vatPercent;
+  }
+
+  public Instant invoicedPeriodStartOrPeriodStart() {
+    return invoicedPeriodStartDatetime == null ? periodStartDatetime : invoicedPeriodStartDatetime;
+  }
+
+  public Instant invoicedPeriodEndOrPeriodEnd() {
+    return invoicedPeriodEndDatetime == null ? periodEndDatetime : invoicedPeriodEndDatetime;
   }
 }

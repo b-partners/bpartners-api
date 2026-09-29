@@ -134,14 +134,17 @@ public class SubscriptionPaymentInvoiceCreatedService
   }
 
   private String billedPeriodOf(SubscriptionPayment subscriptionPayment) {
-    if (subscriptionPayment == null
-        || subscriptionPayment.getPeriodStartDatetime() == null
-        || subscriptionPayment.getPeriodEndDatetime() == null) {
+    if (subscriptionPayment == null) {
       return null;
     }
-    return customDateFormatter.formatFrenchDate(subscriptionPayment.getPeriodStartDatetime())
+    var periodStart = subscriptionPayment.invoicedPeriodStartOrPeriodStart();
+    var periodEnd = subscriptionPayment.invoicedPeriodEndOrPeriodEnd();
+    if (periodStart == null || periodEnd == null) {
+      return null;
+    }
+    return customDateFormatter.formatFrenchDate(periodStart)
         + " au "
-        + customDateFormatter.formatFrenchDate(subscriptionPayment.getPeriodEndDatetime());
+        + customDateFormatter.formatFrenchDate(periodEnd);
   }
 
   private String euroOf(Fraction amount) {

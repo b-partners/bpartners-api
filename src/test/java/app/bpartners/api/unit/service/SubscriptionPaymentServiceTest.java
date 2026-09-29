@@ -134,13 +134,18 @@ class SubscriptionPaymentServiceTest {
   }
 
   @Test
-  void invoiced_by_stamps_the_generated_invoice_on_the_payment() {
+  void invoiced_by_stamps_the_generated_invoice_and_its_period_on_the_payment() {
     var payment = SubscriptionPayment.builder().id("payment_id").build();
+    var invoicedPeriodStart = Instant.parse("2026-09-15T00:00:00Z");
+    var invoicedPeriodEnd = Instant.parse("2027-08-31T00:00:00Z");
 
-    var invoiced = subject.invoicedBy(payment, "invoice_id");
+    var invoiced =
+        subject.invoicedBy(payment, "invoice_id", invoicedPeriodStart, invoicedPeriodEnd);
 
     assertEquals("invoice_id", invoiced.getInvoiceId());
     assertEquals("payment_id", invoiced.getId());
+    assertEquals(invoicedPeriodStart, invoiced.getInvoicedPeriodStartDatetime());
+    assertEquals(invoicedPeriodEnd, invoiced.getInvoicedPeriodEndDatetime());
   }
 
   @Test

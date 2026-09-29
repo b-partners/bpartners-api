@@ -191,6 +191,22 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
   }
 
   @Test
+  void renders_the_whole_period_the_invoice_covers_rather_than_the_paid_month() {
+    givenInvoiceAndPayment(
+        someInvoice(),
+        somePayment().toBuilder()
+            .invoicedPeriodStartDatetime(Instant.parse("2026-03-04T00:00:00Z"))
+            .invoicedPeriodEndDatetime(Instant.parse("2027-02-28T00:00:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    var body = capturedHtmlBody();
+    assertTrue(body.contains("04/03/2026 au 28/02/2027"));
+    assertFalse(body.contains("04/03/2026 au 04/04/2026</td>"));
+  }
+
+  @Test
   void renders_the_yearly_billing_interval_when_the_subscription_is_annual() {
     givenInvoiceAndPayment(
         someInvoice(), somePayment().toBuilder().billingInterval(YEARLY).build());

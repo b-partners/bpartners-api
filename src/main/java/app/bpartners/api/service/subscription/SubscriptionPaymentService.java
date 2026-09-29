@@ -110,9 +110,17 @@ public class SubscriptionPaymentService {
     return Optional.of(refunded);
   }
 
-  public SubscriptionPayment invoicedBy(SubscriptionPayment subscriptionPayment, String invoiceId) {
+  public SubscriptionPayment invoicedBy(
+      SubscriptionPayment subscriptionPayment,
+      String invoiceId,
+      Instant invoicedPeriodStart,
+      Instant invoicedPeriodEnd) {
     return subscriptionPaymentRepository.save(
-        subscriptionPayment.toBuilder().invoiceId(invoiceId).build());
+        subscriptionPayment.toBuilder()
+            .invoiceId(invoiceId)
+            .invoicedPeriodStartDatetime(invoicedPeriodStart)
+            .invoicedPeriodEndDatetime(invoicedPeriodEnd)
+            .build());
   }
 
   private SubscriptionPayment requestInvoiceIfStillMissing(SubscriptionPayment alreadyRecorded) {

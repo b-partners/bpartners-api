@@ -23,6 +23,7 @@ import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
+import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -65,9 +66,11 @@ class SubscriptionPaymentInvoiceRequestedServicePreviewTest {
   SubscriptionCustomerResolver subscriptionCustomerResolver = mock();
   InvoiceService invoiceService = mock();
   EventProducer eventProducer = mock();
+  SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository = mock();
   SubscriptionPaymentInvoiceRequestedService subject =
       new SubscriptionPaymentInvoiceRequestedService(
           subscriptionPaymentRepository,
+          subscriptionInvoicePeriodRepository,
           subscriptionPaymentService,
           userRepository,
           userSubscriptionCommitmentRepository,

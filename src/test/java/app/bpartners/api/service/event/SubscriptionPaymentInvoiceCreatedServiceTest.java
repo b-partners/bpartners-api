@@ -30,10 +30,12 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.EmailInvoiceResolver;
 import app.bpartners.api.service.accountholder.EmailRecipientService;
@@ -57,6 +59,7 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
 
   InvoiceRepository invoiceRepository = mock();
   SubscriptionPaymentRepository subscriptionPaymentRepository = mock();
+  SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository = mock();
   S3Service s3Service = mock();
   FileWriter fileWriter = mock();
   SesService mailer = mock();
@@ -69,6 +72,7 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
       new SubscriptionPaymentInvoiceCreatedService(
           invoiceRepository,
           subscriptionPaymentRepository,
+          subscriptionInvoicePeriodRepository,
           s3Service,
           fileWriter,
           mailer,
@@ -188,6 +192,25 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
     assertTrue(body.contains("04/03/2026 au 04/04/2026"));
     assertTrue(body.contains("40,83 €"));
     assertTrue(body.contains("49,00 €"));
+  }
+
+  @Test
+  void renders_the_period_recorded_for_the_invoice_itself() {
+    givenInvoiceAndPayment(someInvoice(), somePayment());
+    when(subscriptionInvoicePeriodRepository.findByInvoiceId("invoice_id"))
+        .thenReturn(
+            Optional.of(
+                SubscriptionInvoicePeriod.builder()
+                    .invoiceId("invoice_id")
+                    .periodStartDatetime(Instant.parse("2026-09-30T22:00:00Z"))
+                    .periodEndDatetime(Instant.parse("2027-08-30T22:00:00Z"))
+                    .build()));
+
+    subject.accept(someEvent());
+
+    var body = capturedHtmlBody();
+    assertTrue(body.contains("01/10/2026 au 31/08/2027"));
+    assertFalse(body.contains("04/03/2026 au 04/04/2026</td>"));
   }
 
   @Test

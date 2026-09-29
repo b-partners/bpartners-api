@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -27,11 +28,13 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.subscription.AnnualInvoiceBillingType;
 import app.bpartners.api.model.subscription.BillingInterval;
+import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
+import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.invoice.InvoiceService;
@@ -62,9 +65,11 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   SubscriptionCustomerResolver subscriptionCustomerResolver = mock();
   InvoiceService invoiceService = mock();
   EventProducer eventProducer = mock();
+  SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository = mock();
   SubscriptionPaymentInvoiceRequestedService subject =
       new SubscriptionPaymentInvoiceRequestedService(
           subscriptionPaymentRepository,
+          subscriptionInvoicePeriodRepository,
           subscriptionPaymentService,
           userRepository,
           userSubscriptionCommitmentRepository,
@@ -262,17 +267,9 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
                     .commitmentStartDatetime(Instant.parse("2026-09-01T09:30:00Z"))
                     .commitmentEndDatetime(Instant.parse("2027-08-31T09:30:00Z"))
                     .build()));
-    when(subscriptionPaymentRepository.findByUserIdAndInvoiceIdIsNotNull("subscriber_id"))
-        .thenReturn(
-            List.of(
-                monthlyCommitmentPayment()
-                    .id("september_payment_id")
-                    .invoiceId("september_invoice_id")
-                    .periodStartDatetime(Instant.parse("2026-09-01T09:30:00Z"))
-                    .periodEndDatetime(Instant.parse("2026-09-30T09:30:00Z"))
-                    .invoicedPeriodStartDatetime(parisStartOfDay(LocalDate.of(2026, 9, 1)))
-                    .invoicedPeriodEndDatetime(parisStartOfDay(LocalDate.of(2026, 9, 30)))
-                    .build()));
+    givenInvoicedPeriods(
+        invoicedPeriod(
+            "september_invoice_id", LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30)));
     var octoberPayment =
         monthlyCommitmentPayment()
             .periodStartDatetime(Instant.parse("2026-10-01T09:30:00Z"))
@@ -300,6 +297,23 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
             parisStartOfDay(LocalDate.of(2026, 10, 1)),
             parisStartOfDay(LocalDate.of(2027, 8, 31)));
     assertEquals(invoice.getId(), capturedCreatedEvent().getInvoiceId());
+  }
+
+  @Test
+  void records_the_period_the_created_invoice_covers_for_the_subscriber() {
+    givenDefaultUsersAndCustomer();
+    givenPayment(monthlyCommitmentPayment().build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    var captor = ArgumentCaptor.forClass(SubscriptionInvoicePeriod.class);
+    verify(subscriptionInvoicePeriodRepository).save(captor.capture());
+    var savedPeriod = captor.getValue();
+    assertEquals("subscriber_id", savedPeriod.getUserId());
+    assertEquals(invoice.getId(), savedPeriod.getInvoiceId());
+    assertEquals(parisStartOfDay(LocalDate.of(2026, 9, 15)), savedPeriod.getPeriodStartDatetime());
+    assertEquals(parisStartOfDay(LocalDate.of(2027, 8, 31)), savedPeriod.getPeriodEndDatetime());
   }
 
   @Test
@@ -337,15 +351,9 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
                     .commitmentStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
                     .commitmentEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
                     .build()));
-    when(subscriptionPaymentRepository.findByUserIdAndInvoiceIdIsNotNull("subscriber_id"))
-        .thenReturn(
-            List.of(
-                monthlyCommitmentPayment()
-                    .id("september_payment_id")
-                    .invoiceId("september_invoice_id")
-                    .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
-                    .periodEndDatetime(Instant.parse("2026-09-30T09:30:00Z"))
-                    .build()));
+    givenInvoicedPeriods(
+        invoicedPeriod(
+            "september_invoice_id", LocalDate.of(2026, 9, 15), LocalDate.of(2026, 9, 30)));
     givenPayment(monthlyCommitmentPayment().build());
   }
 
@@ -359,15 +367,8 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
                     .commitmentStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
                     .commitmentEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
                     .build()));
-    when(subscriptionPaymentRepository.findByUserIdAndInvoiceIdIsNotNull("subscriber_id"))
-        .thenReturn(
-            List.of(
-                someYearlyPayment()
-                    .id("yearly_payment_id")
-                    .invoiceId("yearly_invoice_id")
-                    .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
-                    .periodEndDatetime(Instant.parse("2027-09-14T09:29:59Z"))
-                    .build()));
+    givenInvoicedPeriods(
+        invoicedPeriod("yearly_invoice_id", LocalDate.of(2026, 9, 15), LocalDate.of(2027, 9, 14)));
     givenPayment(monthlyCommitmentPayment().build());
 
     subject.accept(someEvent());
@@ -394,16 +395,11 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
                     .commitmentStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
                     .commitmentEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
                     .build()));
-    when(subscriptionPaymentRepository.findByUserIdAndInvoiceIdIsNotNull("subscriber_id"))
-        .thenReturn(
-            List.of(
-                monthlyCommitmentPayment()
-                    .id("september_payment_id")
-                    .invoiceId("september_invoice_id")
-                    .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
-                    .periodEndDatetime(Instant.parse("2026-09-30T09:30:00Z"))
-                    .refundedDatetime(Instant.parse("2026-09-20T09:30:00Z"))
-                    .build()));
+    givenInvoicedPeriods(
+        invoicedPeriod(
+            "september_invoice_id", LocalDate.of(2026, 9, 15), LocalDate.of(2026, 9, 30)));
+    when(subscriptionPaymentRepository.findRefundedInvoiceIdsByUserId("subscriber_id"))
+        .thenReturn(List.of("september_invoice_id"));
     givenPayment(monthlyCommitmentPayment().build());
 
     subject.accept(someEvent());
@@ -427,8 +423,8 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
         .invoicedBy(
             subscriptionPayment,
             "schedule_invoice_id",
-            Instant.parse("2026-09-15T09:30:00Z"),
-            Instant.parse("2027-08-31T09:30:00Z"));
+            parisStartOfDay(LocalDate.of(2026, 9, 15)),
+            parisStartOfDay(LocalDate.of(2027, 8, 31)));
   }
 
   @Test
@@ -441,17 +437,9 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
                     .commitmentStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
                     .commitmentEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
                     .build()));
-    when(subscriptionPaymentRepository.findByUserIdAndInvoiceIdIsNotNull("subscriber_id"))
-        .thenReturn(
-            List.of(
-                monthlyCommitmentPayment()
-                    .id("first_payment_id")
-                    .invoiceId("commitment_invoice_id")
-                    .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
-                    .periodEndDatetime(Instant.parse("2026-10-14T09:30:00Z"))
-                    .invoicedPeriodStartDatetime(Instant.parse("2026-09-15T00:00:00Z"))
-                    .invoicedPeriodEndDatetime(Instant.parse("2027-08-31T00:00:00Z"))
-                    .build()));
+    givenInvoicedPeriods(
+        invoicedPeriod(
+            "commitment_invoice_id", LocalDate.of(2026, 9, 15), LocalDate.of(2027, 8, 31)));
     givenPayment(
         monthlyCommitmentPayment()
             .periodStartDatetime(Instant.parse("2026-10-15T09:30:00Z"))
@@ -482,6 +470,85 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
             parisStartOfDay(LocalDate.of(2027, 8, 31)));
   }
 
+  @Test
+  void backfills_the_remaining_commitment_period_from_an_already_invoiced_payment() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-09-01T09:30:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-08-31T09:30:00Z"))
+                    .build()));
+    givenInvoicedPeriods(
+        invoicedPeriod(
+            "september_invoice_id", LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30)));
+    var septemberPayment =
+        monthlyCommitmentPayment()
+            .id("september_payment_id")
+            .invoiceId("september_invoice_id")
+            .periodStartDatetime(Instant.parse("2026-09-01T09:30:00Z"))
+            .periodEndDatetime(Instant.parse("2026-09-30T09:30:00Z"))
+            .paymentDatetime(Instant.parse("2026-09-01T09:30:00Z"))
+            .build();
+
+    var backfilled = subject.invoiceRemainingCommitmentPeriod(septemberPayment);
+
+    var invoice = capturedInvoice();
+    assertEquals(invoice.getId(), backfilled.orElseThrow().getId());
+    assertEquals(11, invoice.getProducts().size());
+    assertEquals(
+        "Abonnement Essentiel du 01/10/2026 au 31/10/2026",
+        invoice.getProducts().getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/08/2027 au 31/08/2027",
+        invoice.getProducts().getLast().getDescription());
+    assertEquals(
+        "Facture d'abonnement pour la période du 01/10/2026 au 31/08/2027", invoice.getTitle());
+    assertEquals(LocalDate.of(2026, 10, 1), invoice.getToPayAt());
+    verify(subscriptionPaymentService, never()).invoicedBy(any(), anyString(), any(), any());
+    var captor = ArgumentCaptor.forClass(SubscriptionInvoicePeriod.class);
+    verify(subscriptionInvoicePeriodRepository).save(captor.capture());
+    assertEquals(
+        parisStartOfDay(LocalDate.of(2026, 10, 1)), captor.getValue().getPeriodStartDatetime());
+    assertEquals(
+        parisStartOfDay(LocalDate.of(2027, 8, 31)), captor.getValue().getPeriodEndDatetime());
+    assertEquals("september_payment_id", capturedCreatedEvent().getSubscriptionPaymentId());
+    assertEquals(invoice.getId(), capturedCreatedEvent().getInvoiceId());
+  }
+
+  @Test
+  void backfills_nothing_when_the_commitment_is_already_invoiced_until_its_end() {
+    givenACommitmentAlreadyInvoicedUntilItsEnd();
+    var coveredPayment =
+        monthlyCommitmentPayment()
+            .id("covered_payment_id")
+            .invoiceId("schedule_invoice_id")
+            .build();
+
+    var backfilled = subject.invoiceRemainingCommitmentPeriod(coveredPayment);
+
+    assertTrue(backfilled.isEmpty());
+    verify(invoiceService, never()).crupdateSubscriptionInvoice(any());
+    verify(subscriptionInvoicePeriodRepository, never()).save(any());
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  private void givenInvoicedPeriods(SubscriptionInvoicePeriod... invoicedPeriods) {
+    when(subscriptionInvoicePeriodRepository.findByUserId("subscriber_id"))
+        .thenReturn(List.of(invoicedPeriods));
+  }
+
+  private SubscriptionInvoicePeriod invoicedPeriod(
+      String invoiceId, LocalDate periodStart, LocalDate periodEnd) {
+    return SubscriptionInvoicePeriod.builder()
+        .userId("subscriber_id")
+        .invoiceId(invoiceId)
+        .periodStartDatetime(parisStartOfDay(periodStart))
+        .periodEndDatetime(parisStartOfDay(periodEnd))
+        .build();
+  }
+
   private Instant parisStartOfDay(LocalDate date) {
     return date.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant();
   }
@@ -495,15 +562,9 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
                     .commitmentStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
                     .commitmentEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
                     .build()));
-    when(subscriptionPaymentRepository.findByUserIdAndInvoiceIdIsNotNull("subscriber_id"))
-        .thenReturn(
-            List.of(
-                monthlyCommitmentPayment()
-                    .id("schedule_payment_id")
-                    .invoiceId("schedule_invoice_id")
-                    .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
-                    .periodEndDatetime(Instant.parse("2027-08-31T09:30:00Z"))
-                    .build()));
+    givenInvoicedPeriods(
+        invoicedPeriod(
+            "schedule_invoice_id", LocalDate.of(2026, 9, 15), LocalDate.of(2027, 8, 31)));
     var subscriptionPayment = monthlyCommitmentPayment().build();
     givenPayment(subscriptionPayment);
     return subscriptionPayment;

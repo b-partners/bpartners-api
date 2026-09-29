@@ -298,6 +298,101 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void monthly_commitment_ignores_an_invoiced_period_running_past_the_commitment() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
+                    .build()));
+    when(subscriptionPaymentRepository.findByUserIdAndInvoiceIdIsNotNull("subscriber_id"))
+        .thenReturn(
+            List.of(
+                someYearlyPayment()
+                    .id("yearly_payment_id")
+                    .invoiceId("yearly_invoice_id")
+                    .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+                    .periodEndDatetime(Instant.parse("2027-09-14T09:29:59Z"))
+                    .build()));
+    givenPayment(monthlyCommitmentPayment().build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(12, invoice.getProducts().size());
+    assertEquals(
+        "Abonnement Essentiel du 15/09/2026 au 30/09/2026",
+        invoice.getProducts().getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/08/2027 au 31/08/2027",
+        invoice.getProducts().getLast().getDescription());
+    assertEquals(
+        "Facture d'abonnement pour la période du 15/09/2026 au 31/08/2027", invoice.getTitle());
+  }
+
+  @Test
+  void monthly_commitment_ignores_a_refunded_already_invoiced_period() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
+                    .build()));
+    when(subscriptionPaymentRepository.findByUserIdAndInvoiceIdIsNotNull("subscriber_id"))
+        .thenReturn(
+            List.of(
+                monthlyCommitmentPayment()
+                    .id("september_payment_id")
+                    .invoiceId("september_invoice_id")
+                    .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+                    .periodEndDatetime(Instant.parse("2026-09-30T09:30:00Z"))
+                    .refundedDatetime(Instant.parse("2026-09-20T09:30:00Z"))
+                    .build()));
+    givenPayment(monthlyCommitmentPayment().build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(12, invoice.getProducts().size());
+    assertEquals(
+        "Abonnement Essentiel du 15/09/2026 au 30/09/2026",
+        invoice.getProducts().getFirst().getDescription());
+  }
+
+  @Test
+  void monthly_commitment_is_paid_in_cash_when_the_whole_commitment_is_already_invoiced() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-14T09:30:00Z"))
+                    .build()));
+    when(subscriptionPaymentRepository.findByUserIdAndInvoiceIdIsNotNull("subscriber_id"))
+        .thenReturn(
+            List.of(
+                monthlyCommitmentPayment()
+                    .id("schedule_payment_id")
+                    .invoiceId("schedule_invoice_id")
+                    .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+                    .periodEndDatetime(Instant.parse("2027-08-31T09:30:00Z"))
+                    .build()));
+    givenPayment(monthlyCommitmentPayment().build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(1, invoice.getProducts().size());
+    assertEquals(PaymentTypeEnum.CASH, invoice.getPaymentType());
+    assertEquals(PAID, invoice.getStatus());
+  }
+
+  @Test
   void monthly_commitment_title_spans_exactly_the_billed_lines() {
     givenDefaultUsersAndCustomer();
     when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))

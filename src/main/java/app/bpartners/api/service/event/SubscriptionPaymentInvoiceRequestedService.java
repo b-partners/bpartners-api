@@ -180,38 +180,49 @@ public class SubscriptionPaymentInvoiceRequestedService
     }
     var paymentPeriodStart = billingPeriodStart(subscriptionPayment);
     var commitment = latestCommitmentOf(subscriptionPayment, paymentPeriodStart);
-    var start = billingStartOf(subscriptionPayment, commitment, paymentPeriodStart);
     var commitmentEnd = commitmentEndOf(commitment, paymentPeriodStart);
+    if (!excludesAlreadyInvoicedPeriods) {
+      return monthlyInstalments(commitmentStartOf(commitment, paymentPeriodStart), commitmentEnd);
+    }
+    var alreadyInvoicedUntil = alreadyInvoicedPeriodEnd(subscriptionPayment, commitmentEnd);
+    if (alreadyInvoicedUntil.isEmpty()) {
+      return monthlyInstalments(paymentPeriodStart, commitmentEnd);
+    }
+    var firstUninvoicedDay = alreadyInvoicedUntil.get().plusDays(1);
+    if (firstUninvoicedDay.isAfter(commitmentEnd)) {
+      return List.of();
+    }
+    return monthlyInstalments(
+        firstUninvoicedDay.isAfter(paymentPeriodStart) ? firstUninvoicedDay : paymentPeriodStart,
+        commitmentEnd);
+  }
+
+  private List<MonthSegment> monthlyInstalments(LocalDate start, LocalDate commitmentEnd) {
     var lastBilledMonthEnd =
         commitmentEnd.isBefore(start) ? start.withDayOfMonth(start.lengthOfMonth()) : commitmentEnd;
     return calendarMonthSegments(start, lastBilledMonthEnd);
   }
 
-  private LocalDate billingStartOf(
-      SubscriptionPayment subscriptionPayment,
-      Optional<UserSubscriptionCommitment> commitment,
-      LocalDate paymentPeriodStart) {
-    if (!excludesAlreadyInvoicedPeriods) {
-      return commitment
-          .map(UserSubscriptionCommitment::getCommitmentStartDatetime)
-          .filter(Objects::nonNull)
-          .map(startDatetime -> startDatetime.atZone(PARIS).toLocalDate())
-          .orElse(paymentPeriodStart);
-    }
-    return alreadyInvoicedPeriodEnd(subscriptionPayment)
-        .map(invoicedUntil -> invoicedUntil.plusDays(1))
-        .map(nextDay -> nextDay.isAfter(paymentPeriodStart) ? nextDay : paymentPeriodStart)
+  private LocalDate commitmentStartOf(
+      Optional<UserSubscriptionCommitment> commitment, LocalDate paymentPeriodStart) {
+    return commitment
+        .map(UserSubscriptionCommitment::getCommitmentStartDatetime)
+        .filter(Objects::nonNull)
+        .map(startDatetime -> startDatetime.atZone(PARIS).toLocalDate())
         .orElse(paymentPeriodStart);
   }
 
-  private Optional<LocalDate> alreadyInvoicedPeriodEnd(SubscriptionPayment subscriptionPayment) {
+  private Optional<LocalDate> alreadyInvoicedPeriodEnd(
+      SubscriptionPayment subscriptionPayment, LocalDate commitmentEnd) {
     return subscriptionPaymentRepository
         .findByUserIdAndInvoiceIdIsNotNull(subscriptionPayment.getUserId())
         .stream()
         .filter(payment -> !payment.getId().equals(subscriptionPayment.getId()))
+        .filter(payment -> !payment.isRefunded())
         .map(SubscriptionPayment::getPeriodEndDatetime)
         .filter(Objects::nonNull)
         .map(periodEnd -> periodEnd.atZone(PARIS).toLocalDate())
+        .filter(periodEnd -> !periodEnd.isAfter(commitmentEnd))
         .max(LocalDate::compareTo);
   }
 

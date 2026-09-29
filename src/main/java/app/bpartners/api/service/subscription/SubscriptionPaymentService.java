@@ -21,7 +21,9 @@ import com.stripe.model.InvoiceLineItem;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -195,37 +197,53 @@ public class SubscriptionPaymentService {
   }
 
   private InvoiceLineItem.Period subscriptionLinePeriodOf(Invoice stripeInvoice) {
-    var lines = stripeInvoice.getLines() == null ? null : stripeInvoice.getLines().getData();
-    if (lines == null || lines.isEmpty()) {
+    var periodedLines =
+        linesOf(stripeInvoice).stream()
+            .filter(line -> line.getPeriod() != null && line.getPeriod().getEnd() != null)
+            .toList();
+    if (periodedLines.isEmpty()) {
       return null;
     }
+    var subscribedLines = periodedLines.stream().filter(line -> !isProration(line)).toList();
+    return latestPeriodOf(subscribedLines.isEmpty() ? periodedLines : subscribedLines);
+  }
+
+  private InvoiceLineItem.Period latestPeriodOf(List<InvoiceLineItem> lines) {
     return lines.stream()
-        .filter(line -> line.getPeriod() != null && line.getPeriod().getEnd() != null)
         .max(Comparator.comparingLong(line -> line.getPeriod().getEnd()))
         .map(InvoiceLineItem::getPeriod)
         .orElse(null);
   }
 
-  private ResolvedPlan resolvePlanFromStripe(Invoice stripeInvoice) {
+  private List<InvoiceLineItem> linesOf(Invoice stripeInvoice) {
     var lines = stripeInvoice.getLines() == null ? null : stripeInvoice.getLines().getData();
-    if (lines == null) {
+    return lines == null ? List.of() : lines;
+  }
+
+  private boolean isProration(InvoiceLineItem line) {
+    return Boolean.TRUE.equals(line.getProration());
+  }
+
+  private ResolvedPlan resolvePlanFromStripe(Invoice stripeInvoice) {
+    var lines = linesOf(stripeInvoice);
+    var subscribedPlan = resolvePlanFromLines(lines.stream().filter(line -> !isProration(line)));
+    return subscribedPlan == null ? resolvePlanFromLines(lines.stream()) : subscribedPlan;
+  }
+
+  private ResolvedPlan resolvePlanFromLines(Stream<InvoiceLineItem> lines) {
+    return lines.map(this::resolvePlanFromLine).filter(Objects::nonNull).findFirst().orElse(null);
+  }
+
+  private ResolvedPlan resolvePlanFromLine(InvoiceLineItem line) {
+    var productId = stripeProductIdOf(line);
+    if (productId == null) {
       return null;
     }
-    for (var line : lines) {
-      var productId = stripeProductIdOf(line);
-      if (productId == null) {
-        continue;
-      }
-      var plan =
-          subscriptionProductRepository
-              .findByE2Id(productId)
-              .filter(product -> product.getBillingType() != null)
-              .orElse(null);
-      if (plan != null) {
-        return new ResolvedPlan(plan, billingIntervalOf(line));
-      }
-    }
-    return null;
+    return subscriptionProductRepository
+        .findByE2Id(productId)
+        .filter(product -> product.getBillingType() != null)
+        .map(plan -> new ResolvedPlan(plan, billingIntervalOf(line)))
+        .orElse(null);
   }
 
   private String stripeProductIdOf(InvoiceLineItem line) {

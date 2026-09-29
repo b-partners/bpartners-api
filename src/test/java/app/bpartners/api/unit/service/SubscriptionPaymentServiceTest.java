@@ -42,9 +42,11 @@ class SubscriptionPaymentServiceTest {
   private static final String STRIPE_SUBSCRIPTION_ID = "sub_123";
   private static final String STRIPE_PRODUCT_ID = "prod_123";
   private static final String STRIPE_METERED_PRODUCT_ID = "prod_metered";
+  private static final String STRIPE_YEARLY_PRODUCT_ID = "prod_yearly";
   private static final String USER_ID = "user_id";
   private static final long PERIOD_START = 1_780_000_000L;
   private static final long PERIOD_END = 1_782_592_000L;
+  private static final long YEARLY_PERIOD_END = 1_811_536_000L;
   private static final long INVOICE_LEVEL_PERIOD_START = 1_780_050_000L;
   private static final long INVOICE_LEVEL_PERIOD_END = 1_782_650_000L;
   private static final long PAID_AT = 1_780_000_100L;
@@ -331,6 +333,44 @@ class SubscriptionPaymentServiceTest {
   }
 
   @Test
+  void bills_the_subscribed_line_period_over_a_prorated_line_reaching_further() {
+    when(userRepository.findByStripeCustomerId(STRIPE_CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(USER_ID).build()));
+    when(userSubscriptionProductService.findActiveUserSubscriptionProduct(USER_ID))
+        .thenReturn(Optional.empty());
+    when(subscriptionProductRepository.findByE2Id(STRIPE_PRODUCT_ID))
+        .thenReturn(Optional.of(essentialPlan()));
+    when(subscriptionProductRepository.findByE2Id(STRIPE_YEARLY_PRODUCT_ID))
+        .thenReturn(Optional.of(yearlyPlan()));
+    givenNotYetRecorded();
+
+    subject.recordPaidStripeInvoice(someStripePlanChangeInvoice());
+
+    var subscriptionPayment = capturedSubscriptionPayment();
+    assertEquals(Instant.ofEpochSecond(PERIOD_START), subscriptionPayment.getPeriodStartDatetime());
+    assertEquals(Instant.ofEpochSecond(PERIOD_END - 1), subscriptionPayment.getPeriodEndDatetime());
+  }
+
+  @Test
+  void resolves_the_plan_and_interval_from_the_subscribed_line_not_from_the_prorated_one() {
+    when(userRepository.findByStripeCustomerId(STRIPE_CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(USER_ID).build()));
+    when(userSubscriptionProductService.findActiveUserSubscriptionProduct(USER_ID))
+        .thenReturn(Optional.empty());
+    when(subscriptionProductRepository.findByE2Id(STRIPE_PRODUCT_ID))
+        .thenReturn(Optional.of(essentialPlan()));
+    when(subscriptionProductRepository.findByE2Id(STRIPE_YEARLY_PRODUCT_ID))
+        .thenReturn(Optional.of(yearlyPlan()));
+    givenNotYetRecorded();
+
+    subject.recordPaidStripeInvoice(someStripePlanChangeInvoice());
+
+    var subscriptionPayment = capturedSubscriptionPayment();
+    assertEquals("Essentiel", subscriptionPayment.planName());
+    assertEquals(MONTHLY, subscriptionPayment.getBillingInterval());
+  }
+
+  @Test
   void bills_the_subscription_line_period_over_the_rolling_invoice_period() {
     givenSubscribedUser(essentialPlan());
     givenNotYetRecorded();
@@ -515,6 +555,16 @@ class SubscriptionPaymentServiceTest {
         .build();
   }
 
+  private SubscriptionProduct yearlyPlan() {
+    return SubscriptionProduct.builder()
+        .id("yearly_plan_id")
+        .name("Essentiel annuel")
+        .vatPercent(2_000L)
+        .priceInCentsWithoutVat(4_083L)
+        .billingType(COMMITMENT)
+        .build();
+  }
+
   private SubscriptionProduct otherPlan() {
     return SubscriptionProduct.builder()
         .id("other_plan_id")
@@ -526,6 +576,47 @@ class SubscriptionPaymentServiceTest {
 
   private SubscriptionProduct meteredProduct() {
     return SubscriptionProduct.builder().id("metered_id").name("Analyse de toîtures").build();
+  }
+
+  private Invoice someStripePlanChangeInvoice() {
+    var proratedPeriod = mock(InvoiceLineItem.Period.class);
+    when(proratedPeriod.getStart()).thenReturn(PERIOD_START);
+    when(proratedPeriod.getEnd()).thenReturn(YEARLY_PERIOD_END);
+    var yearlyRecurring = mock(com.stripe.model.Price.Recurring.class);
+    when(yearlyRecurring.getInterval()).thenReturn("year");
+    var yearlyPrice = mock(com.stripe.model.Price.class);
+    when(yearlyPrice.getProduct()).thenReturn(STRIPE_YEARLY_PRODUCT_ID);
+    when(yearlyPrice.getRecurring()).thenReturn(yearlyRecurring);
+    var proratedLine = mock(InvoiceLineItem.class);
+    when(proratedLine.getPeriod()).thenReturn(proratedPeriod);
+    when(proratedLine.getPrice()).thenReturn(yearlyPrice);
+    when(proratedLine.getProration()).thenReturn(true);
+
+    var subscribedPeriod = mock(InvoiceLineItem.Period.class);
+    when(subscribedPeriod.getStart()).thenReturn(PERIOD_START);
+    when(subscribedPeriod.getEnd()).thenReturn(PERIOD_END);
+    var monthlyRecurring = mock(com.stripe.model.Price.Recurring.class);
+    when(monthlyRecurring.getInterval()).thenReturn("month");
+    var monthlyPrice = mock(com.stripe.model.Price.class);
+    when(monthlyPrice.getProduct()).thenReturn(STRIPE_PRODUCT_ID);
+    when(monthlyPrice.getRecurring()).thenReturn(monthlyRecurring);
+    var subscribedLine = mock(InvoiceLineItem.class);
+    when(subscribedLine.getPeriod()).thenReturn(subscribedPeriod);
+    when(subscribedLine.getPrice()).thenReturn(monthlyPrice);
+    when(subscribedLine.getProration()).thenReturn(false);
+
+    var lines = mock(InvoiceLineItemCollection.class);
+    when(lines.getData()).thenReturn(List.of(proratedLine, subscribedLine));
+    var statusTransitions = mock(Invoice.StatusTransitions.class);
+    when(statusTransitions.getPaidAt()).thenReturn(PAID_AT);
+    var stripeInvoice = mock(Invoice.class);
+    when(stripeInvoice.getId()).thenReturn(STRIPE_INVOICE_ID);
+    when(stripeInvoice.getCustomer()).thenReturn(STRIPE_CUSTOMER_ID);
+    when(stripeInvoice.getSubscription()).thenReturn(STRIPE_SUBSCRIPTION_ID);
+    when(stripeInvoice.getTotal()).thenReturn(4_900L);
+    when(stripeInvoice.getStatusTransitions()).thenReturn(statusTransitions);
+    when(stripeInvoice.getLines()).thenReturn(lines);
+    return stripeInvoice;
   }
 
   private Invoice someStripeInvoiceWithLines(String... productIds) {

@@ -392,10 +392,12 @@ public class SubscriptionPaymentInvoiceRequestedService
     if (periodStart == null || periodEnd == null || startsAfterItsPayment(subscriptionPayment)) {
       return null;
     }
+    var billedPeriodStart = billingPeriodStart(subscriptionPayment);
     return "pour la période du "
-        + customDateFormatter.formatFrenchDate(periodStart)
+        + customDateFormatter.formatFrenchDate(billedPeriodStart)
         + " au "
-        + customDateFormatter.formatFrenchDate(periodEnd);
+        + customDateFormatter.formatFrenchDate(
+            billingPeriodEnd(subscriptionPayment, billedPeriodStart));
   }
 
   private Instant paidAt(SubscriptionPayment subscriptionPayment) {
@@ -618,11 +620,11 @@ public class SubscriptionPaymentInvoiceRequestedService
     if (periodStart == null || periodEnd == null) {
       return subscriptionLabelPrefix(subscriptionPayment);
     }
-    return subscriptionLabelPrefix(subscriptionPayment)
-        + " du "
-        + customDateFormatter.formatFrenchDate(periodStart)
-        + " au "
-        + customDateFormatter.formatFrenchDate(periodEnd);
+    var billedPeriodStart = billingPeriodStart(subscriptionPayment);
+    return subscriptionLineLabel(
+        subscriptionPayment,
+        billedPeriodStart,
+        billingPeriodEnd(subscriptionPayment, billedPeriodStart));
   }
 
   private Fraction grossMonthlyUnitPrice(SubscriptionPayment subscriptionPayment) {
@@ -715,7 +717,12 @@ public class SubscriptionPaymentInvoiceRequestedService
     if (periodEnd == null) {
       return periodStart.plusYears(1).minusDays(1);
     }
-    return periodEnd.atZone(PARIS).toLocalDate();
+    var lastServedDay = periodEnd.atZone(PARIS).toLocalDate();
+    if (!isYearly(subscriptionPayment)) {
+      return lastServedDay;
+    }
+    var lastDayOfBilledYear = periodStart.plusYears(1).minusDays(1);
+    return lastServedDay.isAfter(lastDayOfBilledYear) ? lastDayOfBilledYear : lastServedDay;
   }
 
   private boolean isYearly(SubscriptionPayment subscriptionPayment) {

@@ -1,5 +1,6 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.service.subscription.StripeCreditPurchaseService.CREDIT_PURCHASE_ID_METADATA_KEY;
 import static app.bpartners.api.service.subscription.StripeSetupService.isPaymentMethodReplacement;
 
@@ -190,6 +191,11 @@ public class StripeWebhookService {
     }
     userSubscriptionProductService.ensureActiveSubscriptionProduct(
         payment.getUserId(), plan.getId(), payment.getBillingInterval());
+    if (payment.getBillingInterval() == MONTHLY && payment.getPeriodStartDatetime() != null) {
+      creditGrantService.grantIncludedCreditsOfBilledMonth(
+          payment.getUserId(), plan, payment.getPeriodStartDatetime());
+      return;
+    }
     creditGrantService.grantIncludedCredits(payment.getUserId(), plan);
   }
 

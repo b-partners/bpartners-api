@@ -98,7 +98,7 @@ public class ExportAnnotationContextFactory {
     return context;
   }
 
-  private static void configureLastSectionContext(
+  static void configureLastSectionContext(
       Context context,
       ExportAreaPictureAnnotation annotation,
       ExportAreaPictureAnnotationConf conf) {
@@ -130,7 +130,10 @@ public class ExportAnnotationContextFactory {
         showPitch && !showArea && !showOverall && !showCustomPages && !showLlm);
     context.setVariable(
         "areaSummaryIsLast", showArea && !showOverall && !showCustomPages && !showLlm);
-    context.setVariable("overallSummaryIsLast", showOverall && !showCustomPages && !showLlm);
+    // The per-pan page renders under the same condition as the measures page and always
+    // follows it, so the measures page is never the last one. Marking it as such made
+    // openhtmltopdf keep it with the page after it, emitting a blank page before both.
+    context.setVariable("overallSummaryIsLast", false);
     context.setVariable("facesSummaryIsLast", showOverall && !showCustomPages && !showLlm);
     context.setVariable("customPagesIsLast", showCustomPages && !showLlm);
   }
@@ -391,11 +394,11 @@ public class ExportAnnotationContextFactory {
     if (annotation3D.getFacades() == null) {
       return;
     }
-    var pagesFacade3D = groupByFirstPage(annotation3D.getFacades(), 3, 4);
+    var pagesFacade3D = groupByFirstPage(annotation3D.getFacades(), 3, 3);
     var facadesImages3D = getFacadesImages3DContext(annotation3D, fileService);
 
     context.setVariable("pagesFacade3D", pagesFacade3D);
-    context.setVariable("facadesImages3DUris", groupByFirstPage(facadesImages3D, 3, 4));
+    context.setVariable("facadesImages3DUris", groupByFirstPage(facadesImages3D, 3, 3));
   }
 
   static List<String> getFacadesImages3DContext(

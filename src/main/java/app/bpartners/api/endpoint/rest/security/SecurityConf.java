@@ -236,6 +236,8 @@ public class SecurityConf {
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/transitionalSubscriptionCreditGrantTrigger")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(POST, "/subscriptionRemainingPeriodInvoiceTrigger")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/immediateSubscriptionCancellationTrigger")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/monthlyUpcomingDebitedCustomers/*/*")
@@ -435,6 +437,10 @@ public class SecurityConf {
                         new SelfAccountMatcher(GET, "/accounts/*/files/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(GET, "/areaPictureMapLayers")
+                    .authenticated()
+                    .requestMatchers(GET, "/map/layers")
+                    .authenticated()
+                    .requestMatchers(GET, "/map/layers/actual")
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(

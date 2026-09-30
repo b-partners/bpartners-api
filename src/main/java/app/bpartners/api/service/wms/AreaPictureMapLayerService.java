@@ -1,6 +1,8 @@
 package app.bpartners.api.service.wms;
 
 import app.bpartners.api.endpoint.rest.model.GeoPosition;
+import app.bpartners.api.endpoint.rest.model.MapLayerActual;
+import app.bpartners.api.endpoint.rest.model.MapLayersReachability;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.mapper.AreaPictureMapLayerMapper;
 import app.bpartners.api.service.geodata.ImageryService;
@@ -25,6 +27,15 @@ public class AreaPictureMapLayerService {
     return imageryService.getMapLayersFrom(longitude, latitude).stream()
         .map(areaPictureMapLayerMapper::toDomain)
         .toList();
+  }
+
+  public MapLayersReachability getMapLayers(
+      Double latitude, Double longitude, boolean onlyReachable) {
+    return imageryService.getMapLayers(latitude, longitude, onlyReachable);
+  }
+
+  public MapLayerActual getActualMapLayer(Double latitude, Double longitude) {
+    return imageryService.getActualMapLayer(latitude, longitude);
   }
 
   public AreaPictureMapLayer getById(String id) {

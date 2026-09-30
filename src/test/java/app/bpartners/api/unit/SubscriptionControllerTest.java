@@ -5,9 +5,11 @@ import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.U
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.SubscriptionRemainingPeriodInvoiceTriggered;
 import app.bpartners.api.endpoint.rest.controller.SubscriptionController;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
@@ -38,6 +40,14 @@ class SubscriptionControllerTest {
           subscriptionServiceMock,
           consumptionLogRestMapper,
           subscriptionPlanRestMapper);
+
+  @Test
+  void triggers_the_subscription_remaining_period_invoice_event() {
+    var returned = subject.triggerSubscriptionRemainingPeriodInvoice();
+
+    assertEquals("Subscription remaining period invoice triggered successfully", returned);
+    verify(eventProducerMock).accept(List.of(new SubscriptionRemainingPeriodInvoiceTriggered()));
+  }
 
   @Test
   void get_subscription_plans() {

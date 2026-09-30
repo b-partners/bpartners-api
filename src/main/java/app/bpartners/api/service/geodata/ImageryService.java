@@ -1,9 +1,14 @@
 package app.bpartners.api.service.geodata;
 
+import static app.bpartners.api.service.utils.SecurityUtils.API_KEY_HEADER;
+
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.MapLayerActual;
+import app.bpartners.api.endpoint.rest.model.MapLayersReachability;
 import app.bpartners.api.model.exception.ImageryServiceException;
+import app.bpartners.api.model.exception.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
@@ -26,15 +31,21 @@ public class ImageryService {
   private static final String AREA_PICTURE_ENDPOINT = "/areaPicture";
   private static final String AREA_PICTURE_MAP_LAYER_ENDPOINT = "/areaPictureMapLayer";
   private static final String AREA_PICTURE_MAP_LAYERS_ENDPOINT = "/areaPictureMapLayers";
+  private static final String MAP_LAYERS_ENDPOINT = "/map/layers";
+  private static final String MAP_LAYERS_ACTUAL_ENDPOINT = "/map/layers/actual";
   private static final String JSON_CONTENT_TYPE = "application/json";
   private static final String ACCEPT = "Accept";
   private final String geodataImageryBaseurl;
+  private final String geodataApiKey;
   private final ObjectMapper om;
   private final HttpClient httpClient;
 
   public ImageryService(
-      @Value("${geodata.imagery.baseurl}") String geoDataBaseUrl, HttpClient httpClient) {
+      @Value("${geodata.imagery.baseurl}") String geoDataBaseUrl,
+      @Value("${geodata.api.key}") String geodataApiKey,
+      HttpClient httpClient) {
     this.geodataImageryBaseurl = geoDataBaseUrl;
+    this.geodataApiKey = geodataApiKey;
     this.om = new ObjectMapper().registerModule(new JavaTimeModule());
     this.httpClient = httpClient;
   }
@@ -111,6 +122,46 @@ public class ImageryService {
     }
   }
 
+  public MapLayersReachability getMapLayers(
+      Double latitude, Double longitude, boolean onlyReachable) {
+    HttpRequest request =
+        authenticatedGet(
+            MAP_LAYERS_ENDPOINT,
+            Map.of("lat", latitude, "lon", longitude, "onlyReachable", onlyReachable));
+
+    try {
+      HttpResponse<String> response = send(request);
+      validateResponse(response);
+      return om.readValue(response.body(), MapLayersReachability.class);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ImageryServiceException(
+          "Thread was interrupted while calling GeoData Imagery service", e);
+    } catch (IOException e) {
+      throw new ImageryServiceException("Failed to process GeoData Imagery service response", e);
+    }
+  }
+
+  public MapLayerActual getActualMapLayer(Double latitude, Double longitude) {
+    HttpRequest request =
+        authenticatedGet(MAP_LAYERS_ACTUAL_ENDPOINT, Map.of("lat", latitude, "lon", longitude));
+
+    try {
+      HttpResponse<String> response = send(request);
+      if (response.statusCode() == 404) {
+        throw new NotFoundException("No working area picture map layer found for this location");
+      }
+      validateResponse(response);
+      return om.readValue(response.body(), MapLayerActual.class);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ImageryServiceException(
+          "Thread was interrupted while calling GeoData Imagery service", e);
+    } catch (IOException e) {
+      throw new ImageryServiceException("Failed to process GeoData Imagery service response", e);
+    }
+  }
+
   public String getMapLayersURLFrom(Map<String, Double> queryParams) {
     String baseUrl = buildUri(AREA_PICTURE_MAP_LAYERS_ENDPOINT).toString();
     if (queryParams == null || queryParams.isEmpty()) {
@@ -121,6 +172,19 @@ public class ImageryService {
             .map(entry -> encode(entry.getKey()) + "=" + encode(String.valueOf(entry.getValue())))
             .collect(Collectors.joining("&"));
     return baseUrl + "?" + queryString;
+  }
+
+  private HttpRequest authenticatedGet(String endpoint, Map<String, ?> queryParams) {
+    String queryString =
+        queryParams.entrySet().stream()
+            .map(entry -> encode(entry.getKey()) + "=" + encode(String.valueOf(entry.getValue())))
+            .collect(Collectors.joining("&"));
+    return HttpRequest.newBuilder()
+        .uri(URI.create(buildUri(endpoint) + "?" + queryString))
+        .header(ACCEPT, JSON_CONTENT_TYPE)
+        .header(API_KEY_HEADER, geodataApiKey)
+        .GET()
+        .build();
   }
 
   private HttpResponse<String> send(HttpRequest request) throws IOException, InterruptedException {

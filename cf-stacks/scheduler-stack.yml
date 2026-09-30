@@ -37,24 +37,6 @@ Resources:
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.RefreshInvoiceSummaryTriggered'
           Source: 'app.bpartners.api.event1'
-  MonthlyCancelledClientsPaymentScheduler:
-    Type: AWS::Scheduler::Schedule
-    Properties:
-      Description: Scheduler that triggers the computing of monthly subscription invoices 
-        for users whom cancelled during setup mode
-      FlexibleTimeWindow:
-        Mode: "OFF"
-      Name: !Join [ '', [ !Ref Env, -TriggerMonthlyCancelledClientsPayment ] ]
-      ScheduleExpression: "cron(0 8 5 *  ? *)"
-      ScheduleExpressionTimezone: "Europe/Paris"
-      Target:
-        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
-        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
-        DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
-        EventBridgeParameters:
-          DetailType: 'app.bpartners.api.endpoint.event.model.MonthlyCancelledClientsPayment'
-          Source: 'app.bpartners.api.event1'
   MonthlySubscriptionCreditGrantTriggeredScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:
@@ -73,20 +55,3 @@ Resources:
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.MonthlySubscriptionCreditGrantTriggered'
           Source: 'app.bpartners.api.event2'
-  RelaunchProspectsScheduler:
-    Type: AWS::Scheduler::Schedule
-    Properties:
-      Description: Scheduler that trigger the relaunch of prospects
-      FlexibleTimeWindow:
-        Mode: "OFF"
-      Name: !Join ['', [!Ref Env, -RelaunchProspects]]
-      ScheduleExpression: "cron(0 14 ? * FRI *)"
-      ScheduleExpressionTimezone: "Europe/Paris"
-      Target:
-        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
-        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
-        DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
-        EventBridgeParameters:
-          DetailType: 'app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered'
-          Source: 'app.bpartners.api.event1'

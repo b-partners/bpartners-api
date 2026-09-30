@@ -221,7 +221,11 @@ public class InvoiceService {
   @Transactional
   public Invoice crupdateSubscriptionInvoice(Invoice newInvoice) {
     var savedInvoice = computeInvoice(newInvoice);
-    var subscriptionInvoice = savedInvoice.toBuilder().subscriptionInvoice(true).build();
+    var subscriptionInvoice =
+        savedInvoice.toBuilder()
+            .subscriptionInvoice(true)
+            .subscriptionBillingInterval(newInvoice.getSubscriptionBillingInterval())
+            .build();
     invoicePDFProcessor.accept(subscriptionInvoice);
     return savedInvoice;
   }

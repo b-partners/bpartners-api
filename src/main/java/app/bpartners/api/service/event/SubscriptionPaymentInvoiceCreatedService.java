@@ -11,6 +11,7 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.repository.InvoiceRepository;
+import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.EmailInvoiceResolver;
 import app.bpartners.api.service.aws.S3Service;
@@ -18,6 +19,7 @@ import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -36,6 +38,7 @@ public class SubscriptionPaymentInvoiceCreatedService
   private static final String TECH_RECIPIENT = "tech@birdia.fr";
   private final InvoiceRepository invoiceRepository;
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
+  private final SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository;
   private final S3Service s3Service;
   private final FileWriter fileWriter;
   private final SesService mailer;
@@ -99,7 +102,7 @@ public class SubscriptionPaymentInvoiceCreatedService
     context.setVariable("paymentDate", paymentDateOf(invoice));
     context.setVariable("subscriptionPlan", subscriptionPlanOf(invoice, subscriptionPayment));
     context.setVariable("billingInterval", billingIntervalLabelOf(subscriptionPayment));
-    context.setVariable("billedPeriod", billedPeriodOf(subscriptionPayment));
+    context.setVariable("billedPeriod", billedPeriodOf(invoice, subscriptionPayment));
     context.setVariable("amountWithoutVat", euroOf(invoice.getTotalPriceWithoutVat()));
     context.setVariable("amountWithVat", euroOf(invoice.getTotalPriceWithVat()));
     return context;
@@ -128,20 +131,33 @@ public class SubscriptionPaymentInvoiceCreatedService
       return null;
     }
     return switch (subscriptionPayment.getBillingInterval()) {
-      case YEARLY -> "Annuelle";
-      case MONTHLY -> "Mensuelle";
+      case YEARLY -> "Annuel";
+      case MONTHLY -> "Mensuel";
     };
   }
 
-  private String billedPeriodOf(SubscriptionPayment subscriptionPayment) {
-    if (subscriptionPayment == null
-        || subscriptionPayment.getPeriodStartDatetime() == null
-        || subscriptionPayment.getPeriodEndDatetime() == null) {
+  private String billedPeriodOf(Invoice invoice, SubscriptionPayment subscriptionPayment) {
+    var invoicedPeriod = subscriptionInvoicePeriodRepository.findByInvoiceId(invoice.getId());
+    if (invoicedPeriod.isPresent()) {
+      return frenchPeriodOf(
+          invoicedPeriod.get().getPeriodStartDatetime(),
+          invoicedPeriod.get().getPeriodEndDatetime());
+    }
+    if (subscriptionPayment == null) {
       return null;
     }
-    return customDateFormatter.formatFrenchDate(subscriptionPayment.getPeriodStartDatetime())
+    return frenchPeriodOf(
+        subscriptionPayment.invoicedPeriodStartOrPeriodStart(),
+        subscriptionPayment.invoicedPeriodEndOrPeriodEnd());
+  }
+
+  private String frenchPeriodOf(Instant periodStart, Instant periodEnd) {
+    if (periodStart == null || periodEnd == null) {
+      return null;
+    }
+    return customDateFormatter.formatFrenchDate(periodStart)
         + " au "
-        + customDateFormatter.formatFrenchDate(subscriptionPayment.getPeriodEndDatetime());
+        + customDateFormatter.formatFrenchDate(periodEnd);
   }
 
   private String euroOf(Fraction amount) {

@@ -26,8 +26,12 @@ import app.bpartners.api.endpoint.rest.mapper.AreaPictureRestMapper;
 import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.endpoint.rest.model.AreaPictureMapLayer;
 import app.bpartners.api.endpoint.rest.model.CrupdateAreaPictureDetails;
+import app.bpartners.api.endpoint.rest.model.MapLayerActual;
+import app.bpartners.api.endpoint.rest.model.MapLayerReachability;
+import app.bpartners.api.endpoint.rest.model.MapLayersReachability;
 import app.bpartners.api.endpoint.rest.model.OpenStreetMapLayer;
 import app.bpartners.api.endpoint.rest.model.PreSignedURL;
+import app.bpartners.api.endpoint.rest.model.SecureLinkToken;
 import app.bpartners.api.endpoint.rest.model.Tile;
 import app.bpartners.api.endpoint.rest.model.Zoom;
 import app.bpartners.api.endpoint.rest.model.ZoomLevel;
@@ -53,6 +57,7 @@ import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -766,5 +771,88 @@ public class AreaPictureIT extends S3MockedThirdParties {
         .shiftNb(0)
         .isOpaque(false)
         .shiftDirection(null);
+  }
+
+  private static MapLayersReachability mapLayersReachability() {
+    var layer = charenteLayer();
+    return new MapLayersReachability()
+        .wmsBaseUrl("https://wms.dummy.com")
+        .layers(List.of(new MapLayerReachability().layer(layer).reachable(true)))
+        .actualLayer(layer)
+        .secureLinkToken(
+            new SecureLinkToken().value("token").expiresAt(Instant.parse("2026-09-24T12:00:00Z")));
+  }
+
+  @Test
+  void read_map_layers_with_api_key_ok() throws ApiException {
+    var expected = mapLayersReachability();
+    when(mapLayerServiceMock.getMapLayers(43.71, 7.26, true)).thenReturn(expected);
+    AreaPictureApi api = new AreaPictureApi(joeDoeClient());
+
+    var actual = api.getMapLayers(BigDecimal.valueOf(43.71), BigDecimal.valueOf(7.26), true);
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void read_map_layers_with_bearer_token_ok() throws ApiException {
+    var expected = mapLayersReachability();
+    when(mapLayerServiceMock.getMapLayers(43.71, 7.26, false)).thenReturn(expected);
+    AreaPictureApi api = new AreaPictureApi(anApiClient(JOE_DOE_TOKEN, null, localPort));
+
+    var actual = api.getMapLayers(BigDecimal.valueOf(43.71), BigDecimal.valueOf(7.26), false);
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void read_map_layers_without_authentication_ko() {
+    AreaPictureApi api = new AreaPictureApi(anApiClient("bad_token", null, localPort));
+
+    assertThrowsApiException(
+        "{\"type\":\"403 FORBIDDEN\",\"message\":\"Bad credentials\"}",
+        () -> api.getMapLayers(BigDecimal.valueOf(43.71), BigDecimal.valueOf(7.26), false));
+  }
+
+  private static MapLayerActual mapLayerActual() {
+    return new MapLayerActual()
+        .wmsBaseUrl("https://wms.dummy.com")
+        .layer(charenteLayer())
+        .secureLinkToken(
+            new SecureLinkToken()
+                .value("token")
+                .expiresAt(Instant.parse("2026-09-24T12:00:00Z"))
+                .expiresAtEpochSecond(1790251200L));
+  }
+
+  @Test
+  void read_actual_map_layer_with_api_key_ok() throws ApiException {
+    var expected = mapLayerActual();
+    when(mapLayerServiceMock.getActualMapLayer(43.71, 7.26)).thenReturn(expected);
+    AreaPictureApi api = new AreaPictureApi(joeDoeClient());
+
+    var actual = api.getActualMapLayer(BigDecimal.valueOf(43.71), BigDecimal.valueOf(7.26));
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void read_actual_map_layer_with_bearer_token_ok() throws ApiException {
+    var expected = mapLayerActual();
+    when(mapLayerServiceMock.getActualMapLayer(43.71, 7.26)).thenReturn(expected);
+    AreaPictureApi api = new AreaPictureApi(anApiClient(JOE_DOE_TOKEN, null, localPort));
+
+    var actual = api.getActualMapLayer(BigDecimal.valueOf(43.71), BigDecimal.valueOf(7.26));
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void read_actual_map_layer_without_authentication_ko() {
+    AreaPictureApi api = new AreaPictureApi(anApiClient("bad_token", null, localPort));
+
+    assertThrowsApiException(
+        "{\"type\":\"403 FORBIDDEN\",\"message\":\"Bad credentials\"}",
+        () -> api.getActualMapLayer(BigDecimal.valueOf(43.71), BigDecimal.valueOf(7.26)));
   }
 }

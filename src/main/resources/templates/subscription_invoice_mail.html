@@ -125,12 +125,10 @@
     <div class="card">
         <div class="header">
             <h1 class="header-title">Votre facture est disponible</h1>
-            <p class="header-subtitle" th:text="'Abonnement payé le ' + ${paymentDate}">Abonnement</p>
         </div>
         <div class="content">
             <p th:text="'Bonjour ' + ${customerName} + ','">Bonjour,</p>
-            <p>Nous vous remercions pour votre abonnement. Votre paiement a bien été reçu et la facture
-                acquittée correspondante est jointe à ce message.</p>
+            <p>Nous vous remercions pour votre abonnement. La facture correspondante est jointe à ce message.</p>
             <table class="summary">
                 <tr>
                     <td class="label">Référence</td>
@@ -141,8 +139,8 @@
                     <td class="value" th:text="${subscriptionPlan}">Essentiel</td>
                 </tr>
                 <tr th:if="${billingInterval}">
-                    <td class="label">Facturation</td>
-                    <td class="value" th:text="${billingInterval}">Mensuelle</td>
+                    <td class="label">Règlement</td>
+                    <td class="value" th:text="${billingInterval}">Mensuel</td>
                 </tr>
                 <tr>
                     <td class="label">Période</td>
@@ -153,7 +151,7 @@
                     <td class="value" th:text="${amountWithoutVat} + ' €'">0 €</td>
                 </tr>
                 <tr>
-                    <td class="label">Total TTC payé</td>
+                    <td class="label">Total TTC</td>
                     <td class="value total" th:text="${amountWithVat} + ' €'">0 €</td>
                 </tr>
             </table>

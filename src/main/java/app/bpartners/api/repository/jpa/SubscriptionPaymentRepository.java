@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 public interface SubscriptionPaymentRepository extends JpaRepository<SubscriptionPayment, String> {
   Optional<SubscriptionPayment> findByStripeInvoiceId(String stripeInvoiceId);
 
-  List<SubscriptionPayment> findByInvoiceIdIsNull();
+  List<SubscriptionPayment> findByUserIdAndInvoiceIdIsNotNull(String userId);
 
   @Query(
       "select p from subscription_payment p"

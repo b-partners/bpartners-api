@@ -362,6 +362,53 @@ class StripeWebhookServiceTest {
   }
 
   @Test
+  void a_paid_monthly_subscription_grants_the_credits_of_the_billed_month() {
+    var plan = SubscriptionProduct.builder().id("plan_id").name("Pro").build();
+    var octoberPeriodStart = Instant.parse("2026-09-30T22:00:00Z");
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    when(subscriptionPaymentService.recordPaidStripeInvoice(invoice))
+        .thenReturn(
+            Optional.of(
+                paidPayment(plan).toBuilder()
+                    .billingInterval(BillingInterval.MONTHLY)
+                    .periodStartDatetime(octoberPeriodStart)
+                    .build()));
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(creditGrantService)
+        .grantIncludedCreditsOfBilledMonth("user_id", plan, octoberPeriodStart);
+    verify(creditGrantService, never()).grantIncludedCredits(any(), any());
+  }
+
+  @Test
+  void a_paid_monthly_subscription_without_billed_period_grants_the_current_month() {
+    var plan = SubscriptionProduct.builder().id("plan_id").name("Pro").build();
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    when(subscriptionPaymentService.recordPaidStripeInvoice(invoice))
+        .thenReturn(
+            Optional.of(
+                paidPayment(plan).toBuilder().billingInterval(BillingInterval.MONTHLY).build()));
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(creditGrantService).grantIncludedCredits("user_id", plan);
+    verify(creditGrantService, never()).grantIncludedCreditsOfBilledMonth(any(), any(), any());
+  }
+
+  @Test
   void a_paid_subscription_without_resolved_plan_grants_nothing() {
     var invoice = mock(Invoice.class);
     when(invoice.getSubscription()).thenReturn("sub_123");

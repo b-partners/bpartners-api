@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.ImmediateSubscriptionCancellationTriggered;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionCreditGrantTriggered;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered;
+import app.bpartners.api.endpoint.event.model.SubscriptionRemainingPeriodInvoiceTriggered;
 import app.bpartners.api.endpoint.event.model.TransitionalSubscriptionCreditGrantTriggered;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillTriggered;
@@ -64,6 +65,12 @@ public class SubscriptionController {
   public String triggerTransitionalSubscriptionCreditGrant() {
     eventProducer.accept(List.of(new TransitionalSubscriptionCreditGrantTriggered()));
     return "Transitional subscription credit grant triggered successfully";
+  }
+
+  @PostMapping("/subscriptionRemainingPeriodInvoiceTrigger")
+  public String triggerSubscriptionRemainingPeriodInvoice() {
+    eventProducer.accept(List.of(new SubscriptionRemainingPeriodInvoiceTriggered()));
+    return "Subscription remaining period invoice triggered successfully";
   }
 
   @PostMapping("/immediateSubscriptionCancellationTrigger")

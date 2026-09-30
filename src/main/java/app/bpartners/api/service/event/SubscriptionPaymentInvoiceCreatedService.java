@@ -131,8 +131,8 @@ public class SubscriptionPaymentInvoiceCreatedService
       return null;
     }
     return switch (subscriptionPayment.getBillingInterval()) {
-      case YEARLY -> "Annuelle";
-      case MONTHLY -> "Mensuelle";
+      case YEARLY -> "Annuel";
+      case MONTHLY -> "Mensuel";
     };
   }
 

@@ -187,8 +187,8 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
     assertTrue(body.contains("Buyer SARL"));
     assertTrue(body.contains("REF-04032026103000"));
     assertTrue(body.contains("Essentiel"));
-    assertTrue(body.contains("Facturation"));
-    assertTrue(body.contains("Mensuelle"));
+    assertTrue(body.contains("Règlement"));
+    assertTrue(body.contains("Mensuel"));
     assertTrue(body.contains("04/03/2026 au 04/04/2026"));
     assertTrue(body.contains("40,83 €"));
     assertTrue(body.contains("49,00 €"));
@@ -236,7 +236,7 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
 
     subject.accept(someEvent());
 
-    assertTrue(capturedHtmlBody().contains("Annuelle"));
+    assertTrue(capturedHtmlBody().contains("Annuel"));
   }
 
   @Test
@@ -245,7 +245,7 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
 
     subject.accept(someEvent());
 
-    assertFalse(capturedHtmlBody().contains("Facturation"));
+    assertFalse(capturedHtmlBody().contains("Règlement"));
   }
 
   @Test

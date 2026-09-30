@@ -209,16 +209,62 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
-  void monthly_commitment_prorates_the_first_month_and_bills_the_others_at_catalog_price() {
+  void monthly_commitment_bills_the_first_month_at_the_amount_charged_by_stripe() {
     givenDefaultUsersAndCustomer();
     givenPayment(monthlyCommitmentPayment().build());
 
     subject.accept(someEvent());
 
     var products = capturedInvoice().getProducts();
-    assertEquals(4900.0 * 16 / 30, products.getFirst().getUnitPrice().getApproximatedValue(), 0.01);
+    assertEquals(parseFraction(2613), products.getFirst().getUnitPrice());
     assertEquals(parseFraction(4900), products.get(1).getUnitPrice());
     assertEquals(parseFraction(4900), products.getLast().getUnitPrice());
+  }
+
+  @Test
+  void monthly_commitment_totals_the_amount_charged_by_stripe_for_the_first_month() {
+    givenDefaultUsersAndCustomer();
+    givenPayment(monthlyCommitmentPayment().build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(565.13, invoice.getTotalPriceWithoutDiscount().getCentsAsDecimal(), 0.001);
+    assertEquals(565.13, invoice.getTotalPriceWithoutVat().getCentsAsDecimal(), 0.001);
+    assertEquals(113.03, invoice.getTotalVat().getCentsAsDecimal(), 0.001);
+    assertEquals(678.16, invoice.getTotalPriceWithVat().getCentsAsDecimal(), 0.001);
+  }
+
+  @Test
+  void monthly_commitment_prorates_the_first_month_on_days_when_stripe_charged_a_full_month() {
+    givenDefaultUsersAndCustomer();
+    givenPayment(
+        monthlyCommitmentPayment()
+            .amountInCentsWithoutVat(4_900L)
+            .amountInCentsWithVat(5_880L)
+            .build());
+
+    subject.accept(someEvent());
+
+    var products = capturedInvoice().getProducts();
+    assertEquals(4900.0 * 16 / 30, products.getFirst().getUnitPrice().getApproximatedValue(), 0.01);
+    assertEquals(parseFraction(4900), products.get(1).getUnitPrice());
+  }
+
+  @Test
+  void monthly_commitment_prorates_the_first_month_on_days_when_no_amount_was_charged() {
+    givenDefaultUsersAndCustomer();
+    givenPayment(
+        monthlyCommitmentPayment()
+            .amountInCentsWithoutVat(null)
+            .amountInCentsWithVat(null)
+            .build());
+
+    subject.accept(someEvent());
+
+    var products = capturedInvoice().getProducts();
+    assertEquals(4900.0 * 16 / 30, products.getFirst().getUnitPrice().getApproximatedValue(), 0.01);
+    assertEquals(parseFraction(4900), products.get(1).getUnitPrice());
   }
 
   @Test
@@ -387,10 +433,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     assertEquals(
         "Abonnement Essentiel du 15/09/2026 au 30/09/2026",
         invoice.getProducts().getFirst().getDescription());
-    assertEquals(
-        4900.0 * 16 / 30,
-        invoice.getProducts().getFirst().getUnitPrice().getApproximatedValue(),
-        0.01);
+    assertEquals(parseFraction(2613), invoice.getProducts().getFirst().getUnitPrice());
     assertEquals(
         "Abonnement Essentiel du 01/10/2026 au 31/10/2026",
         invoice.getProducts().get(1).getDescription());

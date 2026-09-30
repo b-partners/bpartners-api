@@ -431,19 +431,50 @@ public class SubscriptionPaymentInvoiceRequestedService
       List<MonthSegment> billedMonths) {
     var fullMonthUnitPrice = monthlyCommitmentUnitPrice(subscriptionPayment);
     var vatPercent = vatPercentOf(subscriptionPayment);
-    return billedMonths.stream()
-        .map(
-            segment ->
-                invoiceProduct(
-                    invoiceIdentifier,
-                    subscriptionLineLabel(subscriptionPayment, segment.start(), segment.end()),
-                    1,
-                    segment.fullMonth()
-                        ? fullMonthUnitPrice
-                        : proratedOnMonthLength(
-                            fullMonthUnitPrice, segment.days(), segment.start().lengthOfMonth()),
-                    vatPercent))
-        .toList();
+    var products = new ArrayList<InvoiceProduct>();
+    for (var index = 0; index < billedMonths.size(); index++) {
+      var segment = billedMonths.get(index);
+      products.add(
+          invoiceProduct(
+              invoiceIdentifier,
+              subscriptionLineLabel(subscriptionPayment, segment.start(), segment.end()),
+              1,
+              monthlyInstalmentUnitPrice(
+                  subscriptionPayment, segment, index == 0, fullMonthUnitPrice),
+              vatPercent));
+    }
+    return products;
+  }
+
+  private Fraction monthlyInstalmentUnitPrice(
+      SubscriptionPayment subscriptionPayment,
+      MonthSegment segment,
+      boolean firstInstalment,
+      Fraction fullMonthUnitPrice) {
+    if (segment.fullMonth()) {
+      return fullMonthUnitPrice;
+    }
+    if (firstInstalment) {
+      var chargedProrata = chargedProrataOf(subscriptionPayment, segment, fullMonthUnitPrice);
+      if (chargedProrata != null) {
+        return chargedProrata;
+      }
+    }
+    return proratedOnMonthLength(
+        fullMonthUnitPrice, segment.days(), segment.start().lengthOfMonth());
+  }
+
+  private Fraction chargedProrataOf(
+      SubscriptionPayment subscriptionPayment, MonthSegment segment, Fraction fullMonthUnitPrice) {
+    if (!segment.start().equals(billingPeriodStart(subscriptionPayment))) {
+      return null;
+    }
+    var chargedInCents = subscriptionPayment.amountInCentsWithoutVatOrZero();
+    if (chargedInCents <= 0L) {
+      return null;
+    }
+    var chargedProrata = new Fraction(BigInteger.valueOf(chargedInCents));
+    return chargedProrata.compareTo(fullMonthUnitPrice) >= 0 ? null : chargedProrata;
   }
 
   private Fraction monthlyCommitmentUnitPrice(SubscriptionPayment subscriptionPayment) {

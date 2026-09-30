@@ -24,6 +24,14 @@ public class TemporalUtils {
     return YearMonth.from(date).plusMonths(1).atDay(1);
   }
 
+  public LocalDate startOfMonthOf(Instant instant) {
+    return YearMonth.from(instant.atZone(ZONE_ID_OF_EUROPE_PARIS)).atDay(1);
+  }
+
+  public Instant startOfMonthAfterInstant(LocalDate date) {
+    return startOfMonthAfter(date).atStartOfDay(ZONE_ID_OF_EUROPE_PARIS).toInstant();
+  }
+
   public LocalDate startOfActualMonth() {
     var currentMonth = YearMonth.from(today());
     return currentMonth.atDay(1);

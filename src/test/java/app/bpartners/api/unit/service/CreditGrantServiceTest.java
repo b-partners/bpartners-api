@@ -19,6 +19,8 @@ import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.credit.CreditLedgerService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class CreditGrantServiceTest {
+  private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
   CreditLedgerService creditLedgerService = mock(CreditLedgerService.class);
   CreditTransactionRepository creditTransactionRepository = mock(CreditTransactionRepository.class);
   TemporalUtils temporalUtils = new TemporalUtils();
@@ -71,6 +74,46 @@ class CreditGrantServiceTest {
     assertEquals("plan_id", appended.getSubscriptionProductId());
     assertEquals(temporalUtils.startOfActualMonth(), appended.getGrantPeriodStart());
     assertEquals(temporalUtils.startOfNextMonthInstant(), appended.getExpirationDatetime());
+  }
+
+  @Test
+  void grants_the_credits_of_the_billed_month_expiring_at_the_start_of_the_following_month() {
+    var octoberFirstInParis = Instant.parse("2026-09-30T22:00:00Z");
+
+    subject.grantIncludedCreditsOfBilledMonth("user_id", plan(10L), octoberFirstInParis);
+
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+    verify(creditLedgerService).append(captor.capture());
+    assertEquals(LocalDate.parse("2026-10-01"), captor.getValue().getGrantPeriodStart());
+    assertEquals(Instant.parse("2026-10-31T23:00:00Z"), captor.getValue().getExpirationDatetime());
+  }
+
+  @Test
+  void a_late_paid_month_is_granted_for_its_own_month_and_already_expired() {
+    var lastYearMonthStart = temporalUtils.startOfActualMonth().minusYears(1);
+    var billedPeriodStart = lastYearMonthStart.plusDays(14).atStartOfDay(PARIS).toInstant();
+
+    subject.grantIncludedCreditsOfBilledMonth("user_id", plan(10L), billedPeriodStart);
+
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+    verify(creditLedgerService).append(captor.capture());
+    assertEquals(lastYearMonthStart, captor.getValue().getGrantPeriodStart());
+    assertTrue(captor.getValue().isExpiredAt(now()));
+  }
+
+  @Test
+  void grants_nothing_when_the_billed_month_was_already_granted() {
+    when(creditTransactionRepository
+            .existsByUserIdAndTypeAndSubscriptionProductIdAndGrantPeriodStart(
+                "user_id", SUBSCRIPTION_GRANT, "plan_id", LocalDate.parse("2026-10-01")))
+        .thenReturn(true);
+
+    var actual =
+        subject.grantIncludedCreditsOfBilledMonth(
+            "user_id", plan(10L), Instant.parse("2026-10-01T08:00:00Z"));
+
+    assertTrue(actual.isEmpty());
+    verify(creditLedgerService, never()).append(any());
   }
 
   @Test

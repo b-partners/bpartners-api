@@ -72,6 +72,16 @@ public class CreditGrantService {
   }
 
   public Optional<CreditTransaction> grantIncludedCredits(String userId, SubscriptionProduct plan) {
+    return grantIncludedCredits(userId, plan, temporalUtils.startOfActualMonth());
+  }
+
+  public Optional<CreditTransaction> grantIncludedCreditsOfBilledMonth(
+      String userId, SubscriptionProduct plan, Instant billedPeriodStart) {
+    return grantIncludedCredits(userId, plan, temporalUtils.startOfMonthOf(billedPeriodStart));
+  }
+
+  private Optional<CreditTransaction> grantIncludedCredits(
+      String userId, SubscriptionProduct plan, LocalDate billingPeriodStart) {
     var includedCredits = plan.includedCreditsPerBillingPeriodOrDefault();
     if (includedCredits <= 0) {
       log.info(
@@ -80,7 +90,6 @@ public class CreditGrantService {
           userId);
       return Optional.empty();
     }
-    var billingPeriodStart = temporalUtils.startOfActualMonth();
     if (alreadyGranted(userId, plan.getId(), billingPeriodStart)) {
       log.info(
           "User(id={}) was already granted the credits included in SubscriptionProduct(id={}) for"
@@ -100,7 +109,7 @@ public class CreditGrantService {
                 .label(grantLabel(plan))
                 .subscriptionProductId(plan.getId())
                 .grantPeriodStart(billingPeriodStart)
-                .expirationDatetime(temporalUtils.startOfNextMonthInstant())
+                .expirationDatetime(temporalUtils.startOfMonthAfterInstant(billingPeriodStart))
                 .build());
     log.info(
         "Granted {} credits to User(id={}) from SubscriptionProduct(id={}) for the billing period"

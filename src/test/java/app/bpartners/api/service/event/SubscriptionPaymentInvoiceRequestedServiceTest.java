@@ -667,6 +667,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     assertEquals(1, invoice.getProducts().size());
     assertEquals(PaymentTypeEnum.CASH, invoice.getPaymentType());
     assertEquals(PAID, invoice.getStatus());
+    assertEquals("Facture d'abonnement du 15/09/2026", invoice.getTitle());
   }
 
   @Test

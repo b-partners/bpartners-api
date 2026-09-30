@@ -275,7 +275,7 @@ public class SubscriptionPaymentInvoiceRequestedService
       return MonthlyBilling.notInstalmentPayable();
     }
     var paymentPeriodStart = billingPeriodStart(subscriptionPayment);
-    if (startsAfterItsPayment(subscriptionPayment, paymentPeriodStart)) {
+    if (startsAfterItsPayment(subscriptionPayment)) {
       log.warn(
           "SubscriptionPayment(id={}) bills a period starting {} after being paid on {},"
               + " no instalment schedule computed from it",
@@ -313,9 +313,13 @@ public class SubscriptionPaymentInvoiceRequestedService
     return calendarMonthSegments(start, lastBilledMonthEnd);
   }
 
-  private boolean startsAfterItsPayment(
-      SubscriptionPayment subscriptionPayment, LocalDate paymentPeriodStart) {
-    return paymentPeriodStart.isAfter(paidAt(subscriptionPayment).atZone(PARIS).toLocalDate());
+  private boolean startsAfterItsPayment(SubscriptionPayment subscriptionPayment) {
+    var periodStart = subscriptionPayment.getPeriodStartDatetime();
+    return periodStart != null
+        && periodStart
+            .atZone(PARIS)
+            .toLocalDate()
+            .isAfter(paidAt(subscriptionPayment).atZone(PARIS).toLocalDate());
   }
 
   private LocalDate commitmentStartOf(
@@ -385,7 +389,7 @@ public class SubscriptionPaymentInvoiceRequestedService
   private String billedPeriodOf(SubscriptionPayment subscriptionPayment) {
     var periodStart = subscriptionPayment.getPeriodStartDatetime();
     var periodEnd = subscriptionPayment.getPeriodEndDatetime();
-    if (periodStart == null || periodEnd == null) {
+    if (periodStart == null || periodEnd == null || startsAfterItsPayment(subscriptionPayment)) {
       return null;
     }
     return "pour la période du "

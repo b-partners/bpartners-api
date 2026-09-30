@@ -522,11 +522,6 @@ public class SubscriptionPaymentInvoiceRequestedService
     var annualGrossTarget =
         monthlyGrossUnitPrice.operate(
             new Fraction(BigInteger.valueOf(MONTHS_PER_YEAR)), Aprational::multiply);
-    var partialDaysTotal =
-        segments.stream()
-            .filter(segment -> !segment.fullMonth())
-            .mapToInt(MonthSegment::days)
-            .sum();
     var allocatedGross = new Fraction(BigInteger.ZERO);
     for (var index = 0; index < segments.size(); index++) {
       var segment = segments.get(index);
@@ -536,7 +531,8 @@ public class SubscriptionPaymentInvoiceRequestedService
               ? annualGrossTarget.operate(allocatedGross, Aprational::subtract)
               : segment.fullMonth()
                   ? fullMonthUnitPrice
-                  : proratedUnitPrice(fullMonthUnitPrice, segment.days(), partialDaysTotal);
+                  : proratedOnMonthLength(
+                      fullMonthUnitPrice, segment.days(), segment.start().lengthOfMonth());
       if (!lastSegment) {
         allocatedGross = allocatedGross.operate(unitPrice, Aprational::add);
       }
@@ -569,16 +565,6 @@ public class SubscriptionPaymentInvoiceRequestedService
       cursor = monthEnd.plusDays(1);
     }
     return segments;
-  }
-
-  private Fraction proratedUnitPrice(
-      Fraction monthlyGrossUnitPrice, int days, int partialDaysTotal) {
-    if (partialDaysTotal <= 0) {
-      return monthlyGrossUnitPrice;
-    }
-    return new Fraction(
-        monthlyGrossUnitPrice.getNumerator().multiply(BigInteger.valueOf(days)),
-        monthlyGrossUnitPrice.getDenominator().multiply(BigInteger.valueOf(partialDaysTotal)));
   }
 
   private String subscriptionLineLabel(

@@ -1044,6 +1044,88 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void yearly_payment_starting_on_a_month_last_day_prorates_one_day_and_bills_eleven_full_months() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(
+        someYearlyPayment()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .name("Essentiel")
+                    .annualDiscountPercent(1000)
+                    .priceInCentsWithoutVat(4_900L)
+                    .build())
+            .amountInCentsWithoutVat(52_900L)
+            .amountInCentsWithVat(63_480L)
+            .periodStartDatetime(Instant.parse("2026-09-30T12:38:00Z"))
+            .periodEndDatetime(Instant.parse("2027-09-30T12:37:59Z"))
+            .paymentDatetime(Instant.parse("2026-09-30T12:38:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    var products = invoice.getProducts();
+    assertEquals(13, products.size());
+    assertEquals(1.63, products.getFirst().getUnitPrice().getCentsAsDecimal());
+    assertTrue(
+        products.subList(1, 12).stream()
+            .allMatch(product -> product.getUnitPrice().getCentsAsDecimal() == 49.0));
+    assertEquals(47.14, products.getLast().getUnitPrice().getCentsAsDecimal());
+    assertEquals(
+        "Abonnement Essentiel du 30/09/2026 au 30/09/2026", products.getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/09/2027 au 29/09/2027", products.getLast().getDescription());
+    assertEquals(587.78, invoice.getTotalPriceWithoutDiscount().getCentsAsDecimal());
+    assertEquals(529.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(634.8, invoice.getTotalPriceWithVat().getCentsAsDecimal());
+    assertEquals(
+        "Facture d'abonnement pour la période du 30/09/2026 au 29/09/2027", invoice.getTitle());
+  }
+
+  @Test
+  void yearly_payment_starting_mid_month_prorates_both_ends_on_their_own_month_length() {
+    givenDefaultUsersAndCustomer();
+    SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =
+        AnnualInvoiceBillingType.MONTHLY_DETAILED;
+    givenPayment(
+        someYearlyPayment()
+            .subscriptionProduct(
+                SubscriptionProduct.builder()
+                    .name("Essentiel")
+                    .annualDiscountPercent(1000)
+                    .priceInCentsWithoutVat(4_900L)
+                    .build())
+            .amountInCentsWithoutVat(52_900L)
+            .amountInCentsWithVat(63_480L)
+            .periodStartDatetime(Instant.parse("2026-09-29T12:38:00Z"))
+            .periodEndDatetime(Instant.parse("2027-09-29T12:37:59Z"))
+            .paymentDatetime(Instant.parse("2026-09-29T12:38:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    var products = invoice.getProducts();
+    assertEquals(13, products.size());
+    assertEquals(3.27, products.getFirst().getUnitPrice().getCentsAsDecimal());
+    assertTrue(
+        products.subList(1, 12).stream()
+            .allMatch(product -> product.getUnitPrice().getCentsAsDecimal() == 49.0));
+    assertEquals(45.51, products.getLast().getUnitPrice().getCentsAsDecimal());
+    assertEquals(
+        "Abonnement Essentiel du 29/09/2026 au 30/09/2026", products.getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/09/2027 au 28/09/2027", products.getLast().getDescription());
+    assertEquals(587.78, invoice.getTotalPriceWithoutDiscount().getCentsAsDecimal());
+    assertEquals(529.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(634.8, invoice.getTotalPriceWithVat().getCentsAsDecimal());
+    assertEquals(
+        "Facture d'abonnement pour la période du 29/09/2026 au 28/09/2027", invoice.getTitle());
+  }
+
+  @Test
   void yearly_payment_prefers_the_declared_discount_over_the_catalog_price() {
     givenDefaultUsersAndCustomer();
     SubscriptionPaymentInvoiceRequestedService.annualInvoiceBillingType =

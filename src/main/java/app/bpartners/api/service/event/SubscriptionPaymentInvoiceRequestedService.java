@@ -272,9 +272,18 @@ public class SubscriptionPaymentInvoiceRequestedService
 
   private MonthlyBilling monthlyBillingOf(SubscriptionPayment subscriptionPayment) {
     if (subscriptionPayment.getBillingInterval() != BillingInterval.MONTHLY) {
-      return MonthlyBilling.notMonthly();
+      return MonthlyBilling.notInstalmentPayable();
     }
     var paymentPeriodStart = billingPeriodStart(subscriptionPayment);
+    if (startsAfterItsPayment(subscriptionPayment, paymentPeriodStart)) {
+      log.warn(
+          "SubscriptionPayment(id={}) bills a period starting {} after being paid on {},"
+              + " no instalment schedule computed from it",
+          subscriptionPayment.getId(),
+          paymentPeriodStart,
+          paidAt(subscriptionPayment).atZone(PARIS).toLocalDate());
+      return MonthlyBilling.notInstalmentPayable();
+    }
     var commitment = latestCommitmentOf(subscriptionPayment, paymentPeriodStart);
     var commitmentEnd = commitmentEndOf(commitment, paymentPeriodStart);
     if (!excludesAlreadyInvoicedPeriods) {
@@ -302,6 +311,11 @@ public class SubscriptionPaymentInvoiceRequestedService
     var lastBilledMonthEnd =
         commitmentEnd.isBefore(start) ? start.withDayOfMonth(start.lengthOfMonth()) : commitmentEnd;
     return calendarMonthSegments(start, lastBilledMonthEnd);
+  }
+
+  private boolean startsAfterItsPayment(
+      SubscriptionPayment subscriptionPayment, LocalDate paymentPeriodStart) {
+    return paymentPeriodStart.isAfter(paidAt(subscriptionPayment).atZone(PARIS).toLocalDate());
   }
 
   private LocalDate commitmentStartOf(
@@ -679,7 +693,7 @@ public class SubscriptionPaymentInvoiceRequestedService
 
   private record MonthlyBilling(
       List<MonthSegment> instalments, SubscriptionInvoicePeriod coveringPeriod) {
-    private static MonthlyBilling notMonthly() {
+    private static MonthlyBilling notInstalmentPayable() {
       return new MonthlyBilling(List.of(), null);
     }
 

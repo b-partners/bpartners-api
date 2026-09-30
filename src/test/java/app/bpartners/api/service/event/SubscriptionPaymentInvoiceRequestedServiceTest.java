@@ -530,6 +530,146 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void remaining_period_triggered_after_a_prorated_september_bills_october_to_august() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-15T09:30:00Z"))
+                    .build()));
+    givenInvoicedPeriods(
+        invoicedPeriod(
+            "september_invoice_id", LocalDate.of(2026, 9, 15), LocalDate.of(2026, 9, 30)));
+    var septemberPayment =
+        monthlyCommitmentPayment()
+            .id("september_payment_id")
+            .invoiceId("september_invoice_id")
+            .periodStartDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+            .periodEndDatetime(Instant.parse("2026-10-14T09:30:00Z"))
+            .paymentDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+            .build();
+
+    var issued = subject.invoiceRemainingCommitmentPeriod(septemberPayment);
+
+    var invoice = capturedInvoice();
+    assertEquals(invoice.getId(), issued.orElseThrow().getId());
+    var products = invoice.getProducts();
+    assertEquals(11, products.size());
+    assertEquals(
+        "Abonnement Essentiel du 01/10/2026 au 31/10/2026", products.getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/08/2027 au 31/08/2027", products.getLast().getDescription());
+    assertEquals(parseFraction(4900), products.getFirst().getUnitPrice());
+    assertEquals(parseFraction(4900), products.getLast().getUnitPrice());
+    assertEquals(
+        "Facture d'abonnement pour la période du 01/10/2026 au 31/08/2027", invoice.getTitle());
+    assertEquals(539.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(646.8, invoice.getTotalPriceWithVat().getCentsAsDecimal(), 0.001);
+    assertEquals(CONFIRMED, invoice.getStatus());
+    assertEquals(PaymentTypeEnum.IN_INSTALMENT, invoice.getPaymentType());
+    assertEquals(LocalDate.of(2026, 10, 1), invoice.getToPayAt());
+    verify(subscriptionPaymentService, never()).invoicedBy(any(), anyString(), any(), any());
+    var captor = ArgumentCaptor.forClass(SubscriptionInvoicePeriod.class);
+    verify(subscriptionInvoicePeriodRepository).save(captor.capture());
+    assertEquals(
+        parisStartOfDay(LocalDate.of(2026, 10, 1)), captor.getValue().getPeriodStartDatetime());
+    assertEquals(
+        parisStartOfDay(LocalDate.of(2027, 8, 31)), captor.getValue().getPeriodEndDatetime());
+    assertEquals("september_payment_id", capturedCreatedEvent().getSubscriptionPaymentId());
+  }
+
+  @Test
+  void remaining_period_after_a_prorated_last_day_of_september_also_stops_on_august() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-09-30T08:00:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-30T08:00:00Z"))
+                    .build()));
+    givenInvoicedPeriods(
+        invoicedPeriod(
+            "september_invoice_id", LocalDate.of(2026, 9, 30), LocalDate.of(2026, 9, 30)));
+    var septemberPayment =
+        monthlyCommitmentPayment()
+            .id("september_payment_id")
+            .invoiceId("september_invoice_id")
+            .periodStartDatetime(Instant.parse("2026-09-30T08:00:00Z"))
+            .periodEndDatetime(Instant.parse("2026-10-29T08:00:00Z"))
+            .paymentDatetime(Instant.parse("2026-09-30T08:00:00Z"))
+            .build();
+
+    var issued = subject.invoiceRemainingCommitmentPeriod(septemberPayment);
+
+    var invoice = capturedInvoice();
+    assertEquals(invoice.getId(), issued.orElseThrow().getId());
+    var products = invoice.getProducts();
+    assertEquals(11, products.size());
+    assertEquals(
+        "Abonnement Essentiel du 01/10/2026 au 31/10/2026", products.getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/08/2027 au 31/08/2027", products.getLast().getDescription());
+    assertEquals(539.0, invoice.getTotalPriceWithoutVat().getCentsAsDecimal());
+    assertEquals(
+        "Facture d'abonnement pour la période du 01/10/2026 au 31/08/2027", invoice.getTitle());
+  }
+
+  @Test
+  void remaining_period_invoices_nothing_from_a_payment_billing_a_period_after_its_payment() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-09-01T09:30:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-01T09:30:00Z"))
+                    .build()));
+    var corruptedPayment =
+        monthlyCommitmentPayment()
+            .id("corrupted_payment_id")
+            .invoiceId("some_invoice_id")
+            .periodStartDatetime(Instant.parse("2027-09-29T09:30:00Z"))
+            .periodEndDatetime(Instant.parse("2027-10-28T09:30:00Z"))
+            .paymentDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+            .build();
+
+    var issued = subject.invoiceRemainingCommitmentPeriod(corruptedPayment);
+
+    assertTrue(issued.isEmpty());
+    verify(invoiceService, never()).crupdateSubscriptionInvoice(any());
+    verify(subscriptionInvoicePeriodRepository, never()).save(any());
+    verify(eventProducer, never()).accept(any());
+  }
+
+  @Test
+  void a_payment_billing_a_period_after_its_payment_falls_back_on_a_cash_invoice() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-09-01T09:30:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-01T09:30:00Z"))
+                    .build()));
+    givenPayment(
+        monthlyCommitmentPayment()
+            .periodStartDatetime(Instant.parse("2027-09-29T09:30:00Z"))
+            .periodEndDatetime(Instant.parse("2027-10-28T09:30:00Z"))
+            .paymentDatetime(Instant.parse("2026-09-15T09:30:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals(1, invoice.getProducts().size());
+    assertEquals(PaymentTypeEnum.CASH, invoice.getPaymentType());
+    assertEquals(PAID, invoice.getStatus());
+  }
+
+  @Test
   void backfills_the_remaining_commitment_period_from_an_already_invoiced_payment() {
     givenDefaultUsersAndCustomer();
     when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))

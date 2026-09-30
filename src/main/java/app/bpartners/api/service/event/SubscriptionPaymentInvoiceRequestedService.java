@@ -361,10 +361,11 @@ public class SubscriptionPaymentInvoiceRequestedService
     return commitment.getCommitmentEndDatetime().atZone(PARIS).toLocalDate();
   }
 
-  private LocalDate lastFullMonthEnd(LocalDate endDate) {
-    return endDate.getDayOfMonth() == endDate.lengthOfMonth()
-        ? endDate
-        : endDate.withDayOfMonth(1).minusDays(1);
+  private LocalDate lastFullMonthEnd(LocalDate commitmentEndExclusive) {
+    var lastServedDay = commitmentEndExclusive.minusDays(1);
+    return lastServedDay.getDayOfMonth() == lastServedDay.lengthOfMonth()
+        ? lastServedDay
+        : lastServedDay.withDayOfMonth(1).minusDays(1);
   }
 
   private String billedPeriodOf(SubscriptionPayment subscriptionPayment) {

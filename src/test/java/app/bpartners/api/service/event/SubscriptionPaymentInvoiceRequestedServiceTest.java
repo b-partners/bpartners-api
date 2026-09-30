@@ -150,6 +150,65 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void monthly_commitment_started_on_the_last_day_of_a_month_stops_on_the_last_full_month() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-09-30T08:00:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-30T08:00:00Z"))
+                    .build()));
+    givenPayment(
+        monthlyCommitmentPayment()
+            .periodStartDatetime(Instant.parse("2026-09-30T08:00:00Z"))
+            .periodEndDatetime(Instant.parse("2026-10-29T08:00:00Z"))
+            .paymentDatetime(Instant.parse("2026-09-30T08:00:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    var products = invoice.getProducts();
+    assertEquals(12, products.size());
+    assertEquals(
+        "Abonnement Essentiel du 30/09/2026 au 30/09/2026", products.getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/10/2026 au 31/10/2026", products.get(1).getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/08/2027 au 31/08/2027", products.getLast().getDescription());
+    assertEquals(
+        "Facture d'abonnement pour la période du 30/09/2026 au 31/08/2027", invoice.getTitle());
+  }
+
+  @Test
+  void monthly_commitment_ending_on_a_first_of_month_bills_that_month_in_full() {
+    givenDefaultUsersAndCustomer();
+    when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))
+        .thenReturn(
+            List.of(
+                UserSubscriptionCommitment.builder()
+                    .commitmentStartDatetime(Instant.parse("2026-10-01T08:00:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-10-01T08:00:00Z"))
+                    .build()));
+    givenPayment(
+        monthlyCommitmentPayment()
+            .periodStartDatetime(Instant.parse("2026-10-01T08:00:00Z"))
+            .periodEndDatetime(Instant.parse("2026-10-31T08:00:00Z"))
+            .paymentDatetime(Instant.parse("2026-10-01T08:00:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    var products = capturedInvoice().getProducts();
+    assertEquals(12, products.size());
+    assertEquals(
+        "Abonnement Essentiel du 01/10/2026 au 31/10/2026", products.getFirst().getDescription());
+    assertEquals(
+        "Abonnement Essentiel du 01/09/2027 au 30/09/2027", products.getLast().getDescription());
+  }
+
+  @Test
   void monthly_commitment_prorates_the_first_month_and_bills_the_others_at_catalog_price() {
     givenDefaultUsersAndCustomer();
     givenPayment(monthlyCommitmentPayment().build());
@@ -265,7 +324,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
             List.of(
                 UserSubscriptionCommitment.builder()
                     .commitmentStartDatetime(Instant.parse("2026-09-01T09:30:00Z"))
-                    .commitmentEndDatetime(Instant.parse("2027-08-31T09:30:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-01T09:30:00Z"))
                     .build()));
     givenInvoicedPeriods(
         invoicedPeriod(
@@ -478,7 +537,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
             List.of(
                 UserSubscriptionCommitment.builder()
                     .commitmentStartDatetime(Instant.parse("2026-09-01T09:30:00Z"))
-                    .commitmentEndDatetime(Instant.parse("2027-08-31T09:30:00Z"))
+                    .commitmentEndDatetime(Instant.parse("2027-09-01T09:30:00Z"))
                     .build()));
     givenInvoicedPeriods(
         invoicedPeriod(

@@ -73,24 +73,6 @@ Resources:
         EventBridgeParameters:
           DetailType: 'app.bpartners.api.endpoint.event.model.MonthlySubscriptionCreditGrantTriggered'
           Source: 'app.bpartners.api.event2'
-  SubscriptionRemainingPeriodInvoiceScheduler:
-    Type: AWS::Scheduler::Schedule
-    Properties:
-      Description: One-off scheduler that invoices, for every running commitment, the period
-        left uninvoiced by the month-by-month subscription invoices
-      FlexibleTimeWindow:
-        Mode: "OFF"
-      Name: !Join ['', [!Ref Env, -TriggerSubscriptionRemainingPeriodInvoice]]
-      ScheduleExpression: "cron(0 0 1 10 ? 2026)"
-      ScheduleExpressionTimezone: "Europe/Paris"
-      Target:
-        Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/eventbridge/bus-arn}}'
-        RoleArn: !GetAtt ScheduledEventExecutionRole.Arn
-        DeadLetterConfig:
-          Arn: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/dead-letter-queue-arn}}'
-        EventBridgeParameters:
-          DetailType: 'app.bpartners.api.endpoint.event.model.SubscriptionRemainingPeriodInvoiceTriggered'
-          Source: 'app.bpartners.api.event1'
   RelaunchProspectsScheduler:
     Type: AWS::Scheduler::Schedule
     Properties:

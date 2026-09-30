@@ -47,9 +47,6 @@ import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
 import app.bpartners.api.service.prospect.ProspectService;
-import app.bpartners.api.service.prospect.ProspectStatusService;
-import app.bpartners.api.service.user.UserService;
-import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.io.File;
 import java.io.IOException;
@@ -76,8 +73,6 @@ class ProspectServiceTest {
       mock(ProspectEvaluationJobRepository.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
   SesConf sesConfMock = mock(SesConf.class);
-  ProspectStatusService prospectStatusService = mock(ProspectStatusService.class);
-  UserService userServiceMock = mock(UserService.class);
   CalendarApi calendarApiMock = mock(CalendarApi.class);
   ProspectJpaRepository prospectJpaRepositoryMock = mock(ProspectJpaRepository.class);
   UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
@@ -95,11 +90,8 @@ class ProspectServiceTest {
           evalJobRepositoryMock,
           eventProducerMock,
           sesConfMock,
-          prospectStatusService,
-          userServiceMock,
           calendarApiMock,
           mock(),
-          new CustomDateFormatter(),
           prospectJpaRepositoryMock,
           userWhiteListedJpaRepositoryMock,
           bucketComponentMock,

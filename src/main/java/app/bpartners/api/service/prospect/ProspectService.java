@@ -55,8 +55,6 @@ import app.bpartners.api.repository.jpa.model.HProspectStatusHistory;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.customer.CustomerService;
 import app.bpartners.api.service.dataprocesser.ProspectDataProcesser;
-import app.bpartners.api.service.user.UserService;
-import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.google.api.services.sheets.v4.model.Sheet;
@@ -82,7 +80,6 @@ public class ProspectService {
   public static final String PROSPECT_MAIL_TEMPLATE = "prospect_mail";
   public static final int DEFAULT_RATING_PROSPECT_TO_CONVERT = 8;
   public static final int MAX_DISTANCE_LIMIT = 1_000;
-  public static final String PROSPECT_RELAUNCH_TEMPLATE = "prospect_relaunch_template";
   private final ProspectRepository repository;
   private final ProspectDataProcesser dataProcesser;
   private final AccountHolderJpaRepository accountHolderJpaRepository;
@@ -93,11 +90,8 @@ public class ProspectService {
   private final ProspectEvaluationJobRepository evalJobRepository;
   private final EventProducer eventProducer;
   private final SesConf sesConf;
-  private final ProspectStatusService statusService;
-  private final UserService userService;
   private final CalendarApi calendarApi;
   private final TemplateResolverEngine templateResolverEngine;
-  private final CustomDateFormatter customDateFormatter;
   private final ProspectJpaRepository prospectJpaRepository;
   private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
   private final BucketComponent bucketComponent;
@@ -235,13 +229,6 @@ public class ProspectService {
       }
     }
     return withoutDuplicat;
-  }
-
-  private String prospectRelaunchEmailBody(List<Prospect> prospects, HAccountHolder accountHolder) {
-    Context context = new Context();
-    context.setVariable("accountHolder", accountHolder);
-    context.setVariable("prospects", prospects);
-    return templateResolverEngine.parseTemplateResolver(PROSPECT_RELAUNCH_TEMPLATE, context);
   }
 
   @Transactional
@@ -877,78 +864,6 @@ public class ProspectService {
             .collect(Collectors.toList());
 
     return repository.create(prospectsToSave);
-  }
-
-  public void relaunchHoldersProspects() {
-    List<Prospect> prospectToContact =
-        statusService.findAllByStatus(TO_CONTACT).stream()
-            .filter(
-                prospect ->
-                    prospect.getRating() != null
-                        && prospect.getRating().getValue() != null
-                        && prospect.getRating().getValue() > 0)
-            .collect(Collectors.toList());
-    Map<String, List<Prospect>> prospectsByHolder = dispatchByHolder(prospectToContact);
-    StringBuilder msgBuilder = new StringBuilder();
-    prospectsByHolder.forEach(
-        (idHolder, prospects) -> {
-          Optional<HAccountHolder> optionalHolder = accountHolderJpaRepository.findById(idHolder);
-          if (optionalHolder.isEmpty()) {
-            msgBuilder
-                .append("Failed to attempt to relaunch AccountHolder(id=")
-                .append(idHolder)
-                .append(") because it was not found");
-          } else {
-            try {
-              HAccountHolder accountHolder = optionalHolder.get();
-              User user = userService.getUserById(accountHolder.getIdUser());
-              sendEmailProspectToContact(prospects, optionalHolder);
-            } catch (IOException | MessagingException e) {
-              throw new ApiException(SERVER_EXCEPTION, e);
-            }
-          }
-        });
-    String exceptionMsg = msgBuilder.toString();
-    if (!exceptionMsg.isEmpty()) {
-      log.warn(exceptionMsg);
-    }
-  }
-
-  private void sendEmailProspectToContact(
-      List<Prospect> prospects, Optional<HAccountHolder> optionalHolder)
-      throws IOException, MessagingException {
-    HAccountHolder accountHolder = optionalHolder.get();
-    String recipient = accountHolder.getEmail();
-    String cc = sesConf.getAdminEmail();
-    String today = customDateFormatter.formatFrenchDate(Instant.now());
-    String emailSubject =
-        String.format(
-            "[BPartners] Pensez à modifier le statut de vos prospects pour les conserver - %s",
-            today);
-    String emailBody = prospectRelaunchEmailBody(prospects, accountHolder);
-    List<Attachment> attachments = List.of();
-
-    sesService.sendEmail(recipient, cc, emailSubject, emailBody, attachments);
-    log.info(
-        "Mail sent to accountHolder(id={}) after relaunching prospects not contacted",
-        accountHolder.getId());
-  }
-
-  private Map<String, List<Prospect>> dispatchByHolder(List<Prospect> prospects) {
-    Map<String, List<Prospect>> prospectsByHolder = new HashMap<>();
-    for (Prospect prospect : prospects) {
-      String idHolder = prospect.getIdHolderOwner();
-      if (idHolder != null) {
-        if (!prospectsByHolder.containsKey(idHolder)) {
-          List<Prospect> subList = new ArrayList<>();
-          subList.add(prospect);
-          prospectsByHolder.put(idHolder, subList);
-        } else {
-          prospectsByHolder.get(idHolder).add(prospect);
-        }
-      }
-    }
-    return prospectsByHolder;
   }
 
   public String deleteProspectById(String id) {

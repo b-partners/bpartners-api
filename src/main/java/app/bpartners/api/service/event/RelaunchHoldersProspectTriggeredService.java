@@ -1,7 +1,7 @@
 package app.bpartners.api.service.event;
 
 import app.bpartners.api.endpoint.event.model.RelaunchHoldersProspectTriggered;
-import app.bpartners.api.service.prospect.ProspectService;
+import app.bpartners.api.service.prospect.relaunch.HoldersProspectRelaunchService;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class RelaunchHoldersProspectTriggeredService
     implements Consumer<RelaunchHoldersProspectTriggered> {
-  private final ProspectService service;
+  private final HoldersProspectRelaunchService relaunchService;
 
   @Override
   public void accept(RelaunchHoldersProspectTriggered relaunchHoldersProspectTriggered) {
-    service.relaunchHoldersProspects();
+    relaunchService.relaunchHoldersProspects();
   }
 }

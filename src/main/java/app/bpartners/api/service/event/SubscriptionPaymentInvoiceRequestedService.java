@@ -84,12 +84,15 @@ public class SubscriptionPaymentInvoiceRequestedService
 
   @Override
   public void accept(SubscriptionPaymentInvoiceRequested event) {
-    var subscriptionPaymentIdentifier = event.getSubscriptionPaymentId();
+    invoiceAssembledPeriod(event.getSubscriptionPaymentId());
+  }
+
+  public Optional<Invoice> invoiceAssembledPeriod(String subscriptionPaymentIdentifier) {
     var optionalSubscriptionPayment =
         subscriptionPaymentRepository.findById(subscriptionPaymentIdentifier);
     if (optionalSubscriptionPayment.isEmpty()) {
       log.warn("No SubscriptionPayment.id={} to invoice, skipping", subscriptionPaymentIdentifier);
-      return;
+      return Optional.empty();
     }
     var subscriptionPayment = optionalSubscriptionPayment.get();
     if (subscriptionPayment.getInvoiceId() != null) {
@@ -97,13 +100,13 @@ public class SubscriptionPaymentInvoiceRequestedService
           "SubscriptionPayment(id={}) is already invoiced by Invoice(id={}), skipping",
           subscriptionPayment.getId(),
           subscriptionPayment.getInvoiceId());
-      return;
+      return Optional.empty();
     }
 
     var monthlyBilling = monthlyBillingOf(subscriptionPayment);
     if (monthlyBilling.alreadyInvoiced()) {
       attachToCoveringInvoice(subscriptionPayment, monthlyBilling.coveringPeriod());
-      return;
+      return Optional.empty();
     }
 
     var billedMonths = monthlyBilling.instalments();
@@ -116,7 +119,77 @@ public class SubscriptionPaymentInvoiceRequestedService
         subscriptionPayment, createdInvoice.getId(), invoicedPeriod.start(), invoicedPeriod.end());
 
     notifySubscriber(createdInvoice, subscriptionPayment);
+    return Optional.of(createdInvoice);
   }
+
+  public Invoice invoiceOwnPaidPeriod(SubscriptionPayment subscriptionPayment) {
+    var invoicedPeriod = invoicedPeriodOf(subscriptionPayment, List.of());
+    var createdInvoice =
+        issueSubscriptionInvoice(
+            subscriptionPayment, List.of(), invoicedPeriod, paidAt(subscriptionPayment));
+    subscriptionPaymentService.invoicedBy(
+        subscriptionPayment, createdInvoice.getId(), invoicedPeriod.start(), invoicedPeriod.end());
+    notifySubscriber(createdInvoice, subscriptionPayment);
+    return createdInvoice;
+  }
+
+  public BillingPreview previewOwnPaidPeriod(SubscriptionPayment subscriptionPayment) {
+    var invoicedPeriod = invoicedPeriodOf(subscriptionPayment, List.of());
+    return new BillingPreview(
+        invoicedPeriod.start().atZone(PARIS).toLocalDate(),
+        invoicedPeriod.end().atZone(PARIS).toLocalDate(),
+        1,
+        false);
+  }
+
+  public BillingPreview previewAssembledPeriod(
+      SubscriptionPayment subscriptionPayment, LocalDate simulatedCoverageEnd) {
+    if (subscriptionPayment.getBillingInterval() != BillingInterval.MONTHLY
+        || startsAfterItsPayment(subscriptionPayment)) {
+      return previewOwnPaidPeriod(subscriptionPayment);
+    }
+    var paymentPeriodStart = billingPeriodStart(subscriptionPayment);
+    var commitment = latestCommitmentOf(subscriptionPayment, paymentPeriodStart);
+    var commitmentEnd = commitmentEndOf(commitment, paymentPeriodStart);
+    var coverageEnd =
+        latestCoverageEndOf(subscriptionPayment, commitmentEnd, simulatedCoverageEnd).orElse(null);
+    if (coverageEnd == null) {
+      return previewOf(monthlyInstalments(paymentPeriodStart, commitmentEnd), paymentPeriodStart);
+    }
+    var firstUninvoicedDay = coverageEnd.plusDays(1);
+    if (firstUninvoicedDay.isAfter(commitmentEnd)) {
+      return new BillingPreview(null, coverageEnd, 0, true);
+    }
+    var billedFrom =
+        firstUninvoicedDay.isAfter(paymentPeriodStart) ? firstUninvoicedDay : paymentPeriodStart;
+    return previewOf(monthlyInstalments(billedFrom, commitmentEnd), billedFrom);
+  }
+
+  private Optional<LocalDate> latestCoverageEndOf(
+      SubscriptionPayment subscriptionPayment,
+      LocalDate commitmentEnd,
+      LocalDate simulatedCoverageEnd) {
+    var recordedCoverageEnd =
+        latestInvoicedPeriodOf(subscriptionPayment, commitmentEnd).map(this::periodEndDateOf);
+    if (simulatedCoverageEnd == null || simulatedCoverageEnd.isAfter(commitmentEnd)) {
+      return recordedCoverageEnd;
+    }
+    return Optional.of(
+        recordedCoverageEnd
+            .filter(recorded -> recorded.isAfter(simulatedCoverageEnd))
+            .orElse(simulatedCoverageEnd));
+  }
+
+  private BillingPreview previewOf(List<MonthSegment> billedMonths, LocalDate fallbackStart) {
+    if (billedMonths.isEmpty()) {
+      return new BillingPreview(fallbackStart, fallbackStart, 1, false);
+    }
+    return new BillingPreview(
+        billedMonths.getFirst().start(), billedMonths.getLast().end(), billedMonths.size(), false);
+  }
+
+  public record BillingPreview(
+      LocalDate coversFrom, LocalDate coversTo, int lineCount, boolean alreadyCovered) {}
 
   public Optional<Invoice> invoiceRemainingCommitmentPeriod(SubscriptionPayment referencePayment) {
     var monthlyBilling = monthlyBillingOf(referencePayment);

@@ -39,7 +39,8 @@ class SubscriptionControllerTest {
           eventProducerMock,
           subscriptionServiceMock,
           consumptionLogRestMapper,
-          subscriptionPlanRestMapper);
+          subscriptionPlanRestMapper,
+          mock(app.bpartners.api.service.subscription.SubscriptionStripeBackfillService.class));
 
   @Test
   void triggers_the_subscription_remaining_period_invoice_event() {

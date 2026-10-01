@@ -41,6 +41,32 @@ public class SubscriptionPaymentService {
   private final CustomDateFormatter customDateFormatter;
 
   public Optional<SubscriptionPayment> recordPaidStripeInvoice(Invoice stripeInvoice) {
+    var recorded = recordPaidStripeInvoiceWithoutInvoicing(stripeInvoice);
+    recorded.ifPresent(
+        payment -> {
+          if (payment.getInvoiceId() == null) {
+            requestInvoice(payment);
+            return;
+          }
+          log.info(
+              "Stripe Invoice(id={}) is already invoiced by Invoice(id={}), skipping",
+              payment.getStripeInvoiceId(),
+              payment.getInvoiceId());
+        });
+    return recorded;
+  }
+
+  public Optional<SubscriptionPayment> recordPaidStripeInvoiceWithoutInvoicing(
+      Invoice stripeInvoice) {
+    return paidSubscriptionPaymentOf(stripeInvoice, true);
+  }
+
+  public Optional<SubscriptionPayment> previewPaidStripeInvoice(Invoice stripeInvoice) {
+    return paidSubscriptionPaymentOf(stripeInvoice, false);
+  }
+
+  private Optional<SubscriptionPayment> paidSubscriptionPaymentOf(
+      Invoice stripeInvoice, boolean persists) {
     if (stripeInvoice.getSubscription() == null) {
       log.info(
           "Stripe Invoice(id={}) is not attached to a subscription, no subscription invoice to"
@@ -51,7 +77,7 @@ public class SubscriptionPaymentService {
     var alreadyRecorded =
         subscriptionPaymentRepository.findByStripeInvoiceId(stripeInvoice.getId());
     if (alreadyRecorded.isPresent()) {
-      return Optional.of(requestInvoiceIfStillMissing(alreadyRecorded.get()));
+      return Optional.of(alreadyRecorded.get());
     }
     var optionalUser = userRepository.findByStripeCustomerId(stripeInvoice.getCustomer());
     if (optionalUser.isEmpty()) {
@@ -71,16 +97,17 @@ public class SubscriptionPaymentService {
     var userId = optionalUser.get().getId();
     var activeSubscription =
         userSubscriptionProductService.findActiveUserSubscriptionProduct(userId).orElse(null);
-    var saved =
-        subscriptionPaymentRepository.save(
-            paidSubscriptionPayment(
-                stripeInvoice, userId, activeSubscription, amountInCentsWithVat));
+    var payment =
+        paidSubscriptionPayment(stripeInvoice, userId, activeSubscription, amountInCentsWithVat);
+    if (!persists) {
+      return Optional.of(payment);
+    }
+    var saved = subscriptionPaymentRepository.save(payment);
     log.info(
         "SubscriptionPayment(id={}) recorded for User(id={}) from Stripe Invoice(id={})",
         saved.getId(),
         userId,
         stripeInvoice.getId());
-    requestInvoice(saved);
     return Optional.of(saved);
   }
 
@@ -121,18 +148,6 @@ public class SubscriptionPaymentService {
             .invoicedPeriodStartDatetime(invoicedPeriodStart)
             .invoicedPeriodEndDatetime(invoicedPeriodEnd)
             .build());
-  }
-
-  private SubscriptionPayment requestInvoiceIfStillMissing(SubscriptionPayment alreadyRecorded) {
-    if (alreadyRecorded.getInvoiceId() != null) {
-      log.info(
-          "Stripe Invoice(id={}) is already invoiced by Invoice(id={}), skipping",
-          alreadyRecorded.getStripeInvoiceId(),
-          alreadyRecorded.getInvoiceId());
-      return alreadyRecorded;
-    }
-    requestInvoice(alreadyRecorded);
-    return alreadyRecorded;
   }
 
   private void requestInvoice(SubscriptionPayment subscriptionPayment) {

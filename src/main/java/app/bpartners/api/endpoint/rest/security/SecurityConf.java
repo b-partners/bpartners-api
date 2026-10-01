@@ -230,6 +230,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(POST, "/invoicesRefresh")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
+                    .requestMatchers(POST, "/subscriptions/stripeBackfill")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/monthlySubscriptionInvoiceTrigger")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/monthlySubscriptionCreditGrantTrigger")

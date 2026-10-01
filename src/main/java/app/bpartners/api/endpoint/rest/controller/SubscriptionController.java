@@ -16,8 +16,11 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.subscription.SubscriptionStripeBackfillService;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,6 +33,7 @@ public class SubscriptionController {
   private final SubscriptionService service;
   private final SubscriptionConsumptionLogRestMapper subscriptionConsumptionLogRestMapper;
   private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
+  private final SubscriptionStripeBackfillService subscriptionStripeBackfillService;
 
   @GetMapping("/subscriptionPlans")
   public List<SubscriptionPlan> getSubscriptionPlans(
@@ -47,6 +51,18 @@ public class SubscriptionController {
     }
     eventProducer.accept(
         List.of(new UpcomingDebitedCustomerExportRequested(YearMonth.of(year, month))));
+  }
+
+  @PostMapping("/subscriptions/stripeBackfill")
+  public List<SubscriptionStripeBackfillService.UserBackfillReport> backfillSubscriptionsFromStripe(
+      @RequestBody List<String> userIds,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate paidSince,
+      @RequestParam(defaultValue = "true") boolean dryRun) {
+    if (userIds == null || userIds.isEmpty()) {
+      throw new BadRequestException("userIds must list the users to backfill");
+    }
+    return subscriptionStripeBackfillService.backfill(
+        userIds, paidSince.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant(), dryRun);
   }
 
   @PostMapping("/monthlySubscriptionInvoiceTrigger")

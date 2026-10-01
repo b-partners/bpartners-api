@@ -3,6 +3,7 @@ package app.bpartners.api.service.event;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.ProductStatus.ENABLED;
+import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceNoVatWithDiscount;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computePriceWithoutDiscount;
 import static app.bpartners.api.model.mapper.InvoiceMapper.computeTotalDiscountAmount;
@@ -25,11 +26,13 @@ import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionCommitment;
+import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.subscription.AnnualInvoiceBillingType;
 import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.payment.UserSubscriptionConf;
+import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
@@ -64,6 +67,7 @@ public class SubscriptionPaymentInvoiceRequestedService
     implements Consumer<SubscriptionPaymentInvoiceRequested> {
   private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
   private static final int MONTHS_PER_YEAR = 12;
+  private static final int MAX_REFERENCE_ATTEMPTS = 120;
   private static final int BASIS_POINTS = 10_000;
   private static final Comparator<UserSubscriptionCommitment> BY_RECENCY =
       comparing(SubscriptionPaymentInvoiceRequestedService::startedAt)
@@ -79,6 +83,7 @@ public class SubscriptionPaymentInvoiceRequestedService
   private final UserSubscriptionConf userSubscriptionConf;
   private final SubscriptionCustomerResolver subscriptionCustomerResolver;
   private final InvoiceService invoiceService;
+  private final InvoiceRepository invoiceRepository;
   private final CustomDateFormatter customDateFormatter;
   private final EventProducer eventProducer;
 
@@ -234,7 +239,12 @@ public class SubscriptionPaymentInvoiceRequestedService
     var createdInvoice =
         invoiceService.crupdateSubscriptionInvoice(
             computeSubscriptionInvoice(
-                userToCredit, customerToDebit, subscriptionPayment, billedMonths, issuedAt));
+                userToCredit,
+                customerToDebit,
+                subscriptionPayment,
+                billedMonths,
+                issuedAt,
+                availableReferenceInstant(issuedAt, userToCredit.getId())));
 
     subscriptionInvoicePeriodRepository.save(
         SubscriptionInvoicePeriod.builder()
@@ -256,6 +266,30 @@ public class SubscriptionPaymentInvoiceRequestedService
         invoicedPeriod.end());
 
     return createdInvoice;
+  }
+
+  private Instant availableReferenceInstant(Instant issuedAt, String userToCreditIdentifier) {
+    var candidate = issuedAt;
+    for (var attempt = 0; attempt < MAX_REFERENCE_ATTEMPTS; attempt++) {
+      var probed = candidate;
+      var reference = new ReferenceGenerator(() -> LocalDateTime.ofInstant(probed, PARIS)).get();
+      if (invoiceRepository.findByIdUserAndRef(userToCreditIdentifier, reference).isEmpty()) {
+        if (attempt > 0) {
+          log.info(
+              "Reference of issuance instant {} was already taken, issuing with {} instead",
+              issuedAt,
+              reference);
+        }
+        return candidate;
+      }
+      candidate = candidate.plusSeconds(1);
+    }
+    throw new ApiException(
+        SERVER_EXCEPTION,
+        "No subscription invoice reference available within "
+            + MAX_REFERENCE_ATTEMPTS
+            + " seconds after "
+            + issuedAt);
   }
 
   private void notifySubscriber(Invoice createdInvoice, SubscriptionPayment subscriptionPayment) {
@@ -302,13 +336,15 @@ public class SubscriptionPaymentInvoiceRequestedService
       Customer customerToDebit,
       SubscriptionPayment subscriptionPayment,
       List<MonthSegment> billedMonths,
-      Instant issuedAt) {
+      Instant issuedAt,
+      Instant referenceInstant) {
     var invoiceIdentifier = randomUUID().toString();
     var sendingDate = issuedAt.atZone(PARIS).toLocalDate();
     var invoiceProducts =
         computeSubscriptionProducts(invoiceIdentifier, subscriptionPayment, billedMonths);
     var discount = annualDiscountFraction(subscriptionPayment);
-    var referenceGenerator = new ReferenceGenerator(() -> LocalDateTime.ofInstant(issuedAt, PARIS));
+    var referenceGenerator =
+        new ReferenceGenerator(() -> LocalDateTime.ofInstant(referenceInstant, PARIS));
     return Invoice.builder()
         .id(invoiceIdentifier)
         .ref(referenceGenerator.get())

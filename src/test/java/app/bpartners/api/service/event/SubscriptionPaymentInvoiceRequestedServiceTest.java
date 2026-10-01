@@ -66,6 +66,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   InvoiceService invoiceService = mock();
   EventProducer eventProducer = mock();
   SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository = mock();
+  app.bpartners.api.repository.InvoiceRepository invoiceRepository = mock();
   SubscriptionPaymentInvoiceRequestedService subject =
       new SubscriptionPaymentInvoiceRequestedService(
           subscriptionPaymentRepository,
@@ -76,6 +77,7 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
           userSubscriptionConf,
           subscriptionCustomerResolver,
           invoiceService,
+          invoiceRepository,
           new CustomDateFormatter(),
           eventProducer);
 
@@ -127,6 +129,37 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
     assertEquals("REF-04032026103000", invoice.getRef());
     assertEquals(LocalDate.of(2026, 3, 4), invoice.getSendingDate());
     assertEquals(LocalDate.of(2026, 3, 4), invoice.getToPayAt());
+  }
+
+  @Test
+  void shifts_the_reference_by_a_second_when_another_invoice_already_took_it() {
+    givenDefaultUsersAndCustomer();
+    givenPayment(somePayment().build());
+    when(invoiceRepository.findByIdUserAndRef(ADMIN_USER_ID, "REF-04032026103000"))
+        .thenReturn(List.of(app.bpartners.api.model.Invoice.builder().id("taken").build()));
+
+    subject.accept(someEvent());
+
+    var invoice = capturedInvoice();
+    assertEquals("REF-04032026103001", invoice.getRef());
+    assertEquals(LocalDate.of(2026, 3, 4), invoice.getSendingDate());
+  }
+
+  @Test
+  void keeps_shifting_the_reference_until_a_free_second_is_found() {
+    givenDefaultUsersAndCustomer();
+    givenPayment(somePayment().build());
+    var taken = List.of(app.bpartners.api.model.Invoice.builder().id("taken").build());
+    when(invoiceRepository.findByIdUserAndRef(ADMIN_USER_ID, "REF-04032026103000"))
+        .thenReturn(taken);
+    when(invoiceRepository.findByIdUserAndRef(ADMIN_USER_ID, "REF-04032026103001"))
+        .thenReturn(taken);
+    when(invoiceRepository.findByIdUserAndRef(ADMIN_USER_ID, "REF-04032026103002"))
+        .thenReturn(taken);
+
+    subject.accept(someEvent());
+
+    assertEquals("REF-04032026103003", capturedInvoice().getRef());
   }
 
   @Test

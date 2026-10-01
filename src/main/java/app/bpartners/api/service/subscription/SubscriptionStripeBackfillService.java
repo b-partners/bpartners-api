@@ -56,8 +56,18 @@ public class SubscriptionStripeBackfillService {
   public List<UserBackfillReport> backfill(
       List<String> userIdentifiers, Instant paidSince, boolean dryRun, boolean sendsToSubscriber) {
     return userIdentifiers.stream()
-        .map(userId -> backfillUser(userId, paidSince, dryRun, sendsToSubscriber))
+        .map(userId -> safelyBackfillUser(userId, paidSince, dryRun, sendsToSubscriber))
         .toList();
+  }
+
+  private UserBackfillReport safelyBackfillUser(
+      String userIdentifier, Instant paidSince, boolean dryRun, boolean sendsToSubscriber) {
+    try {
+      return backfillUser(userIdentifier, paidSince, dryRun, sendsToSubscriber);
+    } catch (RuntimeException e) {
+      log.error("Backfill of User(id={}) failed", userIdentifier, e);
+      return UserBackfillReport.failed(userIdentifier, e.getMessage());
+    }
   }
 
   private UserBackfillReport backfillUser(
@@ -89,7 +99,7 @@ public class SubscriptionStripeBackfillService {
     LocalDate simulatedCoverageEnd = null;
     for (Invoice stripeInvoice : paidStripeInvoices) {
       var report =
-          replayPaidInvoice(
+          safelyReplayPaidInvoice(
               stripeInvoice,
               simulatedCoverageEnd,
               plannedCommitmentEnd,
@@ -105,6 +115,29 @@ public class SubscriptionStripeBackfillService {
 
     return new UserBackfillReport(
         userIdentifier, user.getEmail(), stripeCustomerIdentifier, actions, invoicedPeriods, null);
+  }
+
+  private InvoicedPeriodReport safelyReplayPaidInvoice(
+      Invoice stripeInvoice,
+      LocalDate simulatedCoverageEnd,
+      LocalDate plannedCommitmentEnd,
+      Optional<ResolvedPlan> resolvedPlan,
+      boolean dryRun,
+      boolean sendsToSubscriber,
+      List<String> actions) {
+    try {
+      return replayPaidInvoice(
+          stripeInvoice,
+          simulatedCoverageEnd,
+          plannedCommitmentEnd,
+          resolvedPlan,
+          dryRun,
+          sendsToSubscriber,
+          actions);
+    } catch (RuntimeException e) {
+      log.error("Replay of Stripe Invoice(id={}) failed", stripeInvoice.getId(), e);
+      return InvoicedPeriodReport.notReplayable(stripeInvoice.getId(), "FAILED: " + e.getMessage());
+    }
   }
 
   private InvoicedPeriodReport replayPaidInvoice(
@@ -394,6 +427,10 @@ public class SubscriptionStripeBackfillService {
       String skippedBecause) {
     private static UserBackfillReport skipped(String userId, String email, String reason) {
       return new UserBackfillReport(userId, email, null, List.of(), List.of(), reason);
+    }
+
+    private static UserBackfillReport failed(String userId, String message) {
+      return new UserBackfillReport(userId, null, null, List.of(), List.of(), "FAILED: " + message);
     }
   }
 

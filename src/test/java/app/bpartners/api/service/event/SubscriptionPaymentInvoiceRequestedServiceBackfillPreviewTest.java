@@ -40,6 +40,7 @@ class SubscriptionPaymentInvoiceRequestedServiceBackfillPreviewTest {
   EventProducer eventProducer = mock();
   SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository = mock();
 
+  app.bpartners.api.repository.InvoiceRepository invoiceRepository = mock();
   SubscriptionPaymentInvoiceRequestedService subject =
       new SubscriptionPaymentInvoiceRequestedService(
           subscriptionPaymentRepository,
@@ -50,6 +51,7 @@ class SubscriptionPaymentInvoiceRequestedServiceBackfillPreviewTest {
           userSubscriptionConf,
           subscriptionCustomerResolver,
           invoiceService,
+          invoiceRepository,
           new CustomDateFormatter(),
           eventProducer);
 

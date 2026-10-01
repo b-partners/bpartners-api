@@ -57,12 +57,16 @@ public class SubscriptionController {
   public List<SubscriptionStripeBackfillService.UserBackfillReport> backfillSubscriptionsFromStripe(
       @RequestBody List<String> userIds,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate paidSince,
-      @RequestParam(defaultValue = "true") boolean dryRun) {
+      @RequestParam(defaultValue = "true") boolean dryRun,
+      @RequestParam(defaultValue = "false") boolean sendsToSubscriber) {
     if (userIds == null || userIds.isEmpty()) {
       throw new BadRequestException("userIds must list the users to backfill");
     }
     return subscriptionStripeBackfillService.backfill(
-        userIds, paidSince.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant(), dryRun);
+        userIds,
+        paidSince.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant(),
+        dryRun,
+        sendsToSubscriber);
   }
 
   @PostMapping("/monthlySubscriptionInvoiceTrigger")

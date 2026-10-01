@@ -88,6 +88,11 @@ public class SubscriptionPaymentInvoiceRequestedService
   }
 
   public Optional<Invoice> invoiceAssembledPeriod(String subscriptionPaymentIdentifier) {
+    return invoiceAssembledPeriod(subscriptionPaymentIdentifier, true);
+  }
+
+  public Optional<Invoice> invoiceAssembledPeriod(
+      String subscriptionPaymentIdentifier, boolean notifiesSubscriber) {
     var optionalSubscriptionPayment =
         subscriptionPaymentRepository.findById(subscriptionPaymentIdentifier);
     if (optionalSubscriptionPayment.isEmpty()) {
@@ -118,18 +123,23 @@ public class SubscriptionPaymentInvoiceRequestedService
     subscriptionPaymentService.invoicedBy(
         subscriptionPayment, createdInvoice.getId(), invoicedPeriod.start(), invoicedPeriod.end());
 
-    notifySubscriber(createdInvoice, subscriptionPayment);
+    if (notifiesSubscriber) {
+      notifySubscriber(createdInvoice, subscriptionPayment);
+    }
     return Optional.of(createdInvoice);
   }
 
-  public Invoice invoiceOwnPaidPeriod(SubscriptionPayment subscriptionPayment) {
+  public Invoice invoiceOwnPaidPeriod(
+      SubscriptionPayment subscriptionPayment, boolean notifiesSubscriber) {
     var invoicedPeriod = invoicedPeriodOf(subscriptionPayment, List.of());
     var createdInvoice =
         issueSubscriptionInvoice(
             subscriptionPayment, List.of(), invoicedPeriod, paidAt(subscriptionPayment));
     subscriptionPaymentService.invoicedBy(
         subscriptionPayment, createdInvoice.getId(), invoicedPeriod.start(), invoicedPeriod.end());
-    notifySubscriber(createdInvoice, subscriptionPayment);
+    if (notifiesSubscriber) {
+      notifySubscriber(createdInvoice, subscriptionPayment);
+    }
     return createdInvoice;
   }
 

@@ -1,6 +1,8 @@
 package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration.TWELVE_MONTHS;
+import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.SUBSCRIPTION_INVOICE_MAIL_TEMPLATE;
+import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
@@ -10,6 +12,7 @@ import app.bpartners.api.model.subscription.SubscriptionBillingType;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
+import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
@@ -38,6 +41,8 @@ public class SubscriptionStripeBackfillService {
   private static final int DEFAULT_TRIAL_PERIOD_DAYS = 0;
 
   private final UserRepository userRepository;
+  private final InvoiceRepository invoiceRepository;
+  private final SubscriptionInvoiceMailer subscriptionInvoiceMailer;
   private final StripeFactory stripeFactory;
   private final StripeInvoiceService stripeInvoiceService;
   private final SubscriptionProductRepository subscriptionProductRepository;
@@ -49,12 +54,14 @@ public class SubscriptionStripeBackfillService {
   private final CreditGrantService creditGrantService;
 
   public List<UserBackfillReport> backfill(
-      List<String> userIdentifiers, Instant paidSince, boolean dryRun) {
-    return userIdentifiers.stream().map(userId -> backfillUser(userId, paidSince, dryRun)).toList();
+      List<String> userIdentifiers, Instant paidSince, boolean dryRun, boolean sendsToSubscriber) {
+    return userIdentifiers.stream()
+        .map(userId -> backfillUser(userId, paidSince, dryRun, sendsToSubscriber))
+        .toList();
   }
 
   private UserBackfillReport backfillUser(
-      String userIdentifier, Instant paidSince, boolean dryRun) {
+      String userIdentifier, Instant paidSince, boolean dryRun, boolean sendsToSubscriber) {
     var actions = new ArrayList<String>();
     var user = userRepository.getById(userIdentifier);
     var stripeCustomerIdentifier = user.getUserSubscriptionId();
@@ -88,6 +95,7 @@ public class SubscriptionStripeBackfillService {
               plannedCommitmentEnd,
               resolvedPlan,
               dryRun,
+              sendsToSubscriber,
               actions);
       invoicedPeriods.add(report);
       if (dryRun && report.coversTo() != null) {
@@ -105,6 +113,7 @@ public class SubscriptionStripeBackfillService {
       LocalDate plannedCommitmentEnd,
       Optional<ResolvedPlan> resolvedPlan,
       boolean dryRun,
+      boolean sendsToSubscriber,
       List<String> actions) {
     var optionalPayment =
         dryRun
@@ -116,8 +125,8 @@ public class SubscriptionStripeBackfillService {
     }
     var subscriptionPayment = optionalPayment.get();
     if (subscriptionPayment.getInvoiceId() != null) {
-      return InvoicedPeriodReport.alreadyInvoiced(
-          stripeInvoice.getId(), subscriptionPayment.getInvoiceId());
+      return resendAlreadyInvoiced(
+          stripeInvoice, subscriptionPayment, dryRun, sendsToSubscriber, actions);
     }
 
     var billsAPastMonth = billsAPastMonth(subscriptionPayment);
@@ -133,13 +142,75 @@ public class SubscriptionStripeBackfillService {
     var createdInvoice =
         billsAPastMonth
             ? Optional.of(
-                subscriptionPaymentInvoiceService.invoiceOwnPaidPeriod(subscriptionPayment))
-            : subscriptionPaymentInvoiceService.invoiceAssembledPeriod(subscriptionPayment.getId());
+                subscriptionPaymentInvoiceService.invoiceOwnPaidPeriod(subscriptionPayment, false))
+            : subscriptionPaymentInvoiceService.invoiceAssembledPeriod(
+                subscriptionPayment.getId(), false);
     grantCreditsOfCurrentMonthOnly(subscriptionPayment, resolvedPlan, actions);
+    createdInvoice.ifPresent(
+        invoice ->
+            mail(
+                invoice,
+                subscriptionPayment,
+                SUBSCRIPTION_INVOICE_MAIL_TEMPLATE,
+                sendsToSubscriber,
+                actions));
     return InvoicedPeriodReport.issued(
         stripeInvoice.getId(),
         createdInvoice.map(app.bpartners.api.model.Invoice::getRef).orElse(null),
         preview);
+  }
+
+  private InvoicedPeriodReport resendAlreadyInvoiced(
+      Invoice stripeInvoice,
+      SubscriptionPayment subscriptionPayment,
+      boolean dryRun,
+      boolean sendsToSubscriber,
+      List<String> actions) {
+    var invoice = invoiceRepository.findById(subscriptionPayment.getInvoiceId());
+    if (invoice == null) {
+      return InvoicedPeriodReport.alreadyInvoiced(
+          stripeInvoice.getId(), subscriptionPayment.getInvoiceId(), "ALREADY_INVOICED_NOT_FOUND");
+    }
+    if (dryRun) {
+      actions.add(
+          "resend paid invoice "
+              + invoice.getRef()
+              + " to "
+              + recipientOf(invoice, sendsToSubscriber));
+      return InvoicedPeriodReport.alreadyInvoiced(
+          stripeInvoice.getId(), invoice.getRef(), "ALREADY_INVOICED_WOULD_RESEND");
+    }
+    var sent =
+        mail(
+            invoice,
+            subscriptionPayment,
+            SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE,
+            sendsToSubscriber,
+            actions);
+    return InvoicedPeriodReport.alreadyInvoiced(
+        stripeInvoice.getId(),
+        invoice.getRef(),
+        sent ? "ALREADY_INVOICED_RESENT" : "ALREADY_INVOICED_NOT_SENT");
+  }
+
+  private boolean mail(
+      app.bpartners.api.model.Invoice invoice,
+      SubscriptionPayment subscriptionPayment,
+      String template,
+      boolean sendsToSubscriber,
+      List<String> actions) {
+    var recipient = recipientOf(invoice, sendsToSubscriber);
+    var sent = subscriptionInvoiceMailer.send(invoice, subscriptionPayment, template, recipient);
+    if (sent) {
+      actions.add("mailed invoice " + invoice.getRef() + " to " + recipient);
+    }
+    return sent;
+  }
+
+  private String recipientOf(app.bpartners.api.model.Invoice invoice, boolean sendsToSubscriber) {
+    return sendsToSubscriber
+        ? subscriptionInvoiceMailer.subscriberRecipientOf(invoice)
+        : SubscriptionInvoiceMailer.TECH_RECIPIENT;
   }
 
   private boolean billsAPastMonth(SubscriptionPayment subscriptionPayment) {
@@ -337,9 +408,9 @@ public class SubscriptionStripeBackfillService {
       return new InvoicedPeriodReport(stripeInvoiceId, reason, null, null, null, 0);
     }
 
-    private static InvoicedPeriodReport alreadyInvoiced(String stripeInvoiceId, String invoiceId) {
-      return new InvoicedPeriodReport(
-          stripeInvoiceId, "ALREADY_INVOICED", invoiceId, null, null, 0);
+    private static InvoicedPeriodReport alreadyInvoiced(
+        String stripeInvoiceId, String invoiceRef, String outcome) {
+      return new InvoicedPeriodReport(stripeInvoiceId, outcome, invoiceRef, null, null, 0);
     }
 
     private static InvoicedPeriodReport planned(

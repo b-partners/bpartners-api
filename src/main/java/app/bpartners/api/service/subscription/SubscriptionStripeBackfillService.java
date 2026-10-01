@@ -75,17 +75,17 @@ public class SubscriptionStripeBackfillService {
 
     ensureEligible(user.getId(), dryRun, actions);
     ensureSubscriptionProduct(user.getId(), resolvedPlan, firstPaidPeriodStart, dryRun, actions);
-    ensureCommitment(user.getId(), resolvedPlan, firstPaidPeriodStart, dryRun, actions);
+    var plannedCommitmentEnd =
+        ensureCommitment(user.getId(), resolvedPlan, firstPaidPeriodStart, dryRun, actions);
 
     var invoicedPeriods = new ArrayList<InvoicedPeriodReport>();
-    var isFirstPaidInvoice = true;
     LocalDate simulatedCoverageEnd = null;
     for (Invoice stripeInvoice : paidStripeInvoices) {
       var report =
           replayPaidInvoice(
               stripeInvoice,
-              isFirstPaidInvoice,
               simulatedCoverageEnd,
+              plannedCommitmentEnd,
               resolvedPlan,
               dryRun,
               actions);
@@ -93,7 +93,6 @@ public class SubscriptionStripeBackfillService {
       if (dryRun && report.coversTo() != null) {
         simulatedCoverageEnd = report.coversTo();
       }
-      isFirstPaidInvoice = false;
     }
 
     return new UserBackfillReport(
@@ -102,8 +101,8 @@ public class SubscriptionStripeBackfillService {
 
   private InvoicedPeriodReport replayPaidInvoice(
       Invoice stripeInvoice,
-      boolean isFirstPaidInvoice,
       LocalDate simulatedCoverageEnd,
+      LocalDate plannedCommitmentEnd,
       Optional<ResolvedPlan> resolvedPlan,
       boolean dryRun,
       List<String> actions) {
@@ -121,17 +120,18 @@ public class SubscriptionStripeBackfillService {
           stripeInvoice.getId(), subscriptionPayment.getInvoiceId());
     }
 
+    var billsAPastMonth = billsAPastMonth(subscriptionPayment);
     var preview =
-        isFirstPaidInvoice
+        billsAPastMonth
             ? subscriptionPaymentInvoiceService.previewOwnPaidPeriod(subscriptionPayment)
             : subscriptionPaymentInvoiceService.previewAssembledPeriod(
-                subscriptionPayment, simulatedCoverageEnd);
+                subscriptionPayment, simulatedCoverageEnd, plannedCommitmentEnd);
     if (dryRun) {
       return InvoicedPeriodReport.planned(stripeInvoice.getId(), preview);
     }
 
     var createdInvoice =
-        isFirstPaidInvoice
+        billsAPastMonth
             ? Optional.of(
                 subscriptionPaymentInvoiceService.invoiceOwnPaidPeriod(subscriptionPayment))
             : subscriptionPaymentInvoiceService.invoiceAssembledPeriod(subscriptionPayment.getId());
@@ -140,6 +140,12 @@ public class SubscriptionStripeBackfillService {
         stripeInvoice.getId(),
         createdInvoice.map(app.bpartners.api.model.Invoice::getRef).orElse(null),
         preview);
+  }
+
+  private boolean billsAPastMonth(SubscriptionPayment subscriptionPayment) {
+    var periodStart = subscriptionPayment.getPeriodStartDatetime();
+    return periodStart != null
+        && YearMonth.from(periodStart.atZone(PARIS)).isBefore(YearMonth.now(PARIS));
   }
 
   private void grantCreditsOfCurrentMonthOnly(
@@ -216,7 +222,7 @@ public class SubscriptionStripeBackfillService {
         subscriptionStart.atStartOfDay(PARIS).toInstant());
   }
 
-  private void ensureCommitment(
+  private LocalDate ensureCommitment(
       String userIdentifier,
       Optional<ResolvedPlan> resolvedPlan,
       LocalDate commitmentStart,
@@ -225,16 +231,16 @@ public class SubscriptionStripeBackfillService {
     if (resolvedPlan.isEmpty()
         || !SubscriptionBillingType.COMMITMENT.equals(
             resolvedPlan.get().product().getBillingType())) {
-      return;
+      return null;
     }
     if (!userSubscriptionCommitmentJpaRepository.findAllByUserId(userIdentifier).isEmpty()) {
-      return;
+      return null;
     }
     var commitmentEnd = commitmentStart.plusYears(1);
     actions.add(
         "create user_subscription_commitment from " + commitmentStart + " to " + commitmentEnd);
     if (dryRun) {
-      return;
+      return commitmentEnd;
     }
     userSubscriptionCommitmentJpaRepository.save(
         UserSubscriptionCommitment.builder()
@@ -247,6 +253,7 @@ public class SubscriptionStripeBackfillService {
             .commitmentEndDatetime(commitmentEnd.atStartOfDay(PARIS).toInstant())
             .creationDatetime(now())
             .build());
+    return commitmentEnd;
   }
 
   private LocalDate firstPaidPeriodStartOf(List<Invoice> paidStripeInvoices) {

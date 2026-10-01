@@ -143,14 +143,16 @@ public class SubscriptionPaymentInvoiceRequestedService
   }
 
   public BillingPreview previewAssembledPeriod(
-      SubscriptionPayment subscriptionPayment, LocalDate simulatedCoverageEnd) {
+      SubscriptionPayment subscriptionPayment,
+      LocalDate simulatedCoverageEnd,
+      LocalDate simulatedCommitmentEnd) {
     if (subscriptionPayment.getBillingInterval() != BillingInterval.MONTHLY
         || startsAfterItsPayment(subscriptionPayment)) {
       return previewOwnPaidPeriod(subscriptionPayment);
     }
     var paymentPeriodStart = billingPeriodStart(subscriptionPayment);
     var commitment = latestCommitmentOf(subscriptionPayment, paymentPeriodStart);
-    var commitmentEnd = commitmentEndOf(commitment, paymentPeriodStart);
+    var commitmentEnd = commitmentEndOf(commitment, paymentPeriodStart, simulatedCommitmentEnd);
     var coverageEnd =
         latestCoverageEndOf(subscriptionPayment, commitmentEnd, simulatedCoverageEnd).orElse(null);
     if (coverageEnd == null) {
@@ -432,8 +434,16 @@ public class SubscriptionPaymentInvoiceRequestedService
 
   private LocalDate commitmentEndOf(
       Optional<UserSubscriptionCommitment> commitment, LocalDate paymentPeriodStart) {
-    return lastFullMonthEnd(
-        commitment.map(this::endDateOf).orElseGet(() -> paymentPeriodStart.plusYears(1)));
+    return commitmentEndOf(commitment, paymentPeriodStart, null);
+  }
+
+  private LocalDate commitmentEndOf(
+      Optional<UserSubscriptionCommitment> commitment,
+      LocalDate paymentPeriodStart,
+      LocalDate simulatedCommitmentEnd) {
+    var fallbackEnd =
+        simulatedCommitmentEnd == null ? paymentPeriodStart.plusYears(1) : simulatedCommitmentEnd;
+    return lastFullMonthEnd(commitment.map(this::endDateOf).orElse(fallbackEnd));
   }
 
   private static Instant startedAt(UserSubscriptionCommitment commitment) {

@@ -81,7 +81,7 @@ class SubscriptionPaymentInvoiceRequestedServiceBackfillPreviewTest {
         monthlyPayment(
             LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 30));
 
-    var preview = subject.previewAssembledPeriod(octoberPayment, LocalDate.of(2026, 9, 30));
+    var preview = subject.previewAssembledPeriod(octoberPayment, LocalDate.of(2026, 9, 30), null);
 
     assertEquals(LocalDate.of(2026, 10, 1), preview.coversFrom());
     assertEquals(LocalDate.of(2027, 8, 31), preview.coversTo());
@@ -96,11 +96,37 @@ class SubscriptionPaymentInvoiceRequestedServiceBackfillPreviewTest {
         monthlyPayment(
             LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 30));
 
-    var preview = subject.previewAssembledPeriod(octoberPayment, null);
+    var preview = subject.previewAssembledPeriod(octoberPayment, null, null);
 
     assertEquals(LocalDate.of(2026, 10, 1), preview.coversFrom());
     assertEquals(LocalDate.of(2027, 9, 30), preview.coversTo());
     assertEquals(12, preview.lineCount());
+  }
+
+  @Test
+  void a_commitment_planned_but_not_yet_written_shapes_the_simulated_period() {
+    when(userSubscriptionCommitmentRepository.findAllByUserId(SUBSCRIBER_ID)).thenReturn(List.of());
+    var octoberPayment =
+        monthlyPayment(
+            LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 30));
+
+    var preview = subject.previewAssembledPeriod(octoberPayment, null, LocalDate.of(2027, 9, 28));
+
+    assertEquals(LocalDate.of(2026, 10, 1), preview.coversFrom());
+    assertEquals(LocalDate.of(2027, 8, 31), preview.coversTo());
+    assertEquals(11, preview.lineCount());
+  }
+
+  @Test
+  void a_recorded_commitment_wins_over_the_simulated_one() {
+    var octoberPayment =
+        monthlyPayment(
+            LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 30));
+
+    var preview = subject.previewAssembledPeriod(octoberPayment, null, LocalDate.of(2030, 1, 1));
+
+    assertEquals(LocalDate.of(2027, 8, 31), preview.coversTo());
+    assertEquals(11, preview.lineCount());
   }
 
   private UserSubscriptionCommitment twelveMonthsCommitmentFrom(LocalDate start) {

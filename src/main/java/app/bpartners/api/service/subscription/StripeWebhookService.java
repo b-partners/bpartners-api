@@ -5,8 +5,11 @@ import static app.bpartners.api.service.subscription.StripeCreditPurchaseService
 import static app.bpartners.api.service.subscription.StripeSetupService.isPaymentMethodReplacement;
 
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.SubscriptionPaymentFailureNotificationRequested;
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillRequested;
+import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
@@ -34,6 +37,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class StripeWebhookService {
   private static final String INVOICE_PAID = "invoice.paid";
+  private static final String INVOICE_PAYMENT_FAILED = "invoice.payment_failed";
+  private static final String STRIPE_SUBSCRIPTION_CYCLE_BILLING_REASON = "subscription_cycle";
   private static final String CHARGE_REFUNDED = "charge.refunded";
   private static final String PAYMENT_INTENT_SUCCEEDED = "payment_intent.succeeded";
   private static final String CHECKOUT_SESSION_COMPLETED = "checkout.session.completed";
@@ -54,6 +59,10 @@ public class StripeWebhookService {
     var event = verifySignature(payload, signatureHeader);
     if (INVOICE_PAID.equals(event.getType())) {
       handleInvoicePaid(event);
+      return;
+    }
+    if (INVOICE_PAYMENT_FAILED.equals(event.getType())) {
+      handleInvoicePaymentFailed(event);
       return;
     }
     if (CHARGE_REFUNDED.equals(event.getType())) {
@@ -86,6 +95,110 @@ public class StripeWebhookService {
     subscriptionPaymentService
         .recordPaidStripeInvoice(invoice)
         .ifPresent(this::grantIncludedCreditsForPaidSubscription);
+  }
+
+  private void handleInvoicePaymentFailed(Event event) {
+    var invoice = extractStripeObject(event, Invoice.class);
+    if (invoice == null) {
+      return;
+    }
+    if (invoice.getSubscription() == null) {
+      log.info(
+          "Stripe Invoice(id={}) is not attached to a subscription, its payment failure is not"
+              + " notified",
+          invoice.getId());
+      return;
+    }
+    if (!STRIPE_SUBSCRIPTION_CYCLE_BILLING_REASON.equals(invoice.getBillingReason())) {
+      log.info(
+          "Stripe Invoice(id={}) is not a subscription renewal (billingReason={}), its payment"
+              + " failure is not notified",
+          invoice.getId(),
+          invoice.getBillingReason());
+      return;
+    }
+    if (isPaymentRetry(invoice)) {
+      log.info(
+          "Stripe Invoice(id={}) payment failure is a retry (attemptCount={}), only the first"
+              + " failed attempt is notified",
+          invoice.getId(),
+          invoice.getAttemptCount());
+      return;
+    }
+    var optionalUser = userRepository.findByStripeCustomerId(invoice.getCustomer());
+    if (optionalUser.isEmpty()) {
+      log.warn(
+          "No user found for Stripe customer id={}, payment failure of Stripe Invoice(id={}) is not"
+              + " notified",
+          invoice.getCustomer(),
+          invoice.getId());
+      return;
+    }
+    var userId = optionalUser.get().getId();
+    var resolvedPlan = subscriptionPaymentService.resolvePlanFromStripe(invoice);
+    var activeSubscription =
+        userSubscriptionProductService.findActiveUserSubscriptionProduct(userId).orElse(null);
+    var billingInterval = billingIntervalOf(resolvedPlan, activeSubscription);
+    if (billingInterval != MONTHLY) {
+      log.info(
+          "Stripe Invoice(id={}) bills a {} subscription of User(id={}), only monthly subscription"
+              + " payment failures are notified",
+          invoice.getId(),
+          billingInterval,
+          userId);
+      return;
+    }
+    var billedPeriod = subscriptionPaymentService.billedPeriodOf(invoice);
+    eventProducer.accept(
+        List.of(
+            SubscriptionPaymentFailureNotificationRequested.builder()
+                .userId(userId)
+                .stripeInvoiceId(invoice.getId())
+                .planName(planNameOf(resolvedPlan, activeSubscription))
+                .amountInCentsWithVat(amountDueInCentsOf(invoice))
+                .periodStartDatetime(epochSecondOrNull(billedPeriod.start()))
+                .periodEndDatetime(epochSecondOrNull(billedPeriod.end()))
+                .nextPaymentAttemptDatetime(epochSecondOrNull(invoice.getNextPaymentAttempt()))
+                .paymentUrl(invoice.getHostedInvoiceUrl())
+                .build()));
+    log.info(
+        "Requested subscription payment failure notification of User(id={}) from Stripe"
+            + " Invoice(id={})",
+        userId,
+        invoice.getId());
+  }
+
+  private BillingInterval billingIntervalOf(
+      ResolvedPlan resolvedPlan, UserSubscriptionProduct activeSubscription) {
+    if (resolvedPlan != null && resolvedPlan.billingInterval() != null) {
+      return resolvedPlan.billingInterval();
+    }
+    return activeSubscription == null ? null : activeSubscription.getBillingInterval();
+  }
+
+  private String planNameOf(ResolvedPlan resolvedPlan, UserSubscriptionProduct activeSubscription) {
+    if (resolvedPlan != null && resolvedPlan.product() != null) {
+      return resolvedPlan.product().getName();
+    }
+    if (activeSubscription == null || activeSubscription.getSubscriptionProduct() == null) {
+      return null;
+    }
+    return activeSubscription.getSubscriptionProduct().getName();
+  }
+
+  private static boolean isPaymentRetry(Invoice invoice) {
+    return invoice.getAttemptCount() != null && invoice.getAttemptCount() > 1L;
+  }
+
+  private static Long amountDueInCentsOf(Invoice invoice) {
+    if (invoice.getAmountRemaining() != null && invoice.getAmountRemaining() > 0L) {
+      return invoice.getAmountRemaining();
+    }
+    return invoice.getAmountDue() == null ? invoice.getTotal() : invoice.getAmountDue();
+  }
+
+  private static Instant epochSecondOrNull(Long epochSecond) {
+    return epochSecond == null ? null : Instant.ofEpochSecond(epochSecond);
   }
 
   private void handleChargeRefunded(Event event) {

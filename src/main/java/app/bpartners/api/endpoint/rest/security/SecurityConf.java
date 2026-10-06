@@ -256,6 +256,8 @@ public class SecurityConf {
                     .permitAll()
                     .requestMatchers(GET, "/subscriptionBillingStats")
                     .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(GET, "/subscriptionInvoices/export")
+                    .hasAnyRole(SUBSCRIPTION_INVOICE_EXPORTER.getRole(), ADMIN_ROLE.getRole())
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/customers/export", authResourceProvider))

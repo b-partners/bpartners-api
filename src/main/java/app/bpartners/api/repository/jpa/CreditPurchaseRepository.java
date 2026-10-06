@@ -27,6 +27,9 @@ public interface CreditPurchaseRepository extends JpaRepository<CreditPurchase, 
 
   List<CreditPurchase> findByStatusAndInvoiceIdIsNull(CreditPurchaseStatus status);
 
+  @Query("select cp.invoiceId from credit_purchase cp where cp.invoiceId is not null")
+  List<String> findAllInvoiceIds();
+
   List<CreditPurchase> findByUserIdAndStatusInAndCreationDatetimeBetweenOrderByCreationDatetimeDesc(
       String userId,
       List<CreditPurchaseStatus> statuses,

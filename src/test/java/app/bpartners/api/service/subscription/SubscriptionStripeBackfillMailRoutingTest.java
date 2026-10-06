@@ -1,7 +1,6 @@
 package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.SUBSCRIPTION_INVOICE_MAIL_TEMPLATE;
-import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE;
 import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.TECH_RECIPIENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -124,15 +123,16 @@ class SubscriptionStripeBackfillMailRoutingTest {
   }
 
   @Test
-  void an_already_invoiced_payment_only_reaches_tech_by_default() {
+  void an_already_invoiced_payment_is_neither_mailed_nor_invoiced_again() {
     givenAnAlreadyInvoicedStripePayment();
 
-    subject.backfill(List.of(USER_ID), paidSince(), false, false);
+    var reports = subject.backfill(List.of(USER_ID), paidSince(), false, true);
 
-    var recipientCaptor = ArgumentCaptor.forClass(String.class);
-    verify(subscriptionInvoiceMailer)
-        .send(any(), any(), eq(SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE), recipientCaptor.capture());
-    assertEquals(TECH_RECIPIENT, recipientCaptor.getValue());
+    verify(subscriptionInvoiceMailer, never()).send(any(), any(), anyString(), anyString());
+    verify(subscriptionPaymentInvoiceService, never())
+        .invoiceAssembledPeriod(anyString(), anyBoolean());
+    verify(subscriptionPaymentInvoiceService, never()).invoiceOwnPaidPeriod(any(), anyBoolean());
+    assertEquals("ALREADY_INVOICED", reports.getFirst().invoices().getFirst().outcome());
   }
 
   @Test

@@ -30,8 +30,6 @@ import org.thymeleaf.context.Context;
 @RequiredArgsConstructor
 public class SubscriptionInvoiceMailer {
   public static final String SUBSCRIPTION_INVOICE_MAIL_TEMPLATE = "subscription_invoice_mail";
-  public static final String SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE =
-      "subscription_invoice_paid_mail";
   public static final String TECH_RECIPIENT = "tech@birdia.fr";
 
   private final S3Service s3Service;
@@ -93,8 +91,7 @@ public class SubscriptionInvoiceMailer {
     context.setVariable("invoiceReference", invoice.getRef());
     context.setVariable("paymentDate", paymentDateOf(invoice));
     context.setVariable("subscriptionPlan", subscriptionPlanOf(invoice, subscriptionPayment));
-    context.setVariable("billingInterval", billingIntervalLabelOf(subscriptionPayment, false));
-    context.setVariable("billingIntervalLabel", billingIntervalLabelOf(subscriptionPayment, true));
+    context.setVariable("billingInterval", billingIntervalLabelOf(subscriptionPayment));
     context.setVariable("billedPeriod", billedPeriodOf(invoice, subscriptionPayment));
     context.setVariable("amountWithoutVat", euroOf(invoice.getTotalPriceWithoutVat()));
     context.setVariable("amountWithVat", euroOf(invoice.getTotalPriceWithVat()));
@@ -119,14 +116,13 @@ public class SubscriptionInvoiceMailer {
         : invoice.getProducts().getFirst().getDescription();
   }
 
-  private String billingIntervalLabelOf(
-      SubscriptionPayment subscriptionPayment, boolean feminineForm) {
+  private String billingIntervalLabelOf(SubscriptionPayment subscriptionPayment) {
     if (subscriptionPayment == null || subscriptionPayment.getBillingInterval() == null) {
       return null;
     }
     return switch (subscriptionPayment.getBillingInterval()) {
-      case YEARLY -> feminineForm ? "Annuelle" : "Annuel";
-      case MONTHLY -> feminineForm ? "Mensuelle" : "Mensuel";
+      case YEARLY -> "Annuel";
+      case MONTHLY -> "Mensuel";
     };
   }
 

@@ -2,7 +2,6 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration.TWELVE_MONTHS;
 import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.SUBSCRIPTION_INVOICE_MAIL_TEMPLATE;
-import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
@@ -158,8 +157,11 @@ public class SubscriptionStripeBackfillService {
     }
     var subscriptionPayment = optionalPayment.get();
     if (subscriptionPayment.getInvoiceId() != null) {
-      return resendAlreadyInvoiced(
-          stripeInvoice, subscriptionPayment, dryRun, sendsToSubscriber, actions);
+      var invoice = invoiceRepository.findById(subscriptionPayment.getInvoiceId());
+      return InvoicedPeriodReport.alreadyInvoiced(
+          stripeInvoice.getId(),
+          invoice == null ? subscriptionPayment.getInvoiceId() : invoice.getRef(),
+          "ALREADY_INVOICED");
     }
 
     var billsAPastMonth = billsAPastMonth(subscriptionPayment);
@@ -191,39 +193,6 @@ public class SubscriptionStripeBackfillService {
         stripeInvoice.getId(),
         createdInvoice.map(app.bpartners.api.model.Invoice::getRef).orElse(null),
         preview);
-  }
-
-  private InvoicedPeriodReport resendAlreadyInvoiced(
-      Invoice stripeInvoice,
-      SubscriptionPayment subscriptionPayment,
-      boolean dryRun,
-      boolean sendsToSubscriber,
-      List<String> actions) {
-    var invoice = invoiceRepository.findById(subscriptionPayment.getInvoiceId());
-    if (invoice == null) {
-      return InvoicedPeriodReport.alreadyInvoiced(
-          stripeInvoice.getId(), subscriptionPayment.getInvoiceId(), "ALREADY_INVOICED_NOT_FOUND");
-    }
-    if (dryRun) {
-      actions.add(
-          "resend paid invoice "
-              + invoice.getRef()
-              + " to "
-              + recipientOf(invoice, sendsToSubscriber));
-      return InvoicedPeriodReport.alreadyInvoiced(
-          stripeInvoice.getId(), invoice.getRef(), "ALREADY_INVOICED_WOULD_RESEND");
-    }
-    var sent =
-        mail(
-            invoice,
-            subscriptionPayment,
-            SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE,
-            sendsToSubscriber,
-            actions);
-    return InvoicedPeriodReport.alreadyInvoiced(
-        stripeInvoice.getId(),
-        invoice.getRef(),
-        sent ? "ALREADY_INVOICED_RESENT" : "ALREADY_INVOICED_NOT_SENT");
   }
 
   private boolean mail(

@@ -1,10 +1,9 @@
 package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
-import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE;
+import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.SUBSCRIPTION_INVOICE_MAIL_TEMPLATE;
 import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.TECH_RECIPIENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -38,7 +37,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-class SubscriptionInvoicePaidMailerTest {
+class SubscriptionInvoiceMailerTest {
   S3Service s3Service = mock();
   FileWriter fileWriter = mock();
   SesService mailer = mock();
@@ -57,7 +56,7 @@ class SubscriptionInvoicePaidMailerTest {
           new EmailInvoiceResolver(emailRecipientService, userRepository, eventProducer),
           subscriptionInvoicePeriodRepository);
 
-  SubscriptionInvoicePaidMailerTest() {
+  SubscriptionInvoiceMailerTest() {
     when(s3Service.downloadFile(any(), anyString(), anyString()))
         .thenReturn(new File("invoice.pdf"));
     when(fileWriter.writeAsByte(any(File.class))).thenReturn(new byte[] {1, 2, 3});
@@ -67,27 +66,8 @@ class SubscriptionInvoicePaidMailerTest {
   }
 
   @Test
-  void paid_template_keeps_the_acquitted_invoice_wording() throws Exception {
-    subject.send(someInvoice(), somePayment(), SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE, "a@b.fr");
-
-    var bodyCaptor = ArgumentCaptor.forClass(String.class);
-    verify(mailer)
-        .sendEmail(anyString(), anyString(), anyString(), bodyCaptor.capture(), anyList());
-    var body = bodyCaptor.getValue();
-    assertTrue(body.contains("Abonnement payé le 24/09/2026"), body);
-    assertTrue(body.contains("la facture acquittée"), body);
-    assertTrue(body.contains("Facturation"), body);
-    assertTrue(body.contains("Mensuelle"), body);
-    assertTrue(body.contains("Total TTC payé"), body);
-    assertTrue(body.contains("24/09/2026 au 30/09/2026"), body);
-    assertTrue(body.contains("10,35"), body);
-    assertTrue(body.contains("12,42"), body);
-  }
-
-  @Test
   void tech_recipient_is_used_when_the_subscriber_must_not_be_reached() throws Exception {
-    subject.send(
-        someInvoice(), somePayment(), SUBSCRIPTION_INVOICE_PAID_MAIL_TEMPLATE, TECH_RECIPIENT);
+    subject.send(someInvoice(), somePayment(), SUBSCRIPTION_INVOICE_MAIL_TEMPLATE, TECH_RECIPIENT);
 
     var recipientCaptor = ArgumentCaptor.forClass(String.class);
     verify(mailer)

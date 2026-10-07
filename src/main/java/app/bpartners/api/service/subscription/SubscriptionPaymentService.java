@@ -195,7 +195,7 @@ public class SubscriptionPaymentService {
         .build();
   }
 
-  private BilledPeriod billedPeriodOf(Invoice stripeInvoice) {
+  public BilledPeriod billedPeriodOf(Invoice stripeInvoice) {
     var subscriptionLinePeriod = subscriptionLinePeriodOf(stripeInvoice);
     if (subscriptionLinePeriod != null) {
       return inclusiveBilledPeriod(
@@ -247,7 +247,7 @@ public class SubscriptionPaymentService {
     return Boolean.TRUE.equals(line.getProration());
   }
 
-  private ResolvedPlan resolvePlanFromStripe(Invoice stripeInvoice) {
+  public ResolvedPlan resolvePlanFromStripe(Invoice stripeInvoice) {
     var lines = linesOf(stripeInvoice);
     var subscribedPlan = resolvePlanFromLines(lines.stream().filter(line -> !isProration(line)));
     return subscribedPlan == null ? resolvePlanFromLines(lines.stream()) : subscribedPlan;

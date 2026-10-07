@@ -8,8 +8,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.endpoint.event.model.SubscriptionPaymentFailureNotificationRequested;
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillRequested;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.credit.CreditPurchase;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.BillingInterval;
@@ -19,6 +21,8 @@ import app.bpartners.api.payment.StripeConf;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.credit.CreditPurchaseService;
+import app.bpartners.api.service.subscription.BilledPeriod;
+import app.bpartners.api.service.subscription.ResolvedPlan;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripeWebhookService;
 import app.bpartners.api.service.subscription.SubscriptionPaymentService;
@@ -737,5 +741,213 @@ class StripeWebhookServiceTest {
     }
 
     verify(creditPurchaseService, never()).complete(any());
+  }
+
+  static final String FAILED_INVOICE_ID = "in_failed";
+  static final Long FAILED_PERIOD_START = 1_790_000_000L;
+  static final Long FAILED_PERIOD_END = 1_792_591_999L;
+  static final Long NEXT_PAYMENT_ATTEMPT = 1_792_000_000L;
+
+  private Invoice givenFailedInvoice(String billingReason) {
+    var invoice = mock(Invoice.class);
+    lenient().when(invoice.getId()).thenReturn(FAILED_INVOICE_ID);
+    lenient().when(invoice.getSubscription()).thenReturn("sub_123");
+    lenient().when(invoice.getCustomer()).thenReturn(CUSTOMER_ID);
+    lenient().when(invoice.getBillingReason()).thenReturn(billingReason);
+    lenient().when(invoice.getAttemptCount()).thenReturn(1L);
+    lenient().when(invoice.getAmountRemaining()).thenReturn(12_000L);
+    lenient().when(invoice.getNextPaymentAttempt()).thenReturn(NEXT_PAYMENT_ATTEMPT);
+    lenient().when(invoice.getHostedInvoiceUrl()).thenReturn("https://pay.stripe.com/in_failed");
+    return invoice;
+  }
+
+  private void givenResolvedPlan(Invoice invoice, BillingInterval billingInterval) {
+    var plan = SubscriptionProduct.builder().id("plan_id").name("Pro").build();
+    lenient()
+        .when(subscriptionPaymentService.resolvePlanFromStripe(invoice))
+        .thenReturn(new ResolvedPlan(plan, billingInterval));
+    lenient()
+        .when(subscriptionPaymentService.billedPeriodOf(invoice))
+        .thenReturn(new BilledPeriod(FAILED_PERIOD_START, FAILED_PERIOD_END));
+  }
+
+  @Test
+  void a_failed_monthly_renewal_payment_requests_a_client_notification() {
+    var userId = randomUUID().toString();
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(userId).build()));
+    var invoice = givenFailedInvoice("subscription_cycle");
+    givenResolvedPlan(invoice, BillingInterval.MONTHLY);
+    var event = givenStripeObjectEvent("invoice.payment_failed", invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer)
+        .accept(
+            List.of(
+                SubscriptionPaymentFailureNotificationRequested.builder()
+                    .userId(userId)
+                    .stripeInvoiceId(FAILED_INVOICE_ID)
+                    .planName("Pro")
+                    .amountInCentsWithVat(12_000L)
+                    .periodStartDatetime(Instant.ofEpochSecond(FAILED_PERIOD_START))
+                    .periodEndDatetime(Instant.ofEpochSecond(FAILED_PERIOD_END))
+                    .nextPaymentAttemptDatetime(Instant.ofEpochSecond(NEXT_PAYMENT_ATTEMPT))
+                    .paymentUrl("https://pay.stripe.com/in_failed")
+                    .build()));
+  }
+
+  @Test
+  void a_failed_monthly_payment_falls_back_on_the_active_subscription_plan() {
+    var userId = randomUUID().toString();
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(userId).build()));
+    var invoice = givenFailedInvoice("subscription_cycle");
+    when(subscriptionPaymentService.resolvePlanFromStripe(invoice)).thenReturn(null);
+    when(subscriptionPaymentService.billedPeriodOf(invoice))
+        .thenReturn(new BilledPeriod(null, null));
+    when(userSubscriptionProductService.findActiveUserSubscriptionProduct(userId))
+        .thenReturn(
+            Optional.of(
+                UserSubscriptionProduct.builder()
+                    .billingInterval(BillingInterval.MONTHLY)
+                    .subscriptionProduct(
+                        SubscriptionProduct.builder().id("plan_id").name("Essentiel").build())
+                    .build()));
+    var event = givenStripeObjectEvent("invoice.payment_failed", invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer)
+        .accept(
+            List.of(
+                SubscriptionPaymentFailureNotificationRequested.builder()
+                    .userId(userId)
+                    .stripeInvoiceId(FAILED_INVOICE_ID)
+                    .planName("Essentiel")
+                    .amountInCentsWithVat(12_000L)
+                    .nextPaymentAttemptDatetime(Instant.ofEpochSecond(NEXT_PAYMENT_ATTEMPT))
+                    .paymentUrl("https://pay.stripe.com/in_failed")
+                    .build()));
+  }
+
+  @Test
+  void a_failed_first_subscription_payment_is_not_notified() {
+    var invoice = givenFailedInvoice("subscription_create");
+    givenResolvedPlan(invoice, BillingInterval.MONTHLY);
+    var event = givenStripeObjectEvent("invoice.payment_failed", invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+    verify(userRepository, never()).findByStripeCustomerId(any());
+  }
+
+  @Test
+  void a_failed_yearly_renewal_payment_is_not_notified() {
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(randomUUID().toString()).build()));
+    var invoice = givenFailedInvoice("subscription_cycle");
+    givenResolvedPlan(invoice, BillingInterval.YEARLY);
+    var event = givenStripeObjectEvent("invoice.payment_failed", invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
+  void a_failed_payment_of_a_one_shot_invoice_is_not_notified() {
+    var invoice = givenFailedInvoice("subscription_cycle");
+    when(invoice.getSubscription()).thenReturn(null);
+    var event = givenStripeObjectEvent("invoice.payment_failed", invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
+  void a_failed_renewal_payment_of_an_unknown_customer_is_not_notified() {
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID)).thenReturn(Optional.empty());
+    var invoice = givenFailedInvoice("subscription_cycle");
+    givenResolvedPlan(invoice, BillingInterval.MONTHLY);
+    var event = givenStripeObjectEvent("invoice.payment_failed", invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
+  void a_retried_failed_monthly_renewal_payment_is_not_notified_again() {
+    var invoice = givenFailedInvoice("subscription_cycle");
+    when(invoice.getAttemptCount()).thenReturn(2L);
+    givenResolvedPlan(invoice, BillingInterval.MONTHLY);
+    var event = givenStripeObjectEvent("invoice.payment_failed", invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer, never()).accept(anyList());
+    verify(userRepository, never()).findByStripeCustomerId(any());
+  }
+
+  @Test
+  void a_failed_monthly_renewal_payment_without_known_attempt_count_is_notified() {
+    var userId = randomUUID().toString();
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID))
+        .thenReturn(Optional.of(User.builder().id(userId).build()));
+    var invoice = givenFailedInvoice("subscription_cycle");
+    when(invoice.getAttemptCount()).thenReturn(null);
+    givenResolvedPlan(invoice, BillingInterval.MONTHLY);
+    var event = givenStripeObjectEvent("invoice.payment_failed", invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(eventProducer)
+        .accept(
+            List.of(
+                SubscriptionPaymentFailureNotificationRequested.builder()
+                    .userId(userId)
+                    .stripeInvoiceId(FAILED_INVOICE_ID)
+                    .planName("Pro")
+                    .amountInCentsWithVat(12_000L)
+                    .periodStartDatetime(Instant.ofEpochSecond(FAILED_PERIOD_START))
+                    .periodEndDatetime(Instant.ofEpochSecond(FAILED_PERIOD_END))
+                    .nextPaymentAttemptDatetime(Instant.ofEpochSecond(NEXT_PAYMENT_ATTEMPT))
+                    .paymentUrl("https://pay.stripe.com/in_failed")
+                    .build()));
   }
 }

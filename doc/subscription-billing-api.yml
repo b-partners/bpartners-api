@@ -83,6 +83,62 @@ operations:
         500:
           $ref: './api.yml#/components/responses/500'
 
+  subscriptionInvoicesExportOperation:
+    get:
+      tags:
+        - Subscription Billing
+      summary: Export every client's subscription and credit invoices as a ZIP archive
+      description: |
+        Admin-only export, reserved to the `SUBSCRIPTION_INVOICE_EXPORTER` and `ADMIN_ROLE` roles.
+
+        Gathers the invoices the platform issued to its own subscribers, builds a ZIP archive and
+        returns a pre-signed S3 URL to download it.
+
+        The archive holds one folder per billed client, named after the client. Each folder holds
+        that client's subscription invoices and credit purchase invoices as PDF files. A client
+        with neither a subscription invoice nor a credit purchase invoice over the period has no
+        folder at all in the archive.
+
+        Each PDF is named after what it bills, so that the two kinds can be told apart at a glance:
+        `Facture abonnement REF-xxxxx.pdf` for a subscription, `Facture credits REF-xxxxx.pdf` for
+        a credit purchase.
+
+        `from` and `to` are optional and bound the export on the invoice sending date. When both are
+        omitted, every invoice ever issued to the subscribers is exported, which may take a while.
+      operationId: exportSubscriptionInvoices
+      parameters:
+        - in: query
+          name: from
+          description: First sending date to export, inclusive. Unbounded when omitted.
+          schema:
+            type: string
+            format: date
+          required: false
+        - in: query
+          name: to
+          description: Last sending date to export, inclusive. Unbounded when omitted.
+          schema:
+            type: string
+            format: date
+          required: false
+      responses:
+        200:
+          description: A pre-signed S3 URL to download the ZIP archive
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/PreSignedURL'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
 components:
   schemas:
     SubscriptionBillingStats:

@@ -10,11 +10,13 @@ import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportReque
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
+import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.service.subscription.SubscriptionInvoiceExportService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.subscription.SubscriptionStripeBackfillService;
 import java.time.Instant;
@@ -34,6 +36,18 @@ public class SubscriptionController {
   private final SubscriptionConsumptionLogRestMapper subscriptionConsumptionLogRestMapper;
   private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
   private final SubscriptionStripeBackfillService subscriptionStripeBackfillService;
+  private final SubscriptionInvoiceExportService subscriptionInvoiceExportService;
+
+  @GetMapping("/subscriptionInvoices/export")
+  public PreSignedURL exportSubscriptionInvoices(
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+    var preSignedLink = subscriptionInvoiceExportService.generateExportLink(from, to);
+    return new PreSignedURL()
+        .value(preSignedLink.getValue())
+        .expirationDelay(preSignedLink.getExpirationDelay())
+        .updatedAt(preSignedLink.getUpdatedAt());
+  }
 
   @GetMapping("/subscriptionPlans")
   public List<SubscriptionPlan> getSubscriptionPlans(
@@ -57,12 +71,16 @@ public class SubscriptionController {
   public List<SubscriptionStripeBackfillService.UserBackfillReport> backfillSubscriptionsFromStripe(
       @RequestBody List<String> userIds,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate paidSince,
-      @RequestParam(defaultValue = "true") boolean dryRun) {
+      @RequestParam(defaultValue = "true") boolean dryRun,
+      @RequestParam(defaultValue = "false") boolean sendsToSubscriber) {
     if (userIds == null || userIds.isEmpty()) {
       throw new BadRequestException("userIds must list the users to backfill");
     }
     return subscriptionStripeBackfillService.backfill(
-        userIds, paidSince.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant(), dryRun);
+        userIds,
+        paidSince.atStartOfDay(ZoneId.of("Europe/Paris")).toInstant(),
+        dryRun,
+        sendsToSubscriber);
   }
 
   @PostMapping("/monthlySubscriptionInvoiceTrigger")

@@ -5,7 +5,8 @@ import org.springframework.security.core.GrantedAuthority;
 public enum Role implements GrantedAuthority {
   EVAL_PROSPECT,
   INVOICE_RELAUNCHER,
-  ADMIN_ROLE;
+  ADMIN_ROLE,
+  SUBSCRIPTION_INVOICE_EXPORTER;
 
   public String getRole() {
     return name();

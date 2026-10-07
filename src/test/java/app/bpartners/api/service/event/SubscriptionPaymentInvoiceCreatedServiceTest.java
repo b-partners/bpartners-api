@@ -68,17 +68,18 @@ class SubscriptionPaymentInvoiceCreatedServiceTest {
   EventProducer<EmailRecipientsUpdateRequested> eventProducer = mock();
   EmailInvoiceResolver emailInvoiceResolver =
       new EmailInvoiceResolver(emailRecipientService, userRepository, eventProducer);
-  SubscriptionPaymentInvoiceCreatedService subject =
-      new SubscriptionPaymentInvoiceCreatedService(
-          invoiceRepository,
-          subscriptionPaymentRepository,
-          subscriptionInvoicePeriodRepository,
+  app.bpartners.api.service.subscription.SubscriptionInvoiceMailer subscriptionInvoiceMailer =
+      new app.bpartners.api.service.subscription.SubscriptionInvoiceMailer(
           s3Service,
           fileWriter,
           mailer,
           new TemplateResolverEngine(),
           new CustomDateFormatter(),
-          emailInvoiceResolver);
+          emailInvoiceResolver,
+          subscriptionInvoicePeriodRepository);
+  SubscriptionPaymentInvoiceCreatedService subject =
+      new SubscriptionPaymentInvoiceCreatedService(
+          invoiceRepository, subscriptionPaymentRepository, subscriptionInvoiceMailer);
 
   SubscriptionPaymentInvoiceCreatedServiceTest() {
     when(s3Service.downloadFile(any(), anyString(), anyString()))

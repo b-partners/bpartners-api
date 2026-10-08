@@ -1,0 +1,103 @@
+operations:
+  checkPromoCodeOperation:
+    get:
+      tags:
+        - PromoCode
+      summary: Check whether a promo code exists and is active
+      description: |
+        Public, unauthenticated. Used by the registration form to validate a promo code typed or
+        carried in a referral link before the user is created. Returns 404 for an unknown or
+        deprecated code.
+      operationId: checkPromoCode
+      security: [ ]
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: The promo code exists and is active
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromoCode'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  promoCodesOperation:
+    get:
+      tags:
+        - PromoCode
+      summary: List every promo code with how many users registered through it
+      description: |
+        Admin-only, reserved to the `ADMIN_ROLE` role.
+      operationId: getPromoCodes
+      responses:
+        200:
+          description: Every promo code with its registration count
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PromoCodeStats'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  promoCodeUsersOperation:
+    get:
+      tags:
+        - PromoCode
+      summary: List the users who registered with a given promo code
+      description: |
+        Admin-only, reserved to the `ADMIN_ROLE` role.
+      operationId: getPromoCodeUsers
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Users who registered with this promo code
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './userAccounts-api.yml#/components/schemas/User'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+components:
+  schemas:
+    PromoCodeType:
+      type: string
+      enum:
+        - AD
+    PromoCode:
+      type: object
+      properties:
+        code:
+          type: string
+        type:
+          $ref: '#/components/schemas/PromoCodeType'
+        label:
+          type: string
+    PromoCodeStats:
+      type: object
+      properties:
+        promoCode:
+          $ref: '#/components/schemas/PromoCode'
+        registeredCount:
+          type: integer
+          format: int64

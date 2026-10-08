@@ -94,6 +94,9 @@ public class HUser implements Serializable {
 
   private String apiKey;
 
+  @Column(name = "promo_code_id")
+  private String promoCodeId;
+
   @OneToMany(fetch = EAGER, cascade = ALL)
   @JoinColumn(name = "user_id")
   private List<HUserAnalysisApiKey> analysisApiKeys;

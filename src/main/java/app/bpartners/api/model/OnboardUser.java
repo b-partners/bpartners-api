@@ -19,4 +19,5 @@ public class OnboardUser {
   private User user;
   private String companyName;
   private boolean createCognitoUser = true;
+  private String promoCode;
 }

@@ -48,6 +48,7 @@ public class OnboardingService {
   private final SesConf sesConf;
   private final SesService mailer;
   private final ApplicationContext applicationContext;
+  private final PromoCodeService promoCodeService;
 
   @Transactional
   public OnboardedUser onboardUser(OnboardUser onboardUser) {
@@ -55,7 +56,8 @@ public class OnboardingService {
     String companyName = onboardUser.getCompanyName();
     boolean usercreateCognitoUser = onboardUser.isCreateCognitoUser();
     String id = String.valueOf(randomUUID());
-    User savedUser = userRepository.create(userDefaultValues(toSave, id));
+    String promoCodeId = promoCodeService.resolveId(onboardUser.getPromoCode());
+    User savedUser = userRepository.create(userDefaultValues(toSave, id, promoCodeId));
 
     if (usercreateCognitoUser) {
       publishAfterCommit(List.of(toTypedUser(savedUser)));
@@ -105,11 +107,12 @@ public class OnboardingService {
     return new UserOnboarded().onboardedUser(onboardedUser);
   }
 
-  private User userDefaultValues(User user, String id) {
+  private User userDefaultValues(User user, String id, String promoCodeId) {
     return user.toBuilder()
         .id(user.getId() == null ? id : user.getId())
         .status(ENABLED)
         .accounts(List.of())
+        .promoCodeId(promoCodeId)
         .build();
   }
 

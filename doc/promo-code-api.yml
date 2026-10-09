@@ -33,7 +33,7 @@ operations:
         - PromoCode
       summary: List every promo code with how many users registered through it
       description: |
-        Admin-only, reserved to the `ADMIN_ROLE` role.
+        Admin-only.
       operationId: getPromoCodes
       responses:
         200:

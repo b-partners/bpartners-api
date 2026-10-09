@@ -54,7 +54,7 @@ operations:
         - PromoCode
       summary: List the users who registered with a given promo code
       description: |
-        Admin-only, reserved to the `ADMIN_ROLE` role.
+        Admin-only.
       operationId: getPromoCodeUsers
       parameters:
         - in: path

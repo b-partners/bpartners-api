@@ -41,6 +41,7 @@ public class User implements Serializable {
   private String apiKey;
   private boolean paymentMethodExists;
   private List<UserAnalysisApiKey> analysisApiKeys;
+  private String promoCodeId;
 
   @Getter(AccessLevel.NONE)
   @EqualsAndHashCode.Exclude

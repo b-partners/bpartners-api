@@ -19,4 +19,9 @@ public class OnboardUser {
   private User user;
   private String companyName;
   private boolean createCognitoUser = true;
+  private String promoCode;
+
+  public OnboardUser(User user, String companyName, boolean createCognitoUser) {
+    this(user, companyName, createCognitoUser, null);
+  }
 }

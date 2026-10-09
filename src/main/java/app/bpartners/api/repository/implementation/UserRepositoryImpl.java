@@ -81,6 +81,22 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
+  public List<User> findAllByPromoCodeId(String promoCodeId) {
+    return jpaRepository.findAllByPromoCodeId(promoCodeId).stream()
+        .map(
+            userEntity -> {
+              var fetchedUser = userMapper.toDomain(userEntity);
+              return retrievePaymentMethod(fetchedUser);
+            })
+        .toList();
+  }
+
+  @Override
+  public long countByPromoCodeId(String promoCodeId) {
+    return jpaRepository.countByPromoCodeId(promoCodeId);
+  }
+
+  @Override
   public List<User> findAll() {
     return jpaRepository.findAll().stream().map(userMapper::toDomain).collect(toList());
   }

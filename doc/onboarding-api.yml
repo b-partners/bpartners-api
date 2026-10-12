@@ -170,6 +170,11 @@ components:
           type: boolean
           default: true
           required: false
+        promoCode:
+          type: string
+          description: |
+            Optional promo code the user registered with. Unknown or deprecated codes are
+            silently ignored, registration is never blocked by a bad code.
     OnboardedUser:
       type: object
       properties:

@@ -24,6 +24,7 @@ public class OnboardingRestMapper {
         .user(userMapper.toDomain(rest))
         .companyName(rest.getCompanyName())
         .createCognitoUser(rest.getCreateCognitoUser() != null ? rest.getCreateCognitoUser() : true)
+        .promoCode(rest.getPromoCode())
         .build();
   }
 }

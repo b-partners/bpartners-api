@@ -42,4 +42,8 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
 
   @Query("select u from HUser u where u.parentUser.id = ?1")
   List<HUser> findSubordinatesUsersByParentId(String parentId);
+
+  List<HUser> findAllByPromoCodeId(String promoCodeId);
+
+  long countByPromoCodeId(String promoCodeId);
 }

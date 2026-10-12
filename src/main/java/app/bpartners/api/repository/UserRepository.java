@@ -43,4 +43,8 @@ public interface UserRepository {
   List<User> getUsersWithSubscription();
 
   List<User> findSubordinatesUsersByParentId(String id);
+
+  List<User> findAllByPromoCodeId(String promoCodeId);
+
+  long countByPromoCodeId(String promoCodeId);
 }

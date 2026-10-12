@@ -182,4 +182,24 @@ class UserRepositoryImplTest {
 
     assertEquals(expectedMessage, actual.getMessage());
   }
+
+  @Test
+  void find_all_by_promo_code_id() {
+    var userEntityMock = mock(HUser.class);
+    var userMock = mock(User.class);
+    when(userJpaRepositoryMock.findAllByPromoCodeId("promo_id"))
+        .thenReturn(List.of(userEntityMock));
+    when(userMapperMock.toDomain(userEntityMock)).thenReturn(userMock);
+
+    var actual = subject.findAllByPromoCodeId("promo_id");
+
+    assertEquals(List.of(userMock), actual);
+  }
+
+  @Test
+  void count_by_promo_code_id() {
+    when(userJpaRepositoryMock.countByPromoCodeId("promo_id")).thenReturn(3L);
+
+    assertEquals(3L, subject.countByPromoCodeId("promo_id"));
+  }
 }

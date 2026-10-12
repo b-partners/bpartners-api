@@ -37,6 +37,7 @@ public class UserMapper {
             .status(entityUser.getStatus())
             .logoFileId(entityUser.getLogoFileId())
             .oldS3key(entityUser.getOldS3AccountKey())
+            .promoCodeId(entityUser.getPromoCodeId())
             .accounts(
                 entityUser.getAccounts() == null
                     ? null
@@ -74,6 +75,7 @@ public class UserMapper {
         .status(toSave.getStatus())
         .apiKey(toSave.getApiKey())
         .oldS3AccountKey(toSave.getOldS3key())
+        .promoCodeId(toSave.getPromoCodeId())
         .preferredAccountId(toSave.getPreferredAccountId())
         .logoFileId(toSave.getLogoFileId())
         .roles(toSave.getRoles() == null ? new Role[] {} : toSave.getRoles().toArray(Role[]::new))

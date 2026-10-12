@@ -79,6 +79,7 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/ping"),
                         new AntPathRequestMatcher("/preUsers", POST.name()),
                         new AntPathRequestMatcher("/onboarding"),
+                        new AntPathRequestMatcher("/promoCodes/*", GET.name()),
                         new AntPathRequestMatcher("/sendEmail", POST.name()),
                         new AntPathRequestMatcher("/whoami", GET.name()),
                         new AntPathRequestMatcher("/users/*", GET.name()),
@@ -114,6 +115,8 @@ public class SecurityConf {
                     .requestMatchers(GET, "/whoami")
                     .permitAll()
                     .requestMatchers("/onboarding")
+                    .permitAll()
+                    .requestMatchers(GET, "/promoCodes/*")
                     .permitAll()
                     .requestMatchers("/sendEmail")
                     .permitAll()
@@ -173,6 +176,10 @@ public class SecurityConf {
                     .requestMatchers(GET, "/accountHolders")
                     .hasAnyRole(EVAL_PROSPECT.getRole())
                     .requestMatchers(GET, "/users")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(GET, "/promoCodes")
+                    .hasAnyRole(ADMIN_ROLE.getRole())
+                    .requestMatchers(GET, "/promoCodes/*/users")
                     .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(POST, "/users/subscriptionRegistration")
                     .hasAnyRole(ADMIN_ROLE.getRole())

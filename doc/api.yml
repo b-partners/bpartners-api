@@ -38,6 +38,16 @@ paths:
     $ref: './onboarding-api.yml#/operations/visitorSendEmail'
 
   #############################################
+  ############## Promo Code API ###############
+  #############################################
+  /promoCodes:
+    $ref: './promo-code-api.yml#/operations/promoCodesOperation'
+  /promoCodes/{code}:
+    $ref: './promo-code-api.yml#/operations/checkPromoCodeOperation'
+  /promoCodes/{code}/users:
+    $ref: './promo-code-api.yml#/operations/promoCodeUsersOperation'
+
+  #############################################
   ############ User Accounts API ##############
   #############################################
   /users:

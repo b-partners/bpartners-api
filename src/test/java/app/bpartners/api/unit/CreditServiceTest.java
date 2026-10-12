@@ -98,14 +98,14 @@ class CreditServiceTest {
             Optional.of(
                 SubscriptionProduct.builder()
                     .billingType(USAGE_BASED)
-                    .creditUnitPriceInCentsWithoutVat(1000L)
+                    .creditUnitPriceInCentsWithoutVat(2900L)
                     .vatPercent(2000L)
                     .build()));
 
     var actual = subject.resolveCreditUnitPrice(user);
 
-    assertEquals(1000L, actual.inCentsWithoutVat());
-    assertEquals(1200L, actual.inCentsWithVat());
+    assertEquals(2900L, actual.inCentsWithoutVat());
+    assertEquals(3480L, actual.inCentsWithVat());
   }
 
   @Test
@@ -117,8 +117,8 @@ class CreditServiceTest {
 
     var actual = subject.resolveCreditUnitPrice(user);
 
-    assertEquals(1000L, actual.inCentsWithoutVat());
-    assertEquals(1200L, actual.inCentsWithVat());
+    assertEquals(2900L, actual.inCentsWithoutVat());
+    assertEquals(3480L, actual.inCentsWithVat());
     assertEquals(2000L, actual.vatPercent());
   }
 
@@ -142,10 +142,10 @@ class CreditServiceTest {
 
     var actual = subject.resolveCreditUnitPrice(user);
 
-    assertEquals(1000L, actual.inCentsWithoutVat());
-    assertEquals(1200L, actual.inCentsWithVat());
-    assertEquals(10_000L, actual.totalInCentsWithoutVat(10L));
-    assertEquals(12_000L, actual.totalInCentsWithVat(10L));
+    assertEquals(2900L, actual.inCentsWithoutVat());
+    assertEquals(3480L, actual.inCentsWithVat());
+    assertEquals(29_000L, actual.totalInCentsWithoutVat(10L));
+    assertEquals(34_800L, actual.totalInCentsWithVat(10L));
   }
 
   @Test

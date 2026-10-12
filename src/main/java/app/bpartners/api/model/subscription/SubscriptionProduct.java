@@ -22,9 +22,9 @@ import org.hibernate.annotations.JdbcTypeCode;
 public class SubscriptionProduct {
   public static final long DEFAULT_FREE_USAGE_THRESHOLD = 20L;
 
-  public static final long DEFAULT_OVERAGE_UNIT_PRICE_IN_CENTS = 1000L;
+  public static final long DEFAULT_OVERAGE_UNIT_PRICE_IN_CENTS = 2900L;
 
-  public static final long DEFAULT_CREDIT_UNIT_PRICE_IN_CENTS = 1000L;
+  public static final long DEFAULT_CREDIT_UNIT_PRICE_IN_CENTS = 2900L;
 
   public static final long DEFAULT_CREDIT_COST_PER_ANALYSIS = 1L;
 

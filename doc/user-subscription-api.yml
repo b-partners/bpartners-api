@@ -399,6 +399,100 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  upgradeUserSubscription:
+    post:
+      tags:
+        - User Subscription
+      summary: Upgrade the active subscription of the user to a higher plan
+      description: |
+        Moves the user from the active subscription to a plan of a higher tier, never to a lower
+        one. The commitment is renewed on 12 new months starting now and the previous commitment is
+        flagged as expired. The difference for the switching month is charged once on the default
+        payment method of the user, and recurring payments start on the first day of the month
+        following the switch. A credit note cancelling the remaining coverage of the previous
+        subscription and a new invoice covering the renewed commitment are issued. The upgrade is
+        refused during a free trial, with unpaid invoices or without an active subscription, and
+        switching from a yearly to a monthly billing interval is not implemented yet.
+      operationId: upgradeUserSubscription
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubscriptionUpgrade'
+      responses:
+        200:
+          description: The upgrade that has been performed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionUpgrade'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        409:
+          $ref: './api.yml#/components/responses/409'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+        501:
+          description: The requested switch of billing interval is not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/Exception'
+    get:
+      tags:
+        - User Subscription
+      summary: List the subscription upgrades of the user
+      description: |
+        Lists the upgrades of the user, the most recent first. An upgrade with the PENDING status is
+        in progress, or was interrupted after the amount was charged and awaits a manual recovery,
+        and blocks any new upgrade. Filter on the status to know whether an upgrade is in progress.
+      operationId: getUserSubscriptionUpgrades
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/SubscriptionUpgradeStatus'
+          required: false
+          description: Keep only the upgrades having this status
+      responses:
+        200:
+          description: The upgrades of the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionUpgrade'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   startUserSubscriptionTrial:
     post:
       tags:
@@ -623,6 +717,47 @@ components:
             precedence over subscriptionType, enabling data-driven plan selection.
         billingInterval:
           $ref: '#/components/schemas/BillingInterval'
+    CreateSubscriptionUpgrade:
+      type: object
+      required:
+        - subscriptionPlanIdentifier
+      properties:
+        subscriptionPlanIdentifier:
+          type: string
+          description: Identifier of the plan to upgrade to (see GET /subscriptionPlans).
+        billingInterval:
+          $ref: '#/components/schemas/BillingInterval'
+    SubscriptionUpgradeStatus:
+      type: string
+      enum:
+        - PENDING
+        - PAID
+        - INVOICED
+    SubscriptionUpgrade:
+      type: object
+      properties:
+        id:
+          type: string
+        fromSubscriptionPlanIdentifier:
+          type: string
+        toSubscriptionPlanIdentifier:
+          type: string
+        fromBillingInterval:
+          $ref: '#/components/schemas/BillingInterval'
+        toBillingInterval:
+          $ref: '#/components/schemas/BillingInterval'
+        upgradeDatetime:
+          type: string
+          format: date-time
+        newCommitmentEnd:
+          type: string
+          format: date-time
+        prorationAmountInCentsWithVat:
+          type: integer
+          format: int64
+          description: Amount charged once for the switching month, VAT included.
+        status:
+          $ref: '#/components/schemas/SubscriptionUpgradeStatus'
     BillingInterval:
       type: string
       enum:

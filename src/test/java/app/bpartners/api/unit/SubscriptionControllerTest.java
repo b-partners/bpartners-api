@@ -33,6 +33,8 @@ class SubscriptionControllerTest {
   SubscriptionService subscriptionServiceMock = mock(SubscriptionService.class);
   EventProducer eventProducerMock = mock(EventProducer.class);
   TemporalUtils temporalUtils = new TemporalUtils();
+  app.bpartners.api.service.user.UserService userServiceMock = mock();
+  app.bpartners.api.service.subscription.SubscriptionUpgradeService upgradeServiceMock = mock();
 
   SubscriptionController subject =
       new SubscriptionController(
@@ -41,7 +43,11 @@ class SubscriptionControllerTest {
           consumptionLogRestMapper,
           subscriptionPlanRestMapper,
           mock(app.bpartners.api.service.subscription.SubscriptionStripeBackfillService.class),
-          mock(app.bpartners.api.service.subscription.SubscriptionInvoiceExportService.class));
+          mock(app.bpartners.api.service.subscription.SubscriptionInvoiceExportService.class),
+          userServiceMock,
+          new app.bpartners.api.endpoint.rest.validator.CreateSubscriptionUpgradeRestValidator(),
+          upgradeServiceMock,
+          new app.bpartners.api.endpoint.rest.mapper.SubscriptionUpgradeRestMapper());
 
   @Test
   void triggers_the_subscription_remaining_period_invoice_event() {
@@ -123,5 +129,78 @@ class SubscriptionControllerTest {
     var actual = subject.getConsumptionLogsByUserId(userId, startOfMonth, endOfMonth);
 
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void upgrades_the_subscription_of_the_user_to_the_requested_plan() {
+    var user = app.bpartners.api.model.User.builder().id("user_id").build();
+    when(userServiceMock.getUserById("user_id")).thenReturn(user);
+    when(upgradeServiceMock.upgrade(
+            user, "pro_id", app.bpartners.api.model.subscription.BillingInterval.YEARLY))
+        .thenReturn(
+            app.bpartners.api.model.subscription.UserSubscriptionUpgrade.builder()
+                .id("upgrade_id")
+                .fromSubscriptionProductId("essential_id")
+                .toSubscriptionProductId("pro_id")
+                .fromBillingInterval(app.bpartners.api.model.subscription.BillingInterval.MONTHLY)
+                .toBillingInterval(app.bpartners.api.model.subscription.BillingInterval.YEARLY)
+                .prorationAmountInCentsWithVat(104_129L)
+                .status(app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID)
+                .build());
+
+    var actual =
+        subject.upgradeUserSubscription(
+            "user_id",
+            new app.bpartners.api.endpoint.rest.model.CreateSubscriptionUpgrade()
+                .subscriptionPlanIdentifier("pro_id")
+                .billingInterval(app.bpartners.api.endpoint.rest.model.BillingInterval.YEARLY));
+
+    assertEquals("upgrade_id", actual.getId());
+    assertEquals("pro_id", actual.getToSubscriptionPlanIdentifier());
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.BillingInterval.YEARLY,
+        actual.getToBillingInterval());
+    assertEquals(104_129L, actual.getProrationAmountInCentsWithVat());
+  }
+
+  @Test
+  void rejects_an_upgrade_without_plan_identifier() {
+    org.junit.jupiter.api.Assertions.assertThrows(
+        app.bpartners.api.model.exception.BadRequestException.class,
+        () ->
+            subject.upgradeUserSubscription(
+                "user_id", new app.bpartners.api.endpoint.rest.model.CreateSubscriptionUpgrade()));
+  }
+
+  @Test
+  void lists_the_upgrades_of_the_user_filtered_on_their_status() {
+    when(upgradeServiceMock.findUpgrades(
+            "user_id", app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING))
+        .thenReturn(
+            List.of(
+                app.bpartners.api.model.subscription.UserSubscriptionUpgrade.builder()
+                    .id("pending_upgrade_id")
+                    .fromBillingInterval(
+                        app.bpartners.api.model.subscription.BillingInterval.MONTHLY)
+                    .toBillingInterval(app.bpartners.api.model.subscription.BillingInterval.MONTHLY)
+                    .status(app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING)
+                    .build()));
+
+    var actual =
+        subject.getUserSubscriptionUpgrades(
+            "user_id", app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus.PENDING);
+
+    assertEquals(1, actual.size());
+    assertEquals("pending_upgrade_id", actual.getFirst().getId());
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus.PENDING,
+        actual.getFirst().getStatus());
+  }
+
+  @Test
+  void lists_all_the_upgrades_of_the_user_without_status_filter() {
+    when(upgradeServiceMock.findUpgrades("user_id", null)).thenReturn(List.of());
+
+    assertEquals(0, subject.getUserSubscriptionUpgrades("user_id", null).size());
   }
 }

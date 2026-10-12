@@ -73,6 +73,9 @@ public class SubscriptionProduct {
 
   private Integer displayPosition;
 
+  @Column(name = "tier_rank")
+  private Integer tierRank;
+
   private Instant creationDatetime;
 
   @Column(name = "plan_code")

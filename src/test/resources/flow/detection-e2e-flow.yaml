@@ -1,0 +1,507 @@
+# =============================================================================
+# BPartners — Spécification du flux "Détection toiture" (end-to-end)
+#
+# CE FICHIER EST DESTINÉ À ÊTRE LU PAR UN LLM / AGENT travaillant AU NIVEAU DE
+# L'API (backend bpartners-api). Il décrit, de façon auto-suffisante, la
+# séquence exacte de requêtes HTTP émises par le front lorsqu'un utilisateur
+# final réalise une détection de toiture — depuis la création du prospect
+# jusqu'à la récupération des résultats.
+#
+# OBJECTIF POUR LE LECTEUR (agent API) :
+#   Pouvoir reproduire / simuler / tester ce parcours END-TO-END côté serveur
+#   (ex : écrire un test d'intégration, un client de simulation, un mock, ou
+#   valider que la chaîne d'endpoints répond correctement dans le bon ordre).
+#
+# COMMENT EXPLOITER CE FICHIER :
+#   - `services`      : les 4 back-ends. Seul `BPARTNERS_API` est implémenté par
+#                       le repo bpartners-api ; les autres sont externes (à
+#                       appeler tels quels ou à mocker selon le besoin du test).
+#   - `steps`         : liste ORDONNÉE de requêtes. Respecter `order` et
+#                       `depends_on`. Chaque step est une requête HTTP complète
+#                       (method, url, headers, body) avec des exemples CONCRETS.
+#   - `{{variables}}` : à substituer depuis `variables` + valeurs extraites via
+#                       `extract` (JSONPath) sur les réponses précédentes.
+#   - `owner`         : quel service traite la requête (BPARTNERS_API |
+#                       GEO_DETECTION_API | PIXEL_CONVERTER | GEO_MERCATOR).
+#   - `critical_path` : sous-ensemble minimal pour valider la détection.
+#
+# NOTE DE SUBSTITUTION : toute valeur "{{uuid}}" doit être un UUID v4 généré une
+# fois puis réutilisé (les UUID côté client sont idempotents par leur id).
+# =============================================================================
+
+meta:
+  name: bpartners-detection-e2e
+  version: 2
+  source_repo: bpartners-web (front React Admin)
+  target_reader: agent LLM travaillant sur bpartners-api
+  summary: >
+    Création prospect -> génération de l'image satellite depuis l'adresse ->
+    création du projet (draft) -> ouverture annotateur -> détection toiture
+    (BP_TOITURE) -> récupération pente/hauteur et régions détectées.
+
+# -----------------------------------------------------------------------------
+# SERVICES (base URLs). Mapping vers les variables d'env du front.
+# -----------------------------------------------------------------------------
+services:
+  BPARTNERS_API:
+    env_var: REACT_APP_BPARTNERS_API_URL
+    base_url: "https://api-preprod.bpartners.app"
+    auth: bp_bearer
+    implemented_by: bpartners-api        # <= le repo cible de l'agent lecteur
+    role: "CRUD métier : prospects, areaPictures, fichiers, annotations/drafts."
+  GEO_DETECTION_API:
+    env_var: REACT_APP_GEO_DETECTION_API
+    base_url: "https://REPLACE_ME/geo-detection"
+    auth: geo_api_key
+    implemented_by: external
+    role: "Moteur de détection + geocode + génération 3D (CityJSON)."
+  PIXEL_CONVERTER:
+    env_var: REACT_APP_ANNOTATOR_PIXEL_CONVERTER_API_URL
+    base_url: "https://REPLACE_ME/pixel-converter"
+    auth: none
+    implemented_by: external
+    role: "Conversion coordonnées géo (lon/lat) -> pixels image."
+  GEO_MERCATOR:
+    env_var: REACT_APP_ANNOTATOR_GEO_MERCATOR_API_URL
+    base_url: "https://REPLACE_ME/geo-mercator"
+    auth: none
+    implemented_by: external
+    role: "Conversion pixels image -> coordonnées géo (lon/lat)."
+
+# -----------------------------------------------------------------------------
+# SCHÉMAS D'AUTHENTIFICATION
+# -----------------------------------------------------------------------------
+auth_schemes:
+  bp_bearer:
+    type: bearer
+    header: Authorization
+    value: "Bearer {{accessToken}}"
+    note: "accessToken = token d'accès AWS Cognito de l'utilisateur connecté."
+  geo_api_key:
+    type: api_key
+    header: x-api-key
+    value: "{{apiKey}}"
+    note: "Clé API du service Geo-Detection."
+
+# -----------------------------------------------------------------------------
+# VARIABLES (entrées à fournir + identifiants générés/extraits en cours de flux)
+# -----------------------------------------------------------------------------
+variables:
+  inputs:                              # à renseigner avant exécution
+    accountId: "REPLACE_ME"
+    accountHolderId: "REPLACE_ME"
+    accessToken: "REPLACE_ME"
+    apiKey: "REPLACE_ME"
+    prospectName: "Test Prospect"
+    address: "8 Rue de la Paix, 75002 Paris"
+    email: "test@example.com"
+    phone: "+33600000000"
+  client_generated_uuids:             # générer en v4, puis réutiliser
+    prospectId: "{{uuid}}"
+    pictureId: "{{uuid}}"
+    fileId: "{{uuid}}"
+    draftAnnotationId: "{{uuid}}"
+    detectionId: "{{uuid}}"
+    cityJsonRequestId: "{{uuid}}"
+    zoneId: "{{uuid}}"
+  constants:
+    zoomLevel: "BUILDING"
+    imageSize: 1024
+  extracted_at_runtime:               # remplies par les `extract` des steps
+    latitude: null
+    longitude: null
+    layerName: null
+    tileX: null
+    tileY: null
+    zoomNumber: null
+    roofCoordinatesLonLat: null        # [[[lon,lat],...]] du polygone de toit
+    vggFileUrl: null
+    originalImageUrl: null
+    roofDelimiter: null
+    imageTileInfoOrigin: null
+    roofHeightInMeters: null
+
+# =============================================================================
+# STEPS  (ordonnés)
+# =============================================================================
+steps:
+
+  # ------------------------- PHASE A : Setup --------------------------------
+
+  - id: A1_create_prospect
+    order: 1
+    owner: BPARTNERS_API
+    phase: "A - Setup"
+    intent: "Créer le prospect ; le serveur géocode l'adresse (renvoie geoPositions)."
+    method: PUT
+    path: "/accountHolders/{{accountHolderId}}/prospects"
+    headers: { Content-Type: application/json }
+    body:
+      - id: "{{prospectId}}"
+        name: "{{prospectName}}"
+        address: "{{address}}"
+        email: "{{email}}"
+        phone: "{{phone}}"
+        status: "TO_CONTACT"
+    expect_status: [200]
+    extract:
+      prospectId: "$[0].id"
+      latitude: "$[0].geoPositions[0].latitude"
+      longitude: "$[0].geoPositions[0].longitude"
+
+  - id: A2_create_area_picture
+    order: 2
+    owner: BPARTNERS_API
+    phase: "A - Setup"
+    intent: >
+      ÉTAPE CLÉ : le serveur géocode l'adresse, récupère la tuile satellite,
+      stocke l'image sous fileId et renvoie AreaPictureDetails complet.
+    depends_on: [A1_create_prospect]
+    method: PUT
+    path: "/accounts/{{accountId}}/areaPictures/{{pictureId}}"
+    headers: { Content-Type: application/json }
+    body:
+      address: "{{address}}"
+      fileId: "{{fileId}}"
+      filename: "Layer {{address}}"
+      prospectId: "{{prospectId}}"
+      zoomLevel: "{{zoomLevel}}"
+      isExtended: true
+      shiftNb: 0
+      isOpaque: false
+    expect_status: [200]
+    extract:
+      layerName: "$.actualLayer.name"
+      precisionLevelInCm: "$.actualLayer.precisionLevelInCm"
+      tileX: "$.currentTile.x"
+      tileY: "$.currentTile.y"
+      zoomNumber: "$.zoom.number"
+    known_errors:
+      - match: "PNEO data is not available yet on this area"
+        meaning: "Image satellite indisponible sur cette zone."
+      - match: "Address or zone .* not yet supported"
+        meaning: "Zone non supportée."
+      - match: "Address or zone .* temporarily unavailable"
+        meaning: "Adresse momentanément indisponible."
+
+  - id: A3_create_project_draft
+    order: 3
+    owner: BPARTNERS_API
+    phase: "A - Setup"
+    intent: "Créer le PROJET = un draft annotation (isDraft=true, annotations vides)."
+    depends_on: [A2_create_area_picture]
+    method: PUT
+    path: "/accounts/{{accountId}}/areaPictures/{{pictureId}}/annotations/{{draftAnnotationId}}"
+    headers: { Content-Type: application/json }
+    body:
+      id: "{{draftAnnotationId}}"
+      idAreaPicture: "{{pictureId}}"
+      annotations: []
+      properties: {}
+      isDraft: true
+    expect_status: [200]
+
+  - id: A4_geocode
+    order: 4
+    owner: GEO_DETECTION_API
+    phase: "A - Setup"
+    intent: "Récupérer le contour de toit (GeoJSON) pour pré-dessiner le polygone."
+    depends_on: [A1_create_prospect]
+    method: GET
+    path: "/geocode?longitude={{longitude}}&latitude={{latitude}}"
+    headers: { Content-Type: application/json }
+    expect_status: [200]
+    extract:
+      roofGeoJson: "$.data"
+
+  # --------------------- PHASE B : Ouverture projet -------------------------
+
+  - id: B1_load_draft
+    order: 5
+    owner: BPARTNERS_API
+    phase: "B - Ouverture"
+    intent: "Charger le draft du projet à l'ouverture de l'annotateur."
+    depends_on: [A3_create_project_draft]
+    method: GET
+    path: "/accounts/{{accountId}}/areaPictures/{{pictureId}}/draftAnnotations?page=1&pageSize=1"
+    expect_status: [200]
+
+  - id: B2_download_image
+    order: 6
+    owner: BPARTNERS_API
+    phase: "B - Ouverture"
+    intent: "Télécharger l'image satellite générée en A2 (binaire)."
+    depends_on: [A2_create_area_picture]
+    method: GET
+    path: "/accounts/{{accountId}}/files/{{fileId}}/raw?accessToken={{accessToken}}&fileType=AREA_PICTURE"
+    response_type: binary
+    expect_status: [200]
+
+  - id: B3_roof_polygon_to_pixel
+    order: 7
+    owner: PIXEL_CONVERTER
+    phase: "B - Ouverture"
+    optional: true
+    intent: "Convertir le contour de toit (lon/lat) en points pixel pour l'affichage."
+    depends_on: [A4_geocode, A2_create_area_picture]
+    method: POST
+    path: "/converter"
+    headers: { Content-Type: application/json }
+    # Forme réelle produite par polygonMapper.toRest()
+    body:
+      filename: "Layer {{address}}"
+      image_size: 1024
+      x_tile: "{{tileX}} - 1"        # tileX - 1
+      y_tile: "{{tileY}} - 1"        # tileY - 1
+      zoom: "{{zoomNumber}}"
+      properties: { id: "" }
+      region_attributes: { label: "pathway" }
+      type: "Feature"
+      geometry:
+        type: "MultiPolygon"
+        # Contour du toit issu de A4 (roofGeoJson), en [lon, lat]
+        coordinates:
+          - - - [2.331, 48.869]
+              - [2.332, 48.869]
+              - [2.332, 48.868]
+              - [2.331, 48.868]
+              - [2.331, 48.869]
+    expect_status: [200]
+
+  # ------------------------ PHASE C : Détection -----------------------------
+
+  - id: C1_points_to_geo
+    order: 8
+    owner: GEO_MERCATOR
+    phase: "C - Détection"
+    intent: "Convertir les points pixel du polygone de toit en coordonnées lon/lat."
+    depends_on: [B3_roof_polygon_to_pixel]
+    method: POST
+    path: ""                          # POST sur la base_url GEO_MERCATOR (racine)
+    headers: { Content-Type: application/json }
+    # Forme réelle produite par polygonMapper.toRefererGeoJson() :
+    # objet indexé par un filename "<uuidhex>_<zoom>_<xTile-1>_<yTile-1>.jpg"
+    body:
+      "a1b2c3d4_20_101_202.jpg":
+        size: 1024
+        filename: "a1b2c3d4_20_101_202.jpg"
+        zoom: 20
+        base64_img_data: null
+        regions:
+          "1":
+            shape_attributes:
+              name: "polygon"
+              all_points_x: [512, 620, 615, 505]   # points pixel X
+              all_points_y: [400, 405, 510, 500]   # points pixel Y
+            region_attributes:
+              label: "polygon"
+              confidence: 0.7055366635322571
+    expect_status: [200]
+    # La réponse renvoie les shape_attributes en lon/lat (all_points_x=lon,
+    # all_points_y=lat). Reconstruire roofCoordinatesLonLat = [[ [lon,lat], ... ]].
+    extract:
+      roofCoordinatesLonLat: "derive_from: $.*.regions.*.shape_attributes (all_points_x=lon, all_points_y=lat)"
+
+  - id: C2_cityjson_process
+    order: 9
+    owner: GEO_DETECTION_API
+    phase: "C - Détection"
+    fire_and_forget: true             # lancé en parallèle, erreurs ignorées
+    intent: "Lancer la génération 3D CityJSON (asynchrone, non bloquant)."
+    depends_on: [C1_points_to_geo]
+    method: PUT
+    path: "/city-jsons/{{cityJsonRequestId}}/process"
+    headers: { Content-Type: application/json }
+    body:
+      id: "{{cityJsonRequestId}}"
+      delimitationObjectType: "BUILDING_ROOF"
+      delimitations:
+        - type: "Feature"
+          properties: {}
+          geometry:
+            type: "Polygon"
+            coordinates: "{{roofCoordinatesLonLat}}"
+      threeDTextureInfo:
+        tileX: "{{tileX}}"
+        tileY: "{{tileY}}"
+        tileImageSizePx: 1024
+        imageWidth: 1024
+        imageHeight: 1024
+        zoom: 20
+        imageUri: null
+    expect_status: [200]
+
+  - id: C3_detection_sync
+    order: 10
+    owner: GEO_DETECTION_API
+    phase: "C - Détection"
+    intent: "★ REQUÊTE CENTRALE : lance la détection toiture (modèle BP_TOITURE)."
+    depends_on: [C1_points_to_geo]
+    method: POST
+    path: "/detections/{{detectionId}}/sync"
+    headers: { Content-Type: application/json }
+    body:
+      geoServerProperties:
+        geoServerUrl: "http://35.181.83.111/geoserver/cite/wms"
+        geoServerParameter:
+          service: "WMS"
+          request: "GetMap"
+          layers: "{{layerName}}"
+          styles: ""
+          format: "image/jpeg"
+          transparent: true
+          version: "1.0.0"
+          width: 1024
+          height: 1024
+          srs: "EPSG:3857"
+      emailReceiver: "{{email}}"
+      detectableObjectModel:
+        modelName: "BP_TOITURE"
+      zoneName: "{{address}}"
+      geoJsonDelimitationType: "ROOF"
+      needsImageOutput: true
+      geoJsonZone:
+        - type: "Feature"
+          geometry:
+            type: "Polygon"
+            coordinates: "{{roofCoordinatesLonLat}}"
+          properties:
+            zoom: 20
+            id: "{{zoneId}}"
+    expect_status: [200]
+    extract:
+      vggFileUrl: "$.result.geoJsonZone[0].properties.vgg_file_url"
+      originalImageUrl: "$.result.geoJsonZone[0].properties.original_image_url"
+      roofDelimiter: "$.result.roofDelimiter"
+      imageTileInfoOrigin: "$.result.imageTileInfoOrigin"
+    known_errors:
+      - match: "status=400 & message~ 'Roof analysis consumption .* limit exceeded for free trial period'"
+        code: "detectionLimitExceeded"
+      - match: "status=403 & message~ 'Some given feature is not allowed for your community.name'"
+        code: "featureNotAllowed"
+      - match: "message~ 'Provided geojson polygon is too large to be processed synchronously'"
+        code: "polygonTooBig"
+
+  - id: C4_roof_properties
+    order: 11
+    owner: GEO_DETECTION_API
+    phase: "C - Détection"
+    intent: "Déclencher le calcul de la pente et de la hauteur du toit."
+    depends_on: [C3_detection_sync]
+    method: PUT
+    path: "/detections/{{detectionId}}/roofs/properties"
+    headers: { Content-Type: application/json }
+    expect_status: [200]
+
+  - id: C5_poll_detection_result
+    order: 12
+    owner: GEO_DETECTION_API
+    phase: "C - Détection"
+    intent: "Récupérer la dernière détection jusqu'à ce que le résultat soit prêt."
+    depends_on: [C4_roof_properties]
+    method: GET
+    path: "/detections/{{detectionId}}"
+    headers: { Content-Type: application/json }
+    poll:
+      max_attempts: 20
+      delay_ms: 5000
+      until: "la détection la plus récente possède geoJsonZone[0].properties.vgg_file_url non nul"
+    expect_status: [200]
+    extract:
+      finalVggFileUrl: "détection la plus récente -> geoJsonZone[0].properties.vgg_file_url"
+
+  - id: C6_fetch_vgg_result
+    order: 13
+    owner: external                   # URL S3 signée renvoyée par la détection
+    phase: "C - Détection"
+    intent: "Télécharger le JSON des régions détectées (usure, moisissure, humidité, obstacles, pente, hauteur)."
+    depends_on: [C5_poll_detection_result]
+    method: GET
+    url: "{{finalVggFileUrl}}"        # URL absolue, pas de base_url
+    headers: { Content-Type: application/json }
+    expect_status: [200]
+    extract:
+      roofSlopeInDegrees: "$..properties.roof_slope_in_degrees"
+      roofHeightInMeters: "$..properties.roof_height_in_meters"
+
+  - id: C7_fetch_detection_image
+    order: 14
+    owner: external
+    phase: "C - Détection"
+    intent: "Télécharger l'image détourée de la zone (binaire, URL S3)."
+    depends_on: [C3_detection_sync]
+    method: GET
+    url: "{{originalImageUrl}}"
+    response_type: binary
+    expect_status: [200]
+
+  - id: C8_regions_to_pixel
+    order: 15
+    owner: BPARTNERS_API
+    phase: "C - Détection"
+    intent: "Reconvertir les régions détectées (lon/lat) vers l'espace pixel image."
+    depends_on: [C6_fetch_vgg_result]
+    method: POST
+    path: "/accounts/{{accountId}}/areaPictures/convert"
+    headers: { Content-Type: application/json }
+    # Forme réelle produite par polygonMapper.toPixelGeoJson() :
+    body:
+      "b2c3d4e5_20_102_203.jpg":
+        size: 1024
+        filename: "b2c3d4e5_20_102_203.jpg"
+        zoom: 20
+        base64_img_data: null
+        regions:
+          "0":
+            shape_attributes:
+              name: "polygon"
+              all_points_x: [2.331, 2.332, 2.332, 2.331]   # lon
+              all_points_y: [48.869, 48.869, 48.868, 48.868] # lat
+            region_attributes:
+              label: "polygon"
+              confidence: 0.7055366635322571
+    expect_status: [200]
+
+  - id: C9_save_result_draft
+    order: 16
+    owner: BPARTNERS_API
+    phase: "C - Détection"
+    intent: "Persister le résultat dans le draft (crop region, hauteur, llm)."
+    depends_on: [C8_regions_to_pixel]
+    method: PUT
+    path: "/accounts/{{accountId}}/areaPictures/{{pictureId}}/annotations/{{draftAnnotationId}}"
+    headers: { Content-Type: application/json }
+    body:
+      id: "{{draftAnnotationId}}"
+      idAreaPicture: "{{pictureId}}"
+      isDraft: true
+      annotations: []
+      properties:
+        analyseImageGenerated: true
+        height: "{{roofHeightInMeters}}"
+    expect_status: [200]
+
+# =============================================================================
+# CHEMIN CRITIQUE — séquence minimale pour valider une détection end-to-end.
+# =============================================================================
+critical_path:
+  - A1_create_prospect        # créer prospect (géocode adresse)
+  - A2_create_area_picture    # générer l'image satellite
+  - A3_create_project_draft   # créer le projet
+  - B2_download_image         # vérifier que l'image existe
+  - A4_geocode                # contour de toit
+  - C3_detection_sync         # ★ détection
+  - C4_roof_properties        # pente/hauteur
+  - C5_poll_detection_result  # attendre le résultat
+  - C6_fetch_vgg_result       # lire les régions détectées
+
+# =============================================================================
+# RÉCAP DES ENDPOINTS IMPLÉMENTÉS PAR bpartners-api (pour l'agent lecteur) :
+#   PUT  /accountHolders/{accountHolderId}/prospects
+#   PUT  /accounts/{accountId}/areaPictures/{pictureId}
+#   PUT  /accounts/{accountId}/areaPictures/{pictureId}/annotations/{annotationId}
+#   GET  /accounts/{accountId}/areaPictures/{pictureId}/draftAnnotations
+#   GET  /accounts/{accountId}/files/{fileId}/raw
+#   POST /accounts/{accountId}/areaPictures/convert
+# Le reste (/geocode, /detections/*, /city-jsons/*, converters, S3) est externe.
+# =============================================================================

@@ -21,8 +21,8 @@ class CreditUnitPriceIT extends MockedThirdParties {
   private static final String ESSENTIAL_PLAN_ID = "89f1acdd-c3b9-4717-a21d-355b2021ad58";
   private static final long ESSENTIAL_UNIT_PRICE_WITHOUT_VAT = 500L;
   private static final long ESSENTIAL_UNIT_PRICE_WITH_VAT = 600L;
-  private static final long PUBLIC_UNIT_PRICE_WITHOUT_VAT = 1000L;
-  private static final long PUBLIC_UNIT_PRICE_WITH_VAT = 1200L;
+  private static final long PUBLIC_UNIT_PRICE_WITHOUT_VAT = 2900L;
+  private static final long PUBLIC_UNIT_PRICE_WITH_VAT = 3480L;
   private static final long PACK_CREDITS = 10L;
 
   @Autowired private UserSubscriptionProductService userSubscriptionProductService;
@@ -71,8 +71,8 @@ class CreditUnitPriceIT extends MockedThirdParties {
 
     assertEquals(PUBLIC_UNIT_PRICE_WITHOUT_VAT, actual.inCentsWithoutVat());
     assertEquals(PUBLIC_UNIT_PRICE_WITH_VAT, actual.inCentsWithVat());
-    assertEquals(10_000L, actual.totalInCentsWithoutVat(PACK_CREDITS));
-    assertEquals(12_000L, actual.totalInCentsWithVat(PACK_CREDITS));
+    assertEquals(29_000L, actual.totalInCentsWithoutVat(PACK_CREDITS));
+    assertEquals(34_800L, actual.totalInCentsWithVat(PACK_CREDITS));
   }
 
   @Test

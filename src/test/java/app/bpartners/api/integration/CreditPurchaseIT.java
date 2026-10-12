@@ -297,15 +297,15 @@ class CreditPurchaseIT extends MockedThirdParties {
         app.bpartners.api.endpoint.rest.model.CreditPurchaseOrigin.SELF_SERVICE,
         actual.getOrigin());
     assertEquals(20L, actual.getCredits());
-    assertEquals(20000L, actual.getAmountInCentsWithoutVat());
-    assertEquals(24000L, actual.getAmountInCentsWithVat());
+    assertEquals(58000L, actual.getAmountInCentsWithoutVat());
+    assertEquals(69600L, actual.getAmountInCentsWithVat());
     assertEquals(2000L, actual.getVatPercent());
     assertEquals(2, actual.getPackPurchase().getQuantity());
     assertEquals(ANALYSES_10_PACK_ID, actual.getPackPurchase().getCreditPack().getId());
     assertEquals(
-        1000L, actual.getPackPurchase().getCreditPack().getCreditUnitPriceInCentsWithoutVat());
+        2900L, actual.getPackPurchase().getCreditPack().getCreditUnitPriceInCentsWithoutVat());
     assertEquals(
-        1200L, actual.getPackPurchase().getCreditPack().getCreditUnitPriceInCentsWithVat());
+        3480L, actual.getPackPurchase().getCreditPack().getCreditUnitPriceInCentsWithVat());
     assertNull(actual.getCustomPurchase());
     assertEquals(CHECKOUT_SESSION_URL, actual.getRedirection().getRedirectionUrl());
     assertEquals(
@@ -326,9 +326,9 @@ class CreditPurchaseIT extends MockedThirdParties {
 
     assertEquals(app.bpartners.api.endpoint.rest.model.CreditPurchaseType.CUSTOM, actual.getType());
     assertEquals(7L, actual.getCredits());
-    assertEquals(7000L, actual.getAmountInCentsWithoutVat());
-    assertEquals(8400L, actual.getAmountInCentsWithVat());
-    assertEquals(1000L, actual.getCustomPurchase().getCreditUnitPriceInCentsWithoutVat());
+    assertEquals(20300L, actual.getAmountInCentsWithoutVat());
+    assertEquals(24360L, actual.getAmountInCentsWithVat());
+    assertEquals(2900L, actual.getCustomPurchase().getCreditUnitPriceInCentsWithoutVat());
     assertNull(actual.getPackPurchase());
   }
 

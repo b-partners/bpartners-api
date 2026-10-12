@@ -7,6 +7,7 @@ import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAI
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -89,7 +90,7 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
   @Test
   @Transactional
   void switching_flags_the_previous_commitment_as_expired_and_opens_a_renewed_one() {
-    var switchStart = now();
+    var switchStart = now().truncatedTo(SECONDS);
     var previous =
         commitmentRepository.save(
             UserSubscriptionCommitment.builder()

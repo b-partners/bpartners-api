@@ -5,6 +5,7 @@ import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import java.time.LocalDate;
@@ -85,5 +86,39 @@ class SubscriptionUpgradeQuoteCalculatorTest {
         .priceInCentsWithoutVat(priceInCentsWithoutVat)
         .annualPriceInCentsWithVat(annualPriceInCentsWithVat)
         .build();
+  }
+
+  @Test
+  void refuses_a_yearly_plan_without_annual_pricing() {
+    var withoutAnnualPrice =
+        product("monthly_only_id", 5_000L, 0L).toBuilder().annualPriceInCentsWithVat(null).build();
+
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            subject.compute(
+                essential,
+                MONTHLY,
+                withoutAnnualPrice,
+                YEARLY,
+                UPGRADE_DATE,
+                OLD_MONTHLY_COVERAGE_END));
+  }
+
+  @Test
+  void refuses_a_monthly_plan_without_monthly_pricing() {
+    var withoutMonthlyPrice =
+        product("no_price_id", 0L, 54_000L).toBuilder().priceInCentsWithoutVat(null).build();
+
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            subject.compute(
+                withoutMonthlyPrice,
+                MONTHLY,
+                pro,
+                MONTHLY,
+                UPGRADE_DATE,
+                OLD_MONTHLY_COVERAGE_END));
   }
 }

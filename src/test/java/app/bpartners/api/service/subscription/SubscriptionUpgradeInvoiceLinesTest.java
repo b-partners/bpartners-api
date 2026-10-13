@@ -68,4 +68,62 @@ class SubscriptionUpgradeInvoiceLinesTest {
     assertEquals(
         BigInteger.valueOf(10_000L), lines.products().get(1).getUnitPrice().getNumerator());
   }
+
+  @Test
+  void labels_the_lines_with_a_generic_name_when_the_plan_has_no_name() {
+    var unnamed = pro.toBuilder().name(" ").build();
+
+    var lines =
+        subject.newSubscriptionLines(
+            "invoice_id", unnamed, MONTHLY, LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30));
+
+    assertTrue(lines.products().getFirst().getDescription().startsWith("Abonnement du"));
+    var missingName = pro.toBuilder().name(null).build();
+    assertTrue(
+        subject
+            .newSubscriptionLines(
+                "invoice_id",
+                missingName,
+                MONTHLY,
+                LocalDate.of(2026, 11, 1),
+                LocalDate.of(2026, 11, 30))
+            .products()
+            .getFirst()
+            .getDescription()
+            .startsWith("Abonnement du"));
+  }
+
+  @Test
+  void applies_no_discount_when_the_annual_price_is_not_below_twelve_monthly_prices() {
+    var noDiscount = pro.toBuilder().annualPriceInCentsWithVat(144_000L).build();
+
+    var lines =
+        subject.newSubscriptionLines(
+            "invoice_id",
+            noDiscount,
+            YEARLY,
+            LocalDate.of(2026, 11, 1),
+            LocalDate.of(2027, 10, 31));
+
+    assertEquals(BigInteger.ZERO, lines.discountBasisPoints().getNumerator());
+    assertEquals(12, lines.products().size());
+    assertEquals(10_000.0, lines.products().getFirst().getUnitPrice().getApproximatedValue());
+  }
+
+  @Test
+  void falls_back_on_the_default_vat_when_the_plan_declares_none() {
+    var withoutVat = pro.toBuilder().vatPercent(null).build();
+
+    var lines =
+        subject.creditLines(
+            "invoice_id",
+            withoutVat,
+            MONTHLY,
+            LocalDate.of(2026, 11, 1),
+            LocalDate.of(2026, 11, 30));
+
+    assertEquals(
+        BigInteger.valueOf(SubscriptionProduct.DEFAULT_VAT_PERCENT),
+        lines.products().getFirst().getVatPercent().getNumerator());
+  }
 }

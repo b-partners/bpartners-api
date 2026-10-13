@@ -203,4 +203,29 @@ class SubscriptionControllerTest {
 
     assertEquals(0, subject.getUserSubscriptionUpgrades("user_id", null).size());
   }
+
+  @Test
+  void upgrades_keeping_the_current_billing_interval_when_none_is_requested() {
+    var user = app.bpartners.api.model.User.builder().id("user_id").build();
+    when(userServiceMock.getUserById("user_id")).thenReturn(user);
+    when(upgradeServiceMock.upgrade(user, "pro_id", null))
+        .thenReturn(
+            app.bpartners.api.model.subscription.UserSubscriptionUpgrade.builder()
+                .id("upgrade_id")
+                .fromBillingInterval(app.bpartners.api.model.subscription.BillingInterval.MONTHLY)
+                .toBillingInterval(app.bpartners.api.model.subscription.BillingInterval.MONTHLY)
+                .status(app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID)
+                .build());
+
+    var actual =
+        subject.upgradeUserSubscription(
+            "user_id",
+            new app.bpartners.api.endpoint.rest.model.CreateSubscriptionUpgrade()
+                .subscriptionPlanIdentifier("pro_id"));
+
+    assertEquals("upgrade_id", actual.getId());
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.BillingInterval.MONTHLY,
+        actual.getToBillingInterval());
+  }
 }

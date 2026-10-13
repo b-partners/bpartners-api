@@ -1,11 +1,14 @@
 package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.INVOICED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -16,9 +19,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
 import app.bpartners.api.payment.UserSubscriptionConf;
@@ -31,6 +38,8 @@ import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -143,6 +152,139 @@ class SubscriptionUpgradeInvoicingServiceTest {
     verify(invoiceService, never()).crupdateSubscriptionInvoice(any());
   }
 
+  @Test
+  void fails_when_the_upgrade_does_not_exist() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.empty());
+
+    assertThrows(NotFoundException.class, () -> subject.invoice(UPGRADE_ID));
+  }
+
+  @Test
+  void fails_when_a_plan_of_the_upgrade_does_not_exist() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(subscriptionProductRepository.findById("essential_id")).thenReturn(Optional.empty());
+
+    assertThrows(NotFoundException.class, () -> subject.invoice(UPGRADE_ID));
+  }
+
+  @Test
+  void issues_settled_invoices_for_a_yearly_upgrade_covering_twelve_months() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(
+            Optional.of(
+                upgrade(PAID).toBuilder()
+                    .fromBillingInterval(YEARLY)
+                    .toBillingInterval(YEARLY)
+                    .build()));
+
+    subject.invoice(UPGRADE_ID).orElseThrow();
+
+    var invoices = ArgumentCaptor.forClass(Invoice.class);
+    verify(invoiceService, times(2)).crupdateSubscriptionInvoice(invoices.capture());
+    var newInvoice = invoices.getAllValues().get(1);
+    assertEquals(YEARLY, newInvoice.getSubscriptionBillingInterval());
+    assertEquals(PaymentTypeEnum.CASH, newInvoice.getPaymentType());
+    assertEquals(13, newInvoice.getProducts().size());
+    var period = ArgumentCaptor.forClass(SubscriptionInvoicePeriod.class);
+    verify(subscriptionInvoicePeriodRepository).save(period.capture());
+    assertEquals(Instant.parse("2027-10-10T22:00:00Z"), period.getValue().getPeriodEndDatetime());
+  }
+
+  @Test
+  void issues_only_the_credit_note_when_the_new_invoice_already_exists() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(upgrade(PAID).toBuilder().newInvoiceId("new_invoice_id").build()));
+
+    var actual = subject.invoice(UPGRADE_ID).orElseThrow();
+
+    verify(invoiceService, times(1)).crupdateSubscriptionInvoice(any(Invoice.class));
+    assertEquals("new_invoice_id", actual.getNewInvoiceId());
+    assertNotNull(actual.getCreditNoteInvoiceId());
+  }
+
+  @Test
+  void mentions_the_original_invoice_in_the_credit_note_title() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(subscriptionInvoicePeriodRepository.findByUserId(USER_ID))
+        .thenReturn(
+            List.of(
+                period("no_end_invoice", null),
+                period("future_invoice", "2028-01-01"),
+                period("early_invoice", "2027-03-31"),
+                period("latest_invoice", "2027-09-30")));
+    when(invoiceRepository.findById("latest_invoice"))
+        .thenReturn(Invoice.builder().id("latest_invoice").ref("REF-LATEST").build());
+
+    subject.invoice(UPGRADE_ID).orElseThrow();
+
+    var invoices = ArgumentCaptor.forClass(Invoice.class);
+    verify(invoiceService, times(2)).crupdateSubscriptionInvoice(invoices.capture());
+    assertTrue(invoices.getAllValues().get(0).getTitle().endsWith("(facture REF-LATEST)"));
+  }
+
+  @Test
+  void leaves_the_original_invoice_out_of_the_title_when_it_cannot_be_found() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(subscriptionInvoicePeriodRepository.findByUserId(USER_ID))
+        .thenReturn(List.of(period("missing_invoice", "2027-09-30")));
+    when(invoiceRepository.findById("missing_invoice")).thenReturn(null);
+
+    subject.invoice(UPGRADE_ID).orElseThrow();
+
+    var invoices = ArgumentCaptor.forClass(Invoice.class);
+    verify(invoiceService, times(2)).crupdateSubscriptionInvoice(invoices.capture());
+    assertFalse(invoices.getAllValues().get(0).getTitle().contains("(facture"));
+  }
+
+  @Test
+  void moves_on_to_the_next_second_when_the_invoice_reference_is_already_taken() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(invoiceRepository.findByIdUserAndRef(anyString(), anyString()))
+        .thenReturn(List.of(Invoice.builder().build()), List.of());
+
+    assertTrue(subject.invoice(UPGRADE_ID).isPresent());
+  }
+
+  @Test
+  void fails_when_no_invoice_reference_is_available() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(invoiceRepository.findByIdUserAndRef(anyString(), anyString()))
+        .thenReturn(List.of(Invoice.builder().build()));
+
+    assertThrows(ApiException.class, () -> subject.invoice(UPGRADE_ID));
+  }
+
+  @Test
+  void keeps_the_upgrade_invoiced_when_the_mail_cannot_be_sent() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(subscriptionInvoiceMailer.send(any(), any(), anyString(), any()))
+        .thenThrow(new IllegalStateException("smtp down"));
+
+    assertEquals(INVOICED, subject.invoice(UPGRADE_ID).orElseThrow().getStatus());
+  }
+
+  @Test
+  void computes_the_last_full_month_end_of_a_commitment() {
+    assertEquals(
+        LocalDate.of(2027, 10, 31),
+        SubscriptionUpgradeInvoicingService.lastFullMonthEnd(LocalDate.of(2027, 11, 1)));
+    assertEquals(
+        LocalDate.of(2027, 9, 30),
+        SubscriptionUpgradeInvoicingService.lastFullMonthEnd(LocalDate.of(2027, 10, 15)));
+  }
+
+  private static SubscriptionInvoicePeriod period(String invoiceId, String endDate) {
+    return SubscriptionInvoicePeriod.builder()
+        .id("period_" + invoiceId)
+        .userId(USER_ID)
+        .invoiceId(invoiceId)
+        .periodEndDatetime(
+            endDate == null
+                ? null
+                : LocalDate.parse(endDate).atStartOfDay(ZoneId.of("Europe/Paris")).toInstant())
+        .build();
+  }
+
   private static UserSubscriptionUpgrade upgrade(
       app.bpartners.api.model.subscription.SubscriptionUpgradeStatus status) {
     return UserSubscriptionUpgrade.builder()
@@ -166,6 +308,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
         .name(name)
         .vatPercent(2_000L)
         .priceInCentsWithoutVat(priceInCentsWithoutVat)
+        .annualPriceInCentsWithVat(priceInCentsWithoutVat * 12 * 12 / 10)
         .build();
   }
 }

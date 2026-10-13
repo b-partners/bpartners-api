@@ -6,6 +6,7 @@ import static app.bpartners.api.model.subscription.Subscription.SubscriptionStat
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -19,12 +20,14 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ConflictException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.Subscription;
+import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
@@ -36,7 +39,9 @@ import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,6 +82,7 @@ class SubscriptionUpgradeServiceTest {
           eventProducer,
           temporalUtils);
 
+  Map<String, SubscriptionProduct> catalog = new HashMap<>();
   SubscriptionProduct essential = product("essential_id", 1, 5_000L, 54_000L);
   SubscriptionProduct pro = product("pro_id", 2, 10_000L, 108_000L);
   User user = User.builder().id(USER_ID).userSubscriptionId(STRIPE_CUSTOMER_ID).build();
@@ -90,12 +96,13 @@ class SubscriptionUpgradeServiceTest {
     when(upgradeRepository.findAllByUserIdOrderByCreationDatetimeDesc(USER_ID))
         .thenReturn(List.of());
     when(stripeInvoiceService.getUnpaidStripeInvoices(STRIPE_CUSTOMER_ID)).thenReturn(List.of());
+    catalog.put("essential_id", essential);
+    catalog.put("pro_id", pro);
     when(subscriptionService.getByPlanId(anyString(), any(BillingInterval.class)))
         .thenAnswer(
             invocation ->
                 Subscription.builder()
-                    .subscriptionProduct(
-                        "pro_id".equals(invocation.getArgument(0)) ? pro : essential)
+                    .subscriptionProduct(catalog.get(invocation.getArgument(0, String.class)))
                     .build());
     when(subscriptionService.getSubscriptionByUser(user))
         .thenReturn(
@@ -288,6 +295,177 @@ class SubscriptionUpgradeServiceTest {
     assertEquals(List.of(pending), subject.findUpgrades(USER_ID, PENDING));
   }
 
+  @Test
+  void refuses_a_user_without_stripe_customer() {
+    var userWithoutStripe = User.builder().id(USER_ID).build();
+
+    assertThrows(
+        BadRequestException.class, () -> subject.upgrade(userWithoutStripe, "pro_id", null));
+
+    verifyNoInteractions(stripeUpgradeService);
+  }
+
+  @Test
+  void refuses_a_target_plan_without_tier_rank() {
+    activeProduct(essential, MONTHLY);
+    catalog.put("unranked_id", product("unranked_id", null, 20_000L, 240_000L));
+
+    assertThrows(BadRequestException.class, () -> subject.upgrade(user, "unranked_id", null));
+
+    verifyNoInteractions(stripeUpgradeService);
+  }
+
+  @Test
+  void considers_a_legacy_plan_without_tier_rank_as_the_lowest_one() {
+    activeProduct(product("legacy_id", null, 1_000L, 12_000L), MONTHLY);
+
+    var upgrade = subject.upgrade(user, "essential_id", null);
+
+    assertEquals(PAID, upgrade.getStatus());
+  }
+
+  @Test
+  void refuses_the_same_tier_billed_yearly_on_both_sides() {
+    activeProduct(pro, YEARLY);
+
+    assertThrows(BadRequestException.class, () -> subject.upgrade(user, "pro_id", YEARLY));
+
+    verifyNoInteractions(stripeUpgradeService);
+  }
+
+  @Test
+  void refuses_an_upgrade_without_stripe_subscription() {
+    activeProduct(essential, MONTHLY);
+    when(subscriptionService.getSubscriptionByUser(user))
+        .thenReturn(UserSubscription.builder().user(user).subscriptions(List.of()).build());
+
+    assertThrows(BadRequestException.class, () -> subject.upgrade(user, "pro_id", null));
+
+    verifyNoInteractions(stripeUpgradeService);
+  }
+
+  @Test
+  void refuses_an_upgrade_when_the_stripe_subscription_is_not_active() {
+    activeProduct(essential, MONTHLY);
+    when(subscriptionService.getSubscriptionByUser(user))
+        .thenReturn(
+            UserSubscription.builder()
+                .user(user)
+                .subscriptions(
+                    List.of(
+                        Subscription.builder()
+                            .e2Id(OLD_STRIPE_SUBSCRIPTION_ID)
+                            .status(Subscription.SubscriptionStatus.CANCELED)
+                            .startDatetime(Instant.parse("2026-09-01T00:00:00Z"))
+                            .build()))
+                .build());
+
+    assertThrows(BadRequestException.class, () -> subject.upgrade(user, "pro_id", null));
+
+    verifyNoInteractions(stripeUpgradeService);
+  }
+
+  @Test
+  void bills_monthly_when_the_active_product_has_no_billing_interval_but_is_not_a_trial() {
+    activeProduct(essential, null);
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(MONTHLY, upgrade.getFromBillingInterval());
+    assertEquals(MONTHLY, upgrade.getToBillingInterval());
+  }
+
+  @Test
+  void charges_nothing_when_the_new_plan_costs_less_than_the_remaining_value() {
+    activeProduct(product("premium_id", 1, 100_000L, 1_200_000L), MONTHLY);
+    catalog.put("cheap_top_id", product("cheap_top_id", 2, 100L, 1_200L));
+
+    var upgrade = subject.upgrade(user, "cheap_top_id", null);
+
+    assertEquals(PAID, upgrade.getStatus());
+    assertEquals(0L, upgrade.getProrationAmountInCentsWithVat());
+    assertNull(upgrade.getStripeProrationInvoiceId());
+    verify(stripeUpgradeService, never())
+        .chargeOneOffAmount(anyString(), anyString(), anyLong(), anyString(), anyString());
+  }
+
+  @Test
+  void keeps_the_upgrade_when_granting_the_credits_fails() {
+    activeProduct(essential, MONTHLY);
+    when(creditGrantService.grantIncludedCredits(USER_ID, pro))
+        .thenThrow(new IllegalStateException("ledger down"));
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(PAID, upgrade.getStatus());
+    verify(eventProducer).accept(any());
+  }
+
+  @Test
+  void covers_the_old_contract_until_the_latest_invoiced_period_ignoring_unusable_ones() {
+    activeProduct(essential, MONTHLY);
+    when(subscriptionPaymentRepository.findRefundedInvoiceIdsByUserId(USER_ID))
+        .thenReturn(List.of("refunded_invoice"));
+    when(subscriptionInvoicePeriodRepository.findByUserId(USER_ID))
+        .thenReturn(
+            List.of(
+                period("refunded_invoice", "2027-12-31"),
+                period("no_end_invoice", null),
+                period("past_invoice", "2026-09-30"),
+                period("early_invoice", "2027-03-31"),
+                period("latest_invoice", "2027-09-30")));
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(
+        LocalDate.of(2027, 9, 30).atStartOfDay(PARIS).toInstant(),
+        upgrade.getOldCoverageEndDatetime());
+  }
+
+  @Test
+  void covers_the_old_contract_until_the_last_full_month_of_its_commitment_without_invoice() {
+    activeProduct(essential, MONTHLY);
+    when(commitmentService.findActiveCommitment(USER_ID))
+        .thenReturn(Optional.of(commitmentEndingOn("2027-10-15")));
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(
+        LocalDate.of(2027, 9, 30).atStartOfDay(PARIS).toInstant(),
+        upgrade.getOldCoverageEndDatetime());
+  }
+
+  @Test
+  void covers_the_old_contract_until_the_end_of_the_month_when_its_commitment_is_over() {
+    activeProduct(essential, MONTHLY);
+    when(commitmentService.findActiveCommitment(USER_ID))
+        .thenReturn(Optional.of(commitmentEndingOn("2026-10-01")));
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(
+        LocalDate.of(2026, 10, 31).atStartOfDay(PARIS).toInstant(),
+        upgrade.getOldCoverageEndDatetime());
+  }
+
+  private static SubscriptionInvoicePeriod period(String invoiceId, String endDate) {
+    return SubscriptionInvoicePeriod.builder()
+        .id("period_" + invoiceId)
+        .userId(USER_ID)
+        .invoiceId(invoiceId)
+        .periodEndDatetime(
+            endDate == null ? null : LocalDate.parse(endDate).atStartOfDay(PARIS).toInstant())
+        .build();
+  }
+
+  private static UserSubscriptionCommitment commitmentEndingOn(String endDate) {
+    return UserSubscriptionCommitment.builder()
+        .id("commitment_id")
+        .userId(USER_ID)
+        .commitmentEndDatetime(LocalDate.parse(endDate).atStartOfDay(PARIS).toInstant())
+        .build();
+  }
+
   private void activeProduct(SubscriptionProduct product, BillingInterval interval) {
     when(userSubscriptionProductService.findActiveUserSubscriptionProduct(USER_ID))
         .thenReturn(
@@ -301,7 +479,7 @@ class SubscriptionUpgradeServiceTest {
   }
 
   private static SubscriptionProduct product(
-      String id, int tierRank, long priceInCentsWithoutVat, long annualPriceInCentsWithVat) {
+      String id, Integer tierRank, long priceInCentsWithoutVat, long annualPriceInCentsWithVat) {
     return SubscriptionProduct.builder()
         .id(id)
         .name(id)

@@ -371,6 +371,7 @@ public class SubscriptionService {
                   .mostChosen(existing.isMostChosen())
                   .deprecated(existing.isDeprecated())
                   .displayPosition(existing.getDisplayPosition())
+                  .tierRank(existing.getTierRank())
                   .includedSubscriptionProductFeatures(
                       existing.getIncludedSubscriptionProductFeatures())
                   .featureSections(existing.getFeatureSections())

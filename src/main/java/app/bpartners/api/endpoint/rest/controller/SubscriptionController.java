@@ -10,15 +10,23 @@ import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportReque
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillTriggered;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionUpgradeRestMapper;
+import app.bpartners.api.endpoint.rest.model.CreateSubscriptionUpgrade;
 import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
+import app.bpartners.api.endpoint.rest.model.SubscriptionUpgrade;
+import app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus;
+import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionUpgradeRestValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.service.subscription.SubscriptionInvoiceExportService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.subscription.SubscriptionStripeBackfillService;
+import app.bpartners.api.service.subscription.SubscriptionUpgradeService;
+import app.bpartners.api.service.user.UserService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -37,6 +45,10 @@ public class SubscriptionController {
   private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
   private final SubscriptionStripeBackfillService subscriptionStripeBackfillService;
   private final SubscriptionInvoiceExportService subscriptionInvoiceExportService;
+  private final UserService userService;
+  private final CreateSubscriptionUpgradeRestValidator subscriptionUpgradeRestValidator;
+  private final SubscriptionUpgradeService subscriptionUpgradeService;
+  private final SubscriptionUpgradeRestMapper subscriptionUpgradeRestMapper;
 
   @GetMapping("/subscriptionInvoices/export")
   public PreSignedURL exportSubscriptionInvoices(
@@ -129,5 +141,28 @@ public class SubscriptionController {
     return service.findConsumptionLogsByUserId(uId, from, to).stream()
         .map(subscriptionConsumptionLogRestMapper::toRest)
         .toList();
+  }
+
+  @GetMapping("/users/{uId}/subscriptionUpgrade")
+  public List<SubscriptionUpgrade> getUserSubscriptionUpgrades(
+      @PathVariable String uId, @RequestParam(required = false) SubscriptionUpgradeStatus status) {
+    return subscriptionUpgradeService
+        .findUpgrades(uId, SubscriptionUpgradeRestMapper.statusToDomain(status))
+        .stream()
+        .map(subscriptionUpgradeRestMapper::toRest)
+        .toList();
+  }
+
+  @PostMapping("/users/{uId}/subscriptionUpgrade")
+  public SubscriptionUpgrade upgradeUserSubscription(
+      @PathVariable String uId,
+      @RequestBody(required = false) CreateSubscriptionUpgrade subscriptionUpgrade) {
+    subscriptionUpgradeRestValidator.accept(subscriptionUpgrade);
+    var requestedInterval = subscriptionUpgrade.getBillingInterval();
+    return subscriptionUpgradeRestMapper.toRest(
+        subscriptionUpgradeService.upgrade(
+            userService.getUserById(uId),
+            subscriptionUpgrade.getSubscriptionPlanIdentifier(),
+            requestedInterval == null ? null : BillingInterval.valueOf(requestedInterval.name())));
   }
 }

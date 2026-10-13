@@ -154,14 +154,15 @@ public class SubscriptionUpgradeInvoicingService {
     var created =
         invoiceService.crupdateSubscriptionInvoice(
             invoiceOf(
-                invoiceIdentifier,
-                title,
                 userToCredit,
                 customerToDebit,
-                lines,
-                upgrade.getFromBillingInterval() == YEARLY,
-                true,
-                from));
+                new InvoiceDraft(
+                    invoiceIdentifier,
+                    title,
+                    lines,
+                    upgrade.getFromBillingInterval() == YEARLY,
+                    true,
+                    from)));
     log.info(
         "Credit note Invoice(id={}, ref={}) issued for UserSubscriptionUpgrade(id={}) covering {}"
             + " to {}",
@@ -192,14 +193,15 @@ public class SubscriptionUpgradeInvoicingService {
     var created =
         invoiceService.crupdateSubscriptionInvoice(
             invoiceOf(
-                invoiceIdentifier,
-                title,
                 userToCredit,
                 customerToDebit,
-                lines,
-                upgrade.getToBillingInterval() == YEARLY,
-                false,
-                from));
+                new InvoiceDraft(
+                    invoiceIdentifier,
+                    title,
+                    lines,
+                    upgrade.getToBillingInterval() == YEARLY,
+                    false,
+                    from)));
     subscriptionInvoicePeriodRepository.save(
         SubscriptionInvoicePeriod.builder()
             .id(randomUUID().toString())
@@ -218,33 +220,34 @@ public class SubscriptionUpgradeInvoicingService {
     return created;
   }
 
-  private Invoice invoiceOf(
+  private record InvoiceDraft(
       String invoiceIdentifier,
       String title,
-      User userToCredit,
-      Customer customerToDebit,
       SubscriptionUpgradeInvoiceLines.Lines lines,
       boolean yearlyBilled,
       boolean creditNote,
-      LocalDate upgradeDate) {
+      LocalDate upgradeDate) {}
+
+  private Invoice invoiceOf(User userToCredit, Customer customerToDebit, InvoiceDraft draft) {
     var issuedAt = now();
     var referenceInstant = availableReferenceInstant(issuedAt, userToCredit.getId());
     var referenceGenerator =
         new ReferenceGenerator(() -> LocalDateTime.ofInstant(referenceInstant, PARIS));
-    var discount = lines.discountBasisPoints();
-    var products = lines.products();
-    var settledAtOnce = creditNote || yearlyBilled;
+    var discount = draft.lines().discountBasisPoints();
+    var products = draft.lines().products();
+    var yearlyBilled = draft.yearlyBilled();
+    var settledAtOnce = draft.creditNote() || yearlyBilled;
     var sendingDate = issuedAt.atZone(PARIS).toLocalDate();
     return Invoice.builder()
-        .id(invoiceIdentifier)
+        .id(draft.invoiceIdentifier())
         .ref(referenceGenerator.get())
-        .title(title)
+        .title(draft.title())
         .subscriptionInvoice(true)
         .subscriptionBillingInterval(yearlyBilled ? YEARLY : MONTHLY)
         .status(settledAtOnce ? PAID : CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)
-        .toPayAt(settledAtOnce ? sendingDate : upgradeDate)
+        .toPayAt(settledAtOnce ? sendingDate : draft.upgradeDate())
         .sendingDate(sendingDate)
         .validityDate(null)
         .paymentMethod(PaymentMethod.CREDIT_CARD)

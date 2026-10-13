@@ -15,6 +15,7 @@ import app.bpartners.api.service.subscription.StripeCustomerService;
 import app.bpartners.api.service.subscription.StripeDefaultPaymentMethodService;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripeSubscriptionService;
+import app.bpartners.api.service.subscription.StripeUpgradeService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -37,5 +38,6 @@ public class MockedThirdParties extends FacadeIT {
   @MockBean protected StripeDefaultPaymentMethodService stripeDefaultPaymentMethodServiceMock;
   @MockBean protected StripeSubscriptionService stripeSubscriptionServiceMock;
   @MockBean protected StripeCreditPurchaseService stripeCreditPurchaseServiceMock;
+  @MockBean protected StripeUpgradeService stripeUpgradeServiceMock;
   @MockBean protected EventProducer eventProducer;
 }

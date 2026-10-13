@@ -43,8 +43,14 @@ public class UserSubscriptionCommitment {
 
   private Instant commitmentEndDatetime;
 
+  private Instant expiredDatetime;
+
   @Column(updatable = false)
   private Instant creationDatetime;
+
+  public boolean isExpired() {
+    return expiredDatetime != null;
+  }
 
   public EnableStatus getAutomaticRenewalStatus() {
     return autoRenewalStatusHistory == null || autoRenewalStatusHistory.isEmpty()

@@ -207,7 +207,7 @@ public class SubscriptionUpgradeService {
   private String requireActiveStripeSubscription(User user) {
     var latest =
         subscriptionService.getSubscriptionByUser(user).getLatestSubscriptionWithStripeId();
-    if (latest == null || latest.getStatus() != ACTIVE || latest.getE2Id() == null) {
+    if (latest == null || latest.getStatus() != ACTIVE) {
       throw new BadRequestException(
           "User.id=" + user.getId() + " has no active subscription to upgrade");
     }

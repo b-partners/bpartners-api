@@ -23,8 +23,15 @@ class CreateSubscriptionUpgradeRestValidatorTest {
 
   @Test
   void rejects_a_blank_plan_identifier() {
-    assertThrows(
-        BadRequestException.class,
-        () -> subject.accept(new CreateSubscriptionUpgrade().subscriptionPlanIdentifier(" ")));
+    var blankPlanIdentifier = new CreateSubscriptionUpgrade().subscriptionPlanIdentifier(" ");
+
+    assertThrows(BadRequestException.class, () -> subject.accept(blankPlanIdentifier));
+  }
+
+  @Test
+  void rejects_a_missing_plan_identifier() {
+    var withoutPlanIdentifier = new CreateSubscriptionUpgrade();
+
+    assertThrows(BadRequestException.class, () -> subject.accept(withoutPlanIdentifier));
   }
 }

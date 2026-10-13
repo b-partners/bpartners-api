@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.rest.model.CreateSubscriptionUpgrade;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 public class CreateSubscriptionUpgradeRestValidator implements Consumer<CreateSubscriptionUpgrade> {
@@ -14,7 +15,7 @@ public class CreateSubscriptionUpgradeRestValidator implements Consumer<CreateSu
       throw new BadRequestException("Request body is mandatory.");
     }
     var subscriptionPlanIdentifier = createSubscriptionUpgrade.getSubscriptionPlanIdentifier();
-    if (subscriptionPlanIdentifier == null || subscriptionPlanIdentifier.isBlank()) {
+    if (!StringUtils.hasText(subscriptionPlanIdentifier)) {
       throw new BadRequestException("subscriptionPlanIdentifier is mandatory.");
     }
   }

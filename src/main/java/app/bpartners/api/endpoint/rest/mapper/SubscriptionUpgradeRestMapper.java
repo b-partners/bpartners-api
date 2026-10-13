@@ -19,7 +19,12 @@ public class SubscriptionUpgradeRestMapper {
         .upgradeDatetime(upgrade.getUpgradeDatetime())
         .newCommitmentEnd(upgrade.getNewCommitmentEndDatetime())
         .prorationAmountInCentsWithVat(upgrade.getProrationAmountInCentsWithVat())
-        .status(SubscriptionUpgradeStatus.valueOf(upgrade.getStatus().name()));
+        .status(statusToRest(upgrade.getStatus()));
+  }
+
+  private static SubscriptionUpgradeStatus statusToRest(
+      app.bpartners.api.model.subscription.SubscriptionUpgradeStatus status) {
+    return status == null ? null : SubscriptionUpgradeStatus.valueOf(status.name());
   }
 
   public static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus statusToDomain(

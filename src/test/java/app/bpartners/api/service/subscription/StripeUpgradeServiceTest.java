@@ -175,11 +175,13 @@ class StripeUpgradeServiceTest {
     when(subscriptionService.create(any(SubscriptionCreateParams.class), any(RequestOptions.class)))
         .thenThrow(stripeException());
 
+    var plan = product();
+
     assertThrows(
         ApiException.class,
         () ->
             subject.createUpgradedSubscription(
-                CUSTOMER_ID, PAYMENT_METHOD_ID, product(), MONTHLY, 1L, UPGRADE_ID));
+                CUSTOMER_ID, PAYMENT_METHOD_ID, plan, MONTHLY, 1L, UPGRADE_ID));
   }
 
   private static Invoice stripeInvoice(String id, String status) {

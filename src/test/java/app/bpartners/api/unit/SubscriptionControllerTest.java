@@ -165,11 +165,12 @@ class SubscriptionControllerTest {
 
   @Test
   void rejects_an_upgrade_without_plan_identifier() {
+    var withoutPlanIdentifier =
+        new app.bpartners.api.endpoint.rest.model.CreateSubscriptionUpgrade();
+
     org.junit.jupiter.api.Assertions.assertThrows(
         app.bpartners.api.model.exception.BadRequestException.class,
-        () ->
-            subject.upgradeUserSubscription(
-                "user_id", new app.bpartners.api.endpoint.rest.model.CreateSubscriptionUpgrade()));
+        () -> subject.upgradeUserSubscription("user_id", withoutPlanIdentifier));
   }
 
   @Test

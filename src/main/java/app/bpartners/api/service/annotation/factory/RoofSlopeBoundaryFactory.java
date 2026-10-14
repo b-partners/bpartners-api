@@ -10,7 +10,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class RoofSlopeBoundaryFactory {
   private static final String TYPE_NAME_LABEL = "edgeTypes";
 
@@ -51,7 +53,13 @@ public class RoofSlopeBoundaryFactory {
 
   private static RoofSlopeBoundaryType getRoofSlopeBoundaryType(
       List<String> typeNames, int boundaryIndex) {
-    if (typeNames.isEmpty()) {
+    if (boundaryIndex >= typeNames.size()) {
+      if (!typeNames.isEmpty()) {
+        log.warn(
+            "No edge type for boundary index {} (only {} type names); using DEFAULT",
+            boundaryIndex,
+            typeNames.size());
+      }
       return RoofSlopeBoundaryType.DEFAULT;
     }
     var typeName = typeNames.get(boundaryIndex);

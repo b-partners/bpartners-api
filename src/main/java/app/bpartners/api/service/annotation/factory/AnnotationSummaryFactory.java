@@ -126,7 +126,19 @@ public class AnnotationSummaryFactory {
               var typeNames = RoofSlopeBoundaryFactory.getRoofSlopeBoundaryTypeNames(pan);
               var panMeasurements = pan.getMeasurements();
               var points = pan.getPolygon().getPoints();
-              for (int index = 0; index < typeNames.size(); index++) {
+              var edgeCount =
+                  Math.min(typeNames.size(), Math.min(panMeasurements.size(), points.size() - 1));
+              if (typeNames.size() != panMeasurements.size()
+                  || typeNames.size() != points.size() - 1) {
+                log.warn(
+                    "Pan edge data size mismatch: typeNames={}, measurements={}, points={}"
+                        + " (expected points = edges + 1); only the first {} edges are summarized",
+                    typeNames.size(),
+                    panMeasurements.size(),
+                    points.size(),
+                    edgeCount);
+              }
+              for (int index = 0; index < edgeCount; index++) {
                 var name = typeNames.get(index);
                 var measurements = panMeasurements.get(index);
                 var edgeKey = name + ":" + edgeKey(points.get(index), points.get(index + 1));

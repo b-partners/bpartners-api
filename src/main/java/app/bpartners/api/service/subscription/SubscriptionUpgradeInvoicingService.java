@@ -68,6 +68,7 @@ public class SubscriptionUpgradeInvoicingService {
   private final CustomDateFormatter customDateFormatter;
   private final SubscriptionUpgradeInvoiceLines subscriptionUpgradeInvoiceLines;
   private final SubscriptionInvoiceMailer subscriptionInvoiceMailer;
+  private final ChargedFirstMonthResolver chargedFirstMonthResolver;
 
   public Optional<UserSubscriptionUpgrade> invoice(String upgradeIdentifier) {
     var upgrade =
@@ -139,9 +140,15 @@ public class SubscriptionUpgradeInvoicingService {
     var from = dateOf(upgrade.getUpgradeDatetime());
     var to = dateOf(upgrade.getOldCoverageEndDatetime());
     var invoiceIdentifier = randomUUID().toString();
+    var chargedFirstMonth = chargedFirstMonthResolver.resolve(upgrade.getUserId(), from);
     var lines =
         subscriptionUpgradeInvoiceLines.creditLines(
-            invoiceIdentifier, fromProduct, upgrade.getFromBillingInterval(), from, to);
+            invoiceIdentifier,
+            fromProduct,
+            upgrade.getFromBillingInterval(),
+            from,
+            to,
+            chargedFirstMonth);
     var originalInvoiceReference = originalInvoiceReferenceOf(upgrade.getUserId(), to);
     var title =
         "Avoir sur l'abonnement "

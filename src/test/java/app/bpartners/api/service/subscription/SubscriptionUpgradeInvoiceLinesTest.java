@@ -6,10 +6,12 @@ import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class SubscriptionUpgradeInvoiceLinesTest {
@@ -42,6 +44,32 @@ class SubscriptionUpgradeInvoiceLinesTest {
         computePriceNoVatWithDiscount(lines.discountBasisPoints(), lines.products())
                 .getApproximatedValue()
             < 0);
+  }
+
+  @Test
+  void credit_lines_prorate_the_amount_actually_charged_on_the_first_month() {
+    var charged =
+        new ChargedFirstMonth(
+            LocalDate.of(2026, 10, 5),
+            LocalDate.of(2026, 10, 31),
+            new Fraction(BigInteger.valueOf(8_100L)),
+            new Fraction(BigInteger.valueOf(2_000L)));
+
+    var lines =
+        subject.creditLines(
+            "invoice_id",
+            pro,
+            MONTHLY,
+            LocalDate.of(2026, 10, 12),
+            LocalDate.of(2026, 11, 30),
+            Optional.of(charged));
+
+    assertEquals(2, lines.products().size());
+    var first = lines.products().get(0).getUnitPrice();
+    assertEquals(BigInteger.valueOf(-162_000L), first.getNumerator());
+    assertEquals(BigInteger.valueOf(27L), first.getDenominator());
+    assertEquals(
+        BigInteger.valueOf(-10_000L), lines.products().get(1).getUnitPrice().getNumerator());
   }
 
   @Test

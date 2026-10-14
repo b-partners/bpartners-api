@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
@@ -37,6 +38,7 @@ import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
 import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -59,6 +61,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
   InvoiceService invoiceService = mock();
   InvoiceRepository invoiceRepository = mock();
   SubscriptionInvoiceMailer subscriptionInvoiceMailer = mock();
+  ChargedFirstMonthResolver chargedFirstMonthResolver = mock();
   CustomDateFormatter customDateFormatter = new CustomDateFormatter();
 
   SubscriptionUpgradeInvoicingService subject =
@@ -73,7 +76,8 @@ class SubscriptionUpgradeInvoicingServiceTest {
           invoiceRepository,
           customDateFormatter,
           new SubscriptionUpgradeInvoiceLines(customDateFormatter),
-          subscriptionInvoiceMailer);
+          subscriptionInvoiceMailer,
+          chargedFirstMonthResolver);
 
   SubscriptionProduct essential = product("essential_id", "Essentiel", 5_000L);
   SubscriptionProduct pro = product("pro_id", "Pro", 10_000L);
@@ -113,6 +117,98 @@ class SubscriptionUpgradeInvoicingServiceTest {
     assertEquals(creditNote.getId(), actual.getCreditNoteInvoiceId());
     assertEquals(newInvoice.getId(), actual.getNewInvoiceId());
     verify(subscriptionInvoicePeriodRepository).save(any());
+  }
+
+  @Test
+  void credit_note_first_line_prorates_the_amount_actually_charged_on_the_first_month() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(chargedFirstMonthResolver.resolve(USER_ID, LocalDate.of(2026, 10, 12)))
+        .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
+
+    subject.invoice(UPGRADE_ID);
+
+    var creditNote = captureIssuedInvoices().get(0);
+    var first = creditNote.getProducts().get(0);
+    assertEquals(BigInteger.valueOf(-82_000L), first.getUnitPrice().getNumerator());
+    assertEquals(BigInteger.valueOf(27L), first.getUnitPrice().getDenominator());
+    assertEquals(
+        BigInteger.valueOf(-5_000L), creditNote.getProducts().get(1).getUnitPrice().getNumerator());
+    assertTrue(first.getDescription().startsWith("Avoir Abonnement Essentiel du 12/10/2026"));
+  }
+
+  @Test
+  void credit_note_first_line_matches_the_credit_charged_in_the_quote() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(chargedFirstMonthResolver.resolve(USER_ID, LocalDate.of(2026, 10, 12)))
+        .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
+
+    subject.invoice(UPGRADE_ID);
+
+    var first = captureIssuedInvoices().get(0).getProducts().get(0);
+    var firstLineWithVatInCents = Math.abs(first.getUnitPrice().getApproximatedValue()) * 1.2;
+    assertEquals(
+        new SubscriptionUpgradeQuoteCalculator()
+            .compute(
+                essential,
+                MONTHLY,
+                pro,
+                MONTHLY,
+                LocalDate.of(2026, 10, 12),
+                LocalDate.of(2027, 9, 30),
+                Optional.of(chargedFirstMonth(4_100L)))
+            .creditedInCentsWithVat(),
+        Math.round(firstLineWithVatInCents));
+  }
+
+  @Test
+  void credit_note_first_line_stays_day_based_without_a_charged_first_month() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(chargedFirstMonthResolver.resolve(USER_ID, LocalDate.of(2026, 10, 12)))
+        .thenReturn(Optional.empty());
+
+    subject.invoice(UPGRADE_ID);
+
+    var first = captureIssuedInvoices().get(0).getProducts().get(0);
+    assertEquals(BigInteger.valueOf(-100_000L), first.getUnitPrice().getNumerator());
+    assertEquals(BigInteger.valueOf(31L), first.getUnitPrice().getDenominator());
+  }
+
+  @Test
+  void new_invoice_lines_do_not_depend_on_the_charged_first_month() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(chargedFirstMonthResolver.resolve(USER_ID, LocalDate.of(2026, 10, 12)))
+        .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
+
+    subject.invoice(UPGRADE_ID);
+
+    var first = captureIssuedInvoices().get(1).getProducts().get(0);
+    assertEquals(BigInteger.valueOf(200_000L), first.getUnitPrice().getNumerator());
+    assertEquals(BigInteger.valueOf(31L), first.getUnitPrice().getDenominator());
+  }
+
+  @Test
+  void does_not_resolve_the_charged_month_when_the_credit_note_already_exists() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(
+            Optional.of(upgrade(PAID).toBuilder().creditNoteInvoiceId("credit_note_id").build()));
+
+    subject.invoice(UPGRADE_ID);
+
+    verifyNoInteractions(chargedFirstMonthResolver);
+  }
+
+  private List<Invoice> captureIssuedInvoices() {
+    var invoices = ArgumentCaptor.forClass(Invoice.class);
+    verify(invoiceService, times(2)).crupdateSubscriptionInvoice(invoices.capture());
+    return invoices.getAllValues();
+  }
+
+  private static ChargedFirstMonth chargedFirstMonth(long chargedInCentsWithoutVat) {
+    return new ChargedFirstMonth(
+        LocalDate.of(2026, 10, 5),
+        LocalDate.of(2026, 10, 31),
+        new Fraction(BigInteger.valueOf(chargedInCentsWithoutVat)),
+        new Fraction(BigInteger.valueOf(2_000L)));
   }
 
   @Test

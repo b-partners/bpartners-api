@@ -19,6 +19,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.event.EventProducer;
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.UserSubscriptionProduct;
@@ -36,6 +37,7 @@ import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.utils.TemporalUtils;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -60,6 +62,7 @@ class SubscriptionUpgradeServiceTest {
   StripeInvoiceService stripeInvoiceService = mock();
   StripeUpgradeService stripeUpgradeService = mock();
   SubscriptionUpgradeCommitmentService commitmentService = mock();
+  ChargedFirstMonthResolver chargedFirstMonthResolver = mock();
   UserSubscriptionUpgradeJpaRepository upgradeRepository = mock();
   SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository = mock();
   SubscriptionPaymentRepository subscriptionPaymentRepository = mock();
@@ -75,6 +78,7 @@ class SubscriptionUpgradeServiceTest {
           stripeUpgradeService,
           new SubscriptionUpgradeQuoteCalculator(),
           commitmentService,
+          chargedFirstMonthResolver,
           upgradeRepository,
           subscriptionInvoicePeriodRepository,
           subscriptionPaymentRepository,
@@ -164,6 +168,62 @@ class SubscriptionUpgradeServiceTest {
             TODAY.plusYears(1).atStartOfDay(PARIS).toInstant());
     verify(creditGrantService).grantIncludedCredits(USER_ID, pro);
     verify(eventProducer).accept(any());
+  }
+
+  @Test
+  void monthly_upgrade_credits_the_amount_actually_charged_on_the_first_partial_month() {
+    activeProduct(essential, MONTHLY);
+    when(chargedFirstMonthResolver.resolve(USER_ID, TODAY))
+        .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(4_098L, upgrade.getProrationAmountInCentsWithVat());
+    verify(stripeUpgradeService)
+        .chargeOneOffAmount(
+            eq(STRIPE_CUSTOMER_ID), eq(PAYMENT_METHOD_ID), eq(4_098L), anyString(), anyString());
+  }
+
+  @Test
+  void monthly_to_yearly_upgrade_credits_the_amount_actually_charged_on_the_first_month() {
+    activeProduct(essential, MONTHLY);
+    when(chargedFirstMonthResolver.resolve(USER_ID, TODAY))
+        .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
+
+    var upgrade = subject.upgrade(user, "pro_id", YEARLY);
+
+    assertEquals(104_356L, upgrade.getProrationAmountInCentsWithVat());
+  }
+
+  @Test
+  void monthly_upgrade_without_a_charged_first_month_keeps_the_day_based_credit() {
+    activeProduct(essential, MONTHLY);
+    when(chargedFirstMonthResolver.resolve(USER_ID, TODAY)).thenReturn(Optional.empty());
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(3_871L, upgrade.getProrationAmountInCentsWithVat());
+  }
+
+  @Test
+  void a_charged_first_month_larger_than_the_new_charge_leaves_nothing_to_pay() {
+    activeProduct(essential, MONTHLY);
+    when(chargedFirstMonthResolver.resolve(USER_ID, TODAY))
+        .thenReturn(Optional.of(chargedFirstMonth(40_000L)));
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(0L, upgrade.getProrationAmountInCentsWithVat());
+    verify(stripeUpgradeService, never())
+        .chargeOneOffAmount(anyString(), anyString(), anyLong(), anyString(), anyString());
+  }
+
+  private static ChargedFirstMonth chargedFirstMonth(long chargedInCentsWithoutVat) {
+    return new ChargedFirstMonth(
+        LocalDate.of(2026, 10, 5),
+        LocalDate.of(2026, 10, 31),
+        new Fraction(BigInteger.valueOf(chargedInCentsWithoutVat)),
+        new Fraction(BigInteger.valueOf(2_000L)));
   }
 
   @Test

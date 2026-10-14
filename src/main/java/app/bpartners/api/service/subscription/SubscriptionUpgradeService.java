@@ -45,6 +45,7 @@ public class SubscriptionUpgradeService {
   private final StripeUpgradeService stripeUpgradeService;
   private final SubscriptionUpgradeQuoteCalculator quoteCalculator;
   private final SubscriptionUpgradeCommitmentService commitmentService;
+  private final ChargedFirstMonthResolver chargedFirstMonthResolver;
   private final UserSubscriptionUpgradeJpaRepository upgradeRepository;
   private final SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository;
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
@@ -70,7 +71,13 @@ public class SubscriptionUpgradeService {
     var oldCoverageEnd = oldCoverageEndOf(user.getId(), upgradeDate);
     var quote =
         quoteCalculator.compute(
-            fromProduct, fromInterval, toProduct, toInterval, upgradeDate, oldCoverageEnd);
+            fromProduct,
+            fromInterval,
+            toProduct,
+            toInterval,
+            upgradeDate,
+            oldCoverageEnd,
+            chargedFirstMonthResolver.resolve(user.getId(), upgradeDate));
     var commitmentStart = upgradeDate.atStartOfDay(PARIS).toInstant();
     var commitmentEnd = upgradeDate.plusYears(1).atStartOfDay(PARIS).toInstant();
 

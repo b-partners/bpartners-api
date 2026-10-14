@@ -101,6 +101,7 @@ public class HInvoice implements Serializable {
   private String metadataString;
   private String discountPercent;
   private String idAreaPicture;
+  private Boolean creditNote;
 
   @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)

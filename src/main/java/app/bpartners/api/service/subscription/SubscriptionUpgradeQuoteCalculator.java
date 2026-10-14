@@ -10,6 +10,7 @@ import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,13 +24,32 @@ public class SubscriptionUpgradeQuoteCalculator {
       BillingInterval toInterval,
       LocalDate upgradeDate,
       LocalDate oldCoverageEnd) {
+    return compute(
+        fromProduct,
+        fromInterval,
+        toProduct,
+        toInterval,
+        upgradeDate,
+        oldCoverageEnd,
+        Optional.empty());
+  }
+
+  public UpgradeQuote compute(
+      SubscriptionProduct fromProduct,
+      BillingInterval fromInterval,
+      SubscriptionProduct toProduct,
+      BillingInterval toInterval,
+      LocalDate upgradeDate,
+      LocalDate oldCoverageEnd,
+      Optional<ChargedFirstMonth> chargedFirstMonth) {
     if (fromInterval == YEARLY && toInterval == MONTHLY) {
       throw new NotImplementedException(
           "Upgrading from a yearly billed subscription to a monthly billed one is not supported"
               + " yet");
     }
     var newCharge = newChargeInCents(toProduct, toInterval, upgradeDate);
-    var credited = creditedInCents(fromProduct, fromInterval, upgradeDate, oldCoverageEnd);
+    var credited =
+        creditedInCents(fromProduct, fromInterval, upgradeDate, oldCoverageEnd, chargedFirstMonth);
     return new UpgradeQuote(newCharge, credited, Math.max(newCharge - credited, 0L));
   }
 
@@ -67,9 +87,12 @@ public class SubscriptionUpgradeQuoteCalculator {
       SubscriptionProduct fromProduct,
       BillingInterval fromInterval,
       LocalDate upgradeDate,
-      LocalDate oldCoverageEnd) {
+      LocalDate oldCoverageEnd,
+      Optional<ChargedFirstMonth> chargedFirstMonth) {
     if (fromInterval == MONTHLY) {
-      return remainingOfMonthInCents(fromProduct, MONTHLY, upgradeDate)
+      return chargedFirstMonth
+          .map(charged -> remainingOfChargedMonthInCents(charged, upgradeDate))
+          .orElseGet(() -> remainingOfMonthInCents(fromProduct, MONTHLY, upgradeDate))
           .setScale(0, HALF_UP)
           .longValueExact();
     }
@@ -79,6 +102,12 @@ public class SubscriptionUpgradeQuoteCalculator {
       total = total.add(proratedOn(monthly, segment));
     }
     return total.setScale(0, HALF_UP).longValueExact();
+  }
+
+  private BigDecimal remainingOfChargedMonthInCents(
+      ChargedFirstMonth charged, LocalDate upgradeDate) {
+    var remaining = BillingMonthSegment.between(upgradeDate, charged.end()).getFirst();
+    return charged.creditedInCentsWithVat(remaining.days());
   }
 
   private BigDecimal remainingOfMonthInCents(

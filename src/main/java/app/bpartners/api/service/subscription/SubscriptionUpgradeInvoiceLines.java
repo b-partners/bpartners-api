@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apfloat.Aprational;
 import org.springframework.stereotype.Component;
@@ -34,10 +35,26 @@ public class SubscriptionUpgradeInvoiceLines {
       BillingInterval interval,
       LocalDate from,
       LocalDate to) {
+    return creditLines(invoiceIdentifier, product, interval, from, to, Optional.empty());
+  }
+
+  public Lines creditLines(
+      String invoiceIdentifier,
+      SubscriptionProduct product,
+      BillingInterval interval,
+      LocalDate from,
+      LocalDate to,
+      Optional<ChargedFirstMonth> chargedFirstMonth) {
     var pricing = pricingOf(product, interval);
     var products = new ArrayList<InvoiceProduct>();
-    for (var segment : BillingMonthSegment.between(from, to)) {
-      var unitPrice = negate(prorated(pricing.monthlyUnitPrice(), segment));
+    var segments = BillingMonthSegment.between(from, to);
+    for (var index = 0; index < segments.size(); index++) {
+      var segment = segments.get(index);
+      var charged = index == 0 ? chargedFirstMonth : Optional.<ChargedFirstMonth>empty();
+      var unitPrice =
+          charged
+              .map(chargedMonth -> negate(chargedMonth.creditedWithoutVat(segment.days())))
+              .orElseGet(() -> negate(prorated(pricing.monthlyUnitPrice(), segment)));
       products.add(
           line(
               invoiceIdentifier,

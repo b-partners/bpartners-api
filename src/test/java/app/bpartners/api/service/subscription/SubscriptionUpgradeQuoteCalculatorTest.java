@@ -5,10 +5,13 @@ import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class SubscriptionUpgradeQuoteCalculatorTest {
@@ -29,6 +32,52 @@ class SubscriptionUpgradeQuoteCalculatorTest {
     assertEquals(7_742L, quote.newChargeInCentsWithVat());
     assertEquals(3_871L, quote.creditedInCentsWithVat());
     assertEquals(3_871L, quote.amountDueInCentsWithVat());
+  }
+
+  @Test
+  void monthly_credit_follows_the_amount_actually_charged_on_the_first_partial_month() {
+    var charged =
+        new ChargedFirstMonth(
+            LocalDate.of(2026, 10, 5),
+            LocalDate.of(2026, 10, 31),
+            new Fraction(BigInteger.valueOf(4_100L)),
+            new Fraction(BigInteger.valueOf(2_000L)));
+
+    var quote =
+        subject.compute(
+            essential,
+            MONTHLY,
+            pro,
+            MONTHLY,
+            UPGRADE_DATE,
+            OLD_MONTHLY_COVERAGE_END,
+            Optional.of(charged));
+
+    assertEquals(7_742L, quote.newChargeInCentsWithVat());
+    assertEquals(3_644L, quote.creditedInCentsWithVat());
+    assertEquals(4_098L, quote.amountDueInCentsWithVat());
+  }
+
+  @Test
+  void yearly_credit_ignores_a_charged_first_month() {
+    var charged =
+        new ChargedFirstMonth(
+            LocalDate.of(2026, 10, 5),
+            LocalDate.of(2026, 10, 31),
+            new Fraction(BigInteger.valueOf(4_100L)),
+            new Fraction(BigInteger.valueOf(2_000L)));
+
+    var quote =
+        subject.compute(
+            essential,
+            YEARLY,
+            pro,
+            YEARLY,
+            UPGRADE_DATE,
+            OLD_YEARLY_COVERAGE_END,
+            Optional.of(charged));
+
+    assertEquals(25_403L, quote.creditedInCentsWithVat());
   }
 
   @Test

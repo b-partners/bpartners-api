@@ -123,6 +123,36 @@ class SubscriptionUpgradeInvoicingServiceTest {
   }
 
   @Test
+  void flags_only_the_credit_note_as_a_credit_note() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+
+    subject.invoice(UPGRADE_ID);
+
+    var issued = captureIssuedInvoices();
+    assertTrue(issued.get(0).isCreditNote());
+    assertFalse(issued.get(1).isCreditNote());
+  }
+
+  @Test
+  void flags_the_credit_note_of_a_yearly_subscription_as_a_credit_note() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(
+            Optional.of(
+                upgrade(PAID).toBuilder()
+                    .fromBillingInterval(YEARLY)
+                    .toBillingInterval(YEARLY)
+                    .oldCoverageEndDatetime(Instant.parse("2027-03-30T22:00:00Z"))
+                    .newCommitmentEndDatetime(Instant.parse("2027-10-11T22:00:00Z"))
+                    .build()));
+
+    subject.invoice(UPGRADE_ID);
+
+    var issued = captureIssuedInvoices();
+    assertTrue(issued.get(0).isCreditNote());
+    assertFalse(issued.get(1).isCreditNote());
+  }
+
+  @Test
   void credit_note_first_line_prorates_the_amount_actually_charged_on_the_first_month() {
     when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
     when(chargedFirstMonthResolver.resolve(eq(USER_ID), eq(LocalDate.of(2026, 10, 12)), any()))

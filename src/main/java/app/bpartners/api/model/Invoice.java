@@ -86,6 +86,7 @@ public class Invoice {
   private String idAreaPicture;
   private boolean subscriptionInvoice = false;
   private BillingInterval subscriptionBillingInterval;
+  private boolean creditNote = false;
 
   public boolean isMonthlySubscriptionInvoice() {
     return subscriptionInvoice && subscriptionBillingInterval == BillingInterval.MONTHLY;

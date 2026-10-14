@@ -269,6 +269,7 @@ public class SubscriptionUpgradeInvoicingService {
         .title(draft.title())
         .subscriptionInvoice(true)
         .subscriptionBillingInterval(yearlyBilled ? YEARLY : MONTHLY)
+        .creditNote(draft.creditNote())
         .status(settledAtOnce ? PAID : CONFIRMED)
         .archiveStatus(ArchiveStatus.ENABLED)
         .customer(customerToDebit)

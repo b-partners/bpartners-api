@@ -112,8 +112,21 @@ public class SubscriptionUpgradeInvoicingService {
     upgrade =
         upgradeRepository.save(
             upgrade.toBuilder().status(SubscriptionUpgradeStatus.INVOICED).build());
-    creditNote.ifPresent(this::notifySubscriber);
-    newInvoice.ifPresent(this::notifySubscriber);
+    var upgradeDate = dateOf(upgrade.getUpgradeDatetime());
+    var creditNoteSummary =
+        new SubscriptionMailSummary(
+            fromProduct.getName(),
+            upgrade.getFromBillingInterval(),
+            upgradeDate,
+            dateOf(upgrade.getOldCoverageEndDatetime()));
+    var newInvoiceSummary =
+        new SubscriptionMailSummary(
+            toProduct.getName(),
+            upgrade.getToBillingInterval(),
+            upgradeDate,
+            newCoverageEndOf(upgrade));
+    creditNote.ifPresent(invoice -> notifySubscriber(invoice, creditNoteSummary));
+    newInvoice.ifPresent(invoice -> notifySubscriber(invoice, newInvoiceSummary));
     return Optional.of(upgrade);
   }
 
@@ -307,11 +320,11 @@ public class SubscriptionUpgradeInvoicingService {
             + issuedAt);
   }
 
-  private void notifySubscriber(Invoice invoice) {
+  private void notifySubscriber(Invoice invoice, SubscriptionMailSummary summary) {
     try {
-      subscriptionInvoiceMailer.send(
+      subscriptionInvoiceMailer.sendWithSummary(
           invoice,
-          null,
+          summary,
           SUBSCRIPTION_INVOICE_MAIL_TEMPLATE,
           subscriptionInvoiceMailer.subscriberRecipientOf(invoice));
     } catch (RuntimeException e) {

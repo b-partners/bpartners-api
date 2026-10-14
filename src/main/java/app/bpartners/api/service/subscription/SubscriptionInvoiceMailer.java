@@ -8,6 +8,7 @@ import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
 import app.bpartners.api.service.EmailInvoiceResolver;
@@ -17,8 +18,10 @@ import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 import javax.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +49,16 @@ public class SubscriptionInvoiceMailer {
 
   public boolean send(
       Invoice invoice, SubscriptionPayment subscriptionPayment, String template, String recipient) {
+    return deliver(invoice, () -> mailContext(invoice, subscriptionPayment), template, recipient);
+  }
+
+  public boolean sendWithSummary(
+      Invoice invoice, SubscriptionMailSummary summary, String template, String recipient) {
+    return deliver(invoice, () -> mailContext(invoice, summary), template, recipient);
+  }
+
+  private boolean deliver(
+      Invoice invoice, Supplier<Context> context, String template, String recipient) {
     if (recipient == null) {
       log.warn(
           "Invoice(id={}) has no configured nor customer email address, "
@@ -53,9 +66,7 @@ public class SubscriptionInvoiceMailer {
           invoice.getId());
       return false;
     }
-    var htmlBody =
-        templateResolverEngine.parseTemplateResolver(
-            template, mailContext(invoice, subscriptionPayment));
+    var htmlBody = templateResolverEngine.parseTemplateResolver(template, context.get());
     try {
       mailer.sendEmail(
           recipient, TECH_RECIPIENT, mailSubject(invoice), htmlBody, attachmentsOf(invoice));
@@ -86,13 +97,31 @@ public class SubscriptionInvoiceMailer {
   }
 
   private Context mailContext(Invoice invoice, SubscriptionPayment subscriptionPayment) {
+    var context = baseContextOf(invoice);
+    context.setVariable("subscriptionPlan", subscriptionPlanOf(invoice, subscriptionPayment));
+    context.setVariable(
+        "billingInterval",
+        billingIntervalLabelOf(
+            subscriptionPayment == null ? null : subscriptionPayment.getBillingInterval()));
+    context.setVariable("billedPeriod", billedPeriodOf(invoice, subscriptionPayment));
+    return context;
+  }
+
+  private Context mailContext(Invoice invoice, SubscriptionMailSummary summary) {
+    var context = baseContextOf(invoice);
+    context.setVariable(
+        "subscriptionPlan",
+        summary.planName() == null ? SubscriptionPayment.DEFAULT_LABEL : summary.planName());
+    context.setVariable("billingInterval", billingIntervalLabelOf(summary.billingInterval()));
+    context.setVariable("billedPeriod", frenchPeriodOf(summary.periodStart(), summary.periodEnd()));
+    return context;
+  }
+
+  private Context baseContextOf(Invoice invoice) {
     var context = new Context();
     context.setVariable("customerName", invoice.getCustomer().getName());
     context.setVariable("invoiceReference", invoice.getRef());
     context.setVariable("paymentDate", paymentDateOf(invoice));
-    context.setVariable("subscriptionPlan", subscriptionPlanOf(invoice, subscriptionPayment));
-    context.setVariable("billingInterval", billingIntervalLabelOf(subscriptionPayment));
-    context.setVariable("billedPeriod", billedPeriodOf(invoice, subscriptionPayment));
     context.setVariable("amountWithoutVat", euroOf(invoice.getTotalPriceWithoutVat()));
     context.setVariable("amountWithVat", euroOf(invoice.getTotalPriceWithVat()));
     return context;
@@ -116,11 +145,11 @@ public class SubscriptionInvoiceMailer {
         : invoice.getProducts().getFirst().getDescription();
   }
 
-  private String billingIntervalLabelOf(SubscriptionPayment subscriptionPayment) {
-    if (subscriptionPayment == null || subscriptionPayment.getBillingInterval() == null) {
+  private String billingIntervalLabelOf(BillingInterval billingInterval) {
+    if (billingInterval == null) {
       return null;
     }
-    return switch (subscriptionPayment.getBillingInterval()) {
+    return switch (billingInterval) {
       case YEARLY -> "Annuel";
       case MONTHLY -> "Mensuel";
     };
@@ -139,6 +168,15 @@ public class SubscriptionInvoiceMailer {
     return frenchPeriodOf(
         subscriptionPayment.invoicedPeriodStartOrPeriodStart(),
         subscriptionPayment.invoicedPeriodEndOrPeriodEnd());
+  }
+
+  private String frenchPeriodOf(LocalDate periodStart, LocalDate periodEnd) {
+    if (periodStart == null || periodEnd == null) {
+      return null;
+    }
+    return customDateFormatter.formatFrenchDate(periodStart)
+        + " au "
+        + customDateFormatter.formatFrenchDate(periodEnd);
   }
 
   private String frenchPeriodOf(Instant periodStart, Instant periodEnd) {

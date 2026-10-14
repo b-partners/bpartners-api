@@ -2,10 +2,10 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
-import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.INVOICED;
-import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.EXPIRED;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.INVOICED;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

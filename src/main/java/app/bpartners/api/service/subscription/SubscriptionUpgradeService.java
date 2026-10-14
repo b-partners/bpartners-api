@@ -105,8 +105,7 @@ public class SubscriptionUpgradeService {
     if (quote.amountDueInCentsWithVat() <= 0L) {
       return completionService.complete(user, pending, paymentMethodId);
     }
-    var charge =
-        charge(pending, stripeCustomerId, paymentMethodId, quote, fromProduct, toProduct);
+    var charge = charge(pending, stripeCustomerId, paymentMethodId, quote, fromProduct, toProduct);
     return switch (charge) {
       case UpgradeCharge.Paid paid ->
           completionService.complete(

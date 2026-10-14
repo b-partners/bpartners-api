@@ -110,7 +110,8 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
         upgradeRepository.findAllByPaymentExpirationDatetimeBefore(now()).stream()
             .anyMatch(overdue -> overdue.getId().equals(upgrade.getId())));
     assertFalse(
-        upgradeRepository.findAllByPaymentExpirationDatetimeBefore(deadline.minusSeconds(1))
+        upgradeRepository
+            .findAllByPaymentExpirationDatetimeBefore(deadline.minusSeconds(1))
             .stream()
             .anyMatch(overdue -> overdue.getId().equals(upgrade.getId())));
   }
@@ -119,8 +120,7 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
   @Transactional
   void claiming_a_paid_upgrade_moves_it_back_to_pending_only_once() {
     var stripeInvoiceId = "in_" + randomUUID();
-    var upgrade =
-        upgradeRepository.save(awaitingUpgrade(stripeInvoiceId, now().plus(1, HOURS)));
+    var upgrade = upgradeRepository.save(awaitingUpgrade(stripeInvoiceId, now().plus(1, HOURS)));
     entityManager.flush();
     entityManager.clear();
 

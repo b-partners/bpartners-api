@@ -3,10 +3,12 @@ package app.bpartners.api.integration;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration.TWELVE_MONTHS;
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,8 +26,10 @@ import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionUpgradeCommitmentService;
+import app.bpartners.api.service.subscription.SubscriptionUpgradeTransitionService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +48,7 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
   @Autowired private UserSubscriptionProductJpaRepository userSubscriptionProductRepository;
   @Autowired private UserSubscriptionUpgradeJpaRepository upgradeRepository;
   @Autowired private SubscriptionUpgradeCommitmentService commitmentService;
+  @Autowired private SubscriptionUpgradeTransitionService transitionService;
   @PersistenceContext private EntityManager entityManager;
 
   @Test
@@ -85,6 +90,58 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
             .findByStripeProrationInvoiceId(upgrade.getStripeProrationInvoiceId())
             .orElseThrow()
             .getId());
+  }
+
+  @Test
+  @Transactional
+  void awaiting_payment_upgrade_round_trips_its_payment_page_and_is_found_once_overdue() {
+    var deadline = now().minus(1, HOURS).truncatedTo(SECONDS);
+    var upgrade = upgradeRepository.save(awaitingUpgrade("in_" + randomUUID(), deadline));
+    entityManager.flush();
+    entityManager.clear();
+
+    var actual = upgradeRepository.findById(upgrade.getId()).orElseThrow();
+
+    assertEquals(AWAITING_PAYMENT, actual.getStatus());
+    assertEquals("https://pay.example/" + upgrade.getId(), actual.getPaymentUrl());
+    assertEquals(deadline, actual.getPaymentExpirationDatetime());
+    assertEquals("sub_old", actual.getOldStripeSubscriptionId());
+    assertTrue(
+        upgradeRepository.findAllByPaymentExpirationDatetimeBefore(now()).stream()
+            .anyMatch(overdue -> overdue.getId().equals(upgrade.getId())));
+    assertFalse(
+        upgradeRepository.findAllByPaymentExpirationDatetimeBefore(deadline.minusSeconds(1))
+            .stream()
+            .anyMatch(overdue -> overdue.getId().equals(upgrade.getId())));
+  }
+
+  @Test
+  @Transactional
+  void claiming_a_paid_upgrade_moves_it_back_to_pending_only_once() {
+    var stripeInvoiceId = "in_" + randomUUID();
+    var upgrade =
+        upgradeRepository.save(awaitingUpgrade(stripeInvoiceId, now().plus(1, HOURS)));
+    entityManager.flush();
+    entityManager.clear();
+
+    var claimed = transitionService.claimPaid(upgrade.getId(), stripeInvoiceId);
+    entityManager.flush();
+    entityManager.clear();
+    var claimedAgain = transitionService.claimPaid(upgrade.getId(), stripeInvoiceId);
+
+    assertEquals(PENDING, claimed.orElseThrow().getStatus());
+    assertTrue(claimedAgain.isEmpty());
+    assertEquals(
+        List.of(PENDING, AWAITING_PAYMENT, PENDING),
+        upgradeRepository.findById(upgrade.getId()).orElseThrow().getStatusHistory().stream()
+            .map(history -> history.getStatus())
+            .toList());
+  }
+
+  @Test
+  @Transactional
+  void acquires_the_advisory_lock_of_an_upgrade() {
+    assertEquals(1, upgradeRepository.acquireLock("any_upgrade_id"));
   }
 
   @Test
@@ -140,5 +197,28 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
         userSubscriptionProductRepository.findAllNotCancelledByUserId(JANE_DOE_ID).getFirst();
     assertEquals(SUBSCRIPTION_PRODUCT_ID, activeProduct.getSubscriptionProduct().getId());
     assertEquals(MONTHLY, activeProduct.getBillingInterval());
+  }
+
+  private UserSubscriptionUpgrade awaitingUpgrade(String stripeInvoiceId, Instant deadline) {
+    var id = randomUUID().toString();
+    return UserSubscriptionUpgrade.builder()
+        .id(id)
+        .userId(JANE_DOE_ID)
+        .fromSubscriptionProductId(SUBSCRIPTION_PRODUCT_ID)
+        .toSubscriptionProductId(SUBSCRIPTION_PRODUCT_ID)
+        .fromBillingInterval(MONTHLY)
+        .toBillingInterval(MONTHLY)
+        .upgradeDatetime(now())
+        .oldCoverageEndDatetime(now().plus(20, DAYS))
+        .newCommitmentEndDatetime(now().plus(365, DAYS))
+        .prorationAmountInCentsWithVat(3_871L)
+        .stripeProrationInvoiceId(stripeInvoiceId)
+        .oldStripeSubscriptionId("sub_old")
+        .paymentUrl("https://pay.example/" + id)
+        .paymentExpirationDatetime(deadline)
+        .status(PENDING)
+        .status(AWAITING_PAYMENT)
+        .creationDatetime(now())
+        .build();
   }
 }

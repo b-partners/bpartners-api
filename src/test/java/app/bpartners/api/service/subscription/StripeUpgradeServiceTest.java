@@ -18,13 +18,16 @@ import app.bpartners.api.model.subscription.SubscriptionProduct;
 import com.stripe.StripeClient;
 import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceItem;
+import com.stripe.model.PaymentIntent;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.InvoiceCreateParams;
 import com.stripe.param.InvoiceItemCreateParams;
 import com.stripe.param.InvoicePayParams;
+import com.stripe.param.InvoiceRetrieveParams;
 import com.stripe.param.SubscriptionCreateParams;
 import com.stripe.service.InvoiceItemService;
 import com.stripe.service.InvoiceService;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +37,7 @@ class StripeUpgradeServiceTest {
   private static final String CUSTOMER_ID = "cus_1";
   private static final String PAYMENT_METHOD_ID = "pm_1";
   private static final String UPGRADE_ID = "upgrade_id";
+  private static final String HOSTED_URL = "https://invoice.stripe.com/i/in_1";
 
   StripeClient stripeClient = mock();
   StripeDefaultPaymentMethodService defaultPaymentMethodService = mock();
@@ -52,6 +56,7 @@ class StripeUpgradeServiceTest {
         .thenReturn(stripeInvoice("in_1", "draft"));
     when(invoiceItemService.create(any(InvoiceItemCreateParams.class), any(RequestOptions.class)))
         .thenReturn(new InvoiceItem());
+    when(invoiceService.finalizeInvoice("in_1")).thenReturn(finalizedInvoice(HOSTED_URL));
   }
 
   @Test
@@ -78,7 +83,7 @@ class StripeUpgradeServiceTest {
     var actual =
         subject.chargeOneOffAmount(CUSTOMER_ID, PAYMENT_METHOD_ID, 3_871L, "label", UPGRADE_ID);
 
-    assertEquals("in_1", actual);
+    assertEquals(new UpgradeCharge.Paid("in_1"), actual);
     var item = ArgumentCaptor.forClass(InvoiceItemCreateParams.class);
     verify(invoiceItemService).create(item.capture(), any(RequestOptions.class));
     assertEquals(3_871L, item.getValue().getAmount());
@@ -110,6 +115,120 @@ class StripeUpgradeServiceTest {
             subject.chargeOneOffAmount(CUSTOMER_ID, PAYMENT_METHOD_ID, 100L, "label", UPGRADE_ID));
 
     verify(invoiceService).voidInvoice("in_1");
+  }
+
+  @Test
+  void keeps_the_invoice_open_and_exposes_its_payment_page_when_the_bank_declines_the_card()
+      throws Exception {
+    when(invoiceService.pay(eq("in_1"), any(InvoicePayParams.class))).thenThrow(cardException());
+
+    var actual =
+        subject.chargeOneOffAmount(CUSTOMER_ID, PAYMENT_METHOD_ID, 100L, "label", UPGRADE_ID);
+
+    assertEquals(new UpgradeCharge.ActionRequired("in_1", HOSTED_URL), actual);
+    verify(invoiceService, never()).voidInvoice(anyString());
+  }
+
+  @Test
+  void keeps_the_invoice_open_when_the_payment_requires_an_action_of_the_customer()
+      throws Exception {
+    when(invoiceService.pay(eq("in_1"), any(InvoicePayParams.class)))
+        .thenThrow(
+            new com.stripe.exception.ApiException(
+                "requires action", "req_1", "invoice_payment_intent_requires_action", 402, null));
+
+    var actual =
+        subject.chargeOneOffAmount(CUSTOMER_ID, PAYMENT_METHOD_ID, 100L, "label", UPGRADE_ID);
+
+    assertEquals(new UpgradeCharge.ActionRequired("in_1", HOSTED_URL), actual);
+    verify(invoiceService, never()).voidInvoice(anyString());
+  }
+
+  @Test
+  void voids_the_invoice_when_the_customer_has_no_payment_page_to_pay_on() throws Exception {
+    when(invoiceService.finalizeInvoice("in_1")).thenReturn(finalizedInvoice(null));
+    when(invoiceService.pay(eq("in_1"), any(InvoicePayParams.class))).thenThrow(cardException());
+
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            subject.chargeOneOffAmount(CUSTOMER_ID, PAYMENT_METHOD_ID, 100L, "label", UPGRADE_ID));
+
+    verify(invoiceService).voidInvoice("in_1");
+  }
+
+  @Test
+  void voids_an_open_invoice() throws Exception {
+    assertEquals(StripeInvoiceVoidOutcome.VOIDED, subject.voidOpenInvoice("in_1"));
+
+    verify(invoiceService).voidInvoice("in_1");
+  }
+
+  @Test
+  void reports_an_invoice_paid_in_the_meantime_instead_of_voiding_it() throws Exception {
+    when(invoiceService.voidInvoice("in_1")).thenThrow(stripeException());
+    when(invoiceService.retrieve("in_1")).thenReturn(stripeInvoice("in_1", "paid"));
+
+    assertEquals(StripeInvoiceVoidOutcome.PAID, subject.voidOpenInvoice("in_1"));
+  }
+
+  @Test
+  void considers_an_already_void_invoice_as_voided() throws Exception {
+    when(invoiceService.voidInvoice("in_1")).thenThrow(stripeException());
+    when(invoiceService.retrieve("in_1")).thenReturn(stripeInvoice("in_1", "void"));
+
+    assertEquals(StripeInvoiceVoidOutcome.VOIDED, subject.voidOpenInvoice("in_1"));
+  }
+
+  @Test
+  void fails_when_an_open_invoice_can_not_be_voided() throws Exception {
+    when(invoiceService.voidInvoice("in_1")).thenThrow(stripeException());
+    when(invoiceService.retrieve("in_1")).thenReturn(stripeInvoice("in_1", "open"));
+
+    assertThrows(ApiException.class, () -> subject.voidOpenInvoice("in_1"));
+  }
+
+  @Test
+  void fails_when_the_invoice_status_can_not_be_read_after_a_failed_void() throws Exception {
+    when(invoiceService.voidInvoice("in_1")).thenThrow(stripeException());
+    when(invoiceService.retrieve("in_1")).thenThrow(stripeException());
+
+    assertThrows(ApiException.class, () -> subject.voidOpenInvoice("in_1"));
+  }
+
+  @Test
+  void resolves_the_payment_method_the_customer_really_paid_with() throws Exception {
+    var paymentIntent = new PaymentIntent();
+    paymentIntent.setPaymentMethod("pm_new_card");
+    var invoice = stripeInvoice("in_1", "paid");
+    invoice.setPaymentIntentObject(paymentIntent);
+    when(invoiceService.retrieve(eq("in_1"), any(InvoiceRetrieveParams.class))).thenReturn(invoice);
+
+    assertEquals("pm_new_card", subject.resolveChargedPaymentMethod(CUSTOMER_ID, "in_1"));
+
+    var params = ArgumentCaptor.forClass(InvoiceRetrieveParams.class);
+    verify(invoiceService).retrieve(eq("in_1"), params.capture());
+    assertEquals(List.of("payment_intent"), params.getValue().getExpand());
+  }
+
+  @Test
+  void falls_back_on_the_default_payment_method_when_the_paid_invoice_names_none()
+      throws Exception {
+    when(invoiceService.retrieve(eq("in_1"), any(InvoiceRetrieveParams.class)))
+        .thenReturn(stripeInvoice("in_1", "paid"));
+    when(defaultPaymentMethodService.ensureDefaultPaymentMethod(CUSTOMER_ID))
+        .thenReturn(Optional.of(PAYMENT_METHOD_ID));
+
+    assertEquals(PAYMENT_METHOD_ID, subject.resolveChargedPaymentMethod(CUSTOMER_ID, "in_1"));
+  }
+
+  @Test
+  void fails_when_the_paid_invoice_can_not_be_retrieved() throws Exception {
+    when(invoiceService.retrieve(eq("in_1"), any(InvoiceRetrieveParams.class)))
+        .thenThrow(stripeException());
+
+    assertThrows(
+        ApiException.class, () -> subject.resolveChargedPaymentMethod(CUSTOMER_ID, "in_1"));
   }
 
   @Test
@@ -189,6 +308,24 @@ class StripeUpgradeServiceTest {
     invoice.setId(id);
     invoice.setStatus(status);
     return invoice;
+  }
+
+  private static Invoice finalizedInvoice(String hostedInvoiceUrl) {
+    var invoice = stripeInvoice("in_1", "open");
+    invoice.setHostedInvoiceUrl(hostedInvoiceUrl);
+    return invoice;
+  }
+
+  private static com.stripe.exception.CardException cardException() {
+    return new com.stripe.exception.CardException(
+        "Your card was declined.",
+        "req_1",
+        "card_declined",
+        null,
+        "generic_decline",
+        null,
+        402,
+        null);
   }
 
   private static com.stripe.model.Subscription stripeSubscription(String id) {

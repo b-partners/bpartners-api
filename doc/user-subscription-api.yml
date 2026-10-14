@@ -411,8 +411,17 @@ operations:
         payment method of the user, and recurring payments start on the first day of the month
         following the switch. A credit note cancelling the remaining coverage of the previous
         subscription and a new invoice covering the renewed commitment are issued. The upgrade is
-        refused during a free trial, with unpaid invoices or without an active subscription, and
-        switching from a yearly to a monthly billing interval is not implemented yet.
+        refused during a free trial, with unpaid invoices, while another upgrade is in progress or
+        without an active subscription, and switching from a yearly to a monthly billing interval
+        is not implemented yet.
+
+
+        When the amount cannot be debited without the cardholder, for instance when the bank
+        requires an authentication or declines the card, the upgrade is returned with the
+        AWAITING_PAYMENT status and nothing is switched yet. The customer must be redirected to
+        paymentUrl to pay before paymentExpirationDatetime. The upgrade then completes on its own
+        and its status moves to PAID. Past paymentExpirationDatetime, the payment is cancelled and
+        the status moves to EXPIRED, the previous subscription being untouched.
       operationId: upgradeUserSubscription
       parameters:
         - in: path
@@ -458,8 +467,10 @@ operations:
       summary: List the subscription upgrades of the user
       description: |
         Lists the upgrades of the user, the most recent first. An upgrade with the PENDING status is
-        in progress, or was interrupted after the amount was charged and awaits a manual recovery,
-        and blocks any new upgrade. Filter on the status to know whether an upgrade is in progress.
+        in progress, or was interrupted after the amount was charged and awaits a manual recovery.
+        An upgrade with the AWAITING_PAYMENT status waits for the customer to pay on paymentUrl.
+        Both block any new upgrade. Filter on the status to know whether an upgrade is in
+        progress.
       operationId: getUserSubscriptionUpgrades
       parameters:
         - in: path
@@ -729,10 +740,17 @@ components:
           $ref: '#/components/schemas/BillingInterval'
     SubscriptionUpgradeStatus:
       type: string
+      description: |
+        PENDING is being processed or interrupted after the payment, awaiting a manual recovery.
+        AWAITING_PAYMENT waits for the customer to pay on the payment page. PAID is switched.
+        INVOICED is switched and its credit note and invoice are issued. EXPIRED was not paid
+        before its deadline and is cancelled.
       enum:
         - PENDING
+        - AWAITING_PAYMENT
         - PAID
         - INVOICED
+        - EXPIRED
     SubscriptionUpgrade:
       type: object
       properties:
@@ -758,6 +776,19 @@ components:
           description: Amount charged once for the switching month, VAT included.
         status:
           $ref: '#/components/schemas/SubscriptionUpgradeStatus'
+        paymentUrl:
+          type: string
+          nullable: true
+          description: |
+            Payment page the customer must be redirected to. Only set when the status is
+            AWAITING_PAYMENT.
+        paymentExpirationDatetime:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            Deadline to pay on paymentUrl, past which the upgrade expires. Only set when the status
+            is AWAITING_PAYMENT.
     BillingInterval:
       type: string
       enum:

@@ -8,12 +8,16 @@ import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import com.stripe.StripeClient;
+import com.stripe.exception.CardException;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Invoice;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.InvoiceCreateParams;
 import com.stripe.param.InvoiceItemCreateParams;
 import com.stripe.param.InvoicePayParams;
+import com.stripe.param.InvoiceRetrieveParams;
 import com.stripe.param.SubscriptionCreateParams;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,8 +26,12 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class StripeUpgradeService {
-  private static final String UPGRADE_METADATA_KEY = "subscription_upgrade_id";
+  public static final String UPGRADE_METADATA_KEY = "subscription_upgrade_id";
   private static final String PAID_STATUS = "paid";
+  private static final String VOID_STATUS = "void";
+  private static final String PAYMENT_INTENT_EXPANSION = "payment_intent";
+  private static final Set<String> ACTION_REQUIRED_CODES =
+      Set.of("invoice_payment_intent_requires_action", "authentication_required");
 
   private final StripeClient stripeClient;
   private final StripeDefaultPaymentMethodService stripeDefaultPaymentMethodService;
@@ -39,7 +47,7 @@ public class StripeUpgradeService {
                         + " has no payment method to charge the upgrade on"));
   }
 
-  public String chargeOneOffAmount(
+  public UpgradeCharge chargeOneOffAmount(
       String stripeCustomerId,
       String paymentMethodId,
       long amountInCentsWithVat,
@@ -77,16 +85,24 @@ public class StripeUpgradeService {
                   .putMetadata(UPGRADE_METADATA_KEY, upgradeId)
                   .build(),
               idempotencyOptions("invoice-item-" + upgradeId));
-      stripeClient.invoices().finalizeInvoice(invoiceId);
-      var paidInvoice =
-          stripeClient
-              .invoices()
-              .pay(
-                  invoiceId,
-                  InvoicePayParams.builder()
-                      .setPaymentMethod(paymentMethodId)
-                      .setOffSession(true)
-                      .build());
+      var finalizedInvoice = stripeClient.invoices().finalizeInvoice(invoiceId);
+      Invoice paidInvoice;
+      try {
+        paidInvoice =
+            stripeClient
+                .invoices()
+                .pay(
+                    invoiceId,
+                    InvoicePayParams.builder()
+                        .setPaymentMethod(paymentMethodId)
+                        .setOffSession(true)
+                        .build());
+      } catch (StripeException e) {
+        if (!requiresCustomerAction(e)) {
+          throw e;
+        }
+        return awaitCustomer(invoiceId, finalizedInvoice.getHostedInvoiceUrl(), upgradeId, e);
+      }
       if (!PAID_STATUS.equals(paidInvoice.getStatus())) {
         voidQuietly(invoiceId);
         throw new BadRequestException(
@@ -102,7 +118,7 @@ public class StripeUpgradeService {
           stripeCustomerId,
           invoiceId,
           upgradeId);
-      return invoiceId;
+      return new UpgradeCharge.Paid(invoiceId);
     } catch (StripeException e) {
       if (invoiceId != null) {
         voidQuietly(invoiceId);
@@ -112,6 +128,70 @@ public class StripeUpgradeService {
           "The upgrade amount could not be charged on the default payment method: "
               + e.getMessage());
     }
+  }
+
+  public StripeInvoiceVoidOutcome voidOpenInvoice(String invoiceId) {
+    try {
+      stripeClient.invoices().voidInvoice(invoiceId);
+      return StripeInvoiceVoidOutcome.VOIDED;
+    } catch (StripeException voidFailure) {
+      var status = statusOf(invoiceId, voidFailure);
+      if (PAID_STATUS.equals(status)) {
+        return StripeInvoiceVoidOutcome.PAID;
+      }
+      if (VOID_STATUS.equals(status)) {
+        return StripeInvoiceVoidOutcome.VOIDED;
+      }
+      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, voidFailure);
+    }
+  }
+
+  public String resolveChargedPaymentMethod(String stripeCustomerId, String stripeInvoiceId) {
+    try {
+      var invoice =
+          stripeClient
+              .invoices()
+              .retrieve(
+                  stripeInvoiceId,
+                  InvoiceRetrieveParams.builder().addExpand(PAYMENT_INTENT_EXPANSION).build());
+      var paymentIntent = invoice.getPaymentIntentObject();
+      var chargedPaymentMethodId = paymentIntent == null ? null : paymentIntent.getPaymentMethod();
+      return chargedPaymentMethodId != null
+          ? chargedPaymentMethodId
+          : requireDefaultPaymentMethod(stripeCustomerId);
+    } catch (StripeException e) {
+      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, e);
+    }
+  }
+
+  private UpgradeCharge awaitCustomer(
+      String invoiceId, String hostedInvoiceUrl, String upgradeId, StripeException cause) {
+    if (hostedInvoiceUrl == null) {
+      voidQuietly(invoiceId);
+      throw new BadRequestException(
+          "The upgrade amount could not be charged and Stripe Invoice(id="
+              + invoiceId
+              + ") exposes no payment page: "
+              + cause.getMessage());
+    }
+    log.info(
+        "SubscriptionUpgrade(id={}) needs the customer to pay Stripe Invoice(id={}): {}",
+        upgradeId,
+        invoiceId,
+        cause.getMessage());
+    return new UpgradeCharge.ActionRequired(invoiceId, hostedInvoiceUrl);
+  }
+
+  private String statusOf(String invoiceId, StripeException voidFailure) {
+    try {
+      return stripeClient.invoices().retrieve(invoiceId).getStatus();
+    } catch (StripeException e) {
+      throw new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, voidFailure);
+    }
+  }
+
+  private static boolean requiresCustomerAction(StripeException e) {
+    return e instanceof CardException || ACTION_REQUIRED_CODES.contains(e.getCode());
   }
 
   public String createUpgradedSubscription(

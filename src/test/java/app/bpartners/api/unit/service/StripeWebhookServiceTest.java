@@ -27,6 +27,7 @@ import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripeWebhookService;
 import app.bpartners.api.service.subscription.SubscriptionPaymentService;
 import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.subscription.SubscriptionUpgradeCompletionService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import com.stripe.model.Charge;
 import com.stripe.model.Event;
@@ -66,6 +67,7 @@ class StripeWebhookServiceTest {
   SubscriptionPaymentService subscriptionPaymentService = mock();
   UserSubscriptionProductService userSubscriptionProductService = mock();
   CreditGrantService creditGrantService = mock();
+  SubscriptionUpgradeCompletionService subscriptionUpgradeCompletionService = mock();
   StripeWebhookService subject =
       new StripeWebhookService(
           stripeConf,
@@ -76,7 +78,8 @@ class StripeWebhookServiceTest {
           stripePaymentMethodService,
           subscriptionPaymentService,
           userSubscriptionProductService,
-          creditGrantService);
+          creditGrantService,
+          subscriptionUpgradeCompletionService);
 
   @BeforeEach
   void setUp() {
@@ -152,6 +155,42 @@ class StripeWebhookServiceTest {
     verify(subscriptionService, never()).cancelSubscriptionImmediately(any());
     verify(eventProducer, never()).accept(anyList());
     verify(userRepository, never()).findByStripeCustomerId(any());
+  }
+
+  @Test
+  void invoice_paid_of_an_upgrade_completes_it_without_touching_the_subscription_payments() {
+    var invoice = mock(Invoice.class);
+    when(invoice.getId()).thenReturn("in_upgrade");
+    when(invoice.getMetadata()).thenReturn(Map.of("subscription_upgrade_id", "upgrade_id"));
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verify(subscriptionUpgradeCompletionService).completeAfterPayment("upgrade_id", "in_upgrade");
+    verifyNoInteractions(subscriptionPaymentService);
+    verify(subscriptionService, never()).cancelScheduledSubscriptionAfterInvoicePaid(any());
+    verify(subscriptionService, never()).cancelSubscriptionImmediately(any());
+  }
+
+  @Test
+  void invoice_paid_without_upgrade_metadata_does_not_complete_any_upgrade() {
+    var invoice = mock(Invoice.class);
+    when(invoice.getSubscription()).thenReturn("sub_123");
+    when(invoice.getMetadata()).thenReturn(null);
+    var event = givenInvoicePaidEvent(invoice);
+
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+
+    verifyNoInteractions(subscriptionUpgradeCompletionService);
+    verify(subscriptionPaymentService).recordPaidStripeInvoice(invoice);
   }
 
   @Test

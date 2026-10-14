@@ -3,9 +3,11 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,7 +35,9 @@ import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
 import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.utils.TemporalUtils;
@@ -69,6 +73,23 @@ class SubscriptionUpgradeServiceTest {
   CreditGrantService creditGrantService = mock();
   EventProducer eventProducer = mock();
   TemporalUtils temporalUtils = mock();
+  SubscriptionProductRepository subscriptionProductRepository = mock();
+  UserRepository userRepository = mock();
+  SubscriptionUpgradeTransitionService transitionService = mock();
+  SubscriptionUpgradeExpirationService expirationService = mock();
+  SubscriptionUpgradeTimeline timeline = new SubscriptionUpgradeTimeline(temporalUtils);
+  SubscriptionUpgradeCompletionService completionService =
+      new SubscriptionUpgradeCompletionService(
+          subscriptionProductRepository,
+          userRepository,
+          stripeUpgradeService,
+          subscriptionService,
+          commitmentService,
+          transitionService,
+          upgradeRepository,
+          timeline,
+          creditGrantService,
+          eventProducer);
 
   SubscriptionUpgradeService subject =
       new SubscriptionUpgradeService(
@@ -82,8 +103,9 @@ class SubscriptionUpgradeServiceTest {
           upgradeRepository,
           subscriptionInvoicePeriodRepository,
           subscriptionPaymentRepository,
-          creditGrantService,
-          eventProducer,
+          completionService,
+          expirationService,
+          timeline,
           temporalUtils);
 
   Map<String, SubscriptionProduct> catalog = new HashMap<>();
@@ -102,6 +124,8 @@ class SubscriptionUpgradeServiceTest {
     when(stripeInvoiceService.getUnpaidStripeInvoices(STRIPE_CUSTOMER_ID)).thenReturn(List.of());
     catalog.put("essential_id", essential);
     catalog.put("pro_id", pro);
+    when(subscriptionProductRepository.findById(anyString()))
+        .thenAnswer(invocation -> Optional.ofNullable(catalog.get(invocation.getArgument(0))));
     when(subscriptionService.getByPlanId(anyString(), any(BillingInterval.class)))
         .thenAnswer(
             invocation ->
@@ -124,7 +148,7 @@ class SubscriptionUpgradeServiceTest {
         .thenReturn(PAYMENT_METHOD_ID);
     when(stripeUpgradeService.chargeOneOffAmount(
             eq(STRIPE_CUSTOMER_ID), eq(PAYMENT_METHOD_ID), anyLong(), anyString(), anyString()))
-        .thenReturn("in_proration");
+        .thenReturn(new UpgradeCharge.Paid("in_proration"));
     when(stripeUpgradeService.createUpgradedSubscription(
             eq(STRIPE_CUSTOMER_ID), eq(PAYMENT_METHOD_ID), any(), any(), anyLong(), anyString()))
         .thenReturn("sub_new");
@@ -315,6 +339,75 @@ class SubscriptionUpgradeServiceTest {
     assertThrows(ConflictException.class, () -> subject.upgrade(user, "pro_id", null));
 
     verifyNoInteractions(stripeUpgradeService);
+  }
+
+  @Test
+  void awaits_the_customer_payment_without_switching_anything_when_the_charge_needs_an_action() {
+    activeProduct(essential, MONTHLY);
+    when(stripeUpgradeService.chargeOneOffAmount(
+            anyString(), anyString(), anyLong(), anyString(), anyString()))
+        .thenReturn(new UpgradeCharge.ActionRequired("in_open", "https://pay.example/in_open"));
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(AWAITING_PAYMENT, upgrade.getStatus());
+    assertEquals("in_open", upgrade.getStripeProrationInvoiceId());
+    assertEquals("https://pay.example/in_open", upgrade.getPaymentUrl());
+    assertEquals(OLD_STRIPE_SUBSCRIPTION_ID, upgrade.getOldStripeSubscriptionId());
+    assertEquals(timeline.paymentExpirationOf(upgrade), upgrade.getPaymentExpirationDatetime());
+    assertFalse(upgrade.getPaymentExpirationDatetime().isBefore(upgrade.getCreationDatetime()));
+    verify(upgradeRepository, never()).delete(any(UserSubscriptionUpgrade.class));
+    verify(stripeUpgradeService, never())
+        .createUpgradedSubscription(any(), any(), any(), any(), anyLong(), any());
+    verify(subscriptionService, never()).cancelSubscriptionImmediately(anyString());
+    verify(commitmentService, never()).switchTo(any(), any(), any(), any(), any());
+    verifyNoInteractions(creditGrantService, eventProducer);
+  }
+
+  @Test
+  void refuses_an_upgrade_while_another_one_awaits_its_payment() {
+    activeProduct(essential, MONTHLY);
+    when(upgradeRepository.findAllByUserIdOrderByCreationDatetimeDesc(USER_ID))
+        .thenReturn(
+            List.of(
+                UserSubscriptionUpgrade.builder()
+                    .id("awaiting_id")
+                    .status(AWAITING_PAYMENT)
+                    .build()));
+
+    assertThrows(ConflictException.class, () -> subject.upgrade(user, "pro_id", null));
+
+    verifyNoInteractions(stripeUpgradeService);
+  }
+
+  @Test
+  void lets_the_user_upgrade_again_once_the_awaited_payment_has_expired() {
+    activeProduct(essential, MONTHLY);
+    var overdue =
+        UserSubscriptionUpgrade.builder().id("overdue_id").status(AWAITING_PAYMENT).build();
+    when(upgradeRepository.findAllByUserIdOrderByCreationDatetimeDesc(USER_ID))
+        .thenReturn(List.of(overdue));
+    when(expirationService.expireIfOverdue(overdue)).thenReturn(true);
+
+    var upgrade = subject.upgrade(user, "pro_id", null);
+
+    assertEquals(PAID, upgrade.getStatus());
+  }
+
+  @Test
+  void checks_the_upgrades_in_progress_before_the_unpaid_invoices() {
+    activeProduct(essential, MONTHLY);
+    when(upgradeRepository.findAllByUserIdOrderByCreationDatetimeDesc(USER_ID))
+        .thenReturn(
+            List.of(
+                UserSubscriptionUpgrade.builder()
+                    .id("awaiting_id")
+                    .status(AWAITING_PAYMENT)
+                    .build()));
+    when(stripeInvoiceService.getUnpaidStripeInvoices(STRIPE_CUSTOMER_ID))
+        .thenReturn(List.of(new com.stripe.model.Invoice()));
+
+    assertThrows(ConflictException.class, () -> subject.upgrade(user, "pro_id", null));
   }
 
   @Test

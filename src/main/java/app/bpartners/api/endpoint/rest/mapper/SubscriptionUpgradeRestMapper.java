@@ -1,5 +1,7 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
+
 import app.bpartners.api.endpoint.rest.model.BillingInterval;
 import app.bpartners.api.endpoint.rest.model.SubscriptionUpgrade;
 import app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class SubscriptionUpgradeRestMapper {
 
   public SubscriptionUpgrade toRest(UserSubscriptionUpgrade upgrade) {
+    var awaitingPayment = upgrade.getStatus() == AWAITING_PAYMENT;
     return new SubscriptionUpgrade()
         .id(upgrade.getId())
         .fromSubscriptionPlanIdentifier(upgrade.getFromSubscriptionProductId())
@@ -19,7 +22,10 @@ public class SubscriptionUpgradeRestMapper {
         .upgradeDatetime(upgrade.getUpgradeDatetime())
         .newCommitmentEnd(upgrade.getNewCommitmentEndDatetime())
         .prorationAmountInCentsWithVat(upgrade.getProrationAmountInCentsWithVat())
-        .status(statusToRest(upgrade.getStatus()));
+        .status(statusToRest(upgrade.getStatus()))
+        .paymentUrl(awaitingPayment ? upgrade.getPaymentUrl() : null)
+        .paymentExpirationDatetime(
+            awaitingPayment ? upgrade.getPaymentExpirationDatetime() : null);
   }
 
   private static SubscriptionUpgradeStatus statusToRest(

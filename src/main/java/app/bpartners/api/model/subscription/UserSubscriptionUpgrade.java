@@ -69,6 +69,15 @@ public class UserSubscriptionUpgrade {
   @Column(name = "stripe_proration_invoice_id")
   private String stripeProrationInvoiceId;
 
+  @Column(name = "old_stripe_subscription_id")
+  private String oldStripeSubscriptionId;
+
+  @Column(name = "payment_url")
+  private String paymentUrl;
+
+  @Column(name = "payment_expiration_datetime")
+  private Instant paymentExpirationDatetime;
+
   @Column(name = "new_stripe_subscription_id")
   private String newStripeSubscriptionId;
 

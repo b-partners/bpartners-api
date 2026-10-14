@@ -1,6 +1,5 @@
 package app.bpartners.api.service.subscription;
 
-import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.nullsLast;
 
@@ -49,7 +48,7 @@ public class ChargedFirstMonthResolver {
 
   private Optional<ChargedFirstMonth> chargedFirstMonthOf(SubscriptionInvoicePeriod period) {
     var invoice = invoiceRepository.findById(period.getInvoiceId());
-    if (invoice == null || invoice.getSubscriptionBillingInterval() != MONTHLY) {
+    if (invoice == null || invoice.getProducts() == null) {
       return Optional.empty();
     }
     var start = startOf(period);

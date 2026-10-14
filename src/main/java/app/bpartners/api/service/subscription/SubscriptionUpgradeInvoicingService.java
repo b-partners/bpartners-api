@@ -140,7 +140,10 @@ public class SubscriptionUpgradeInvoicingService {
     var from = dateOf(upgrade.getUpgradeDatetime());
     var to = dateOf(upgrade.getOldCoverageEndDatetime());
     var invoiceIdentifier = randomUUID().toString();
-    var chargedFirstMonth = chargedFirstMonthResolver.resolve(upgrade.getUserId(), from);
+    var chargedFirstMonth =
+        upgrade.getFromBillingInterval() == YEARLY
+            ? Optional.<ChargedFirstMonth>empty()
+            : chargedFirstMonthResolver.resolve(upgrade.getUserId(), from);
     var lines =
         subscriptionUpgradeInvoiceLines.creditLines(
             invoiceIdentifier,

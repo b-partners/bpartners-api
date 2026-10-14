@@ -367,9 +367,51 @@ class SubscriptionUpgradeInvoicingServiceTest {
   }
 
   @Test
+  void mails_the_credit_note_and_the_new_invoice_with_their_plan_interval_and_coverage() {
+    when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
+    when(subscriptionInvoiceMailer.subscriberRecipientOf(any())).thenReturn("subscriber@mail.com");
+
+    subject.invoice(UPGRADE_ID);
+
+    var summaries = ArgumentCaptor.forClass(SubscriptionMailSummary.class);
+    verify(subscriptionInvoiceMailer, times(2))
+        .sendWithSummary(any(Invoice.class), summaries.capture(), anyString(), anyString());
+    assertEquals(
+        new SubscriptionMailSummary(
+            "Essentiel", MONTHLY, LocalDate.of(2026, 10, 12), LocalDate.of(2027, 9, 30)),
+        summaries.getAllValues().get(0));
+    assertEquals(
+        new SubscriptionMailSummary(
+            "Pro", MONTHLY, LocalDate.of(2026, 10, 12), LocalDate.of(2027, 9, 30)),
+        summaries.getAllValues().get(1));
+  }
+
+  @Test
+  void mails_a_yearly_new_invoice_with_the_twelve_month_coverage() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(
+            Optional.of(
+                upgrade(PAID).toBuilder()
+                    .toBillingInterval(YEARLY)
+                    .newCommitmentEndDatetime(Instant.parse("2027-10-11T22:00:00Z"))
+                    .build()));
+    when(subscriptionInvoiceMailer.subscriberRecipientOf(any())).thenReturn("subscriber@mail.com");
+
+    subject.invoice(UPGRADE_ID);
+
+    var summaries = ArgumentCaptor.forClass(SubscriptionMailSummary.class);
+    verify(subscriptionInvoiceMailer, times(2))
+        .sendWithSummary(any(Invoice.class), summaries.capture(), anyString(), anyString());
+    assertEquals(
+        new SubscriptionMailSummary(
+            "Pro", YEARLY, LocalDate.of(2026, 10, 12), LocalDate.of(2027, 10, 11)),
+        summaries.getAllValues().get(1));
+  }
+
+  @Test
   void keeps_the_upgrade_invoiced_when_the_mail_cannot_be_sent() {
     when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
-    when(subscriptionInvoiceMailer.send(any(), any(), anyString(), any()))
+    when(subscriptionInvoiceMailer.sendWithSummary(any(), any(), anyString(), any()))
         .thenThrow(new IllegalStateException("smtp down"));
 
     assertEquals(INVOICED, subject.invoice(UPGRADE_ID).orElseThrow().getStatus());

@@ -77,7 +77,7 @@ public class SubscriptionUpgradeService {
             toInterval,
             upgradeDate,
             oldCoverageEnd,
-            chargedFirstMonthResolver.resolve(user.getId(), upgradeDate));
+            chargedFirstMonthResolver.resolve(user.getId(), upgradeDate, now()));
     var commitmentStart = upgradeDate.atStartOfDay(PARIS).toInstant();
     var commitmentEnd = upgradeDate.plusYears(1).atStartOfDay(PARIS).toInstant();
 

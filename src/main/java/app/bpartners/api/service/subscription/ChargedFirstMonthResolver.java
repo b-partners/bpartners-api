@@ -8,15 +8,12 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
 import app.bpartners.api.repository.InvoiceRepository;
-import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
-import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,16 +22,13 @@ import org.springframework.stereotype.Component;
 public class ChargedFirstMonthResolver {
   private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
 
-  private final SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository;
-  private final SubscriptionPaymentRepository subscriptionPaymentRepository;
+  private final LiveSubscriptionInvoicePeriodFinder livePeriodFinder;
   private final InvoiceRepository invoiceRepository;
   private final CustomDateFormatter customDateFormatter;
 
-  public Optional<ChargedFirstMonth> resolve(String userId, LocalDate upgradeDate) {
-    var refundedInvoiceIds =
-        Set.copyOf(subscriptionPaymentRepository.findRefundedInvoiceIdsByUserId(userId));
-    return subscriptionInvoicePeriodRepository.findByUserId(userId).stream()
-        .filter(period -> !refundedInvoiceIds.contains(period.getInvoiceId()))
+  public Optional<ChargedFirstMonth> resolve(
+      String userId, LocalDate upgradeDate, Instant upgradeCreation) {
+    return livePeriodFinder.findLive(userId, upgradeCreation).stream()
         .filter(period -> period.getPeriodStartDatetime() != null)
         .filter(period -> isPartialMonthCovering(startOf(period), upgradeDate))
         .sorted(

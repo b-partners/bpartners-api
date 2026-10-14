@@ -69,6 +69,7 @@ public class SubscriptionUpgradeInvoicingService {
   private final SubscriptionUpgradeInvoiceLines subscriptionUpgradeInvoiceLines;
   private final SubscriptionInvoiceMailer subscriptionInvoiceMailer;
   private final ChargedFirstMonthResolver chargedFirstMonthResolver;
+  private final LiveSubscriptionInvoicePeriodFinder livePeriodFinder;
 
   public Optional<UserSubscriptionUpgrade> invoice(String upgradeIdentifier) {
     var upgrade =
@@ -156,7 +157,8 @@ public class SubscriptionUpgradeInvoicingService {
     var chargedFirstMonth =
         upgrade.getFromBillingInterval() == YEARLY
             ? Optional.<ChargedFirstMonth>empty()
-            : chargedFirstMonthResolver.resolve(upgrade.getUserId(), from);
+            : chargedFirstMonthResolver.resolve(
+                upgrade.getUserId(), from, upgradeCreationOf(upgrade));
     var lines =
         subscriptionUpgradeInvoiceLines.creditLines(
             invoiceIdentifier,
@@ -165,7 +167,7 @@ public class SubscriptionUpgradeInvoicingService {
             from,
             to,
             chargedFirstMonth);
-    var originalInvoiceReference = originalInvoiceReferenceOf(upgrade.getUserId(), to);
+    var originalInvoiceReference = originalInvoiceReferenceOf(upgrade, to);
     var title =
         "Avoir sur l'abonnement "
             + fromProduct.getName()
@@ -293,8 +295,13 @@ public class SubscriptionUpgradeInvoicingService {
         .build();
   }
 
-  private Optional<String> originalInvoiceReferenceOf(String userId, LocalDate coverageEnd) {
-    return subscriptionInvoicePeriodRepository.findByUserId(userId).stream()
+  private static Instant upgradeCreationOf(UserSubscriptionUpgrade upgrade) {
+    return upgrade.getCreationDatetime() == null ? now() : upgrade.getCreationDatetime();
+  }
+
+  private Optional<String> originalInvoiceReferenceOf(
+      UserSubscriptionUpgrade upgrade, LocalDate coverageEnd) {
+    return livePeriodFinder.findLive(upgrade.getUserId(), upgradeCreationOf(upgrade)).stream()
         .filter(period -> period.getPeriodEndDatetime() != null)
         .filter(period -> !dateOf(period.getPeriodEndDatetime()).isAfter(coverageEnd))
         .max(comparing(SubscriptionInvoicePeriod::getPeriodEndDatetime))

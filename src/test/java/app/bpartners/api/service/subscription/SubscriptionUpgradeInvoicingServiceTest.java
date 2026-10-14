@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -62,6 +63,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
   InvoiceRepository invoiceRepository = mock();
   SubscriptionInvoiceMailer subscriptionInvoiceMailer = mock();
   ChargedFirstMonthResolver chargedFirstMonthResolver = mock();
+  LiveSubscriptionInvoicePeriodFinder livePeriodFinder = mock();
   CustomDateFormatter customDateFormatter = new CustomDateFormatter();
 
   SubscriptionUpgradeInvoicingService subject =
@@ -77,7 +79,8 @@ class SubscriptionUpgradeInvoicingServiceTest {
           customDateFormatter,
           new SubscriptionUpgradeInvoiceLines(customDateFormatter),
           subscriptionInvoiceMailer,
-          chargedFirstMonthResolver);
+          chargedFirstMonthResolver,
+          livePeriodFinder);
 
   SubscriptionProduct essential = product("essential_id", "Essentiel", 5_000L);
   SubscriptionProduct pro = product("pro_id", "Pro", 10_000L);
@@ -93,7 +96,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
     when(invoiceService.crupdateSubscriptionInvoice(any(Invoice.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(invoiceRepository.findByIdUserAndRef(anyString(), anyString())).thenReturn(List.of());
-    when(subscriptionInvoicePeriodRepository.findByUserId(USER_ID)).thenReturn(List.of());
+    when(livePeriodFinder.findLive(eq(USER_ID), any())).thenReturn(List.of());
     when(upgradeRepository.save(any(UserSubscriptionUpgrade.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
   }
@@ -122,7 +125,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
   @Test
   void credit_note_first_line_prorates_the_amount_actually_charged_on_the_first_month() {
     when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
-    when(chargedFirstMonthResolver.resolve(USER_ID, LocalDate.of(2026, 10, 12)))
+    when(chargedFirstMonthResolver.resolve(eq(USER_ID), eq(LocalDate.of(2026, 10, 12)), any()))
         .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
 
     subject.invoice(UPGRADE_ID);
@@ -139,7 +142,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
   @Test
   void credit_note_first_line_matches_the_credit_charged_in_the_quote() {
     when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
-    when(chargedFirstMonthResolver.resolve(USER_ID, LocalDate.of(2026, 10, 12)))
+    when(chargedFirstMonthResolver.resolve(eq(USER_ID), eq(LocalDate.of(2026, 10, 12)), any()))
         .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
 
     subject.invoice(UPGRADE_ID);
@@ -163,7 +166,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
   @Test
   void credit_note_first_line_stays_day_based_without_a_charged_first_month() {
     when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
-    when(chargedFirstMonthResolver.resolve(USER_ID, LocalDate.of(2026, 10, 12)))
+    when(chargedFirstMonthResolver.resolve(eq(USER_ID), eq(LocalDate.of(2026, 10, 12)), any()))
         .thenReturn(Optional.empty());
 
     subject.invoice(UPGRADE_ID);
@@ -176,7 +179,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
   @Test
   void new_invoice_lines_do_not_depend_on_the_charged_first_month() {
     when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
-    when(chargedFirstMonthResolver.resolve(USER_ID, LocalDate.of(2026, 10, 12)))
+    when(chargedFirstMonthResolver.resolve(eq(USER_ID), eq(LocalDate.of(2026, 10, 12)), any()))
         .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
 
     subject.invoice(UPGRADE_ID);
@@ -317,7 +320,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
   @Test
   void mentions_the_original_invoice_in_the_credit_note_title() {
     when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
-    when(subscriptionInvoicePeriodRepository.findByUserId(USER_ID))
+    when(livePeriodFinder.findLive(eq(USER_ID), any()))
         .thenReturn(
             List.of(
                 period("no_end_invoice", null),
@@ -337,7 +340,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
   @Test
   void leaves_the_original_invoice_out_of_the_title_when_it_cannot_be_found() {
     when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PAID)));
-    when(subscriptionInvoicePeriodRepository.findByUserId(USER_ID))
+    when(livePeriodFinder.findLive(eq(USER_ID), any()))
         .thenReturn(List.of(period("missing_invoice", "2027-09-30")));
     when(invoiceRepository.findById("missing_invoice")).thenReturn(null);
 

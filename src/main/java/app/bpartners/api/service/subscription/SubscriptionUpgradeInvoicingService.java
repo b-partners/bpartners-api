@@ -79,10 +79,12 @@ public class SubscriptionUpgradeInvoicingService {
                 () ->
                     new NotFoundException(
                         "UserSubscriptionUpgrade.id=" + upgradeIdentifier + " not found"));
-    if (upgrade.getStatus() == SubscriptionUpgradeStatus.PENDING) {
+    if (upgrade.getStatus() != SubscriptionUpgradeStatus.PAID
+        && upgrade.getStatus() != SubscriptionUpgradeStatus.INVOICED) {
       log.warn(
-          "UserSubscriptionUpgrade(id={}) is still pending, its invoices are not issued",
-          upgrade.getId());
+          "UserSubscriptionUpgrade(id={}) is {}, its invoices are not issued",
+          upgrade.getId(),
+          upgrade.getStatus());
       return Optional.empty();
     }
     if (upgrade.getCreditNoteInvoiceId() != null && upgrade.getNewInvoiceId() != null) {

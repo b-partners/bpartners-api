@@ -3,13 +3,11 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
-import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
-import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.SubscriptionUpgradeInvoicingRequested;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.UserSubscriptionProduct;
@@ -22,11 +20,11 @@ import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
 import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
-import app.bpartners.api.service.credit.CreditGrantService;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +36,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SubscriptionUpgradeService {
   private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
+  private static final Set<SubscriptionUpgradeStatus> IN_PROGRESS_STATUSES =
+      EnumSet.of(PENDING, AWAITING_PAYMENT);
 
   private final SubscriptionService subscriptionService;
   private final UserSubscriptionProductService userSubscriptionProductService;
@@ -49,8 +49,9 @@ public class SubscriptionUpgradeService {
   private final UserSubscriptionUpgradeJpaRepository upgradeRepository;
   private final SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository;
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
-  private final CreditGrantService creditGrantService;
-  private final EventProducer eventProducer;
+  private final SubscriptionUpgradeCompletionService completionService;
+  private final SubscriptionUpgradeExpirationService expirationService;
+  private final SubscriptionUpgradeTimeline timeline;
   private final TemporalUtils temporalUtils;
 
   public UserSubscriptionUpgrade upgrade(
@@ -64,8 +65,8 @@ public class SubscriptionUpgradeService {
         subscriptionService.getByPlanId(toPlanIdentifier, toInterval).getSubscriptionProduct();
     requireHigherTier(fromProduct, fromInterval, toProduct, toInterval);
     var oldStripeSubscriptionId = requireActiveStripeSubscription(user);
+    requireNoUpgradeInProgress(user);
     requireNoUnpaidInvoice(user);
-    requireNoPendingUpgrade(user);
 
     var upgradeDate = temporalUtils.today();
     var oldCoverageEnd = oldCoverageEndOf(user.getId(), upgradeDate);
@@ -81,6 +82,8 @@ public class SubscriptionUpgradeService {
     var commitmentStart = upgradeDate.atStartOfDay(PARIS).toInstant();
     var commitmentEnd = upgradeDate.plusYears(1).atStartOfDay(PARIS).toInstant();
 
+    var stripeCustomerId = user.getUserSubscriptionId();
+    var paymentMethodId = stripeUpgradeService.requireDefaultPaymentMethod(stripeCustomerId);
     var pending =
         upgradeRepository.save(
             UserSubscriptionUpgrade.builder()
@@ -94,47 +97,25 @@ public class SubscriptionUpgradeService {
                 .oldCoverageEndDatetime(oldCoverageEnd.atStartOfDay(PARIS).toInstant())
                 .newCommitmentEndDatetime(commitmentEnd)
                 .prorationAmountInCentsWithVat(quote.amountDueInCentsWithVat())
+                .oldStripeSubscriptionId(oldStripeSubscriptionId)
                 .status(PENDING)
                 .creationDatetime(now())
                 .build());
 
-    var stripeCustomerId = user.getUserSubscriptionId();
-    var paymentMethodId = stripeUpgradeService.requireDefaultPaymentMethod(stripeCustomerId);
-    var withCharge =
-        chargeIfDue(pending, stripeCustomerId, paymentMethodId, quote, fromProduct, toProduct);
-    var withSubscription =
-        upgradeRepository.save(
-            withCharge.toBuilder()
-                .newStripeSubscriptionId(
-                    stripeUpgradeService.createUpgradedSubscription(
-                        stripeCustomerId,
-                        paymentMethodId,
-                        toProduct,
-                        toInterval,
-                        billingCycleAnchorOf(upgradeDate, toInterval),
-                        pending.getId()))
-                .build());
-    subscriptionService.cancelSubscriptionImmediately(oldStripeSubscriptionId);
-
-    commitmentService.switchTo(
-        user.getId(), toProduct.getId(), toInterval, commitmentStart, commitmentEnd);
-    var switched = upgradeRepository.save(withSubscription.toBuilder().status(PAID).build());
-    grantCredits(user, toProduct);
-    eventProducer.accept(
-        List.of(
-            SubscriptionUpgradeInvoicingRequested.builder()
-                .subscriptionUpgradeId(switched.getId())
-                .build()));
-    log.info(
-        "User(id={}) upgraded from SubscriptionProduct(id={}, {}) to SubscriptionProduct(id={},"
-            + " {}), {} cents charged",
-        user.getId(),
-        fromProduct.getId(),
-        fromInterval,
-        toProduct.getId(),
-        toInterval,
-        quote.amountDueInCentsWithVat());
-    return switched;
+    if (quote.amountDueInCentsWithVat() <= 0L) {
+      return completionService.complete(user, pending, paymentMethodId);
+    }
+    var charge =
+        charge(pending, stripeCustomerId, paymentMethodId, quote, fromProduct, toProduct);
+    return switch (charge) {
+      case UpgradeCharge.Paid paid ->
+          completionService.complete(
+              user,
+              upgradeRepository.save(
+                  pending.toBuilder().stripeProrationInvoiceId(paid.invoiceId()).build()),
+              paymentMethodId);
+      case UpgradeCharge.ActionRequired required -> awaitPayment(pending, required);
+    };
   }
 
   public List<UserSubscriptionUpgrade> findUpgrades(
@@ -144,30 +125,47 @@ public class SubscriptionUpgradeService {
         .toList();
   }
 
-  private UserSubscriptionUpgrade chargeIfDue(
+  private UpgradeCharge charge(
       UserSubscriptionUpgrade pending,
       String stripeCustomerId,
       String paymentMethodId,
       UpgradeQuote quote,
       SubscriptionProduct fromProduct,
       SubscriptionProduct toProduct) {
-    if (quote.amountDueInCentsWithVat() <= 0L) {
-      return pending;
-    }
     try {
-      var stripeInvoiceId =
-          stripeUpgradeService.chargeOneOffAmount(
-              stripeCustomerId,
-              paymentMethodId,
-              quote.amountDueInCentsWithVat(),
-              "Changement d'abonnement " + fromProduct.getName() + " vers " + toProduct.getName(),
-              pending.getId());
-      return upgradeRepository.save(
-          pending.toBuilder().stripeProrationInvoiceId(stripeInvoiceId).build());
+      return stripeUpgradeService.chargeOneOffAmount(
+          stripeCustomerId,
+          paymentMethodId,
+          quote.amountDueInCentsWithVat(),
+          "Changement d'abonnement " + fromProduct.getName() + " vers " + toProduct.getName(),
+          pending.getId());
     } catch (RuntimeException e) {
       upgradeRepository.delete(pending);
       throw e;
     }
+  }
+
+  private UserSubscriptionUpgrade awaitPayment(
+      UserSubscriptionUpgrade pending, UpgradeCharge.ActionRequired required) {
+    var awaiting =
+        pending.toBuilder()
+            .stripeProrationInvoiceId(required.invoiceId())
+            .paymentUrl(required.paymentUrl())
+            .build();
+    var saved =
+        upgradeRepository.save(
+            awaiting.toBuilder()
+                .paymentExpirationDatetime(timeline.paymentExpirationOf(awaiting))
+                .status(AWAITING_PAYMENT)
+                .build());
+    log.info(
+        "SubscriptionUpgrade(id={}) of User(id={}) awaits the payment of Stripe Invoice(id={})"
+            + " until {}",
+        saved.getId(),
+        saved.getUserId(),
+        required.invoiceId(),
+        saved.getPaymentExpirationDatetime());
+    return saved;
   }
 
   private UserSubscriptionProduct requireActivePaidProduct(User user) {
@@ -229,9 +227,13 @@ public class SubscriptionUpgradeService {
     }
   }
 
-  private void requireNoPendingUpgrade(User user) {
-    var pendingUpgrades = findUpgrades(user.getId(), SubscriptionUpgradeStatus.PENDING);
-    if (!pendingUpgrades.isEmpty()) {
+  private void requireNoUpgradeInProgress(User user) {
+    var inProgress =
+        upgradeRepository.findAllByUserIdOrderByCreationDatetimeDesc(user.getId()).stream()
+            .filter(upgrade -> IN_PROGRESS_STATUSES.contains(upgrade.getStatus()))
+            .filter(upgrade -> !expirationService.expireIfOverdue(upgrade))
+            .toList();
+    if (!inProgress.isEmpty()) {
       throw new ConflictException(
           "User.id=" + user.getId() + " already has an upgrade in progress");
     }
@@ -257,27 +259,6 @@ public class SubscriptionUpgradeService {
             .map(end -> SubscriptionUpgradeInvoicingService.lastFullMonthEnd(dateOf(end)))
             .filter(end -> !end.isBefore(upgradeDate));
     return commitmentCoverageEnd.orElse(upgradeDate.withDayOfMonth(upgradeDate.lengthOfMonth()));
-  }
-
-  private long billingCycleAnchorOf(LocalDate upgradeDate, BillingInterval toInterval) {
-    var firstPayment =
-        toInterval == YEARLY
-            ? upgradeDate.plusYears(1)
-            : temporalUtils.startOfMonthAfter(upgradeDate);
-    return firstPayment.atStartOfDay(PARIS).toEpochSecond();
-  }
-
-  private void grantCredits(User user, SubscriptionProduct toProduct) {
-    try {
-      creditGrantService.grantIncludedCredits(user.getId(), toProduct);
-    } catch (RuntimeException e) {
-      log.error(
-          "Upgrade of User(id={}) done but the credits of SubscriptionProduct(id={}) were not"
-              + " granted",
-          user.getId(),
-          toProduct.getId(),
-          e);
-    }
   }
 
   private static LocalDate dateOf(Instant instant) {

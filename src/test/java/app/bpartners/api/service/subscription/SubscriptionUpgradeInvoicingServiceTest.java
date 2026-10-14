@@ -4,6 +4,8 @@ import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.INVOICED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.EXPIRED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -292,6 +294,18 @@ class SubscriptionUpgradeInvoicingServiceTest {
   void skips_a_pending_upgrade() {
     when(upgradeRepository.findById(UPGRADE_ID)).thenReturn(Optional.of(upgrade(PENDING)));
 
+    assertTrue(subject.invoice(UPGRADE_ID).isEmpty());
+
+    verify(invoiceService, never()).crupdateSubscriptionInvoice(any());
+  }
+
+  @Test
+  void skips_an_upgrade_awaiting_its_payment_or_expired() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(upgrade(AWAITING_PAYMENT)))
+        .thenReturn(Optional.of(upgrade(EXPIRED)));
+
+    assertTrue(subject.invoice(UPGRADE_ID).isEmpty());
     assertTrue(subject.invoice(UPGRADE_ID).isEmpty());
 
     verify(invoiceService, never()).crupdateSubscriptionInvoice(any());

@@ -84,12 +84,28 @@ class SubscriptionUpgradeChainTest {
   CreditGrantService creditGrantService = mock();
   EventProducer eventProducer = mock();
   TemporalUtils temporalUtils = mock();
+  SubscriptionUpgradeTransitionService transitionService = mock();
+  SubscriptionUpgradeExpirationService expirationService = mock();
+  SubscriptionUpgradeTimeline timeline = new SubscriptionUpgradeTimeline(temporalUtils);
 
   LiveSubscriptionInvoicePeriodFinder livePeriodFinder =
       new LiveSubscriptionInvoicePeriodFinder(
           periodRepository, paymentRepository, upgradeRepository, invoiceRepository);
   ChargedFirstMonthResolver chargedFirstMonthResolver =
       new ChargedFirstMonthResolver(livePeriodFinder, invoiceRepository, customDateFormatter);
+
+  SubscriptionUpgradeCompletionService completionService =
+      new SubscriptionUpgradeCompletionService(
+          subscriptionProductRepository,
+          userRepository,
+          stripeUpgradeService,
+          subscriptionService,
+          commitmentService,
+          transitionService,
+          upgradeRepository,
+          timeline,
+          creditGrantService,
+          eventProducer);
 
   SubscriptionUpgradeService upgradeService =
       new SubscriptionUpgradeService(
@@ -103,8 +119,9 @@ class SubscriptionUpgradeChainTest {
           upgradeRepository,
           periodRepository,
           paymentRepository,
-          creditGrantService,
-          eventProducer,
+          completionService,
+          expirationService,
+          timeline,
           temporalUtils);
 
   SubscriptionUpgradeInvoicingService invoicingService =
@@ -164,7 +181,7 @@ class SubscriptionUpgradeChainTest {
         .thenAnswer(
             invocation -> {
               stripeCharges.add(invocation.getArgument(2, Long.class));
-              return "in_" + stripeCharges.size();
+              return new UpgradeCharge.Paid("in_" + stripeCharges.size());
             });
     when(stripeUpgradeService.createUpgradedSubscription(
             any(), any(), any(), any(), anyLong(), anyString()))

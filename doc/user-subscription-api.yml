@@ -937,6 +937,15 @@ components:
         - $ref: '#/components/schemas/SubscriptionPlanDescription'
         - type: object
           properties:
+            tierRank:
+              type: integer
+              nullable: true
+              description: |
+                Position of the plan in the tier ladder, a higher value being a higher tier. An
+                upgrade (see POST /users/{uId}/subscriptionUpgrade) is only accepted towards a plan
+                with a strictly higher `tierRank` than the current one, or towards the same
+                `tierRank` when switching from monthly to yearly billing. Any other target is
+                refused, so the UI can disable it. Null when the plan can not be upgraded to.
             includedCreditsPerBillingPeriod:
               type: integer
               format: int64

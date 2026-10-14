@@ -24,8 +24,7 @@ public class SubscriptionUpgradeRestMapper {
         .prorationAmountInCentsWithVat(upgrade.getProrationAmountInCentsWithVat())
         .status(statusToRest(upgrade.getStatus()))
         .paymentUrl(awaitingPayment ? upgrade.getPaymentUrl() : null)
-        .paymentExpirationDatetime(
-            awaitingPayment ? upgrade.getPaymentExpirationDatetime() : null);
+        .paymentExpirationDatetime(awaitingPayment ? upgrade.getPaymentExpirationDatetime() : null);
   }
 
   private static SubscriptionUpgradeStatus statusToRest(

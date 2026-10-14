@@ -107,7 +107,8 @@ class SubscriptionUpgradeTransitionServiceTest {
   void keeps_an_overdue_upgrade_whose_invoice_was_paid_at_the_deadline() {
     when(upgradeRepository.findById(UPGRADE_ID))
         .thenReturn(Optional.of(upgrade(AWAITING_PAYMENT, Instant.now().minusSeconds(60))));
-    when(stripeUpgradeService.voidOpenInvoice(INVOICE_ID)).thenReturn(StripeInvoiceVoidOutcome.PAID);
+    when(stripeUpgradeService.voidOpenInvoice(INVOICE_ID))
+        .thenReturn(StripeInvoiceVoidOutcome.PAID);
 
     assertEquals(Expiration.PAID, subject.expire(UPGRADE_ID));
 

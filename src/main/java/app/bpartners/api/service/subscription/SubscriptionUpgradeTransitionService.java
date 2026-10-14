@@ -40,9 +40,7 @@ public class SubscriptionUpgradeTransitionService {
   public Expiration expire(String upgradeId) {
     upgradeRepository.acquireLock(upgradeId);
     var upgrade = upgradeRepository.findById(upgradeId).orElse(null);
-    if (upgrade == null
-        || upgrade.getStatus() != AWAITING_PAYMENT
-        || !isPaymentOverdue(upgrade)) {
+    if (upgrade == null || upgrade.getStatus() != AWAITING_PAYMENT || !isPaymentOverdue(upgrade)) {
       return Expiration.SKIPPED;
     }
     return switch (stripeUpgradeService.voidOpenInvoice(upgrade.getStripeProrationInvoiceId())) {

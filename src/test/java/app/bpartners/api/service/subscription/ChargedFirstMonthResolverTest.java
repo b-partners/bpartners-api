@@ -12,10 +12,9 @@ import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
 import app.bpartners.api.repository.InvoiceRepository;
-import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
-import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
@@ -24,21 +23,21 @@ import org.junit.jupiter.api.Test;
 class ChargedFirstMonthResolverTest {
   private static final String USER_ID = "subscriber_id";
   private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
+  private static final Instant UPGRADE_CREATION = Instant.parse("2026-10-14T09:47:00Z");
 
-  SubscriptionInvoicePeriodRepository periodRepository = mock();
-  SubscriptionPaymentRepository paymentRepository = mock();
+  LiveSubscriptionInvoicePeriodFinder livePeriodFinder = mock();
   InvoiceRepository invoiceRepository = mock();
 
   ChargedFirstMonthResolver subject =
-      new ChargedFirstMonthResolver(
-          periodRepository, paymentRepository, invoiceRepository, new CustomDateFormatter());
+      new ChargedFirstMonthResolver(livePeriodFinder, invoiceRepository, new CustomDateFormatter());
 
   @Test
   void resolves_the_amount_charged_on_the_partial_month_containing_the_upgrade_date() {
     givenPeriod("invoice_id", LocalDate.of(2026, 10, 5), LocalDate.of(2027, 9, 30));
     givenInvoice("invoice_id", 4_100L, "Abonnement Essentiel du 05/10/2026 au 31/10/2026");
 
-    var actual = subject.resolve(USER_ID, LocalDate.of(2026, 10, 12)).orElseThrow();
+    var actual =
+        subject.resolve(USER_ID, LocalDate.of(2026, 10, 12), UPGRADE_CREATION).orElseThrow();
 
     assertEquals(LocalDate.of(2026, 10, 5), actual.start());
     assertEquals(LocalDate.of(2026, 10, 31), actual.end());
@@ -50,7 +49,8 @@ class ChargedFirstMonthResolverTest {
     givenPeriod("invoice_id", LocalDate.of(2026, 10, 14), LocalDate.of(2027, 9, 30));
     givenInvoice("invoice_id", 5_632L, "Abonnement Pro du 14/10/2026 au 31/10/2026");
 
-    var actual = subject.resolve(USER_ID, LocalDate.of(2026, 10, 14)).orElseThrow();
+    var actual =
+        subject.resolve(USER_ID, LocalDate.of(2026, 10, 14), UPGRADE_CREATION).orElseThrow();
 
     assertEquals(BigInteger.valueOf(5_632L), actual.chargedWithoutVat().getNumerator());
     assertEquals(18, actual.days());
@@ -61,23 +61,14 @@ class ChargedFirstMonthResolverTest {
     givenPeriod("invoice_id", LocalDate.of(2026, 10, 5), LocalDate.of(2027, 9, 30));
     givenInvoice("invoice_id", 4_100L, "Abonnement Essentiel du 05/10/2026 au 31/10/2026");
 
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 11, 12)).isEmpty());
+    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 11, 12), UPGRADE_CREATION).isEmpty());
   }
 
   @Test
   void resolves_nothing_for_a_period_starting_on_the_first_of_the_month() {
     givenPeriod("invoice_id", LocalDate.of(2026, 10, 1), LocalDate.of(2027, 9, 30));
 
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12)).isEmpty());
-  }
-
-  @Test
-  void resolves_nothing_for_a_refunded_invoice() {
-    givenPeriod("invoice_id", LocalDate.of(2026, 10, 5), LocalDate.of(2027, 9, 30));
-    when(paymentRepository.findRefundedInvoiceIdsByUserId(USER_ID))
-        .thenReturn(List.of("invoice_id"));
-
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12)).isEmpty());
+    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12), UPGRADE_CREATION).isEmpty());
   }
 
   @Test
@@ -85,7 +76,7 @@ class ChargedFirstMonthResolverTest {
     givenPeriod("invoice_id", LocalDate.of(2026, 10, 5), LocalDate.of(2027, 9, 30));
     givenInvoice("invoice_id", 4_100L, "Abonnement Essentiel du 01/11/2026 au 30/11/2026");
 
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12)).isEmpty());
+    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12), UPGRADE_CREATION).isEmpty());
   }
 
   @Test
@@ -93,15 +84,14 @@ class ChargedFirstMonthResolverTest {
     givenPeriod("invoice_id", LocalDate.of(2026, 10, 5), LocalDate.of(2027, 9, 30));
     givenInvoice("invoice_id", 4_100L, "Abonnement Essentiel du 05/10/2026 au 31/10/2026");
 
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 5)).isPresent());
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 31)).isPresent());
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 4)).isEmpty());
+    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 5), UPGRADE_CREATION).isPresent());
+    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 31), UPGRADE_CREATION).isPresent());
+    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 4), UPGRADE_CREATION).isEmpty());
   }
 
   @Test
   void prefers_the_original_invoice_over_a_later_one_starting_on_the_upgrade_date() {
-    when(paymentRepository.findRefundedInvoiceIdsByUserId(USER_ID)).thenReturn(List.of());
-    when(periodRepository.findByUserId(USER_ID))
+    when(livePeriodFinder.findLive(USER_ID, UPGRADE_CREATION))
         .thenReturn(
             List.of(
                 periodOf("upgrade_invoice_id", LocalDate.of(2026, 10, 12)),
@@ -109,7 +99,8 @@ class ChargedFirstMonthResolverTest {
     givenInvoice("original_invoice_id", 4_100L, "Abonnement Essentiel du 05/10/2026 au 31/10/2026");
     givenInvoice("upgrade_invoice_id", 6_000L, "Abonnement Pro du 12/10/2026 au 31/10/2026");
 
-    var actual = subject.resolve(USER_ID, LocalDate.of(2026, 10, 12)).orElseThrow();
+    var actual =
+        subject.resolve(USER_ID, LocalDate.of(2026, 10, 12), UPGRADE_CREATION).orElseThrow();
 
     assertEquals(LocalDate.of(2026, 10, 5), actual.start());
     assertEquals(BigInteger.valueOf(4_100L), actual.chargedWithoutVat().getNumerator());
@@ -121,7 +112,8 @@ class ChargedFirstMonthResolverTest {
     givenPeriod("upgrade_invoice_id", LocalDate.of(2026, 10, 12), LocalDate.of(2027, 9, 30));
     givenInvoice("upgrade_invoice_id", 6_000L, "Abonnement Pro du 12/10/2026 au 31/10/2026");
 
-    var actual = subject.resolve(USER_ID, LocalDate.of(2026, 10, 20)).orElseThrow();
+    var actual =
+        subject.resolve(USER_ID, LocalDate.of(2026, 10, 20), UPGRADE_CREATION).orElseThrow();
 
     assertEquals(LocalDate.of(2026, 10, 12), actual.start());
     assertEquals(20, actual.days());
@@ -132,7 +124,7 @@ class ChargedFirstMonthResolverTest {
     givenPeriod("invoice_id", LocalDate.of(2026, 10, 5), LocalDate.of(2027, 9, 30));
     when(invoiceRepository.findById("invoice_id")).thenReturn(null);
 
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12)).isEmpty());
+    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12), UPGRADE_CREATION).isEmpty());
   }
 
   @Test
@@ -140,15 +132,14 @@ class ChargedFirstMonthResolverTest {
     givenPeriod("invoice_id", LocalDate.of(2026, 10, 5), LocalDate.of(2027, 9, 30));
     givenInvoice("invoice_id", -4_100L, "Avoir Abonnement Essentiel du 05/10/2026 au 31/10/2026");
 
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12)).isEmpty());
+    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12), UPGRADE_CREATION).isEmpty());
   }
 
   @Test
   void resolves_nothing_when_the_user_has_no_invoiced_period() {
-    when(paymentRepository.findRefundedInvoiceIdsByUserId(USER_ID)).thenReturn(List.of());
-    when(periodRepository.findByUserId(USER_ID)).thenReturn(List.of());
+    when(livePeriodFinder.findLive(USER_ID, UPGRADE_CREATION)).thenReturn(List.of());
 
-    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12)).isEmpty());
+    assertTrue(subject.resolve(USER_ID, LocalDate.of(2026, 10, 12), UPGRADE_CREATION).isEmpty());
   }
 
   @Test
@@ -167,7 +158,8 @@ class ChargedFirstMonthResolverTest {
                             .build()))
                 .build());
 
-    var actual = subject.resolve(USER_ID, LocalDate.of(2026, 10, 12)).orElseThrow();
+    var actual =
+        subject.resolve(USER_ID, LocalDate.of(2026, 10, 12), UPGRADE_CREATION).orElseThrow();
 
     assertEquals(BigInteger.ZERO, actual.vatPercent().getNumerator());
   }
@@ -183,8 +175,7 @@ class ChargedFirstMonthResolverTest {
   }
 
   private void givenPeriod(String invoiceId, LocalDate start, LocalDate end) {
-    when(paymentRepository.findRefundedInvoiceIdsByUserId(USER_ID)).thenReturn(List.of());
-    when(periodRepository.findByUserId(USER_ID))
+    when(livePeriodFinder.findLive(USER_ID, UPGRADE_CREATION))
         .thenReturn(
             List.of(
                 SubscriptionInvoicePeriod.builder()

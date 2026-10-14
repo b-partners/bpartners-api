@@ -173,7 +173,7 @@ class SubscriptionUpgradeServiceTest {
   @Test
   void monthly_upgrade_credits_the_amount_actually_charged_on_the_first_partial_month() {
     activeProduct(essential, MONTHLY);
-    when(chargedFirstMonthResolver.resolve(USER_ID, TODAY))
+    when(chargedFirstMonthResolver.resolve(eq(USER_ID), eq(TODAY), any()))
         .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
 
     var upgrade = subject.upgrade(user, "pro_id", null);
@@ -187,7 +187,7 @@ class SubscriptionUpgradeServiceTest {
   @Test
   void monthly_to_yearly_upgrade_credits_the_amount_actually_charged_on_the_first_month() {
     activeProduct(essential, MONTHLY);
-    when(chargedFirstMonthResolver.resolve(USER_ID, TODAY))
+    when(chargedFirstMonthResolver.resolve(eq(USER_ID), eq(TODAY), any()))
         .thenReturn(Optional.of(chargedFirstMonth(4_100L)));
 
     var upgrade = subject.upgrade(user, "pro_id", YEARLY);
@@ -198,7 +198,8 @@ class SubscriptionUpgradeServiceTest {
   @Test
   void monthly_upgrade_without_a_charged_first_month_keeps_the_day_based_credit() {
     activeProduct(essential, MONTHLY);
-    when(chargedFirstMonthResolver.resolve(USER_ID, TODAY)).thenReturn(Optional.empty());
+    when(chargedFirstMonthResolver.resolve(eq(USER_ID), eq(TODAY), any()))
+        .thenReturn(Optional.empty());
 
     var upgrade = subject.upgrade(user, "pro_id", null);
 
@@ -208,7 +209,7 @@ class SubscriptionUpgradeServiceTest {
   @Test
   void a_charged_first_month_larger_than_the_new_charge_leaves_nothing_to_pay() {
     activeProduct(essential, MONTHLY);
-    when(chargedFirstMonthResolver.resolve(USER_ID, TODAY))
+    when(chargedFirstMonthResolver.resolve(eq(USER_ID), eq(TODAY), any()))
         .thenReturn(Optional.of(chargedFirstMonth(40_000L)));
 
     var upgrade = subject.upgrade(user, "pro_id", null);

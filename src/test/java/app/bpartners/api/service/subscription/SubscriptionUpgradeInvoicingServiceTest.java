@@ -187,6 +187,22 @@ class SubscriptionUpgradeInvoicingServiceTest {
   }
 
   @Test
+  void credit_note_of_a_yearly_subscription_does_not_use_the_charged_first_month() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(
+            Optional.of(
+                upgrade(PAID).toBuilder()
+                    .fromBillingInterval(YEARLY)
+                    .toBillingInterval(YEARLY)
+                    .oldCoverageEndDatetime(Instant.parse("2027-03-30T22:00:00Z"))
+                    .build()));
+
+    subject.invoice(UPGRADE_ID);
+
+    verifyNoInteractions(chargedFirstMonthResolver);
+  }
+
+  @Test
   void does_not_resolve_the_charged_month_when_the_credit_note_already_exists() {
     when(upgradeRepository.findById(UPGRADE_ID))
         .thenReturn(

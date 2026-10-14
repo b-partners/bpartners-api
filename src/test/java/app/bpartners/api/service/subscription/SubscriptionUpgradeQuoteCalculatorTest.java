@@ -59,6 +59,32 @@ class SubscriptionUpgradeQuoteCalculatorTest {
   }
 
   @Test
+  void upgrade_on_the_day_of_the_subscription_credits_exactly_what_stripe_charged() {
+    var proPlan = product("pro_plan_id", 9_900L, 106_920L);
+    var expertPlan = product("expert_plan_id", 19_900L, 214_920L);
+    var charged =
+        new ChargedFirstMonth(
+            LocalDate.of(2026, 10, 14),
+            LocalDate.of(2026, 10, 31),
+            new Fraction(BigInteger.valueOf(5_632L)),
+            new Fraction(BigInteger.valueOf(2_000L)));
+
+    var quote =
+        subject.compute(
+            proPlan,
+            MONTHLY,
+            expertPlan,
+            MONTHLY,
+            LocalDate.of(2026, 10, 14),
+            LocalDate.of(2027, 9, 30),
+            Optional.of(charged));
+
+    assertEquals(13_866L, quote.newChargeInCentsWithVat());
+    assertEquals(6_758L, quote.creditedInCentsWithVat());
+    assertEquals(7_108L, quote.amountDueInCentsWithVat());
+  }
+
+  @Test
   void yearly_credit_ignores_a_charged_first_month() {
     var charged =
         new ChargedFirstMonth(

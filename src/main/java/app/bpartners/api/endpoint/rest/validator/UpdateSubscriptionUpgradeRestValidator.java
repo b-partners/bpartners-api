@@ -1,6 +1,5 @@
 package app.bpartners.api.endpoint.rest.validator;
 
-import app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgrade;
 import app.bpartners.api.model.exception.BadRequestException;
 import java.util.function.Consumer;
@@ -14,8 +13,8 @@ public class UpdateSubscriptionUpgradeRestValidator implements Consumer<UpdateSu
     if (updateSubscriptionUpgrade == null) {
       throw new BadRequestException("Request body is mandatory.");
     }
-    if (updateSubscriptionUpgrade.getStatus() != SubscriptionUpgradeStatus.ABANDONED) {
-      throw new BadRequestException("Only the ABANDONED status is supported.");
+    if (updateSubscriptionUpgrade.getStatus() == null) {
+      throw new BadRequestException("status is mandatory.");
     }
   }
 }

@@ -38,7 +38,7 @@ public class LiveSubscriptionInvoicePeriodFinder {
   private Optional<Instant> latestUpgradeCreationBefore(String userId, Instant asOf) {
     return upgradeRepository.findAllByUserIdOrderByCreationDatetimeDesc(userId).stream()
         .filter(upgrade -> upgrade.getStatus() == PAID || upgrade.getStatus() == INVOICED)
-        .map(UserSubscriptionUpgrade::getCreationDatetime)
+        .map(UserSubscriptionUpgrade::effectiveDatetime)
         .filter(Objects::nonNull)
         .filter(creation -> creation.isBefore(asOf))
         .max(Instant::compareTo);

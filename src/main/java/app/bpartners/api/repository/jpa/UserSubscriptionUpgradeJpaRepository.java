@@ -18,6 +18,8 @@ public interface UserSubscriptionUpgradeJpaRepository
 
   List<UserSubscriptionUpgrade> findAllByPaymentExpirationDatetimeBefore(Instant expiration);
 
+  List<UserSubscriptionUpgrade> findAllByQuoteExpirationDatetimeBefore(Instant expiration);
+
   @Query(
       value =
           "select 1 from (select pg_advisory_xact_lock(hashtext(:upgradeId), 1)) as lock_acquired",

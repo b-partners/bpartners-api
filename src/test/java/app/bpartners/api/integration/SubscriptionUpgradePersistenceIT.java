@@ -7,6 +7,7 @@ import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.ABA
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PROCESSING;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.HOURS;
@@ -22,7 +23,9 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.UserSubscriptionCommitmentAutoRenewalStatusHistory;
+import app.bpartners.api.model.subscription.UpgradeLineKind;
 import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
+import app.bpartners.api.model.subscription.UserSubscriptionUpgradeLine;
 import app.bpartners.api.repository.UserSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository;
 import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
@@ -121,7 +124,7 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
 
   @Test
   @Transactional
-  void claiming_a_paid_upgrade_moves_it_back_to_pending_only_once() {
+  void claiming_a_paid_upgrade_moves_it_to_processing_only_once() {
     var stripeInvoiceId = "in_" + randomUUID();
     var upgrade = upgradeRepository.save(awaitingUpgrade(stripeInvoiceId, now().plus(1, HOURS)));
     entityManager.flush();
@@ -132,10 +135,10 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
     entityManager.clear();
     var claimedAgain = transitionService.claimPaid(upgrade.getId(), stripeInvoiceId);
 
-    assertEquals(PENDING, claimed.orElseThrow().getStatus());
+    assertEquals(PROCESSING, claimed.orElseThrow().getStatus());
     assertTrue(claimedAgain.isEmpty());
     assertEquals(
-        List.of(PENDING, AWAITING_PAYMENT, PENDING),
+        List.of(PENDING, AWAITING_PAYMENT, PROCESSING),
         upgradeRepository.findById(upgrade.getId()).orElseThrow().getStatusHistory().stream()
             .map(history -> history.getStatus())
             .toList());
@@ -161,6 +164,90 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
         upgradeRepository.findById(upgrade.getId()).orElseThrow().getStatusHistory().stream()
             .map(history -> history.getStatus())
             .toList());
+  }
+
+  @Test
+  @Transactional
+  void quote_round_trips_its_proration_detail_in_order() {
+    var quote =
+        upgradeRepository.save(
+            awaitingUpgrade("in_" + randomUUID(), now().plus(1, HOURS)).toBuilder()
+                .newChargeInCentsWithVat(7_742L)
+                .creditedInCentsWithVat(3_871L)
+                .paidPeriodStartDate(java.time.LocalDate.of(2026, 10, 1))
+                .paidPeriodEndDate(java.time.LocalDate.of(2026, 10, 31))
+                .paidAmountInCentsWithVat(6_000L)
+                .quoteExpirationDatetime(now().plus(1, HOURS).truncatedTo(SECONDS))
+                .lines(
+                    List.of(
+                        line(1, UpgradeLineKind.CREDIT, 3_871L),
+                        line(0, UpgradeLineKind.NEW_CHARGE, 7_742L)))
+                .build());
+    entityManager.flush();
+    entityManager.clear();
+
+    var actual = upgradeRepository.findById(quote.getId()).orElseThrow();
+
+    assertEquals(7_742L, actual.getNewChargeInCentsWithVat());
+    assertEquals(3_871L, actual.getCreditedInCentsWithVat());
+    assertEquals(6_000L, actual.getPaidAmountInCentsWithVat());
+    assertEquals(java.time.LocalDate.of(2026, 10, 1), actual.getPaidPeriodStartDate());
+    assertEquals(java.time.LocalDate.of(2026, 10, 31), actual.getPaidPeriodEndDate());
+    assertNotNull(actual.getQuoteExpirationDatetime());
+    assertEquals(
+        List.of(UpgradeLineKind.NEW_CHARGE, UpgradeLineKind.CREDIT),
+        actual.getLines().stream().map(UserSubscriptionUpgradeLine::getKind).toList());
+    assertEquals(
+        List.of(7_742L, 3_871L),
+        actual.getLines().stream()
+            .map(UserSubscriptionUpgradeLine::getAmountInCentsWithVat)
+            .toList());
+    assertEquals(
+        List.of(PENDING, AWAITING_PAYMENT),
+        actual.getStatusHistory().stream().map(history -> history.getStatus()).toList());
+  }
+
+  @Test
+  @Transactional
+  void confirming_a_quote_moves_it_to_processing_and_stamps_the_confirmation() {
+    var quote =
+        upgradeRepository.save(
+            awaitingUpgrade("in_" + randomUUID(), now().plus(1, HOURS)).toBuilder()
+                .quoteExpirationDatetime(now().plus(1, HOURS))
+                .stripeProrationInvoiceId(null)
+                .status(PENDING)
+                .build());
+    entityManager.flush();
+    entityManager.clear();
+
+    var confirmed = transitionService.confirm(quote.getId());
+    entityManager.flush();
+    entityManager.clear();
+
+    assertNotNull(confirmed.orElseThrow().getConfirmationDatetime());
+    assertEquals(
+        PROCESSING, upgradeRepository.findById(quote.getId()).orElseThrow().getStatus());
+  }
+
+  @Test
+  @Transactional
+  void abandoning_a_quote_persists_the_abandoned_status_without_stripe() {
+    var quote =
+        upgradeRepository.save(
+            awaitingUpgrade("in_" + randomUUID(), now().plus(1, HOURS)).toBuilder()
+                .quoteExpirationDatetime(now().plus(1, HOURS))
+                .stripeProrationInvoiceId(null)
+                .status(PENDING)
+                .build());
+    entityManager.flush();
+    entityManager.clear();
+
+    var abandonment = transitionService.abandon(quote.getId());
+    entityManager.flush();
+    entityManager.clear();
+
+    assertEquals(SubscriptionUpgradeTransitionService.Abandonment.ABANDONED, abandonment);
+    assertEquals(ABANDONED, upgradeRepository.findById(quote.getId()).orElseThrow().getStatus());
   }
 
   @Test
@@ -222,6 +309,22 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
         userSubscriptionProductRepository.findAllNotCancelledByUserId(JANE_DOE_ID).getFirst();
     assertEquals(SUBSCRIPTION_PRODUCT_ID, activeProduct.getSubscriptionProduct().getId());
     assertEquals(MONTHLY, activeProduct.getBillingInterval());
+  }
+
+  private static UserSubscriptionUpgradeLine line(int order, UpgradeLineKind kind, long amount) {
+    return UserSubscriptionUpgradeLine.builder()
+        .id(randomUUID().toString())
+        .lineOrder(order)
+        .kind(kind)
+        .subscriptionProductId(SUBSCRIPTION_PRODUCT_ID)
+        .billingInterval(MONTHLY)
+        .periodStartDate(java.time.LocalDate.of(2026, 10, 12))
+        .periodEndDate(java.time.LocalDate.of(2026, 10, 31))
+        .days(20)
+        .referencePeriodDays(31)
+        .referencePriceInCentsWithVat(12_000L)
+        .amountInCentsWithVat(amount)
+        .build();
   }
 
   private UserSubscriptionUpgrade awaitingUpgrade(String stripeInvoiceId, Instant deadline) {

@@ -3,6 +3,7 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PROCESSING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -119,6 +120,7 @@ class SubscriptionUpgradeChainTest {
           upgradeRepository,
           periodRepository,
           paymentRepository,
+          subscriptionProductRepository,
           completionService,
           expirationService,
           transitionService,
@@ -212,6 +214,15 @@ class SubscriptionUpgradeChainTest {
             });
     when(upgradeRepository.findById(anyString()))
         .thenAnswer(invocation -> Optional.ofNullable(upgrades.get(invocation.getArgument(0))));
+    when(transitionService.confirm(anyString()))
+        .thenAnswer(
+            invocation -> {
+              var quote = upgrades.get(invocation.getArgument(0, String.class));
+              var processing =
+                  quote.toBuilder().confirmationDatetime(Instant.now()).status(PROCESSING).build();
+              upgrades.put(processing.getId(), processing);
+              return Optional.of(processing);
+            });
     when(upgradeRepository.findAllByUserIdOrderByCreationDatetimeDesc(USER_ID))
         .thenAnswer(
             invocation ->
@@ -303,7 +314,8 @@ class SubscriptionUpgradeChainTest {
                     .billingInterval(fromInterval)
                     .subscriptionStartDatetime(Instant.parse("2026-10-14T09:22:00Z"))
                     .build()));
-    return upgradeService.upgrade(subscriber, planId, interval);
+    var quote = upgradeService.initiate(subscriber, planId, interval);
+    return upgradeService.confirm(subscriber, quote.getId());
   }
 
   private List<Invoice> issuedInvoicesInOrder() {

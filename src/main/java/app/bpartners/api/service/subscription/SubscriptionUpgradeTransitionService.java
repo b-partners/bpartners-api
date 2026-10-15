@@ -4,6 +4,7 @@ import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.ABA
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.EXPIRED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PROCESSING;
 
 import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
 import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
@@ -34,13 +35,37 @@ public class SubscriptionUpgradeTransitionService {
   }
 
   @Transactional
+  public Optional<UserSubscriptionUpgrade> confirm(String upgradeId) {
+    upgradeRepository.acquireLock(upgradeId);
+    return upgradeRepository
+        .findById(upgradeId)
+        .filter(upgrade -> upgrade.getStatus() == PENDING)
+        .filter(upgrade -> !isQuoteOverdue(upgrade))
+        .map(
+            upgrade ->
+                upgradeRepository.save(
+                    upgrade.toBuilder().confirmationDatetime(Instant.now()).status(PROCESSING).build()));
+  }
+
+  @Transactional
+  public boolean expireQuote(String upgradeId) {
+    upgradeRepository.acquireLock(upgradeId);
+    var upgrade = upgradeRepository.findById(upgradeId).orElse(null);
+    if (upgrade == null || upgrade.getStatus() != PENDING || !isQuoteOverdue(upgrade)) {
+      return false;
+    }
+    upgradeRepository.save(upgrade.toBuilder().status(EXPIRED).build());
+    return true;
+  }
+
+  @Transactional
   public Optional<UserSubscriptionUpgrade> claimPaid(String upgradeId, String stripeInvoiceId) {
     upgradeRepository.acquireLock(upgradeId);
     return upgradeRepository
         .findById(upgradeId)
         .filter(upgrade -> upgrade.getStatus() == AWAITING_PAYMENT)
         .filter(upgrade -> stripeInvoiceId.equals(upgrade.getStripeProrationInvoiceId()))
-        .map(upgrade -> upgradeRepository.save(upgrade.toBuilder().status(PENDING).build()));
+        .map(upgrade -> upgradeRepository.save(upgrade.toBuilder().status(PROCESSING).build()));
   }
 
   @Transactional
@@ -70,7 +95,14 @@ public class SubscriptionUpgradeTransitionService {
   public Abandonment abandon(String upgradeId) {
     upgradeRepository.acquireLock(upgradeId);
     var upgrade = upgradeRepository.findById(upgradeId).orElse(null);
-    if (upgrade == null || upgrade.getStatus() != AWAITING_PAYMENT || isPaymentOverdue(upgrade)) {
+    if (upgrade == null) {
+      return Abandonment.NOT_ABANDONABLE;
+    }
+    if (upgrade.getStatus() == PENDING && !isQuoteOverdue(upgrade)) {
+      upgradeRepository.save(upgrade.toBuilder().status(ABANDONED).build());
+      return Abandonment.ABANDONED;
+    }
+    if (upgrade.getStatus() != AWAITING_PAYMENT || isPaymentOverdue(upgrade)) {
       return Abandonment.NOT_ABANDONABLE;
     }
     return switch (stripeUpgradeService.voidOpenInvoice(upgrade.getStripeProrationInvoiceId())) {
@@ -91,6 +123,11 @@ public class SubscriptionUpgradeTransitionService {
 
   static boolean isPaymentOverdue(UserSubscriptionUpgrade upgrade) {
     var expiration = upgrade.getPaymentExpirationDatetime();
+    return expiration != null && expiration.isBefore(Instant.now());
+  }
+
+  static boolean isQuoteOverdue(UserSubscriptionUpgrade upgrade) {
+    var expiration = upgrade.getQuoteExpirationDatetime();
     return expiration != null && expiration.isBefore(Instant.now());
   }
 }

@@ -6,6 +6,7 @@ import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.stream.Stream;
@@ -30,8 +31,12 @@ public class SubscriptionUpgradeTimeline {
     return firstPayment.atStartOfDay(PARIS).toInstant();
   }
 
+  public Instant quoteExpirationOf(LocalDate upgradeDate) {
+    return upgradeDate.plusDays(1).atStartOfDay(PARIS).toInstant();
+  }
+
   public Instant paymentExpirationOf(UserSubscriptionUpgrade upgrade) {
-    var creation = upgrade.getCreationDatetime();
+    var creation = upgrade.effectiveDatetime();
     var oldSubscriptionRenewal =
         upgrade
             .getOldCoverageEndDatetime()

@@ -25,6 +25,12 @@ class SubscriptionUpgradeTimelineTest {
   }
 
   @Test
+  void expires_a_quote_at_the_end_of_the_day_in_paris() {
+    assertEquals(
+        Instant.parse("2026-10-12T22:00:00Z"), subject.quoteExpirationOf(LocalDate.of(2026, 10, 12)));
+  }
+
+  @Test
   void anchors_a_monthly_upgrade_on_the_first_day_of_the_next_month() {
     var upgrade = upgrade("2026-10-12", "2026-10-31", MONTHLY, "2026-10-12T08:00:00Z");
 

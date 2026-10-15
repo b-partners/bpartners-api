@@ -5,7 +5,9 @@ import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWA
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.EXPIRED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PROCESSING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,13 +45,13 @@ class SubscriptionUpgradeTransitionServiceTest {
   }
 
   @Test
-  void claims_an_upgrade_awaiting_the_paid_invoice_by_moving_it_back_to_pending() {
+  void claims_an_upgrade_awaiting_the_paid_invoice_by_moving_it_to_processing() {
     when(upgradeRepository.findById(UPGRADE_ID))
         .thenReturn(Optional.of(upgrade(AWAITING_PAYMENT, Instant.now().plusSeconds(60))));
 
     var claimed = subject.claimPaid(UPGRADE_ID, INVOICE_ID);
 
-    assertEquals(PENDING, claimed.orElseThrow().getStatus());
+    assertEquals(PROCESSING, claimed.orElseThrow().getStatus());
     var order = inOrder(upgradeRepository);
     order.verify(upgradeRepository).acquireLock(UPGRADE_ID);
     order.verify(upgradeRepository).findById(UPGRADE_ID);
@@ -59,7 +61,7 @@ class SubscriptionUpgradeTransitionServiceTest {
   @Test
   void does_not_claim_an_upgrade_that_is_not_awaiting_its_payment() {
     when(upgradeRepository.findById(UPGRADE_ID))
-        .thenReturn(Optional.of(upgrade(PENDING, null)))
+        .thenReturn(Optional.of(upgrade(PROCESSING, null)))
         .thenReturn(Optional.of(upgrade(PAID, null)))
         .thenReturn(Optional.of(upgrade(EXPIRED, null)));
 
@@ -130,7 +132,7 @@ class SubscriptionUpgradeTransitionServiceTest {
   @Test
   void does_not_expire_an_upgrade_that_is_not_awaiting_its_payment_or_is_unknown() {
     when(upgradeRepository.findById(UPGRADE_ID))
-        .thenReturn(Optional.of(upgrade(PENDING, Instant.now().minusSeconds(60))))
+        .thenReturn(Optional.of(upgrade(PROCESSING, Instant.now().minusSeconds(60))))
         .thenReturn(Optional.empty());
 
     assertEquals(Expiration.SKIPPED, subject.expire(UPGRADE_ID));
@@ -218,6 +220,94 @@ class SubscriptionUpgradeTransitionServiceTest {
     assertThrows(ApiException.class, () -> subject.abandon(UPGRADE_ID));
 
     verify(upgradeRepository, never()).save(any());
+  }
+
+  @Test
+  void confirms_a_quote_inside_its_validity_by_moving_it_to_processing() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(quote(PENDING, Instant.now().plusSeconds(600))));
+
+    var confirmed = subject.confirm(UPGRADE_ID).orElseThrow();
+
+    assertEquals(PROCESSING, confirmed.getStatus());
+    assertTrue(confirmed.getConfirmationDatetime() != null);
+    var order = inOrder(upgradeRepository);
+    order.verify(upgradeRepository).acquireLock(UPGRADE_ID);
+    order.verify(upgradeRepository).save(any(UserSubscriptionUpgrade.class));
+  }
+
+  @Test
+  void does_not_confirm_an_expired_quote_nor_an_upgrade_that_is_not_pending() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(quote(PENDING, Instant.now().minusSeconds(60))))
+        .thenReturn(Optional.of(quote(PAID, Instant.now().plusSeconds(600))))
+        .thenReturn(Optional.empty());
+
+    assertTrue(subject.confirm(UPGRADE_ID).isEmpty());
+    assertTrue(subject.confirm(UPGRADE_ID).isEmpty());
+    assertTrue(subject.confirm(UPGRADE_ID).isEmpty());
+
+    verify(upgradeRepository, never()).save(any());
+  }
+
+  @Test
+  void expires_an_overdue_quote() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(quote(PENDING, Instant.now().minusSeconds(60))));
+
+    assertTrue(subject.expireQuote(UPGRADE_ID));
+
+    var saved = ArgumentCaptor.forClass(UserSubscriptionUpgrade.class);
+    verify(upgradeRepository).save(saved.capture());
+    assertEquals(EXPIRED, saved.getValue().getStatus());
+    verifyNoInteractions(stripeUpgradeService);
+  }
+
+  @Test
+  void does_not_expire_a_quote_still_valid_or_an_upgrade_that_is_not_pending() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(quote(PENDING, Instant.now().plusSeconds(600))))
+        .thenReturn(Optional.of(quote(PROCESSING, Instant.now().minusSeconds(60))))
+        .thenReturn(Optional.empty());
+
+    assertFalse(subject.expireQuote(UPGRADE_ID));
+    assertFalse(subject.expireQuote(UPGRADE_ID));
+    assertFalse(subject.expireQuote(UPGRADE_ID));
+
+    verify(upgradeRepository, never()).save(any());
+  }
+
+  @Test
+  void abandons_a_quote_inside_its_validity_without_touching_stripe() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(quote(PENDING, Instant.now().plusSeconds(600))));
+
+    assertEquals(Abandonment.ABANDONED, subject.abandon(UPGRADE_ID));
+
+    var saved = ArgumentCaptor.forClass(UserSubscriptionUpgrade.class);
+    verify(upgradeRepository).save(saved.capture());
+    assertEquals(ABANDONED, saved.getValue().getStatus());
+    verifyNoInteractions(stripeUpgradeService);
+  }
+
+  @Test
+  void does_not_abandon_an_expired_quote() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(quote(PENDING, Instant.now().minusSeconds(60))));
+
+    assertEquals(Abandonment.NOT_ABANDONABLE, subject.abandon(UPGRADE_ID));
+
+    verify(upgradeRepository, never()).save(any());
+  }
+
+  private static UserSubscriptionUpgrade quote(
+      app.bpartners.api.model.subscription.SubscriptionUpgradeStatus status,
+      Instant quoteExpiration) {
+    return UserSubscriptionUpgrade.builder()
+        .id(UPGRADE_ID)
+        .quoteExpirationDatetime(quoteExpiration)
+        .status(status)
+        .build();
   }
 
   private static UserSubscriptionUpgrade upgrade(

@@ -1,7 +1,9 @@
 package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
 import static app.bpartners.api.service.subscription.SubscriptionUpgradeTransitionService.isPaymentOverdue;
+import static app.bpartners.api.service.subscription.SubscriptionUpgradeTransitionService.isQuoteOverdue;
 import static java.time.Instant.now;
 
 import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
@@ -23,8 +25,32 @@ public class SubscriptionUpgradeExpirationService {
         upgradeRepository.findAllByPaymentExpirationDatetimeBefore(now()).stream()
             .filter(this::expireIfOverdue)
             .count();
-    log.info("Expired {} SubscriptionUpgrade(s) whose payment deadline is over", expired);
-    return (int) expired;
+    var expiredQuotes =
+        upgradeRepository.findAllByQuoteExpirationDatetimeBefore(now()).stream()
+            .filter(this::expireQuoteIfOverdue)
+            .count();
+    log.info(
+        "Expired {} SubscriptionUpgrade(s) whose payment deadline is over and {} whose quote is"
+            + " over",
+        expired,
+        expiredQuotes);
+    return (int) (expired + expiredQuotes);
+  }
+
+  public boolean expireQuoteIfOverdue(UserSubscriptionUpgrade upgrade) {
+    if (upgrade.getStatus() != PENDING || !isQuoteOverdue(upgrade)) {
+      return false;
+    }
+    try {
+      var expired = transitionService.expireQuote(upgrade.getId());
+      if (expired) {
+        log.info("SubscriptionUpgrade(id={}) expired, its quote is over", upgrade.getId());
+      }
+      return expired;
+    } catch (RuntimeException e) {
+      log.warn("Unable to expire the quote of SubscriptionUpgrade(id={})", upgrade.getId(), e);
+      return false;
+    }
   }
 
   public boolean expireIfOverdue(UserSubscriptionUpgrade upgrade) {

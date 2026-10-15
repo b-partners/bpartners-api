@@ -1,3 +1,13 @@
+# [0.100.0](https://github.com/b-partners/bpartners-api/compare/v0.99.0...v0.100.0) (2026-10-15)
+
+
+### Features
+
+* **subscription_upgrade:** let the customer abandon an upgrade awaiting payment that is not expired yet ([8ba7ae5](https://github.com/b-partners/bpartners-api/commit/8ba7ae5b8ab8d31e9015e43253787ec3bdba0efa))
+* **subscription_upgrade:** turn the upgrade into a confirmable session quoting the paid and unconsumed amount of the current subscription ([e031ad9](https://github.com/b-partners/bpartners-api/commit/e031ad94cfdd6291c463c6f4d068c75a22e0fbe6))
+
+
+
 # [0.99.0](https://github.com/b-partners/bpartners-api/compare/v0.97.0...v0.99.0) (2026-10-15)
 
 
@@ -299,22 +309,6 @@
 ### Features
 
 * get user subscription invoices ([a5da20e](https://github.com/b-partners/bpartners-api/commit/a5da20e7cf3f23971f4d08b7ac41388f5ca0709e))
-
-
-
-# [0.83.0](https://github.com/b-partners/bpartners-api/compare/v0.82.0...v0.83.0) (2026-07-17)
-
-
-### Bug Fixes
-
-* **SecurityConf:** allow authenticated users to request invoice export not only ADMIN ([460053f](https://github.com/b-partners/bpartners-api/commit/460053f2fb8a9ae4ddfa8e83825fc76bc086da1a))
-* **User:** keep identification=VALID_IDENTITY for retro-compatibility ([90d1cee](https://github.com/b-partners/bpartners-api/commit/90d1cee44edfebf3dac3646021bd186e2619dd78))
-* **User:** keep idVerified=true for retro-compatibility ([7a63f6b](https://github.com/b-partners/bpartners-api/commit/7a63f6bb8196edc7eb9ae5a3f0a10b9b1c1f6cf8))
-
-
-### Features
-
-* handle invoice export asynchronously ([d9e54e3](https://github.com/b-partners/bpartners-api/commit/d9e54e3c032f9247a2c9413b2ce105bb5761de3a))
 
 
 

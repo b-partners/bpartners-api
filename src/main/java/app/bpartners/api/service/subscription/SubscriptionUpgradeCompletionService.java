@@ -96,7 +96,7 @@ public class SubscriptionUpgradeCompletionService {
     } catch (RuntimeException e) {
       log.error(
           "SubscriptionUpgrade(id={}) was paid through Stripe Invoice(id={}) but could not be"
-              + " completed, it stays PENDING for a manual recovery",
+              + " completed, it stays PROCESSING for a manual recovery",
           upgradeId,
           stripeInvoiceId,
           e);

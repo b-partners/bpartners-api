@@ -2,14 +2,20 @@ package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
+import static app.bpartners.api.model.subscription.UpgradeLineKind.CREDIT;
+import static app.bpartners.api.model.subscription.UpgradeLineKind.NEW_CHARGE;
 import static java.math.RoundingMode.HALF_UP;
 
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
+import app.bpartners.api.model.subscription.UpgradeLineKind;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
@@ -47,10 +53,23 @@ public class SubscriptionUpgradeQuoteCalculator {
           "Upgrading from a yearly billed subscription to a monthly billed one is not supported"
               + " yet");
     }
-    var newCharge = newChargeInCents(toProduct, toInterval, upgradeDate);
-    var credited =
-        creditedInCents(fromProduct, fromInterval, upgradeDate, oldCoverageEnd, chargedFirstMonth);
-    return new UpgradeQuote(newCharge, credited, Math.max(newCharge - credited, 0L));
+    var newLines = newChargeLines(toProduct, toInterval, upgradeDate);
+    var creditLines =
+        creditLines(fromProduct, fromInterval, upgradeDate, oldCoverageEnd, chargedFirstMonth);
+    var newCharge = totalOf(newLines);
+    var credited = totalOf(creditLines);
+    var lines = new ArrayList<UpgradeQuoteLine>();
+    lines.addAll(roundedLines(NEW_CHARGE, toProduct, toInterval, newLines, newCharge));
+    lines.addAll(roundedLines(CREDIT, fromProduct, fromInterval, creditLines, credited));
+    var paid = paidPeriodOf(fromProduct, fromInterval, upgradeDate, oldCoverageEnd, chargedFirstMonth);
+    return new UpgradeQuote(
+        newCharge,
+        credited,
+        Math.max(newCharge - credited, 0L),
+        paid.start(),
+        paid.end(),
+        paid.amountInCentsWithVat(),
+        lines);
   }
 
   public static BigDecimal monthlyPriceInCentsWithVat(
@@ -70,51 +89,140 @@ public class SubscriptionUpgradeQuoteCalculator {
     return BigDecimal.valueOf(product.getPriceInCentsWithVat());
   }
 
-  private long newChargeInCents(
-      SubscriptionProduct toProduct, BillingInterval toInterval, LocalDate upgradeDate) {
-    if (toInterval == YEARLY) {
-      return monthlyPriceInCentsWithVat(toProduct, YEARLY)
-          .multiply(BigDecimal.valueOf(MONTHS_PER_YEAR))
-          .setScale(0, HALF_UP)
-          .longValueExact();
+  private record PaidPeriod(LocalDate start, LocalDate end, long amountInCentsWithVat) {}
+
+  private PaidPeriod paidPeriodOf(
+      SubscriptionProduct fromProduct,
+      BillingInterval fromInterval,
+      LocalDate upgradeDate,
+      LocalDate oldCoverageEnd,
+      Optional<ChargedFirstMonth> chargedFirstMonth) {
+    if (fromInterval == YEARLY) {
+      var annual =
+          monthlyPriceInCentsWithVat(fromProduct, YEARLY)
+              .multiply(BigDecimal.valueOf(MONTHS_PER_YEAR))
+              .setScale(0, HALF_UP)
+              .longValueExact();
+      return new PaidPeriod(oldCoverageEnd.minusYears(1).plusDays(1), oldCoverageEnd, annual);
     }
-    return remainingOfMonthInCents(toProduct, MONTHLY, upgradeDate)
-        .setScale(0, HALF_UP)
-        .longValueExact();
+    if (chargedFirstMonth.isPresent()) {
+      var charged = chargedFirstMonth.get();
+      return new PaidPeriod(
+          charged.start(),
+          charged.end(),
+          charged.creditedInCentsWithVat(charged.days()).setScale(0, HALF_UP).longValueExact());
+    }
+    var monthPrice =
+        monthlyPriceInCentsWithVat(fromProduct, MONTHLY).setScale(0, HALF_UP).longValueExact();
+    return new PaidPeriod(
+        upgradeDate.withDayOfMonth(1), upgradeDate.withDayOfMonth(upgradeDate.lengthOfMonth()), monthPrice);
   }
 
-  private long creditedInCents(
+  private record RawLine(
+      LocalDate start,
+      LocalDate end,
+      int days,
+      int referencePeriodDays,
+      BigDecimal referencePriceInCentsWithVat,
+      BigDecimal amountInCentsWithVat) {}
+
+  private List<RawLine> newChargeLines(
+      SubscriptionProduct toProduct, BillingInterval toInterval, LocalDate upgradeDate) {
+    if (toInterval == YEARLY) {
+      var yearEnd = upgradeDate.plusYears(1).minusDays(1);
+      var days = (int) ChronoUnit.DAYS.between(upgradeDate, yearEnd) + 1;
+      var annual =
+          monthlyPriceInCentsWithVat(toProduct, YEARLY)
+              .multiply(BigDecimal.valueOf(MONTHS_PER_YEAR))
+              .setScale(0, HALF_UP);
+      return List.of(new RawLine(upgradeDate, yearEnd, days, days, annual, annual));
+    }
+    return List.of(remainingOfMonthLine(toProduct, MONTHLY, upgradeDate));
+  }
+
+  private List<RawLine> creditLines(
       SubscriptionProduct fromProduct,
       BillingInterval fromInterval,
       LocalDate upgradeDate,
       LocalDate oldCoverageEnd,
       Optional<ChargedFirstMonth> chargedFirstMonth) {
     if (fromInterval == MONTHLY) {
-      return chargedFirstMonth
-          .map(charged -> remainingOfChargedMonthInCents(charged, upgradeDate))
-          .orElseGet(() -> remainingOfMonthInCents(fromProduct, MONTHLY, upgradeDate))
-          .setScale(0, HALF_UP)
-          .longValueExact();
+      return List.of(
+          chargedFirstMonth
+              .map(charged -> remainingOfChargedMonthLine(charged, upgradeDate))
+              .orElseGet(() -> remainingOfMonthLine(fromProduct, MONTHLY, upgradeDate)));
     }
     var monthly = monthlyPriceInCentsWithVat(fromProduct, YEARLY);
-    var total = BigDecimal.ZERO;
-    for (var segment : BillingMonthSegment.between(upgradeDate, oldCoverageEnd)) {
-      total = total.add(proratedOn(monthly, segment));
-    }
-    return total.setScale(0, HALF_UP).longValueExact();
+    return BillingMonthSegment.between(upgradeDate, oldCoverageEnd).stream()
+        .map(segment -> segmentLine(monthly, segment))
+        .toList();
   }
 
-  private BigDecimal remainingOfChargedMonthInCents(
-      ChargedFirstMonth charged, LocalDate upgradeDate) {
+  private RawLine remainingOfChargedMonthLine(ChargedFirstMonth charged, LocalDate upgradeDate) {
     var remaining = BillingMonthSegment.between(upgradeDate, charged.end()).getFirst();
-    return charged.creditedInCentsWithVat(remaining.days());
+    return new RawLine(
+        remaining.start(),
+        remaining.end(),
+        remaining.days(),
+        charged.days(),
+        charged.creditedInCentsWithVat(charged.days()),
+        charged.creditedInCentsWithVat(remaining.days()));
   }
 
-  private BigDecimal remainingOfMonthInCents(
+  private RawLine remainingOfMonthLine(
       SubscriptionProduct product, BillingInterval interval, LocalDate upgradeDate) {
     var monthEnd = upgradeDate.withDayOfMonth(upgradeDate.lengthOfMonth());
     var segment = BillingMonthSegment.between(upgradeDate, monthEnd).getFirst();
-    return proratedOn(monthlyPriceInCentsWithVat(product, interval), segment);
+    return segmentLine(monthlyPriceInCentsWithVat(product, interval), segment);
+  }
+
+  private static RawLine segmentLine(BigDecimal monthlyPrice, BillingMonthSegment segment) {
+    return new RawLine(
+        segment.start(),
+        segment.end(),
+        segment.days(),
+        segment.monthLength(),
+        monthlyPrice,
+        proratedOn(monthlyPrice, segment));
+  }
+
+  private static long totalOf(List<RawLine> lines) {
+    return lines.stream()
+        .map(RawLine::amountInCentsWithVat)
+        .reduce(BigDecimal.ZERO, BigDecimal::add)
+        .setScale(0, HALF_UP)
+        .longValueExact();
+  }
+
+  private static List<UpgradeQuoteLine> roundedLines(
+      UpgradeLineKind kind,
+      SubscriptionProduct product,
+      BillingInterval interval,
+      List<RawLine> lines,
+      long total) {
+    var rounded = new ArrayList<UpgradeQuoteLine>();
+    var allocated = 0L;
+    for (var index = 0; index < lines.size(); index++) {
+      var line = lines.get(index);
+      var last = index == lines.size() - 1;
+      var amount =
+          last
+              ? total - allocated
+              : line.amountInCentsWithVat().setScale(0, HALF_UP).longValueExact();
+      allocated += amount;
+      rounded.add(
+          new UpgradeQuoteLine(
+              kind,
+              product.getId(),
+              interval,
+              line.start(),
+              line.end(),
+              line.days(),
+              line.referencePeriodDays(),
+              line.referencePriceInCentsWithVat().setScale(0, HALF_UP).longValueExact(),
+              amount));
+    }
+    return rounded;
   }
 
   private static BigDecimal proratedOn(BigDecimal monthlyPrice, BillingMonthSegment segment) {

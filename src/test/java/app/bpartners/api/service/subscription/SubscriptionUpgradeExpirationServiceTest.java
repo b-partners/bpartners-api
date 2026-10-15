@@ -94,6 +94,41 @@ class SubscriptionUpgradeExpirationServiceTest {
     assertFalse(subject.expireIfOverdue(upgrade("upgrade_id", AWAITING_PAYMENT, -60)));
   }
 
+  @Test
+  void expires_the_overdue_quotes_and_counts_them_with_the_expired_payments() {
+    var overdueQuote =
+        upgrade("quote_id", PENDING, 0).toBuilder()
+            .quoteExpirationDatetime(Instant.now().minusSeconds(60))
+            .build();
+    var processing = upgrade("processing_id", PAID, 0);
+    when(upgradeRepository.findAllByQuoteExpirationDatetimeBefore(any(Instant.class)))
+        .thenReturn(List.of(overdueQuote, processing));
+    when(transitionService.expireQuote("quote_id")).thenReturn(true);
+
+    assertEquals(1, subject.expireOverdue());
+
+    verify(transitionService, never()).expireQuote("processing_id");
+  }
+
+  @Test
+  void expires_a_quote_past_its_deadline() {
+    var quote = upgrade("quote_id", PENDING, 0).toBuilder().quoteExpirationDatetime(Instant.now().minusSeconds(60)).build();
+    when(transitionService.expireQuote("quote_id")).thenReturn(true);
+
+    assertTrue(subject.expireQuoteIfOverdue(quote));
+  }
+
+  @Test
+  void leaves_a_quote_inside_its_validity_or_an_upgrade_that_is_not_pending() {
+    var valid = upgrade("quote_id", PENDING, 0).toBuilder().quoteExpirationDatetime(Instant.now().plusSeconds(600)).build();
+    var paid = upgrade("paid_id", PAID, 0).toBuilder().quoteExpirationDatetime(Instant.now().minusSeconds(60)).build();
+
+    assertFalse(subject.expireQuoteIfOverdue(valid));
+    assertFalse(subject.expireQuoteIfOverdue(paid));
+
+    verifyNoInteractions(transitionService);
+  }
+
   private static UserSubscriptionUpgrade upgrade(
       String id, SubscriptionUpgradeStatus status, long expiresInSeconds) {
     return UserSubscriptionUpgrade.builder()

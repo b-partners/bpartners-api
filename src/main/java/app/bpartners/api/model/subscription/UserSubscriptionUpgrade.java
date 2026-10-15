@@ -13,7 +13,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -24,6 +26,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.JdbcTypeCode;
 
 @Entity(name = "user_subscription_upgrade")
@@ -66,6 +70,27 @@ public class UserSubscriptionUpgrade {
   @Column(name = "proration_amount_in_cents_with_vat")
   private long prorationAmountInCentsWithVat;
 
+  @Column(name = "new_charge_in_cents_with_vat")
+  private Long newChargeInCentsWithVat;
+
+  @Column(name = "credited_in_cents_with_vat")
+  private Long creditedInCentsWithVat;
+
+  @Column(name = "paid_period_start_date")
+  private LocalDate paidPeriodStartDate;
+
+  @Column(name = "paid_period_end_date")
+  private LocalDate paidPeriodEndDate;
+
+  @Column(name = "paid_amount_in_cents_with_vat")
+  private Long paidAmountInCentsWithVat;
+
+  @Column(name = "quote_expiration_datetime")
+  private Instant quoteExpirationDatetime;
+
+  @Column(name = "confirmation_datetime")
+  private Instant confirmationDatetime;
+
   @Column(name = "stripe_proration_invoice_id")
   private String stripeProrationInvoiceId;
 
@@ -92,8 +117,23 @@ public class UserSubscriptionUpgrade {
   @Getter(AccessLevel.NONE)
   private List<UserSubscriptionUpgradeStatusHistory> statusHistory;
 
+  @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @JoinColumn(name = "user_subscription_upgrade_id", nullable = false, updatable = false)
+  @Fetch(FetchMode.SUBSELECT)
+  @OrderBy("lineOrder asc")
+  @Getter(AccessLevel.NONE)
+  private List<UserSubscriptionUpgradeLine> lines;
+
   @Column(updatable = false)
   private Instant creationDatetime;
+
+  public List<UserSubscriptionUpgradeLine> getLines() {
+    return lines == null ? List.of() : List.copyOf(lines);
+  }
+
+  public Instant effectiveDatetime() {
+    return confirmationDatetime == null ? creationDatetime : confirmationDatetime;
+  }
 
   public List<UserSubscriptionUpgradeStatusHistory> getStatusHistory() {
     return statusHistory == null

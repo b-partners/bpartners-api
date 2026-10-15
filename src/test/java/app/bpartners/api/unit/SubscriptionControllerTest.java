@@ -138,7 +138,7 @@ class SubscriptionControllerTest {
   void upgrades_the_subscription_of_the_user_to_the_requested_plan() {
     var user = app.bpartners.api.model.User.builder().id("user_id").build();
     when(userServiceMock.getUserById("user_id")).thenReturn(user);
-    when(upgradeServiceMock.upgrade(
+    when(upgradeServiceMock.initiate(
             user, "pro_id", app.bpartners.api.model.subscription.BillingInterval.YEARLY))
         .thenReturn(
             app.bpartners.api.model.subscription.UserSubscriptionUpgrade.builder()
@@ -212,7 +212,7 @@ class SubscriptionControllerTest {
   void upgrades_keeping_the_current_billing_interval_when_none_is_requested() {
     var user = app.bpartners.api.model.User.builder().id("user_id").build();
     when(userServiceMock.getUserById("user_id")).thenReturn(user);
-    when(upgradeServiceMock.upgrade(user, "pro_id", null))
+    when(upgradeServiceMock.initiate(user, "pro_id", null))
         .thenReturn(
             app.bpartners.api.model.subscription.UserSubscriptionUpgrade.builder()
                 .id("upgrade_id")
@@ -249,7 +249,9 @@ class SubscriptionControllerTest {
             "user_id",
             "upgrade_id",
             new app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgrade()
-                .status(app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus.ABANDONED));
+                .status(
+                    app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgradeStatus
+                        .ABANDONED));
 
     assertEquals("upgrade_id", actual.getId());
     assertEquals(
@@ -258,13 +260,37 @@ class SubscriptionControllerTest {
   }
 
   @Test
-  void refuses_to_update_the_subscription_upgrade_to_another_status() {
-    var paid =
-        new app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgrade()
-            .status(app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus.PAID);
+  void confirms_the_subscription_upgrade_of_the_user() {
+    var user = app.bpartners.api.model.User.builder().id("user_id").build();
+    when(userServiceMock.getUserById("user_id")).thenReturn(user);
+    when(upgradeServiceMock.confirm(user, "upgrade_id"))
+        .thenReturn(
+            app.bpartners.api.model.subscription.UserSubscriptionUpgrade.builder()
+                .id("upgrade_id")
+                .fromBillingInterval(app.bpartners.api.model.subscription.BillingInterval.MONTHLY)
+                .toBillingInterval(app.bpartners.api.model.subscription.BillingInterval.MONTHLY)
+                .status(app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID)
+                .build());
+
+    var actual =
+        subject.updateUserSubscriptionUpgrade(
+            "user_id",
+            "upgrade_id",
+            new app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgrade()
+                .status(
+                    app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgradeStatus
+                        .CONFIRMED));
+
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus.PAID, actual.getStatus());
+  }
+
+  @Test
+  void refuses_to_update_the_subscription_upgrade_without_status() {
+    var withoutStatus = new app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgrade();
 
     org.junit.jupiter.api.Assertions.assertThrows(
         app.bpartners.api.model.exception.BadRequestException.class,
-        () -> subject.updateUserSubscriptionUpgrade("user_id", "upgrade_id", paid));
+        () -> subject.updateUserSubscriptionUpgrade("user_id", "upgrade_id", withoutStatus));
   }
 }

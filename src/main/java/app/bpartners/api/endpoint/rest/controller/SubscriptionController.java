@@ -163,7 +163,7 @@ public class SubscriptionController {
     subscriptionUpgradeRestValidator.accept(subscriptionUpgrade);
     var requestedInterval = subscriptionUpgrade.getBillingInterval();
     return subscriptionUpgradeRestMapper.toRest(
-        subscriptionUpgradeService.upgrade(
+        subscriptionUpgradeService.initiate(
             userService.getUserById(uId),
             subscriptionUpgrade.getSubscriptionPlanIdentifier(),
             requestedInterval == null ? null : BillingInterval.valueOf(requestedInterval.name())));
@@ -175,6 +175,11 @@ public class SubscriptionController {
       @PathVariable String upgradeId,
       @RequestBody(required = false) UpdateSubscriptionUpgrade subscriptionUpgrade) {
     updateSubscriptionUpgradeRestValidator.accept(subscriptionUpgrade);
-    return subscriptionUpgradeRestMapper.toRest(subscriptionUpgradeService.abandon(uId, upgradeId));
+    return subscriptionUpgradeRestMapper.toRest(
+        switch (subscriptionUpgrade.getStatus()) {
+          case CONFIRMED ->
+              subscriptionUpgradeService.confirm(userService.getUserById(uId), upgradeId);
+          case ABANDONED -> subscriptionUpgradeService.abandon(uId, upgradeId);
+        });
   }
 }

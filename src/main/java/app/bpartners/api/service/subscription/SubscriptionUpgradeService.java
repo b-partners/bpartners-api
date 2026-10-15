@@ -5,6 +5,7 @@ import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PROCESSING;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
@@ -18,13 +19,16 @@ import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.SubscriptionUpgradeStatus;
 import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
+import app.bpartners.api.model.subscription.UserSubscriptionUpgradeLine;
 import app.bpartners.api.repository.jpa.SubscriptionInvoicePeriodRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
+import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +42,7 @@ import org.springframework.stereotype.Service;
 public class SubscriptionUpgradeService {
   private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
   private static final Set<SubscriptionUpgradeStatus> IN_PROGRESS_STATUSES =
-      EnumSet.of(PENDING, AWAITING_PAYMENT);
+      EnumSet.of(PROCESSING, AWAITING_PAYMENT);
 
   private final SubscriptionService subscriptionService;
   private final UserSubscriptionProductService userSubscriptionProductService;
@@ -50,13 +54,14 @@ public class SubscriptionUpgradeService {
   private final UserSubscriptionUpgradeJpaRepository upgradeRepository;
   private final SubscriptionInvoicePeriodRepository subscriptionInvoicePeriodRepository;
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
+  private final SubscriptionProductRepository subscriptionProductRepository;
   private final SubscriptionUpgradeCompletionService completionService;
   private final SubscriptionUpgradeExpirationService expirationService;
   private final SubscriptionUpgradeTransitionService transitionService;
   private final SubscriptionUpgradeTimeline timeline;
   private final TemporalUtils temporalUtils;
 
-  public UserSubscriptionUpgrade upgrade(
+  public UserSubscriptionUpgrade initiate(
       User user, String toPlanIdentifier, BillingInterval requestedInterval) {
     var activeProduct = requireActivePaidProduct(user);
     var fromProduct = activeProduct.getSubscriptionProduct();
@@ -69,6 +74,7 @@ public class SubscriptionUpgradeService {
     var oldStripeSubscriptionId = requireActiveStripeSubscription(user);
     requireNoUpgradeInProgress(user);
     requireNoUnpaidInvoice(user);
+    discardOpenQuotes(user);
 
     var upgradeDate = temporalUtils.today();
     var oldCoverageEnd = oldCoverageEndOf(user.getId(), upgradeDate);
@@ -84,9 +90,7 @@ public class SubscriptionUpgradeService {
     var commitmentStart = upgradeDate.atStartOfDay(PARIS).toInstant();
     var commitmentEnd = upgradeDate.plusYears(1).atStartOfDay(PARIS).toInstant();
 
-    var stripeCustomerId = user.getUserSubscriptionId();
-    var paymentMethodId = stripeUpgradeService.requireDefaultPaymentMethod(stripeCustomerId);
-    var pending =
+    var saved =
         upgradeRepository.save(
             UserSubscriptionUpgrade.builder()
                 .id(randomUUID().toString())
@@ -98,24 +102,71 @@ public class SubscriptionUpgradeService {
                 .upgradeDatetime(commitmentStart)
                 .oldCoverageEndDatetime(oldCoverageEnd.atStartOfDay(PARIS).toInstant())
                 .newCommitmentEndDatetime(commitmentEnd)
+                .newChargeInCentsWithVat(quote.newChargeInCentsWithVat())
+                .creditedInCentsWithVat(quote.creditedInCentsWithVat())
+                .paidPeriodStartDate(quote.paidPeriodStart())
+                .paidPeriodEndDate(quote.paidPeriodEnd())
+                .paidAmountInCentsWithVat(quote.paidAmountInCentsWithVat())
                 .prorationAmountInCentsWithVat(quote.amountDueInCentsWithVat())
+                .quoteExpirationDatetime(timeline.quoteExpirationOf(upgradeDate))
+                .lines(linesOf(quote))
                 .oldStripeSubscriptionId(oldStripeSubscriptionId)
                 .status(PENDING)
                 .creationDatetime(now())
                 .build());
+    log.info(
+        "SubscriptionUpgrade(id={}) quoted for User(id={}), {} cents to pay",
+        saved.getId(),
+        user.getId(),
+        saved.getProrationAmountInCentsWithVat());
+    return saved;
+  }
 
-    if (quote.amountDueInCentsWithVat() <= 0L) {
-      return completionService.complete(user, pending, paymentMethodId);
+  public UserSubscriptionUpgrade confirm(User user, String upgradeId) {
+    var quote = requireOwned(user.getId(), upgradeId);
+    if (expirationService.expireQuoteIfOverdue(quote)) {
+      throw new ConflictException(
+          "SubscriptionUpgrade(id=" + upgradeId + ") is expired, a new upgrade must be started");
     }
-    var charge = charge(pending, stripeCustomerId, paymentMethodId, quote, fromProduct, toProduct);
+    if (quote.getStatus() != PENDING) {
+      throw new ConflictException(
+          "SubscriptionUpgrade(id="
+              + upgradeId
+              + ") can not be confirmed, its status is "
+              + quote.getStatus());
+    }
+    requireNoUpgradeInProgress(user);
+    requireNoUnpaidInvoice(user);
+    if (!requireActiveStripeSubscription(user).equals(quote.getOldStripeSubscriptionId())) {
+      throw new ConflictException(
+          "The subscription of User(id="
+              + user.getId()
+              + ") changed since SubscriptionUpgrade(id="
+              + upgradeId
+              + ") was started, a new upgrade must be started");
+    }
+    var stripeCustomerId = user.getUserSubscriptionId();
+    var paymentMethodId = stripeUpgradeService.requireDefaultPaymentMethod(stripeCustomerId);
+    var processing =
+        transitionService
+            .confirm(upgradeId)
+            .orElseThrow(
+                () ->
+                    new ConflictException(
+                        "SubscriptionUpgrade(id=" + upgradeId + ") can not be confirmed anymore"));
+
+    if (processing.getProrationAmountInCentsWithVat() <= 0L) {
+      return completionService.complete(user, processing, paymentMethodId);
+    }
+    var charge = charge(processing, stripeCustomerId, paymentMethodId);
     return switch (charge) {
       case UpgradeCharge.Paid paid ->
           completionService.complete(
               user,
               upgradeRepository.save(
-                  pending.toBuilder().stripeProrationInvoiceId(paid.invoiceId()).build()),
+                  processing.toBuilder().stripeProrationInvoiceId(paid.invoiceId()).build()),
               paymentMethodId);
-      case UpgradeCharge.ActionRequired required -> awaitPayment(pending, required);
+      case UpgradeCharge.ActionRequired required -> awaitPayment(processing, required);
     };
   }
 
@@ -127,15 +178,9 @@ public class SubscriptionUpgradeService {
   }
 
   public UserSubscriptionUpgrade abandon(String userId, String upgradeId) {
-    var upgrade =
-        upgradeRepository
-            .findById(upgradeId)
-            .filter(found -> userId.equals(found.getUserId()))
-            .orElseThrow(
-                () ->
-                    new NotFoundException(
-                        "SubscriptionUpgrade(id=" + upgradeId + ") does not exist for this user"));
+    var upgrade = requireOwned(userId, upgradeId);
     expirationService.expireIfOverdue(upgrade);
+    expirationService.expireQuoteIfOverdue(upgrade);
     return switch (transitionService.abandon(upgradeId)) {
       case ABANDONED -> {
         log.info("SubscriptionUpgrade(id={}) of User(id={}) abandoned", upgradeId, userId);
@@ -158,23 +203,67 @@ public class SubscriptionUpgradeService {
   }
 
   private UpgradeCharge charge(
-      UserSubscriptionUpgrade pending,
-      String stripeCustomerId,
-      String paymentMethodId,
-      UpgradeQuote quote,
-      SubscriptionProduct fromProduct,
-      SubscriptionProduct toProduct) {
+      UserSubscriptionUpgrade processing, String stripeCustomerId, String paymentMethodId) {
     try {
       return stripeUpgradeService.chargeOneOffAmount(
           stripeCustomerId,
           paymentMethodId,
-          quote.amountDueInCentsWithVat(),
-          "Changement d'abonnement " + fromProduct.getName() + " vers " + toProduct.getName(),
-          pending.getId());
+          processing.getProrationAmountInCentsWithVat(),
+          "Changement d'abonnement "
+              + productNameOf(processing.getFromSubscriptionProductId())
+              + " vers "
+              + productNameOf(processing.getToSubscriptionProductId()),
+          processing.getId());
     } catch (RuntimeException e) {
-      upgradeRepository.delete(pending);
+      upgradeRepository.save(processing.toBuilder().status(PENDING).build());
       throw e;
     }
+  }
+
+  private String productNameOf(String subscriptionProductId) {
+    return subscriptionProductRepository
+        .findById(subscriptionProductId)
+        .map(SubscriptionProduct::getName)
+        .orElse(subscriptionProductId);
+  }
+
+  private UserSubscriptionUpgrade requireOwned(String userId, String upgradeId) {
+    return upgradeRepository
+        .findById(upgradeId)
+        .filter(found -> userId.equals(found.getUserId()))
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "SubscriptionUpgrade(id=" + upgradeId + ") does not exist for this user"));
+  }
+
+  private void discardOpenQuotes(User user) {
+    upgradeRepository.findAllByUserIdOrderByCreationDatetimeDesc(user.getId()).stream()
+        .filter(upgrade -> upgrade.getStatus() == PENDING)
+        .filter(upgrade -> !expirationService.expireQuoteIfOverdue(upgrade))
+        .forEach(upgrade -> transitionService.abandon(upgrade.getId()));
+  }
+
+  private static List<UserSubscriptionUpgradeLine> linesOf(UpgradeQuote quote) {
+    var lines = new ArrayList<UserSubscriptionUpgradeLine>();
+    for (var index = 0; index < quote.lines().size(); index++) {
+      var line = quote.lines().get(index);
+      lines.add(
+          UserSubscriptionUpgradeLine.builder()
+              .id(randomUUID().toString())
+              .lineOrder(index)
+              .kind(line.kind())
+              .subscriptionProductId(line.subscriptionProductId())
+              .billingInterval(line.billingInterval())
+              .periodStartDate(line.periodStart())
+              .periodEndDate(line.periodEnd())
+              .days(line.days())
+              .referencePeriodDays(line.referencePeriodDays())
+              .referencePriceInCentsWithVat(line.referencePriceInCentsWithVat())
+              .amountInCentsWithVat(line.amountInCentsWithVat())
+              .build());
+    }
+    return lines;
   }
 
   private UserSubscriptionUpgrade awaitPayment(

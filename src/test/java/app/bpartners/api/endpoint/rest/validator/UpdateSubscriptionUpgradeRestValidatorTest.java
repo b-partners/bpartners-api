@@ -3,8 +3,8 @@ package app.bpartners.api.endpoint.rest.validator;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus;
 import app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgrade;
+import app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgradeStatus;
 import app.bpartners.api.model.exception.BadRequestException;
 import org.junit.jupiter.api.Test;
 
@@ -12,11 +12,15 @@ class UpdateSubscriptionUpgradeRestValidatorTest {
   UpdateSubscriptionUpgradeRestValidator subject = new UpdateSubscriptionUpgradeRestValidator();
 
   @Test
-  void accepts_the_abandoned_status() {
+  void accepts_the_confirmed_and_abandoned_statuses() {
     assertDoesNotThrow(
         () ->
             subject.accept(
-                new UpdateSubscriptionUpgrade().status(SubscriptionUpgradeStatus.ABANDONED)));
+                new UpdateSubscriptionUpgrade().status(UpdateSubscriptionUpgradeStatus.CONFIRMED)));
+    assertDoesNotThrow(
+        () ->
+            subject.accept(
+                new UpdateSubscriptionUpgrade().status(UpdateSubscriptionUpgradeStatus.ABANDONED)));
   }
 
   @Test
@@ -29,12 +33,5 @@ class UpdateSubscriptionUpgradeRestValidatorTest {
     var withoutStatus = new UpdateSubscriptionUpgrade();
 
     assertThrows(BadRequestException.class, () -> subject.accept(withoutStatus));
-  }
-
-  @Test
-  void rejects_any_other_status() {
-    var paid = new UpdateSubscriptionUpgrade().status(SubscriptionUpgradeStatus.PAID);
-
-    assertThrows(BadRequestException.class, () -> subject.accept(paid));
   }
 }

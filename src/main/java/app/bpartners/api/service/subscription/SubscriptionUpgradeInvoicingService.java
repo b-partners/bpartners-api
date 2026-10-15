@@ -299,7 +299,7 @@ public class SubscriptionUpgradeInvoicingService {
   }
 
   private static Instant upgradeCreationOf(UserSubscriptionUpgrade upgrade) {
-    return upgrade.getCreationDatetime() == null ? now() : upgrade.getCreationDatetime();
+    return upgrade.effectiveDatetime() == null ? now() : upgrade.effectiveDatetime();
   }
 
   private Optional<String> originalInvoiceReferenceOf(

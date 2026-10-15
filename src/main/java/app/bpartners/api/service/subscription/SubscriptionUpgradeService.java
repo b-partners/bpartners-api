@@ -13,6 +13,7 @@ import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ConflictException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.SubscriptionUpgradeStatus;
@@ -51,6 +52,7 @@ public class SubscriptionUpgradeService {
   private final SubscriptionPaymentRepository subscriptionPaymentRepository;
   private final SubscriptionUpgradeCompletionService completionService;
   private final SubscriptionUpgradeExpirationService expirationService;
+  private final SubscriptionUpgradeTransitionService transitionService;
   private final SubscriptionUpgradeTimeline timeline;
   private final TemporalUtils temporalUtils;
 
@@ -122,6 +124,37 @@ public class SubscriptionUpgradeService {
     return upgradeRepository.findAllByUserIdOrderByCreationDatetimeDesc(userId).stream()
         .filter(upgrade -> status == null || upgrade.getStatus() == status)
         .toList();
+  }
+
+  public UserSubscriptionUpgrade abandon(String userId, String upgradeId) {
+    var upgrade =
+        upgradeRepository
+            .findById(upgradeId)
+            .filter(found -> userId.equals(found.getUserId()))
+            .orElseThrow(
+                () ->
+                    new NotFoundException(
+                        "SubscriptionUpgrade(id=" + upgradeId + ") does not exist for this user"));
+    expirationService.expireIfOverdue(upgrade);
+    return switch (transitionService.abandon(upgradeId)) {
+      case ABANDONED -> {
+        log.info("SubscriptionUpgrade(id={}) of User(id={}) abandoned", upgradeId, userId);
+        yield upgradeRepository.findById(upgradeId).orElseThrow();
+      }
+      case PAID -> {
+        completionService.completeAfterPayment(upgradeId, upgrade.getStripeProrationInvoiceId());
+        throw new ConflictException(
+            "SubscriptionUpgrade(id=" + upgradeId + ") was paid, it can not be abandoned");
+      }
+      case NOT_ABANDONABLE -> {
+        var status = upgradeRepository.findById(upgradeId).map(UserSubscriptionUpgrade::getStatus);
+        throw new ConflictException(
+            "SubscriptionUpgrade(id="
+                + upgradeId
+                + ") can not be abandoned, its status is "
+                + status.orElse(null));
+      }
+    };
   }
 
   private UpgradeCharge charge(

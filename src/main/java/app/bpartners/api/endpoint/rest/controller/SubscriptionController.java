@@ -17,7 +17,9 @@ import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
 import app.bpartners.api.endpoint.rest.model.SubscriptionPlan;
 import app.bpartners.api.endpoint.rest.model.SubscriptionUpgrade;
 import app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus;
+import app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgrade;
 import app.bpartners.api.endpoint.rest.validator.CreateSubscriptionUpgradeRestValidator;
+import app.bpartners.api.endpoint.rest.validator.UpdateSubscriptionUpgradeRestValidator;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -47,6 +49,7 @@ public class SubscriptionController {
   private final SubscriptionInvoiceExportService subscriptionInvoiceExportService;
   private final UserService userService;
   private final CreateSubscriptionUpgradeRestValidator subscriptionUpgradeRestValidator;
+  private final UpdateSubscriptionUpgradeRestValidator updateSubscriptionUpgradeRestValidator;
   private final SubscriptionUpgradeService subscriptionUpgradeService;
   private final SubscriptionUpgradeRestMapper subscriptionUpgradeRestMapper;
 
@@ -164,5 +167,14 @@ public class SubscriptionController {
             userService.getUserById(uId),
             subscriptionUpgrade.getSubscriptionPlanIdentifier(),
             requestedInterval == null ? null : BillingInterval.valueOf(requestedInterval.name())));
+  }
+
+  @PutMapping("/users/{uId}/subscriptionUpgrades/{upgradeId}")
+  public SubscriptionUpgrade updateUserSubscriptionUpgrade(
+      @PathVariable String uId,
+      @PathVariable String upgradeId,
+      @RequestBody(required = false) UpdateSubscriptionUpgrade subscriptionUpgrade) {
+    updateSubscriptionUpgradeRestValidator.accept(subscriptionUpgrade);
+    return subscriptionUpgradeRestMapper.toRest(subscriptionUpgradeService.abandon(uId, upgradeId));
   }
 }

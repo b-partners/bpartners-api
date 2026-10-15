@@ -121,6 +121,7 @@ class SubscriptionUpgradeChainTest {
           paymentRepository,
           completionService,
           expirationService,
+          transitionService,
           timeline,
           temporalUtils);
 

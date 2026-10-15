@@ -504,6 +504,58 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  updateUserSubscriptionUpgrade:
+    put:
+      tags:
+        - User Subscription
+      summary: Abandon a subscription upgrade that is not expired yet
+      description: |
+        Abandons an upgrade waiting for its payment (AWAITING_PAYMENT status) before its
+        paymentExpirationDatetime. The pending payment is cancelled, the upgrade moves to the
+        ABANDONED status, the previous subscription is left untouched and a new upgrade can be
+        started. The only supported target status is ABANDONED.
+        An upgrade that is not awaiting its payment anymore (already paid, expired or abandoned)
+        can not be abandoned and a 409 is returned. The same applies when the customer paid at the
+        very last moment: the upgrade then completes as paid.
+      operationId: updateUserSubscriptionUpgrade
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+        - in: path
+          name: upgradeId
+          schema:
+            type: string
+          required: true
+          description: Subscription upgrade identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSubscriptionUpgrade'
+      responses:
+        200:
+          description: The abandoned upgrade
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionUpgrade'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        409:
+          $ref: './api.yml#/components/responses/409'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   startUserSubscriptionTrial:
     post:
       tags:
@@ -738,19 +790,28 @@ components:
           description: Identifier of the plan to upgrade to (see GET /subscriptionPlans).
         billingInterval:
           $ref: '#/components/schemas/BillingInterval'
+    UpdateSubscriptionUpgrade:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/SubscriptionUpgradeStatus'
     SubscriptionUpgradeStatus:
       type: string
       description: |
         PENDING is being processed or interrupted after the payment, awaiting a manual recovery.
         AWAITING_PAYMENT waits for the customer to pay on the payment page. PAID is switched.
         INVOICED is switched and its credit note and invoice are issued. EXPIRED was not paid
-        before its deadline and is cancelled.
+        before its deadline and is cancelled. ABANDONED was cancelled by the customer before its
+        deadline.
       enum:
         - PENDING
         - AWAITING_PAYMENT
         - PAID
         - INVOICED
         - EXPIRED
+        - ABANDONED
     SubscriptionUpgrade:
       type: object
       properties:

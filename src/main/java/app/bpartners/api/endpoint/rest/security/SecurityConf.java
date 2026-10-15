@@ -236,6 +236,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(
+                            PUT, "/users/*/subscriptionUpgrades/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
                             GET, "/users/*/subordinatesUsers", authResourceProvider))
                     .authenticated()
                     .requestMatchers(POST, "/invoicesRefresh")

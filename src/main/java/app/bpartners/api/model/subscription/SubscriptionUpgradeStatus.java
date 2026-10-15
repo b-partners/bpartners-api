@@ -5,5 +5,6 @@ public enum SubscriptionUpgradeStatus {
   AWAITING_PAYMENT,
   PAID,
   INVOICED,
-  EXPIRED
+  EXPIRED,
+  ABANDONED
 }

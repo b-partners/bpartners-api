@@ -1,5 +1,6 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.ABANDONED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.EXPIRED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
@@ -18,6 +19,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
 import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
+import app.bpartners.api.service.subscription.SubscriptionUpgradeTransitionService.Abandonment;
 import app.bpartners.api.service.subscription.SubscriptionUpgradeTransitionService.Expiration;
 import java.time.Instant;
 import java.util.Optional;
@@ -146,6 +148,74 @@ class SubscriptionUpgradeTransitionServiceTest {
         .thenThrow(new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, "stripe down"));
 
     assertThrows(ApiException.class, () -> subject.expire(UPGRADE_ID));
+
+    verify(upgradeRepository, never()).save(any());
+  }
+
+  @Test
+  void abandons_an_upgrade_inside_its_payment_window_once_its_invoice_is_voided() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(upgrade(AWAITING_PAYMENT, Instant.now().plusSeconds(600))));
+    when(stripeUpgradeService.voidOpenInvoice(INVOICE_ID))
+        .thenReturn(StripeInvoiceVoidOutcome.VOIDED);
+
+    assertEquals(Abandonment.ABANDONED, subject.abandon(UPGRADE_ID));
+
+    var saved = ArgumentCaptor.forClass(UserSubscriptionUpgrade.class);
+    verify(upgradeRepository).save(saved.capture());
+    assertEquals(ABANDONED, saved.getValue().getStatus());
+    var order = inOrder(upgradeRepository, stripeUpgradeService);
+    order.verify(upgradeRepository).acquireLock(UPGRADE_ID);
+    order.verify(stripeUpgradeService).voidOpenInvoice(INVOICE_ID);
+    order.verify(upgradeRepository).save(any(UserSubscriptionUpgrade.class));
+  }
+
+  @Test
+  void keeps_an_upgrade_whose_invoice_was_paid_before_its_abandonment() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(upgrade(AWAITING_PAYMENT, Instant.now().plusSeconds(600))));
+    when(stripeUpgradeService.voidOpenInvoice(INVOICE_ID))
+        .thenReturn(StripeInvoiceVoidOutcome.PAID);
+
+    assertEquals(Abandonment.PAID, subject.abandon(UPGRADE_ID));
+
+    verify(upgradeRepository, never()).save(any());
+  }
+
+  @Test
+  void does_not_abandon_an_overdue_upgrade() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(upgrade(AWAITING_PAYMENT, Instant.now().minusSeconds(60))));
+
+    assertEquals(Abandonment.NOT_ABANDONABLE, subject.abandon(UPGRADE_ID));
+
+    verifyNoInteractions(stripeUpgradeService);
+    verify(upgradeRepository, never()).save(any());
+  }
+
+  @Test
+  void does_not_abandon_an_upgrade_that_is_not_awaiting_its_payment_or_is_unknown() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(upgrade(PAID, Instant.now().plusSeconds(600))))
+        .thenReturn(Optional.of(upgrade(EXPIRED, Instant.now().plusSeconds(600))))
+        .thenReturn(Optional.empty());
+
+    assertEquals(Abandonment.NOT_ABANDONABLE, subject.abandon(UPGRADE_ID));
+    assertEquals(Abandonment.NOT_ABANDONABLE, subject.abandon(UPGRADE_ID));
+    assertEquals(Abandonment.NOT_ABANDONABLE, subject.abandon(UPGRADE_ID));
+
+    verifyNoInteractions(stripeUpgradeService);
+    verify(upgradeRepository, never()).save(any());
+  }
+
+  @Test
+  void lets_the_failure_of_the_void_surface_without_abandoning_the_upgrade() {
+    when(upgradeRepository.findById(UPGRADE_ID))
+        .thenReturn(Optional.of(upgrade(AWAITING_PAYMENT, Instant.now().plusSeconds(600))));
+    when(stripeUpgradeService.voidOpenInvoice(INVOICE_ID))
+        .thenThrow(new ApiException(ApiException.ExceptionType.SERVER_EXCEPTION, "stripe down"));
+
+    assertThrows(ApiException.class, () -> subject.abandon(UPGRADE_ID));
 
     verify(upgradeRepository, never()).save(any());
   }

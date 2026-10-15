@@ -1,5 +1,6 @@
 package app.bpartners.api.service.subscription;
 
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.ABANDONED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.EXPIRED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
@@ -24,6 +25,12 @@ public class SubscriptionUpgradeTransitionService {
     EXPIRED,
     PAID,
     SKIPPED
+  }
+
+  public enum Abandonment {
+    ABANDONED,
+    PAID,
+    NOT_ABANDONABLE
   }
 
   @Transactional
@@ -55,6 +62,29 @@ public class SubscriptionUpgradeTransitionService {
             upgrade.getStripeProrationInvoiceId(),
             upgrade.getId());
         yield Expiration.PAID;
+      }
+    };
+  }
+
+  @Transactional
+  public Abandonment abandon(String upgradeId) {
+    upgradeRepository.acquireLock(upgradeId);
+    var upgrade = upgradeRepository.findById(upgradeId).orElse(null);
+    if (upgrade == null || upgrade.getStatus() != AWAITING_PAYMENT || isPaymentOverdue(upgrade)) {
+      return Abandonment.NOT_ABANDONABLE;
+    }
+    return switch (stripeUpgradeService.voidOpenInvoice(upgrade.getStripeProrationInvoiceId())) {
+      case VOIDED -> {
+        upgradeRepository.save(upgrade.toBuilder().status(ABANDONED).build());
+        yield Abandonment.ABANDONED;
+      }
+      case PAID -> {
+        log.info(
+            "Stripe Invoice(id={}) of SubscriptionUpgrade(id={}) was paid before its abandonment,"
+                + " not abandoning it",
+            upgrade.getStripeProrationInvoiceId(),
+            upgrade.getId());
+        yield Abandonment.PAID;
       }
     };
   }

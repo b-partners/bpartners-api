@@ -106,6 +106,8 @@ paths:
     $ref: './user-subscription-api.yml#/operations/initiateUserSubscription'
   /users/{uId}/subscriptionUpgrade:
     $ref: './user-subscription-api.yml#/operations/upgradeUserSubscription'
+  /users/{uId}/subscriptionUpgrades/{upgradeId}:
+    $ref: './user-subscription-api.yml#/operations/updateUserSubscriptionUpgrade'
   /users/{uId}/subscriptionTrial:
     $ref: './user-subscription-api.yml#/operations/startUserSubscriptionTrial'
   /users/{uId}/subscriptionTrialEligibility:

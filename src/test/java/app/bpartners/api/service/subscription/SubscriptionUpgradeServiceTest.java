@@ -3,6 +3,7 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.ABANDONED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
@@ -27,6 +28,7 @@ import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.UserSubscriptionProduct;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ConflictException;
+import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.Subscription;
@@ -40,6 +42,7 @@ import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
 import app.bpartners.api.service.credit.CreditGrantService;
+import app.bpartners.api.service.subscription.SubscriptionUpgradeTransitionService.Abandonment;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -105,6 +108,7 @@ class SubscriptionUpgradeServiceTest {
           subscriptionPaymentRepository,
           completionService,
           expirationService,
+          transitionService,
           timeline,
           temporalUtils);
 
@@ -450,6 +454,62 @@ class SubscriptionUpgradeServiceTest {
   }
 
   @Test
+  void abandons_an_upgrade_of_the_user_awaiting_its_payment() {
+    var awaiting = awaitingUpgrade(USER_ID);
+    var abandoned = awaiting.toBuilder().status(ABANDONED).build();
+    when(upgradeRepository.findById("upgrade_id"))
+        .thenReturn(Optional.of(awaiting))
+        .thenReturn(Optional.of(abandoned));
+    when(transitionService.abandon("upgrade_id")).thenReturn(Abandonment.ABANDONED);
+
+    assertEquals(ABANDONED, subject.abandon(USER_ID, "upgrade_id").getStatus());
+
+    verify(expirationService).expireIfOverdue(awaiting);
+    verify(transitionService, never()).claimPaid(any(), any());
+  }
+
+  @Test
+  void does_not_abandon_the_upgrade_of_another_user() {
+    when(upgradeRepository.findById("upgrade_id"))
+        .thenReturn(Optional.of(awaitingUpgrade("other_user_id")));
+
+    assertThrows(NotFoundException.class, () -> subject.abandon(USER_ID, "upgrade_id"));
+
+    verifyNoInteractions(transitionService, expirationService);
+  }
+
+  @Test
+  void does_not_abandon_an_unknown_upgrade() {
+    when(upgradeRepository.findById("upgrade_id")).thenReturn(Optional.empty());
+
+    assertThrows(NotFoundException.class, () -> subject.abandon(USER_ID, "upgrade_id"));
+
+    verifyNoInteractions(transitionService, expirationService);
+  }
+
+  @Test
+  void refuses_to_abandon_an_upgrade_that_is_not_abandonable_anymore() {
+    var awaiting = awaitingUpgrade(USER_ID);
+    when(upgradeRepository.findById("upgrade_id")).thenReturn(Optional.of(awaiting));
+    when(transitionService.abandon("upgrade_id")).thenReturn(Abandonment.NOT_ABANDONABLE);
+
+    assertThrows(ConflictException.class, () -> subject.abandon(USER_ID, "upgrade_id"));
+
+    verify(transitionService, never()).claimPaid(any(), any());
+  }
+
+  @Test
+  void completes_and_refuses_to_abandon_an_upgrade_paid_in_the_meantime() {
+    var awaiting = awaitingUpgrade(USER_ID);
+    when(upgradeRepository.findById("upgrade_id")).thenReturn(Optional.of(awaiting));
+    when(transitionService.abandon("upgrade_id")).thenReturn(Abandonment.PAID);
+
+    assertThrows(ConflictException.class, () -> subject.abandon(USER_ID, "upgrade_id"));
+
+    verify(transitionService).claimPaid("upgrade_id", "in_upgrade_id");
+  }
+
+  @Test
   void refuses_a_user_without_stripe_customer() {
     var userWithoutStripe = User.builder().id(USER_ID).build();
 
@@ -617,6 +677,15 @@ class SubscriptionUpgradeServiceTest {
         .id("commitment_id")
         .userId(USER_ID)
         .commitmentEndDatetime(LocalDate.parse(endDate).atStartOfDay(PARIS).toInstant())
+        .build();
+  }
+
+  private static UserSubscriptionUpgrade awaitingUpgrade(String userId) {
+    return UserSubscriptionUpgrade.builder()
+        .id("upgrade_id")
+        .userId(userId)
+        .stripeProrationInvoiceId("in_upgrade_id")
+        .status(AWAITING_PAYMENT)
         .build();
   }
 

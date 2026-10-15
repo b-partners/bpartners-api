@@ -3,6 +3,7 @@ package app.bpartners.api.integration;
 import static app.bpartners.api.endpoint.rest.model.EnableStatus.DISABLED;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionCommitmentDuration.TWELVE_MONTHS;
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.ABANDONED;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.AWAITING_PAYMENT;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PAID;
 import static app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.PENDING;
@@ -16,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.UserSubscriptionCommitment;
@@ -25,6 +27,7 @@ import app.bpartners.api.repository.UserSubscriptionCommitmentAutoRenewalStatusH
 import app.bpartners.api.repository.UserSubscriptionCommitmentJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionUpgradeJpaRepository;
+import app.bpartners.api.service.subscription.StripeInvoiceVoidOutcome;
 import app.bpartners.api.service.subscription.SubscriptionUpgradeCommitmentService;
 import app.bpartners.api.service.subscription.SubscriptionUpgradeTransitionService;
 import jakarta.persistence.EntityManager;
@@ -133,6 +136,28 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
     assertTrue(claimedAgain.isEmpty());
     assertEquals(
         List.of(PENDING, AWAITING_PAYMENT, PENDING),
+        upgradeRepository.findById(upgrade.getId()).orElseThrow().getStatusHistory().stream()
+            .map(history -> history.getStatus())
+            .toList());
+  }
+
+  @Test
+  @Transactional
+  void abandoning_an_upgrade_awaiting_its_payment_persists_the_abandoned_status() {
+    var stripeInvoiceId = "in_" + randomUUID();
+    var upgrade = upgradeRepository.save(awaitingUpgrade(stripeInvoiceId, now().plus(1, HOURS)));
+    when(stripeUpgradeServiceMock.voidOpenInvoice(stripeInvoiceId))
+        .thenReturn(StripeInvoiceVoidOutcome.VOIDED);
+    entityManager.flush();
+    entityManager.clear();
+
+    var abandonment = transitionService.abandon(upgrade.getId());
+    entityManager.flush();
+    entityManager.clear();
+
+    assertEquals(SubscriptionUpgradeTransitionService.Abandonment.ABANDONED, abandonment);
+    assertEquals(
+        List.of(PENDING, AWAITING_PAYMENT, ABANDONED),
         upgradeRepository.findById(upgrade.getId()).orElseThrow().getStatusHistory().stream()
             .map(history -> history.getStatus())
             .toList());

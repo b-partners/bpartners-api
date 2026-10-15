@@ -46,6 +46,7 @@ class SubscriptionControllerTest {
           mock(app.bpartners.api.service.subscription.SubscriptionInvoiceExportService.class),
           userServiceMock,
           new app.bpartners.api.endpoint.rest.validator.CreateSubscriptionUpgradeRestValidator(),
+          new app.bpartners.api.endpoint.rest.validator.UpdateSubscriptionUpgradeRestValidator(),
           upgradeServiceMock,
           new app.bpartners.api.endpoint.rest.mapper.SubscriptionUpgradeRestMapper());
 
@@ -230,5 +231,40 @@ class SubscriptionControllerTest {
     assertEquals(
         app.bpartners.api.endpoint.rest.model.BillingInterval.MONTHLY,
         actual.getToBillingInterval());
+  }
+
+  @Test
+  void abandons_the_subscription_upgrade_of_the_user() {
+    when(upgradeServiceMock.abandon("user_id", "upgrade_id"))
+        .thenReturn(
+            app.bpartners.api.model.subscription.UserSubscriptionUpgrade.builder()
+                .id("upgrade_id")
+                .fromBillingInterval(app.bpartners.api.model.subscription.BillingInterval.MONTHLY)
+                .toBillingInterval(app.bpartners.api.model.subscription.BillingInterval.YEARLY)
+                .status(app.bpartners.api.model.subscription.SubscriptionUpgradeStatus.ABANDONED)
+                .build());
+
+    var actual =
+        subject.updateUserSubscriptionUpgrade(
+            "user_id",
+            "upgrade_id",
+            new app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgrade()
+                .status(app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus.ABANDONED));
+
+    assertEquals("upgrade_id", actual.getId());
+    assertEquals(
+        app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus.ABANDONED,
+        actual.getStatus());
+  }
+
+  @Test
+  void refuses_to_update_the_subscription_upgrade_to_another_status() {
+    var paid =
+        new app.bpartners.api.endpoint.rest.model.UpdateSubscriptionUpgrade()
+            .status(app.bpartners.api.endpoint.rest.model.SubscriptionUpgradeStatus.PAID);
+
+    org.junit.jupiter.api.Assertions.assertThrows(
+        app.bpartners.api.model.exception.BadRequestException.class,
+        () -> subject.updateUserSubscriptionUpgrade("user_id", "upgrade_id", paid));
   }
 }

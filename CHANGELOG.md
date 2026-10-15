@@ -1,9 +1,57 @@
-# [0.98.0](https://github.com/b-partners/bpartners-api/compare/v0.97.0...v0.98.0) (2026-09-22)
+# [0.99.0](https://github.com/b-partners/bpartners-api/compare/v0.97.0...v0.99.0) (2026-10-15)
+
+
+### Bug Fixes
+
+* ajust subscription invoice mail content according yearly billing period ([4bc5572](https://github.com/b-partners/bpartners-api/commit/4bc557212db9baf2ac4cbc3332101d992b5b3911))
+* bill annual subscriptions as monthly lines with a discount column ([9f0db33](https://github.com/b-partners/bpartners-api/commit/9f0db330177ff9b9172de4c1b9805ef7f0c21174))
+* **billing-stats:** exclude refunded subscription payments ([b2dd5c3](https://github.com/b-partners/bpartners-api/commit/b2dd5c39ea3661a99c94175d6ff48b0643df6c60))
+* compute subscription invoice discount from either annual_discount_percent or from net/gross price ([581c725](https://github.com/b-partners/bpartners-api/commit/581c72548d01d601171e706bf83e747ca18a23dc))
+* **db:** force unit prices for usage based and legasy essential ([b1f0b4f](https://github.com/b-partners/bpartners-api/commit/b1f0b4f5ef52379efe854721457b79507bd49346))
+* distinguish active subscriptions (stock) from sales flow (new subs by start, billed instalments by payment) in subscriptionBillingStats charts ([5650ba0](https://github.com/b-partners/bpartners-api/commit/5650ba02426000d05a0dfe633fd8c3d111c5e0d5))
+* **export-pdf:** guard edge lists against index out of bounds and log mismatches ([132cd54](https://github.com/b-partners/bpartners-api/commit/132cd5469d7949f3467020e22c61fa467e1a5726))
+* expose subscription plan tier rank for ugrpade handling ([6128fb0](https://github.com/b-partners/bpartners-api/commit/6128fb05a002783eb398d56d70b374ff8a9da899))
+* grant subscription credit based on the billing month - not payment date ([d62abba](https://github.com/b-partners/bpartners-api/commit/d62abbab7d5f7e11a1d7733b4b15150fe3205ce3))
+* handle subscription billing stats on MVC ([eb8ab92](https://github.com/b-partners/bpartners-api/commit/eb8ab921a9de9f47d21c7d50b4de7e3dcfc1f654))
+* ignore historic susbcribed user trial period ([249a4e1](https://github.com/b-partners/bpartners-api/commit/249a4e1e6a11923ada93c8cb7f88a8c9b574ab0f))
+* **invoice:** ajust invoice margin ([f9a3509](https://github.com/b-partners/bpartners-api/commit/f9a35099d31a347d170ea7ddf4c1063c514e4f90))
+* **invoice:** bill monthly subscriptions as a single instalment schedule invoice with excluded already invoiced period ([3b1a6bd](https://github.com/b-partners/bpartners-api/commit/3b1a6bdf89cb251250ddfd27cda5a7a2ae389958))
+* **invoice:** bound the annual billed period to one year so a subscription started on a month last day does not bill a thirteenth full month ([5283d1d](https://github.com/b-partners/bpartners-api/commit/5283d1dc5390983e20cf65bcadaf3960016f2398))
+* **invoice:** ignore a monthly payment billing a period that starts after its own payment date ([c14af23](https://github.com/b-partners/bpartners-api/commit/c14af2395d66f075f8256efbb1025aaafa4c7c5b))
+* **invoice:** keep the monthly instalment schedule when an already invoiced period runs past the commitment ([1d29b1e](https://github.com/b-partners/bpartners-api/commit/1d29b1eebbd21550d190950d435fd1635bc78234))
+* **invoice:** price the first prorated subscription line with the amount charged by Stripe ([8a709cd](https://github.com/b-partners/bpartners-api/commit/8a709cde09e57dbeb9eeef186df448e80ca83886))
+* **invoice:** prorate a partial annual subscription line on its own calendar month length instead of the total partial days ([438b30c](https://github.com/b-partners/bpartners-api/commit/438b30ceb4a1174c9d26554e00cdd4ac511d0fe7))
+* **invoice:** read the commitment end as an exclusive bound when computing the last full billed month ([08819e5](https://github.com/b-partners/bpartners-api/commit/08819e5f929c16b79d13ce0580adfe054ba8082b))
+* **invoice:** title the fallback invoice with its payment date when the billed period is not credible ([a82b980](https://github.com/b-partners/bpartners-api/commit/a82b9807dcbb1028bc0cb626651a734c9b249e42))
+* read annual_discount_percent as hundredths of percent (1000=10%) so the declared discount drives the invoice ([cf9cfc2](https://github.com/b-partners/bpartners-api/commit/cf9cfc2afc8963a705e33d3f058dfb97a5ddc1dd))
+* reconstruct annual invoice discount column from catalog monthly price when annualDiscountPercent is unset ([521b15f](https://github.com/b-partners/bpartners-api/commit/521b15f9db019eb40add403a5f519c426c12d0b1))
+* set DEFAULT_OVERAGE_UNIT_PRICE_IN_CENTS=1000 ([d648a6c](https://github.com/b-partners/bpartners-api/commit/d648a6c8076250d7d16bcdfc439f3ec809cdb992))
+* **stripe-subscriptions:** allow sending ALREADY_INVOICED mail ([057c154](https://github.com/b-partners/bpartners-api/commit/057c15458b36b1b99e246fec7edd783b4287103f))
+* **stripe-subscriptions:** avoid invoice reference collision and isolate backfill failures ([8ae5c4e](https://github.com/b-partners/bpartners-api/commit/8ae5c4e13f27da3d6a79647e6e73e993bb6ae2e7))
+* **stripe-subscriptions:** stop resending mail for already invoiced payments and drop paid mail template ([500c6e5](https://github.com/b-partners/bpartners-api/commit/500c6e53f3bf90f4737af34ac34f03ac7910ffd4))
+* **subscription_upgrade:** credit the amount actually charged on the first partial month ([588d1b5](https://github.com/b-partners/bpartners-api/commit/588d1b5b3141c63242bc1d751cab4bad4c7c6192))
+* **subscription_upgrade:** ignore invoices already cancelled by a previous upgrade when crediting ([3f32e0f](https://github.com/b-partners/bpartners-api/commit/3f32e0fef8ab21ddad5db12eba692b1571fa44e0))
+* **subscription_upgrade:** resolve the charged first month without the unpersisted billing interval ([db73c51](https://github.com/b-partners/bpartners-api/commit/db73c513b68a37d9461220c4fb67dfb7fb2614cc))
+* **subscription_upgrade:** show the plan name and the coverage period in the upgrade invoice mails ([48ab9d6](https://github.com/b-partners/bpartners-api/commit/48ab9d6796313339671959fec4c600ba6d2d0017))
+* **subscription-billing-stats:** active subscriptions as cumulative net evolution from new subs baseline ([030843b](https://github.com/b-partners/bpartners-api/commit/030843bf67e4a8509bfb66ec0ed94f426fe92e17))
+* **subscription:** record the billed period and plan from the subscribed stripe line rather than a proration line ([2afc2d3](https://github.com/b-partners/bpartners-api/commit/2afc2d33193f89cad1c2d42856819c3289b8462e))
+* **subscription:** trigger the remaining period invoicing from an admin endpoint instead of a scheduler ([372213a](https://github.com/b-partners/bpartners-api/commit/372213ac4da1ac9d318f09a1e8f4dfe8eb113c22))
 
 
 ### Features
 
-* **export-pdf:** make degradation rate section optional ([5104c7d](https://github.com/b-partners/bpartners-api/commit/5104c7d13e4eba1e02a4f7af608f16dc48e28bf9))
+* compact subscription invoice layout to fit a single page without affecting standard invoices ([a902a55](https://github.com/b-partners/bpartners-api/commit/a902a55c5fc6ce7103eba9684ba02d55aa59c54e))
+* export pdf style V2 ([ffb5108](https://github.com/b-partners/bpartners-api/commit/ffb5108498c47bc42a74befd76992e2e37b43cae))
+* export sent subscription invoices for SUBSCRIPTION_INVOICE_EXPORTER and ADMIN roles ([d4d7c7a](https://github.com/b-partners/bpartners-api/commit/d4d7c7a581d8fb97f44cd7bd391181e5197fb8f4))
+* **export-pdf:** make degradation rate section optional ([fea7b94](https://github.com/b-partners/bpartners-api/commit/fea7b94d5b7d9c28f5864057b4ef0e83fa9ea94c))
+* handle subscription upgrade ([1e73e5b](https://github.com/b-partners/bpartners-api/commit/1e73e5bef8d18ce97ae031dde912c29379de0d67))
+* **invoice:** bill annual full months at catalog price and absorb rounding on the last line ([9509edd](https://github.com/b-partners/bpartners-api/commit/9509eddd061e591c2f42c98e098a833a5393bdb8))
+* **map-layers:** add GET /map/layers proxying geodata with its api key ([c05f9dc](https://github.com/b-partners/bpartners-api/commit/c05f9dc1780a2139037e72a481d67b7df5990623))
+* **map-layers:** add GET /map/layers/actual proxying geodata with its api key ([e75082d](https://github.com/b-partners/bpartners-api/commit/e75082dd194d19398ed6424d302dcc28bd28b198))
+* name the plan on annual invoice lines and prorate first/last month on calendar months ([37289c0](https://github.com/b-partners/bpartners-api/commit/37289c076310a849ff455f733b680b4bd0a6d41b))
+* **onboarding:** add promo code system ([858f6f0](https://github.com/b-partners/bpartners-api/commit/858f6f0386b42ef47b198a9a3276272d905207cf))
+* **subscription_upgrade:** let the customer finish an upgrade payment needing their action through a payment page ([069b262](https://github.com/b-partners/bpartners-api/commit/069b2625333904b3502b30aaeaca987ad688ddde))
+* **subscription:** issue one invoice per commitment period and backfill the period left on running commitments ([fef8663](https://github.com/b-partners/bpartners-api/commit/fef8663c0af75684f086bef7bd1be2528e24f197))
 
 
 

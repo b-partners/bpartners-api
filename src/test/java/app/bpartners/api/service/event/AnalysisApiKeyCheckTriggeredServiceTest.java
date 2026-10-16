@@ -2,6 +2,7 @@ package app.bpartners.api.service.event;
 
 import static org.mockito.Mockito.*;
 
+import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.AnalysisApiKeyCheckTriggered;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
@@ -12,8 +13,9 @@ import org.junit.jupiter.api.Test;
 class AnalysisApiKeyCheckTriggeredServiceTest {
   UserAnalysisApiKeyRepository repository = mock();
   AnalysisApiKeyApi api = mock();
+  EventProducer eventProducer = mock();
   AnalysisApiKeyCheckTriggeredService subject =
-      new AnalysisApiKeyCheckTriggeredService(repository, api);
+      new AnalysisApiKeyCheckTriggeredService(repository, api, eventProducer);
 
   @Test
   void accept_checks_only_enabled_keys() {
@@ -35,5 +37,17 @@ class AnalysisApiKeyCheckTriggeredServiceTest {
     subject.accept(new AnalysisApiKeyCheckTriggered("user"));
 
     verifyNoInteractions(api);
+  }
+
+  @Test
+  void accept_triggers_next_user_even_if_check_fails() {
+    when(repository.getAllByUserId("a")).thenThrow(new RuntimeException("boom"));
+
+    try {
+      subject.accept(new AnalysisApiKeyCheckTriggered("a", List.of("b", "c")));
+    } catch (RuntimeException ignored) {
+    }
+
+    verify(eventProducer).accept(List.of(new AnalysisApiKeyCheckTriggered("b", List.of("c"))));
   }
 }

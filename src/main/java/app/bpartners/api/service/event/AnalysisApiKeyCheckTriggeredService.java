@@ -1,5 +1,6 @@
 package app.bpartners.api.service.event;
 
+import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.AnalysisApiKeyCheckTriggered;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
@@ -17,10 +18,27 @@ public class AnalysisApiKeyCheckTriggeredService implements Consumer<AnalysisApi
   private static final String PREFIX = "[AAKC] ";
   private final UserAnalysisApiKeyRepository userAnalysisApiKeyRepository;
   private final AnalysisApiKeyApi analysisApiKeyApi;
+  private final EventProducer eventProducer;
 
   @Override
   public void accept(AnalysisApiKeyCheckTriggered event) {
-    var userId = event.getUserId();
+    try {
+      check(event.getUserId());
+    } finally {
+      triggerNext(event);
+    }
+  }
+
+  private void triggerNext(AnalysisApiKeyCheckTriggered event) {
+    var next = event.getNextUserIds();
+    if (next == null || next.isEmpty()) {
+      return;
+    }
+    eventProducer.accept(
+        List.of(new AnalysisApiKeyCheckTriggered(next.getFirst(), next.subList(1, next.size()))));
+  }
+
+  private void check(String userId) {
     List<UserAnalysisApiKey> enabledKeys =
         userAnalysisApiKeyRepository.getAllByUserId(userId).stream()
             .filter(UserAnalysisApiKey::isEnabled)

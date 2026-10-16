@@ -18,7 +18,7 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
       new AllAnalysisApiKeyCheckTriggeredService(userRepository, eventProducer);
 
   @Test
-  void accept_sends_one_event_per_user() {
+  void accept_starts_the_chain_with_first_user() {
     var users =
         List.of(
             new User().toBuilder().id(randomUUID().toString()).build(),
@@ -29,6 +29,8 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
 
     verify(eventProducer)
         .accept(
-            users.stream().map(user -> new AnalysisApiKeyCheckTriggered(user.getId())).toList());
+            List.of(
+                new AnalysisApiKeyCheckTriggered(
+                    users.get(0).getId(), List.of(users.get(1).getId()))));
   }
 }

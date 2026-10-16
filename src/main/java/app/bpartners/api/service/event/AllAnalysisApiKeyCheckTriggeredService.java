@@ -3,6 +3,7 @@ package app.bpartners.api.service.event;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.AllAnalysisApiKeyCheckTriggered;
 import app.bpartners.api.endpoint.event.model.AnalysisApiKeyCheckTriggered;
+import app.bpartners.api.model.User;
 import app.bpartners.api.repository.UserRepository;
 import java.util.List;
 import java.util.function.Consumer;
@@ -18,11 +19,14 @@ public class AllAnalysisApiKeyCheckTriggeredService
 
   @Override
   public void accept(AllAnalysisApiKeyCheckTriggered event) {
-    List<AnalysisApiKeyCheckTriggered> events =
-        userRepository.findAll().stream()
-            .map(user -> new AnalysisApiKeyCheckTriggered(user.getId()))
-            .toList();
+    List<String> userIds = userRepository.findAll().stream().map(User::getId).toList();
+    if (userIds.isEmpty()) {
+      return;
+    }
 
-    eventProducer.accept(events);
+    eventProducer.accept(
+        List.of(
+            new AnalysisApiKeyCheckTriggered(
+                userIds.getFirst(), userIds.subList(1, userIds.size()))));
   }
 }

@@ -24,9 +24,11 @@ public class AnalysisApiKeyCheckTriggeredService implements Consumer<AnalysisApi
   public void accept(AnalysisApiKeyCheckTriggered event) {
     try {
       check(event.getUserId());
-    } finally {
-      triggerNext(event);
+    } catch (RuntimeException e) {
+      // not rethrown: a retry would trigger the next user again
+      log.error(PREFIX + "Unable to check User(id={}) analysis api keys", event.getUserId(), e);
     }
+    triggerNext(event);
   }
 
   private void triggerNext(AnalysisApiKeyCheckTriggered event) {

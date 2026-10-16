@@ -43,10 +43,7 @@ class AnalysisApiKeyCheckTriggeredServiceTest {
   void accept_triggers_next_user_even_if_check_fails() {
     when(repository.getAllByUserId("a")).thenThrow(new RuntimeException("boom"));
 
-    try {
-      subject.accept(new AnalysisApiKeyCheckTriggered("a", List.of("b", "c")));
-    } catch (RuntimeException ignored) {
-    }
+    subject.accept(new AnalysisApiKeyCheckTriggered("a", List.of("b", "c")));
 
     verify(eventProducer).accept(List.of(new AnalysisApiKeyCheckTriggered("b", List.of("c"))));
   }

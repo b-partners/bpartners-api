@@ -47,4 +47,15 @@ class AnalysisApiKeyCheckTriggeredServiceTest {
 
     verify(eventProducer).accept(List.of(new AnalysisApiKeyCheckTriggered("b", List.of("c"))));
   }
+
+  @Test
+  void accept_recognized_key_sends_no_event_when_last_user() {
+    var key = UserAnalysisApiKey.builder().id("1").apiKey("key").enabled(true).build();
+    when(repository.getAllByUserId("user")).thenReturn(List.of(key));
+    when(api.isRecognized("key")).thenReturn(true);
+
+    subject.accept(new AnalysisApiKeyCheckTriggered("user"));
+
+    verifyNoInteractions(eventProducer);
+  }
 }

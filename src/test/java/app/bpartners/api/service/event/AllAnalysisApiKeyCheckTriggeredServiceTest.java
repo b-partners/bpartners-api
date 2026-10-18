@@ -33,4 +33,13 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
                 new AnalysisApiKeyCheckTriggered(
                     users.get(0).getId(), List.of(users.get(1).getId()))));
   }
+
+  @Test
+  void accept_without_users_sends_nothing() {
+    when(userRepository.findAll()).thenReturn(List.of());
+
+    subject.accept(new AllAnalysisApiKeyCheckTriggered());
+
+    verifyNoInteractions(eventProducer);
+  }
 }

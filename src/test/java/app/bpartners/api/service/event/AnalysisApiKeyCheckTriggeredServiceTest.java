@@ -1,5 +1,6 @@
 package app.bpartners.api.service.event;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -55,6 +56,22 @@ class AnalysisApiKeyCheckTriggeredServiceTest {
     when(api.isRecognized("key")).thenReturn(true);
 
     subject.accept(new AnalysisApiKeyCheckTriggered("user"));
+
+    verifyNoInteractions(eventProducer);
+  }
+
+  @Test
+  void accept_rethrows_when_triggering_next_fails() {
+    doThrow(new RuntimeException("sqs down")).when(eventProducer).accept(any());
+
+    assertThrows(
+        RuntimeException.class,
+        () -> subject.accept(new AnalysisApiKeyCheckTriggered("a", List.of("b"))));
+  }
+
+  @Test
+  void accept_with_null_next_user_ids_ends_chain() {
+    subject.accept(new AnalysisApiKeyCheckTriggered("a", null));
 
     verifyNoInteractions(eventProducer);
   }

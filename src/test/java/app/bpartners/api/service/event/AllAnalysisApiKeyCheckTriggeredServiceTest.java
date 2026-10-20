@@ -1,6 +1,7 @@
 package app.bpartners.api.service.event;
 
 import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
@@ -41,5 +42,23 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
     subject.accept(new AllAnalysisApiKeyCheckTriggered());
 
     verifyNoInteractions(eventProducer);
+  }
+
+  @Test
+  void accept_rethrows_when_listing_users_fails() {
+    when(userRepository.findAll()).thenThrow(new RuntimeException("db down"));
+
+    assertThrows(
+        RuntimeException.class, () -> subject.accept(new AllAnalysisApiKeyCheckTriggered()));
+    verifyNoInteractions(eventProducer);
+  }
+
+  @Test
+  void accept_rethrows_when_first_send_fails() {
+    when(userRepository.findAll()).thenReturn(List.of(new User().toBuilder().id("a").build()));
+    doThrow(new RuntimeException("too big")).when(eventProducer).accept(any());
+
+    assertThrows(
+        RuntimeException.class, () -> subject.accept(new AllAnalysisApiKeyCheckTriggered()));
   }
 }

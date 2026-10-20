@@ -3,7 +3,6 @@ package app.bpartners.api.service.event;
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.AllAnalysisApiKeyCheckTriggered;
 import app.bpartners.api.endpoint.event.model.AnalysisApiKeyCheckTriggered;
-import app.bpartners.api.model.User;
 import app.bpartners.api.repository.UserRepository;
 import java.util.List;
 import java.util.function.Consumer;
@@ -26,7 +25,7 @@ public class AllAnalysisApiKeyCheckTriggeredService
     log.info(PREFIX + "AllAnalysisApiKeyCheckTriggered received");
     List<String> userIds;
     try {
-      userIds = userRepository.findAll().stream().map(User::getId).toList();
+      userIds = userRepository.findAllIds();
     } catch (RuntimeException e) {
       log.error(FAILURE_PREFIX + "Unable to list users to check", e);
       throw e;
@@ -37,10 +36,7 @@ public class AllAnalysisApiKeyCheckTriggeredService
     }
 
     try {
-      eventProducer.accept(
-          List.of(
-              new AnalysisApiKeyCheckTriggered(
-                  userIds.getFirst(), userIds.subList(1, userIds.size()))));
+      eventProducer.accept(List.of(AnalysisApiKeyCheckTriggered.ofChunk(userIds, 0)));
     } catch (RuntimeException e) {
       log.error(
           FAILURE_PREFIX + "Unable to send first AnalysisApiKeyCheckTriggered ({} users)",
@@ -49,6 +45,7 @@ public class AllAnalysisApiKeyCheckTriggeredService
       throw e;
     }
     log.info(
-        PREFIX + "First AnalysisApiKeyCheckTriggered sent for User(id={})", userIds.getFirst());
+        PREFIX + "First AnalysisApiKeyCheckTriggered chunk sent ({} users in total)",
+        userIds.size());
   }
 }

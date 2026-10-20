@@ -102,6 +102,11 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
+  public List<String> findAllIds() {
+    return jpaRepository.findAllIds();
+  }
+
+  @Override
   public Long countUsersByStatus(EnableStatus status) {
     return jpaRepository.countByStatus(status);
   }

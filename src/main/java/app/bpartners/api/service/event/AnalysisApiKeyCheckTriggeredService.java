@@ -16,16 +16,20 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AnalysisApiKeyCheckTriggeredService implements Consumer<AnalysisApiKeyCheckTriggered> {
   private static final String PREFIX = "[AAKC] ";
+  private static final String FAILURE_PREFIX = "[AAKC F] ";
   private final UserAnalysisApiKeyRepository userAnalysisApiKeyRepository;
   private final AnalysisApiKeyApi analysisApiKeyApi;
   private final EventProducer eventProducer;
 
   @Override
   public void accept(AnalysisApiKeyCheckTriggered event) {
+    var remaining = event.getNextUserIds() == null ? 0 : event.getNextUserIds().size();
+    log.info(PREFIX + "Checking User(id={}), {} users remaining", event.getUserId(), remaining);
     try {
       check(event.getUserId());
     } catch (RuntimeException e) {
-      log.error(PREFIX + "Unable to check User(id={}) analysis api keys", event.getUserId(), e);
+      log.error(
+          FAILURE_PREFIX + "Unable to check User(id={}) analysis api keys", event.getUserId(), e);
     }
     triggerNext(event);
   }
@@ -33,10 +37,20 @@ public class AnalysisApiKeyCheckTriggeredService implements Consumer<AnalysisApi
   private void triggerNext(AnalysisApiKeyCheckTriggered event) {
     var next = event.getNextUserIds();
     if (next == null || next.isEmpty()) {
+      log.info(PREFIX + "End of chain after User(id={})", event.getUserId());
       return;
     }
-    eventProducer.accept(
-        List.of(new AnalysisApiKeyCheckTriggered(next.getFirst(), next.subList(1, next.size()))));
+    try {
+      eventProducer.accept(
+          List.of(new AnalysisApiKeyCheckTriggered(next.getFirst(), next.subList(1, next.size()))));
+    } catch (RuntimeException e) {
+      log.error(
+          FAILURE_PREFIX + "Unable to trigger next check User(id={}), {} users left unchecked",
+          next.getFirst(),
+          next.size(),
+          e);
+      throw e;
+    }
   }
 
   private void check(String userId) {
@@ -56,7 +70,7 @@ public class AnalysisApiKeyCheckTriggeredService implements Consumer<AnalysisApi
             PREFIX + "User(id={}) analysis key(id={}) is known by geo-jobs", userId, key.getId());
       } else {
         log.error(
-            PREFIX + "User(id={}) analysis key(id={}) is NOT recognized by geo-jobs",
+            FAILURE_PREFIX + "User(id={}) analysis key(id={}) is NOT recognized by geo-jobs",
             userId,
             key.getId());
       }

@@ -12,7 +12,6 @@ import lombok.*;
 public class AnalysisApiKeyCheckTriggered extends PojaEvent {
   private String userId;
 
-  // users still to check, one at a time, each event emitting the next to avoid HTTP 429
   private List<String> nextUserIds;
 
   public AnalysisApiKeyCheckTriggered(String userId) {

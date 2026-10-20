@@ -78,10 +78,6 @@ public class AnalysisApiKeyApi {
     return response.getBody();
   }
 
-  /**
-   * geo-jobs answers 403 to an unknown or revoked key; /usage is open to every role, so any other
-   * 4xx (e.g. a validation error) still means the key was authenticated.
-   */
   public boolean isRecognized(String apiKey) {
     var headers = new HttpHeaders();
     headers.add(AUTHORIZATION_HEADER, apiKey);

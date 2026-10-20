@@ -4,6 +4,7 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.AnalysisApiKeyCheckTriggered;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.user.analysis.AnalysisApiKeyApi;
 import java.util.List;
 import java.util.function.Consumer;
@@ -20,6 +21,7 @@ public class AnalysisApiKeyCheckTriggeredService implements Consumer<AnalysisApi
   private final UserAnalysisApiKeyRepository userAnalysisApiKeyRepository;
   private final AnalysisApiKeyApi analysisApiKeyApi;
   private final EventProducer eventProducer;
+  private final UserRepository userRepository;
 
   @Override
   public void accept(AnalysisApiKeyCheckTriggered event) {
@@ -36,18 +38,27 @@ public class AnalysisApiKeyCheckTriggeredService implements Consumer<AnalysisApi
 
   private void triggerNext(AnalysisApiKeyCheckTriggered event) {
     var next = event.getNextUserIds();
-    if (next == null || next.isEmpty()) {
+    var offset = event.getNextChunkOffset();
+    if (next != null && !next.isEmpty()) {
+      send(new AnalysisApiKeyCheckTriggered(next.getFirst(), next.subList(1, next.size()), offset));
+    } else if (offset != null) {
+      var ids = userRepository.findAllIds();
+      if (offset < ids.size()) {
+        send(AnalysisApiKeyCheckTriggered.ofChunk(ids, offset));
+      }
+    } else {
       log.info(PREFIX + "End of chain after User(id={})", event.getUserId());
-      return;
     }
+  }
+
+  private void send(AnalysisApiKeyCheckTriggered next) {
     try {
-      eventProducer.accept(
-          List.of(new AnalysisApiKeyCheckTriggered(next.getFirst(), next.subList(1, next.size()))));
+      eventProducer.accept(List.of(next));
     } catch (RuntimeException e) {
       log.error(
           FAILURE_PREFIX + "Unable to trigger next check User(id={}), {} users left unchecked",
-          next.getFirst(),
-          next.size(),
+          next.getUserId(),
+          next.getNextUserIds().size() + 1,
           e);
       throw e;
     }

@@ -46,4 +46,7 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
   List<HUser> findAllByPromoCodeId(String promoCodeId);
 
   long countByPromoCodeId(String promoCodeId);
+
+  @Query("select u.id from HUser u order by u.id")
+  List<String> findAllIds();
 }

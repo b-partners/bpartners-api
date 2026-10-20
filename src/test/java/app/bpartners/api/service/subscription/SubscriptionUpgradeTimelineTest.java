@@ -27,7 +27,8 @@ class SubscriptionUpgradeTimelineTest {
   @Test
   void expires_a_quote_at_the_end_of_the_day_in_paris() {
     assertEquals(
-        Instant.parse("2026-10-12T22:00:00Z"), subject.quoteExpirationOf(LocalDate.of(2026, 10, 12)));
+        Instant.parse("2026-10-12T22:00:00Z"),
+        subject.quoteExpirationOf(LocalDate.of(2026, 10, 12)));
   }
 
   @Test

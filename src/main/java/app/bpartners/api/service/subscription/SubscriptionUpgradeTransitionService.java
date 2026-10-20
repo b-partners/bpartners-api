@@ -44,7 +44,10 @@ public class SubscriptionUpgradeTransitionService {
         .map(
             upgrade ->
                 upgradeRepository.save(
-                    upgrade.toBuilder().confirmationDatetime(Instant.now()).status(PROCESSING).build()));
+                    upgrade.toBuilder()
+                        .confirmationDatetime(Instant.now())
+                        .status(PROCESSING)
+                        .build()));
   }
 
   @Transactional

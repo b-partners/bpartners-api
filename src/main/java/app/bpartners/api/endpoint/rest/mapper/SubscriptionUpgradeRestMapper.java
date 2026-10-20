@@ -42,7 +42,9 @@ public class SubscriptionUpgradeRestMapper {
 
   private SubscriptionUpgradeCredit creditToRest(UserSubscriptionUpgrade upgrade) {
     var creditLines =
-        upgrade.getLines().stream().filter(line -> line.getKind() == UpgradeLineKind.CREDIT).toList();
+        upgrade.getLines().stream()
+            .filter(line -> line.getKind() == UpgradeLineKind.CREDIT)
+            .toList();
     if (upgrade.getPaidAmountInCentsWithVat() == null
         || upgrade.getCreditedInCentsWithVat() == null
         || creditLines.isEmpty()) {

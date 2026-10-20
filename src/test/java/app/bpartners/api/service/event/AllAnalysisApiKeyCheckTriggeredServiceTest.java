@@ -9,6 +9,7 @@ import app.bpartners.api.endpoint.event.model.AnalysisApiKeyCheckTriggered;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.UserRepository;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 class AllAnalysisApiKeyCheckTriggeredServiceTest {
@@ -32,6 +33,25 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
             List.of(
                 new AnalysisApiKeyCheckTriggered(
                     users.get(0).getId(), List.of(users.get(1).getId()))));
+  }
+
+  @Test
+  void accept_splits_users_into_chains() {
+    var size = AllAnalysisApiKeyCheckTriggeredService.CHAIN_SIZE;
+    var users =
+        IntStream.range(0, size + 1)
+            .mapToObj(i -> new User().toBuilder().id("u" + i).build())
+            .toList();
+    when(userRepository.findAll()).thenReturn(users);
+
+    subject.accept(new AllAnalysisApiKeyCheckTriggered());
+
+    var ids = users.stream().map(User::getId).toList();
+    verify(eventProducer)
+        .accept(
+            List.of(
+                new AnalysisApiKeyCheckTriggered("u0", ids.subList(1, size)),
+                new AnalysisApiKeyCheckTriggered("u" + size, List.of())));
   }
 
   @Test

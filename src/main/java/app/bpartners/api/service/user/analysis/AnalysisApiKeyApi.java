@@ -3,6 +3,7 @@ package app.bpartners.api.service.user.analysis;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.service.user.analysis.ConsumerType.INSURANCE;
 import static org.springframework.http.HttpMethod.DELETE;
+import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 
 import app.bpartners.api.model.User;
@@ -16,6 +17,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -31,6 +33,7 @@ public class AnalysisApiKeyApi {
       List.of(); // deprecated
   private static final String AUTHORIZATION_HEADER = "x-api-key";
   private static final String API_KEY_API_PATH = "/api/keys";
+  private static final String USAGE_PATH = "/usage";
 
   private final String geoJobsBaseUrl;
   private final String geoJobsAdminApiKey;
@@ -73,6 +76,18 @@ public class AnalysisApiKeyApi {
     }
 
     return response.getBody();
+  }
+
+  public boolean isRecognized(String apiKey) {
+    var headers = new HttpHeaders();
+    headers.add(AUTHORIZATION_HEADER, apiKey);
+    try {
+      restTemplate.exchange(
+          geoJobsBaseUrl + USAGE_PATH, GET, new HttpEntity<>(headers), String.class);
+      return true;
+    } catch (HttpClientErrorException e) {
+      return e.getStatusCode().value() != 403;
+    }
   }
 
   public RevokedAnalysisApiKey requestAnalysisApiKeyRevocation(String apiKeyToRevoke) {

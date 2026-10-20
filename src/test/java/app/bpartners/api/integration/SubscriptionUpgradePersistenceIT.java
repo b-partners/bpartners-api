@@ -225,8 +225,7 @@ class SubscriptionUpgradePersistenceIT extends MockedThirdParties {
     entityManager.clear();
 
     assertNotNull(confirmed.orElseThrow().getConfirmationDatetime());
-    assertEquals(
-        PROCESSING, upgradeRepository.findById(quote.getId()).orElseThrow().getStatus());
+    assertEquals(PROCESSING, upgradeRepository.findById(quote.getId()).orElseThrow().getStatus());
   }
 
   @Test

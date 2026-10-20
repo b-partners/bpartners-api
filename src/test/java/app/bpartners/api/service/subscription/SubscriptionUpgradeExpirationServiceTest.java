@@ -112,7 +112,10 @@ class SubscriptionUpgradeExpirationServiceTest {
 
   @Test
   void expires_a_quote_past_its_deadline() {
-    var quote = upgrade("quote_id", PENDING, 0).toBuilder().quoteExpirationDatetime(Instant.now().minusSeconds(60)).build();
+    var quote =
+        upgrade("quote_id", PENDING, 0).toBuilder()
+            .quoteExpirationDatetime(Instant.now().minusSeconds(60))
+            .build();
     when(transitionService.expireQuote("quote_id")).thenReturn(true);
 
     assertTrue(subject.expireQuoteIfOverdue(quote));
@@ -120,8 +123,14 @@ class SubscriptionUpgradeExpirationServiceTest {
 
   @Test
   void leaves_a_quote_inside_its_validity_or_an_upgrade_that_is_not_pending() {
-    var valid = upgrade("quote_id", PENDING, 0).toBuilder().quoteExpirationDatetime(Instant.now().plusSeconds(600)).build();
-    var paid = upgrade("paid_id", PAID, 0).toBuilder().quoteExpirationDatetime(Instant.now().minusSeconds(60)).build();
+    var valid =
+        upgrade("quote_id", PENDING, 0).toBuilder()
+            .quoteExpirationDatetime(Instant.now().plusSeconds(600))
+            .build();
+    var paid =
+        upgrade("paid_id", PAID, 0).toBuilder()
+            .quoteExpirationDatetime(Instant.now().minusSeconds(60))
+            .build();
 
     assertFalse(subject.expireQuoteIfOverdue(valid));
     assertFalse(subject.expireQuoteIfOverdue(paid));

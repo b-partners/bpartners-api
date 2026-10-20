@@ -35,8 +35,8 @@ import app.bpartners.api.model.subscription.BillingInterval;
 import app.bpartners.api.model.subscription.Subscription;
 import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
-import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.model.subscription.UpgradeLineKind;
+import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.model.subscription.UserSubscriptionUpgrade;
 import app.bpartners.api.model.subscription.UserSubscriptionUpgradeLine;
 import app.bpartners.api.repository.UserRepository;
@@ -498,7 +498,9 @@ class SubscriptionUpgradeServiceTest {
         quote.getLines().stream()
             .map(UserSubscriptionUpgradeLine::getAmountInCentsWithVat)
             .toList());
-    assertEquals(LocalDate.of(2026, 10, 13).atStartOfDay(PARIS).toInstant(), quote.getQuoteExpirationDatetime());
+    assertEquals(
+        LocalDate.of(2026, 10, 13).atStartOfDay(PARIS).toInstant(),
+        quote.getQuoteExpirationDatetime());
     assertEquals(OLD_STRIPE_SUBSCRIPTION_ID, quote.getOldStripeSubscriptionId());
     assertEquals(6_000L, quote.getPaidAmountInCentsWithVat());
     assertEquals(LocalDate.of(2026, 10, 1), quote.getPaidPeriodStartDate());
@@ -650,8 +652,7 @@ class SubscriptionUpgradeServiceTest {
   void refuses_a_user_without_stripe_customer() {
     var userWithoutStripe = User.builder().id(USER_ID).build();
 
-    assertThrows(
-        BadRequestException.class, () -> upgrade(userWithoutStripe, "pro_id", null));
+    assertThrows(BadRequestException.class, () -> upgrade(userWithoutStripe, "pro_id", null));
 
     verifyNoInteractions(stripeUpgradeService);
   }

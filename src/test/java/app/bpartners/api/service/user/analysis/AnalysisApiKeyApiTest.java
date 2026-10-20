@@ -14,7 +14,9 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 class AnalysisApiKeyApiTest {
@@ -116,5 +118,35 @@ class AnalysisApiKeyApiTest {
                       && apiKeyToRevoke.equals(body.keyValue());
                 }),
             any(ParameterizedTypeReference.class));
+  }
+
+  @Test
+  void key_accepted_by_geo_jobs_is_recognized() {
+    when(restTemplate.exchange(
+            eq(ANALYSIS_API_BASE_URL + "/usage"),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(String.class)))
+        .thenReturn(ResponseEntity.ok("{}"));
+
+    assertTrue(subject.isRecognized("key"));
+  }
+
+  @Test
+  void key_rejected_with_403_is_not_recognized() {
+    when(restTemplate.exchange(
+            any(String.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
+
+    assertFalse(subject.isRecognized("key"));
+  }
+
+  @Test
+  void other_client_error_still_means_key_was_authenticated() {
+    when(restTemplate.exchange(
+            any(String.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+
+    assertTrue(subject.isRecognized("key"));
   }
 }

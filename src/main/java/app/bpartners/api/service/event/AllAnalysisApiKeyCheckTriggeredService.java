@@ -9,12 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AllAnalysisApiKeyCheckTriggeredService
     implements Consumer<AllAnalysisApiKeyCheckTriggered> {
+  private static final String PREFIX = "[AAKC] ";
+  private static final String FAILURE_PREFIX = "[AAKC F] ";
   // ids are ~40 bytes each, 1000 per chain keeps events far below the 256KB EventBridge/SQS limit
   static final int CHAIN_SIZE = 1000;
   private final UserRepository userRepository;
@@ -22,7 +26,15 @@ public class AllAnalysisApiKeyCheckTriggeredService
 
   @Override
   public void accept(AllAnalysisApiKeyCheckTriggered event) {
-    List<String> userIds = userRepository.findAll().stream().map(User::getId).toList();
+    log.info(PREFIX + "AllAnalysisApiKeyCheckTriggered received");
+    List<String> userIds;
+    try {
+      userIds = userRepository.findAll().stream().map(User::getId).toList();
+    } catch (RuntimeException e) {
+      log.error(FAILURE_PREFIX + "Unable to list users to check", e);
+      throw e;
+    }
+    log.info(PREFIX + "{} users will be checked", userIds.size());
     if (userIds.isEmpty()) {
       return;
     }
@@ -33,6 +45,17 @@ public class AllAnalysisApiKeyCheckTriggeredService
       events.add(
           new AnalysisApiKeyCheckTriggered(chain.getFirst(), chain.subList(1, chain.size())));
     }
-    eventProducer.accept(events);
+
+    try {
+      eventProducer.accept(events);
+    } catch (RuntimeException e) {
+      log.error(
+          FAILURE_PREFIX + "Unable to send {} AnalysisApiKeyCheckTriggered chains ({} users)",
+          events.size(),
+          userIds.size(),
+          e);
+      throw e;
+    }
+    log.info(PREFIX + "{} AnalysisApiKeyCheckTriggered chains sent", events.size());
   }
 }

@@ -48,8 +48,9 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
   void accept_rethrows_when_listing_users_fails() {
     when(userRepository.findAll()).thenThrow(new RuntimeException("db down"));
 
-    assertThrows(
-        RuntimeException.class, () -> subject.accept(new AllAnalysisApiKeyCheckTriggered()));
+    var event = new AllAnalysisApiKeyCheckTriggered();
+
+    assertThrows(RuntimeException.class, () -> subject.accept(event));
     verifyNoInteractions(eventProducer);
   }
 
@@ -58,7 +59,8 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
     when(userRepository.findAll()).thenReturn(List.of(new User().toBuilder().id("a").build()));
     doThrow(new RuntimeException("too big")).when(eventProducer).accept(any());
 
-    assertThrows(
-        RuntimeException.class, () -> subject.accept(new AllAnalysisApiKeyCheckTriggered()));
+    var event = new AllAnalysisApiKeyCheckTriggered();
+
+    assertThrows(RuntimeException.class, () -> subject.accept(event));
   }
 }

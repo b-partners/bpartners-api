@@ -64,9 +64,9 @@ class AnalysisApiKeyCheckTriggeredServiceTest {
   void accept_rethrows_when_triggering_next_fails() {
     doThrow(new RuntimeException("sqs down")).when(eventProducer).accept(any());
 
-    assertThrows(
-        RuntimeException.class,
-        () -> subject.accept(new AnalysisApiKeyCheckTriggered("a", List.of("b"))));
+    var event = new AnalysisApiKeyCheckTriggered("a", List.of("b"));
+
+    assertThrows(RuntimeException.class, () -> subject.accept(event));
   }
 
   @Test

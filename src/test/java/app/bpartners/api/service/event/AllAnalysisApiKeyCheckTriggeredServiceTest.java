@@ -1,15 +1,14 @@
 package app.bpartners.api.service.event;
 
-import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.AllAnalysisApiKeyCheckTriggered;
 import app.bpartners.api.endpoint.event.model.AnalysisApiKeyCheckTriggered;
-import app.bpartners.api.model.User;
 import app.bpartners.api.repository.UserRepository;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 class AllAnalysisApiKeyCheckTriggeredServiceTest {
@@ -20,24 +19,28 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
 
   @Test
   void accept_starts_the_chain_with_first_user() {
-    var users =
-        List.of(
-            new User().toBuilder().id(randomUUID().toString()).build(),
-            new User().toBuilder().id(randomUUID().toString()).build());
-    when(userRepository.findAll()).thenReturn(users);
+    when(userRepository.findAllIds()).thenReturn(List.of("a", "b"));
+
+    subject.accept(new AllAnalysisApiKeyCheckTriggered());
+
+    verify(eventProducer).accept(List.of(new AnalysisApiKeyCheckTriggered("a", List.of("b"))));
+  }
+
+  @Test
+  void accept_sends_only_first_chunk_with_offset_of_next() {
+    var size = AnalysisApiKeyCheckTriggered.CHUNK_SIZE;
+    var ids = IntStream.range(0, size + 1).mapToObj(i -> "u" + i).toList();
+    when(userRepository.findAllIds()).thenReturn(ids);
 
     subject.accept(new AllAnalysisApiKeyCheckTriggered());
 
     verify(eventProducer)
-        .accept(
-            List.of(
-                new AnalysisApiKeyCheckTriggered(
-                    users.get(0).getId(), List.of(users.get(1).getId()))));
+        .accept(List.of(new AnalysisApiKeyCheckTriggered("u0", ids.subList(1, size), size)));
   }
 
   @Test
   void accept_without_users_sends_nothing() {
-    when(userRepository.findAll()).thenReturn(List.of());
+    when(userRepository.findAllIds()).thenReturn(List.of());
 
     subject.accept(new AllAnalysisApiKeyCheckTriggered());
 
@@ -46,8 +49,7 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
 
   @Test
   void accept_rethrows_when_listing_users_fails() {
-    when(userRepository.findAll()).thenThrow(new RuntimeException("db down"));
-
+    when(userRepository.findAllIds()).thenThrow(new RuntimeException("db down"));
     var event = new AllAnalysisApiKeyCheckTriggered();
 
     assertThrows(RuntimeException.class, () -> subject.accept(event));
@@ -56,9 +58,8 @@ class AllAnalysisApiKeyCheckTriggeredServiceTest {
 
   @Test
   void accept_rethrows_when_first_send_fails() {
-    when(userRepository.findAll()).thenReturn(List.of(new User().toBuilder().id("a").build()));
+    when(userRepository.findAllIds()).thenReturn(List.of("a"));
     doThrow(new RuntimeException("too big")).when(eventProducer).accept(any());
-
     var event = new AllAnalysisApiKeyCheckTriggered();
 
     assertThrows(RuntimeException.class, () -> subject.accept(event));

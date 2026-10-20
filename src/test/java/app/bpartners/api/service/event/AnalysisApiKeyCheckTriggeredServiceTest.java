@@ -7,16 +7,19 @@ import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.AnalysisApiKeyCheckTriggered;
 import app.bpartners.api.model.UserAnalysisApiKey;
 import app.bpartners.api.repository.UserAnalysisApiKeyRepository;
+import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.user.analysis.AnalysisApiKeyApi;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 class AnalysisApiKeyCheckTriggeredServiceTest {
   UserAnalysisApiKeyRepository repository = mock();
   AnalysisApiKeyApi api = mock();
   EventProducer eventProducer = mock();
+  UserRepository userRepository = mock();
   AnalysisApiKeyCheckTriggeredService subject =
-      new AnalysisApiKeyCheckTriggeredService(repository, api, eventProducer);
+      new AnalysisApiKeyCheckTriggeredService(repository, api, eventProducer, userRepository);
 
   @Test
   void accept_checks_only_enabled_keys() {
@@ -72,6 +75,44 @@ class AnalysisApiKeyCheckTriggeredServiceTest {
   @Test
   void accept_with_null_next_user_ids_ends_chain() {
     subject.accept(new AnalysisApiKeyCheckTriggered("a", null));
+
+    verifyNoInteractions(eventProducer);
+  }
+
+  @Test
+  void accept_at_chunk_end_triggers_next_chunk_from_offset() {
+    var ids = IntStream.range(0, 2500).mapToObj(i -> "u" + i).toList();
+    when(userRepository.findAllIds()).thenReturn(ids);
+
+    subject.accept(new AnalysisApiKeyCheckTriggered("u999", List.of(), 1000));
+
+    verify(eventProducer)
+        .accept(List.of(new AnalysisApiKeyCheckTriggered("u1000", ids.subList(1001, 2000), 2000)));
+  }
+
+  @Test
+  void accept_last_chunk_has_no_next_offset() {
+    var ids = IntStream.range(0, 1500).mapToObj(i -> "u" + i).toList();
+    when(userRepository.findAllIds()).thenReturn(ids);
+
+    subject.accept(new AnalysisApiKeyCheckTriggered("u999", List.of(), 1000));
+
+    verify(eventProducer)
+        .accept(List.of(new AnalysisApiKeyCheckTriggered("u1000", ids.subList(1001, 1500), null)));
+  }
+
+  @Test
+  void accept_keeps_offset_while_chaining_inside_chunk() {
+    subject.accept(new AnalysisApiKeyCheckTriggered("a", List.of("b"), 1000));
+
+    verify(eventProducer).accept(List.of(new AnalysisApiKeyCheckTriggered("b", List.of(), 1000)));
+  }
+
+  @Test
+  void accept_with_offset_past_the_end_sends_nothing() {
+    when(userRepository.findAllIds()).thenReturn(List.of("a"));
+
+    subject.accept(new AnalysisApiKeyCheckTriggered("a", List.of(), 1000));
 
     verifyNoInteractions(eventProducer);
   }

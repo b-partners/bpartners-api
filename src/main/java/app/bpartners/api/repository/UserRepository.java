@@ -14,6 +14,8 @@ public interface UserRepository {
 
   List<User> findAll();
 
+  List<String> findAllIds();
+
   Long countUsersByStatus(EnableStatus status);
 
   List<User> findAllByCriteria(HashMap<String, Object> criteria);

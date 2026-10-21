@@ -12,9 +12,9 @@ import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.ImageCompressor;
 import app.bpartners.api.service.annotation.model.Drawer;
+import app.bpartners.api.service.annotation.model.GroupedByKey;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.annotation.model.custompage.CustomPage;
@@ -62,11 +62,7 @@ public class ExportAnnotationContextFactory {
     context.setVariable("mainImage", mainImageUri);
     context.setVariable("conf", conf);
     context.setVariable(
-        "pages",
-        groupByFirstPage(
-            ExportAreaPictureAnnotationPDFGenerator.GroupedByKey.from(annotation.getAnnotations()),
-            3,
-            3));
+        "pages", groupByFirstPage(GroupedByKey.from(annotation.getAnnotations()), 3, 3));
     context.setVariable("subImagesPages", groupByFirstPage(subImagesUris, 3, 3));
 
     if (annotation.getLlm() != null) {

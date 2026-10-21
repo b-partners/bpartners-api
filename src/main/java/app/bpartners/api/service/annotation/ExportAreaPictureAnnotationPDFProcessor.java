@@ -70,13 +70,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
                 ? globalImage3D
                 : imageDownloader.downloadImageBytes(exportAnnotation.getGlobalImage3DUrl())
             : null;
-    return process(
-        user,
-        exportAnnotation,
-        downloadedImage == null ? null : downloadedImage.image(),
-        downloadedImage == null ? 0 : downloadedImage.trueWidth(),
-        downloadedImage == null ? 0 : downloadedImage.trueHeight(),
-        resolvedGlobalImage3D);
+    return process(user, exportAnnotation, conf, downloadedImage, resolvedGlobalImage3D);
   }
 
   public byte[] process(
@@ -85,28 +79,30 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       BufferedImage downloadedImage,
       byte[] globalImage3D)
       throws IOException {
-    return process(
-        user,
-        exportAnnotation,
-        downloadedImage,
-        downloadedImage == null ? 0 : downloadedImage.getWidth(),
-        downloadedImage == null ? 0 : downloadedImage.getHeight(),
-        globalImage3D);
+    var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
+    var image =
+        downloadedImage == null
+            ? null
+            : new ImageDownloader.DownloadedImage(
+                downloadedImage, downloadedImage.getWidth(), downloadedImage.getHeight());
+    return process(user, exportAnnotation, conf, image, globalImage3D);
   }
 
   private byte[] process(
       User user,
       ExportAreaPictureAnnotation exportAnnotation,
-      BufferedImage downloadedImage,
-      int trueWidth,
-      int trueHeight,
+      ExportAreaPictureAnnotationConf conf,
+      ImageDownloader.DownloadedImage downloadedImage,
       byte[] globalImage3D)
       throws IOException {
-    var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
     BufferedImage compressedImage =
-        downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage);
+        downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage.image());
     var annotationRescale =
-        adjustAnnotation(exportAnnotation, trueWidth, trueHeight, compressedImage);
+        adjustAnnotation(
+            exportAnnotation,
+            downloadedImage == null ? 0 : downloadedImage.trueWidth(),
+            downloadedImage == null ? 0 : downloadedImage.trueHeight(),
+            compressedImage);
     Pair<String, List<String>> annotationImages =
         generateAnnotationImages(
             exportAnnotation,

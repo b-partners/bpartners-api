@@ -1,14 +1,14 @@
 package app.bpartners.api.service.annotation.model;
 
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public record GroupedByKey(String key, List<ExportAreaPictureAnnotationInstance> instances) {
   public static final String KEY_LABEL = "key";
@@ -35,19 +35,12 @@ public record GroupedByKey(String key, List<ExportAreaPictureAnnotationInstance>
   }
 
   public static List<GroupedByKey> from(List<ExportAreaPictureAnnotationInstance> instances) {
-    Map<String, List<ExportAreaPictureAnnotationInstance>> grouped = new LinkedHashMap<>();
-
-    for (var instance : instances) {
-      String key = getKey(instance);
-      grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(instance);
-    }
-
-    List<GroupedByKey> result = new ArrayList<>();
-    for (var entry : grouped.entrySet()) {
-      result.add(new GroupedByKey(entry.getKey(), entry.getValue()));
-    }
-
-    return result;
+    return instances.stream()
+        .collect(groupingBy(GroupedByKey::getKey, LinkedHashMap::new, toList()))
+        .entrySet()
+        .stream()
+        .map(entry -> new GroupedByKey(entry.getKey(), entry.getValue()))
+        .toList();
   }
 
   public static String getKey(ExportAreaPictureAnnotationInstance instance) {

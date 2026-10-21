@@ -66,9 +66,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
             : null;
     byte[] resolvedGlobalImage3D =
         conf.isShowAnnotation3dPages() && exportAnnotation.get3d() != null
-            ? globalImage3D != null
-                ? globalImage3D
-                : imageDownloader.downloadImageBytes(exportAnnotation.getGlobalImage3DUrl())
+            ? resolveGlobalImage3D(globalImage3D, exportAnnotation.getGlobalImage3DUrl())
             : null;
     return process(user, exportAnnotation, conf, downloadedImage, resolvedGlobalImage3D);
   }
@@ -86,6 +84,13 @@ public class ExportAreaPictureAnnotationPDFProcessor {
             : new ImageDownloader.DownloadedImage(
                 downloadedImage, downloadedImage.getWidth(), downloadedImage.getHeight());
     return process(user, exportAnnotation, conf, image, globalImage3D);
+  }
+
+  private byte[] resolveGlobalImage3D(byte[] provided, String url) {
+    if (provided != null) {
+      return provided;
+    }
+    return url == null ? null : imageDownloader.downloadImageBytes(url);
   }
 
   private byte[] process(

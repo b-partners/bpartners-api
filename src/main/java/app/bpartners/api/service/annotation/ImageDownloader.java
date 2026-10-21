@@ -45,9 +45,6 @@ public class ImageDownloader {
   }
 
   public byte[] downloadImageBytes(String imageUrl) {
-    if (imageUrl == null) {
-      return null;
-    }
     try (var inputStream = new URI(imageUrl).toURL().openStream()) {
       return inputStream.readAllBytes();
     } catch (IOException | URISyntaxException e) {

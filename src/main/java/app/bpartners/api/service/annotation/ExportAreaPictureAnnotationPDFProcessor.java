@@ -11,18 +11,13 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.exception.BadRequestException;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator.GroupedByKey;
+import app.bpartners.api.service.annotation.model.GroupedByKey;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,13 +33,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private final FileService fileService;
   private final ImageCompressor imageCompressor;
   private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper;
-
-  // Source photos can be far larger than the ~1180px target ImageCompressor eventually resizes
-  // to; decoding them at full resolution just to immediately throw that resolution away wastes
-  // memory. Cap the decode size, but with enough headroom that quality isn't visibly affected.
-  private static final int MAX_DECODE_DIMENSION = 2500;
-
-  private record DownloadedImage(BufferedImage image, int trueWidth, int trueHeight) {}
+  private final ImageDownloader imageDownloader;
 
   private static ExportAreaPictureAnnotationImageConf mainConf() {
     return new ExportAreaPictureAnnotationImageConf();
@@ -71,23 +60,15 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
       throws IOException {
     var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
-    DownloadedImage downloadedImage =
+    ImageDownloader.DownloadedImage downloadedImage =
         conf.isShowTitlePage() || conf.isShowAnnotationPages()
-            ? downloadImage(exportAnnotation.getImageUrl())
+            ? imageDownloader.downloadImage(exportAnnotation.getImageUrl())
             : null;
     byte[] resolvedGlobalImage3D =
         conf.isShowAnnotation3dPages() && exportAnnotation.get3d() != null
-            ? globalImage3D != null
-                ? globalImage3D
-                : downloadImageBytes(exportAnnotation.getGlobalImage3DUrl())
+            ? resolveGlobalImage3D(globalImage3D, exportAnnotation.getGlobalImage3DUrl())
             : null;
-    return process(
-        user,
-        exportAnnotation,
-        downloadedImage == null ? null : downloadedImage.image(),
-        downloadedImage == null ? 0 : downloadedImage.trueWidth(),
-        downloadedImage == null ? 0 : downloadedImage.trueHeight(),
-        resolvedGlobalImage3D);
+    return process(user, exportAnnotation, conf, downloadedImage, resolvedGlobalImage3D);
   }
 
   public byte[] process(
@@ -96,28 +77,37 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       BufferedImage downloadedImage,
       byte[] globalImage3D)
       throws IOException {
-    return process(
-        user,
-        exportAnnotation,
-        downloadedImage,
-        downloadedImage == null ? 0 : downloadedImage.getWidth(),
-        downloadedImage == null ? 0 : downloadedImage.getHeight(),
-        globalImage3D);
+    var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
+    var image =
+        downloadedImage == null
+            ? null
+            : new ImageDownloader.DownloadedImage(
+                downloadedImage, downloadedImage.getWidth(), downloadedImage.getHeight());
+    return process(user, exportAnnotation, conf, image, globalImage3D);
+  }
+
+  private byte[] resolveGlobalImage3D(byte[] provided, String url) {
+    if (provided != null) {
+      return provided;
+    }
+    return url == null ? null : imageDownloader.downloadImageBytes(url);
   }
 
   private byte[] process(
       User user,
       ExportAreaPictureAnnotation exportAnnotation,
-      BufferedImage downloadedImage,
-      int trueWidth,
-      int trueHeight,
+      ExportAreaPictureAnnotationConf conf,
+      ImageDownloader.DownloadedImage downloadedImage,
       byte[] globalImage3D)
       throws IOException {
-    var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
     BufferedImage compressedImage =
-        downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage);
+        downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage.image());
     var annotationRescale =
-        adjustAnnotation(exportAnnotation, trueWidth, trueHeight, compressedImage);
+        adjustAnnotation(
+            exportAnnotation,
+            downloadedImage == null ? 0 : downloadedImage.trueWidth(),
+            downloadedImage == null ? 0 : downloadedImage.trueHeight(),
+            compressedImage);
     Pair<String, List<String>> annotationImages =
         generateAnnotationImages(
             exportAnnotation,
@@ -206,42 +196,5 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       List<ExportAreaPictureAnnotationInstance> annotations) {
     var generatedImage = exportAreaPictureAnnotationImageGenerator.apply(image, conf, annotations);
     return base64(generatedImage);
-  }
-
-  private static DownloadedImage downloadImage(String imageUrl) {
-    try (var inputStream = new URI(imageUrl).toURL().openStream();
-        var imageInputStream = ImageIO.createImageInputStream(inputStream)) {
-      var readers = ImageIO.getImageReaders(imageInputStream);
-      if (!readers.hasNext()) {
-        throw new BadRequestException("Cannot read the image from the url");
-      }
-      ImageReader reader = readers.next();
-      try {
-        reader.setInput(imageInputStream, true, true);
-        int trueWidth = reader.getWidth(0);
-        int trueHeight = reader.getHeight(0);
-        var readParam = reader.getDefaultReadParam();
-        int subsampling = Math.max(1, Math.max(trueWidth, trueHeight) / MAX_DECODE_DIMENSION);
-        if (subsampling > 1) {
-          readParam.setSourceSubsampling(subsampling, subsampling, 0, 0);
-        }
-        return new DownloadedImage(reader.read(0, readParam), trueWidth, trueHeight);
-      } finally {
-        reader.dispose();
-      }
-    } catch (IOException | URISyntaxException e) {
-      throw new BadRequestException("Cannot read the image from the url");
-    }
-  }
-
-  private static byte[] downloadImageBytes(String imageUrl) {
-    if (imageUrl == null) {
-      return null;
-    }
-    try (var inputStream = new URI(imageUrl).toURL().openStream()) {
-      return inputStream.readAllBytes();
-    } catch (IOException | URISyntaxException e) {
-      throw new BadRequestException("Cannot read the image from the url");
-    }
   }
 }

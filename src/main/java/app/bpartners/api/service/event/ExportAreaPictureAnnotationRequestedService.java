@@ -55,8 +55,8 @@ public class ExportAreaPictureAnnotationRequestedService
       var fileUrl = s3Service.presignURL(ATTACHMENT, fileId, userId, ONE_HOUR_IN_SECONDS);
 
       notifySuccess(user.getEmail(), subject, address, fileUrl);
-    } catch (IOException e) {
-      log.error(e.getMessage());
+    } catch (Exception e) {
+      log.error("Export rapport d'analyse failed for address {}", address, e);
       notifyError(user.getEmail(), subject, address);
     }
   }

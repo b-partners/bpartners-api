@@ -43,7 +43,8 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
           exportAreaPictureAnnotationImage3DGeneratorMock,
           fileServiceMock,
           imageCompressor,
-          areaPictureAnnotationConfRestMapper);
+          areaPictureAnnotationConfRestMapper,
+          new app.bpartners.api.service.annotation.ImageDownloader());
 
   @BeforeAll
   static void createMockImage() throws IOException {

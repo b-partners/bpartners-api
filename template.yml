@@ -97,8 +97,7 @@ Resources:
       FunctionUrlConfig:
         AuthType: NONE
         InvokeMode: BUFFERED
-        
-      ReservedConcurrentExecutions: 20
+      ReservedConcurrentExecutions: 200
 
   WorkerFunction1:
     Type: AWS::Serverless::Function
@@ -113,7 +112,7 @@ Resources:
           Properties:
             Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/1/sqs/mailbox-queue-arn}}'
             BatchSize: 1
-      ReservedConcurrentExecutions: 30
+      ReservedConcurrentExecutions: 100
 
   WorkerFunction2:
     Type: AWS::Serverless::Function
@@ -128,7 +127,7 @@ Resources:
           Properties:
             Queue: !Sub '{{resolve:ssm:/bpartners/${Env}/2/sqs/mailbox-queue-arn}}'
             BatchSize: 1
-      ReservedConcurrentExecutions: 30
+      ReservedConcurrentExecutions: 100
 
   ApiUrlSSM:
     Type: AWS::SSM::Parameter

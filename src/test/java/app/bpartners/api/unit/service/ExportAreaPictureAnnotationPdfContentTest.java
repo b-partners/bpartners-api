@@ -12,7 +12,7 @@ import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
-import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.util.List;
@@ -45,9 +45,9 @@ class ExportAreaPictureAnnotationPdfContentTest {
                             export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
                             export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150))));
 
-    Pair<String, List<String>> annotationImages = new Pair<>("main", List.of());
-    Pair<String, List<String>> annotation3DImages =
-        new Pair<>("main3d", List.of("pan1_img", "pan2_img"));
+    RenderedImages annotationImages = new RenderedImages("main", List.of());
+    RenderedImages annotation3DImages =
+        new RenderedImages("main3d", List.of("pan1_img", "pan2_img"));
 
     Context context =
         app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
@@ -92,7 +92,7 @@ class ExportAreaPictureAnnotationPdfContentTest {
             user(),
             "logo",
             annotation,
-            new Pair<>("main", List.of()),
+            new RenderedImages("main", List.of()),
             null,
             fileService,
             image3DGenerator,

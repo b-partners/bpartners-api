@@ -11,7 +11,7 @@ import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationCon
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
-import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.awt.image.BufferedImage;
@@ -64,7 +64,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
                     user(),
                     logoImage,
                     exportAreaPictureAnnotation,
-                    new Pair<>(annotationImage, subImages),
+                    new RenderedImages(annotationImage, subImages),
                     null));
     assertNotNull(file);
   }

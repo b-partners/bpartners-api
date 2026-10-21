@@ -7,14 +7,13 @@ import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationCon
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
-import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
 import lombok.SneakyThrows;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -47,8 +46,8 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       User user,
       String logoBase64,
       ExportAreaPictureAnnotation annotation,
-      Pair<String, List<String>> annotationImages,
-      Pair<String, List<String>> annotation3DImages) {
+      RenderedImages annotationImages,
+      RenderedImages annotation3DImages) {
 
     var html =
         parseDataToString(user, logoBase64, annotation, annotationImages, annotation3DImages);
@@ -84,8 +83,8 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       User user,
       String logoBase64,
       ExportAreaPictureAnnotation annotation,
-      Pair<String, List<String>> annotationImages,
-      Pair<String, List<String>> annotation3DImages) {
+      RenderedImages annotationImages,
+      RenderedImages annotation3DImages) {
     var templateEngine = templateResolverEngine.getTemplateEngine();
 
     var exportAreaPictureAnnotation3DGenerator = new ExportAreaPictureAnnotationImage3DGenerator();

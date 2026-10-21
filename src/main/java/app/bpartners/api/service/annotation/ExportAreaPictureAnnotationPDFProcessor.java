@@ -12,7 +12,7 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.model.GroupedByKey;
-import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -108,7 +108,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
             downloadedImage == null ? 0 : downloadedImage.trueWidth(),
             downloadedImage == null ? 0 : downloadedImage.trueHeight(),
             compressedImage);
-    Pair<String, List<String>> annotationImages =
+    RenderedImages annotationImages =
         generateAnnotationImages(
             exportAnnotation,
             compressedImage,
@@ -129,7 +129,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
                   List.of());
     }
 
-    Pair<String, List<String>> annotation3DImages = null;
+    RenderedImages annotation3DImages = null;
 
     if (conf.isShowAnnotation3dPages()
         && exportAnnotation.get3d() != null
@@ -143,7 +143,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
         user, logoBase64, exportAnnotation, annotationImages, annotation3DImages);
   }
 
-  private Pair<String, List<String>> generateAnnotation3DImages(
+  private RenderedImages generateAnnotation3DImages(
       ExportAreaPictureAnnotation3D annotation3D, byte[] globalImage3D) {
     var mainImage3D = base64Image(globalImage3D);
     var subImages3D = new ArrayList<String>();
@@ -155,10 +155,10 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       subImages3D.add(base64(compressedPanImage));
     }
 
-    return new Pair<>(mainImage3D, subImages3D);
+    return new RenderedImages(mainImage3D, subImages3D);
   }
 
-  private Pair<String, List<String>> generateAnnotationImages(
+  private RenderedImages generateAnnotationImages(
       ExportAreaPictureAnnotation annotation,
       BufferedImage baseImage,
       double rescaleXValue,
@@ -166,7 +166,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       boolean needsMainImage,
       boolean needsSubImages) {
     if (baseImage == null || (!needsMainImage && !needsSubImages)) {
-      return new Pair<>(null, List.of());
+      return new RenderedImages(null, List.of());
     }
 
     String mainImage =
@@ -187,7 +187,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       }
     }
 
-    return new Pair<>(mainImage, subImages);
+    return new RenderedImages(mainImage, subImages);
   }
 
   private String generateAnnotationImageAsBase64(

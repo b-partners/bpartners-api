@@ -15,7 +15,7 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGe
 import app.bpartners.api.service.annotation.ImageCompressor;
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.GroupedByKey;
-import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.annotation.model.custompage.CustomPage;
 import app.bpartners.api.service.annotation.model.custompage.PageSection;
@@ -39,8 +39,8 @@ public class ExportAnnotationContextFactory {
       User user,
       String logoBase64,
       ExportAreaPictureAnnotation annotation,
-      Pair<String, List<String>> annotationImages,
-      Pair<String, List<String>> annotation3DImages,
+      RenderedImages annotationImages,
+      RenderedImages annotation3DImages,
       FileService fileService,
       ExportAreaPictureAnnotationImage3DGenerator annotationImage3DGenerator,
       AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
@@ -49,8 +49,8 @@ public class ExportAnnotationContextFactory {
     var conf = areaPictureAnnotationConfRestMapper.toDomain(annotation.getConf());
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
     var mainImageUri =
-        annotationImages.first() == null ? null : base64ToUri(annotationImages.first());
-    var subImagesUris = annotationImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
+        annotationImages.main() == null ? null : base64ToUri(annotationImages.main());
+    var subImagesUris = annotationImages.subs().stream().map(ImageUriUtils::base64ToUri).toList();
     var defaultAccountHolder = user.getDefaultHolder();
     var userAddress = defaultAccountHolder != null ? defaultAccountHolder.getAddress() : "-";
 
@@ -272,7 +272,7 @@ public class ExportAnnotationContextFactory {
   static void configureAnnotation3DContext(
       Context context,
       ExportAreaPictureAnnotation3D annotation3D,
-      Pair<String, List<String>> annotation3DImages,
+      RenderedImages annotation3DImages,
       FileService fileService,
       boolean showAnnotation3dPages) {
     var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
@@ -287,9 +287,9 @@ public class ExportAnnotationContextFactory {
       return;
     }
 
-    var mainImage3DUri = base64ToUri(annotation3DImages.first());
+    var mainImage3DUri = base64ToUri(annotation3DImages.main());
     var subImages3DUris =
-        annotation3DImages.second().stream().map(ImageUriUtils::base64ToUri).toList();
+        annotation3DImages.subs().stream().map(ImageUriUtils::base64ToUri).toList();
     var pansScreenshootImages3D = getPansImages3DContext(annotation3D, fileService);
 
     context.setVariable("mainImage3D", mainImage3DUri);

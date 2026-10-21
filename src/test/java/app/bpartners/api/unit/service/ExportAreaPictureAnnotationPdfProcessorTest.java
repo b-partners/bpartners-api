@@ -12,6 +12,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.*;
 import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -96,7 +97,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     subject.process(user(), exportAreaPictureAnnotationMock);
 
     verify(exportAreaPictureAnnotationPDFGenerator)
-        .apply(any(), isNull(), any(), eq(new Pair<>(null, List.of())), isNull());
+        .apply(any(), isNull(), any(), eq(new RenderedImages(null, List.of())), isNull());
   }
 
   @Test

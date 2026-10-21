@@ -331,58 +331,7 @@ public class ExportAnnotationContextFactory {
 
   static List<String> getPansImages3DContext(
       ExportAreaPictureAnnotation3D annotation3D, FileService fileService) {
-    var exportAreaPictureAnnotationImage3DGenerator =
-        new ExportAreaPictureAnnotationImage3DGenerator();
-    var imageCompressor = new ImageCompressor();
-
-    var overallPansTopView =
-        exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getPans());
-    return annotation3D.getPans().stream()
-        .map(
-            pan -> {
-              var image =
-                  exportAreaPictureAnnotationImage3DGenerator
-                      .generateBaseImageWithHighlightedPanWithSlopeBoundary(
-                          overallPansTopView.second(), overallPansTopView.first(), pan);
-              try {
-                if (pan.getImageUri() == null || pan.getImageUri().isBlank()) {
-                  log.warn(
-                      "No image provided for pan: {}. Falling back to top view image.",
-                      pan.getName());
-                  return bufferedImageToUri(image);
-                }
-                var fileInfo = fileService.findById(pan.getImageUri());
-                if (fileInfo == null) {
-                  log.warn(
-                      "Can't get image file for pan: {} from file id {}. Falling back to top view"
-                          + " image.",
-                      pan.getName(),
-                      pan.getImageUri());
-                  return bufferedImageToUri(image);
-                }
-                var fileFromFileService =
-                    fileService.downloadFile(
-                        FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
-
-                if (fileFromFileService == null) {
-                  log.warn(
-                      "Can't get image file for pan: {}. Falling back to top view image.",
-                      pan.getName());
-                  return bufferedImageToUri(image);
-                }
-
-                image = ImageIO.read(fileFromFileService);
-              } catch (IOException e) {
-                log.error(
-                    "Error while downloading pan image: {}. Falling back to top view image.",
-                    pan.getName(),
-                    e);
-              }
-
-              image = imageCompressor.compressImage(image);
-              return bufferedImageToUri(image);
-            })
-        .toList();
+    return getItemsImages3DContext(annotation3D.getPans(), "pan", fileService);
   }
 
   static void configureAnnotationFacade3DContext(
@@ -402,33 +351,41 @@ public class ExportAnnotationContextFactory {
     if (annotation3D.getFacades() == null) {
       return List.of();
     }
+    return getItemsImages3DContext(annotation3D.getFacades(), "facade", fileService);
+  }
+
+  // Pans and facades share the same rendering: a highlighted top view, replaced by the item's own
+  // uploaded image when there is one.
+  private static List<String> getItemsImages3DContext(
+      List<ExportAreaPictureAnnotation3DPan> items, String itemLabel, FileService fileService) {
     var exportAreaPictureAnnotationImage3DGenerator =
         new ExportAreaPictureAnnotationImage3DGenerator();
     var imageCompressor = new ImageCompressor();
 
-    var overallFacadesTopView =
-        exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(annotation3D.getFacades());
-    return annotation3D.getFacades().stream()
+    var overallTopView = exportAreaPictureAnnotationImage3DGenerator.generateBaseImage(items);
+    return items.stream()
         .map(
-            facade -> {
+            item -> {
               var image =
                   exportAreaPictureAnnotationImage3DGenerator
                       .generateBaseImageWithHighlightedPanWithSlopeBoundary(
-                          overallFacadesTopView.second(), overallFacadesTopView.first(), facade);
+                          overallTopView.second(), overallTopView.first(), item);
               try {
-                if (facade.getImageUri() == null || facade.getImageUri().isBlank()) {
+                if (item.getImageUri() == null || item.getImageUri().isBlank()) {
                   log.warn(
-                      "No image provided for facade: {}. Falling back to top view image.",
-                      facade.getName());
+                      "No image provided for {}: {}. Falling back to top view image.",
+                      itemLabel,
+                      item.getName());
                   return bufferedImageToUri(image);
                 }
-                var fileInfo = fileService.findById(facade.getImageUri());
+                var fileInfo = fileService.findById(item.getImageUri());
                 if (fileInfo == null) {
                   log.warn(
-                      "Can't get image file for facade: {} from file id {}. Falling back to top"
-                          + " view image.",
-                      facade.getName(),
-                      facade.getImageUri());
+                      "Can't get image file for {}: {} from file id {}. Falling back to top view"
+                          + " image.",
+                      itemLabel,
+                      item.getName(),
+                      item.getImageUri());
                   return bufferedImageToUri(image);
                 }
                 var fileFromFileService =
@@ -437,16 +394,18 @@ public class ExportAnnotationContextFactory {
 
                 if (fileFromFileService == null) {
                   log.warn(
-                      "Can't get image file for facade: {}. Falling back to top view image.",
-                      facade.getName());
+                      "Can't get image file for {}: {}. Falling back to top view image.",
+                      itemLabel,
+                      item.getName());
                   return bufferedImageToUri(image);
                 }
 
                 image = ImageIO.read(fileFromFileService);
               } catch (IOException e) {
                 log.error(
-                    "Error while downloading facade image: {}. Falling back to top view image.",
-                    facade.getName(),
+                    "Error while downloading {} image: {}. Falling back to top view image.",
+                    itemLabel,
+                    item.getName(),
                     e);
               }
 

@@ -71,7 +71,8 @@ class ExportAreaPictureAnnotationPdfLayoutTest {
             image3DGenerator,
             fileService,
             imageCompressor,
-            areaPictureAnnotationConfRestMapper);
+            areaPictureAnnotationConfRestMapper,
+            new app.bpartners.api.service.annotation.ImageDownloader());
   }
 
   @Test

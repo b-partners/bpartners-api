@@ -61,7 +61,8 @@ public class SubscriptionUpgradeQuoteCalculator {
     var lines = new ArrayList<UpgradeQuoteLine>();
     lines.addAll(roundedLines(NEW_CHARGE, toProduct, toInterval, newLines, newCharge));
     lines.addAll(roundedLines(CREDIT, fromProduct, fromInterval, creditLines, credited));
-    var paid = paidPeriodOf(fromProduct, fromInterval, upgradeDate, oldCoverageEnd, chargedFirstMonth);
+    var paid =
+        paidPeriodOf(fromProduct, fromInterval, upgradeDate, oldCoverageEnd, chargedFirstMonth);
     return new UpgradeQuote(
         newCharge,
         credited,
@@ -115,7 +116,9 @@ public class SubscriptionUpgradeQuoteCalculator {
     var monthPrice =
         monthlyPriceInCentsWithVat(fromProduct, MONTHLY).setScale(0, HALF_UP).longValueExact();
     return new PaidPeriod(
-        upgradeDate.withDayOfMonth(1), upgradeDate.withDayOfMonth(upgradeDate.lengthOfMonth()), monthPrice);
+        upgradeDate.withDayOfMonth(1),
+        upgradeDate.withDayOfMonth(upgradeDate.lengthOfMonth()),
+        monthPrice);
   }
 
   private record RawLine(

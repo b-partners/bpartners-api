@@ -3,6 +3,7 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
 import static app.bpartners.api.service.subscription.StripeCreditPurchaseService.CREDIT_PURCHASE_ID_METADATA_KEY;
 import static app.bpartners.api.service.subscription.StripeSetupService.isPaymentMethodReplacement;
+import static app.bpartners.api.service.subscription.StripeUpgradeService.UPGRADE_METADATA_KEY;
 
 import app.bpartners.api.endpoint.event.EventProducer;
 import app.bpartners.api.endpoint.event.model.SubscriptionPaymentFailureNotificationRequested;
@@ -54,6 +55,7 @@ public class StripeWebhookService {
   private final SubscriptionPaymentService subscriptionPaymentService;
   private final UserSubscriptionProductService userSubscriptionProductService;
   private final CreditGrantService creditGrantService;
+  private final SubscriptionUpgradeCompletionService subscriptionUpgradeCompletionService;
 
   public void handleEvent(String payload, String signatureHeader) {
     var event = verifySignature(payload, signatureHeader);
@@ -86,6 +88,11 @@ public class StripeWebhookService {
       return;
     }
     requestDefaultPaymentMethodBackfill(invoice.getCustomer(), INVOICE_PAID, invoice.getId());
+    var upgradeIdentifier = upgradeIdentifierOf(invoice);
+    if (upgradeIdentifier != null) {
+      subscriptionUpgradeCompletionService.completeAfterPayment(upgradeIdentifier, invoice.getId());
+      return;
+    }
     var invoiceSubscriptionIdentifier = invoice.getSubscription();
     subscriptionService.cancelScheduledSubscriptionAfterInvoicePaid(invoiceSubscriptionIdentifier);
     if (isEssentialSubscriptionInvoice(invoice)) {
@@ -95,6 +102,11 @@ public class StripeWebhookService {
     subscriptionPaymentService
         .recordPaidStripeInvoice(invoice)
         .ifPresent(this::grantIncludedCreditsForPaidSubscription);
+  }
+
+  private static String upgradeIdentifierOf(Invoice invoice) {
+    var metadata = invoice.getMetadata();
+    return metadata == null ? null : metadata.get(UPGRADE_METADATA_KEY);
   }
 
   private void handleInvoicePaymentFailed(Event event) {

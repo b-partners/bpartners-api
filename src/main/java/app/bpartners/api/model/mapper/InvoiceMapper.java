@@ -83,6 +83,7 @@ public class InvoiceMapper {
             .status(entity.getStatus())
             .archiveStatus(entity.getArchiveStatus())
             .toBeRelaunched(entity.isToBeRelaunched())
+            .creditNote(Boolean.TRUE.equals(entity.getCreditNote()))
             .createdAt(entity.getCreatedDatetime())
             .metadata(toMetadataMap(entity.getMetadataString()))
             // total without vat and without discount
@@ -171,6 +172,7 @@ public class InvoiceMapper {
         .archiveStatus(
             domain.getArchiveStatus() == null ? ArchiveStatus.ENABLED : domain.getArchiveStatus())
         .toBeRelaunched(domain.isToBeRelaunched())
+        .creditNote(domain.isCreditNote())
         .customer(
             domain.getCustomer() == null ? null : customerMapper.toEntity(domain.getCustomer()))
         .customerEmail(domain.getCustomerEmail())

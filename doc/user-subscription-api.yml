@@ -399,6 +399,186 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  upgradeUserSubscription:
+    post:
+      tags:
+        - User Subscription
+      summary: Start the upgrade of the active subscription of the user to a higher plan
+      description: |
+        Opens an upgrade session towards a plan of a higher tier, never to a lower one. Nothing is
+        charged nor switched at this stage: the upgrade is returned with the PENDING status and the
+        detail of the proration, so the customer can review it. currentSubscriptionCredit gives the
+        amount already paid for the current subscription and the paid but not consumed period,
+        which becomes a reduction on the payment of the new subscription.
+        prorationAmountInCentsWithVat is the amount that will be charged, that is
+        newChargeInCentsWithVat minus that reduction (never below zero), and lines gives the
+        periods behind both figures.
+
+
+        The session stays valid until quoteExpirationDatetime (end of the day in Paris time), then
+        moves to EXPIRED. Starting a new upgrade abandons the PENDING one of the user. Continue the
+        session with PUT /users/{uId}/subscriptionUpgrades/{upgradeId}, either to confirm or to
+        abandon it.
+
+
+        Starting an upgrade is refused during a free trial, with unpaid invoices, while another
+        upgrade is being processed or waits for its payment, or without an active subscription, and
+        switching from a yearly to a monthly billing interval is not implemented yet.
+      operationId: upgradeUserSubscription
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubscriptionUpgrade'
+      responses:
+        200:
+          description: The upgrade that has been performed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionUpgrade'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        409:
+          $ref: './api.yml#/components/responses/409'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+        501:
+          description: The requested switch of billing interval is not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: './api.yml#/components/schemas/Exception'
+    get:
+      tags:
+        - User Subscription
+      summary: List the subscription upgrades of the user
+      description: |
+        Lists the upgrades of the user, the most recent first. An upgrade with the PENDING status is
+        in progress, or was interrupted after the amount was charged and awaits a manual recovery.
+        An upgrade with the AWAITING_PAYMENT status waits for the customer to pay on paymentUrl.
+        Both block any new upgrade. Filter on the status to know whether an upgrade is in
+        progress.
+      operationId: getUserSubscriptionUpgrades
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/SubscriptionUpgradeStatus'
+          required: false
+          description: Keep only the upgrades having this status
+      responses:
+        200:
+          description: The upgrades of the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionUpgrade'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  updateUserSubscriptionUpgrade:
+    put:
+      tags:
+        - User Subscription
+      summary: Confirm or abandon a subscription upgrade
+      description: |
+        Continues an upgrade session started with POST /users/{uId}/subscriptionUpgrade.
+
+
+        CONFIRMED applies to a PENDING upgrade before its quoteExpirationDatetime. The commitment is
+        renewed on 12 new months starting now and the previous commitment is flagged as expired. The
+        prorationAmountInCentsWithVat is charged once on the default payment method of the user and
+        recurring payments start on the first day of the month following the switch. A credit note
+        cancelling the remaining coverage of the previous subscription and a new invoice covering
+        the renewed commitment are issued. The returned upgrade has the PAID status once switched.
+        When the amount cannot be debited without the cardholder, for instance when the bank
+        requires an authentication or declines the card, it has the AWAITING_PAYMENT status and
+        nothing is switched yet. The customer must be redirected to paymentUrl to pay before
+        paymentExpirationDatetime. The upgrade then completes on its own and its status moves to
+        PAID. Past paymentExpirationDatetime, the payment is cancelled and the status moves to
+        EXPIRED, the previous subscription being untouched. When the charge itself fails, the
+        upgrade stays PENDING and can be confirmed again.
+
+
+        ABANDONED applies to a PENDING upgrade before its quoteExpirationDatetime, or to an
+        AWAITING_PAYMENT one before its paymentExpirationDatetime, in which case the pending
+        payment is cancelled. The previous subscription is left untouched and a new upgrade can be
+        started.
+
+
+        An upgrade that is not in a state accepting the requested status (already processed, paid,
+        expired or abandoned), as well as a subscription changed since the upgrade was started,
+        returns a 409. The same applies when the customer paid at the very last moment: the upgrade
+        then completes as paid.
+      operationId: updateUserSubscriptionUpgrade
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: User identifier
+        - in: path
+          name: upgradeId
+          schema:
+            type: string
+          required: true
+          description: Subscription upgrade identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSubscriptionUpgrade'
+      responses:
+        200:
+          description: The upgrade with its resulting status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionUpgrade'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        409:
+          $ref: './api.yml#/components/responses/409'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   startUserSubscriptionTrial:
     post:
       tags:
@@ -623,6 +803,193 @@ components:
             precedence over subscriptionType, enabling data-driven plan selection.
         billingInterval:
           $ref: '#/components/schemas/BillingInterval'
+    CreateSubscriptionUpgrade:
+      type: object
+      required:
+        - subscriptionPlanIdentifier
+      properties:
+        subscriptionPlanIdentifier:
+          type: string
+          description: Identifier of the plan to upgrade to (see GET /subscriptionPlans).
+        billingInterval:
+          $ref: '#/components/schemas/BillingInterval'
+    UpdateSubscriptionUpgradeStatus:
+      type: string
+      description: |
+        CONFIRMED charges the amount and switches the subscription. ABANDONED cancels the upgrade.
+      enum:
+        - CONFIRMED
+        - ABANDONED
+    UpdateSubscriptionUpgrade:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/UpdateSubscriptionUpgradeStatus'
+    SubscriptionUpgradeStatus:
+      type: string
+      description: |
+        PENDING was started and awaits the confirmation of the customer, nothing is charged yet.
+        PROCESSING is being switched, or interrupted after the payment and awaiting a manual
+        recovery. AWAITING_PAYMENT waits for the customer to pay on the payment page. PAID is
+        switched. INVOICED is switched and its credit note and invoice are issued. EXPIRED was not
+        confirmed or paid before its deadline and is cancelled. ABANDONED was cancelled by the
+        customer before its deadline.
+      enum:
+        - PENDING
+        - PROCESSING
+        - AWAITING_PAYMENT
+        - PAID
+        - INVOICED
+        - EXPIRED
+        - ABANDONED
+    SubscriptionUpgradeCredit:
+      type: object
+      description: |
+        What the customer already paid for the current subscription and the part of it that is not
+        consumed. The unconsumed part (remainingAmountInCentsWithVat) is deducted from the payment
+        of the new subscription: prorationAmountInCentsWithVat is newChargeInCentsWithVat minus
+        this amount, never below zero. It is based on the price of the current plan, or on the
+        amount actually invoiced for a first partial month.
+        Null on the upgrade when it was started before the detail was kept.
+      properties:
+        paidPeriodStart:
+          type: string
+          format: date
+          description: First day of the period already paid for the current subscription.
+        paidPeriodEnd:
+          type: string
+          format: date
+          description: Last day of the period already paid, inclusive.
+        paidAmountInCentsWithVat:
+          type: integer
+          format: int64
+          description: Amount paid for the whole paid period, VAT included.
+        consumedAmountInCentsWithVat:
+          type: integer
+          format: int64
+          description: Part of the paid amount already consumed until the switch.
+        remainingPeriodStart:
+          type: string
+          format: date
+          description: First day of the paid but not consumed period, that is the switch day.
+        remainingPeriodEnd:
+          type: string
+          format: date
+          description: Last day of the paid but not consumed period, inclusive.
+        remainingAmountInCentsWithVat:
+          type: integer
+          format: int64
+          description: |
+            Part of the paid amount covering the remaining period, that becomes a reduction on the
+            payment of the new subscription.
+    SubscriptionUpgradeLineKind:
+      type: string
+      enum:
+        - NEW_CHARGE
+        - CREDIT
+    SubscriptionUpgradeLine:
+      type: object
+      description: |
+        One period behind the proration. NEW_CHARGE lines are what the new plan costs from now,
+        CREDIT lines are the unused remainder of the previous plan that is deducted.
+        amountInCentsWithVat is the share of referencePriceInCentsWithVat, the price of
+        referencePeriodDays days, that applies to days days.
+      properties:
+        kind:
+          $ref: '#/components/schemas/SubscriptionUpgradeLineKind'
+        subscriptionPlanIdentifier:
+          type: string
+        billingInterval:
+          $ref: '#/components/schemas/BillingInterval'
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+          description: Last day of the period, inclusive.
+        days:
+          type: integer
+          description: Number of days of the period.
+        referencePeriodDays:
+          type: integer
+          description: Number of days covered by referencePriceInCentsWithVat.
+        referencePriceInCentsWithVat:
+          type: integer
+          format: int64
+        amountInCentsWithVat:
+          type: integer
+          format: int64
+    SubscriptionUpgrade:
+      type: object
+      properties:
+        id:
+          type: string
+        fromSubscriptionPlanIdentifier:
+          type: string
+        toSubscriptionPlanIdentifier:
+          type: string
+        fromBillingInterval:
+          $ref: '#/components/schemas/BillingInterval'
+        toBillingInterval:
+          $ref: '#/components/schemas/BillingInterval'
+        upgradeDatetime:
+          type: string
+          format: date-time
+        newCommitmentEnd:
+          type: string
+          format: date-time
+        prorationAmountInCentsWithVat:
+          type: integer
+          format: int64
+          description: |
+            Amount charged once on confirmation, VAT included. It is newChargeInCentsWithVat minus
+            creditedInCentsWithVat, never below zero.
+        newChargeInCentsWithVat:
+          type: integer
+          format: int64
+          nullable: true
+          description: |
+            Sum of the NEW_CHARGE lines, VAT included. Null for an upgrade started before the
+            detail was kept.
+        creditedInCentsWithVat:
+          type: integer
+          format: int64
+          nullable: true
+          description: |
+            Sum of the CREDIT lines, VAT included. Null for an upgrade started before the detail
+            was kept.
+        currentSubscriptionCredit:
+          $ref: '#/components/schemas/SubscriptionUpgradeCredit'
+        lines:
+          type: array
+          description: Secondary detail of the periods behind newCharge and credited amounts.
+          items:
+            $ref: '#/components/schemas/SubscriptionUpgradeLine'
+        quoteExpirationDatetime:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            Deadline to confirm or abandon the upgrade, past which it expires. Only set when the
+            status is PENDING.
+        status:
+          $ref: '#/components/schemas/SubscriptionUpgradeStatus'
+        paymentUrl:
+          type: string
+          nullable: true
+          description: |
+            Payment page the customer must be redirected to. Only set when the status is
+            AWAITING_PAYMENT.
+        paymentExpirationDatetime:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            Deadline to pay on paymentUrl, past which the upgrade expires. Only set when the status
+            is AWAITING_PAYMENT.
     BillingInterval:
       type: string
       enum:
@@ -771,6 +1138,15 @@ components:
         - $ref: '#/components/schemas/SubscriptionPlanDescription'
         - type: object
           properties:
+            tierRank:
+              type: integer
+              nullable: true
+              description: |
+                Position of the plan in the tier ladder, a higher value being a higher tier. An
+                upgrade (see POST /users/{uId}/subscriptionUpgrade) is only accepted towards a plan
+                with a strictly higher `tierRank` than the current one, or towards the same
+                `tierRank` when switching from monthly to yearly billing. Any other target is
+                refused, so the UI can disable it. Null when the plan can not be upgraded to.
             includedCreditsPerBillingPeriod:
               type: integer
               format: int64

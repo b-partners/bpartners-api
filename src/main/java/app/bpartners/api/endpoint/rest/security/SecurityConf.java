@@ -193,6 +193,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(
+                            GET, "/users/*/subscriptionUpgrade", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
                             GET, "/users/*/subscriptionTrialEligibility", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
@@ -225,6 +229,14 @@ public class SecurityConf {
                     .requestMatchers(
                         new SelfUserMatcher(
                             POST, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            POST, "/users/*/subscriptionUpgrade", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/subscriptionUpgrades/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(

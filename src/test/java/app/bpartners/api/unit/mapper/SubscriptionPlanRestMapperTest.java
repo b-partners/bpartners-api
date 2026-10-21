@@ -146,6 +146,20 @@ class SubscriptionPlanRestMapperTest {
   }
 
   @Test
+  void to_rest_maps_tier_rank() {
+    var domain = subscriptionProduct(COMMITMENT).toBuilder().tierRank(2).build();
+
+    assertEquals(2, subject.toRest(domain).getTierRank());
+  }
+
+  @Test
+  void to_rest_maps_null_tier_rank() {
+    var domain = subscriptionProduct(COMMITMENT);
+
+    assertNull(subject.toRest(domain).getTierRank());
+  }
+
+  @Test
   void to_rest_maps_is_most_chosen() {
     var domain = subscriptionProduct(COMMITMENT, true);
 

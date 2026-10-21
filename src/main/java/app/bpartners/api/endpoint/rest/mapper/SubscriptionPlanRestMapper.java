@@ -35,6 +35,7 @@ public class SubscriptionPlanRestMapper {
         .priceInCentsWithVat(domain.getPriceInCentsWithVat())
         .priceInCentsWithoutVat(domain.getPriceInCentsWithoutVat())
         .vatPercent(domain.getVatPercent())
+        .tierRank(domain.getTierRank())
         .includedCreditsPerBillingPeriod(domain.includedCreditsPerBillingPeriodOrDefault())
         .creditCostPerAnalysis(domain.creditCostPerAnalysisOrDefault())
         .freeUsageThreshold(domain.getFreeUsageThreshold())

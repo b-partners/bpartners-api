@@ -20,7 +20,7 @@ import app.bpartners.api.model.FileInfo;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
-import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.annotation.model.custompage.SectionPriority;
 import app.bpartners.api.service.file.FileService;
 import ch.qos.logback.classic.Level;
@@ -206,7 +206,7 @@ public class ExportAnnotationContextFactoryTest {
         List.of(
             export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
             export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150)));
-    Pair<String, List<String>> images = new Pair<>("main3d", List.of("a", "b"));
+    RenderedImages images = new RenderedImages("main3d", List.of("a", "b"));
 
     ExportAnnotationContextFactory.configureAnnotation3DContext(
         context, annotation3D, images, fileService, true);
@@ -263,7 +263,7 @@ public class ExportAnnotationContextFactoryTest {
     Context context = new Context();
     ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
     annotation3D.setPans(List.of(export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150)));
-    Pair<String, List<String>> images = new Pair<>("main3d", List.of("a"));
+    RenderedImages images = new RenderedImages("main3d", List.of("a"));
 
     ExportAnnotationContextFactory.configureAnnotation3DContext(
         context, annotation3D, images, fileService, false);
@@ -284,8 +284,8 @@ public class ExportAnnotationContextFactoryTest {
     ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
     annotation.setAddress("Paris");
     annotation.setAnnotations(List.of());
-    Pair<String, List<String>> images = new Pair<>("main", List.of("sub1", "sub2"));
-    Pair<String, List<String>> images3d = new Pair<>("main3d", List.of());
+    RenderedImages images = new RenderedImages("main", List.of("sub1", "sub2"));
+    RenderedImages images3d = new RenderedImages("main3d", List.of());
 
     Context context =
         ExportAnnotationContextFactory.createContext(
@@ -310,8 +310,8 @@ public class ExportAnnotationContextFactoryTest {
     User user = new User();
     ExportAreaPictureAnnotation annotation = new ExportAreaPictureAnnotation();
     annotation.setAnnotations(List.of());
-    Pair<String, List<String>> images = new Pair<>("main", List.of());
-    Pair<String, List<String>> images3d = new Pair<>("main3d", List.of());
+    RenderedImages images = new RenderedImages("main", List.of());
+    RenderedImages images3d = new RenderedImages("main3d", List.of());
 
     Context context =
         ExportAnnotationContextFactory.createContext(
@@ -340,8 +340,8 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setGlobalRateType("B");
     annotation.setGlobalRateValue(0.7);
     annotation.set3d(annotation3D);
-    Pair<String, List<String>> images = new Pair<>("main", List.of());
-    Pair<String, List<String>> images3d = new Pair<>("main3d", List.of());
+    RenderedImages images = new RenderedImages("main", List.of());
+    RenderedImages images3d = new RenderedImages("main3d", List.of());
 
     Context context =
         ExportAnnotationContextFactory.createContext(
@@ -377,8 +377,8 @@ public class ExportAnnotationContextFactoryTest {
     restPage.setSections(List.of(restSection));
     annotation.setCustomPages(List.of(restPage));
 
-    Pair<String, List<String>> images = new Pair<>("main", List.of());
-    Pair<String, List<String>> images3d = new Pair<>("main3d", List.of());
+    RenderedImages images = new RenderedImages("main", List.of());
+    RenderedImages images3d = new RenderedImages("main3d", List.of());
 
     Context context =
         ExportAnnotationContextFactory.createContext(
@@ -426,8 +426,8 @@ public class ExportAnnotationContextFactoryTest {
             new User(),
             null,
             annotation,
-            new Pair<>("a", List.of()),
-            new Pair<>("b", List.of()),
+            new RenderedImages("a", List.of()),
+            new RenderedImages("b", List.of()),
             fileService,
             image3DGenerator,
             areaPictureAnnotationConfRestMapper);
@@ -463,8 +463,8 @@ public class ExportAnnotationContextFactoryTest {
             new User(),
             null,
             annotation,
-            new Pair<>("a", List.of()),
-            new Pair<>("b", List.of()),
+            new RenderedImages("a", List.of()),
+            new RenderedImages("b", List.of()),
             fileService,
             image3DGenerator,
             areaPictureAnnotationConfRestMapper);
@@ -504,8 +504,8 @@ public class ExportAnnotationContextFactoryTest {
               new User(),
               null,
               annotation,
-              new Pair<>("a", List.of()),
-              new Pair<>("b", List.of()),
+              new RenderedImages("a", List.of()),
+              new RenderedImages("b", List.of()),
               fileService,
               image3DGenerator,
               areaPictureAnnotationConfRestMapper);
@@ -545,8 +545,8 @@ public class ExportAnnotationContextFactoryTest {
               new User(),
               null,
               annotation,
-              new Pair<>("a", List.of()),
-              new Pair<>("b", List.of()),
+              new RenderedImages("a", List.of()),
+              new RenderedImages("b", List.of()),
               fileService,
               image3DGenerator,
               areaPictureAnnotationConfRestMapper);
@@ -582,8 +582,8 @@ public class ExportAnnotationContextFactoryTest {
               new User(),
               null,
               annotation,
-              new Pair<>("a", List.of()),
-              new Pair<>("b", List.of()),
+              new RenderedImages("a", List.of()),
+              new RenderedImages("b", List.of()),
               fileService,
               image3DGenerator,
               areaPictureAnnotationConfRestMapper);
@@ -616,8 +616,8 @@ public class ExportAnnotationContextFactoryTest {
             new User(),
             null,
             annotation,
-            new Pair<>("a", List.of()),
-            new Pair<>("b", List.of()),
+            new RenderedImages("a", List.of()),
+            new RenderedImages("b", List.of()),
             fileService,
             image3DGenerator,
             areaPictureAnnotationConfRestMapper);
@@ -649,8 +649,8 @@ public class ExportAnnotationContextFactoryTest {
             new User(),
             null,
             annotation,
-            new Pair<>("a", List.of()),
-            new Pair<>("b", List.of()),
+            new RenderedImages("a", List.of()),
+            new RenderedImages("b", List.of()),
             fileService,
             image3DGenerator,
             areaPictureAnnotationConfRestMapper);
@@ -687,8 +687,8 @@ public class ExportAnnotationContextFactoryTest {
             new User(),
             null,
             annotation,
-            new Pair<>("a", List.of()),
-            new Pair<>("b", List.of()),
+            new RenderedImages("a", List.of()),
+            new RenderedImages("b", List.of()),
             fileService,
             image3DGenerator,
             areaPictureAnnotationConfRestMapper);
@@ -724,8 +724,8 @@ public class ExportAnnotationContextFactoryTest {
             new User(),
             null,
             annotation,
-            new Pair<>("a", List.of()),
-            new Pair<>("b", List.of()),
+            new RenderedImages("a", List.of()),
+            new RenderedImages("b", List.of()),
             fileService,
             image3DGenerator,
             areaPictureAnnotationConfRestMapper);
@@ -752,8 +752,8 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     User user = new User();
-    Pair<String, List<String>> pairA = new Pair<>("a", List.of());
-    Pair<String, List<String>> pairB = new Pair<>("b", List.of());
+    RenderedImages pairA = new RenderedImages("a", List.of());
+    RenderedImages pairB = new RenderedImages("b", List.of());
 
     assertThrows(
         IllegalArgumentException.class,
@@ -831,8 +831,8 @@ public class ExportAnnotationContextFactoryTest {
             new User(),
             null,
             annotation,
-            new Pair<>("a", List.of()),
-            new Pair<>("b", List.of()),
+            new RenderedImages("a", List.of()),
+            new RenderedImages("b", List.of()),
             fileService,
             image3DGenerator,
             areaPictureAnnotationConfRestMapper);
@@ -892,8 +892,8 @@ public class ExportAnnotationContextFactoryTest {
             new User(),
             null,
             annotation,
-            new Pair<>("a", List.of()),
-            new Pair<>("b", List.of()),
+            new RenderedImages("a", List.of()),
+            new RenderedImages("b", List.of()),
             fileService,
             image3DGenerator,
             areaPictureAnnotationConfRestMapper);

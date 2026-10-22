@@ -16,6 +16,7 @@ import app.bpartners.api.service.annotation.ImageCompressor;
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.GroupedByKey;
 import app.bpartners.api.service.annotation.model.RenderedImages;
+import app.bpartners.api.service.annotation.model.ReportSection;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.annotation.model.custompage.CustomPage;
 import app.bpartners.api.service.annotation.model.custompage.PageSection;
@@ -117,29 +118,27 @@ public class ExportAnnotationContextFactory {
     boolean showCustomPages =
         annotation.getCustomPages() != null && !annotation.getCustomPages().isEmpty();
     boolean showLlm = annotation.getLlm() != null && conf.isShowLlmSummary();
-    boolean anySummary = showMeasurement || showPitch || showArea || showOverall;
 
-    context.setVariable(
-        "annotationPagesIsLast", !show3dPages && !anySummary && !showCustomPages && !showLlm);
-    context.setVariable(
-        "pans3DIsLast",
-        show3dPages && !showFacades3D && !anySummary && !showCustomPages && !showLlm);
-    context.setVariable(
-        "facades3DIsLast", showFacades3D && !anySummary && !showCustomPages && !showLlm);
-    context.setVariable(
-        "measurementSummaryIsLast",
-        showMeasurement && !showPitch && !showArea && !showOverall && !showCustomPages && !showLlm);
-    context.setVariable(
-        "pitchSummaryIsLast",
-        showPitch && !showArea && !showOverall && !showCustomPages && !showLlm);
-    context.setVariable(
-        "areaSummaryIsLast", showArea && !showOverall && !showCustomPages && !showLlm);
-    // The per-pan page renders under the same condition as the measures page and always
-    // follows it, so the measures page is never the last one. Marking it as such made
-    // openhtmltopdf keep it with the page after it, emitting a blank page before both.
-    context.setVariable("overallSummaryIsLast", false);
-    context.setVariable("facesSummaryIsLast", showOverall && !showCustomPages && !showLlm);
-    context.setVariable("customPagesIsLast", showCustomPages && !showLlm);
+    // The last page group carries .last-page so no trailing blank page is emitted. Annotation
+    // pages are always listed, whatever the conf, as the title page is never marked last.
+    var enabled = new ArrayList<ReportSection>();
+    enabled.add(ReportSection.ANNOTATIONS);
+    if (show3dPages) enabled.add(ReportSection.PANS_3D);
+    if (showFacades3D) enabled.add(ReportSection.FACADES_3D);
+    if (showMeasurement) enabled.add(ReportSection.MEASUREMENT_SUMMARY);
+    if (showPitch) enabled.add(ReportSection.PITCH_SUMMARY);
+    if (showArea) enabled.add(ReportSection.AREA_SUMMARY);
+    if (showOverall) {
+      // The per-pan page renders under the same condition as the measures page and always
+      // follows it, so the measures page is never the last one. Marking it as such made
+      // openhtmltopdf keep it with the page after it, emitting a blank page before both.
+      enabled.add(ReportSection.OVERALL_SUMMARY);
+      enabled.add(ReportSection.FACES_SUMMARY);
+    }
+    if (showCustomPages) enabled.add(ReportSection.CUSTOM_PAGES);
+    if (showLlm) enabled.add(ReportSection.LLM);
+
+    context.setVariable("lastSection", enabled.getLast());
   }
 
   private static List<CustomPage> mapCustomPages(

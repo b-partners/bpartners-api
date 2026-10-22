@@ -21,6 +21,7 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.RenderedImages;
+import app.bpartners.api.service.annotation.model.ReportSection;
 import app.bpartners.api.service.annotation.model.custompage.SectionPriority;
 import app.bpartners.api.service.file.FileService;
 import ch.qos.logback.classic.Level;
@@ -1077,7 +1078,30 @@ public class ExportAnnotationContextFactoryTest {
 
     // The per-pan page always follows the measures page, so only the former may carry
     // .last-page; marking both made openhtmltopdf emit a blank page before the measures page.
-    assertEquals(false, context.getVariable("overallSummaryIsLast"));
-    assertEquals(true, context.getVariable("facesSummaryIsLast"));
+    assertEquals(ReportSection.FACES_SUMMARY, context.getVariable("lastSection"));
+  }
+
+  @Test
+  void last_section_is_annotations_without_3d() {
+    Context context = new Context();
+
+    ExportAnnotationContextFactory.configureLastSectionContext(
+        context, new ExportAreaPictureAnnotation(), ExportAreaPictureAnnotationConf.DEFAULT);
+
+    assertEquals(ReportSection.ANNOTATIONS, context.getVariable("lastSection"));
+  }
+
+  @Test
+  void last_section_is_llm_when_llm_summary_is_shown() {
+    Context context = new Context();
+    var annotation =
+        new ExportAreaPictureAnnotation()
+            ._3d(new ExportAreaPictureAnnotation3D().pans(List.of()))
+            .llm("summary");
+
+    ExportAnnotationContextFactory.configureLastSectionContext(
+        context, annotation, ExportAreaPictureAnnotationConf.DEFAULT);
+
+    assertEquals(ReportSection.LLM, context.getVariable("lastSection"));
   }
 }

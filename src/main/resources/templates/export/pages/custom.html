@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<section th:fragment="page" th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last and customPagesIsLast} ? ' last-page' : ''">
+<section th:fragment="page" th:each="page, pageStat : ${customPages}" class="page" th:classappend="${pageStat.last and lastSection.name() == 'CUSTOM_PAGES'} ? ' last-page' : ''">
     <h2 class="custom-page-title" th:text="${page.pageTitle}"></h2>
 
     <div th:each="section : ${page.sections}" class="custom-section">

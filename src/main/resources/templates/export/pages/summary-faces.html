@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<section th:fragment="page" class="page" th:classappend="${facesSummaryIsLast} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
+<section th:fragment="page" class="page" th:classappend="${lastSection.name() == 'FACES_SUMMARY'} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
     <h2 class="annotation-information-title">Résumé sur les pans</h2>
     <p class="section-description">Répartition des pentes, calcul de la marge et détail par pan</p>
 

@@ -31,28 +31,11 @@
             </table>
         </div>
 
-        <!-- 4. SPLIT_SECTION (The new Two-Column Layout) -->
-        <div th:case="'SPLIT_SECTION'" class="clearfix" style="width: 100%; display: block;">
-            <!-- Left Column (49% wide) -->
-            <div style="float: left; width: 49%; display: block;">
-                <div th:with="section=${section.leftSection}" th:insert="~{export/pages/custom :: renderChildSection}"></div>
-            </div>
-
-            <!-- Right Column (49% wide) -->
-            <div style="float: right; width: 49%; display: block;">
-                <div th:with="section=${section.rightSection}" th:insert="~{export/pages/custom :: renderChildSection}"></div>
-            </div>
-        </div>
-
-        <div th:case="'THREE_SPLIT_SECTION'" class="clearfix" style="width: 100%; display: block;">
-            <div style="float: left; width: 32%; display: block;">
-                <div th:with="section=${section.leftSection}" th:insert="~{export/pages/custom :: renderChildSection}"></div>
-            </div>
-            <div style="float: left; width: 32%; margin-left: 2%; display: block;">
-                <div th:with="section=${section.middleSection}" th:insert="~{export/pages/custom :: renderChildSection}"></div>
-            </div>
-            <div style="float: right; width: 32%; display: block;">
-                <div th:with="section=${section.rightSection}" th:insert="~{export/pages/custom :: renderChildSection}"></div>
+        <!-- 4. SPLIT_SECTION (side-by-side columns) -->
+        <div th:case="'SPLIT_SECTION'" class="clearfix split-section" th:classappend="'split-' + ${#lists.size(section.columns)}">
+            <div th:each="column, columnStat : ${section.columns}" class="split-column"
+                 th:classappend="${columnStat.first} ? ' split-first' : (${columnStat.last} ? ' split-last' : ' split-middle')">
+                <div th:with="section=${column}" th:insert="~{export/pages/custom :: renderChildSection}"></div>
             </div>
         </div>
     </div>

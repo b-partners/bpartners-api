@@ -186,19 +186,29 @@ public class ExportAnnotationContextFactory {
           .build();
     } else if (restSection
         instanceof app.bpartners.api.endpoint.rest.model.SplitSection splitRestSection) {
-      return new app.bpartners.api.service.annotation.model.custompage.SplitSection(
+      return split(
           priority,
-          mapSection(splitRestSection.getLeftSection(), fileService),
-          mapSection(splitRestSection.getRightSection(), fileService));
+          fileService,
+          splitRestSection.getLeftSection(),
+          splitRestSection.getRightSection());
     } else if (restSection
         instanceof app.bpartners.api.endpoint.rest.model.ThreeSplitSection threeSplitRestSection) {
-      return new app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection(
+      return split(
           priority,
-          mapSection(threeSplitRestSection.getLeftSection(), fileService),
-          mapSection(threeSplitRestSection.getMiddleSection(), fileService),
-          mapSection(threeSplitRestSection.getRightSection(), fileService));
+          fileService,
+          threeSplitRestSection.getLeftSection(),
+          threeSplitRestSection.getMiddleSection(),
+          threeSplitRestSection.getRightSection());
     }
     throw new IllegalArgumentException("Unknown section type: " + restSection.getClass());
+  }
+
+  private static PageSection split(
+      SectionPriority priority,
+      FileService fileService,
+      app.bpartners.api.endpoint.rest.model.PageSection... columns) {
+    return new app.bpartners.api.service.annotation.model.custompage.SplitSection(
+        priority, Arrays.stream(columns).map(column -> mapSection(column, fileService)).toList());
   }
 
   private static String resolveImageSectionUri(

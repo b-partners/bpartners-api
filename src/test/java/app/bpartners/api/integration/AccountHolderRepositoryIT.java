@@ -78,7 +78,8 @@ class AccountHolderRepositoryIT extends MockedThirdParties {
   void other_concerned_email_survives_company_info_update() throws Exception {
     givenOtherConcernedEmail();
 
-    api().updateCompanyInfo(
+    api()
+        .updateCompanyInfo(
             JOE_DOE_USER_ID,
             JOE_DOE_ACCOUNT_ID,
             JOE_DOE_ACCOUNT_HOLDER_ID,
@@ -91,7 +92,8 @@ class AccountHolderRepositoryIT extends MockedThirdParties {
   void other_concerned_email_survives_global_info_update() throws Exception {
     givenOtherConcernedEmail();
 
-    api().updateAccountHolderInfo(
+    api()
+        .updateAccountHolderInfo(
             JOE_DOE_USER_ID,
             JOE_DOE_ACCOUNT_ID,
             JOE_DOE_ACCOUNT_HOLDER_ID,
@@ -115,7 +117,8 @@ class AccountHolderRepositoryIT extends MockedThirdParties {
   void other_concerned_email_survives_feedback_configuration_update() throws Exception {
     givenOtherConcernedEmail();
 
-    api().updateFeedbackConf(
+    api()
+        .updateFeedbackConf(
             JOE_DOE_ID,
             JOE_DOE_ACCOUNT_HOLDER_ID,
             new AccountHolderFeedback().feedbackLink("https://feedback.com"));

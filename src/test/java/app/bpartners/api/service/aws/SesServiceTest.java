@@ -82,8 +82,7 @@ class SesServiceTest {
 
   @Test
   void email_with_invisible_recipient_and_null_concerned_has_no_cc() throws Exception {
-    subject("prod")
-        .sendEmail(RECIPIENT, null, SUBJECT, HTML_BODY, List.of(), INVISIBLE_RECIPIENT);
+    subject("prod").sendEmail(RECIPIENT, null, SUBJECT, HTML_BODY, List.of(), INVISIBLE_RECIPIENT);
 
     var sent = sentMessage();
     assertEquals(RECIPIENT, sent.getRecipients(TO)[0].toString());

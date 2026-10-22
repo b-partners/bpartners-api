@@ -4,6 +4,7 @@ import static javax.mail.Message.RecipientType.BCC;
 import static javax.mail.Message.RecipientType.CC;
 import static javax.mail.Message.RecipientType.TO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,6 +78,27 @@ class SesServiceTest {
     var sent = sentMessage();
     assertEquals(SUBJECT, sent.getSubject());
     assertEquals(CONCERNED, sent.getRecipients(CC)[0].toString());
+  }
+
+  @Test
+  void email_with_invisible_recipient_and_null_concerned_has_no_cc() throws Exception {
+    subject("prod")
+        .sendEmail(RECIPIENT, null, SUBJECT, HTML_BODY, List.of(), INVISIBLE_RECIPIENT);
+
+    var sent = sentMessage();
+    assertEquals(RECIPIENT, sent.getRecipients(TO)[0].toString());
+    assertNull(sent.getRecipients(CC));
+    assertEquals(INVISIBLE_RECIPIENT, sent.getRecipients(BCC)[0].toString());
+  }
+
+  @Test
+  void email_with_invisible_recipient_and_concerned_has_cc() throws Exception {
+    subject("prod")
+        .sendEmail(RECIPIENT, CONCERNED, SUBJECT, HTML_BODY, List.of(), INVISIBLE_RECIPIENT);
+
+    var sent = sentMessage();
+    assertEquals(CONCERNED, sent.getRecipients(CC)[0].toString());
+    assertEquals(INVISIBLE_RECIPIENT, sent.getRecipients(BCC)[0].toString());
   }
 
   private MimeMessage sentMessage() throws Exception {

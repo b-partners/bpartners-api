@@ -5,6 +5,7 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.model.ProspectCreated;
@@ -52,6 +53,7 @@ class ProspectCreatedServiceTest {
     var downloadedFileMock = mock(File.class);
     var fileAttachmentMockContent = new byte[0];
     var accountHolderEmail = randomUUID() + "@birdia.fr";
+    var otherConcernedEmail = randomUUID() + "@concerned.fr";
     var prospectName = "name " + randomUUID();
     var emailBody = randomUUID().toString();
 
@@ -61,6 +63,7 @@ class ProspectCreatedServiceTest {
     when(accountHolderRepositoryMock.findById(prospectMock.getIdHolderOwner()))
         .thenReturn(accountHolderMock);
     when(accountHolderMock.getEmail()).thenReturn(accountHolderEmail);
+    when(accountHolderMock.getOtherConcernedEmail()).thenReturn(otherConcernedEmail);
     when(bucketComponentMock.download(
             String.format(
                 "prospects/%s/notifications/attachments/%s", prospectId, attachmentFileKey),
@@ -70,7 +73,7 @@ class ProspectCreatedServiceTest {
     when(templateResolverEngineMock.parseTemplateResolver(
             eq("prospect_account_holder_notification"), any()))
         .thenReturn(emailBody);
-    doNothing().when(sesServiceMock).sendEmail(any(), any(), any(), any(), any());
+    doNothing().when(sesServiceMock).sendEmail(any(), any(), any(), any(), any(), any());
 
     assertDoesNotThrow(
         () -> subject.accept(new ProspectCreated(prospectMock, attachmentFileKey, updatedAt)));
@@ -79,14 +82,14 @@ class ProspectCreatedServiceTest {
     verify(sesServiceMock)
         .sendEmail(
             eq(accountHolderEmail),
-            eq("contact@birdia.fr"),
+            eq(otherConcernedEmail),
             eq(
                 "[BIRDIA] Notification - Un nouveau prospect \""
                     + prospectName
                     + " \" a besoin de vos services"),
             eq(emailBody),
             attachmentCaptor.capture(),
-            eq("tech@birdia.fr"));
+            eq("contact@birdia.fr"));
     var actualAttachment = (Attachment) attachmentCaptor.getValue().getFirst();
     assertEquals(
         Attachment.builder()
@@ -117,25 +120,59 @@ class ProspectCreatedServiceTest {
     when(accountHolderRepositoryMock.findById(prospectMock.getIdHolderOwner()))
         .thenReturn(accountHolderMock);
     when(accountHolderMock.getEmail()).thenReturn(accountHolderEmail);
+    when(accountHolderMock.getOtherConcernedEmail()).thenReturn(null);
 
     when(fileWriterMock.writeAsByte(downloadedFileMock)).thenReturn(fileAttachmentMockContent);
     when(templateResolverEngineMock.parseTemplateResolver(
             eq("prospect_account_holder_notification"), any()))
         .thenReturn(emailBody);
-    doNothing().when(sesServiceMock).sendEmail(any(), any(), any(), any(), any());
+    doNothing().when(sesServiceMock).sendEmail(any(), any(), any(), any(), any(), any());
 
     assertDoesNotThrow(() -> subject.accept(new ProspectCreated(prospectMock, null, updatedAt)));
 
     verify(sesServiceMock)
         .sendEmail(
             eq(accountHolderEmail),
-            eq("contact@birdia.fr"),
+            isNull(),
             eq(
                 "[BIRDIA] Notification - Un nouveau prospect \""
                     + prospectName
                     + " \" a besoin de vos services"),
             eq(emailBody),
             eq(new ArrayList<>()),
-            eq("tech@birdia.fr"));
+            eq("contact@birdia.fr"));
+  }
+
+  @SneakyThrows
+  @Test
+  void trigger_mail_without_cc_when_other_concerned_email_is_null() {
+    var prospectMock = mock(Prospect.class);
+    var accountHolderMock = mock(AccountHolder.class);
+    var accountHolderEmail = randomUUID() + "@birdia.fr";
+    var prospectName = "name " + randomUUID();
+    var emailBody = randomUUID().toString();
+
+    when(prospectMock.getIdHolderOwner()).thenReturn(randomUUID().toString());
+    when(prospectMock.getId()).thenReturn(randomUUID().toString());
+    when(prospectMock.getName()).thenReturn(prospectName);
+    when(accountHolderRepositoryMock.findById(prospectMock.getIdHolderOwner()))
+        .thenReturn(accountHolderMock);
+    when(accountHolderMock.getEmail()).thenReturn(accountHolderEmail);
+    when(accountHolderMock.getOtherConcernedEmail()).thenReturn(null);
+    when(templateResolverEngineMock.parseTemplateResolver(
+            eq("prospect_account_holder_notification"), any()))
+        .thenReturn(emailBody);
+
+    assertDoesNotThrow(() -> subject.accept(new ProspectCreated(prospectMock, null, now())));
+
+    verify(sesServiceMock)
+        .sendEmail(
+            eq(accountHolderEmail),
+            isNull(),
+            any(),
+            eq(emailBody),
+            eq(new ArrayList<>()),
+            eq("contact@birdia.fr"));
+    verifyNoMoreInteractions(sesServiceMock);
   }
 }

@@ -49,12 +49,12 @@ public class ProspectCreatedService implements Consumer<ProspectCreated> {
       attachments.add(providedAttachment);
     }
     String recipient = accountHolder.getEmail();
-    String cc = "contact@birdia.fr";
+    String cc = accountHolder.getOtherConcernedEmail();
     String subject =
         "[BIRDIA] Notification - Un nouveau prospect \""
             + prospect.getName()
             + " \" a besoin de vos services";
-    String invisibleRecipient = "tech@birdia.fr";
+    String invisibleRecipient = "contact@birdia.fr";
     String body = customHtmlBody(prospect);
 
     log.info("Created prospect notified for accountHolder(id={})", accountHolder.getId());

@@ -28,6 +28,7 @@ import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.BucketUploadComponent;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -35,6 +36,7 @@ import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.mapper.ProspectMapper;
 import app.bpartners.api.model.prospect.Prospect;
+import app.bpartners.api.model.prospect.ProspectAttachmentUpload;
 import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.model.prospect.job.AntiHarmRules;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
@@ -61,6 +63,7 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
@@ -80,6 +83,10 @@ public class ProspectService {
   public static final String PROSPECT_MAIL_TEMPLATE = "prospect_mail";
   public static final int DEFAULT_RATING_PROSPECT_TO_CONVERT = 8;
   public static final int MAX_DISTANCE_LIMIT = 1_000;
+  public static final long MAX_NOTIFICATION_ATTACHMENT_SIZE = 30L * 1024 * 1024;
+  public static final Duration NOTIFICATION_ATTACHMENT_UPLOAD_VALIDITY = Duration.ofMinutes(15);
+  private static final String NOTIFICATION_ATTACHMENT_KEY_FORMAT =
+      "prospects/%s/notifications/attachments/%s";
   private final ProspectRepository repository;
   private final ProspectDataProcesser dataProcesser;
   private final AccountHolderJpaRepository accountHolderJpaRepository;
@@ -96,6 +103,7 @@ public class ProspectService {
   private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
   private final BucketComponent bucketComponent;
   private final FileWriter fileWriter;
+  private final BucketUploadComponent bucketUploadComponent;
 
   private static List<ProspectResult> ratedCustomers(
       List<ProspectResult> prospectResults, Double minRating) {
@@ -273,29 +281,91 @@ public class ProspectService {
             idAccountHolder, nameValue, contactNature, prospectStatus, pageValue, pageSizeValue));
   }
 
-  public Prospect notifyProspect(String idProspect, File fileAttachment) {
-    var prospect = repository.getById(idProspect);
-    if (prospect == null) {
-      throw new NotFoundException("Prospect(id=" + idProspect + ") not found");
+  public ProspectAttachmentUpload createNotificationAttachmentUpload(
+      String idProspect, Long fileSize) {
+    var prospect = getProspectOrThrow(idProspect);
+    if (fileSize == null || fileSize <= 0) {
+      throw new BadRequestException("fileSize must be greater than 0");
+    }
+    if (fileSize > MAX_NOTIFICATION_ATTACHMENT_SIZE) {
+      throw new BadRequestException(
+          "fileSize must not exceed " + MAX_NOTIFICATION_ATTACHMENT_SIZE + " bytes");
+    }
+    var fileKey = randomUUID().toString();
+    var uploadUrl =
+        bucketUploadComponent.presignUpload(
+            notificationAttachmentBucketKey(prospect.getId(), fileKey),
+            fileSize,
+            NOTIFICATION_ATTACHMENT_UPLOAD_VALIDITY);
+    return ProspectAttachmentUpload.builder()
+        .fileKey(fileKey)
+        .uploadUrl(uploadUrl.toString())
+        .expiresAt(Instant.now().plus(NOTIFICATION_ATTACHMENT_UPLOAD_VALIDITY))
+        .build();
+  }
+
+  public Prospect notifyProspect(
+      String idProspect, File fileAttachment, String uploadedAttachmentFileKey) {
+    var prospect = getProspectOrThrow(idProspect);
+    if (fileAttachment != null && uploadedAttachmentFileKey != null) {
+      throw new BadRequestException(
+          "optionalAttachment and attachmentFileKey cannot both be provided");
     }
 
     ProspectCreated.ProspectCreatedBuilder prospectCreatedBuilder =
         ProspectCreated.builder().prospect(prospect).updatedAt(Instant.now());
     if (fileAttachment != null) {
       var prospectAttachmentFileKey = randomUUID().toString();
-      var bucketKey =
-          String.format(
-              "prospects/%s/notifications/attachments/%s",
-              prospect.getId(), prospectAttachmentFileKey);
-
-      bucketComponent.upload(fileAttachment, bucketKey, true);
-
+      bucketComponent.upload(
+          fileAttachment,
+          notificationAttachmentBucketKey(prospect.getId(), prospectAttachmentFileKey),
+          true);
       prospectCreatedBuilder.attachmentFileKey(prospectAttachmentFileKey);
+    } else if (uploadedAttachmentFileKey != null) {
+      checkUploadedAttachment(prospect.getId(), uploadedAttachmentFileKey);
+      prospectCreatedBuilder.attachmentFileKey(uploadedAttachmentFileKey);
     }
 
     eventProducer.accept(List.of(prospectCreatedBuilder.build()));
 
     return prospect;
+  }
+
+  private Prospect getProspectOrThrow(String idProspect) {
+    var prospect = repository.getById(idProspect);
+    if (prospect == null) {
+      throw new NotFoundException("Prospect(id=" + idProspect + ") not found");
+    }
+    return prospect;
+  }
+
+  private void checkUploadedAttachment(String idProspect, String attachmentFileKey) {
+    if (!isCanonicalUuid(attachmentFileKey)) {
+      throw new BadRequestException("Invalid attachmentFileKey " + attachmentFileKey);
+    }
+    var uploadedSize =
+        bucketUploadComponent.contentLength(
+            notificationAttachmentBucketKey(idProspect, attachmentFileKey));
+    if (uploadedSize.isEmpty()) {
+      throw new BadRequestException(
+          "Attachment(key=" + attachmentFileKey + ") has not been uploaded");
+    }
+    if (uploadedSize.getAsLong() > MAX_NOTIFICATION_ATTACHMENT_SIZE) {
+      throw new BadRequestException(
+          "Attachment(key=" + attachmentFileKey + ") exceeds the maximum allowed size");
+    }
+  }
+
+  private static boolean isCanonicalUuid(String value) {
+    try {
+      return UUID.fromString(value).toString().equals(value);
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+  }
+
+  private static String notificationAttachmentBucketKey(String idProspect, String fileKey) {
+    return String.format(NOTIFICATION_ATTACHMENT_KEY_FORMAT, idProspect, fileKey);
   }
 
   @Transactional

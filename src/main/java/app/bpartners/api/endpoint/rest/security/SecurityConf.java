@@ -628,6 +628,12 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountHolderMatcher(
+                            POST,
+                            "/accountHolders/*/prospects/*/notifications/attachmentUploads",
+                            authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfAccountHolderMatcher(
                             POST, "/accountHolders/*/prospects", authResourceProvider))
                     .authenticated()
                     .requestMatchers(

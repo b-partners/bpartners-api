@@ -20,6 +20,7 @@ import app.bpartners.api.endpoint.event.model.ProspectCreated;
 import app.bpartners.api.endpoint.event.model.ProspectUpdated;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.BucketUploadComponent;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -50,6 +51,7 @@ import app.bpartners.api.service.prospect.ProspectService;
 import app.bpartners.api.service.utils.GeoUtils;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
 import javax.mail.MessagingException;
@@ -78,6 +80,7 @@ class ProspectServiceTest {
   UserWhiteListedJpaRepository userWhiteListedJpaRepositoryMock = mock();
   FileWriter fileWriterMock = mock(FileWriter.class);
   BucketComponent bucketComponentMock = mock(BucketComponent.class);
+  BucketUploadComponent bucketUploadComponentMock = mock(BucketUploadComponent.class);
   ProspectService subject =
       new ProspectService(
           repositoryMock,
@@ -95,7 +98,8 @@ class ProspectServiceTest {
           prospectJpaRepositoryMock,
           userWhiteListedJpaRepositoryMock,
           bucketComponentMock,
-          fileWriterMock);
+          fileWriterMock,
+          bucketUploadComponentMock);
 
   @BeforeEach
   void setup() {
@@ -134,7 +138,7 @@ class ProspectServiceTest {
 
     var actualException =
         assertThrows(
-            NotFoundException.class, () -> subject.notifyProspect(prospectIdentifier, null));
+            NotFoundException.class, () -> subject.notifyProspect(prospectIdentifier, null, null));
 
     assertEquals("Prospect(id=" + prospectIdentifier + ") not found", actualException.getMessage());
     verify(eventProducerMock, never()).accept(any());
@@ -154,7 +158,7 @@ class ProspectServiceTest {
     when(repositoryMock.getById(prospectId)).thenReturn(prospectMock);
     when(attachmentMock.getContent()).thenReturn(attachmentBytes);
 
-    var actual = subject.notifyProspect(prospectId, fileAttachmentMock);
+    var actual = subject.notifyProspect(prospectId, fileAttachmentMock, null);
 
     assertEquals(prospectMock, actual);
     var stringCapture = ArgumentCaptor.forClass(String.class);
@@ -178,6 +182,108 @@ class ProspectServiceTest {
   }
 
   @Test
+  void create_notification_attachment_upload_presigns_key_under_prospect() throws Exception {
+    var prospectId = randomUUID().toString();
+    var prospectMock = mock(Prospect.class);
+    var presignedUrl = new URL("https://bucket.s3.amazonaws.com/signed");
+    when(prospectMock.getId()).thenReturn(prospectId);
+    when(repositoryMock.getById(prospectId)).thenReturn(prospectMock);
+    when(bucketUploadComponentMock.presignUpload(any(), anyLong(), any())).thenReturn(presignedUrl);
+
+    var actual = subject.createNotificationAttachmentUpload(prospectId, 25_000_000L);
+
+    var keyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(bucketUploadComponentMock)
+        .presignUpload(
+            keyCaptor.capture(),
+            eq(25_000_000L),
+            eq(ProspectService.NOTIFICATION_ATTACHMENT_UPLOAD_VALIDITY));
+    assertEquals(
+        String.format("prospects/%s/notifications/attachments/%s", prospectId, actual.getFileKey()),
+        keyCaptor.getValue());
+    assertEquals(presignedUrl.toString(), actual.getUploadUrl());
+    assertNotNull(actual.getExpiresAt());
+  }
+
+  @Test
+  void create_notification_attachment_upload_rejects_invalid_sizes() {
+    var prospectId = randomUUID().toString();
+    when(repositoryMock.getById(prospectId)).thenReturn(mock(Prospect.class));
+
+    assertThrows(
+        BadRequestException.class,
+        () -> subject.createNotificationAttachmentUpload(prospectId, null));
+    assertThrows(
+        BadRequestException.class,
+        () -> subject.createNotificationAttachmentUpload(prospectId, 0L));
+    assertThrows(
+        BadRequestException.class,
+        () ->
+            subject.createNotificationAttachmentUpload(
+                prospectId, ProspectService.MAX_NOTIFICATION_ATTACHMENT_SIZE + 1));
+    verify(bucketUploadComponentMock, never()).presignUpload(any(), anyLong(), any());
+  }
+
+  @Test
+  void create_notification_attachment_upload_throws_not_found_when_prospect_not_found() {
+    var prospectId = randomUUID().toString();
+    when(repositoryMock.getById(prospectId)).thenReturn(null);
+
+    assertThrows(
+        NotFoundException.class, () -> subject.createNotificationAttachmentUpload(prospectId, 10L));
+  }
+
+  @Test
+  void notify_prospect_with_already_uploaded_attachment() {
+    var prospectId = randomUUID().toString();
+    var fileKey = randomUUID().toString();
+    var prospectMock = mock(Prospect.class);
+    when(prospectMock.getId()).thenReturn(prospectId);
+    when(repositoryMock.getById(prospectId)).thenReturn(prospectMock);
+    when(bucketUploadComponentMock.contentLength(
+            String.format("prospects/%s/notifications/attachments/%s", prospectId, fileKey)))
+        .thenReturn(OptionalLong.of(29_000_000L));
+
+    var actual = subject.notifyProspect(prospectId, null, fileKey);
+
+    assertEquals(prospectMock, actual);
+    verify(bucketComponentMock, never()).upload(any(), any(), anyBoolean());
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducerMock, times(1)).accept(eventCaptor.capture());
+    var prospectCreated = (ProspectCreated) eventCaptor.getValue().getFirst();
+    assertEquals(
+        new ProspectCreated(prospectMock, fileKey, prospectCreated.getUpdatedAt()),
+        prospectCreated);
+  }
+
+  @Test
+  void notify_prospect_rejects_unusable_uploaded_attachment() {
+    var prospectId = randomUUID().toString();
+    var missingKey = randomUUID().toString();
+    var oversizedKey = randomUUID().toString();
+    var prospectMock = mock(Prospect.class);
+    when(prospectMock.getId()).thenReturn(prospectId);
+    when(repositoryMock.getById(prospectId)).thenReturn(prospectMock);
+    when(bucketUploadComponentMock.contentLength(
+            String.format("prospects/%s/notifications/attachments/%s", prospectId, missingKey)))
+        .thenReturn(OptionalLong.empty());
+    when(bucketUploadComponentMock.contentLength(
+            String.format("prospects/%s/notifications/attachments/%s", prospectId, oversizedKey)))
+        .thenReturn(OptionalLong.of(ProspectService.MAX_NOTIFICATION_ATTACHMENT_SIZE + 1));
+
+    assertThrows(
+        BadRequestException.class, () -> subject.notifyProspect(prospectId, null, missingKey));
+    assertThrows(
+        BadRequestException.class, () -> subject.notifyProspect(prospectId, null, oversizedKey));
+    assertThrows(
+        BadRequestException.class, () -> subject.notifyProspect(prospectId, null, "../other"));
+    assertThrows(
+        BadRequestException.class,
+        () -> subject.notifyProspect(prospectId, mock(File.class), randomUUID().toString()));
+    verify(eventProducerMock, never()).accept(any());
+  }
+
+  @Test
   void notify_prospect_without_attachment() {
     var prospectId = randomUUID().toString();
     var prospectMock = mock(Prospect.class);
@@ -185,7 +291,7 @@ class ProspectServiceTest {
     when(prospectMock.getId()).thenReturn(prospectId);
     when(repositoryMock.getById(prospectId)).thenReturn(prospectMock);
 
-    var actual = subject.notifyProspect(prospectId, null);
+    var actual = subject.notifyProspect(prospectId, null, null);
 
     assertEquals(prospectMock, actual);
     verify(fileWriterMock, never()).apply(any(), any());

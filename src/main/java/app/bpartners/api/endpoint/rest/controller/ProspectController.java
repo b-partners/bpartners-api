@@ -180,10 +180,21 @@ public class ProspectController {
   public Prospect notifyProspect(
       @PathVariable("ahId") String accountHolderId,
       @PathVariable("prospectId") String prospectId,
-      @RequestParam(required = false) MultipartFile optionalAttachment) {
+      @RequestParam(required = false) MultipartFile optionalAttachment,
+      @RequestParam(required = false) String attachmentFileKey) {
     var optionalAttachmentFile =
         optionalAttachment == null ? null : fileWriter.convert(optionalAttachment, null);
-    return mapper.toRest(service.notifyProspect(prospectId, optionalAttachmentFile));
+    return mapper.toRest(
+        service.notifyProspect(prospectId, optionalAttachmentFile, attachmentFileKey));
+  }
+
+  @PostMapping("/accountHolders/{ahId}/prospects/{prospectId}/notifications/attachmentUploads")
+  public ProspectNotificationAttachmentUpload createProspectNotificationAttachmentUpload(
+      @PathVariable("ahId") String accountHolderId,
+      @PathVariable("prospectId") String prospectId,
+      @RequestBody CreateProspectNotificationAttachmentUpload toCreate) {
+    return mapper.toRest(
+        service.createNotificationAttachmentUpload(prospectId, toCreate.getFileSize()));
   }
 
   @PostMapping("/accountHolders/{ahId}/prospects/evaluations")

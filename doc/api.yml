@@ -268,6 +268,8 @@ paths:
     $ref: './prospecting-api.yml#/operations/prospectOperations'
   /accountHolders/{ahId}/prospects/{prospectId}/notifications:
     $ref: './prospecting-api.yml#/operations/prospectNotificationOperations'
+  /accountHolders/{ahId}/prospects/{prospectId}/notifications/attachmentUploads:
+    $ref: './prospecting-api.yml#/operations/prospectNotificationAttachmentUploadOperations'
   /accountHolders/{ahId}/prospects/import:
     $ref: './prospecting-api.yml#/operations/prospectImportOperations'
   /accountHolders/{ahId}/prospects/{id}/prospectConversion:

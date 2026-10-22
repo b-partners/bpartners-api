@@ -4,15 +4,11 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 public class TableData {
-  private List<String> headers;
-  private List<List<String>> rows;
+  private final List<String> headers;
+  private final List<List<String>> rows;
 }

@@ -7,7 +7,7 @@ import lombok.Getter;
 
 /** Sections laid out side by side; the column count drives the CSS layout (split-2, split-3). */
 @Getter
-public class SplitSection extends PageSection {
+public final class SplitSection extends PageSection {
   private final List<PageSection> columns;
 
   public SplitSection(SectionPriority priority, List<PageSection> columns) {

@@ -27,13 +27,16 @@ public class ExportAreaPictureAnnotationPDFGenerator {
   private static final String FONT_PATH = "fonts/KumbhSans-Regular.ttf";
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
+  static {
+    SymbolFontFallbackMapper.installOnce(FONT_PATH);
+  }
+
   public ExportAreaPictureAnnotationPDFGenerator(
       TemplateResolverEngine templateResolverEngine,
       ExportAnnotationContextFactory contextFactory) {
     this.templateResolverEngine = templateResolverEngine;
     this.contextFactory = contextFactory;
-    this.emojiReplacer = getEmojiReplacer();
-    SymbolFontFallbackMapper.installOnce(FONT_PATH);
+    this.emojiReplacer = createEmojiReplacer();
   }
 
   @SneakyThrows
@@ -88,12 +91,9 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 
-  private EmojiReplacer getEmojiReplacer() {
+  private static EmojiReplacer createEmojiReplacer() {
     try {
-      return new EmojiReplacer(
-          new ClassPathResource(EMOJI_PATH).getFile().toPath(),
-          "<span class=\"emoji\">",
-          "</span>");
+      return new EmojiReplacer(EMOJI_PATH, "<span class=\"emoji\">", "</span>");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

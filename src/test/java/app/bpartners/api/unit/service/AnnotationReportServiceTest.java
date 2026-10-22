@@ -23,12 +23,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-class ExportAreaPictureAnnotationPdfProcessorTest {
+class AnnotationReportServiceTest {
   byte[] fileMock = new byte[] {1, 2, 3, 4};
   private static BufferedImage mockImage;
 
   ExportAreaPictureAnnotation exportAreaPictureAnnotationMock = mock();
-  ExportAreaPictureAnnotationPDFGenerator exportAreaPictureAnnotationPDFGenerator = mock();
+  AnnotationReportPdfRenderer annotationReportPdfRenderer = mock();
   ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGeneratorMock = mock();
   ExportAreaPictureAnnotationImage3DGenerator exportAreaPictureAnnotationImage3DGeneratorMock =
       mock();
@@ -37,9 +37,9 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
       new AreaPictureAnnotationConfRestMapper();
 
-  ExportAreaPictureAnnotationPDFProcessor subject =
-      new ExportAreaPictureAnnotationPDFProcessor(
-          exportAreaPictureAnnotationPDFGenerator,
+  AnnotationReportService subject =
+      new AnnotationReportService(
+          annotationReportPdfRenderer,
           exportAreaPictureAnnotationImageGeneratorMock,
           exportAreaPictureAnnotationImage3DGeneratorMock,
           fileServiceMock,
@@ -61,8 +61,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     when(exportAreaPictureAnnotationImage3DGeneratorMock.generateBaseImage(any()))
         .thenReturn(new Pair<>(mock(), mockImage));
 
-    when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any(), any()))
-        .thenReturn(fileMock);
+    when(annotationReportPdfRenderer.apply(any(), any(), any(), any(), any())).thenReturn(fileMock);
     when(exportAreaPictureAnnotationMock.getImageUrl())
         .thenReturn(
             new ClassPathResource("files/downloaded-annotation-image.jpeg")
@@ -96,7 +95,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
 
     subject.process(user(), exportAreaPictureAnnotationMock);
 
-    verify(exportAreaPictureAnnotationPDFGenerator)
+    verify(annotationReportPdfRenderer)
         .apply(any(), isNull(), any(), eq(new RenderedImages(null, List.of())), isNull());
   }
 

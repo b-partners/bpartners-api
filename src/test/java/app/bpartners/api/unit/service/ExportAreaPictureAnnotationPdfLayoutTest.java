@@ -12,10 +12,10 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
+import app.bpartners.api.service.annotation.AnnotationReportPdfRenderer;
+import app.bpartners.api.service.annotation.AnnotationReportService;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import app.bpartners.api.service.annotation.ImageCompressor;
 import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.file.FileService;
@@ -48,7 +48,7 @@ class ExportAreaPictureAnnotationPdfLayoutTest {
   private static final ImageCompressor imageCompressor = new ImageCompressor();
 
   private static FileService fileService = mock();
-  private static ExportAreaPictureAnnotationPDFProcessor subject;
+  private static AnnotationReportService subject;
 
   @BeforeAll
   static void setup() throws IOException {
@@ -62,12 +62,12 @@ class ExportAreaPictureAnnotationPdfLayoutTest {
         .thenReturn(new ClassPathResource("files/logo_company.jpeg").getFile());
 
     var pdfGenerator =
-        new ExportAreaPictureAnnotationPDFGenerator(
+        new AnnotationReportPdfRenderer(
             new TemplateResolverEngine(),
             TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper));
 
     subject =
-        new ExportAreaPictureAnnotationPDFProcessor(
+        new AnnotationReportService(
             pdfGenerator,
             imageGenerator,
             image3DGenerator,

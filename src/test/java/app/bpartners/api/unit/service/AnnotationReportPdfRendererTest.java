@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
+import app.bpartners.api.service.annotation.AnnotationReportPdfRenderer;
 import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
@@ -25,11 +25,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-class ExportAreaPictureAnnotationPdfGeneratorTest {
+class AnnotationReportPdfRendererTest {
   FileService fileService = mock();
   AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
       new AreaPictureAnnotationConfRestMapper();
-  ExportAreaPictureAnnotationPDFGenerator subject;
+  AnnotationReportPdfRenderer subject;
   private static BufferedImage mockImage;
 
   @BeforeAll
@@ -44,7 +44,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
     when(fileService.downloadFile(any(), any(), any())).thenReturn(null);
 
     subject =
-        new ExportAreaPictureAnnotationPDFGenerator(
+        new AnnotationReportPdfRenderer(
             new TemplateResolverEngine(),
             TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper));
   }

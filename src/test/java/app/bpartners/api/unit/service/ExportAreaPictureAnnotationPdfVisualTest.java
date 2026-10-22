@@ -51,8 +51,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
   private static FileService fileService = mock();
 
-  private static ExportAreaPictureAnnotationPDFGenerator pdfGenerator;
-  private static ExportAreaPictureAnnotationPDFProcessor subject;
+  private static AnnotationReportPdfRenderer pdfGenerator;
+  private static AnnotationReportService subject;
   private static BufferedImage mockImage;
   private static byte[] mockImageBytes;
 
@@ -76,12 +76,12 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             });
 
     pdfGenerator =
-        new ExportAreaPictureAnnotationPDFGenerator(
+        new AnnotationReportPdfRenderer(
             new TemplateResolverEngine(),
             TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper));
 
     subject =
-        new ExportAreaPictureAnnotationPDFProcessor(
+        new AnnotationReportService(
             pdfGenerator,
             imageGenerator,
             image3DGenerator,

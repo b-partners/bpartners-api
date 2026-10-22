@@ -17,7 +17,7 @@ import app.bpartners.api.repository.AreaPictureAnnotationRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.model.AreaPictureAnnotationCriteria;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.AnnotationReportService;
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
 import app.bpartners.api.service.areapicture.AreaPictureService;
 import app.bpartners.api.service.aws.S3Service;
@@ -43,7 +43,7 @@ class AreaPictureAnnotationServiceFilterTest {
             mock(FileWriter.class),
             mock(S3Service.class),
             repositoryMock,
-            mock(ExportAreaPictureAnnotationPDFProcessor.class),
+            mock(AnnotationReportService.class),
             mock(UserRepository.class),
             areaPictureServiceMock,
             prospectRepositoryMock);

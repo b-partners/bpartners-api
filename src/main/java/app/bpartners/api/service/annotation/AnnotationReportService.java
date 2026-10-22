@@ -25,8 +25,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ExportAreaPictureAnnotationPDFProcessor {
-  private final ExportAreaPictureAnnotationPDFGenerator exportAreaPictureAnnotationPDFGenerator;
+public class AnnotationReportService {
+  private final AnnotationReportPdfRenderer annotationReportPdfRenderer;
   private final ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGenerator;
   private final ExportAreaPictureAnnotationImage3DGenerator
       exportAreaPictureAnnotationImage3DGenerator;
@@ -129,7 +129,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
           generateAnnotation3DImages(exportAnnotation.get3d(), compressedGlobalImage3D);
     }
 
-    return exportAreaPictureAnnotationPDFGenerator.apply(
+    return annotationReportPdfRenderer.apply(
         user, logoBase64, exportAnnotation, annotationImages, annotation3DImages);
   }
 

@@ -17,7 +17,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ExportAreaPictureAnnotationPDFGenerator {
+public class AnnotationReportPdfRenderer {
   private final TemplateResolverEngine templateResolverEngine;
   private final EmojiReplacer emojiReplacer;
   private final ExportAnnotationContextFactory contextFactory;
@@ -31,7 +31,7 @@ public class ExportAreaPictureAnnotationPDFGenerator {
     SymbolFontFallbackMapper.installOnce(FONT_PATH);
   }
 
-  public ExportAreaPictureAnnotationPDFGenerator(
+  public AnnotationReportPdfRenderer(
       TemplateResolverEngine templateResolverEngine,
       ExportAnnotationContextFactory contextFactory) {
     this.templateResolverEngine = templateResolverEngine;

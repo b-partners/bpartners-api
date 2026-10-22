@@ -10,7 +10,7 @@ import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.AnnotationReportService;
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
 import app.bpartners.api.service.aws.S3Service;
 import java.io.IOException;
@@ -22,7 +22,7 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
   @Autowired AreaPictureAnnotationService subject;
   @MockBean FileWriter fileWriterMock;
   @MockBean S3Service s3ServiceMock;
-  @MockBean ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessorMock;
+  @MockBean AnnotationReportService annotationReportServiceMock;
   @MockBean UserRepository userRepository;
 
   @Test
@@ -30,8 +30,7 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
     var exportAreaPictureAnnotationMock = mock(ExportAreaPictureAnnotation.class);
     var expectedUrl = "https://s3.dummy.com";
 
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any()))
-        .thenReturn(new byte[] {1, 2, 3, 4});
+    when(annotationReportServiceMock.process(any(), any())).thenReturn(new byte[] {1, 2, 3, 4});
     when(fileWriterMock.apply(any(), any())).thenReturn(mock());
     when(s3ServiceMock.uploadFile(any(), any(), any(), any())).thenReturn(mock());
     when(s3ServiceMock.presignURL(any(), any(), any(), any())).thenReturn(expectedUrl);
@@ -69,7 +68,7 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
                 .email("john@mail.com")
                 .mobilePhoneNumber("0000000000")
                 .build());
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any(), any()))
+    when(annotationReportServiceMock.process(any(), any(), any()))
         .thenThrow(new IOException(errorMessage));
 
     var actualException =

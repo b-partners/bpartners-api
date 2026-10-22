@@ -55,7 +55,7 @@ public class AnnotationSummaryFactory {
     String baseImageWithAreasUri = bufferedImageToUri(baseImageWithAreas);
     String baseImageWithNamesUri = bufferedImageToUri(baseImageWithNames);
     String baseImageWithPitchesUri = bufferedImageToUri(baseImageWithPitches);
-    List<AnnotationRoofSlopeSummary> faces = faces(annotation);
+    List<Face> faces = readFaces(annotation);
     List<AnnotationMeasurementSummary> measurements = getMeasurementsSummary(faces, annotation);
     List<AnnotationPitch> pitchBreakdown = pitchBreakdown(faces);
     List<AnnotationWaste> wasteTable = wasteTable(totalRampantArea(annotation));
@@ -68,12 +68,12 @@ public class AnnotationSummaryFactory {
         measurements,
         pitchBreakdown,
         wasteTable,
-        faces,
+        formatFaces(faces),
         formatPercent(SUGGESTED_WASTE_PERCENT));
   }
 
   private static List<AnnotationMeasurementSummary> getMeasurementsSummary(
-      List<AnnotationRoofSlopeSummary> roofSlopes, ExportAreaPictureAnnotation annotation) {
+      List<Face> faces, ExportAreaPictureAnnotation annotation) {
     var measurementSummaries = new ArrayList<AnnotationMeasurementSummary>();
 
     // Sum all pan areas — faces() stores clean "%.2f" numeric strings, no unit suffix
@@ -86,23 +86,12 @@ public class AnnotationSummaryFactory {
             "Surface (rampant) totale de la toiture", totalAreaFormatted));
 
     measurementSummaries.add(
-        new AnnotationMeasurementSummary("Nombre de pans", String.valueOf(roofSlopes.size())));
+        new AnnotationMeasurementSummary("Nombre de pans", String.valueOf(faces.size())));
 
     String dominantPitch =
-        roofSlopes.stream()
-            .filter(
-                face ->
-                    !UNKNOWN_VALUE_PLACEHOLDER.equals(face.area())
-                        && !UNKNOWN_VALUE_PLACEHOLDER.equals(face.pitch()))
-            .max(
-                Comparator.comparingDouble(
-                    face -> {
-                      try {
-                        return Double.parseDouble(face.area());
-                      } catch (Exception e) {
-                        return 0d;
-                      }
-                    }))
+        faces.stream()
+            .filter(Face::hasPitchAndArea)
+            .max(Comparator.comparingDouble(Face::roundedArea))
             .map(face -> face.pitch() + "°")
             .orElse(UNKNOWN_VALUE_PLACEHOLDER);
 
@@ -228,36 +217,17 @@ public class AnnotationSummaryFactory {
     return String.format(Locale.ROOT, "%.1f %%", percent);
   }
 
-  private static List<AnnotationPitch> pitchBreakdown(List<AnnotationRoofSlopeSummary> faces) {
-    record FaceData(String pitch, double area) {}
+  private static List<AnnotationPitch> pitchBreakdown(List<Face> faces) {
+    var withPitchAndArea = faces.stream().filter(Face::hasPitchAndArea).toList();
 
-    List<FaceData> parseable =
-        faces.stream()
-            .filter(
-                f ->
-                    !UNKNOWN_VALUE_PLACEHOLDER.equals(f.pitch())
-                        && !UNKNOWN_VALUE_PLACEHOLDER.equals(f.area()))
-            .map(
-                f -> {
-                  try {
-                    double area = Double.parseDouble(f.area());
-                    return new FaceData(f.pitch(), area);
-                  } catch (Exception e) {
-                    log.warn("Could not parse area '{}' for pitch breakdown", f.area());
-                    return null;
-                  }
-                })
-            .filter(fd -> fd != null)
-            .toList();
-
-    double totalArea = parseable.stream().mapToDouble(FaceData::area).sum();
+    double totalArea = withPitchAndArea.stream().mapToDouble(Face::roundedArea).sum();
     if (totalArea == 0) {
       return List.of();
     }
 
     Map<String, Double> areaByPitch = new LinkedHashMap<>();
-    for (FaceData fd : parseable) {
-      areaByPitch.merge(fd.pitch(), fd.area(), Double::sum);
+    for (Face face : withPitchAndArea) {
+      areaByPitch.merge(face.pitch(), face.roundedArea(), Double::sum);
     }
 
     return areaByPitch.entrySet().stream()
@@ -274,12 +244,26 @@ public class AnnotationSummaryFactory {
         .toList();
   }
 
-  private static List<AnnotationRoofSlopeSummary> faces(ExportAreaPictureAnnotation annotation) {
+  /** A roof face with its numeric area, so summaries never re-parse formatted strings. */
+  private record Face(String name, String pitch, double area) {
+    boolean hasArea() {
+      return area > 0;
+    }
+
+    boolean hasPitchAndArea() {
+      return !UNKNOWN_VALUE_PLACEHOLDER.equals(pitch) && hasArea();
+    }
+
+    // The area as displayed (2 decimals), which is what the pitch totals are summed from.
+    double roundedArea() {
+      return Double.parseDouble(String.format(Locale.ROOT, "%.2f", area));
+    }
+  }
+
+  private static List<Face> readFaces(ExportAreaPictureAnnotation annotation) {
     List<ExportAreaPictureAnnotation3DPan> pans = annotation.get3d().getPans();
 
-    record RawFace(String name, String pitchFormatted, double areaParsed) {}
-
-    List<RawFace> raw = new ArrayList<>();
+    List<Face> faces = new ArrayList<>();
     for (int index = 0; index < pans.size(); index++) {
       var pan = pans.get(index);
 
@@ -292,41 +276,44 @@ public class AnnotationSummaryFactory {
               .orElse(UNKNOWN_VALUE_PLACEHOLDER);
 
       String faceName = "P" + (index + 1);
-      raw.add(new RawFace(faceName, pitchFormatted, rampantArea(pan, faceName)));
+      faces.add(new Face(faceName, pitchFormatted, rampantArea(pan, faceName)));
     }
+    return faces;
+  }
 
-    double totalArea = raw.stream().mapToDouble(RawFace::areaParsed).sum();
+  private static List<AnnotationRoofSlopeSummary> formatFaces(List<Face> faces) {
+    double totalArea = faces.stream().mapToDouble(Face::area).sum();
 
-    List<AnnotationRoofSlopeSummary> faces = new ArrayList<>();
-    for (RawFace rf : raw) {
-      boolean hasArea = rf.areaParsed() > 0;
+    List<AnnotationRoofSlopeSummary> summaries = new ArrayList<>();
+    for (Face face : faces) {
+      boolean hasArea = face.hasArea();
 
       String areaFormatted =
-          hasArea ? String.format("%.2f", rf.areaParsed()) : UNKNOWN_VALUE_PLACEHOLDER;
+          hasArea ? String.format("%.2f", face.area()) : UNKNOWN_VALUE_PLACEHOLDER;
       String roofPercent =
           (hasArea && totalArea > 0)
-              ? String.format("%.1f%%", (rf.areaParsed() / totalArea) * 100.0)
+              ? String.format("%.1f%%", (face.area() / totalArea) * 100.0)
               : UNKNOWN_VALUE_PLACEHOLDER;
       String areaPlus10Percent =
           hasArea
-              ? String.format("%.2f", rf.areaParsed() * (1 + LOW_WASTE_RATE))
+              ? String.format("%.2f", face.area() * (1 + LOW_WASTE_RATE))
               : UNKNOWN_VALUE_PLACEHOLDER;
       String areaPlus20Percent =
           hasArea
-              ? String.format("%.2f", rf.areaParsed() * (1 + HIGH_WASTE_RATE))
+              ? String.format("%.2f", face.area() * (1 + HIGH_WASTE_RATE))
               : UNKNOWN_VALUE_PLACEHOLDER;
 
-      faces.add(
+      summaries.add(
           AnnotationRoofSlopeSummary.builder()
-              .name(rf.name())
-              .pitch(rf.pitchFormatted())
+              .name(face.name())
+              .pitch(face.pitch())
               .area(areaFormatted)
               .roofPercent(roofPercent)
               .areaPlus10Percent(areaPlus10Percent)
               .areaPlus20Percent(areaPlus20Percent)
               .build());
     }
-    return faces;
+    return summaries;
   }
 
   public static String formatMeasure(String rawMeasure) {

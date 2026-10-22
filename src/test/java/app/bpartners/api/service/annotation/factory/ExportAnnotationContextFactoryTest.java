@@ -847,12 +847,12 @@ public class ExportAnnotationContextFactoryTest {
     assertEquals(
         "Left",
         ((app.bpartners.api.service.annotation.model.custompage.TextSection)
-                mapped.getLeftSection())
+                mapped.getColumns().get(0))
             .getText());
     assertEquals(
         "Right",
         ((app.bpartners.api.service.annotation.model.custompage.TextSection)
-                mapped.getRightSection())
+                mapped.getColumns().get(1))
             .getText());
   }
 
@@ -901,24 +901,24 @@ public class ExportAnnotationContextFactoryTest {
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
             context.getVariable("customPages");
 
-    app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection mapped =
-        (app.bpartners.api.service.annotation.model.custompage.ThreeSplitSection)
+    app.bpartners.api.service.annotation.model.custompage.SplitSection mapped =
+        (app.bpartners.api.service.annotation.model.custompage.SplitSection)
             customPages.get(0).getSections().get(0);
     assertEquals(SectionPriority.MEDIUM, mapped.getPriority());
     assertEquals(
         "Left",
         ((app.bpartners.api.service.annotation.model.custompage.TextSection)
-                mapped.getLeftSection())
+                mapped.getColumns().get(0))
             .getText());
     assertEquals(
         "Middle",
         ((app.bpartners.api.service.annotation.model.custompage.TextSection)
-                mapped.getMiddleSection())
+                mapped.getColumns().get(1))
             .getText());
     assertEquals(
         "Right",
         ((app.bpartners.api.service.annotation.model.custompage.TextSection)
-                mapped.getRightSection())
+                mapped.getColumns().get(2))
             .getText());
   }
 

@@ -613,6 +613,21 @@
             width: 100%;
         }
 
+        .split-section {
+            width: 100%;
+            display: block;
+        }
+
+        .split-column {
+            display: block;
+        }
+
+        .split-2 > .split-first { float: left; width: 49%; }
+        .split-2 > .split-last { float: right; width: 49%; }
+        .split-3 > .split-first { float: left; width: 32%; }
+        .split-3 > .split-middle { float: left; width: 32%; margin-left: 2%; }
+        .split-3 > .split-last { float: right; width: 32%; }
+
         .custom-section-text {
             line-height: 1.6;
             text-align: justify;

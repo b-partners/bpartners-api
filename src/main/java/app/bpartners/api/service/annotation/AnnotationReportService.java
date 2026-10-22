@@ -15,7 +15,6 @@ import app.bpartners.api.service.annotation.model.GroupedByKey;
 import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -47,14 +46,12 @@ public class AnnotationReportService {
     return subImageConf;
   }
 
-  public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation)
-      throws IOException {
+  public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation) {
     return process(user, exportAnnotation, null);
   }
 
   public byte[] process(
-      User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
-      throws IOException {
+      User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D) {
     var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
     ImageDownloader.DownloadedImage downloadedImage =
         conf.isShowTitlePage() || conf.isShowAnnotationPages()
@@ -71,8 +68,7 @@ public class AnnotationReportService {
       User user,
       ExportAreaPictureAnnotation exportAnnotation,
       BufferedImage downloadedImage,
-      byte[] globalImage3D)
-      throws IOException {
+      byte[] globalImage3D) {
     var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
     var image =
         downloadedImage == null

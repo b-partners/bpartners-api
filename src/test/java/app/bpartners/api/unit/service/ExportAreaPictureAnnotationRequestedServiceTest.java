@@ -72,7 +72,7 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
     var exportAreaPictureAnnotationRequested = createExportAreaPictureAnnotationRequested();
 
     doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
-    when(annotationReportServiceMock.process(any(), any())).thenThrow(IOException.class);
+    when(annotationReportServiceMock.process(any(), any())).thenThrow(IllegalStateException.class);
     when(templateResolverEngineMock.parseTemplateResolver(any(), any()))
         .thenReturn("<html><body>Rapport généré</body></html>");
 

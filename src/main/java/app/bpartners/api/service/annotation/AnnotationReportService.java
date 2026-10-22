@@ -94,8 +94,7 @@ public class AnnotationReportService {
       ExportAreaPictureAnnotation exportAnnotation,
       ExportAreaPictureAnnotationConf conf,
       ImageDownloader.DownloadedImage downloadedImage,
-      byte[] globalImage3D)
-      throws IOException {
+      byte[] globalImage3D) {
     BufferedImage compressedImage =
         downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage.image());
     var annotationRescale =

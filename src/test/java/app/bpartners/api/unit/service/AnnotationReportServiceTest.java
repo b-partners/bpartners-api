@@ -104,10 +104,12 @@ class AnnotationReportServiceTest {
     when(exportAreaPictureAnnotationMock.getImageUrl())
         .thenReturn("file:///no/such/image-does-not-exist.jpg");
 
+    var user = user();
+
     var error =
         assertThrows(
             BadRequestException.class,
-            () -> subject.process(user(), exportAreaPictureAnnotationMock));
+            () -> subject.process(user, exportAreaPictureAnnotationMock));
 
     assertEquals("Cannot read the image from the url", error.getMessage());
   }

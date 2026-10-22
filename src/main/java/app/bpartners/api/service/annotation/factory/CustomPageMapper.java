@@ -30,8 +30,7 @@ public class CustomPageMapper {
             page ->
                 CustomPage.builder()
                     .pageTitle(page.getPageTitle())
-                    .sections(
-                        page.getSections().stream().map(section -> mapSection(section)).toList())
+                    .sections(page.getSections().stream().map(this::mapSection).toList())
                     .build())
         .toList();
   }
@@ -79,52 +78,66 @@ public class CustomPageMapper {
   private PageSection split(
       SectionPriority priority, app.bpartners.api.endpoint.rest.model.PageSection... columns) {
     return new app.bpartners.api.service.annotation.model.custompage.SplitSection(
-        priority, Arrays.stream(columns).map(column -> mapSection(column)).toList());
+        priority, Arrays.stream(columns).map(this::mapSection).toList());
   }
 
   private String resolveImageSectionUri(
       app.bpartners.api.endpoint.rest.model.ImageSection imageRestSection) {
     String fileId = imageRestSection.getFileId();
     if (fileId != null && !fileId.isBlank()) {
-      try {
-        var fileInfo = fileService.findById(fileId);
-        if (fileInfo == null) {
-          log.warn("Can't get image file for file id: {}", fileId);
-        } else {
-          var file =
-              fileService.downloadFile(
-                  FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
-          if (file == null) {
-            log.warn("Can't download image file for file id: {}", fileId);
-          } else {
-            var image = ImageIO.read(file);
-            if (image != null) {
-              return ImageUriUtils.bufferedImageToUri(image);
-            }
-            log.warn("Could not read image from file id: {}", fileId);
-          }
-        }
-      } catch (IOException e) {
-        log.error("Could not download image from file id: {}", fileId, e);
+      var fromFile = imageUriFromFile(fileId);
+      if (fromFile != null) {
+        return fromFile;
       }
     }
 
     String imageUri = String.valueOf(imageRestSection.getUrl());
+    var fromUrl = imageUriFromUrl(imageUri);
+    return fromUrl != null ? fromUrl : imageUri;
+  }
+
+  private String imageUriFromFile(String fileId) {
+    try {
+      var fileInfo = fileService.findById(fileId);
+      if (fileInfo == null) {
+        log.warn("Can't get image file for file id: {}", fileId);
+        return null;
+      }
+      var file =
+          fileService.downloadFile(FileType.IMAGE, fileInfo.getUserUploaderId(), fileInfo.getId());
+      if (file == null) {
+        log.warn("Can't download image file for file id: {}", fileId);
+        return null;
+      }
+      var image = ImageIO.read(file);
+      if (image == null) {
+        log.warn("Could not read image from file id: {}", fileId);
+        return null;
+      }
+      return ImageUriUtils.bufferedImageToUri(image);
+    } catch (IOException e) {
+      log.error("Could not download image from file id: {}", fileId, e);
+      return null;
+    }
+  }
+
+  private static String imageUriFromUrl(String imageUri) {
     try {
       URI uri = new URI(imageUri);
       String scheme = uri.getScheme();
-      if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
-        var image = ImageIO.read(uri.toURL());
-        if (image != null) {
-          return ImageUriUtils.bufferedImageToUri(image);
-        }
-        log.warn("Could not read image from url: {}", imageUri);
-      } else {
+      if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
         log.warn("Blocked non-http/https image url: {}", imageUri);
+        return null;
       }
+      var image = ImageIO.read(uri.toURL());
+      if (image == null) {
+        log.warn("Could not read image from url: {}", imageUri);
+        return null;
+      }
+      return ImageUriUtils.bufferedImageToUri(image);
     } catch (IOException | URISyntaxException | IllegalArgumentException e) {
-      log.error("Could not download image from url: {}", imageRestSection.getUrl(), e);
+      log.error("Could not download image from url: {}", imageUri, e);
+      return null;
     }
-    return imageUri;
   }
 }

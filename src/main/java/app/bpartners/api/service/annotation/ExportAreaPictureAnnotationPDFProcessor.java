@@ -2,7 +2,6 @@ package app.bpartners.api.service.annotation;
 
 import static app.bpartners.api.file.FileWriter.base64Image;
 import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.adjustAnnotation;
-import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf.*;
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64;
 import static app.bpartners.api.service.utils.UserUtils.getUserLogo;
 
@@ -11,6 +10,7 @@ import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.User;
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.RescaleValue;
 import app.bpartners.api.service.annotation.model.GroupedByKey;
 import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
@@ -35,20 +35,16 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper;
   private final ImageDownloader imageDownloader;
 
+  private static final int SUB_IMAGE_SCALE = 2;
+
   private static ExportAreaPictureAnnotationImageConf mainConf() {
     return new ExportAreaPictureAnnotationImageConf();
   }
 
   private static ExportAreaPictureAnnotationImageConf subImageConf() {
-    return new ExportAreaPictureAnnotationImageConf(
-        2,
-        DEFAULT_POINT_SIZE,
-        DEFAULT_STROKE,
-        DEFAULT_POINT_COLOR,
-        DEFAULT_MEASUREMENT_BG_COLOR,
-        DEFAULT_MEASUREMENT_TEXT_COLOR,
-        DEFAULT_MEASUREMENT_OFFSET,
-        DEFAULT_MEASUREMENT_FONT);
+    var subImageConf = new ExportAreaPictureAnnotationImageConf();
+    subImageConf.setScale(SUB_IMAGE_SCALE);
+    return subImageConf;
   }
 
   public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation)
@@ -109,13 +105,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
             downloadedImage == null ? 0 : downloadedImage.trueHeight(),
             compressedImage);
     RenderedImages annotationImages =
-        generateAnnotationImages(
-            exportAnnotation,
-            compressedImage,
-            annotationRescale.x(),
-            annotationRescale.y(),
-            conf.isShowTitlePage(),
-            conf.isShowAnnotationPages());
+        generateAnnotationImages(exportAnnotation, compressedImage, annotationRescale, conf);
 
     String logoBase64 = null;
     if (conf.isShowTitlePage()) {
@@ -161,10 +151,10 @@ public class ExportAreaPictureAnnotationPDFProcessor {
   private RenderedImages generateAnnotationImages(
       ExportAreaPictureAnnotation annotation,
       BufferedImage baseImage,
-      double rescaleXValue,
-      double rescaleYValue,
-      boolean needsMainImage,
-      boolean needsSubImages) {
+      RescaleValue rescale,
+      ExportAreaPictureAnnotationConf conf) {
+    boolean needsMainImage = conf.isShowTitlePage();
+    boolean needsSubImages = conf.isShowAnnotationPages();
     if (baseImage == null || (!needsMainImage && !needsSubImages)) {
       return new RenderedImages(null, List.of());
     }
@@ -173,7 +163,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
         needsMainImage
             ? generateAnnotationImageAsBase64(
                 baseImage,
-                mainConf().rescale(rescaleXValue, rescaleYValue),
+                mainConf().rescale(rescale.x(), rescale.y()),
                 annotation.getAnnotations())
             : null;
     var subImages = new ArrayList<String>();
@@ -183,7 +173,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       for (var item : annotationsByKey) {
         subImages.add(
             generateAnnotationImageAsBase64(
-                baseImage, subImageConf().rescale(rescaleXValue, rescaleYValue), item.instances()));
+                baseImage, subImageConf().rescale(rescale.x(), rescale.y()), item.instances()));
       }
     }
 

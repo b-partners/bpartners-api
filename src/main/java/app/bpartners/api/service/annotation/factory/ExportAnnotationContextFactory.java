@@ -34,6 +34,11 @@ import org.thymeleaf.context.Context;
 @Slf4j
 public class ExportAnnotationContextFactory {
   public static final String IMAGE_FORMAT = "png";
+  // Items that fit on the first page of a section (below the section title) and on the following
+  // pages; pans take more room per page than annotations and facades.
+  private static final int FIRST_PAGE_ITEMS = 3;
+  private static final int ITEMS_PER_PAGE = 3;
+  private static final int PANS_PER_PAGE = 4;
 
   public static Context createContext(
       User user,
@@ -62,8 +67,11 @@ public class ExportAnnotationContextFactory {
     context.setVariable("mainImage", mainImageUri);
     context.setVariable("conf", conf);
     context.setVariable(
-        "pages", groupByFirstPage(GroupedByKey.from(annotation.getAnnotations()), 3, 3));
-    context.setVariable("subImagesPages", groupByFirstPage(subImagesUris, 3, 3));
+        "pages",
+        groupByFirstPage(
+            GroupedByKey.from(annotation.getAnnotations()), FIRST_PAGE_ITEMS, ITEMS_PER_PAGE));
+    context.setVariable(
+        "subImagesPages", groupByFirstPage(subImagesUris, FIRST_PAGE_ITEMS, ITEMS_PER_PAGE));
 
     if (annotation.getLlm() != null) {
       configureLLMContext(context, annotation);
@@ -275,7 +283,7 @@ public class ExportAnnotationContextFactory {
       RenderedImages annotation3DImages,
       FileService fileService,
       boolean showAnnotation3dPages) {
-    var pages3D = groupByFirstPage(annotation3D.getPans(), 3, 4);
+    var pages3D = groupByFirstPage(annotation3D.getPans(), FIRST_PAGE_ITEMS, PANS_PER_PAGE);
     context.setVariable("pages3D", pages3D);
     context.setVariable("roofSlopeBoundariesPerPage", getRoofSlopeBoundaryPerPage(pages3D));
     context.setVariable("roofSlopeBoundariesImages", getRoofSlopeBoundaryMap());
@@ -293,8 +301,11 @@ public class ExportAnnotationContextFactory {
     var pansScreenshootImages3D = getPansImages3DContext(annotation3D, fileService);
 
     context.setVariable("mainImage3D", mainImage3DUri);
-    context.setVariable("topViewPanImagesUris", groupByFirstPage(subImages3DUris, 3, 4));
-    context.setVariable("pansImages3DUris", groupByFirstPage(pansScreenshootImages3D, 3, 4));
+    context.setVariable(
+        "topViewPanImagesUris", groupByFirstPage(subImages3DUris, FIRST_PAGE_ITEMS, PANS_PER_PAGE));
+    context.setVariable(
+        "pansImages3DUris",
+        groupByFirstPage(pansScreenshootImages3D, FIRST_PAGE_ITEMS, PANS_PER_PAGE));
   }
 
   static HashSet<String> allRoofSlopeBoundaryTypes(Map<Integer, List<String>> perPage) {
@@ -339,11 +350,13 @@ public class ExportAnnotationContextFactory {
     if (annotation3D.getFacades() == null) {
       return;
     }
-    var pagesFacade3D = groupByFirstPage(annotation3D.getFacades(), 3, 3);
+    var pagesFacade3D =
+        groupByFirstPage(annotation3D.getFacades(), FIRST_PAGE_ITEMS, ITEMS_PER_PAGE);
     var facadesImages3D = getFacadesImages3DContext(annotation3D, fileService);
 
     context.setVariable("pagesFacade3D", pagesFacade3D);
-    context.setVariable("facadesImages3DUris", groupByFirstPage(facadesImages3D, 3, 3));
+    context.setVariable(
+        "facadesImages3DUris", groupByFirstPage(facadesImages3D, FIRST_PAGE_ITEMS, ITEMS_PER_PAGE));
   }
 
   static List<String> getFacadesImages3DContext(

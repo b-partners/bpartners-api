@@ -31,6 +31,8 @@ public class AnnotationSummaryFactory {
   private static final double[] WASTE_PERCENTS = {
     0d, 2.5d, 5d, 7.5d, 10d, 12.5d, 15d, 17.5d, 20d, 22.5d
   };
+  private static final double LOW_WASTE_RATE = 0.10;
+  private static final double HIGH_WASTE_RATE = 0.20;
   // Matches the +10% column already used in the per-face summary below.
   private static final double SUGGESTED_WASTE_PERCENT = 10d;
 
@@ -305,10 +307,14 @@ public class AnnotationSummaryFactory {
           (hasArea && totalArea > 0)
               ? String.format("%.1f%%", (rf.areaParsed() / totalArea) * 100.0)
               : UNKNOWN_VALUE_PLACEHOLDER;
-      String area10 =
-          hasArea ? String.format("%.2f", rf.areaParsed() * 1.10) : UNKNOWN_VALUE_PLACEHOLDER;
-      String area20 =
-          hasArea ? String.format("%.2f", rf.areaParsed() * 1.20) : UNKNOWN_VALUE_PLACEHOLDER;
+      String areaPlus10Percent =
+          hasArea
+              ? String.format("%.2f", rf.areaParsed() * (1 + LOW_WASTE_RATE))
+              : UNKNOWN_VALUE_PLACEHOLDER;
+      String areaPlus20Percent =
+          hasArea
+              ? String.format("%.2f", rf.areaParsed() * (1 + HIGH_WASTE_RATE))
+              : UNKNOWN_VALUE_PLACEHOLDER;
 
       faces.add(
           AnnotationRoofSlopeSummary.builder()
@@ -316,8 +322,8 @@ public class AnnotationSummaryFactory {
               .pitch(rf.pitchFormatted())
               .area(areaFormatted)
               .roofPercent(roofPercent)
-              .area10(area10)
-              .area20(area20)
+              .areaPlus10Percent(areaPlus10Percent)
+              .areaPlus20Percent(areaPlus20Percent)
               .build());
     }
     return faces;

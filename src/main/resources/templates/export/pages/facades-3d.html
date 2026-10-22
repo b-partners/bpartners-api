@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="page" th:if="${pagesFacade3D and conf.showAnnotation3dPages}"
+         th:each="page, pageStat : ${pagesFacade3D}"
+         class="page"
+         th:classappend="${pageStat.last and facades3DIsLast} ? ' last-page' : ''">
+
+    <h2 class="annotation-information-title"> Informations détaillées sur les façades du bâtiment </h2>
+
+    <div class="clearfix" style="width:100%; margin-bottom:10px;">
+        <div style="float:left; width:30%; height: 1px;"></div>
+        <div style="float:right; width:68%;">
+            <div class="pan-col-headers clearfix">
+                <div class="pan-col-header" style="width:100%; margin-right:0;">Photo façade</div>
+            </div>
+        </div>
+    </div>
+
+    <div th:each="pan, panStat: ${page}" class="annotation-item clearfix">
+        <div class="pan-annotation-content clearfix">
+
+            <div class="pan-annotation-labels">
+                <h4 class="annotation-item-title">
+                    <span class="annotation-item-title-value" th:text="${pan.name} ?: 'Non renseigné'"></span>
+                </h4>
+                <div class="annotation-item-info-item" th:each="info : ${pan.infos}">
+                    <span th:if="${info != null and info.label != 'edgeTypes'}">
+                        <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
+                        <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="pan-annotation-images">
+                <div class="pan-images-row clearfix">
+
+                    <div class="pan-image-cell" style="width:100%; margin-right:0;">
+                        <img class="annotation-item-image-3d" alt="annotation 3d sub-image"
+                             style="display:inline-block; width:auto; height:210px; max-width:100%;"
+                             th:if="${facadesImages3DUris[pageStat.index] != null
+                                     and facadesImages3DUris[pageStat.index].size() > panStat.index
+                                     and facadesImages3DUris[pageStat.index][panStat.index] != null}"
+                             th:src="${facadesImages3DUris[pageStat.index][panStat.index]}" />
+
+                        <div class="annotation-blank-item-image-3d"
+                             th:if="${facadesImages3DUris == null
+                                     or facadesImages3DUris.size() &lt;= pageStat.index
+                                     or facadesImages3DUris[pageStat.index] == null
+                                     or facadesImages3DUris[pageStat.index].size() &lt;= panStat.index
+                                     or facadesImages3DUris[pageStat.index][panStat.index] == null}">
+                            Image indisponible
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+</body>
+</html>

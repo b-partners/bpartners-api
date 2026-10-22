@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="page" class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithPitchesUri != null and conf.isShowPitchSummary() == true}"
+         th:classappend="${pitchSummaryIsLast} ? ' last-page' : ''">
+    <h2 class="annotation-information-title">Pente</h2>
+    <p class="section-description">Pente en degré</p>
+    <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithPitchesUri}"/>
+</section>
+</body>
+</html>

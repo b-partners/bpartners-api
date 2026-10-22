@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="page" class="page" th:classappend="${facesSummaryIsLast} ? ' last-page' : ''" th:if="${roofSummary != null and roofSummary.faces != null and conf.isShowOverallSummary() == true}">
+    <h2 class="annotation-information-title">Résumé sur les pans</h2>
+    <p class="section-description">Répartition des pentes, calcul de la marge et détail par pan</p>
+
+    <div class="degradation-container" th:if="${roofSummary != null and roofSummary.pitchBreakdown != null}" style="margin-top:0;">
+        <p class="degradation-section-title">Répartition des pentes</p>
+        <table class="data-table data-table-transposed">
+            <tr>
+                <td>Pente</td>
+                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.pitch}"></td>
+            </tr>
+            <tr>
+                <td>Surface</td>
+                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.area}"></td>
+            </tr>
+            <tr>
+                <td>Toit %</td>
+                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.roofPercent}"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="degradation-container"
+         th:if="${roofSummary != null and not #lists.isEmpty(roofSummary.wasteTable)}">
+        <p class="degradation-section-title">Calcul des pertes</p>
+        <table class="data-table data-table-waste">
+            <thead>
+            <tr>
+                <th></th>
+                <th th:each="w : ${roofSummary.wasteTable}" th:text="${w.suggested} ? 'Suggéré' : ''"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Perte</td>
+                <td th:each="w : ${roofSummary.wasteTable}"
+                    th:classappend="${w.suggested} ? 'suggested' : ''"
+                    th:text="${w.percent}"></td>
+            </tr>
+            <tr>
+                <td>Surface (m²)</td>
+                <td th:each="w : ${roofSummary.wasteTable}"
+                    th:classappend="${w.suggested} ? 'suggested' : ''"
+                    th:text="${w.area}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="annotation-item-info-item" style="margin-top:10px;"
+           th:utext="'Nous recommandons un taux de perte de &lt;strong&gt;' + ${roofSummary.suggestedWastePercent} + '&lt;/strong&gt;. Ces estimations sont à utiliser avec précaution.'"></p>
+    </div>
+
+    <div class="degradation-container" th:if="${roofSummary != null and roofSummary.faces != null}">
+        <p class="degradation-section-title">Résumé par Pan</p>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Pan</th>
+                <th>Surface (m²)</th>
+                <th>Pente (°)</th>
+                <th>Toit %</th>
+                <th>Surface (m²) avec +10% de perte</th>
+                <th>Surface (m²) avec +20% de perte</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="f : ${roofSummary.faces}">
+                <td th:text="${f.name}"></td>
+                <td th:text="${f.area}"></td>
+                <td th:text="${f.pitch}"></td>
+                <td th:text="${f.roofPercent}"></td>
+                <td th:text="${f.areaPlus10Percent}"></td>
+                <td th:text="${f.areaPlus20Percent}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="degradation-disclaimer">
+            Avertissement : Ces calculs sont des estimations et leur exactitude n’est pas garantie.
+        </p>
+    </div>
+</section>
+</body>
+</html>

@@ -14,6 +14,7 @@ import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
+import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -76,7 +77,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
     pdfGenerator =
         new ExportAreaPictureAnnotationPDFGenerator(
-            new TemplateResolverEngine(), fileService, areaPictureAnnotationConfRestMapper);
+            new TemplateResolverEngine(),
+            TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper));
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(

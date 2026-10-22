@@ -17,6 +17,7 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGene
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
 import app.bpartners.api.service.annotation.ImageCompressor;
+import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.awt.Color;
@@ -62,7 +63,8 @@ class ExportAreaPictureAnnotationPdfLayoutTest {
 
     var pdfGenerator =
         new ExportAreaPictureAnnotationPDFGenerator(
-            new TemplateResolverEngine(), fileService, areaPictureAnnotationConfRestMapper);
+            new TemplateResolverEngine(),
+            TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper));
 
     subject =
         new ExportAreaPictureAnnotationPDFProcessor(

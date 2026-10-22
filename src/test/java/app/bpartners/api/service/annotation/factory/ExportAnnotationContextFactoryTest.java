@@ -44,6 +44,10 @@ public class ExportAnnotationContextFactoryTest {
       new ExportAreaPictureAnnotationImage3DGenerator();
   AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
       new AreaPictureAnnotationConfRestMapper();
+  ItemImagesResolver itemImagesResolver =
+      TestContextFactories.itemImagesResolver(fileService, image3DGenerator);
+  ExportAnnotationContextFactory subject =
+      TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper);
 
   @Test
   void configure_3d_pan_image_context() throws IOException {
@@ -58,8 +62,7 @@ public class ExportAnnotationContextFactoryTest {
         .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
     when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(imageFile);
 
-    List<String> actual =
-        ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
+    List<String> actual = itemImagesResolver.pans(annotation3D);
 
     assertNotNull(actual, "Result should not be null");
     assertEquals(1, actual.size());
@@ -77,8 +80,7 @@ public class ExportAnnotationContextFactoryTest {
     pan.setName("pan_blank");
     annotation3D.addPansItem(pan);
 
-    List<String> actual =
-        ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
+    List<String> actual = itemImagesResolver.pans(annotation3D);
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
@@ -98,8 +100,7 @@ public class ExportAnnotationContextFactoryTest {
         .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
     when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(null);
 
-    List<String> actual =
-        ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
+    List<String> actual = itemImagesResolver.pans(annotation3D);
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
@@ -109,7 +110,7 @@ public class ExportAnnotationContextFactoryTest {
   @Test
   void configure_3d_pan_image_context_should_log_when_file_info_missing() {
     LogCaptor logCaptor = new LogCaptor();
-    logCaptor.configure(ExportAnnotationContextFactory.class);
+    logCaptor.configure(ItemImagesResolver.class);
 
     ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
     ExportAreaPictureAnnotation3DPan pan = new ExportAreaPictureAnnotation3DPan();
@@ -120,8 +121,7 @@ public class ExportAnnotationContextFactoryTest {
 
     when(fileService.findById("file-id")).thenReturn(null);
 
-    List<String> actual =
-        ExportAnnotationContextFactory.getPansImages3DContext(annotation3D, fileService);
+    List<String> actual = itemImagesResolver.pans(annotation3D);
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
@@ -209,8 +209,7 @@ public class ExportAnnotationContextFactoryTest {
             export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150)));
     RenderedImages images = new RenderedImages("main3d", List.of("a", "b"));
 
-    ExportAnnotationContextFactory.configureAnnotation3DContext(
-        context, annotation3D, images, fileService, true);
+    subject.configureAnnotation3DContext(context, annotation3D, images, true);
     assertEquals("data:image/jpeg;base64,main3d", context.getVariable("mainImage3D"));
     List<List<String>> subImagesPages =
         (List<List<String>>) context.getVariable("topViewPanImagesUris");
@@ -247,8 +246,7 @@ public class ExportAnnotationContextFactoryTest {
             export3DPan("Facade 1", "30m²", "Bon état", 50, 50, 150, 150),
             export3DPan("Facade 2", "35m²", "À rénover", 200, 50, 300, 150)));
 
-    ExportAnnotationContextFactory.configureAnnotationFacade3DContext(
-        context, annotation3D, fileService);
+    subject.configureAnnotationFacade3DContext(context, annotation3D);
 
     List<List<ExportAreaPictureAnnotation3DPan>> pagesFacade3D =
         (List<List<ExportAreaPictureAnnotation3DPan>>) context.getVariable("pagesFacade3D");
@@ -266,8 +264,7 @@ public class ExportAnnotationContextFactoryTest {
     annotation3D.setPans(List.of(export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150)));
     RenderedImages images = new RenderedImages("main3d", List.of("a"));
 
-    ExportAnnotationContextFactory.configureAnnotation3DContext(
-        context, annotation3D, images, fileService, false);
+    subject.configureAnnotation3DContext(context, annotation3D, images, false);
 
     assertNull(context.getVariable("mainImage3D"));
     assertEquals(List.of(), context.getVariable("topViewPanImagesUris"));
@@ -288,16 +285,7 @@ public class ExportAnnotationContextFactoryTest {
     RenderedImages images = new RenderedImages("main", List.of("sub1", "sub2"));
     RenderedImages images3d = new RenderedImages("main3d", List.of());
 
-    Context context =
-        ExportAnnotationContextFactory.createContext(
-            user,
-            "logo",
-            annotation,
-            images,
-            images3d,
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+    Context context = subject.createContext(user, "logo", annotation, images, images3d);
 
     assertEquals(user, context.getVariable("user"));
     assertEquals("https://example.com", context.getVariable("userWebsite"));
@@ -314,16 +302,7 @@ public class ExportAnnotationContextFactoryTest {
     RenderedImages images = new RenderedImages("main", List.of());
     RenderedImages images3d = new RenderedImages("main3d", List.of());
 
-    Context context =
-        ExportAnnotationContextFactory.createContext(
-            user,
-            null,
-            annotation,
-            images,
-            images3d,
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+    Context context = subject.createContext(user, null, annotation, images, images3d);
 
     assertNull(context.getVariable("logo"));
   }
@@ -344,16 +323,7 @@ public class ExportAnnotationContextFactoryTest {
     RenderedImages images = new RenderedImages("main", List.of());
     RenderedImages images3d = new RenderedImages("main3d", List.of());
 
-    Context context =
-        ExportAnnotationContextFactory.createContext(
-            user,
-            "logo",
-            annotation,
-            images,
-            images3d,
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+    Context context = subject.createContext(user, "logo", annotation, images, images3d);
 
     assertEquals("llm text", context.getVariable("llm"));
     assertEquals("B", context.getVariable("globalRateType"));
@@ -381,16 +351,7 @@ public class ExportAnnotationContextFactoryTest {
     RenderedImages images = new RenderedImages("main", List.of());
     RenderedImages images3d = new RenderedImages("main3d", List.of());
 
-    Context context =
-        ExportAnnotationContextFactory.createContext(
-            user,
-            null,
-            annotation,
-            images,
-            images3d,
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+    Context context = subject.createContext(user, null, annotation, images, images3d);
 
     List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
@@ -423,15 +384,12 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     Context context =
-        ExportAnnotationContextFactory.createContext(
+        subject.createContext(
             new User(),
             null,
             annotation,
             new RenderedImages("a", List.of()),
-            new RenderedImages("b", List.of()),
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            new RenderedImages("b", List.of()));
     List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
             context.getVariable("customPages");
@@ -460,15 +418,12 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     Context context =
-        ExportAnnotationContextFactory.createContext(
+        subject.createContext(
             new User(),
             null,
             annotation,
             new RenderedImages("a", List.of()),
-            new RenderedImages("b", List.of()),
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            new RenderedImages("b", List.of()));
     List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
             context.getVariable("customPages");
@@ -501,15 +456,12 @@ public class ExportAnnotationContextFactoryTest {
       annotation.setAddress("Paris");
 
       Context context =
-          ExportAnnotationContextFactory.createContext(
+          subject.createContext(
               new User(),
               null,
               annotation,
               new RenderedImages("a", List.of()),
-              new RenderedImages("b", List.of()),
-              fileService,
-              image3DGenerator,
-              areaPictureAnnotationConfRestMapper);
+              new RenderedImages("b", List.of()));
       List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
           (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
               context.getVariable("customPages");
@@ -542,15 +494,12 @@ public class ExportAnnotationContextFactoryTest {
       annotation.setAddress("Paris");
 
       Context context =
-          ExportAnnotationContextFactory.createContext(
+          subject.createContext(
               new User(),
               null,
               annotation,
               new RenderedImages("a", List.of()),
-              new RenderedImages("b", List.of()),
-              fileService,
-              image3DGenerator,
-              areaPictureAnnotationConfRestMapper);
+              new RenderedImages("b", List.of()));
       List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
           (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
               context.getVariable("customPages");
@@ -579,15 +528,12 @@ public class ExportAnnotationContextFactoryTest {
       annotation.setAddress("Paris");
 
       Context context =
-          ExportAnnotationContextFactory.createContext(
+          subject.createContext(
               new User(),
               null,
               annotation,
               new RenderedImages("a", List.of()),
-              new RenderedImages("b", List.of()),
-              fileService,
-              image3DGenerator,
-              areaPictureAnnotationConfRestMapper);
+              new RenderedImages("b", List.of()));
       List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
           (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
               context.getVariable("customPages");
@@ -613,15 +559,12 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     Context context =
-        ExportAnnotationContextFactory.createContext(
+        subject.createContext(
             new User(),
             null,
             annotation,
             new RenderedImages("a", List.of()),
-            new RenderedImages("b", List.of()),
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            new RenderedImages("b", List.of()));
     List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
             context.getVariable("customPages");
@@ -646,15 +589,12 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     Context context =
-        ExportAnnotationContextFactory.createContext(
+        subject.createContext(
             new User(),
             null,
             annotation,
             new RenderedImages("a", List.of()),
-            new RenderedImages("b", List.of()),
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            new RenderedImages("b", List.of()));
     List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
             context.getVariable("customPages");
@@ -684,15 +624,12 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     Context context =
-        ExportAnnotationContextFactory.createContext(
+        subject.createContext(
             new User(),
             null,
             annotation,
             new RenderedImages("a", List.of()),
-            new RenderedImages("b", List.of()),
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            new RenderedImages("b", List.of()));
     List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
             context.getVariable("customPages");
@@ -721,15 +658,12 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     Context context =
-        ExportAnnotationContextFactory.createContext(
+        subject.createContext(
             new User(),
             null,
             annotation,
             new RenderedImages("a", List.of()),
-            new RenderedImages("b", List.of()),
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            new RenderedImages("b", List.of()));
     List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
             context.getVariable("customPages");
@@ -758,16 +692,7 @@ public class ExportAnnotationContextFactoryTest {
 
     assertThrows(
         IllegalArgumentException.class,
-        () ->
-            ExportAnnotationContextFactory.createContext(
-                user,
-                null,
-                annotation,
-                pairA,
-                pairB,
-                fileService,
-                image3DGenerator,
-                areaPictureAnnotationConfRestMapper));
+        () -> subject.createContext(user, null, annotation, pairA, pairB));
   }
 
   public static ExportAreaPictureAnnotation3DPan export3DPan(
@@ -828,15 +753,12 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     Context context =
-        ExportAnnotationContextFactory.createContext(
+        subject.createContext(
             new User(),
             null,
             annotation,
             new RenderedImages("a", List.of()),
-            new RenderedImages("b", List.of()),
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            new RenderedImages("b", List.of()));
     List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
             context.getVariable("customPages");
@@ -889,15 +811,12 @@ public class ExportAnnotationContextFactoryTest {
     annotation.setAddress("Paris");
 
     Context context =
-        ExportAnnotationContextFactory.createContext(
+        subject.createContext(
             new User(),
             null,
             annotation,
             new RenderedImages("a", List.of()),
-            new RenderedImages("b", List.of()),
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+            new RenderedImages("b", List.of()));
     List<app.bpartners.api.service.annotation.model.custompage.CustomPage> customPages =
         (List<app.bpartners.api.service.annotation.model.custompage.CustomPage>)
             context.getVariable("customPages");
@@ -936,8 +855,7 @@ public class ExportAnnotationContextFactoryTest {
         .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
     when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(imageFile);
 
-    List<String> actual =
-        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+    List<String> actual = itemImagesResolver.facades(annotation3D);
 
     assertNotNull(actual, "Result should not be null");
     assertEquals(1, actual.size());
@@ -955,8 +873,7 @@ public class ExportAnnotationContextFactoryTest {
     facade.setName("facade_blank");
     annotation3D.addFacadesItem(facade);
 
-    List<String> actual =
-        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+    List<String> actual = itemImagesResolver.facades(annotation3D);
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
@@ -966,7 +883,7 @@ public class ExportAnnotationContextFactoryTest {
   @Test
   void configure_3d_facade_image_context_should_log_when_file_info_missing() {
     LogCaptor logCaptor = new LogCaptor();
-    logCaptor.configure(ExportAnnotationContextFactory.class);
+    logCaptor.configure(ItemImagesResolver.class);
 
     ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
     ExportAreaPictureAnnotation3DPan facade = new ExportAreaPictureAnnotation3DPan();
@@ -977,8 +894,7 @@ public class ExportAnnotationContextFactoryTest {
 
     when(fileService.findById("file-id")).thenReturn(null);
 
-    List<String> actual =
-        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+    List<String> actual = itemImagesResolver.facades(annotation3D);
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
@@ -1009,8 +925,7 @@ public class ExportAnnotationContextFactoryTest {
         .thenReturn(FileInfo.builder().id("file-id").userUploaderId("user-id").build());
     when(fileService.downloadFile(FileType.IMAGE, "user-id", "file-id")).thenReturn(null);
 
-    List<String> actual =
-        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+    List<String> actual = itemImagesResolver.facades(annotation3D);
 
     assertNotNull(actual);
     assertEquals(1, actual.size());
@@ -1035,8 +950,7 @@ public class ExportAnnotationContextFactoryTest {
     try (MockedStatic<ImageIO> mockedImageIO = Mockito.mockStatic(ImageIO.class)) {
       mockedImageIO.when(() -> ImageIO.read(imageFile)).thenThrow(new IOException("Read error"));
 
-      List<String> actual =
-          ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+      List<String> actual = itemImagesResolver.facades(annotation3D);
 
       assertNotNull(actual);
       assertEquals(1, actual.size());
@@ -1049,8 +963,7 @@ public class ExportAnnotationContextFactoryTest {
     ExportAreaPictureAnnotation3D annotation3D = new ExportAreaPictureAnnotation3D();
     annotation3D.setFacades(null);
 
-    List<String> actual =
-        ExportAnnotationContextFactory.getFacadesImages3DContext(annotation3D, fileService);
+    List<String> actual = itemImagesResolver.facades(annotation3D);
 
     assertNotNull(actual);
     assertTrue(actual.isEmpty());

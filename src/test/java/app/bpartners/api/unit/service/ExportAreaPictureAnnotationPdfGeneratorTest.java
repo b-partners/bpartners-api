@@ -11,6 +11,7 @@ import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationCon
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
+import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -44,7 +45,8 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
 
     subject =
         new ExportAreaPictureAnnotationPDFGenerator(
-            new TemplateResolverEngine(), fileService, areaPictureAnnotationConfRestMapper);
+            new TemplateResolverEngine(),
+            TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper));
   }
 
   @Test

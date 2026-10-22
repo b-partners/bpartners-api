@@ -53,7 +53,7 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
   }
 
   @Test
-  void export_area_picture_annotation_ko() throws IOException {
+  void export_area_picture_annotation_ko() {
     var exportAreaPictureAnnotationMock = mock(ExportAreaPictureAnnotation.class);
     var userId = randomUUID().toString();
     var errorMessage = "unable to process image";
@@ -69,7 +69,7 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
                 .mobilePhoneNumber("0000000000")
                 .build());
     when(annotationReportServiceMock.process(any(), any(), any()))
-        .thenThrow(new IOException(errorMessage));
+        .thenThrow(new IllegalStateException(errorMessage));
 
     var actualException =
         assertThrows(

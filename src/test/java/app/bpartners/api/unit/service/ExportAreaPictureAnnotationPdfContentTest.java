@@ -11,7 +11,8 @@ import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationCon
 import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
+import app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory;
+import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -23,10 +24,10 @@ import org.thymeleaf.context.Context;
 class ExportAreaPictureAnnotationPdfContentTest {
   private final TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
   private final FileService fileService = mock();
-  private final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator =
-      new ExportAreaPictureAnnotationImage3DGenerator();
   private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
       new AreaPictureAnnotationConfRestMapper();
+  private final ExportAnnotationContextFactory contextFactory =
+      TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper);
 
   @BeforeEach
   void setup() {
@@ -50,15 +51,8 @@ class ExportAreaPictureAnnotationPdfContentTest {
         new RenderedImages("main3d", List.of("pan1_img", "pan2_img"));
 
     Context context =
-        app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-            user(),
-            "logo",
-            annotation,
-            annotationImages,
-            annotation3DImages,
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+        contextFactory.createContext(
+            user(), "logo", annotation, annotationImages, annotation3DImages);
 
     String html =
         templateResolverEngine
@@ -88,15 +82,8 @@ class ExportAreaPictureAnnotationPdfContentTest {
             .llm("<h2>Analyse LLM</h2><p>Test content with emoji 🛠️</p>");
 
     Context context =
-        app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext(
-            user(),
-            "logo",
-            annotation,
-            new RenderedImages("main", List.of()),
-            null,
-            fileService,
-            image3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+        contextFactory.createContext(
+            user(), "logo", annotation, new RenderedImages("main", List.of()), null);
 
     String html =
         templateResolverEngine

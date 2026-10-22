@@ -23,12 +23,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-class ExportAreaPictureAnnotationPdfProcessorTest {
+class AnnotationReportServiceTest {
   byte[] fileMock = new byte[] {1, 2, 3, 4};
   private static BufferedImage mockImage;
 
   ExportAreaPictureAnnotation exportAreaPictureAnnotationMock = mock();
-  ExportAreaPictureAnnotationPDFGenerator exportAreaPictureAnnotationPDFGenerator = mock();
+  AnnotationReportPdfRenderer annotationReportPdfRenderer = mock();
   ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGeneratorMock = mock();
   ExportAreaPictureAnnotationImage3DGenerator exportAreaPictureAnnotationImage3DGeneratorMock =
       mock();
@@ -37,9 +37,9 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
       new AreaPictureAnnotationConfRestMapper();
 
-  ExportAreaPictureAnnotationPDFProcessor subject =
-      new ExportAreaPictureAnnotationPDFProcessor(
-          exportAreaPictureAnnotationPDFGenerator,
+  AnnotationReportService subject =
+      new AnnotationReportService(
+          annotationReportPdfRenderer,
           exportAreaPictureAnnotationImageGeneratorMock,
           exportAreaPictureAnnotationImage3DGeneratorMock,
           fileServiceMock,
@@ -61,8 +61,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     when(exportAreaPictureAnnotationImage3DGeneratorMock.generateBaseImage(any()))
         .thenReturn(new Pair<>(mock(), mockImage));
 
-    when(exportAreaPictureAnnotationPDFGenerator.apply(any(), any(), any(), any(), any()))
-        .thenReturn(fileMock);
+    when(annotationReportPdfRenderer.apply(any(), any(), any(), any(), any())).thenReturn(fileMock);
     when(exportAreaPictureAnnotationMock.getImageUrl())
         .thenReturn(
             new ClassPathResource("files/downloaded-annotation-image.jpeg")
@@ -74,7 +73,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   }
 
   @Test
-  void process_pdf_ok() throws IOException {
+  void process_pdf_ok() {
     var expected = fileMock;
 
     var actual = subject.process(user(), exportAreaPictureAnnotationMock);
@@ -83,7 +82,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
   }
 
   @Test
-  void process_pdf_skips_image_generation_when_all_pages_hidden() throws IOException {
+  void process_pdf_skips_image_generation_when_all_pages_hidden() {
     // A malformed URL: if the visibility gating is ever broken, the download would be attempted
     // and fail loudly here instead of silently reading the real fallback image.
     when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("not a url");
@@ -96,7 +95,7 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
 
     subject.process(user(), exportAreaPictureAnnotationMock);
 
-    verify(exportAreaPictureAnnotationPDFGenerator)
+    verify(annotationReportPdfRenderer)
         .apply(any(), isNull(), any(), eq(new RenderedImages(null, List.of())), isNull());
   }
 
@@ -105,10 +104,12 @@ class ExportAreaPictureAnnotationPdfProcessorTest {
     when(exportAreaPictureAnnotationMock.getImageUrl())
         .thenReturn("file:///no/such/image-does-not-exist.jpg");
 
+    var user = user();
+
     var error =
         assertThrows(
             BadRequestException.class,
-            () -> subject.process(user(), exportAreaPictureAnnotationMock));
+            () -> subject.process(user, exportAreaPictureAnnotationMock));
 
     assertEquals("Cannot read the image from the url", error.getMessage());
   }

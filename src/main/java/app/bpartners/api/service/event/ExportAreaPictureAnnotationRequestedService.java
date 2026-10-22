@@ -6,7 +6,7 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.event.model.ExportAreaPictureAnnotationRequested;
 import app.bpartners.api.file.FileWriter;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.AnnotationReportService;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.user.UserService;
@@ -29,7 +29,7 @@ public class ExportAreaPictureAnnotationRequestedService
   private final FileWriter fileWriter;
   private final UserService userService;
   private final TemplateResolverEngine templateResolverEngine;
-  private final ExportAreaPictureAnnotationPDFProcessor processor;
+  private final AnnotationReportService processor;
   private static final String TEMPLATE_SUCCESS_NAME =
       "export-area-picture-annotations-mail-success";
   private static final String TEMPLATE_FAILED_NAME = "export-area-picture-annotations-mail-failed";

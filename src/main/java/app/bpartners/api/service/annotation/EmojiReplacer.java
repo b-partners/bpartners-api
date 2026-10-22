@@ -2,17 +2,17 @@ package app.bpartners.api.service.annotation;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 /** Emoji replaced for use with Twemoji files. By danfickle. MIT or Apache license. */
 @Slf4j
@@ -36,13 +36,9 @@ public class EmojiReplacer {
   }
 
   private final Matcher root;
-  private final Path svgDirectory;
+  private final String svgDirectory;
   private final String prefix;
   private final String suffix;
-
-  private static <T> Predicate<T> not(Predicate<T> inner) {
-    return (toTest) -> !inner.test(toTest);
-  }
 
   private void addToMatcher(String svg, Matcher root) {
     String[] codePointStrings = svg.split(Pattern.quote("-"));
@@ -54,26 +50,27 @@ public class EmojiReplacer {
     }
   }
 
-  private Matcher createRootMatcher(Stream<Path> svgs) {
+  private Matcher createRootMatcher(Stream<Resource> svgs) {
     Matcher root = new Matcher();
 
-    svgs.filter(not(Files::isDirectory))
-        .map(Path::getFileName)
-        .map(Path::toString)
-        .filter(path -> path.endsWith(".svg"))
-        .map(path -> path.substring(0, path.length() - 4))
+    svgs.map(Resource::getFilename)
+        .filter(name -> name != null && name.endsWith(".svg"))
+        .map(name -> name.substring(0, name.length() - 4))
         .forEach(svgFile -> addToMatcher(svgFile, root));
 
     return root;
   }
 
-  public EmojiReplacer(Path pathToSvgs, String prefix, String suffix) throws IOException {
-    this.svgDirectory = pathToSvgs;
+  /** Reads the emoji svgs from a classpath directory, which also works from inside a jar. */
+  public EmojiReplacer(String classpathSvgDirectory, String prefix, String suffix)
+      throws IOException {
+    this.svgDirectory = classpathSvgDirectory;
     this.prefix = prefix;
     this.suffix = suffix;
-    try (Stream<Path> svgs = Files.list(pathToSvgs)) {
-      this.root = createRootMatcher(svgs);
-    }
+    var svgs =
+        new PathMatchingResourcePatternResolver()
+            .getResources("classpath:" + classpathSvgDirectory + "/*.svg");
+    this.root = createRootMatcher(Stream.of(svgs));
   }
 
   private String getEmoji(List<Integer> codePoints) {
@@ -92,7 +89,11 @@ public class EmojiReplacer {
     String file = sb.toString();
 
     try {
-      byte[] bytes = Files.readAllBytes(this.svgDirectory.resolve(file));
+      byte[] bytes;
+      try (var inputStream =
+          new ClassPathResource(this.svgDirectory + "/" + file).getInputStream()) {
+        bytes = inputStream.readAllBytes();
+      }
       return this.prefix
           + (new String(bytes, StandardCharsets.UTF_8)
               .replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>", ""))

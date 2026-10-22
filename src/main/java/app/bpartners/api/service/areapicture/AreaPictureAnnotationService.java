@@ -17,7 +17,7 @@ import app.bpartners.api.repository.AreaPictureAnnotationRepository;
 import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.model.AreaPictureAnnotationCriteria;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.AnnotationReportService;
 import app.bpartners.api.service.aws.S3Service;
 import java.time.Instant;
 import java.util.List;
@@ -39,7 +39,7 @@ public class AreaPictureAnnotationService {
   private final FileWriter fileWriter;
   private final S3Service s3Service;
   private final AreaPictureAnnotationRepository repository;
-  private final ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessor;
+  private final AnnotationReportService annotationReportService;
   private final UserRepository userRepository;
   private final AreaPictureService areaPictureService;
   private final ProspectRepository prospectRepository;
@@ -164,8 +164,7 @@ public class AreaPictureAnnotationService {
       String userId, ExportAreaPictureAnnotation annotation, byte[] globalImage3D) {
     try {
       var user = userRepository.getById(userId);
-      var generatedPDF =
-          exportAreaPictureAnnotationPDFProcessor.process(user, annotation, globalImage3D);
+      var generatedPDF = annotationReportService.process(user, annotation, globalImage3D);
 
       var fileToUpload = fileWriter.apply(generatedPDF, null);
       var fileId = "Rapport_d_analyse_" + randomUUID() + PDF_EXTENSION;

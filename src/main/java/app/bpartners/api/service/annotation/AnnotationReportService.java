@@ -15,7 +15,6 @@ import app.bpartners.api.service.annotation.model.GroupedByKey;
 import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +24,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ExportAreaPictureAnnotationPDFProcessor {
-  private final ExportAreaPictureAnnotationPDFGenerator exportAreaPictureAnnotationPDFGenerator;
+public class AnnotationReportService {
+  private final AnnotationReportPdfRenderer annotationReportPdfRenderer;
   private final ExportAreaPictureAnnotationImageGenerator exportAreaPictureAnnotationImageGenerator;
   private final ExportAreaPictureAnnotationImage3DGenerator
       exportAreaPictureAnnotationImage3DGenerator;
@@ -47,14 +46,12 @@ public class ExportAreaPictureAnnotationPDFProcessor {
     return subImageConf;
   }
 
-  public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation)
-      throws IOException {
+  public byte[] process(User user, ExportAreaPictureAnnotation exportAnnotation) {
     return process(user, exportAnnotation, null);
   }
 
   public byte[] process(
-      User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D)
-      throws IOException {
+      User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D) {
     var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
     ImageDownloader.DownloadedImage downloadedImage =
         conf.isShowTitlePage() || conf.isShowAnnotationPages()
@@ -71,8 +68,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       User user,
       ExportAreaPictureAnnotation exportAnnotation,
       BufferedImage downloadedImage,
-      byte[] globalImage3D)
-      throws IOException {
+      byte[] globalImage3D) {
     var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
     var image =
         downloadedImage == null
@@ -94,8 +90,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
       ExportAreaPictureAnnotation exportAnnotation,
       ExportAreaPictureAnnotationConf conf,
       ImageDownloader.DownloadedImage downloadedImage,
-      byte[] globalImage3D)
-      throws IOException {
+      byte[] globalImage3D) {
     BufferedImage compressedImage =
         downloadedImage == null ? null : imageCompressor.compressImage(downloadedImage.image());
     var annotationRescale =
@@ -129,7 +124,7 @@ public class ExportAreaPictureAnnotationPDFProcessor {
           generateAnnotation3DImages(exportAnnotation.get3d(), compressedGlobalImage3D);
     }
 
-    return exportAreaPictureAnnotationPDFGenerator.apply(
+    return annotationReportPdfRenderer.apply(
         user, logoBase64, exportAnnotation, annotationImages, annotation3DImages);
   }
 

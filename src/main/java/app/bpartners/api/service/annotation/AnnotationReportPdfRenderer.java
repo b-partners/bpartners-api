@@ -1,14 +1,12 @@
 package app.bpartners.api.service.annotation;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
-import static app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory.createContext;
 
-import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
+import app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory;
 import app.bpartners.api.service.annotation.model.RenderedImages;
-import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
@@ -19,26 +17,26 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ExportAreaPictureAnnotationPDFGenerator {
+public class AnnotationReportPdfRenderer {
   private final TemplateResolverEngine templateResolverEngine;
   private final EmojiReplacer emojiReplacer;
-  private final FileService fileService;
-  private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper;
+  private final ExportAnnotationContextFactory contextFactory;
 
   public static final String FONT_NAME = "Kumbh Sans";
   private static final String EMOJI_PATH = "fonts/twemoji/v/14.0.2/svg";
   private static final String FONT_PATH = "fonts/KumbhSans-Regular.ttf";
   private static final String AREA_PICTURE_ANNOTATION_TEMPLATE = "export-area-picture-annotations";
 
-  public ExportAreaPictureAnnotationPDFGenerator(
-      TemplateResolverEngine templateResolverEngine,
-      FileService fileService,
-      AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper) {
-    this.areaPictureAnnotationConfRestMapper = areaPictureAnnotationConfRestMapper;
-    this.templateResolverEngine = templateResolverEngine;
-    this.emojiReplacer = getEmojiReplacer();
-    this.fileService = fileService;
+  static {
     SymbolFontFallbackMapper.installOnce(FONT_PATH);
+  }
+
+  public AnnotationReportPdfRenderer(
+      TemplateResolverEngine templateResolverEngine,
+      ExportAnnotationContextFactory contextFactory) {
+    this.templateResolverEngine = templateResolverEngine;
+    this.contextFactory = contextFactory;
+    this.emojiReplacer = createEmojiReplacer();
   }
 
   @SneakyThrows
@@ -87,26 +85,15 @@ public class ExportAreaPictureAnnotationPDFGenerator {
       RenderedImages annotation3DImages) {
     var templateEngine = templateResolverEngine.getTemplateEngine();
 
-    var exportAreaPictureAnnotation3DGenerator = new ExportAreaPictureAnnotationImage3DGenerator();
     var context =
-        createContext(
-            user,
-            logoBase64,
-            annotation,
-            annotationImages,
-            annotation3DImages,
-            fileService,
-            exportAreaPictureAnnotation3DGenerator,
-            areaPictureAnnotationConfRestMapper);
+        contextFactory.createContext(
+            user, logoBase64, annotation, annotationImages, annotation3DImages);
     return templateEngine.process(AREA_PICTURE_ANNOTATION_TEMPLATE, context);
   }
 
-  private EmojiReplacer getEmojiReplacer() {
+  private static EmojiReplacer createEmojiReplacer() {
     try {
-      return new EmojiReplacer(
-          new ClassPathResource(EMOJI_PATH).getFile().toPath(),
-          "<span class=\"emoji\">",
-          "</span>");
+      return new EmojiReplacer(EMOJI_PATH, "<span class=\"emoji\">", "</span>");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

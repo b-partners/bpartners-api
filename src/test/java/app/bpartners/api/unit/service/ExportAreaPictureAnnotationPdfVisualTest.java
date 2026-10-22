@@ -14,6 +14,7 @@ import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
+import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
@@ -50,8 +51,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
   private static FileService fileService = mock();
 
-  private static ExportAreaPictureAnnotationPDFGenerator pdfGenerator;
-  private static ExportAreaPictureAnnotationPDFProcessor subject;
+  private static AnnotationReportPdfRenderer pdfGenerator;
+  private static AnnotationReportService subject;
   private static BufferedImage mockImage;
   private static byte[] mockImageBytes;
 
@@ -75,11 +76,12 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             });
 
     pdfGenerator =
-        new ExportAreaPictureAnnotationPDFGenerator(
-            new TemplateResolverEngine(), fileService, areaPictureAnnotationConfRestMapper);
+        new AnnotationReportPdfRenderer(
+            new TemplateResolverEngine(),
+            TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper));
 
     subject =
-        new ExportAreaPictureAnnotationPDFProcessor(
+        new AnnotationReportService(
             pdfGenerator,
             imageGenerator,
             image3DGenerator,

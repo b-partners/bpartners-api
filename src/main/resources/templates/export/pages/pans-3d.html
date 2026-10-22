@@ -3,7 +3,7 @@
 <body>
 <section th:fragment="page" th:if="${pages3D and conf.showAnnotation3dPages}" th:each="page, pageStat : ${pages3D}"
          class="page"
-         th:classappend="${pageStat.last and pans3DIsLast} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and lastSection.name() == 'PANS_3D'} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les pans du bâtiment </h2>
 

@@ -4,7 +4,7 @@
 <section th:fragment="page" th:if="${pagesFacade3D and conf.showAnnotation3dPages}"
          th:each="page, pageStat : ${pagesFacade3D}"
          class="page"
-         th:classappend="${pageStat.last and facades3DIsLast} ? ' last-page' : ''">
+         th:classappend="${pageStat.last and lastSection.name() == 'FACADES_3D'} ? ' last-page' : ''">
 
     <h2 class="annotation-information-title"> Informations détaillées sur les façades du bâtiment </h2>
 

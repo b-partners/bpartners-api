@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-<section th:fragment="page" th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and annotationPagesIsLast} ? ' last-page' : ''">
+<section th:fragment="page" th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and lastSection.name() == 'ANNOTATIONS'} ? ' last-page' : ''">
     <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
 
     <div th:each="annotation, annotationStat : ${page}" class="annotation-item clearfix">

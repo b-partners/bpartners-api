@@ -130,9 +130,9 @@ class UserApiKeyRepairRequestedServiceTest {
     when(analysisApiKeyApiMock.isRecognized(key.getApiKey()))
         .thenThrow(new IllegalStateException("geo-jobs down"));
 
-    assertThrows(
-        IllegalStateException.class,
-        () -> subject.accept(new UserApiKeyRepairRequested(user.getId())));
+    var event = new UserApiKeyRepairRequested(user.getId());
+
+    assertThrows(IllegalStateException.class, () -> subject.accept(event));
 
     verify(userRepositoryMock, never()).save(any());
     assertTrue(key.isEnabled());

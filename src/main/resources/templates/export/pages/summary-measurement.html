@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="page" class="page diagram-page" th:if="${roofSummary != null and roofSummary.diagramImageBase64 != null and conf.isShowMeasurementSummary()}"
+         th:classappend="${measurementSummaryIsLast} ? ' last-page' : ''">
+    <div th:if="${allEdgeTypes}">
+        <h2 class="annotation-information-title">Longueur</h2>
+        <p class="section-description">Longueur en mètre</p>
+        <div class="roof-slope-boundaries-legend clearfix">
+            <div class="legend-item" th:each="type : ${allEdgeTypes}">
+                <img th:src="${roofSlopeBoundariesImages[type]}"
+                     th:alt="${type}"
+                     style="width: 32px; height: 16px;" />
+                <span th:text="${type}"></span>
+            </div>
+        </div>
+    </div>
+    <img class="diagram-page-image" th:src="${roofSummary.diagramImageBase64}"/>
+</section>
+</body>
+</html>

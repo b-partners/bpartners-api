@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="page" th:if="${conf.showAnnotationPages}" th:each="page, pageStat : ${pages}" class="page" th:classappend="${pageStat.last and annotationPagesIsLast} ? ' last-page' : ''">
+    <h2 class="annotation-information-title"> Information sur le bâtiment </h2>
+
+    <div th:each="annotation, annotationStat : ${page}" class="annotation-item clearfix">
+        <div class="annotation-item-labels">
+            <h4 class="annotation-item-title">
+                <span class="annotation-item-title-value" th:text="${annotation.mergedInstance().labelName} ?: 'Non renseigné'"></span>
+            </h4>
+            <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
+                <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
+                <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
+            </p>
+        </div>
+
+        <div class="annotation-item-image-container">
+            <div class="building-images-row clearfix">
+                <div class="building-image-cell">
+                    <img
+                            class="annotation-item-image"
+                            alt="annotation sub-image"
+                            th:if="${subImagesPages[pageStat.index] != null and subImagesPages[pageStat.index].size() > annotationStat.index}"
+                            th:src="${subImagesPages[pageStat.index][annotationStat.index]}"
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

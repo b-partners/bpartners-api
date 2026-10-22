@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="page" class="page summary-page" th:if="${roofSummary != null and conf.isShowOverallSummary()}"
+         th:classappend="${overallSummaryIsLast} ? ' last-page' : ''">
+    <div>
+        <h2 class="annotation-information-title">Résumé sur les mesures</h2>
+        <p class="section-description">Longueur en mètre, surface en m² et pente en degré</p>
+
+        <div class="image-wrapper">
+            <img
+                    alt="roof-summary-diagram"
+                    th:src="${roofSummary.baseImageWithNamesUri}"
+                    class="main-image-3d"
+            />
+        </div>
+    </div>
+
+    <div class="degradation-container">
+        <p class="degradation-section-title">Mesures</p>
+        <table class="data-table data-table-transposed">
+            <tr th:each="m : ${roofSummary.measurements}">
+                <td th:text="${m.label}"></td>
+                <td th:text="${m.value}"></td>
+            </tr>
+        </table>
+    </div>
+</section>
+</body>
+</html>

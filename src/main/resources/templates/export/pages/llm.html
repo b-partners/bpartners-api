@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="page" class="llm page last-page" th:if="${llm and conf.isShowLlmSummary()}">
+    <div th:utext="${llm}"></div>
+</section>
+</body>
+</html>

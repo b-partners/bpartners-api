@@ -13,7 +13,6 @@ import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.annotation.AnnotationReportService;
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
 import app.bpartners.api.service.aws.S3Service;
-import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -26,7 +25,7 @@ class AreaPictureAnnotationServiceTest extends MockedThirdParties {
   @MockBean UserRepository userRepository;
 
   @Test
-  void export_area_picture_annotation_ok() throws IOException {
+  void export_area_picture_annotation_ok() {
     var exportAreaPictureAnnotationMock = mock(ExportAreaPictureAnnotation.class);
     var expectedUrl = "https://s3.dummy.com";
 

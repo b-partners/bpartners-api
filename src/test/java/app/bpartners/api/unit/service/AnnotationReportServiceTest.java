@@ -73,7 +73,7 @@ class AnnotationReportServiceTest {
   }
 
   @Test
-  void process_pdf_ok() throws IOException {
+  void process_pdf_ok() {
     var expected = fileMock;
 
     var actual = subject.process(user(), exportAreaPictureAnnotationMock);
@@ -82,7 +82,7 @@ class AnnotationReportServiceTest {
   }
 
   @Test
-  void process_pdf_skips_image_generation_when_all_pages_hidden() throws IOException {
+  void process_pdf_skips_image_generation_when_all_pages_hidden() {
     // A malformed URL: if the visibility gating is ever broken, the download would be attempted
     // and fail loudly here instead of silently reading the real fallback image.
     when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("not a url");

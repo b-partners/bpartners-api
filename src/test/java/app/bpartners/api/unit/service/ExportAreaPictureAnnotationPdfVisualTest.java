@@ -33,10 +33,11 @@ import java.util.List;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-// @Disabled("This is a visual test to generate a PDF file for manual inspection.")
+@Disabled("This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();

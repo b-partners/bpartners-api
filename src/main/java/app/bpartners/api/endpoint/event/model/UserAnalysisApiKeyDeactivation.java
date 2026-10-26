@@ -12,8 +12,9 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode(callSuper = false)
 @Getter
-public class UserAnalysisApiKeyUpdate extends PojaEvent {
+public class UserAnalysisApiKeyDeactivation extends PojaEvent {
   private String userId;
+  private String analysisApiKeyId;
 
   @Override
   public Duration maxConsumerDuration() {

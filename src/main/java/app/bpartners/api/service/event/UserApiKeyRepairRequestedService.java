@@ -15,15 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * Repairs the api keys of one user so an incident can be closed from its user id: makes sure the
- * user has a dashboard key and at least one analysis key known by geo-jobs, and disables the
- * enabled analysis keys geo-jobs does not know (they were never created there).
- *
- * <p>Safe to fire more than once. When geo-jobs cannot be reached the handler fails without
- * touching anything, so the event is retried and ends up in the dead-letter queue if it keeps
- * failing.
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor

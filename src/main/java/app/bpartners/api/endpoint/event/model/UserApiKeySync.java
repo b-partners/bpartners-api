@@ -12,7 +12,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode(callSuper = false)
 @Getter
-public class UserApiKeyUpdate extends PojaEvent {
+public class UserApiKeySync extends PojaEvent {
   private String userId;
 
   @Override

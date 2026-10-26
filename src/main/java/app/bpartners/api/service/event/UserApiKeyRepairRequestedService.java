@@ -65,7 +65,6 @@ public class UserApiKeyRepairRequestedService implements Consumer<UserApiKeyRepa
 
     boolean created = false;
     if (recognizedKeys.isEmpty() || dashboardKeyGenerated) {
-      // geo-jobs stores the dashboard key of the user it receives with the analysis key request
       var createdKey = userAnalysisApiKeyService.getAnalysisApiKey(user);
       boolean alreadyKnown =
           user.getAnalysisApiKeys().stream()

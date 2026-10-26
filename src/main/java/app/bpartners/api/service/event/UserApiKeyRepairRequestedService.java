@@ -1,85 +1,25 @@
 package app.bpartners.api.service.event;
 
-import static java.time.Instant.now;
-import static java.util.UUID.randomUUID;
-
+import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyCreation;
+import app.bpartners.api.endpoint.event.model.UserAnalysisApiKeyUpdate;
 import app.bpartners.api.endpoint.event.model.UserApiKeyRepairRequested;
-import app.bpartners.api.model.User;
-import app.bpartners.api.model.UserAnalysisApiKey;
-import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.service.user.UserAnalysisApiKeyService;
-import app.bpartners.api.service.user.analysis.AnalysisApiKeyApi;
-import java.util.List;
+import app.bpartners.api.endpoint.event.model.UserApiKeyUpdate;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class UserApiKeyRepairRequestedService implements Consumer<UserApiKeyRepairRequested> {
-  private static final String PREFIX = "[AKR] ";
-  private final UserRepository userRepository;
-  private final UserAnalysisApiKeyService userAnalysisApiKeyService;
-  private final AnalysisApiKeyApi analysisApiKeyApi;
+  private final UserApiKeyUpdateService userApiKeyUpdateService;
+  private final UserAnalysisApiKeyCreationService userAnalysisApiKeyCreationService;
+  private final UserAnalysisApiKeyUpdateService userAnalysisApiKeyUpdateService;
 
   @Override
   public void accept(UserApiKeyRepairRequested event) {
-    var user = userRepository.getById(event.getUserId());
-    boolean dashboardKeyGenerated = ensureDashboardKey(user);
-    boolean analysisKeysChanged = repairAnalysisKeys(user, dashboardKeyGenerated);
-
-    if (dashboardKeyGenerated || analysisKeysChanged) {
-      userRepository.save(user);
-    } else {
-      log.info(PREFIX + "User(id={}) api keys are fine, nothing to repair", user.getId());
-    }
-  }
-
-  private boolean ensureDashboardKey(User user) {
-    if (user.getApiKey() != null) {
-      return false;
-    }
-    user.setApiKey(randomUUID().toString());
-    log.info(PREFIX + "User(id={}) had no dashboard api key, one was generated", user.getId());
-    return true;
-  }
-
-  private boolean repairAnalysisKeys(User user, boolean dashboardKeyGenerated) {
-    List<UserAnalysisApiKey> enabledKeys =
-        user.getAnalysisApiKeys().stream().filter(UserAnalysisApiKey::isEnabled).toList();
-    var recognizedKeys =
-        enabledKeys.stream()
-            .filter(key -> analysisApiKeyApi.isRecognized(key.getApiKey()))
-            .toList();
-
-    boolean created = false;
-    if (recognizedKeys.isEmpty() || dashboardKeyGenerated) {
-      var createdKey = userAnalysisApiKeyService.getAnalysisApiKey(user);
-      boolean alreadyKnown =
-          user.getAnalysisApiKeys().stream()
-              .anyMatch(key -> key.getApiKey().equals(createdKey.getApiKey()));
-      if (!alreadyKnown) {
-        user.addUserAnalysisApiKey(createdKey);
-        created = true;
-        log.info(
-            PREFIX + "User(id={}) had no analysis key known by geo-jobs, one was added",
-            user.getId());
-      }
-    }
-
-    var orphanKeys = enabledKeys.stream().filter(key -> !recognizedKeys.contains(key)).toList();
-    orphanKeys.forEach(
-        key -> {
-          key.setEnabled(false);
-          key.setExpirationDatetime(now());
-          log.info(
-              PREFIX + "User(id={}) analysis key(id={}) is unknown to geo-jobs, disabled",
-              user.getId(),
-              key.getId());
-        });
-
-    return created || !orphanKeys.isEmpty();
+    var userId = event.getUserId();
+    userApiKeyUpdateService.accept(new UserApiKeyUpdate(userId));
+    userAnalysisApiKeyCreationService.accept(new UserAnalysisApiKeyCreation(userId));
+    userAnalysisApiKeyUpdateService.accept(new UserAnalysisApiKeyUpdate(userId));
   }
 }

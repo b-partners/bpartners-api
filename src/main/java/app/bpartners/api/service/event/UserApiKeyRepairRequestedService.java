@@ -37,7 +37,7 @@ public class UserApiKeyRepairRequestedService implements Consumer<UserApiKeyRepa
   public void accept(UserApiKeyRepairRequested event) {
     var user = userRepository.getById(event.getUserId());
     boolean dashboardKeyGenerated = ensureDashboardKey(user);
-    boolean analysisKeysChanged = repairAnalysisKeys(user);
+    boolean analysisKeysChanged = repairAnalysisKeys(user, dashboardKeyGenerated);
 
     if (dashboardKeyGenerated || analysisKeysChanged) {
       userRepository.save(user);
@@ -55,7 +55,7 @@ public class UserApiKeyRepairRequestedService implements Consumer<UserApiKeyRepa
     return true;
   }
 
-  private boolean repairAnalysisKeys(User user) {
+  private boolean repairAnalysisKeys(User user, boolean dashboardKeyGenerated) {
     List<UserAnalysisApiKey> enabledKeys =
         user.getAnalysisApiKeys().stream().filter(UserAnalysisApiKey::isEnabled).toList();
     var recognizedKeys =
@@ -64,13 +64,19 @@ public class UserApiKeyRepairRequestedService implements Consumer<UserApiKeyRepa
             .toList();
 
     boolean created = false;
-    if (recognizedKeys.isEmpty()) {
+    if (recognizedKeys.isEmpty() || dashboardKeyGenerated) {
+      // geo-jobs stores the dashboard key of the user it receives with the analysis key request
       var createdKey = userAnalysisApiKeyService.getAnalysisApiKey(user);
-      user.addUserAnalysisApiKey(createdKey);
-      created = true;
-      log.info(
-          PREFIX + "User(id={}) had no analysis key known by geo-jobs, one was added",
-          user.getId());
+      boolean alreadyKnown =
+          user.getAnalysisApiKeys().stream()
+              .anyMatch(key -> key.getApiKey().equals(createdKey.getApiKey()));
+      if (!alreadyKnown) {
+        user.addUserAnalysisApiKey(createdKey);
+        created = true;
+        log.info(
+            PREFIX + "User(id={}) had no analysis key known by geo-jobs, one was added",
+            user.getId());
+      }
     }
 
     var orphanKeys = enabledKeys.stream().filter(key -> !recognizedKeys.contains(key)).toList();

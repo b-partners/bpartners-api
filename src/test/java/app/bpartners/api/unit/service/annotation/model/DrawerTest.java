@@ -3,13 +3,14 @@ package app.bpartners.api.unit.service.annotation.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.service.annotation.factory.Graphics2DFactory;
+import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.Coordinates;
 import app.bpartners.api.service.annotation.model.Drawer;
 import app.bpartners.api.service.annotation.model.RawCoordinates;
 import app.bpartners.api.service.annotation.model.Transform;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.BasicStroke;
@@ -38,12 +39,12 @@ class DrawerTest {
     var objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     ExportAreaPictureAnnotation annotation =
-        objectMapper.readValue(
+        TestContextFactories.readPayload(
+            objectMapper,
             new ClassPathResource("payload/export/1 rue de la vau saint-jacques.json")
-                .getInputStream(),
-            ExportAreaPictureAnnotation.class);
+                .getInputStream());
 
-    roofPanels = annotation.get3d().getPans();
+    roofPanels = annotation.getThreeD().getPans();
   }
 
   @Test

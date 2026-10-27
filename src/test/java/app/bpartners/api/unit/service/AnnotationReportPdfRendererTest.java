@@ -8,11 +8,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.AnnotationReportPdfRenderer;
 import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.RenderedImages;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstanceInfo;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.awt.image.BufferedImage;
@@ -45,8 +47,7 @@ class AnnotationReportPdfRendererTest {
 
     subject =
         new AnnotationReportPdfRenderer(
-            new TemplateResolverEngine(),
-            TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper));
+            new TemplateResolverEngine(), TestContextFactories.contextFactory(fileService));
   }
 
   @Test
@@ -88,9 +89,9 @@ class AnnotationReportPdfRendererTest {
 
   static ExportAreaPictureAnnotation exportAreaPictureAnnotation() {
     return new ExportAreaPictureAnnotation()
-        .imageUrl("https://dummy.com")
-        .address("Dummy Address")
-        .annotations(
+        .setImageUrl("https://dummy.com")
+        .setAddress("Dummy Address")
+        .setAnnotations(
             List.of(
                 exportAreaPictureAnnotationInstance("key1"),
                 exportAreaPictureAnnotationInstance("key1"),
@@ -100,10 +101,14 @@ class AnnotationReportPdfRendererTest {
 
   static ExportAreaPictureAnnotationInstance exportAreaPictureAnnotationInstance(String key) {
     return new ExportAreaPictureAnnotationInstance()
-        .infos(
+        .setInfos(
             List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("key").value(key),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Type").value("Non renseigné"),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value("305 m²")));
+                new ExportAreaPictureAnnotationInstanceInfo().setLabel("key").setValue(key),
+                new ExportAreaPictureAnnotationInstanceInfo()
+                    .setLabel("Type")
+                    .setValue("Non renseigné"),
+                new ExportAreaPictureAnnotationInstanceInfo()
+                    .setLabel("Surface")
+                    .setValue("305 m²")));
   }
 }

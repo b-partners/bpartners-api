@@ -4,7 +4,6 @@ import static app.bpartners.api.endpoint.rest.model.FileType.ATTACHMENT;
 import static java.util.UUID.randomUUID;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.AreaPicture;
@@ -18,6 +17,7 @@ import app.bpartners.api.repository.ProspectRepository;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.model.AreaPictureAnnotationCriteria;
 import app.bpartners.api.service.annotation.AnnotationReportService;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.aws.S3Service;
 import java.time.Instant;
 import java.util.List;

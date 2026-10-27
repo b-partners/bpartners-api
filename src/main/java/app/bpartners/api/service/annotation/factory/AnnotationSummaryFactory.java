@@ -2,11 +2,11 @@ package app.bpartners.api.service.annotation.factory;
 
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
-import app.bpartners.api.endpoint.rest.model.Point;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.service.annotation.model.export.Point;
 import app.bpartners.api.service.annotation.model.summary.AnnotationMeasurementSummary;
 import app.bpartners.api.service.annotation.model.summary.AnnotationPitch;
 import app.bpartners.api.service.annotation.model.summary.AnnotationRoofSlopeSummary;
@@ -39,17 +39,18 @@ public class AnnotationSummaryFactory {
   public static AnnotationSummary create(
       ExportAreaPictureAnnotation annotation,
       ExportAreaPictureAnnotationImage3DGenerator generator) {
-    if (annotation.get3d() == null) {
+    if (annotation.getThreeD() == null) {
       return null;
     }
 
     var diagramImage =
         generator
-            .generateBaseImageWithSlopeBoundariesWithMeasurement(annotation.get3d().getPans())
+            .generateBaseImageWithSlopeBoundariesWithMeasurement(annotation.getThreeD().getPans())
             .second();
-    var baseImageWithAreas = generator.generateBaseImageWithAreas(annotation.get3d().getPans());
-    var baseImageWithNames = generator.generateBaseImageWithNames(annotation.get3d().getPans());
-    var baseImageWithPitches = generator.generateBaseImageWithPitches(annotation.get3d().getPans());
+    var baseImageWithAreas = generator.generateBaseImageWithAreas(annotation.getThreeD().getPans());
+    var baseImageWithNames = generator.generateBaseImageWithNames(annotation.getThreeD().getPans());
+    var baseImageWithPitches =
+        generator.generateBaseImageWithPitches(annotation.getThreeD().getPans());
 
     String baseImageWithRoofSlopeBoundariesUri = bufferedImageToUri(diagramImage);
     String baseImageWithAreasUri = bufferedImageToUri(baseImageWithAreas);
@@ -110,7 +111,7 @@ public class AnnotationSummaryFactory {
     var seenEdgeKeys = new HashSet<String>();
 
     annotation
-        .get3d()
+        .getThreeD()
         .getPans()
         .forEach(
             pan -> {
@@ -205,7 +206,7 @@ public class AnnotationSummaryFactory {
   }
 
   private static double totalRampantArea(ExportAreaPictureAnnotation annotation) {
-    var pans = annotation.get3d().getPans();
+    var pans = annotation.getThreeD().getPans();
     double total = 0d;
     for (int index = 0; index < pans.size(); index++) {
       total += rampantArea(pans.get(index), "P" + (index + 1));
@@ -261,7 +262,7 @@ public class AnnotationSummaryFactory {
   }
 
   private static List<Face> readFaces(ExportAreaPictureAnnotation annotation) {
-    List<ExportAreaPictureAnnotation3DPan> pans = annotation.get3d().getPans();
+    List<ExportAreaPictureAnnotation3DPan> pans = annotation.getThreeD().getPans();
 
     List<Face> faces = new ArrayList<>();
     for (int index = 0; index < pans.size(); index++) {

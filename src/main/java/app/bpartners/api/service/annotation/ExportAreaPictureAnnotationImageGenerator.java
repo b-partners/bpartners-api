@@ -5,9 +5,9 @@ import static java.awt.RenderingHints.KEY_ANTIALIASING;
 import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 import static java.util.Objects.requireNonNull;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.annotation.IntXY;
 import app.bpartners.api.service.annotation.factory.ColorFactory;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstance;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -109,7 +109,7 @@ public class ExportAreaPictureAnnotationImageGenerator
     var measurements = annotationInstance.getMeasurements();
     for (int i = 0; i < coordinates.size() - 1; i++) {
       var measurement = measurements.get(i);
-      if (measurement.getIsInvisible()) {
+      if (Boolean.TRUE.equals(measurement.getIsInvisible())) {
         continue;
       }
 

@@ -4,10 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationMeasurement;
+import app.bpartners.api.service.annotation.model.export.Point;
+import app.bpartners.api.service.annotation.model.export.Polygon;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
@@ -47,13 +52,13 @@ class ExportAreaPictureAnnotationImageGeneratorTest {
 
   @Test
   void should_throw_if_bad_hexadecimal_color() {
-    var badExportAnnotationInstance1 = exportAreaPictureAnnotationInstance().fillColor("FFFFFF");
+    var badExportAnnotationInstance1 = exportAreaPictureAnnotationInstance().setFillColor("FFFFFF");
     var badExportAnnotationInstance2 =
-        exportAreaPictureAnnotationInstance().fillColor("#FFFFFFFFFFFF");
+        exportAreaPictureAnnotationInstance().setFillColor("#FFFFFFFFFFFF");
     var exportAreaPictureAnnotation1 =
-        exportAreaPictureAnnotation().annotations(List.of(badExportAnnotationInstance1));
+        exportAreaPictureAnnotation().setAnnotations(List.of(badExportAnnotationInstance1));
     var exportAreaPictureAnnotation2 =
-        exportAreaPictureAnnotation().annotations(List.of(badExportAnnotationInstance2));
+        exportAreaPictureAnnotation().setAnnotations(List.of(badExportAnnotationInstance2));
     var annotations1 = exportAreaPictureAnnotation1.getAnnotations();
     var annotations2 = exportAreaPictureAnnotation2.getAnnotations();
 
@@ -79,37 +84,44 @@ class ExportAreaPictureAnnotationImageGeneratorTest {
 
   static ExportAreaPictureAnnotation exportAreaPictureAnnotation() {
     return new ExportAreaPictureAnnotation()
-        .imageUrl("https://dummy.com")
-        .annotations(List.of(exportAreaPictureAnnotationInstance()));
+        .setImageUrl("https://dummy.com")
+        .setAnnotations(List.of(exportAreaPictureAnnotationInstance()));
   }
 
   static ExportAreaPictureAnnotationInstance exportAreaPictureAnnotationInstance() {
     return new ExportAreaPictureAnnotationInstance()
-        .labelName("Polygon A")
-        .strokeColor("#000000")
-        .fillColor("#00000000")
-        .infos(
+        .setLabelName("Polygon A")
+        .setStrokeColor("#000000")
+        .setFillColor("#00000000")
+        .setInfos(
             List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("Type").value("Non renseigné"),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value("305 m²")))
-        .measurements(
+                new ExportAreaPictureAnnotationInstanceInfo()
+                    .setLabel("Type")
+                    .setValue("Non renseigné"),
+                new ExportAreaPictureAnnotationInstanceInfo()
+                    .setLabel("Surface")
+                    .setValue("305 m²")))
+        .setMeasurements(
             List.of(
                 new ExportAreaPictureAnnotationMeasurement()
-                    .value(20d)
-                    .isInvisible(false)
-                    .unit("m"),
-                new ExportAreaPictureAnnotationMeasurement().value(20d).isInvisible(true).unit("m"),
+                    .setValue(20d)
+                    .setIsInvisible(false)
+                    .setUnit("m"),
                 new ExportAreaPictureAnnotationMeasurement()
-                    .value(20d)
-                    .isInvisible(true)
-                    .unit("m")))
-        .polygon(
+                    .setValue(20d)
+                    .setIsInvisible(true)
+                    .setUnit("m"),
+                new ExportAreaPictureAnnotationMeasurement()
+                    .setValue(20d)
+                    .setIsInvisible(true)
+                    .setUnit("m")))
+        .setPolygon(
             new Polygon()
-                .points(
+                .setPoints(
                     List.of(
-                        new Point().x(122d).y(81d),
-                        new Point().x(184d).y(176d),
-                        new Point().x(88d).y(135d),
-                        new Point().x(122d).y(81d))));
+                        new Point().setX(122d).setY(81d),
+                        new Point().setX(184d).setY(176d),
+                        new Point().setX(88d).setY(135d),
+                        new Point().setX(122d).setY(81d))));
   }
 }

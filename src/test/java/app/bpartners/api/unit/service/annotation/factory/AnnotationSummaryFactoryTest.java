@@ -5,17 +5,17 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationMeasurement;
-import app.bpartners.api.endpoint.rest.model.Point;
-import app.bpartners.api.endpoint.rest.model.Polygon;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.factory.AnnotationSummaryFactory;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.Transform;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationMeasurement;
+import app.bpartners.api.service.annotation.model.export.Point;
+import app.bpartners.api.service.annotation.model.export.Polygon;
 import app.bpartners.api.service.annotation.model.summary.AnnotationWaste;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -30,49 +30,49 @@ class AnnotationSummaryFactoryTest {
     // triangulated independently.
     var pan1 =
         new ExportAreaPictureAnnotation3DPan()
-            .polygon(
+            .setPolygon(
                 new Polygon()
-                    .points(
+                    .setPoints(
                         List.of(
-                            new Point().x(0d).y(0d),
-                            new Point().x(10d).y(0d),
-                            new Point().x(5d).y(5d),
-                            new Point().x(0d).y(0d))))
-            .measurements(
+                            new Point().setX(0d).setY(0d),
+                            new Point().setX(10d).setY(0d),
+                            new Point().setX(5d).setY(5d),
+                            new Point().setX(0d).setY(0d))))
+            .setMeasurements(
                 List.of(
-                    new ExportAreaPictureAnnotationMeasurement().value(10.0),
-                    new ExportAreaPictureAnnotationMeasurement().value(7.07),
-                    new ExportAreaPictureAnnotationMeasurement().value(7.07)))
-            .infos(
+                    new ExportAreaPictureAnnotationMeasurement().setValue(10.0),
+                    new ExportAreaPictureAnnotationMeasurement().setValue(7.07),
+                    new ExportAreaPictureAnnotationMeasurement().setValue(7.07)))
+            .setInfos(
                 List.of(
                     new ExportAreaPictureAnnotationInstanceInfo()
-                        .label("edgeTypes")
-                        .value("[\"egout\", \"faitage\", \"aretier\"]")));
+                        .setLabel("edgeTypes")
+                        .setValue("[\"egout\", \"faitage\", \"aretier\"]")));
 
     var pan2 =
         new ExportAreaPictureAnnotation3DPan()
-            .polygon(
+            .setPolygon(
                 new Polygon()
-                    .points(
+                    .setPoints(
                         List.of(
-                            new Point().x(10d).y(0d),
-                            new Point().x(20d).y(0d),
-                            new Point().x(5d).y(5d),
-                            new Point().x(10d).y(0d))))
-            .measurements(
+                            new Point().setX(10d).setY(0d),
+                            new Point().setX(20d).setY(0d),
+                            new Point().setX(5d).setY(5d),
+                            new Point().setX(10d).setY(0d))))
+            .setMeasurements(
                 List.of(
-                    new ExportAreaPictureAnnotationMeasurement().value(10.0),
-                    new ExportAreaPictureAnnotationMeasurement().value(11.18),
-                    new ExportAreaPictureAnnotationMeasurement().value(7.07)))
-            .infos(
+                    new ExportAreaPictureAnnotationMeasurement().setValue(10.0),
+                    new ExportAreaPictureAnnotationMeasurement().setValue(11.18),
+                    new ExportAreaPictureAnnotationMeasurement().setValue(7.07)))
+            .setInfos(
                 List.of(
                     new ExportAreaPictureAnnotationInstanceInfo()
-                        .label("edgeTypes")
-                        .value("[\"egout\", \"aretier\", \"faitage\"]")));
+                        .setLabel("edgeTypes")
+                        .setValue("[\"egout\", \"aretier\", \"faitage\"]")));
 
     var annotation =
         new ExportAreaPictureAnnotation()
-            ._3d(new ExportAreaPictureAnnotation3D().pans(List.of(pan1, pan2)));
+            .setThreeD(new ExportAreaPictureAnnotation3D().setPans(List.of(pan1, pan2)));
 
     var generator = mock(ExportAreaPictureAnnotationImage3DGenerator.class);
     var dummyImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
@@ -108,7 +108,7 @@ class AnnotationSummaryFactoryTest {
 
     var annotation =
         new ExportAreaPictureAnnotation()
-            ._3d(new ExportAreaPictureAnnotation3D().pans(List.of(pan1, pan2)));
+            .setThreeD(new ExportAreaPictureAnnotation3D().setPans(List.of(pan1, pan2)));
 
     var summary = AnnotationSummaryFactory.create(annotation, mockedGenerator());
 
@@ -132,28 +132,28 @@ class AnnotationSummaryFactoryTest {
 
   private static ExportAreaPictureAnnotation3DPan wastePan(double xOffset, String rampantArea) {
     return new ExportAreaPictureAnnotation3DPan()
-        .polygon(
+        .setPolygon(
             new Polygon()
-                .points(
+                .setPoints(
                     List.of(
-                        new Point().x(xOffset).y(0d),
-                        new Point().x(xOffset + 10d).y(0d),
-                        new Point().x(xOffset + 5d).y(5d),
-                        new Point().x(xOffset).y(0d))))
-        .measurements(
+                        new Point().setX(xOffset).setY(0d),
+                        new Point().setX(xOffset + 10d).setY(0d),
+                        new Point().setX(xOffset + 5d).setY(5d),
+                        new Point().setX(xOffset).setY(0d))))
+        .setMeasurements(
             List.of(
-                new ExportAreaPictureAnnotationMeasurement().value(10.0),
-                new ExportAreaPictureAnnotationMeasurement().value(7.07),
-                new ExportAreaPictureAnnotationMeasurement().value(7.07)))
-        .infos(
+                new ExportAreaPictureAnnotationMeasurement().setValue(10.0),
+                new ExportAreaPictureAnnotationMeasurement().setValue(7.07),
+                new ExportAreaPictureAnnotationMeasurement().setValue(7.07)))
+        .setInfos(
             List.of(
                 new ExportAreaPictureAnnotationInstanceInfo()
-                    .label("edgeTypes")
-                    .value("[\"egout\", \"faitage\", \"aretier\"]"),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Pente").value("30"),
+                    .setLabel("edgeTypes")
+                    .setValue("[\"egout\", \"faitage\", \"aretier\"]"),
+                new ExportAreaPictureAnnotationInstanceInfo().setLabel("Pente").setValue("30"),
                 new ExportAreaPictureAnnotationInstanceInfo()
-                    .label("Surface rampante")
-                    .value(rampantArea)));
+                    .setLabel("Surface rampante")
+                    .setValue(rampantArea)));
   }
 
   private static ExportAreaPictureAnnotationImage3DGenerator mockedGenerator() {

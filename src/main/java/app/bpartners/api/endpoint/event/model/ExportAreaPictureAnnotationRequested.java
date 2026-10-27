@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.event.model;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import java.time.Duration;
 import lombok.*;
 
@@ -11,6 +11,8 @@ import lombok.*;
 @NoArgsConstructor
 public class ExportAreaPictureAnnotationRequested extends PojaEvent {
   private String userId;
+
+  @SuppressWarnings("java:S1948") // event is JSON-serialized, not Java-serialized
   private ExportAreaPictureAnnotation annotation;
 
   @Override

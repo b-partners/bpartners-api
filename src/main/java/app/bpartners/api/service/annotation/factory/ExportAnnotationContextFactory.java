@@ -4,10 +4,6 @@ import static app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFact
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64ToUri;
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
-import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
@@ -16,6 +12,9 @@ import app.bpartners.api.service.annotation.model.GroupedByKey;
 import app.bpartners.api.service.annotation.model.RenderedImages;
 import app.bpartners.api.service.annotation.model.ReportSection;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.service.annotation.utils.ImageUriUtils;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +26,8 @@ import org.thymeleaf.context.Context;
 @Component
 @RequiredArgsConstructor
 public class ExportAnnotationContextFactory {
-  private final CustomPageMapper customPageMapper;
   private final ItemImagesResolver itemImagesResolver;
   private final ExportAreaPictureAnnotationImage3DGenerator image3DGenerator;
-  private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper;
 
   public static final String IMAGE_FORMAT = "png";
   // Items that fit on the first page of a section (below the section title) and on the following
@@ -47,7 +44,7 @@ public class ExportAnnotationContextFactory {
       RenderedImages annotation3DImages) {
     var context = new Context();
 
-    var conf = areaPictureAnnotationConfRestMapper.toDomain(annotation.getConf());
+    var conf = annotation.getConf();
     var logoUri = logoBase64 == null ? null : base64ToUri(logoBase64);
     var mainImageUri =
         annotationImages.main() == null ? null : base64ToUri(annotationImages.main());
@@ -76,17 +73,17 @@ public class ExportAnnotationContextFactory {
     if (annotation.getGlobalRateValue() != null || annotation.getGlobalRateType() != null) {
       configureGlobalRateContext(context, annotation);
     }
-    if (annotation.get3d() != null) {
+    if (annotation.getThreeD() != null) {
       configureAnnotation3DContext(
-          context, annotation.get3d(), annotation3DImages, conf.isShowAnnotation3dPages());
+          context, annotation.getThreeD(), annotation3DImages, conf.isShowAnnotation3dPages());
       if (conf.isShowAnnotation3dPages()) {
-        configureAnnotationFacade3DContext(context, annotation.get3d());
+        configureAnnotationFacade3DContext(context, annotation.getThreeD());
       }
       configureAnnotationSummaryContext(context, annotation);
     }
 
     if (annotation.getCustomPages() != null) {
-      context.setVariable("customPages", customPageMapper.map(annotation.getCustomPages()));
+      context.setVariable("customPages", annotation.getCustomPages());
     }
 
     configureLastSectionContext(context, annotation, conf);
@@ -98,10 +95,12 @@ public class ExportAnnotationContextFactory {
       Context context,
       ExportAreaPictureAnnotation annotation,
       ExportAreaPictureAnnotationConf conf) {
-    boolean has3D = annotation.get3d() != null;
+    boolean has3D = annotation.getThreeD() != null;
     boolean show3dPages = has3D && conf.isShowAnnotation3dPages();
     boolean showFacades3D =
-        show3dPages && annotation.get3d() != null && annotation.get3d().getFacades() != null;
+        show3dPages
+            && annotation.getThreeD() != null
+            && annotation.getThreeD().getFacades() != null;
     boolean showMeasurement = has3D && conf.isShowMeasurementSummary();
     boolean showPitch = has3D && conf.isShowPitchSummary();
     boolean showArea = has3D && conf.isShowAreaSummary();

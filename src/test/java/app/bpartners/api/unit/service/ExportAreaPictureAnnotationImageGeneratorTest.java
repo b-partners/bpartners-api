@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;

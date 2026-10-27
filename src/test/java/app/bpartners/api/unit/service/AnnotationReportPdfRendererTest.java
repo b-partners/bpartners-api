@@ -8,7 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.AnnotationReportPdfRenderer;
 import app.bpartners.api.service.annotation.factory.TestContextFactories;

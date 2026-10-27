@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.User;

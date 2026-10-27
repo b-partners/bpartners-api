@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
 class AnnotationReportServiceTest {
-  byte[] fileMock = new byte[] {1, 2, 3, 4};
+  byte[] fileMock = {1, 2, 3, 4};
   private static BufferedImage mockImage;
 
   ExportAreaPictureAnnotation exportAreaPictureAnnotationMock = mock();

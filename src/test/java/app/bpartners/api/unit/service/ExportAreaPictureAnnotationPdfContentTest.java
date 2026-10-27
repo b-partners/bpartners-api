@@ -7,8 +7,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory;
@@ -26,8 +24,6 @@ import org.thymeleaf.context.Context;
 class ExportAreaPictureAnnotationPdfContentTest {
   private final TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
   private final FileService fileService = mock();
-  private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
-      new AreaPictureAnnotationConfRestMapper();
   private final ExportAnnotationContextFactory contextFactory =
       TestContextFactories.contextFactory(fileService);
 

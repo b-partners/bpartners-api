@@ -119,7 +119,7 @@ class ExportAreaPictureAnnotationAdjustmentTest {
   @Test
   void adjust3DAnnotation_io_exception() {
     ExportAreaPictureAnnotation exportAnnotation = mock(ExportAreaPictureAnnotation.class);
-    byte[] invalidBytes = new byte[] {0, 0, 0};
+    byte[] invalidBytes = {0, 0, 0};
 
     // Should not throw, just log a warning
     assertDoesNotThrow(

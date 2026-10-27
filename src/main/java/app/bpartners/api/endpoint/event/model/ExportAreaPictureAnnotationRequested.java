@@ -11,6 +11,8 @@ import lombok.*;
 @NoArgsConstructor
 public class ExportAreaPictureAnnotationRequested extends PojaEvent {
   private String userId;
+
+  @SuppressWarnings("java:S1948") // event is JSON-serialized, not Java-serialized
   private ExportAreaPictureAnnotation annotation;
 
   @Override

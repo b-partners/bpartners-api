@@ -157,7 +157,7 @@ public class Drawer {
 
     for (int i = 0; i < numPoints; i++) {
       var measurement = measurements.get(i);
-      if (!measurement.getIsInvisible()) {
+      if (!Boolean.TRUE.equals(measurement.getIsInvisible())) {
         var measurementText = String.format("%.2f", measurement.getValue());
         if (showUnit) {
           measurementText += measurement.getUnit();

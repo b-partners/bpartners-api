@@ -17,7 +17,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
 
     env:
       AWS_REGION: eu-west-3
@@ -28,6 +28,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4.1.6
+        with:
+          fetch-depth: 0
+
+      - name: Cache Gradle deps
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - uses: actions/setup-java@v4.2.1
         with:
@@ -36,7 +48,7 @@ jobs:
       - run: chmod +x gradlew
       - run: chmod +x .shell/publish_gen_to_maven_local.sh
       - run: |
-          ./gradlew test\
+          ./gradlew test --no-daemon \
             -Dstripe.private.api.key="$STRIPE_PRIVATE_API_KEY" \
             -Dgoogle.geocode.api.key="$GOOGLE_GEOCODE_API_KEY" \
             -Dgeodata.imagery.baseurl="$GEODATA_IMAGERY_BASEURL"
@@ -51,7 +63,8 @@ jobs:
 
       - name: Code quality and coverage analysis
         run: |
-         ./gradlew sonarqube --info \
+         ./gradlew sonarqube --no-daemon --stacktrace \
+         -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g" \
          -Dsonar.host.url=https://sonarcloud.io \
          -Dsonar.organization=${{ vars.SONAR_ORG }} \
          -Dsonar.projectKey=${{ vars.SONAR_PJ_KEY }} \

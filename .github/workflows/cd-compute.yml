@@ -23,7 +23,7 @@ jobs:
   deploy-api:
     if: ${{ github.ref_name == 'prod' || github.ref_name == 'preprod' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 120
 
     env:
       AWS_REGION: eu-west-3
@@ -44,6 +44,16 @@ jobs:
         with:
           secrets: ${{ toJSON(secrets) }}
           region: ${{ env.AWS_REGION }}
+
+      - name: Cache Gradle deps
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Disable tests
         if: ${{ github.event.inputs.run_tests == 'no' }}

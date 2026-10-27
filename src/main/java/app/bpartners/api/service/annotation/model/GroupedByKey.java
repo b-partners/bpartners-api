@@ -4,8 +4,8 @@ import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstanceInfo;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,11 +19,11 @@ public record GroupedByKey(String key, List<ExportAreaPictureAnnotationInstance>
     var instance = this.instances.getFirst();
 
     return new ExportAreaPictureAnnotationInstance()
-        .labelName(key)
-        .fillColor(instance.getFillColor())
-        .infos(infos())
-        .measurements(instance.getMeasurements())
-        .polygon(instance.getPolygon());
+        .setLabelName(key)
+        .setFillColor(instance.getFillColor())
+        .setInfos(infos())
+        .setMeasurements(instance.getMeasurements())
+        .setPolygon(instance.getPolygon());
   }
 
   public List<ExportAreaPictureAnnotationInstanceInfo> infos() {

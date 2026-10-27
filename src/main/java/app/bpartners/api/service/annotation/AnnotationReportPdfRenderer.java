@@ -2,11 +2,11 @@ package app.bpartners.api.service.annotation;
 
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory;
 import app.bpartners.api.service.annotation.model.RenderedImages;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;

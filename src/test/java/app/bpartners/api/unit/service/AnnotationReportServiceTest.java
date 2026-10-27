@@ -6,13 +6,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.service.annotation.*;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RenderedImages;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -44,7 +44,6 @@ class AnnotationReportServiceTest {
           exportAreaPictureAnnotationImage3DGeneratorMock,
           fileServiceMock,
           imageCompressor,
-          areaPictureAnnotationConfRestMapper,
           new app.bpartners.api.service.annotation.ImageDownloader());
 
   @BeforeAll
@@ -62,6 +61,8 @@ class AnnotationReportServiceTest {
         .thenReturn(new Pair<>(mock(), mockImage));
 
     when(annotationReportPdfRenderer.apply(any(), any(), any(), any(), any())).thenReturn(fileMock);
+    when(exportAreaPictureAnnotationMock.getConf())
+        .thenReturn(app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf.DEFAULT);
     when(exportAreaPictureAnnotationMock.getImageUrl())
         .thenReturn(
             new ClassPathResource("files/downloaded-annotation-image.jpeg")
@@ -88,10 +89,11 @@ class AnnotationReportServiceTest {
     when(exportAreaPictureAnnotationMock.getImageUrl()).thenReturn("not a url");
     when(exportAreaPictureAnnotationMock.getConf())
         .thenReturn(
-            new ExportAreaPictureAnnotationConf()
-                .showTitlePage(false)
-                .showAnnotationPages(false)
-                .showAnnotation3dPages(false));
+            areaPictureAnnotationConfRestMapper.toDomain(
+                new ExportAreaPictureAnnotationConf()
+                    .showTitlePage(false)
+                    .showAnnotationPages(false)
+                    .showAnnotation3dPages(false)));
 
     subject.process(user(), exportAreaPictureAnnotationMock);
 

@@ -14,6 +14,8 @@ import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.factory.ExportAnnotationContextFactory;
 import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.RenderedImages;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3D;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.util.List;
@@ -27,7 +29,7 @@ class ExportAreaPictureAnnotationPdfContentTest {
   private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
       new AreaPictureAnnotationConfRestMapper();
   private final ExportAnnotationContextFactory contextFactory =
-      TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper);
+      TestContextFactories.contextFactory(fileService);
 
   @BeforeEach
   void setup() {
@@ -38,10 +40,10 @@ class ExportAreaPictureAnnotationPdfContentTest {
   void html_should_contain_3d_pans_information() {
     ExportAreaPictureAnnotation annotation =
         new ExportAreaPictureAnnotation()
-            .address("123 Test Street")
-            ._3d(
+            .setAddress("123 Test Street")
+            .setThreeD(
                 new ExportAreaPictureAnnotation3D()
-                    .pans(
+                    .setPans(
                         List.of(
                             export3DPan("Pan Est", "25m²", "Bon état", 50, 50, 150, 150),
                             export3DPan("Pan Ouest", "22m²", "À rénover", 200, 50, 300, 150))));
@@ -78,8 +80,8 @@ class ExportAreaPictureAnnotationPdfContentTest {
   void html_should_contain_llm_analysis() {
     ExportAreaPictureAnnotation annotation =
         new ExportAreaPictureAnnotation()
-            .address("123 Test Street")
-            .llm("<h2>Analyse LLM</h2><p>Test content with emoji 🛠️</p>");
+            .setAddress("123 Test Street")
+            .setLlm("<h2>Analyse LLM</h2><p>Test content with emoji 🛠️</p>");
 
     Context context =
         contextFactory.createContext(

@@ -1,6 +1,6 @@
 package app.bpartners.api.service.annotation;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -14,7 +14,9 @@ public class ExportAreaPictureAnnotationAdjustment {
       ExportAreaPictureAnnotation exportAnnotation,
       byte[] originalImage3D,
       byte[] compressedImage3D) {
-    if (originalImage3D == null || compressedImage3D == null || exportAnnotation.get3d() == null) {
+    if (originalImage3D == null
+        || compressedImage3D == null
+        || exportAnnotation.getThreeD() == null) {
       return;
     }
 
@@ -25,7 +27,7 @@ public class ExportAreaPictureAnnotationAdjustment {
         double scaleX = (double) compressed.getWidth() / original.getWidth();
         double scaleY = (double) compressed.getHeight() / original.getHeight();
 
-        for (var pan : exportAnnotation.get3d().getPans()) {
+        for (var pan : exportAnnotation.getThreeD().getPans()) {
           if (pan.getPolygon().getPoints() != null) {
             for (var point : pan.getPolygon().getPoints()) {
               point.setX(point.getX() * scaleX);

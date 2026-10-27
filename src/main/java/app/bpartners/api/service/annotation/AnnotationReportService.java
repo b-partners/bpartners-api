@@ -5,14 +5,13 @@ import static app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAd
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.base64;
 import static app.bpartners.api.service.utils.UserUtils.getUserLogo;
 
-import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationAdjustment.RescaleValue;
 import app.bpartners.api.service.annotation.model.GroupedByKey;
 import app.bpartners.api.service.annotation.model.RenderedImages;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstance;
 import app.bpartners.api.service.file.FileService;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ public class AnnotationReportService {
       exportAreaPictureAnnotationImage3DGenerator;
   private final FileService fileService;
   private final ImageCompressor imageCompressor;
-  private final AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper;
   private final ImageDownloader imageDownloader;
 
   private static final int SUB_IMAGE_SCALE = 2;
@@ -52,13 +50,13 @@ public class AnnotationReportService {
 
   public byte[] process(
       User user, ExportAreaPictureAnnotation exportAnnotation, byte[] globalImage3D) {
-    var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
+    var conf = exportAnnotation.getConf();
     ImageDownloader.DownloadedImage downloadedImage =
         conf.isShowTitlePage() || conf.isShowAnnotationPages()
             ? imageDownloader.downloadImage(exportAnnotation.getImageUrl())
             : null;
     byte[] resolvedGlobalImage3D =
-        conf.isShowAnnotation3dPages() && exportAnnotation.get3d() != null
+        conf.isShowAnnotation3dPages() && exportAnnotation.getThreeD() != null
             ? resolveGlobalImage3D(globalImage3D, exportAnnotation.getGlobalImage3DUrl())
             : null;
     return process(user, exportAnnotation, conf, downloadedImage, resolvedGlobalImage3D);
@@ -69,7 +67,7 @@ public class AnnotationReportService {
       ExportAreaPictureAnnotation exportAnnotation,
       BufferedImage downloadedImage,
       byte[] globalImage3D) {
-    var conf = areaPictureAnnotationConfRestMapper.toDomain(exportAnnotation.getConf());
+    var conf = exportAnnotation.getConf();
     var image =
         downloadedImage == null
             ? null
@@ -117,11 +115,11 @@ public class AnnotationReportService {
     RenderedImages annotation3DImages = null;
 
     if (conf.isShowAnnotation3dPages()
-        && exportAnnotation.get3d() != null
+        && exportAnnotation.getThreeD() != null
         && globalImage3D != null) {
       byte[] compressedGlobalImage3D = imageCompressor.compressImage(globalImage3D);
       annotation3DImages =
-          generateAnnotation3DImages(exportAnnotation.get3d(), compressedGlobalImage3D);
+          generateAnnotation3DImages(exportAnnotation.getThreeD(), compressedGlobalImage3D);
     }
 
     return annotationReportPdfRenderer.apply(

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
@@ -18,6 +17,7 @@ import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGe
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImageGenerator;
 import app.bpartners.api.service.annotation.ImageCompressor;
 import app.bpartners.api.service.annotation.factory.TestContextFactories;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.awt.Color;
@@ -63,8 +63,7 @@ class ExportAreaPictureAnnotationPdfLayoutTest {
 
     var pdfGenerator =
         new AnnotationReportPdfRenderer(
-            new TemplateResolverEngine(),
-            TestContextFactories.contextFactory(fileService, areaPictureAnnotationConfRestMapper));
+            new TemplateResolverEngine(), TestContextFactories.contextFactory(fileService));
 
     subject =
         new AnnotationReportService(
@@ -73,7 +72,6 @@ class ExportAreaPictureAnnotationPdfLayoutTest {
             image3DGenerator,
             fileService,
             imageCompressor,
-            areaPictureAnnotationConfRestMapper,
             new app.bpartners.api.service.annotation.ImageDownloader());
   }
 
@@ -84,18 +82,19 @@ class ExportAreaPictureAnnotationPdfLayoutTest {
 
     ExportAreaPictureAnnotation annotation =
         new ExportAreaPictureAnnotation()
-            .imageUrl("https://dummy.com")
-            .address("1 Rue de Test, 75000 Paris")
-            .conf(
-                new ExportAreaPictureAnnotationConf()
-                    .showTitlePage(true)
-                    .showAnnotationPages(false)
-                    .showAnnotation3dPages(false)
-                    .showMeasurementSummary(false)
-                    .showPitchSummary(false)
-                    .showAreaSummary(false)
-                    .showOverallSummary(false)
-                    .showLlmSummary(false));
+            .setImageUrl("https://dummy.com")
+            .setAddress("1 Rue de Test, 75000 Paris")
+            .setConf(
+                areaPictureAnnotationConfRestMapper.toDomain(
+                    new ExportAreaPictureAnnotationConf()
+                        .showTitlePage(true)
+                        .showAnnotationPages(false)
+                        .showAnnotation3dPages(false)
+                        .showMeasurementSummary(false)
+                        .showPitchSummary(false)
+                        .showAreaSummary(false)
+                        .showOverallSummary(false)
+                        .showLlmSummary(false)));
 
     byte[] pdfBytes =
         assertDoesNotThrow(() -> subject.process(user(), annotation, tallImage, tallImageBytes));

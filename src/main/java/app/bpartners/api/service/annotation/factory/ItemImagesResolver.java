@@ -2,11 +2,11 @@ package app.bpartners.api.service.annotation.factory;
 
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.endpoint.rest.model.FileType;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.ImageCompressor;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.service.file.FileService;
 import java.io.IOException;
 import java.util.List;

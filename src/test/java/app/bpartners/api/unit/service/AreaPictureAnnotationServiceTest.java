@@ -11,6 +11,7 @@ import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.User;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.service.annotation.AnnotationReportService;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.areapicture.AreaPictureAnnotationService;
 import app.bpartners.api.service.aws.S3Service;
 import org.junit.jupiter.api.Test;

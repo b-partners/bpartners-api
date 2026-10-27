@@ -2,7 +2,7 @@ package app.bpartners.api.service.annotation.model;
 
 import static java.util.Objects.requireNonNull;
 
-import app.bpartners.api.endpoint.rest.model.Polygon;
+import app.bpartners.api.service.annotation.model.export.Polygon;
 
 /**
  * Polygon coordinates in their original unit (e.g. meters), kept as doubles so that sub-unit

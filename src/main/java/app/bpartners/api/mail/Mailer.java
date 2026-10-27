@@ -36,7 +36,6 @@ import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 public class Mailer implements Consumer<Email> {
   private final EmailConf emailConf;
   private final FileTyper fileTyper;
-  private final EmailSubjectPrefixer subjectPrefixer;
 
   @Override
   public void accept(Email email) {
@@ -70,7 +69,7 @@ public class Mailer implements Consumer<Email> {
     var message = new MimeMessage(session);
     message.setFrom(new InternetAddress(emailConf.getSesSource()));
     message.setRecipients(TO, email.to().toString());
-    message.setSubject(subjectPrefixer.apply(email.subject()), "UTF-8");
+    message.setSubject(email.subject(), "UTF-8");
     message.setRecipients(CC, email.cc().toArray(InternetAddress[]::new));
     message.setRecipients(BCC, email.bcc().toArray(InternetAddress[]::new));
     return message;

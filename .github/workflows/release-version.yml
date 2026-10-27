@@ -17,7 +17,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.1.6
         with:
-          fetch-depth: 0
           # secrets.GITHUB_TOKEN is not enough for releasing on protected branch
           # Use a Personal Access Token from someone who has sufficient privileges
           token: ${{ secrets.POJA_GH_TOKEN_FOR_CONVENTIONAL_CHANGELOG }}
@@ -30,11 +29,8 @@ jobs:
       # We will use conventional-changelog which only supports yaml, yml and toml version file
       - name: From gradle.properties to version.yml
         run: |
-          grep '^version=' gradle.properties \
-            | sed 's/version=/version: /' \
-            > version.yml
-          
-          cat version.yml
+          cp gradle.properties version.yml
+          sed -i 's/=/: /g' version.yml
           git status
 
       # conventional-ch increments the patch version even when

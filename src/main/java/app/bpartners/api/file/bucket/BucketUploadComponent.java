@@ -13,16 +13,16 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 @Component
 @AllArgsConstructor
 public class BucketUploadComponent {
-  private final BucketConf bucketConf;
+  private final CustomBucketConf customBucketConf;
 
   public URL presignUpload(String bucketKey, long contentLength, Duration expiration) {
     var putObjectRequest =
         PutObjectRequest.builder()
-            .bucket(bucketConf.getBucketName())
+            .bucket(customBucketConf.getBucketName())
             .key(bucketKey)
             .contentLength(contentLength)
             .build();
-    return bucketConf
+    return customBucketConf
         .getS3Presigner()
         .presignPutObject(
             PutObjectPresignRequest.builder()
@@ -35,11 +35,11 @@ public class BucketUploadComponent {
   public OptionalLong contentLength(String bucketKey) {
     try {
       var response =
-          bucketConf
+          customBucketConf
               .getS3Client()
               .headObject(
                   HeadObjectRequest.builder()
-                      .bucket(bucketConf.getBucketName())
+                      .bucket(customBucketConf.getBucketName())
                       .key(bucketKey)
                       .build());
       return OptionalLong.of(response.contentLength());

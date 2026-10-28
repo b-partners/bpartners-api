@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.file.bucket.BucketConf;
 import app.bpartners.api.file.bucket.BucketUploadComponent;
+import app.bpartners.api.file.bucket.CustomBucketConf;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -20,9 +20,9 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 class BucketUploadComponentTest {
   private static final String BUCKET = "test-bucket";
-  private final BucketConf bucketConfMock = mock(BucketConf.class);
+  private final CustomBucketConf customBucketConfMock = mock(CustomBucketConf.class);
   private final S3Client s3ClientMock = mock(S3Client.class);
-  private final BucketUploadComponent subject = new BucketUploadComponent(bucketConfMock);
+  private final BucketUploadComponent subject = new BucketUploadComponent(customBucketConfMock);
 
   BucketUploadComponentTest() {
     var presigner =
@@ -31,9 +31,9 @@ class BucketUploadComponentTest {
             .credentialsProvider(
                 StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
             .build();
-    when(bucketConfMock.getBucketName()).thenReturn(BUCKET);
-    when(bucketConfMock.getS3Presigner()).thenReturn(presigner);
-    when(bucketConfMock.getS3Client()).thenReturn(s3ClientMock);
+    when(customBucketConfMock.getBucketName()).thenReturn(BUCKET);
+    when(customBucketConfMock.getS3Presigner()).thenReturn(presigner);
+    when(customBucketConfMock.getS3Client()).thenReturn(s3ClientMock);
   }
 
   @Test

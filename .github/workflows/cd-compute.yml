@@ -29,8 +29,8 @@ jobs:
       AWS_REGION: eu-west-3
       STRIPE_PRIVATE_API_KEY: ${{ secrets.STRIPE_PRIVATE_API_KEY }}
       GOOGLE_GEOCODE_API_KEY: ${{ secrets.GOOGLE_GEOCODE_API_KEY }}
-      GEODATA_IMAGERY_BASEURL: ${{secrets.GEODATA_IMAGERY_BASEURL}}
-      GEODATA_API_KEY: ${{secrets.GEODATA_API_KEY}}
+      GEODATA_IMAGERY_BASEURL: ${{ secrets.GEODATA_IMAGERY_BASEURL }}
+      GEODATA_API_KEY: ${{ secrets.GEODATA_API_KEY }}
 
     steps:
       - uses: actions/checkout@v4.1.6
@@ -55,11 +55,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-
       - name: Disable tests
         if: ${{ github.event.inputs.run_tests == 'no' }}
         run: |
-          echo "skipTests=true" >> gradle.properties
+          printf "tasks.named('test').configure {\n    enabled = false\n}" >> build.gradle
 
       - run: sam build
 

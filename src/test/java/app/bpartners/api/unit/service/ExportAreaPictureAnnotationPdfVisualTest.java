@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-@Disabled("This is a visual test to generate a PDF file for manual inspection.")
+
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
@@ -451,6 +451,23 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
+  void generate_conches_payload() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromConchesPayload();
+    mockImage =
+        ImageIO.read(
+            new ClassPathResource("files/Chem. de Conches 44, 1321 Conches, Suisse.jpg")
+                .getInputStream());
+    mockImageBytes = toByteStream(mockImage);
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "conches-payload");
+  }
+
+  @Test
   void generate_visual_pdf() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = fullExportAreaPictureAnnotation();
 
@@ -498,6 +515,14 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     return TestContextFactories.readPayload(
         objectMapper, new ClassPathResource("payload/export-pdf-payload.json").getInputStream());
+  }
+
+  private ExportAreaPictureAnnotation annotationFromConchesPayload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return TestContextFactories.readPayload(
+        objectMapper,
+        new ClassPathResource("payload/export/Chem. de Conches 44, 1321 Conches, Suisse.json")
+            .getInputStream());
   }
 
   private ExportAreaPictureAnnotation annotationFromToulousePayload() throws IOException {

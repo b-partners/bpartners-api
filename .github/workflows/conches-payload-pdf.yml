@@ -1,4 +1,4 @@
-name: Visual Test - Conches CityJSON 3D pages
+name: Visual Test - Conches payload
 
 on:
   pull_request:
@@ -40,10 +40,10 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Run only the Conches CityJSON visual test
+      - name: Run only the Conches payload visual test
         run: |
           ./gradlew test \
-            --tests "app.bpartners.api.unit.service.ExportAreaPictureAnnotationPdfVisualTest.generate_conches_cityjson_3d_pages" \
+            --tests "app.bpartners.api.unit.service.ExportAreaPictureAnnotationPdfVisualTest.generate_conches_payload" \
             --no-daemon \
             --info \
             --continue
@@ -66,6 +66,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: conches-cityjson-pdf
+          name: conches-payload-pdf
           path: build/annotation-export-*.pdf
           retention-days: 30

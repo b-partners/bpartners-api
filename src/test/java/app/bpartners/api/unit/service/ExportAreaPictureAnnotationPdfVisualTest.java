@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-@Disabled("This is a visual test to generate a PDF file for manual inspection.")
+
 class ExportAreaPictureAnnotationPdfVisualTest {
   private static final ExportAreaPictureAnnotationImageGenerator imageGenerator =
       new ExportAreaPictureAnnotationImageGenerator();
@@ -451,27 +451,15 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
-  void generate_conches_cityjson_3d_pages() throws IOException {
+  void generate_conches_payload() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromConchesPayload();
-    exportAreaPictureAnnotation.setConf(
-        areaPictureAnnotationConfRestMapper.toDomain(
-            new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-                .showTitlePage(true)
-                .showAnnotationPages(false)
-                .showAnnotation3dPages(true)
-                .showMeasurementSummary(true)
-                .showPitchSummary(true)
-                .showAreaSummary(true)
-                .showOverallSummary(true)
-                .showLlmSummary(false)
-                .showDegradationSummary(true)));
 
     byte[] pdfBytes =
         assertDoesNotThrow(
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
 
     assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "conches-cityjson-3d");
+    savePdfFile(pdfBytes, "conches-payload");
   }
 
   @Test

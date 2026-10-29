@@ -1,3 +1,13 @@
+# [0.102.0](https://github.com/b-partners/bpartners-api/compare/v0.101.0...v0.102.0) (2026-10-29)
+
+
+### Features
+
+* **subscription:** send credit note mail without attachment and point to the dashboard ([b5d6ebc](https://github.com/b-partners/bpartners-api/commit/b5d6ebcb0811458527a5b5e5caa5fb0379fa11d6))
+* **subscription:** share subscription and credits with secondary users ([3b2d032](https://github.com/b-partners/bpartners-api/commit/3b2d032196b45a43cb3f3c2e0d6585a241a00ef7))
+
+
+
 # [0.101.0](https://github.com/b-partners/bpartners-api/compare/v0.97.0...v0.101.0) (2026-10-22)
 
 
@@ -302,22 +312,6 @@
 ### Features
 
 * get user subscription invoices ([a5da20e](https://github.com/b-partners/bpartners-api/commit/a5da20e7cf3f23971f4d08b7ac41388f5ca0709e))
-
-
-
-# [0.83.0](https://github.com/b-partners/bpartners-api/compare/v0.82.0...v0.83.0) (2026-07-17)
-
-
-### Bug Fixes
-
-* **SecurityConf:** allow authenticated users to request invoice export not only ADMIN ([460053f](https://github.com/b-partners/bpartners-api/commit/460053f2fb8a9ae4ddfa8e83825fc76bc086da1a))
-* **User:** keep identification=VALID_IDENTITY for retro-compatibility ([90d1cee](https://github.com/b-partners/bpartners-api/commit/90d1cee44edfebf3dac3646021bd186e2619dd78))
-* **User:** keep idVerified=true for retro-compatibility ([7a63f6b](https://github.com/b-partners/bpartners-api/commit/7a63f6bb8196edc7eb9ae5a3f0a10b9b1c1f6cf8))
-
-
-### Features
-
-* handle invoice export asynchronously ([d9e54e3](https://github.com/b-partners/bpartners-api/commit/d9e54e3c032f9247a2c9413b2ce105bb5761de3a))
 
 
 

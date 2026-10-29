@@ -453,6 +453,11 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   @Test
   void generate_conches_payload() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromConchesPayload();
+    mockImage =
+        ImageIO.read(
+            new ClassPathResource("files/Chem. de Conches 44, 1321 Conches, Suisse.jpg")
+                .getInputStream());
+    mockImageBytes = toByteStream(mockImage);
 
     byte[] pdfBytes =
         assertDoesNotThrow(

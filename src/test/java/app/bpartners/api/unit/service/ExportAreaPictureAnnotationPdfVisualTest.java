@@ -464,7 +464,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 .showAreaSummary(true)
                 .showOverallSummary(true)
                 .showLlmSummary(false)
-                .showDegradationSummary(false)));
+                .showDegradationSummary(true)));
 
     byte[] pdfBytes =
         assertDoesNotThrow(

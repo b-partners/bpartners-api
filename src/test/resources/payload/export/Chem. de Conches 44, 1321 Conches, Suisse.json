@@ -1,0 +1,955 @@
+{
+  "imageUrl": "https://example.com/chem-de-conches-44.png",
+  "address": "Chem. de Conches 44, 1321 Conches, Suisse",
+  "globalRateType": "A",
+  "globalRateValue": 0,
+  "annotations": [],
+  "3d": {
+    "pans": [
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 6.55,
+              "y": 11.39
+            },
+            {
+              "x": 12.06,
+              "y": 4.54
+            },
+            {
+              "x": 6.88,
+              "y": 0.77
+            },
+            {
+              "x": 5.62,
+              "y": 2.14
+            },
+            {
+              "x": 2.8,
+              "y": 0.0
+            },
+            {
+              "x": 0.0,
+              "y": 4.27
+            },
+            {
+              "x": 2.46,
+              "y": 5.96
+            },
+            {
+              "x": 1.16,
+              "y": 7.6
+            },
+            {
+              "x": 6.55,
+              "y": 11.39
+            }
+          ]
+        },
+        "orientedPolygon": {
+          "points": [
+            {
+              "x": 0.44,
+              "y": 0.0
+            },
+            {
+              "x": 9.22,
+              "y": 0.0
+            },
+            {
+              "x": 8.91,
+              "y": 6.4
+            },
+            {
+              "x": 7.05,
+              "y": 6.52
+            },
+            {
+              "x": 6.95,
+              "y": 10.07
+            },
+            {
+              "x": 1.87,
+              "y": 9.57
+            },
+            {
+              "x": 2.1,
+              "y": 6.59
+            },
+            {
+              "x": 0.0,
+              "y": 6.58
+            },
+            {
+              "x": 0.44,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 8.78
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.4
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 1.86
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 3.55
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.1
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.99
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.1
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.59
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface totale réelle",
+            "value": "99.55m²"
+          },
+          {
+            "label": "Surface rampant",
+            "value": "74.31m²"
+          },
+          {
+            "label": "Pente",
+            "value": "2.52°"
+          },
+          {
+            "label": "edgeTypes",
+            "value": "[\"egout\",\"faitage\",\"egout\",\"egout\",\"egout\",\"egout\",\"egout\",\"egout\"]"
+          }
+        ],
+        "name": "Pan A"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 1.79
+            },
+            {
+              "x": 0.94,
+              "y": 0.0
+            },
+            {
+              "x": 6.21,
+              "y": 3.8
+            },
+            {
+              "x": 5.18,
+              "y": 5.55
+            },
+            {
+              "x": 0.0,
+              "y": 1.79
+            }
+          ]
+        },
+        "orientedPolygon": {
+          "points": [
+            {
+              "x": 0.5,
+              "y": 0.0
+            },
+            {
+              "x": 4.51,
+              "y": 0.0
+            },
+            {
+              "x": 4.05,
+              "y": 6.48
+            },
+            {
+              "x": 0.0,
+              "y": 6.39
+            },
+            {
+              "x": 0.5,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 4.01
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.5
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 4.05
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.4
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface totale réelle",
+            "value": "99.55m²"
+          },
+          {
+            "label": "Surface rampant",
+            "value": "25.24m²"
+          },
+          {
+            "label": "Pente",
+            "value": "59.06°"
+          },
+          {
+            "label": "edgeTypes",
+            "value": "[\"rive\",\"egout\",\"rive\",\"faitage\"]"
+          }
+        ],
+        "name": "Pan B"
+      }
+    ],
+    "facades": [
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 8.78,
+              "y": 0.0
+            },
+            {
+              "x": 8.78,
+              "y": 5.75
+            },
+            {
+              "x": 0.0,
+              "y": 5.75
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 8.78
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.75
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 8.78
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.75
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "50.52m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.75m"
+          }
+        ],
+        "name": "Façade A"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 6.4,
+              "y": 0.0
+            },
+            {
+              "x": 6.4,
+              "y": 5.71
+            },
+            {
+              "x": 0.0,
+              "y": 5.75
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.4
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.71
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.4
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.75
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "36.71m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.75m"
+          }
+        ],
+        "name": "Façade B"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 1.86,
+              "y": 0.0
+            },
+            {
+              "x": 1.86,
+              "y": 5.71
+            },
+            {
+              "x": 0.0,
+              "y": 5.71
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 1.86
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.71
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 1.86
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.71
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "10.62m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.71m"
+          }
+        ],
+        "name": "Façade C"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 3.55,
+              "y": 0.0
+            },
+            {
+              "x": 3.55,
+              "y": 5.68
+            },
+            {
+              "x": 0.0,
+              "y": 5.71
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 3.55
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.68
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 3.55
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.71
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "20.21m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.71m"
+          }
+        ],
+        "name": "Façade D"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 5.1,
+              "y": 0.0
+            },
+            {
+              "x": 5.1,
+              "y": 5.68
+            },
+            {
+              "x": 0.0,
+              "y": 5.68
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.1
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.68
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.1
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.68
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "29.0m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.68m"
+          }
+        ],
+        "name": "Façade E"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 2.99,
+              "y": 0.0
+            },
+            {
+              "x": 2.99,
+              "y": 5.7
+            },
+            {
+              "x": 0.0,
+              "y": 5.68
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.99
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.7
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.99
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.68
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "17.01m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.7m"
+          }
+        ],
+        "name": "Façade F"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 2.1,
+              "y": 0.0
+            },
+            {
+              "x": 2.1,
+              "y": 5.7
+            },
+            {
+              "x": 0.0,
+              "y": 5.7
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.1
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.7
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.1
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.7
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "11.95m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.7m"
+          }
+        ],
+        "name": "Façade G"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 6.59,
+              "y": 0.0
+            },
+            {
+              "x": 6.59,
+              "y": 5.75
+            },
+            {
+              "x": 0.0,
+              "y": 5.7
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.59
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.75
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.59
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.7
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "37.73m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.75m"
+          }
+        ],
+        "name": "Façade H"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 2.02,
+              "y": 0.0
+            },
+            {
+              "x": 2.02,
+              "y": 2.25
+            },
+            {
+              "x": 0.0,
+              "y": 5.71
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.02
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.25
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 4.01
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.71
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "8.04m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.71m"
+          }
+        ],
+        "name": "Façade I"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 6.5,
+              "y": 0.0
+            },
+            {
+              "x": 6.5,
+              "y": 2.25
+            },
+            {
+              "x": 0.0,
+              "y": 2.25
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.5
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.25
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.5
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.25
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "14.62m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "2.25m"
+          }
+        ],
+        "name": "Façade J"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 2.03,
+              "y": 0.0
+            },
+            {
+              "x": 2.03,
+              "y": 5.75
+            },
+            {
+              "x": 0.0,
+              "y": 2.25
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.03
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.75
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 4.05
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 2.25
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "8.14m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.75m"
+          }
+        ],
+        "name": "Façade K"
+      },
+      {
+        "polygon": {
+          "points": [
+            {
+              "x": 0.0,
+              "y": 0.0
+            },
+            {
+              "x": 6.4,
+              "y": 0.0
+            },
+            {
+              "x": 6.4,
+              "y": 5.71
+            },
+            {
+              "x": 0.0,
+              "y": 5.75
+            },
+            {
+              "x": 0.0,
+              "y": 0.0
+            }
+          ]
+        },
+        "measurements": [
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.4
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.71
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 6.4
+          },
+          {
+            "isInvisible": false,
+            "unit": "m",
+            "value": 5.75
+          }
+        ],
+        "infos": [
+          {
+            "label": "Surface",
+            "value": "36.71m²"
+          },
+          {
+            "label": "Hauteur",
+            "value": "5.75m"
+          }
+        ],
+        "name": "Façade L"
+      }
+    ]
+  }
+}

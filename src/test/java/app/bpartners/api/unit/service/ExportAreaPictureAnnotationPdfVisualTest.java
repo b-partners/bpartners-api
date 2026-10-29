@@ -451,6 +451,30 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
+  void generate_conches_cityjson_3d_pages() throws IOException {
+    ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromConchesPayload();
+    exportAreaPictureAnnotation.setConf(
+        areaPictureAnnotationConfRestMapper.toDomain(
+            new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
+                .showTitlePage(true)
+                .showAnnotationPages(false)
+                .showAnnotation3dPages(true)
+                .showMeasurementSummary(true)
+                .showPitchSummary(true)
+                .showAreaSummary(true)
+                .showOverallSummary(true)
+                .showLlmSummary(false)
+                .showDegradationSummary(false)));
+
+    byte[] pdfBytes =
+        assertDoesNotThrow(
+            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
+
+    assertNotNull(pdfBytes);
+    savePdfFile(pdfBytes, "conches-cityjson-3d");
+  }
+
+  @Test
   void generate_visual_pdf() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = fullExportAreaPictureAnnotation();
 
@@ -498,6 +522,14 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     return TestContextFactories.readPayload(
         objectMapper, new ClassPathResource("payload/export-pdf-payload.json").getInputStream());
+  }
+
+  private ExportAreaPictureAnnotation annotationFromConchesPayload() throws IOException {
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return TestContextFactories.readPayload(
+        objectMapper,
+        new ClassPathResource("payload/export/Chem. de Conches 44, 1321 Conches, Suisse.json")
+            .getInputStream());
   }
 
   private ExportAreaPictureAnnotation annotationFromToulousePayload() throws IOException {

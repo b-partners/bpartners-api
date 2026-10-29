@@ -1,0 +1,201 @@
+operations:
+  secondaryUsersOperation:
+    get:
+      tags:
+        - Secondary User
+      summary: Get the secondary users of a primary user
+      operationId: getSecondaryUsers
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: Primary user identifier
+      responses:
+        200:
+          description: List of secondary users, invited or active
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SecondaryUser'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - Secondary User
+      summary: Invite a secondary user
+      operationId: inviteSecondaryUser
+      description: |
+        Invites a user by email to share the subscription and the credits of the primary user.
+        The subscription plan of the primary user must allow secondary users and its limit must not be reached.
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: Primary user identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSecondaryUser'
+      responses:
+        200:
+          description: The created invitation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecondaryUser'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  secondaryUserOperation:
+    delete:
+      tags:
+        - Secondary User
+      summary: Remove a secondary user or cancel its invitation
+      operationId: removeSecondaryUser
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: Primary user identifier
+        - in: path
+          name: secondaryUserId
+          schema:
+            type: string
+          required: true
+          description: Secondary user identifier
+      responses:
+        204:
+          description: The secondary user is removed
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  secondaryUserInvitationsOperation:
+    get:
+      tags:
+        - Secondary User
+      summary: Get the pending invitations received by a user
+      operationId: getSecondaryUserInvitations
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: Invited user identifier
+      responses:
+        200:
+          description: List of pending invitations matching the email of the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SecondaryUser'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  secondaryUserInvitationOperation:
+    put:
+      tags:
+        - Secondary User
+      summary: Accept an invitation to become a secondary user
+      operationId: acceptSecondaryUserInvitation
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+          description: Invited user identifier
+        - in: path
+          name: invitationId
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: The accepted invitation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecondaryUser'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    SecondaryUserStatus:
+      type: string
+      enum:
+        - INVITED
+        - ACTIVE
+    CreateSecondaryUser:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+    SecondaryUser:
+      type: object
+      properties:
+        id:
+          type: string
+        primaryUserId:
+          type: string
+        secondaryUserId:
+          type: string
+          nullable: true
+        email:
+          type: string
+        status:
+          $ref: '#/components/schemas/SecondaryUserStatus'
+        creationDatetime:
+          type: string
+          format: date-time

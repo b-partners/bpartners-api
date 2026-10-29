@@ -9,9 +9,11 @@ import static org.springframework.http.HttpMethod.PUT;
 
 import app.bpartners.api.endpoint.rest.security.matcher.SelfAccountHolderMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfAccountMatcher;
+import app.bpartners.api.endpoint.rest.security.matcher.SelfPrimaryUserMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfUserAccountMatcher;
 import app.bpartners.api.endpoint.rest.security.matcher.SelfUserMatcher;
 import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.service.subscription.PrimaryUserResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -42,12 +44,15 @@ public class SecurityConf {
   private final AuthProvider authProvider;
   private final HandlerExceptionResolver exceptionResolver;
   private final AuthenticatedResourceProvider authResourceProvider;
+  private final PrimaryUserResolver primaryUserResolver;
 
   public SecurityConf(
       AuthProvider authProvider,
       // InternalToExternalErrorHandler behind
       @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver,
-      AuthenticatedResourceProvider authResourceProvider) {
+      AuthenticatedResourceProvider authResourceProvider,
+      PrimaryUserResolver primaryUserResolver) {
+    this.primaryUserResolver = primaryUserResolver;
     this.authProvider = authProvider;
     this.exceptionResolver = exceptionResolver;
     this.authResourceProvider = authResourceProvider;
@@ -192,32 +197,53 @@ public class SecurityConf {
                             GET, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
-                            GET, "/users/*/subscriptionUpgrade", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            GET,
+                            "/users/*/subscriptionUpgrade",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
-                            GET, "/users/*/subscriptionTrialEligibility", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            GET,
+                            "/users/*/subscriptionTrialEligibility",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(GET, "/users/*/paymentMethods", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            GET,
+                            "/users/*/paymentMethods",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(PUT, "/users/*/paymentMethods", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            PUT,
+                            "/users/*/paymentMethods",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
-                            GET, "/users/*/subscriptionCommitments", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            GET,
+                            "/users/*/subscriptionCommitments",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
-                            POST, "/users/*/subscriptionCommitments", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            POST,
+                            "/users/*/subscriptionCommitments",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
+                        new SelfPrimaryUserMatcher(
                             POST,
                             "/users/*/subscriptionCommitments/*/autoRenewalStatus",
-                            authResourceProvider))
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(POST, "/users/*/keys")
                     .hasAnyRole(ADMIN_ROLE.getRole())
@@ -231,12 +257,18 @@ public class SecurityConf {
                             POST, "/users/*/subscriptionConsumptionLogs", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
-                            POST, "/users/*/subscriptionUpgrade", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            POST,
+                            "/users/*/subscriptionUpgrade",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
-                            PUT, "/users/*/subscriptionUpgrades/*", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            PUT,
+                            "/users/*/subscriptionUpgrades/*",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(
@@ -349,8 +381,11 @@ public class SecurityConf {
                         new SelfUserMatcher(GET, "/users/*/accounts", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
-                            POST, "/users/*/subscriptionCancel", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            POST,
+                            "/users/*/subscriptionCancel",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(
@@ -402,8 +437,11 @@ public class SecurityConf {
                     .requestMatchers(PUT, "/users/*/invoiceExportRequests")
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
-                            GET, "/users/*/subscriptionInvoices", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            GET,
+                            "/users/*/subscriptionInvoices",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider))
@@ -725,6 +763,35 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(POST, "/address/autocomplete")
                     .authenticated()
+                    .requestMatchers(
+                        new SelfPrimaryUserMatcher(
+                            GET,
+                            "/users/*/secondaryUsers",
+                            authResourceProvider,
+                            primaryUserResolver))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfPrimaryUserMatcher(
+                            POST,
+                            "/users/*/secondaryUsers",
+                            authResourceProvider,
+                            primaryUserResolver))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfPrimaryUserMatcher(
+                            DELETE,
+                            "/users/*/secondaryUsers/*",
+                            authResourceProvider,
+                            primaryUserResolver))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/secondaryUserInvitations", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/secondaryUserInvitations/*", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(GET, "/creditPacks")
                     .authenticated()
                     .requestMatchers(GET, "/creditPacks/*")
@@ -733,11 +800,18 @@ public class SecurityConf {
                         new SelfUserMatcher(GET, "/users/*/creditBalance", authResourceProvider))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(GET, "/users/*/creditPurchases", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            GET,
+                            "/users/*/creditPurchases",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
-                        new SelfUserMatcher(
-                            PUT, "/users/*/creditPurchases/*", authResourceProvider))
+                        new SelfPrimaryUserMatcher(
+                            PUT,
+                            "/users/*/creditPurchases/*",
+                            authResourceProvider,
+                            primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(

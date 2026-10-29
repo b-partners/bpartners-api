@@ -33,6 +33,9 @@ public class CreditTransaction {
   @Column(name = "user_id")
   private String userId;
 
+  @Column(name = "actor_user_id")
+  private String actorUserId;
+
   @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
   private CreditTransactionType type;

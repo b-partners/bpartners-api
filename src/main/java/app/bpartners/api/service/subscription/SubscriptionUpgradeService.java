@@ -60,9 +60,11 @@ public class SubscriptionUpgradeService {
   private final SubscriptionUpgradeTransitionService transitionService;
   private final SubscriptionUpgradeTimeline timeline;
   private final TemporalUtils temporalUtils;
+  private final SecondaryUserService secondaryUserService;
 
   public UserSubscriptionUpgrade initiate(
       User user, String toPlanIdentifier, BillingInterval requestedInterval) {
+    secondaryUserService.requireNoSecondaryUsers(user.getId());
     var activeProduct = requireActivePaidProduct(user);
     var fromProduct = activeProduct.getSubscriptionProduct();
     var fromInterval =
@@ -123,6 +125,7 @@ public class SubscriptionUpgradeService {
   }
 
   public UserSubscriptionUpgrade confirm(User user, String upgradeId) {
+    secondaryUserService.requireNoSecondaryUsers(user.getId());
     var quote = requireOwned(user.getId(), upgradeId);
     if (expirationService.expireQuoteIfOverdue(quote)) {
       throw new ConflictException(

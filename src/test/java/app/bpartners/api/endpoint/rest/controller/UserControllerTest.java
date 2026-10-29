@@ -75,6 +75,7 @@ class UserControllerTest {
           userSubscriptionPaymentMethodRestMapper,
           mock(),
           mock(),
+          mock(),
           mock());
 
   @BeforeEach

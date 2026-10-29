@@ -361,6 +361,7 @@ public class SubscriptionService {
                   .includedCreditsPerBillingPeriod(existing.getIncludedCreditsPerBillingPeriod())
                   .creditUnitPriceInCentsWithoutVat(existing.getCreditUnitPriceInCentsWithoutVat())
                   .creditCostPerAnalysis(existing.getCreditCostPerAnalysis())
+                  .maxSecondaryUsers(existing.getMaxSecondaryUsers())
                   .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
                   .trialPeriodDays(existing.getTrialPeriodDays())
                   .trialAnalysisGranted(existing.getTrialAnalysisGranted())

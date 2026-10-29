@@ -114,7 +114,8 @@ class SubscriptionUpgradeServiceTest {
           expirationService,
           transitionService,
           timeline,
-          temporalUtils);
+          temporalUtils,
+          mock());
 
   Map<String, SubscriptionProduct> catalog = new HashMap<>();
   Map<String, UserSubscriptionUpgrade> stored = new HashMap<>();

@@ -7,6 +7,7 @@ import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDI
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.DEBIT;
 import static app.bpartners.api.model.credit.CreditTransactionType.CONSUMPTION;
 import static app.bpartners.api.model.credit.CreditTransactionType.PURCHASE;
+import static app.bpartners.api.model.subscription.SecondaryUserStatus.ACTIVE;
 import static app.bpartners.api.model.subscription.SubscriptionBillingType.USAGE_BASED;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -17,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -30,14 +32,17 @@ import app.bpartners.api.model.credit.CreditPurchase;
 import app.bpartners.api.model.credit.CreditPurchaseType;
 import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.model.exception.NotFoundException;
+import app.bpartners.api.model.subscription.SecondaryUser;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.jpa.CreditPackRepository;
 import app.bpartners.api.repository.jpa.CreditPurchaseRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
+import app.bpartners.api.repository.jpa.SecondaryUserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
 import app.bpartners.api.service.credit.CreditLedgerService;
 import app.bpartners.api.service.credit.CreditService;
+import app.bpartners.api.service.subscription.PrimaryUserResolver;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
 import java.util.List;
@@ -65,7 +70,8 @@ class CreditServiceTest {
           creditTransactionRepository,
           creditPurchaseRepository,
           creditLedgerService,
-          temporalUtils);
+          temporalUtils,
+          new PrimaryUserResolver(mock(SecondaryUserRepository.class)));
 
   User user = User.builder().id("user_id").build();
 
@@ -364,5 +370,63 @@ class CreditServiceTest {
             eq("user_id"), eq(List.of(COMPLETED)), eq(from), eq(to), pageableCaptor.capture());
     assertEquals(1, pageableCaptor.getValue().getPageNumber());
     assertEquals(5, pageableCaptor.getValue().getPageSize());
+  }
+
+  @Test
+  void secondary_user_analysis_is_debited_from_primary_user_wallet() {
+    var secondaryUserRepository = mock(SecondaryUserRepository.class);
+    when(secondaryUserRepository.findFirstBySecondaryUserIdAndStatus("secondary_id", ACTIVE))
+        .thenReturn(
+            Optional.of(
+                SecondaryUser.builder()
+                    .primaryUserId("primary_id")
+                    .secondaryUserId("secondary_id")
+                    .status(ACTIVE)
+                    .build()));
+    var sharedSubject =
+        new CreditService(
+            creditPackRepository,
+            userSubscriptionProductJpaRepository,
+            subscriptionProductRepository,
+            creditTransactionRepository,
+            creditPurchaseRepository,
+            creditLedgerService,
+            temporalUtils,
+            new PrimaryUserResolver(secondaryUserRepository));
+
+    sharedSubject.consumeRoofAnalysis("secondary_id", "Analyse toiture");
+
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+    verify(creditLedgerService).append(captor.capture());
+    assertEquals("primary_id", captor.getValue().getUserId());
+    assertEquals("secondary_id", captor.getValue().getActorUserId());
+  }
+
+  @Test
+  void secondary_user_balance_is_the_primary_user_balance() {
+    var secondaryUserRepository = mock(SecondaryUserRepository.class);
+    when(secondaryUserRepository.findFirstBySecondaryUserIdAndStatus("secondary_id", ACTIVE))
+        .thenReturn(
+            Optional.of(
+                SecondaryUser.builder()
+                    .primaryUserId("primary_id")
+                    .secondaryUserId("secondary_id")
+                    .status(ACTIVE)
+                    .build()));
+    var sharedSubject =
+        new CreditService(
+            creditPackRepository,
+            userSubscriptionProductJpaRepository,
+            subscriptionProductRepository,
+            creditTransactionRepository,
+            creditPurchaseRepository,
+            creditLedgerService,
+            temporalUtils,
+            new PrimaryUserResolver(secondaryUserRepository));
+
+    sharedSubject.getCreditBalance("secondary_id");
+
+    verify(creditTransactionRepository).findAllByUserId("primary_id");
+    verify(creditTransactionRepository, never()).findAllByUserId("secondary_id");
   }
 }

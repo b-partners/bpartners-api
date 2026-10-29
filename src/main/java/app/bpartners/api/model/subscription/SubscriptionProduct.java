@@ -119,6 +119,9 @@ public class SubscriptionProduct {
   @Column(name = "included_credits_per_billing_period")
   private Long includedCreditsPerBillingPeriod;
 
+  @Column(name = "max_secondary_users")
+  private Integer maxSecondaryUsers;
+
   @ManyToMany(fetch = EAGER)
   @JoinTable(
       name = "subscription_product_included_feature",

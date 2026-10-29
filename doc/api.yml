@@ -114,6 +114,14 @@ paths:
     $ref: './user-subscription-api.yml#/operations/getUserSubscriptionTrialEligibility'
   /users/{uId}/subscriptionCancel:
     $ref: './user-subscription-api.yml#/operations/cancelUserSubscription'
+  /users/{uId}/secondaryUsers:
+    $ref: './secondary-user-api.yml#/operations/secondaryUsersOperation'
+  /users/{uId}/secondaryUsers/{secondaryUserId}:
+    $ref: './secondary-user-api.yml#/operations/secondaryUserOperation'
+  /users/{uId}/secondaryUserInvitations:
+    $ref: './secondary-user-api.yml#/operations/secondaryUserInvitationsOperation'
+  /users/{uId}/secondaryUserInvitations/{invitationId}:
+    $ref: './secondary-user-api.yml#/operations/secondaryUserInvitationOperation'
   /users/{uId}/subscriptionConsumptionLogs:
     $ref: './user-subscription-api.yml#/operations/subscriptionConsumptionLogsOperation'
   /users/{uId}/subscriptionCommitments:

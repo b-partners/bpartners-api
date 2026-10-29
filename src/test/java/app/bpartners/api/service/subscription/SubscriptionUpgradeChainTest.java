@@ -125,7 +125,8 @@ class SubscriptionUpgradeChainTest {
           expirationService,
           transitionService,
           timeline,
-          temporalUtils);
+          temporalUtils,
+          mock());
 
   SubscriptionUpgradeInvoicingService invoicingService =
       new SubscriptionUpgradeInvoicingService(

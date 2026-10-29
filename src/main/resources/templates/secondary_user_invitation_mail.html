@@ -1,0 +1,25 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Invitation sous-utilisateur</title>
+    <style>
+        * {
+            font-family: Arial, Verdana, Georgia, and Courier, serif;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+<p>Bonjour,</p>
+<p>
+    <strong><span th:text="${primaryUserName}"></span></strong> vous invite à rejoindre son
+    abonnement Birdia en tant qu'utilisateur secondaire. Vous partagerez ses crédits d'analyse.
+</p>
+<p>
+    Connectez-vous (ou créez votre compte) avec l'adresse
+    <strong><span th:text="${invitedEmail}"></span></strong> puis acceptez l'invitation depuis votre
+    tableau de bord.
+</p>
+<p>Cordialement,</p>
+<p>L'équipe Birdia.</p>
+</body>
+</html>

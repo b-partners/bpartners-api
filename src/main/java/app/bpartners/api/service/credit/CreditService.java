@@ -18,6 +18,7 @@ import app.bpartners.api.repository.jpa.CreditPurchaseRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionProductJpaRepository;
+import app.bpartners.api.service.subscription.PrimaryUserResolver;
 import app.bpartners.api.service.utils.TemporalUtils;
 import java.time.Instant;
 import java.util.List;
@@ -41,11 +42,14 @@ public class CreditService {
   private final CreditPurchaseRepository creditPurchaseRepository;
   private final CreditLedgerService creditLedgerService;
   private final TemporalUtils temporalUtils;
+  private final PrimaryUserResolver primaryUserResolver;
 
-  public CreditTransaction consumeRoofAnalysis(String userId, String label) {
+  public CreditTransaction consumeRoofAnalysis(String actorUserId, String label) {
+    var userId = primaryUserResolver.resolve(actorUserId);
     return creditLedgerService.append(
         CreditTransaction.builder()
             .userId(userId)
+            .actorUserId(actorUserId)
             .type(CONSUMPTION)
             .movementType(DEBIT)
             .credits(creditCostPerAnalysis(userId))
@@ -80,7 +84,8 @@ public class CreditService {
                     SubscriptionProduct.DEFAULT_VAT_PERCENT));
   }
 
-  public CreditBalance getCreditBalance(String userId) {
+  public CreditBalance getCreditBalance(String requestedUserId) {
+    var userId = primaryUserResolver.resolve(requestedUserId);
     var userCreditTransactions = creditTransactionRepository.findAllByUserId(userId);
     var wallet = CreditWallet.of(userCreditTransactions, now());
     var creditCostPerAnalysis = creditCostPerAnalysis(userId);
@@ -97,12 +102,13 @@ public class CreditService {
   }
 
   public List<CreditTransaction> getCreditTransactions(
-      String userId,
+      String requestedUserId,
       List<CreditTransactionType> types,
       Instant from,
       Instant to,
       PageFromOne page,
       BoundedPageSize pageSize) {
+    var userId = primaryUserResolver.resolve(requestedUserId);
     var pageValue = page != null ? page.getValue() - 1 : 0;
     var pageSizeValue =
         pageSize != null ? pageSize.getValue() : DEFAULT_CREDIT_TRANSACTIONS_PAGE_SIZE;
@@ -139,7 +145,8 @@ public class CreditService {
                 userId, statuses, fromBound, toBound, pageable);
   }
 
-  public CreditTransaction getCreditTransaction(String userId, String transactionId) {
+  public CreditTransaction getCreditTransaction(String requestedUserId, String transactionId) {
+    var userId = primaryUserResolver.resolve(requestedUserId);
     return creditTransactionRepository
         .findById(transactionId)
         .filter(transaction -> userId.equals(transaction.getUserId()))

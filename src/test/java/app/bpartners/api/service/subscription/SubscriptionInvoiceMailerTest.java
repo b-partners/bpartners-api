@@ -132,6 +132,59 @@ class SubscriptionInvoiceMailerTest {
   }
 
   @Test
+  void credit_note_mail_has_its_own_subject_and_no_attachment() throws Exception {
+    var summary =
+        new SubscriptionMailSummary(
+            "Essentiel", MONTHLY, LocalDate.of(2026, 10, 14), LocalDate.of(2027, 9, 30));
+
+    assertTrue(subject.sendCreditNote(upgradeInvoice(), summary, "s3d@client.fr"));
+
+    var subjectCaptor = ArgumentCaptor.forClass(String.class);
+    var attachments = ArgumentCaptor.forClass(List.class);
+    verify(mailer)
+        .sendEmail(
+            anyString(), anyString(), subjectCaptor.capture(), anyString(), attachments.capture());
+    assertEquals(
+        "Votre facture d'avoir "
+            + upgradeInvoice().getRef()
+            + " est disponible sur votre dashboard",
+        subjectCaptor.getValue());
+    assertTrue(attachments.getValue().isEmpty());
+    var body = sentHtmlBody();
+    assertTrue(body.contains(">Essentiel<"));
+    assertTrue(body.contains(">14/10/2026 au 30/09/2027<"));
+    assertFalse(body.contains("Total TTC"));
+  }
+
+  @Test
+  void credit_note_mail_renders_the_credited_period_and_points_to_the_dashboard() throws Exception {
+    var summary =
+        new SubscriptionMailSummary(
+            "Essentiel", MONTHLY, LocalDate.of(2026, 10, 14), LocalDate.of(2027, 9, 30));
+
+    subject.sendCreditNote(upgradeInvoice(), summary, "s3d@client.fr");
+
+    var body = sentHtmlBody();
+    assertTrue(body.contains("Votre facture d'avoir est disponible"));
+    assertTrue(body.contains("Bonjour S3D Hygiène Professionnel,"));
+    assertTrue(body.contains(">REF-14102026094820<"));
+    assertTrue(body.contains(">Abonnement annulé<"));
+    assertTrue(body.contains(">Essentiel<"));
+    assertTrue(body.contains(">Règlement<"));
+    assertTrue(body.contains(">Mensuel<"));
+    assertTrue(body.contains(">Période créditée<"));
+    assertTrue(body.contains(">14/10/2026 au 30/09/2027<"));
+    assertTrue(body.contains("disponible sur votre dashboard"));
+    assertTrue(body.contains("section factures de votre dashboard"));
+    assertTrue(body.contains("href=\"https://dashboard.birdia.fr\""));
+    assertTrue(body.contains(">Accéder à mon dashboard<"));
+    assertFalse(body.contains("Montant HT"));
+    assertFalse(body.contains("Total TTC"));
+    assertFalse(body.contains("jointe"));
+    assertFalse(body.contains("PDF"));
+  }
+
+  @Test
   void summary_mail_is_not_sent_without_recipient() throws Exception {
     var summary =
         new SubscriptionMailSummary(

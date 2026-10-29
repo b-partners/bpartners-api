@@ -128,7 +128,7 @@ public class SubscriptionUpgradeInvoicingService {
             upgrade.getToBillingInterval(),
             upgradeDate,
             newCoverageEndOf(upgrade));
-    creditNote.ifPresent(invoice -> notifySubscriber(invoice, creditNoteSummary));
+    creditNote.ifPresent(invoice -> notifyCreditNote(invoice, creditNoteSummary));
     newInvoice.ifPresent(invoice -> notifySubscriber(invoice, newInvoiceSummary));
     return Optional.of(upgrade);
   }
@@ -339,6 +339,15 @@ public class SubscriptionUpgradeInvoicingService {
           subscriptionInvoiceMailer.subscriberRecipientOf(invoice));
     } catch (RuntimeException e) {
       log.warn("Unable to send upgrade Invoice(id={}) by mail", invoice.getId(), e);
+    }
+  }
+
+  private void notifyCreditNote(Invoice invoice, SubscriptionMailSummary summary) {
+    try {
+      subscriptionInvoiceMailer.sendCreditNote(
+          invoice, summary, subscriptionInvoiceMailer.subscriberRecipientOf(invoice));
+    } catch (RuntimeException e) {
+      log.warn("Unable to send credit note Invoice(id={}) by mail", invoice.getId(), e);
     }
   }
 

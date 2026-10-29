@@ -33,6 +33,7 @@ import org.thymeleaf.context.Context;
 @RequiredArgsConstructor
 public class SubscriptionInvoiceMailer {
   public static final String SUBSCRIPTION_INVOICE_MAIL_TEMPLATE = "subscription_invoice_mail";
+  public static final String CREDIT_NOTE_MAIL_TEMPLATE = "subscription_credit_note_mail";
   public static final String TECH_RECIPIENT = "tech@birdia.fr";
 
   private final S3Service s3Service;
@@ -57,8 +58,30 @@ public class SubscriptionInvoiceMailer {
     return deliver(invoice, () -> mailContext(invoice, summary), template, recipient);
   }
 
+  public boolean sendCreditNote(
+      Invoice invoice, SubscriptionMailSummary summary, String recipient) {
+    return deliver(
+        invoice,
+        () -> mailContext(invoice, summary),
+        CREDIT_NOTE_MAIL_TEMPLATE,
+        recipient,
+        creditNoteMailSubject(invoice),
+        List::of);
+  }
+
   private boolean deliver(
       Invoice invoice, Supplier<Context> context, String template, String recipient) {
+    return deliver(
+        invoice, context, template, recipient, mailSubject(invoice), () -> attachmentsOf(invoice));
+  }
+
+  private boolean deliver(
+      Invoice invoice,
+      Supplier<Context> context,
+      String template,
+      String recipient,
+      String subject,
+      Supplier<List<Attachment>> attachments) {
     if (recipient == null) {
       log.warn(
           "Invoice(id={}) has no configured nor customer email address, "
@@ -68,8 +91,7 @@ public class SubscriptionInvoiceMailer {
     }
     var htmlBody = templateResolverEngine.parseTemplateResolver(template, context.get());
     try {
-      mailer.sendEmail(
-          recipient, TECH_RECIPIENT, mailSubject(invoice), htmlBody, attachmentsOf(invoice));
+      mailer.sendEmail(recipient, TECH_RECIPIENT, subject, htmlBody, attachments.get());
     } catch (IOException | MessagingException e) {
       throw new ApiException(SERVER_EXCEPTION, e);
     }
@@ -84,6 +106,10 @@ public class SubscriptionInvoiceMailer {
 
   public String mailSubject(Invoice invoice) {
     return "[BIRDIA] Votre facture d'abonnement " + invoice.getRef() + " est disponible";
+  }
+
+  public String creditNoteMailSubject(Invoice invoice) {
+    return "Votre facture d'avoir " + invoice.getRef() + " est disponible sur votre dashboard";
   }
 
   private List<Attachment> attachmentsOf(Invoice invoice) {

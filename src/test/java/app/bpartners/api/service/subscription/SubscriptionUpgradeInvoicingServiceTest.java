@@ -420,17 +420,20 @@ class SubscriptionUpgradeInvoicingServiceTest {
 
     subject.invoice(UPGRADE_ID);
 
-    var summaries = ArgumentCaptor.forClass(SubscriptionMailSummary.class);
-    verify(subscriptionInvoiceMailer, times(2))
-        .sendWithSummary(any(Invoice.class), summaries.capture(), anyString(), anyString());
+    var creditNoteSummary = ArgumentCaptor.forClass(SubscriptionMailSummary.class);
+    verify(subscriptionInvoiceMailer, times(1))
+        .sendCreditNote(any(Invoice.class), creditNoteSummary.capture(), anyString());
     assertEquals(
         new SubscriptionMailSummary(
             "Essentiel", MONTHLY, LocalDate.of(2026, 10, 12), LocalDate.of(2027, 9, 30)),
-        summaries.getAllValues().get(0));
+        creditNoteSummary.getValue());
+    var newInvoiceSummary = ArgumentCaptor.forClass(SubscriptionMailSummary.class);
+    verify(subscriptionInvoiceMailer, times(1))
+        .sendWithSummary(any(Invoice.class), newInvoiceSummary.capture(), anyString(), anyString());
     assertEquals(
         new SubscriptionMailSummary(
             "Pro", MONTHLY, LocalDate.of(2026, 10, 12), LocalDate.of(2027, 9, 30)),
-        summaries.getAllValues().get(1));
+        newInvoiceSummary.getValue());
   }
 
   @Test
@@ -447,12 +450,12 @@ class SubscriptionUpgradeInvoicingServiceTest {
     subject.invoice(UPGRADE_ID);
 
     var summaries = ArgumentCaptor.forClass(SubscriptionMailSummary.class);
-    verify(subscriptionInvoiceMailer, times(2))
+    verify(subscriptionInvoiceMailer, times(1))
         .sendWithSummary(any(Invoice.class), summaries.capture(), anyString(), anyString());
     assertEquals(
         new SubscriptionMailSummary(
             "Pro", YEARLY, LocalDate.of(2026, 10, 12), LocalDate.of(2027, 10, 11)),
-        summaries.getAllValues().get(1));
+        summaries.getValue());
   }
 
   @Test

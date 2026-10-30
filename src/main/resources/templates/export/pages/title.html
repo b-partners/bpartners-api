@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="page" class="page" th:if="${conf.showTitlePage}">
+  <div class="cover-container">
+    <h1 class="title">
+        <span class="title-label">Rapport d'analyse de l'adresse : </span>
+        <br />
+        <span class="title-value" th:text="${address} ?: 'Non renseigné'"></span>
+    </h1>
+    <div class="image-wrapper" style="margin-top: 20px;">
+        <img alt="annotation" class="main-image" th:src="${mainImage}"/>
+    </div>
+    <div class="degradation-container clearfix" th:if="${globalRateType != null and conf.showDegradationSummary}">
+        <p class="degradation-section-title">ÉTAT APPARENT DE LA TOITURE</p>
+
+        <table class="degradation-levels-table" th:if="${degradationLevels != null} and ${activeDegradationLevel != null}">
+            <tr>
+                <td th:each="level : ${degradationLevels}"
+                    th:classappend="${level.label == activeDegradationLevel.label} ? ' active' : ''"
+                    class="degradation-level-card-cell">
+                    <div class="degradation-level-card-inner">
+                        <i th:class="'ti ' + ${level.icon}" aria-hidden="true"></i>
+                        <span class="degradation-level-label" th:text="${level.label}"></span>
+                        <span class="degradation-level-subtitle" th:text="${level.subtitle}"></span>
+                        <div class="degradation-bar-segment" th:style="'background-color: ' + ${level.color}">
+                            <div class="degradation-marker"
+                                 th:if="${level.label == activeDegradationLevel.label}"></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="degradation-footer clearfix" th:if="${activeDegradationLevel != null}">
+            <div class="degradation-level-info">
+                <i th:class="'ti ' + ${activeDegradationLevel.icon}" aria-hidden="true"></i>
+                <div>
+                    <p class="degradation-footer-label" th:text="${activeDegradationLevel.label}"></p>
+                    <p class="degradation-footer-value" th:text="${activeDegradationLevel.subtitle}" th:style="'color: ' + ${activeDegradationLevel.color}"></p>
+                </div>
+            </div>
+            <div class="degradation-score">
+                <p class="degradation-footer-label">SCORE D'USURE VISIBLE</p>
+                <p class="degradation-footer-value" th:text="${globalRateValue} + '%'" th:style="'color: ' + ${activeDegradationLevel.color}"></p>
+            </div>
+        </div>
+
+        <p class="degradation-disclaimer">
+            * Analyse issue d'images aériennes. Ne remplace pas une expertise terrain.
+        </p>
+    </div>
+    <div class="footer-info">
+        <table>
+            <tr>
+                <td>
+                    <div th:text="${user.getName()}"></div>
+                    <div th:text="${userAddress}"></div>
+                    <div th:text="${user.getMobilePhoneNumber()}"></div>
+                    <div th:text="${user.getEmail()}"></div>
+                    <div th:if="${userWebsite}">
+                        <a th:href="${userWebsite}" th:text="${userWebsite}"></a>
+                    </div>
+                </td>
+
+                <td th:if="${logo!=null}">
+                    <img class="footer-logo" th:src="${logo}" alt="logo"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+  </div>
+</section>
+</body>
+</html>

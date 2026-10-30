@@ -63,6 +63,7 @@ public class HAccountHolder implements Serializable {
   private Double latitude;
   private Integer townCode;
   private int prospectingPerimeter;
+  private String otherConcernedEmail;
 
   public String describeInfos() {
     return "AccountHolder(id="

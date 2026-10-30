@@ -39,6 +39,7 @@ public class AccountHolder implements Serializable {
   private Geojson location;
   private Integer townCode;
   private int prospectingPerimeter;
+  private String otherConcernedEmail;
 
   public String describe() {
     return "AccountHolder(id=" + id + ", siren=" + siren + ")";

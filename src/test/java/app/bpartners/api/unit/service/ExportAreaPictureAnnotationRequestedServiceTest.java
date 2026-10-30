@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.event.model.ExportAreaPictureAnnotationRequested;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
 import app.bpartners.api.file.FileWriter;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFProcessor;
+import app.bpartners.api.service.annotation.AnnotationReportService;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.aws.S3Service;
 import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.ExportAreaPictureAnnotationRequestedService;
@@ -25,7 +25,7 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
   FileWriter fileWriterMock = mock();
   UserService userServiceMock = mock();
   TemplateResolverEngine templateResolverEngineMock = mock();
-  ExportAreaPictureAnnotationPDFProcessor exportAreaPictureAnnotationPDFProcessorMock = mock();
+  AnnotationReportService annotationReportServiceMock = mock();
 
   ExportAreaPictureAnnotationRequestedService subject =
       new ExportAreaPictureAnnotationRequestedService(
@@ -34,7 +34,7 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
           fileWriterMock,
           userServiceMock,
           templateResolverEngineMock,
-          exportAreaPictureAnnotationPDFProcessorMock);
+          annotationReportServiceMock);
 
   private static final String USER_ID = "userId";
   private static final String USER_MAIL = "user@gmail.com";
@@ -54,8 +54,7 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
     var exportAreaPictureAnnotationRequested = createExportAreaPictureAnnotationRequested();
 
     doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any()))
-        .thenReturn("".getBytes());
+    when(annotationReportServiceMock.process(any(), any())).thenReturn("".getBytes());
     when(templateResolverEngineMock.parseTemplateResolver(any(), any()))
         .thenReturn("<html><body>Rapport généré</body></html>");
 
@@ -73,8 +72,7 @@ class ExportAreaPictureAnnotationRequestedServiceTest {
     var exportAreaPictureAnnotationRequested = createExportAreaPictureAnnotationRequested();
 
     doNothing().when(mailerMock).sendEmail(any(), any(), any(), any());
-    when(exportAreaPictureAnnotationPDFProcessorMock.process(any(), any()))
-        .thenThrow(IOException.class);
+    when(annotationReportServiceMock.process(any(), any())).thenThrow(IllegalStateException.class);
     when(templateResolverEngineMock.parseTemplateResolver(any(), any()))
         .thenReturn("<html><body>Rapport généré</body></html>");
 

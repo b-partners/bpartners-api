@@ -1,10 +1,10 @@
 package app.bpartners.api.service.annotation.factory;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
 import app.bpartners.api.service.annotation.model.RawCoordinates;
 import app.bpartners.api.service.annotation.model.RoofSlopBoundary;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
 import app.bpartners.api.service.annotation.model.Transform;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +43,7 @@ public class RoofSlopeBoundaryFactory {
     return boundaries;
   }
 
-  public static app.bpartners.api.endpoint.rest.model.Polygon selectPolygon(
+  public static app.bpartners.api.service.annotation.model.export.Polygon selectPolygon(
       ExportAreaPictureAnnotation3DPan pan, boolean useOriented) {
     if (useOriented && pan.getOrientedPolygon() != null) {
       return pan.getOrientedPolygon();

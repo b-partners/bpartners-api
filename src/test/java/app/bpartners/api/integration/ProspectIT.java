@@ -11,17 +11,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.endpoint.event.model.ProspectCreated;
 import app.bpartners.api.endpoint.rest.api.ProspectingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.CreateProspectNotificationAttachmentUpload;
 import app.bpartners.api.endpoint.rest.model.ExtendedProspectStatus;
 import app.bpartners.api.endpoint.rest.model.Prospect;
 import app.bpartners.api.endpoint.rest.model.ProspectFeedback;
 import app.bpartners.api.endpoint.rest.model.ProspectRating;
 import app.bpartners.api.endpoint.rest.model.ProspectStatusHistory;
 import app.bpartners.api.endpoint.rest.model.UpdateProspect;
+import app.bpartners.api.file.bucket.BucketUploadComponent;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.BusinessActivity;
@@ -34,9 +41,14 @@ import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.model.GeoJson;
 import app.bpartners.api.service.user.UserService;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +58,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -59,6 +72,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class ProspectIT extends MockedThirdParties {
   private static final String UNKNOWN_PROSPECT_ID = "unknown_prospect_id";
   @MockBean private BuildingPermitApi buildingPermitApiMock;
+  @MockBean private BucketUploadComponent bucketUploadComponentMock;
   @Autowired private MunicipalityJpaRepository municipalityJpaRepository;
   @Autowired private BusinessActivityRepository businessRepository;
   @Autowired private UserService userService;
@@ -349,6 +363,144 @@ class ProspectIT extends MockedThirdParties {
         () -> api.getProspects(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, null, null, null, PAGE, PAGESIZE));
     assertThrowsForbiddenException(
         () -> api.convertProspect(NOT_JOE_DOE_ACCOUNT_HOLDER_ID, prospect1().getId(), List.of()));
+  }
+
+  @Test
+  void create_notification_attachment_upload_ok() throws Exception {
+    var api = new ProspectingApi(anApiClient());
+    var presignedUrl = "https://bucket.s3.eu-west-3.amazonaws.com/signed?X-Amz-Expires=900";
+    when(bucketUploadComponentMock.presignUpload(any(), anyLong(), any()))
+        .thenReturn(URI.create(presignedUrl).toURL());
+
+    var actual =
+        api.createProspectNotificationAttachmentUpload(
+            ACCOUNTHOLDER_ID,
+            prospect1().getId(),
+            new CreateProspectNotificationAttachmentUpload().fileSize(25_000_000L));
+
+    assertNotNull(actual.getFileKey());
+    assertEquals(presignedUrl, actual.getUploadUrl());
+    assertNotNull(actual.getExpiresAt());
+    var keyCaptor = ArgumentCaptor.forClass(String.class);
+    verify(bucketUploadComponentMock).presignUpload(keyCaptor.capture(), eq(25_000_000L), any());
+    assertEquals(
+        String.format(
+            "prospects/%s/notifications/attachments/%s", prospect1().getId(), actual.getFileKey()),
+        keyCaptor.getValue());
+  }
+
+  @Test
+  void create_notification_attachment_upload_ko() {
+    var api = new ProspectingApi(anApiClient());
+
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"fileSize must not exceed 31457280 bytes\"}",
+        () ->
+            api.createProspectNotificationAttachmentUpload(
+                ACCOUNTHOLDER_ID,
+                prospect1().getId(),
+                new CreateProspectNotificationAttachmentUpload().fileSize(31_457_281L)));
+    assertThrowsApiException(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"fileSize must be greater than 0\"}",
+        () ->
+            api.createProspectNotificationAttachmentUpload(
+                ACCOUNTHOLDER_ID,
+                prospect1().getId(),
+                new CreateProspectNotificationAttachmentUpload().fileSize(0L)));
+    assertThrowsApiException(
+        "{\"type\":\"404 NOT_FOUND\",\"message\":\"Prospect(id="
+            + UNKNOWN_PROSPECT_ID
+            + ") not found\"}",
+        () ->
+            api.createProspectNotificationAttachmentUpload(
+                ACCOUNTHOLDER_ID,
+                UNKNOWN_PROSPECT_ID,
+                new CreateProspectNotificationAttachmentUpload().fileSize(10L)));
+    verify(bucketUploadComponentMock, never()).presignUpload(any(), anyLong(), any());
+  }
+
+  @Test
+  void joe_doe_creates_notification_attachment_upload_for_other_account_holder_ko() {
+    var api = new ProspectingApi(anApiClient());
+
+    assertThrowsForbiddenException(
+        () ->
+            api.createProspectNotificationAttachmentUpload(
+                NOT_JOE_DOE_ACCOUNT_HOLDER_ID,
+                prospect1().getId(),
+                new CreateProspectNotificationAttachmentUpload().fileSize(10L)));
+  }
+
+  private HttpResponse<String> notifyWithAttachmentKey(
+      String accountHolderId, String prospectId, String attachmentFileKey) throws Exception {
+    var uri =
+        URI.create(
+            String.format(
+                "http://localhost:%d/accountHolders/%s/prospects/%s/notifications?attachmentFileKey=%s",
+                localPort, accountHolderId, prospectId, attachmentFileKey));
+    var request =
+        HttpRequest.newBuilder(uri)
+            .header("Authorization", BEARER_PREFIX + JOE_DOE_TOKEN)
+            .POST(HttpRequest.BodyPublishers.noBody())
+            .build();
+    return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+  }
+
+  @Test
+  void notify_prospect_with_uploaded_attachment_ok() throws Exception {
+    var fileKey = "8e0b6d3a-5d4a-4f6e-9a45-3f1f2f3f4a5b";
+    when(bucketUploadComponentMock.contentLength(
+            String.format(
+                "prospects/%s/notifications/attachments/%s", prospect1().getId(), fileKey)))
+        .thenReturn(OptionalLong.of(29_000_000L));
+
+    var response = notifyWithAttachmentKey(ACCOUNTHOLDER_ID, prospect1().getId(), fileKey);
+
+    assertEquals(200, response.statusCode());
+    assertTrue(response.body().contains("\"id\":\"" + prospect1().getId() + "\""));
+    var eventCaptor = ArgumentCaptor.forClass(List.class);
+    verify(eventProducer).accept(eventCaptor.capture());
+    var event = (ProspectCreated) eventCaptor.getValue().getFirst();
+    assertEquals(fileKey, event.getAttachmentFileKey());
+    assertEquals(prospect1().getId(), event.getProspect().getId());
+  }
+
+  @Test
+  void notify_prospect_with_uploaded_attachment_ko() throws Exception {
+    var notUploadedKey = "11111111-2222-3333-4444-555555555555";
+    when(bucketUploadComponentMock.contentLength(
+            String.format(
+                "prospects/%s/notifications/attachments/%s", prospect1().getId(), notUploadedKey)))
+        .thenReturn(OptionalLong.empty());
+
+    var notUploaded =
+        notifyWithAttachmentKey(ACCOUNTHOLDER_ID, prospect1().getId(), notUploadedKey);
+    var invalidKey = notifyWithAttachmentKey(ACCOUNTHOLDER_ID, prospect1().getId(), "not-a-uuid");
+
+    assertEquals(400, notUploaded.statusCode());
+    assertEquals(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Attachment(key="
+            + notUploadedKey
+            + ") has not been uploaded\"}",
+        notUploaded.body());
+    assertEquals(400, invalidKey.statusCode());
+    assertEquals(
+        "{\"type\":\"400 BAD_REQUEST\",\"message\":\"Invalid attachmentFileKey not-a-uuid\"}",
+        invalidKey.body());
+    verify(eventProducer, never()).accept(any());
+  }
+
+  @Test
+  void joe_doe_notifies_prospect_of_other_account_holder_ko() throws Exception {
+    var response =
+        notifyWithAttachmentKey(
+            NOT_JOE_DOE_ACCOUNT_HOLDER_ID,
+            prospect1().getId(),
+            "8e0b6d3a-5d4a-4f6e-9a45-3f1f2f3f4a5b");
+
+    assertEquals(403, response.statusCode());
+    assertEquals("{\"type\":\"403 FORBIDDEN\",\"message\":\"Access Denied\"}", response.body());
+    verify(eventProducer, never()).accept(any());
   }
 
   // TODO: re-check once municipality table is refactor without using postgis anymore

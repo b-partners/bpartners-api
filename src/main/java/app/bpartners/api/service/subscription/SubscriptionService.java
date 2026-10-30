@@ -361,6 +361,7 @@ public class SubscriptionService {
                   .includedCreditsPerBillingPeriod(existing.getIncludedCreditsPerBillingPeriod())
                   .creditUnitPriceInCentsWithoutVat(existing.getCreditUnitPriceInCentsWithoutVat())
                   .creditCostPerAnalysis(existing.getCreditCostPerAnalysis())
+                  .maxSecondaryUsers(existing.getMaxSecondaryUsers())
                   .overageUnitPriceInCents(existing.getOverageUnitPriceInCents())
                   .trialPeriodDays(existing.getTrialPeriodDays())
                   .trialAnalysisGranted(existing.getTrialAnalysisGranted())
@@ -371,6 +372,7 @@ public class SubscriptionService {
                   .mostChosen(existing.isMostChosen())
                   .deprecated(existing.isDeprecated())
                   .displayPosition(existing.getDisplayPosition())
+                  .tierRank(existing.getTierRank())
                   .includedSubscriptionProductFeatures(
                       existing.getIncludedSubscriptionProductFeatures())
                   .featureSections(existing.getFeatureSections())

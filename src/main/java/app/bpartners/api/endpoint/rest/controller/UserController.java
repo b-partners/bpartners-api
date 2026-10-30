@@ -22,6 +22,7 @@ import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.service.subscription.PrimaryUserResolver;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
 import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.StripeSetupService;
@@ -52,13 +53,14 @@ public class UserController {
   private final UserSubscriptionTrialService userSubscriptionTrialService;
   private final SubscriptionTrialRestMapper subscriptionTrialRestMapper;
   private final SubscriptionTrialEligibilityRestMapper subscriptionTrialEligibilityRestMapper;
+  private final PrimaryUserResolver primaryUserResolver;
 
   @PostMapping("/users/{uId}/billingPortal")
   public Redirection initiateBillingPortal(
       HttpServletRequest request,
       @PathVariable String uId,
       @RequestBody RedirectionStatusUrls redirectionStatusUrls) {
-    var authenticatedSelfUser = getAuthUser(request, uId);
+    var authenticatedSelfUser = getBillingAuthUser(request, uId);
     var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
 
     return stripePortalService.initiateBillingPortalSession(
@@ -71,7 +73,7 @@ public class UserController {
       @PathVariable String uId,
       @RequestParam(name = "defaultPaymentMethod", required = false, defaultValue = "true")
           boolean defaultPaymentMethod) {
-    var authenticatedSelfUser = getAuthUser(request, uId);
+    var authenticatedSelfUser = getBillingAuthUser(request, uId);
     var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
 
     return stripePaymentMethodService
@@ -86,7 +88,7 @@ public class UserController {
       HttpServletRequest request,
       @PathVariable String uId,
       @RequestBody RedirectionStatusUrls redirectionStatusUrls) {
-    var authenticatedSelfUser = getAuthUser(request, uId);
+    var authenticatedSelfUser = getBillingAuthUser(request, uId);
     var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
 
     return stripeSetupService.setupReplacementCheckoutSession(
@@ -98,7 +100,7 @@ public class UserController {
       HttpServletRequest request,
       @PathVariable String uId,
       @RequestBody RedirectionStatusUrls redirectionStatusUrls) {
-    var authenticatedSelfUser = getAuthUser(request, uId);
+    var authenticatedSelfUser = getBillingAuthUser(request, uId);
     var userSubscriptionId = authenticatedSelfUser.getUserSubscriptionId();
 
     return stripeSetupService.setupCheckoutSession(userSubscriptionId, redirectionStatusUrls);
@@ -109,7 +111,7 @@ public class UserController {
       HttpServletRequest request,
       @PathVariable String uId,
       @RequestBody List<CreateUserSubscriptionCommitment> createUserSubscriptionCommitments) {
-    var authenticatedSelfUser = getAuthUser(request, uId);
+    var authenticatedSelfUser = getBillingAuthUser(request, uId);
     var userSubscriptionCommitments =
         createUserSubscriptionCommitments.stream()
             .map(
@@ -125,7 +127,7 @@ public class UserController {
   @GetMapping("/users/{uId}/subscriptionCommitments")
   public List<UserSubscriptionCommitment> getUserSubscriptionCommitments(
       HttpServletRequest request, @PathVariable String uId) {
-    var authenticatedSelfUser = getAuthUser(request, uId);
+    var authenticatedSelfUser = getBillingAuthUser(request, uId);
     return subscriptionService
         .getUserSubscriptionCommitments(authenticatedSelfUser.getId())
         .stream()
@@ -141,7 +143,7 @@ public class UserController {
       @RequestBody
           UpdateUserSubscriptionCommitmentAutoRenewalStatus updateUserSubscriptionCommitment) {
     var automaticRenewalStatus = updateUserSubscriptionCommitment.getAutomaticRenewalStatus();
-    var authenticatedSelfUser = getAuthUser(request, uId);
+    var authenticatedSelfUser = getBillingAuthUser(request, uId);
     return userSubscriptionCommitmentRestMapper.toRest(
         subscriptionService.updateUserSubscriptionCommitmentAutoRenewalStatus(
             authenticatedSelfUser.getId(), sId, automaticRenewalStatus));
@@ -152,7 +154,7 @@ public class UserController {
       HttpServletRequest request,
       @PathVariable String uId,
       @RequestBody(required = false) CreateSubscriptionInitiation subscriptionInitiation) {
-    var authenticatedSelfUser = getAuthUser(request, uId);
+    var authenticatedSelfUser = getBillingAuthUser(request, uId);
     subscriptionInitiationRestValidator.accept(subscriptionInitiation);
     var redirectionStatusUrls = subscriptionInitiation.getRedirectionStatusUrls();
 
@@ -173,7 +175,7 @@ public class UserController {
       HttpServletRequest request,
       @PathVariable String uId,
       @RequestBody CreateSubscriptionTrial createSubscriptionTrial) {
-    var authenticatedSelfUser = getAuthUser(request, uId);
+    var authenticatedSelfUser = getBillingAuthUser(request, uId);
     var planIdentifier =
         createSubscriptionTrial == null
             ? null
@@ -282,6 +284,15 @@ public class UserController {
   }
 
   // TODO: put into a customAuthProvider that does not needs legal file check
+  private app.bpartners.api.model.User getBillingAuthUser(
+      HttpServletRequest request, String userId) {
+    var authenticatedUser = getAuthUser(request, userId);
+    if (primaryUserResolver.isSecondary(authenticatedUser.getId())) {
+      throw new ForbiddenException();
+    }
+    return authenticatedUser;
+  }
+
   private app.bpartners.api.model.User getAuthUser(HttpServletRequest request, String userId) {
     String bearer = request.getHeader(AUTHORIZATION_HEADER);
     if (bearer == null) {

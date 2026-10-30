@@ -6,8 +6,6 @@ import static java.awt.Color.*;
 import static java.awt.Font.PLAIN;
 import static java.util.Objects.requireNonNull;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
 import app.bpartners.api.model.annotation.IntXY;
 import app.bpartners.api.service.annotation.factory.AnnotationSummaryFactory;
 import app.bpartners.api.service.annotation.factory.BufferedImageFactory;
@@ -15,6 +13,8 @@ import app.bpartners.api.service.annotation.factory.Graphics2DFactory;
 import app.bpartners.api.service.annotation.model.Pair;
 import app.bpartners.api.service.annotation.model.RawCoordinates;
 import app.bpartners.api.service.annotation.model.Transform;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstanceInfo;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;

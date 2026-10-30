@@ -9,14 +9,20 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 @Component
 public class TemplateResolverEngine {
+  // Built once: the engine caches parsed templates, so rebuilding it per call re-parsed every
+  // template on each render.
+  private final TemplateEngine templateEngine = createTemplateEngine();
 
   public String parseTemplateResolver(String template, Context context) {
-    TemplateEngine templateEngine = getTemplateEngine();
     return templateEngine.process(template, context);
   }
 
   @NotNull
   public TemplateEngine getTemplateEngine() {
+    return templateEngine;
+  }
+
+  private static TemplateEngine createTemplateEngine() {
     ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
     templateResolver.setPrefix("/templates/");
     templateResolver.setSuffix(".html");

@@ -242,7 +242,8 @@
 </head>
 <body th:classappend="${invoice.isSubscriptionInvoice()} ? 'subscription-invoice' : ''">
 <header>
-    <h1 class="text-center text-underline">FACTURE</h1>
+    <h1 class="text-center text-underline"
+        th:text="${invoice.isCreditNote()} ? 'FACTURE AVOIR' : 'FACTURE'">FACTURE</h1>
     <table class="table-head">
         <tr>
             <td>
@@ -275,7 +276,7 @@
     <table class="table-head">
         <tr>
             <td>
-                <p><strong>Facture n° : <span
+                <p><strong><span th:text="${invoice.isCreditNote()} ? 'Facture avoir n° : ' : 'Facture n° : '">Facture n° : </span><span
                         th:text="${invoice.ref}"></span> </strong></p>
                 <p th:if="${invoice.title != null && !invoice.title.isBlank()}">Intitulé "<span
                         th:text="${invoice.title}"></span>"

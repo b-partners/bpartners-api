@@ -2,9 +2,10 @@ package app.bpartners.api.service.annotation;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstanceInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +34,8 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     ExportAreaPictureAnnotation annotation = heavyAnnotationFromPayload();
 
     var actual =
-        subject.generateBaseImageWithSlopeBoundariesWithMeasurement(annotation.get3d().getPans());
+        subject.generateBaseImageWithSlopeBoundariesWithMeasurement(
+            annotation.getThreeD().getPans());
     saveAndShow(actual.second());
   }
 
@@ -42,7 +44,7 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
   void base_image_with_areas() {
     ExportAreaPictureAnnotation annotation = heavyAnnotationFromPayload();
 
-    var actual = subject.generateBaseImageWithAreas(annotation.get3d().getPans());
+    var actual = subject.generateBaseImageWithAreas(annotation.getThreeD().getPans());
     saveAndShow(actual);
   }
 
@@ -65,12 +67,12 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
   private ExportAreaPictureAnnotation heavyAnnotationFromPayload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     var annotation =
-        objectMapper.readValue(
-            new ClassPathResource("payload/heavy-export-pdf-payload.json").getInputStream(),
-            ExportAreaPictureAnnotation.class);
+        TestContextFactories.readPayload(
+            objectMapper,
+            new ClassPathResource("payload/heavy-export-pdf-payload.json").getInputStream());
 
     annotation
-        .get3d()
+        .getThreeD()
         .getPans()
         .forEach(
             pan -> {
@@ -96,8 +98,8 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
               pan.getInfos()
                   .add(
                       new ExportAreaPictureAnnotationInstanceInfo()
-                          .label("edgeTypes")
-                          .value(jsonEdgeTypes));
+                          .setLabel("edgeTypes")
+                          .setValue(jsonEdgeTypes));
               pan.setImageUri("imageUri");
             });
 

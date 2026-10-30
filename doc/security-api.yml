@@ -188,6 +188,10 @@ components:
       properties:
         user:
           $ref: './userAccounts-api.yml#/components/schemas/User'
+        primaryUserId:
+          type: string
+          nullable: true
+          description: Identifier of the primary user when the user is a secondary user
     Whois:
       properties:
         user:

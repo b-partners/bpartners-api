@@ -8,10 +8,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.mapper.detection.AreaPictureAnnotationConfRestMapper;
-import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.User;
-import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationPDFGenerator;
-import app.bpartners.api.service.annotation.model.Pair;
+import app.bpartners.api.service.annotation.AnnotationReportPdfRenderer;
+import app.bpartners.api.service.annotation.factory.TestContextFactories;
+import app.bpartners.api.service.annotation.model.RenderedImages;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstanceInfo;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.awt.image.BufferedImage;
@@ -24,11 +27,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
-class ExportAreaPictureAnnotationPdfGeneratorTest {
+class AnnotationReportPdfRendererTest {
   FileService fileService = mock();
   AreaPictureAnnotationConfRestMapper areaPictureAnnotationConfRestMapper =
       new AreaPictureAnnotationConfRestMapper();
-  ExportAreaPictureAnnotationPDFGenerator subject;
+  AnnotationReportPdfRenderer subject;
   private static BufferedImage mockImage;
 
   @BeforeAll
@@ -43,8 +46,8 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
     when(fileService.downloadFile(any(), any(), any())).thenReturn(null);
 
     subject =
-        new ExportAreaPictureAnnotationPDFGenerator(
-            new TemplateResolverEngine(), fileService, areaPictureAnnotationConfRestMapper);
+        new AnnotationReportPdfRenderer(
+            new TemplateResolverEngine(), TestContextFactories.contextFactory(fileService));
   }
 
   @Test
@@ -64,7 +67,7 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
                     user(),
                     logoImage,
                     exportAreaPictureAnnotation,
-                    new Pair<>(annotationImage, subImages),
+                    new RenderedImages(annotationImage, subImages),
                     null));
     assertNotNull(file);
   }
@@ -86,9 +89,9 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
 
   static ExportAreaPictureAnnotation exportAreaPictureAnnotation() {
     return new ExportAreaPictureAnnotation()
-        .imageUrl("https://dummy.com")
-        .address("Dummy Address")
-        .annotations(
+        .setImageUrl("https://dummy.com")
+        .setAddress("Dummy Address")
+        .setAnnotations(
             List.of(
                 exportAreaPictureAnnotationInstance("key1"),
                 exportAreaPictureAnnotationInstance("key1"),
@@ -98,10 +101,14 @@ class ExportAreaPictureAnnotationPdfGeneratorTest {
 
   static ExportAreaPictureAnnotationInstance exportAreaPictureAnnotationInstance(String key) {
     return new ExportAreaPictureAnnotationInstance()
-        .infos(
+        .setInfos(
             List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("key").value(key),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Type").value("Non renseigné"),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Surface").value("305 m²")));
+                new ExportAreaPictureAnnotationInstanceInfo().setLabel("key").setValue(key),
+                new ExportAreaPictureAnnotationInstanceInfo()
+                    .setLabel("Type")
+                    .setValue("Non renseigné"),
+                new ExportAreaPictureAnnotationInstanceInfo()
+                    .setLabel("Surface")
+                    .setValue("305 m²")));
   }
 }

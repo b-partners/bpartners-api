@@ -14,7 +14,17 @@ import app.bpartners.api.endpoint.rest.model.*;
 import app.bpartners.api.model.AccountHolder;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.annotation.*;
+import app.bpartners.api.service.annotation.factory.CustomPageMapper;
+import app.bpartners.api.service.annotation.factory.TestContextFactories;
 import app.bpartners.api.service.annotation.model.RoofSlopeBoundaryType;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstanceInfo;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationMeasurement;
+import app.bpartners.api.service.annotation.model.export.Point;
+import app.bpartners.api.service.annotation.model.export.Polygon;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,8 +60,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
   private static FileService fileService = mock();
 
-  private static ExportAreaPictureAnnotationPDFGenerator pdfGenerator;
-  private static ExportAreaPictureAnnotationPDFProcessor subject;
+  private static AnnotationReportPdfRenderer pdfGenerator;
+  private static AnnotationReportService subject;
   private static BufferedImage mockImage;
   private static byte[] mockImageBytes;
 
@@ -75,17 +85,17 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             });
 
     pdfGenerator =
-        new ExportAreaPictureAnnotationPDFGenerator(
-            new TemplateResolverEngine(), fileService, areaPictureAnnotationConfRestMapper);
+        new AnnotationReportPdfRenderer(
+            new TemplateResolverEngine(), TestContextFactories.contextFactory(fileService));
 
     subject =
-        new ExportAreaPictureAnnotationPDFProcessor(
+        new AnnotationReportService(
             pdfGenerator,
             imageGenerator,
             image3DGenerator,
             fileService,
             imageCompressor,
-            areaPictureAnnotationConfRestMapper);
+            new app.bpartners.api.service.annotation.ImageDownloader());
   }
 
   private static app.bpartners.api.model.FileInfo imageFileInfo() {
@@ -105,184 +115,199 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   void generate_from_heavy_payload_with_custom_pages() throws IOException, URISyntaxException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
     exportAreaPictureAnnotation.setCustomPages(
-        List.of(
-            // PAGE 1: TEXT SECTIONS (Increasing text length layout showcase)
-            new CustomPage()
-                .pageTitle("Showcase - Sections Textuelles Complètes")
-                .sections(
-                    List.of(
-                        new TextSection()
-                            .text(
-                                "L'accès au toit par le côté Ouest est limité par la présence de"
-                                    + " lignes électriques haute tension. Prudence recommandée.")
-                            .priority(PageSection.PriorityEnum.SMALL)
-                            .type(PageSection.TypeEnum.TEXT),
-                        new TextSection()
-                            .text(
-                                "L'accès au toit par le côté Ouest est limité par la présence de"
-                                    + " lignes électriques haute tension. Prudence recommandée."
-                                    + " Lors de l'inspection préliminaire des abords du bâtiment,"
-                                    + " il a été mis en évidence que les conducteurs aériens"
-                                    + " surplombent directement la zone de levage potentielle.")
-                            .priority(PageSection.PriorityEnum.MEDIUM)
-                            .type(PageSection.TypeEnum.TEXT),
-                        new TextSection()
-                            .text(
-                                "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES ÉLECTRIQUES."
-                                    + " L'accès au toit par le côté Ouest est limité par la"
-                                    + " présence de lignes électriques haute tension. Prudence"
-                                    + " recommandée. Afin de garantir la sécurité absolue des"
-                                    + " équipes techniques et d'éviter tout risque d'amorçage ou"
-                                    + " d'arc électrique, l'utilisation d'échelles métalliques est"
-                                    + " formellement proscrite sur ce flanc. L'approvisionnement du"
-                                    + " chantier en matériaux ainsi que le montage des échafaudages"
-                                    + " devront être intégralement déportés sur le versant Est, qui"
-                                    + " offre un dégagement total et sécurisé.")
-                            .priority(PageSection.PriorityEnum.IMPORTANT)
-                            .type(PageSection.TypeEnum.TEXT))),
-
-            // PAGE 2: IMAGE SECTIONS (Small, Medium, Important scales)
-            new CustomPage()
-                .pageTitle("Showcase - Sections d'Images Contextuelles")
-                .sections(
-                    List.of(
-                        new ImageSection()
-                            .url(
-                                new URI(
-                                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
-                            .caption("Aperçu miniature de la zone de stockage")
-                            .priority(PageSection.PriorityEnum.SMALL)
-                            .type(PageSection.TypeEnum.IMAGE),
-                        new ImageSection()
-                            .url(
-                                new URI(
-                                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
-                            .caption("Vue moyenne de l'acheminement des structures")
-                            .priority(PageSection.PriorityEnum.MEDIUM)
-                            .type(PageSection.TypeEnum.IMAGE),
-                        new ImageSection()
-                            .url(
-                                new URI(
-                                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
-                            .caption("Rendu pleine largeur des lignes électriques haute tension")
-                            .priority(PageSection.PriorityEnum.IMPORTANT)
-                            .type(PageSection.TypeEnum.IMAGE))),
-
-            // PAGE 3: TABLE SECTIONS (Small, Medium, Important variations)
-            new CustomPage()
-                .pageTitle("Showcase - Sections Tableaux Structurels")
-                .sections(
-                    List.of(
-                        new TableSection()
-                            .tableData(
-                                new TableData()
-                                    .headers(List.of("Matériau", "Quantité", "Statut"))
-                                    .rows(
-                                        List.of(
-                                            List.of("Tuiles Canal", "500 u", "Livré"),
-                                            List.of("Ciment", "10 sacs", "Attente"))))
-                            .priority(PageSection.PriorityEnum.SMALL)
-                            .type(PageSection.TypeEnum.TABLE),
-                        new TableSection()
-                            .tableData(
-                                new TableData()
-                                    .headers(
-                                        List.of("Élément", "Zone affectée", "Niveau de risque"))
-                                    .rows(
-                                        List.of(
-                                            List.of("Lignes HT", "Flanc Ouest", "Élevé"),
-                                            List.of("Échafaudage", "Pignon Est", "Faible"))))
-                            .priority(PageSection.PriorityEnum.MEDIUM)
-                            .type(PageSection.TypeEnum.TABLE),
-                        new TableSection()
-                            .tableData(
-                                new TableData()
-                                    .headers(
-                                        List.of(
-                                            "Intervention",
-                                            "Responsable",
-                                            "Mesure Prioritaire d'Urgence"))
-                                    .rows(
-                                        List.of(
-                                            List.of(
-                                                "Balisage Sol",
-                                                "Chef de Chantier",
-                                                "Installation barriérage rigide haute visibilité"),
-                                            List.of(
-                                                "Avis Enedis",
-                                                "Conducteur Travaux",
-                                                "Demande DICT et isolation provisoire câbles"))))
-                            .priority(PageSection.PriorityEnum.IMPORTANT)
-                            .type(PageSection.TypeEnum.TABLE))),
-            new CustomPage()
-                .pageTitle("Showcase - Sections Divisees")
-                .sections(
-                    List.of(
-                        new SplitSection()
-                            .leftSection(
+        new CustomPageMapper(fileService)
+            .map(
+                List.of(
+                    // PAGE 1: TEXT SECTIONS (Increasing text length layout showcase)
+                    new CustomPage()
+                        .pageTitle("Showcase - Sections Textuelles Complètes")
+                        .sections(
+                            List.of(
                                 new TextSection()
                                     .text(
-                                        "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES"
-                                            + " ÉLECTRIQUES. L'accès au toit par le côté Ouest est"
-                                            + " limité par la présence de lignes électriques haute"
-                                            + " tension. Prudence recommandée. Afin de garantir la"
-                                            + " sécurité absolue des équipes techniques et d'éviter"
-                                            + " tout risque d'amorçage ou d'arc électrique,"
-                                            + " l'utilisation d'échelles métalliques est"
-                                            + " formellement proscrite sur ce flanc."
-                                            + " L'approvisionnement du chantier en matériaux ainsi"
-                                            + " que le montage des échafaudages devront être"
-                                            + " intégralement déportés sur le versant Est, qui"
-                                            + " offre un dégagement total et sécurisé.")
-                                    .priority(PageSection.PriorityEnum.IMPORTANT)
-                                    .type(PageSection.TypeEnum.TEXT))
-                            .rightSection(
-                                new ImageSection()
-                                    .url(
-                                        new URI(
-                                            "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
-                                    .caption("Aperçu miniature de la zone de stockage")
-                                    .priority(PageSection.PriorityEnum.IMPORTANT)
-                                    .type(PageSection.TypeEnum.IMAGE))
-                            .priority(PageSection.PriorityEnum.IMPORTANT)
-                            .type(PageSection.TypeEnum.SPLIT_SECTION))),
-            new CustomPage()
-                .pageTitle("Showcase - Sections Divisees en Trois")
-                .sections(
-                    List.of(
-                        new ThreeSplitSection()
-                            .leftSection(
-                                new TextSection()
-                                    .text(
-                                        "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES"
-                                            + " ÉLECTRIQUES. L'accès au toit par le côté Ouest est"
-                                            + " limité par la présence de lignes électriques haute"
-                                            + " tension. Prudence recommandée. Afin de garantir la"
-                                            + " sécurité absolue des équipes techniques et d'éviter"
-                                            + " tout risque d'amorçage ou d'arc électrique,"
-                                            + " l'utilisation d'échelles métalliques est"
-                                            + " formellement proscrite sur ce flanc."
-                                            + " L'approvisionnement du chantier en matériaux ainsi"
-                                            + " que le montage des échafaudages devront être"
-                                            + " intégralement déportés sur le versant Est, qui"
-                                            + " offre un dégagement total et sécurisé.")
-                                    .priority(PageSection.PriorityEnum.IMPORTANT)
-                                    .type(PageSection.TypeEnum.TEXT))
-                            .middleSection(
-                                new TextSection()
-                                    .text("Colonne milieu")
+                                        "L'accès au toit par le côté Ouest est limité par la"
+                                            + " présence de lignes électriques haute tension."
+                                            + " Prudence recommandée.")
                                     .priority(PageSection.PriorityEnum.SMALL)
-                                    .type(PageSection.TypeEnum.TEXT))
-                            .rightSection(
+                                    .type(PageSection.TypeEnum.TEXT),
+                                new TextSection()
+                                    .text(
+                                        "L'accès au toit par le côté Ouest est limité par la"
+                                            + " présence de lignes électriques haute tension."
+                                            + " Prudence recommandée. Lors de l'inspection"
+                                            + " préliminaire des abords du bâtiment, il a été mis"
+                                            + " en évidence que les conducteurs aériens surplombent"
+                                            + " directement la zone de levage potentielle.")
+                                    .priority(PageSection.PriorityEnum.MEDIUM)
+                                    .type(PageSection.TypeEnum.TEXT),
+                                new TextSection()
+                                    .text(
+                                        "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES"
+                                            + " ÉLECTRIQUES. L'accès au toit par le côté Ouest est"
+                                            + " limité par la présence de lignes électriques haute"
+                                            + " tension. Prudence recommandée. Afin de garantir la"
+                                            + " sécurité absolue des équipes techniques et d'éviter"
+                                            + " tout risque d'amorçage ou d'arc électrique,"
+                                            + " l'utilisation d'échelles métalliques est"
+                                            + " formellement proscrite sur ce flanc."
+                                            + " L'approvisionnement du chantier en matériaux ainsi"
+                                            + " que le montage des échafaudages devront être"
+                                            + " intégralement déportés sur le versant Est, qui"
+                                            + " offre un dégagement total et sécurisé.")
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
+                                    .type(PageSection.TypeEnum.TEXT))),
+
+                    // PAGE 2: IMAGE SECTIONS (Small, Medium, Important scales)
+                    new CustomPage()
+                        .pageTitle("Showcase - Sections d'Images Contextuelles")
+                        .sections(
+                            List.of(
                                 new ImageSection()
                                     .url(
                                         new URI(
                                             "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
                                     .caption("Aperçu miniature de la zone de stockage")
+                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .type(PageSection.TypeEnum.IMAGE),
+                                new ImageSection()
+                                    .url(
+                                        new URI(
+                                            "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                                    .caption("Vue moyenne de l'acheminement des structures")
+                                    .priority(PageSection.PriorityEnum.MEDIUM)
+                                    .type(PageSection.TypeEnum.IMAGE),
+                                new ImageSection()
+                                    .url(
+                                        new URI(
+                                            "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                                    .caption(
+                                        "Rendu pleine largeur des lignes électriques haute tension")
                                     .priority(PageSection.PriorityEnum.IMPORTANT)
-                                    .type(PageSection.TypeEnum.IMAGE))
-                            .priority(PageSection.PriorityEnum.MEDIUM)
-                            .type(PageSection.TypeEnum.THREE_SPLIT_SECTION)))));
+                                    .type(PageSection.TypeEnum.IMAGE))),
+
+                    // PAGE 3: TABLE SECTIONS (Small, Medium, Important variations)
+                    new CustomPage()
+                        .pageTitle("Showcase - Sections Tableaux Structurels")
+                        .sections(
+                            List.of(
+                                new TableSection()
+                                    .tableData(
+                                        new TableData()
+                                            .headers(List.of("Matériau", "Quantité", "Statut"))
+                                            .rows(
+                                                List.of(
+                                                    List.of("Tuiles Canal", "500 u", "Livré"),
+                                                    List.of("Ciment", "10 sacs", "Attente"))))
+                                    .priority(PageSection.PriorityEnum.SMALL)
+                                    .type(PageSection.TypeEnum.TABLE),
+                                new TableSection()
+                                    .tableData(
+                                        new TableData()
+                                            .headers(
+                                                List.of(
+                                                    "Élément", "Zone affectée", "Niveau de risque"))
+                                            .rows(
+                                                List.of(
+                                                    List.of("Lignes HT", "Flanc Ouest", "Élevé"),
+                                                    List.of(
+                                                        "Échafaudage", "Pignon Est", "Faible"))))
+                                    .priority(PageSection.PriorityEnum.MEDIUM)
+                                    .type(PageSection.TypeEnum.TABLE),
+                                new TableSection()
+                                    .tableData(
+                                        new TableData()
+                                            .headers(
+                                                List.of(
+                                                    "Intervention",
+                                                    "Responsable",
+                                                    "Mesure Prioritaire d'Urgence"))
+                                            .rows(
+                                                List.of(
+                                                    List.of(
+                                                        "Balisage Sol",
+                                                        "Chef de Chantier",
+                                                        "Installation barriérage rigide haute"
+                                                            + " visibilité"),
+                                                    List.of(
+                                                        "Avis Enedis",
+                                                        "Conducteur Travaux",
+                                                        "Demande DICT et isolation provisoire"
+                                                            + " câbles"))))
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
+                                    .type(PageSection.TypeEnum.TABLE))),
+                    new CustomPage()
+                        .pageTitle("Showcase - Sections Divisees")
+                        .sections(
+                            List.of(
+                                new SplitSection()
+                                    .leftSection(
+                                        new TextSection()
+                                            .text(
+                                                "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES"
+                                                    + " ÉLECTRIQUES. L'accès au toit par le côté"
+                                                    + " Ouest est limité par la présence de lignes"
+                                                    + " électriques haute tension. Prudence"
+                                                    + " recommandée. Afin de garantir la sécurité"
+                                                    + " absolue des équipes techniques et d'éviter"
+                                                    + " tout risque d'amorçage ou d'arc électrique,"
+                                                    + " l'utilisation d'échelles métalliques est"
+                                                    + " formellement proscrite sur ce flanc."
+                                                    + " L'approvisionnement du chantier en"
+                                                    + " matériaux ainsi que le montage des"
+                                                    + " échafaudages devront être intégralement"
+                                                    + " déportés sur le versant Est, qui offre un"
+                                                    + " dégagement total et sécurisé.")
+                                            .priority(PageSection.PriorityEnum.IMPORTANT)
+                                            .type(PageSection.TypeEnum.TEXT))
+                                    .rightSection(
+                                        new ImageSection()
+                                            .url(
+                                                new URI(
+                                                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                                            .caption("Aperçu miniature de la zone de stockage")
+                                            .priority(PageSection.PriorityEnum.IMPORTANT)
+                                            .type(PageSection.TypeEnum.IMAGE))
+                                    .priority(PageSection.PriorityEnum.IMPORTANT)
+                                    .type(PageSection.TypeEnum.SPLIT_SECTION))),
+                    new CustomPage()
+                        .pageTitle("Showcase - Sections Divisees en Trois")
+                        .sections(
+                            List.of(
+                                new ThreeSplitSection()
+                                    .leftSection(
+                                        new TextSection()
+                                            .text(
+                                                "RAPPORT DE SÉCURITÉ : ACCÈS EN TOITURE ET RISQUES"
+                                                    + " ÉLECTRIQUES. L'accès au toit par le côté"
+                                                    + " Ouest est limité par la présence de lignes"
+                                                    + " électriques haute tension. Prudence"
+                                                    + " recommandée. Afin de garantir la sécurité"
+                                                    + " absolue des équipes techniques et d'éviter"
+                                                    + " tout risque d'amorçage ou d'arc électrique,"
+                                                    + " l'utilisation d'échelles métalliques est"
+                                                    + " formellement proscrite sur ce flanc."
+                                                    + " L'approvisionnement du chantier en"
+                                                    + " matériaux ainsi que le montage des"
+                                                    + " échafaudages devront être intégralement"
+                                                    + " déportés sur le versant Est, qui offre un"
+                                                    + " dégagement total et sécurisé.")
+                                            .priority(PageSection.PriorityEnum.IMPORTANT)
+                                            .type(PageSection.TypeEnum.TEXT))
+                                    .middleSection(
+                                        new TextSection()
+                                            .text("Colonne milieu")
+                                            .priority(PageSection.PriorityEnum.SMALL)
+                                            .type(PageSection.TypeEnum.TEXT))
+                                    .rightSection(
+                                        new ImageSection()
+                                            .url(
+                                                new URI(
+                                                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=300"))
+                                            .caption("Aperçu miniature de la zone de stockage")
+                                            .priority(PageSection.PriorityEnum.IMPORTANT)
+                                            .type(PageSection.TypeEnum.IMAGE))
+                                    .priority(PageSection.PriorityEnum.MEDIUM)
+                                    .type(PageSection.TypeEnum.THREE_SPLIT_SECTION))))));
 
     byte[] pdfBytes =
         assertDoesNotThrow(
@@ -296,15 +321,16 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   void generate_from_heavy_payload_without_anything() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = heavyAnnotationFromPayload();
     exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showTitlePage(false)
-            .showAnnotationPages(false)
-            .showAnnotation3dPages(false)
-            .showMeasurementSummary(false)
-            .showPitchSummary(false)
-            .showAreaSummary(false)
-            .showOverallSummary(false)
-            .showLlmSummary(false));
+        areaPictureAnnotationConfRestMapper.toDomain(
+            new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
+                .showTitlePage(false)
+                .showAnnotationPages(false)
+                .showAnnotation3dPages(false)
+                .showMeasurementSummary(false)
+                .showPitchSummary(false)
+                .showAreaSummary(false)
+                .showOverallSummary(false)
+                .showLlmSummary(false)));
 
     byte[] pdfBytes =
         assertDoesNotThrow(
@@ -332,9 +358,9 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   void generate_from_angelina_faity_payload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     ExportAreaPictureAnnotation exportAreaPictureAnnotation =
-        objectMapper.readValue(
-            new ClassPathResource("payload/export/63 rue angelina faity.json").getInputStream(),
-            ExportAreaPictureAnnotation.class);
+        TestContextFactories.readPayload(
+            objectMapper,
+            new ClassPathResource("payload/export/63 rue angelina faity.json").getInputStream());
     mockImage =
         ImageIO.read(new ClassPathResource("files/63 rue angelina faity.jpeg").getInputStream());
     mockImageBytes = toByteStream(mockImage);
@@ -351,9 +377,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   void generate_from_mysterious_payload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     ExportAreaPictureAnnotation exportAreaPictureAnnotation =
-        objectMapper.readValue(
-            new ClassPathResource("payload/export/payload.json").getInputStream(),
-            ExportAreaPictureAnnotation.class);
+        TestContextFactories.readPayload(
+            objectMapper, new ClassPathResource("payload/export/payload.json").getInputStream());
     mockImage = ImageIO.read(new ClassPathResource("files/rue_de_la_vau.png").getInputStream());
     mockImageBytes = toByteStream(mockImage);
 
@@ -400,16 +425,17 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   void generate_toulouse_cover_page_without_degradation_note() throws IOException {
     ExportAreaPictureAnnotation exportAreaPictureAnnotation = annotationFromToulousePayload();
     exportAreaPictureAnnotation.setConf(
-        new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
-            .showTitlePage(true)
-            .showAnnotationPages(false)
-            .showAnnotation3dPages(false)
-            .showMeasurementSummary(false)
-            .showPitchSummary(false)
-            .showAreaSummary(false)
-            .showOverallSummary(false)
-            .showLlmSummary(false)
-            .showDegradationSummary(false));
+        areaPictureAnnotationConfRestMapper.toDomain(
+            new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
+                .showTitlePage(true)
+                .showAnnotationPages(false)
+                .showAnnotation3dPages(false)
+                .showMeasurementSummary(false)
+                .showPitchSummary(false)
+                .showAreaSummary(false)
+                .showOverallSummary(false)
+                .showLlmSummary(false)
+                .showDegradationSummary(false)));
     mockImage =
         ImageIO.read(
             new ClassPathResource("files/17 Rue Pierre Bénech, 31100 Toulouse.png")
@@ -470,28 +496,27 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
   private ExportAreaPictureAnnotation annotationFromPayload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    return objectMapper.readValue(
-        new ClassPathResource("payload/export-pdf-payload.json").getInputStream(),
-        ExportAreaPictureAnnotation.class);
+    return TestContextFactories.readPayload(
+        objectMapper, new ClassPathResource("payload/export-pdf-payload.json").getInputStream());
   }
 
   private ExportAreaPictureAnnotation annotationFromToulousePayload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    return objectMapper.readValue(
+    return TestContextFactories.readPayload(
+        objectMapper,
         new ClassPathResource("payload/export/17 Rue Pierre Bénech, 31100 Toulouse.json")
-            .getInputStream(),
-        ExportAreaPictureAnnotation.class);
+            .getInputStream());
   }
 
   private ExportAreaPictureAnnotation heavyAnnotationFromPayload() throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     var annotation =
-        objectMapper.readValue(
-            new ClassPathResource("payload/heavy-export-pdf-payload.json").getInputStream(),
-            ExportAreaPictureAnnotation.class);
+        TestContextFactories.readPayload(
+            objectMapper,
+            new ClassPathResource("payload/heavy-export-pdf-payload.json").getInputStream());
 
     annotation
-        .get3d()
+        .getThreeD()
         .getPans()
         .forEach(
             pan -> {
@@ -517,21 +542,21 @@ class ExportAreaPictureAnnotationPdfVisualTest {
               pan.getInfos()
                   .add(
                       new ExportAreaPictureAnnotationInstanceInfo()
-                          .label("edgeTypes")
-                          .value(jsonEdgeTypes));
+                          .setLabel("edgeTypes")
+                          .setValue(jsonEdgeTypes));
               pan.setImageUri("imageUri");
             });
 
-    annotation.get3d().setFacades(new java.util.ArrayList<>(annotation.get3d().getPans()));
+    annotation.getThreeD().setFacades(new java.util.ArrayList<>(annotation.getThreeD().getPans()));
 
     return annotation;
   }
 
   private ExportAreaPictureAnnotation unevenExportAreaPictureAnnotation() {
     return new ExportAreaPictureAnnotation()
-        .imageUrl("https://dummy.com")
-        .address("Uneven Annotation Test")
-        .annotations(
+        .setImageUrl("https://dummy.com")
+        .setAddress("Uneven Annotation Test")
+        .setAnnotations(
             List.of(
                 exportInstance("Group A", "Type 1", "Good", "10m", 0, 0, 100, 100),
                 exportInstance("Group A", "Type 1", "Good", "10m", 100, 0, 200, 100),
@@ -548,87 +573,87 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     // triangulated independently.
     var pan1 =
         new ExportAreaPictureAnnotation3DPan()
-            .name("P1")
-            .polygon(
+            .setName("P1")
+            .setPolygon(
                 new Polygon()
-                    .points(
+                    .setPoints(
                         List.of(
-                            new Point().x(0d).y(0d),
-                            new Point().x(2000d).y(0d),
-                            new Point().x(1000d).y(1500d),
-                            new Point().x(0d).y(0d))))
-            .measurements(
+                            new Point().setX(0d).setY(0d),
+                            new Point().setX(2000d).setY(0d),
+                            new Point().setX(1000d).setY(1500d),
+                            new Point().setX(0d).setY(0d))))
+            .setMeasurements(
                 List.of(
                     new ExportAreaPictureAnnotationMeasurement()
-                        .value(20.0)
-                        .unit("m")
-                        .isInvisible(false),
+                        .setValue(20.0)
+                        .setUnit("m")
+                        .setIsInvisible(false),
                     new ExportAreaPictureAnnotationMeasurement()
-                        .value(18.03)
-                        .unit("m")
-                        .isInvisible(false),
+                        .setValue(18.03)
+                        .setUnit("m")
+                        .setIsInvisible(false),
                     new ExportAreaPictureAnnotationMeasurement()
-                        .value(18.03)
-                        .unit("m")
-                        .isInvisible(false)))
-            .infos(
+                        .setValue(18.03)
+                        .setUnit("m")
+                        .setIsInvisible(false)))
+            .setInfos(
                 List.of(
                     new ExportAreaPictureAnnotationInstanceInfo()
-                        .label("edgeTypes")
-                        .value("[\"egout\", \"faitage\", \"aretier\"]"),
-                    new ExportAreaPictureAnnotationInstanceInfo().label("Pente").value("21°"),
+                        .setLabel("edgeTypes")
+                        .setValue("[\"egout\", \"faitage\", \"aretier\"]"),
+                    new ExportAreaPictureAnnotationInstanceInfo().setLabel("Pente").setValue("21°"),
                     new ExportAreaPictureAnnotationInstanceInfo()
-                        .label("Surface rampant")
-                        .value("15m²")));
+                        .setLabel("Surface rampant")
+                        .setValue("15m²")));
 
     var pan2 =
         new ExportAreaPictureAnnotation3DPan()
-            .name("P2")
-            .polygon(
+            .setName("P2")
+            .setPolygon(
                 new Polygon()
-                    .points(
+                    .setPoints(
                         List.of(
-                            new Point().x(2000d).y(0d),
-                            new Point().x(4000d).y(0d),
-                            new Point().x(1000d).y(1500d),
-                            new Point().x(2000d).y(0d))))
-            .measurements(
+                            new Point().setX(2000d).setY(0d),
+                            new Point().setX(4000d).setY(0d),
+                            new Point().setX(1000d).setY(1500d),
+                            new Point().setX(2000d).setY(0d))))
+            .setMeasurements(
                 List.of(
                     new ExportAreaPictureAnnotationMeasurement()
-                        .value(20.0)
-                        .unit("m")
-                        .isInvisible(false),
+                        .setValue(20.0)
+                        .setUnit("m")
+                        .setIsInvisible(false),
                     new ExportAreaPictureAnnotationMeasurement()
-                        .value(22.20)
-                        .unit("m")
-                        .isInvisible(false),
+                        .setValue(22.20)
+                        .setUnit("m")
+                        .setIsInvisible(false),
                     new ExportAreaPictureAnnotationMeasurement()
-                        .value(18.03)
-                        .unit("m")
-                        .isInvisible(false)))
-            .infos(
+                        .setValue(18.03)
+                        .setUnit("m")
+                        .setIsInvisible(false)))
+            .setInfos(
                 List.of(
                     new ExportAreaPictureAnnotationInstanceInfo()
-                        .label("edgeTypes")
-                        .value("[\"egout\", \"aretier\", \"faitage\"]"),
-                    new ExportAreaPictureAnnotationInstanceInfo().label("Pente").value("21°"),
+                        .setLabel("edgeTypes")
+                        .setValue("[\"egout\", \"aretier\", \"faitage\"]"),
+                    new ExportAreaPictureAnnotationInstanceInfo().setLabel("Pente").setValue("21°"),
                     new ExportAreaPictureAnnotationInstanceInfo()
-                        .label("Surface rampant")
-                        .value("14m²")));
+                        .setLabel("Surface rampant")
+                        .setValue("14m²")));
 
     return new ExportAreaPictureAnnotation()
-        .imageUrl("https://dummy.com")
-        .address("Shared Ridge Test")
-        ._3d(new ExportAreaPictureAnnotation3D().pans(List.of(pan1, pan2)));
+        .setImageUrl("https://dummy.com")
+        .setAddress("Shared Ridge Test")
+        .setThreeD(new ExportAreaPictureAnnotation3D().setPans(List.of(pan1, pan2)));
   }
 
   private ExportAreaPictureAnnotation fullExportAreaPictureAnnotation() {
     return new ExportAreaPictureAnnotation()
-        .imageUrl("https://dummy.com")
-        .address("123 Rue de la Test, 75000 Paris")
-        .globalRateValue(75.5)
-        .globalRateType("C")
-        .llm(
+        .setImageUrl("https://dummy.com")
+        .setAddress("123 Rue de la Test, 75000 Paris")
+        .setGlobalRateValue(75.5)
+        .setGlobalRateType("C")
+        .setLlm(
             "<h2>Analyse LLM</h2><p>L'état général du bâtiment est satisfaisant. "
                 + "Cependant, quelques points d'attention ont été relevés :</p>"
                 + "<ul>"
@@ -636,22 +661,22 @@ class ExportAreaPictureAnnotationPdfVisualTest {
                 + "<li>Traces d'humidité près de la gouttière 📸</li>"
                 + "<li>Besoin d'un nettoyage approfondi de la toiture 🔍</li>"
                 + "</ul>")
-        .annotations(
+        .setAnnotations(
             List.of(
                 exportInstance("Top Left", "Corner", "Target", "0,0", 0, 0, 100, 100),
                 exportInstance("Top Right", "Corner", "Target", "4096,0", 3996, 0, 4096, 100),
                 exportInstance("Bottom Left", "Corner", "Target", "0,5120", 0, 5020, 100, 5120),
                 exportInstance(
                     "Bottom Right", "Corner", "Target", "4096,5120", 3996, 5020, 4096, 5120)))
-        ._3d(
+        .setThreeD(
             new ExportAreaPictureAnnotation3D()
-                .pans(
+                .setPans(
                     List.of(
                         export3DPan("Top Left Pan", "25m²", "Target", 0, 0, 100, 100),
                         export3DPan("Top Right Pan", "22m²", "Target", 3996, 0, 4096, 100),
                         export3DPan("Bottom Left Pan", "30m²", "Target", 0, 5020, 100, 5120),
                         export3DPan("Bottom Right Pan", "28m²", "Target", 3996, 5020, 4096, 5120)))
-                .facades(
+                .setFacades(
                     List.of(
                         export3DPan("Facade 1", "45m²", "Target", 0, 0, 100, 100),
                         export3DPan("Facade 2", "40m²", "Target", 3996, 0, 4096, 100))));
@@ -660,34 +685,34 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   private ExportAreaPictureAnnotationInstance exportInstance(
       String key, String type, String etat, String mesure, int x1, int y1, int x2, int y2) {
     return new ExportAreaPictureAnnotationInstance()
-        .fillColor("#FF521B80") // with opacity
-        .strokeColor("#FF521B")
-        .labelName(key)
-        .polygon(dummyPolygon(x1, y1, x2, y2))
-        .measurements(
+        .setFillColor("#FF521B80") // with opacity
+        .setStrokeColor("#FF521B")
+        .setLabelName(key)
+        .setPolygon(dummyPolygon(x1, y1, x2, y2))
+        .setMeasurements(
             List.of(
                 new ExportAreaPictureAnnotationMeasurement()
-                    .value(2.0)
-                    .unit("m")
-                    .isInvisible(false),
+                    .setValue(2.0)
+                    .setUnit("m")
+                    .setIsInvisible(false),
                 new ExportAreaPictureAnnotationMeasurement()
-                    .value(2.0)
-                    .unit("m")
-                    .isInvisible(false),
+                    .setValue(2.0)
+                    .setUnit("m")
+                    .setIsInvisible(false),
                 new ExportAreaPictureAnnotationMeasurement()
-                    .value(2.0)
-                    .unit("m")
-                    .isInvisible(false),
+                    .setValue(2.0)
+                    .setUnit("m")
+                    .setIsInvisible(false),
                 new ExportAreaPictureAnnotationMeasurement()
-                    .value(2.0)
-                    .unit("m")
-                    .isInvisible(false)))
-        .infos(
+                    .setValue(2.0)
+                    .setUnit("m")
+                    .setIsInvisible(false)))
+        .setInfos(
             List.of(
-                new ExportAreaPictureAnnotationInstanceInfo().label("key").value(key),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Type").value(type),
-                new ExportAreaPictureAnnotationInstanceInfo().label("État").value(etat),
-                new ExportAreaPictureAnnotationInstanceInfo().label("Mesure").value(mesure)));
+                new ExportAreaPictureAnnotationInstanceInfo().setLabel("key").setValue(key),
+                new ExportAreaPictureAnnotationInstanceInfo().setLabel("Type").setValue(type),
+                new ExportAreaPictureAnnotationInstanceInfo().setLabel("État").setValue(etat),
+                new ExportAreaPictureAnnotationInstanceInfo().setLabel("Mesure").setValue(mesure)));
   }
 
   static app.bpartners.api.model.User user() {

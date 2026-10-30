@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="page" class="page diagram-page" th:if="${roofSummary != null and roofSummary.baseImageWithAreasUri != null and conf.isShowAreaSummary() == true}"
+         th:classappend="${lastSection.name() == 'AREA_SUMMARY'} ? ' last-page' : ''">
+    <h2 class="annotation-information-title">Surface</h2>
+    <p class="section-description">Surface en m²</p>
+    <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithAreasUri}"/>
+</section>
+</body>
+</html>

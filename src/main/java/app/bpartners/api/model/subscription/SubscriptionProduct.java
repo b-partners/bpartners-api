@@ -73,6 +73,9 @@ public class SubscriptionProduct {
 
   private Integer displayPosition;
 
+  @Column(name = "tier_rank")
+  private Integer tierRank;
+
   private Instant creationDatetime;
 
   @Column(name = "plan_code")
@@ -115,6 +118,9 @@ public class SubscriptionProduct {
 
   @Column(name = "included_credits_per_billing_period")
   private Long includedCreditsPerBillingPeriod;
+
+  @Column(name = "max_secondary_users")
+  private Integer maxSecondaryUsers;
 
   @ManyToMany(fetch = EAGER)
   @JoinTable(

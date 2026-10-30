@@ -1,9 +1,9 @@
 package app.bpartners.api.service.annotation.model;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationMeasurement;
 import app.bpartners.api.model.annotation.IntXY;
 import app.bpartners.api.service.annotation.factory.RoofSlopeBoundaryFactory;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationMeasurement;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -157,7 +157,7 @@ public class Drawer {
 
     for (int i = 0; i < numPoints; i++) {
       var measurement = measurements.get(i);
-      if (!measurement.getIsInvisible()) {
+      if (!Boolean.TRUE.equals(measurement.getIsInvisible())) {
         var measurementText = String.format("%.2f", measurement.getValue());
         if (showUnit) {
           measurementText += measurement.getUnit();

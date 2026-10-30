@@ -1,13 +1,17 @@
 package app.bpartners.api.service.subscription;
 
 import static app.bpartners.api.model.subscription.BillingInterval.MONTHLY;
+import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.SUBSCRIPTION_INVOICE_MAIL_TEMPLATE;
 import static app.bpartners.api.service.subscription.SubscriptionInvoiceMailer.TECH_RECIPIENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -18,6 +22,7 @@ import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
 import app.bpartners.api.model.subscription.SubscriptionPayment;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.UserRepository;
@@ -32,6 +37,7 @@ import java.io.File;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -78,6 +84,161 @@ class SubscriptionInvoiceMailerTest {
   @Test
   void subscriber_recipient_is_the_customer_email_when_nothing_is_configured() {
     assertEquals("s3d@client.fr", subject.subscriberRecipientOf(someInvoice()));
+  }
+
+  @Test
+  void upgrade_invoice_mail_shows_the_plan_name_and_the_whole_coverage_period() throws Exception {
+    var summary =
+        new SubscriptionMailSummary(
+            "Expert", MONTHLY, LocalDate.of(2026, 10, 14), LocalDate.of(2027, 9, 30));
+
+    assertTrue(
+        subject.sendWithSummary(
+            upgradeInvoice(), summary, SUBSCRIPTION_INVOICE_MAIL_TEMPLATE, "s3d@client.fr"));
+
+    var body = sentHtmlBody();
+    assertTrue(body.contains(">Expert<"));
+    assertTrue(body.contains(">14/10/2026 au 30/09/2027<"));
+    assertTrue(body.contains(">Mensuel<"));
+    assertFalse(body.contains("Abonnement Expert du 14/10/2026 au 31/10/2026"));
+    assertFalse(body.contains("31/10/2026"));
+  }
+
+  @Test
+  void upgrade_invoice_mail_labels_a_yearly_coverage_as_annual() throws Exception {
+    var summary =
+        new SubscriptionMailSummary(
+            "Pro", YEARLY, LocalDate.of(2026, 10, 14), LocalDate.of(2027, 10, 13));
+
+    subject.sendWithSummary(
+        upgradeInvoice(), summary, SUBSCRIPTION_INVOICE_MAIL_TEMPLATE, "s3d@client.fr");
+
+    var body = sentHtmlBody();
+    assertTrue(body.contains(">Annuel<"));
+    assertTrue(body.contains(">14/10/2026 au 13/10/2027<"));
+  }
+
+  @Test
+  void summary_mail_falls_back_on_the_default_label_and_the_payment_date() throws Exception {
+    var summary = new SubscriptionMailSummary(null, null, null, null);
+
+    subject.sendWithSummary(
+        upgradeInvoice(), summary, SUBSCRIPTION_INVOICE_MAIL_TEMPLATE, "s3d@client.fr");
+
+    var body = sentHtmlBody();
+    assertTrue(body.contains(">" + SubscriptionPayment.DEFAULT_LABEL + "<"));
+    assertTrue(body.contains(">14/10/2026<"));
+    assertFalse(body.contains("Règlement"));
+  }
+
+  @Test
+  void credit_note_mail_has_its_own_subject_and_no_attachment() throws Exception {
+    var summary =
+        new SubscriptionMailSummary(
+            "Essentiel", MONTHLY, LocalDate.of(2026, 10, 14), LocalDate.of(2027, 9, 30));
+
+    assertTrue(subject.sendCreditNote(upgradeInvoice(), summary, "s3d@client.fr"));
+
+    var subjectCaptor = ArgumentCaptor.forClass(String.class);
+    var attachments = ArgumentCaptor.forClass(List.class);
+    verify(mailer)
+        .sendEmail(
+            anyString(), anyString(), subjectCaptor.capture(), anyString(), attachments.capture());
+    assertEquals(
+        "Votre facture d'avoir "
+            + upgradeInvoice().getRef()
+            + " est disponible sur votre dashboard",
+        subjectCaptor.getValue());
+    assertTrue(attachments.getValue().isEmpty());
+    var body = sentHtmlBody();
+    assertTrue(body.contains(">Essentiel<"));
+    assertTrue(body.contains(">14/10/2026 au 30/09/2027<"));
+    assertFalse(body.contains("Total TTC"));
+  }
+
+  @Test
+  void credit_note_mail_renders_the_credited_period_and_points_to_the_dashboard() throws Exception {
+    var summary =
+        new SubscriptionMailSummary(
+            "Essentiel", MONTHLY, LocalDate.of(2026, 10, 14), LocalDate.of(2027, 9, 30));
+
+    subject.sendCreditNote(upgradeInvoice(), summary, "s3d@client.fr");
+
+    var body = sentHtmlBody();
+    assertTrue(body.contains("Votre facture d'avoir est disponible"));
+    assertTrue(body.contains("Bonjour S3D Hygiène Professionnel,"));
+    assertTrue(body.contains(">REF-14102026094820<"));
+    assertTrue(body.contains(">Abonnement annulé<"));
+    assertTrue(body.contains(">Essentiel<"));
+    assertTrue(body.contains(">Règlement<"));
+    assertTrue(body.contains(">Mensuel<"));
+    assertTrue(body.contains(">Période créditée<"));
+    assertTrue(body.contains(">14/10/2026 au 30/09/2027<"));
+    assertTrue(body.contains("disponible sur votre dashboard"));
+    assertTrue(body.contains("section factures de votre dashboard"));
+    assertTrue(body.contains("href=\"https://dashboard.birdia.fr\""));
+    assertTrue(body.contains(">Accéder à mon dashboard<"));
+    assertFalse(body.contains("Montant HT"));
+    assertFalse(body.contains("Total TTC"));
+    assertFalse(body.contains("jointe"));
+    assertFalse(body.contains("PDF"));
+  }
+
+  @Test
+  void summary_mail_is_not_sent_without_recipient() throws Exception {
+    var summary =
+        new SubscriptionMailSummary(
+            "Expert", MONTHLY, LocalDate.of(2026, 10, 14), LocalDate.of(2027, 9, 30));
+
+    assertFalse(
+        subject.sendWithSummary(
+            upgradeInvoice(), summary, SUBSCRIPTION_INVOICE_MAIL_TEMPLATE, null));
+
+    verify(mailer, never())
+        .sendEmail(anyString(), anyString(), anyString(), anyString(), anyList());
+  }
+
+  @Test
+  void payment_invoice_mail_keeps_the_payment_plan_and_the_invoiced_period() throws Exception {
+    when(subscriptionInvoicePeriodRepository.findByInvoiceId("invoice_id"))
+        .thenReturn(
+            Optional.of(
+                SubscriptionInvoicePeriod.builder()
+                    .periodStartDatetime(
+                        LocalDate.of(2026, 9, 24)
+                            .atStartOfDay(ZoneId.of("Europe/Paris"))
+                            .toInstant())
+                    .periodEndDatetime(
+                        LocalDate.of(2027, 8, 31)
+                            .atStartOfDay(ZoneId.of("Europe/Paris"))
+                            .toInstant())
+                    .build()));
+
+    subject.send(someInvoice(), somePayment(), SUBSCRIPTION_INVOICE_MAIL_TEMPLATE, "s3d@client.fr");
+
+    var body = sentHtmlBody();
+    assertTrue(body.contains(">Essentiel<"));
+    assertTrue(body.contains(">24/09/2026 au 31/08/2027<"));
+    assertTrue(body.contains(">Mensuel<"));
+  }
+
+  private String sentHtmlBody() throws Exception {
+    var htmlBody = ArgumentCaptor.forClass(String.class);
+    verify(mailer).sendEmail(anyString(), anyString(), anyString(), htmlBody.capture(), anyList());
+    return htmlBody.getValue();
+  }
+
+  private Invoice upgradeInvoice() {
+    return someInvoice().toBuilder()
+        .ref("REF-14102026094820")
+        .sendingDate(LocalDate.of(2026, 10, 14))
+        .products(
+            List.of(
+                InvoiceProduct.builder()
+                    .description("Abonnement Expert du 14/10/2026 au 31/10/2026")
+                    .quantity(1)
+                    .build()))
+        .build();
   }
 
   private Invoice someInvoice() {

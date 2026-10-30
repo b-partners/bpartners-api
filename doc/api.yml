@@ -104,12 +104,24 @@ paths:
     $ref: './user-subscription-api.yml#/operations/subscriptionPlansOperation'
   /users/{uId}/subscriptionInitiation:
     $ref: './user-subscription-api.yml#/operations/initiateUserSubscription'
+  /users/{uId}/subscriptionUpgrade:
+    $ref: './user-subscription-api.yml#/operations/upgradeUserSubscription'
+  /users/{uId}/subscriptionUpgrades/{upgradeId}:
+    $ref: './user-subscription-api.yml#/operations/updateUserSubscriptionUpgrade'
   /users/{uId}/subscriptionTrial:
     $ref: './user-subscription-api.yml#/operations/startUserSubscriptionTrial'
   /users/{uId}/subscriptionTrialEligibility:
     $ref: './user-subscription-api.yml#/operations/getUserSubscriptionTrialEligibility'
   /users/{uId}/subscriptionCancel:
     $ref: './user-subscription-api.yml#/operations/cancelUserSubscription'
+  /users/{uId}/secondaryUsers:
+    $ref: './secondary-user-api.yml#/operations/secondaryUsersOperation'
+  /users/{uId}/secondaryUsers/{secondaryUserId}:
+    $ref: './secondary-user-api.yml#/operations/secondaryUserOperation'
+  /users/{uId}/secondaryUserInvitations:
+    $ref: './secondary-user-api.yml#/operations/secondaryUserInvitationsOperation'
+  /users/{uId}/secondaryUserInvitations/{invitationId}:
+    $ref: './secondary-user-api.yml#/operations/secondaryUserInvitationOperation'
   /users/{uId}/subscriptionConsumptionLogs:
     $ref: './user-subscription-api.yml#/operations/subscriptionConsumptionLogsOperation'
   /users/{uId}/subscriptionCommitments:
@@ -264,6 +276,8 @@ paths:
     $ref: './prospecting-api.yml#/operations/prospectOperations'
   /accountHolders/{ahId}/prospects/{prospectId}/notifications:
     $ref: './prospecting-api.yml#/operations/prospectNotificationOperations'
+  /accountHolders/{ahId}/prospects/{prospectId}/notifications/attachmentUploads:
+    $ref: './prospecting-api.yml#/operations/prospectNotificationAttachmentUploadOperations'
   /accountHolders/{ahId}/prospects/import:
     $ref: './prospecting-api.yml#/operations/prospectImportOperations'
   /accountHolders/{ahId}/prospects/{id}/prospectConversion:

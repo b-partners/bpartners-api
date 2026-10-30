@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.endpoint.rest.mapper.AreaPictureAnnotationRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.ExportAreaPictureAnnotationRestMapper;
 import app.bpartners.api.endpoint.rest.model.ConverterAnnotation;
 import app.bpartners.api.endpoint.rest.model.DraftAreaPictureAnnotation;
 import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
@@ -27,22 +28,30 @@ class AreaPictureAnnotationControllerTest {
   AreaPictureAnnotationRestMapper mapperMock = mock();
   AreaPictureAnnotationConverter areaPictureAnnotationConverterMock = mock();
   ConverterValidator converterValidatorMock = mock();
+  ExportAreaPictureAnnotationRestMapper exportAnnotationMapperMock = mock();
 
   AreaPictureAnnotationController subject =
       new AreaPictureAnnotationController(
-          serviceMock, mapperMock, areaPictureAnnotationConverterMock, converterValidatorMock);
+          serviceMock,
+          mapperMock,
+          areaPictureAnnotationConverterMock,
+          exportAnnotationMapperMock,
+          converterValidatorMock);
 
   @Test
   void export_area_picture_annotation_to_pdf_with_image_delegates_to_service() throws IOException {
     var accountId = randomUUID().toString();
     var userId = randomUUID().toString();
     var annotation = mock(ExportAreaPictureAnnotation.class);
+    var domainAnnotation =
+        mock(app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation.class);
+    when(exportAnnotationMapperMock.toDomain(annotation)).thenReturn(domainAnnotation);
     var globalImage3D = mock(MultipartFile.class);
     var imageBytes = new byte[] {1, 2, 3};
     var expected = mock(PreSignedURL.class);
 
     when(globalImage3D.getBytes()).thenReturn(imageBytes);
-    when(serviceMock.exportAreaPictureAnnotationToPdf(userId, annotation, imageBytes))
+    when(serviceMock.exportAreaPictureAnnotationToPdf(userId, domainAnnotation, imageBytes))
         .thenReturn(expected);
 
     try (MockedStatic<AuthProvider> authProviderMockedStatic = mockStatic(AuthProvider.class)) {
@@ -60,9 +69,12 @@ class AreaPictureAnnotationControllerTest {
     var accountId = randomUUID().toString();
     var userId = randomUUID().toString();
     var annotation = mock(ExportAreaPictureAnnotation.class);
+    var domainAnnotation =
+        mock(app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation.class);
+    when(exportAnnotationMapperMock.toDomain(annotation)).thenReturn(domainAnnotation);
     var expected = mock(PreSignedURL.class);
 
-    when(serviceMock.exportAreaPictureAnnotationToPdf(userId, annotation, null))
+    when(serviceMock.exportAreaPictureAnnotationToPdf(userId, domainAnnotation, null))
         .thenReturn(expected);
 
     try (MockedStatic<AuthProvider> authProviderMockedStatic = mockStatic(AuthProvider.class)) {

@@ -8,6 +8,7 @@ import app.bpartners.api.endpoint.rest.validator.CreateProspectValidator;
 import app.bpartners.api.endpoint.rest.validator.ExtendedProspectUpdateValidator;
 import app.bpartners.api.endpoint.rest.validator.ProspectRestValidator;
 import app.bpartners.api.model.Customer;
+import app.bpartners.api.model.prospect.ProspectAttachmentUpload;
 import app.bpartners.api.model.prospect.ProspectStatusHistory;
 import app.bpartners.api.model.prospect.job.ProspectEvaluationJob;
 import app.bpartners.api.repository.expressif.ProspectEval;
@@ -27,6 +28,13 @@ public class ProspectRestMapper {
   private final ProspectRestValidator validator;
   private final CreateProspectValidator createProspectValidator;
   private final ExtendedProspectUpdateValidator prospectUpdateValidator;
+
+  public ProspectNotificationAttachmentUpload toRest(ProspectAttachmentUpload upload) {
+    return new ProspectNotificationAttachmentUpload()
+        .fileKey(upload.getFileKey())
+        .uploadUrl(upload.getUploadUrl())
+        .expiresAt(upload.getExpiresAt());
+  }
 
   public EvaluatedProspect toRest(ProspectResult prospectResult) {
     if (prospectResult == null) {

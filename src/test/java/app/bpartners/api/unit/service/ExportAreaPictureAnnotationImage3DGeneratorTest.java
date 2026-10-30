@@ -3,12 +3,12 @@ package app.bpartners.api.unit.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationMeasurement;
-import app.bpartners.api.endpoint.rest.model.Point;
-import app.bpartners.api.endpoint.rest.model.Polygon;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.RawCoordinates;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationMeasurement;
+import app.bpartners.api.service.annotation.model.export.Point;
+import app.bpartners.api.service.annotation.model.export.Polygon;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -23,14 +23,14 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
   void generateBaseImage_should_draw_pans_in_red() {
     var pan =
         new ExportAreaPictureAnnotation3DPan()
-            .polygon(
+            .setPolygon(
                 new Polygon()
-                    .points(
+                    .setPoints(
                         List.of(
-                            new Point().x(100d).y(100d),
-                            new Point().x(200d).y(100d),
-                            new Point().x(200d).y(200d),
-                            new Point().x(100d).y(100d))));
+                            new Point().setX(100d).setY(100d),
+                            new Point().setX(200d).setY(100d),
+                            new Point().setX(200d).setY(200d),
+                            new Point().setX(100d).setY(100d))));
 
     var result = subject.generateBaseImage(List.of(pan));
     BufferedImage image = result.second();
@@ -49,14 +49,14 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
     // bottom of the image, and a source point at the bottom (max Y) at the top.
     var pan =
         new ExportAreaPictureAnnotation3DPan()
-            .polygon(
+            .setPolygon(
                 new Polygon()
-                    .points(
+                    .setPoints(
                         List.of(
-                            new Point().x(100d).y(100d),
-                            new Point().x(200d).y(100d),
-                            new Point().x(200d).y(200d),
-                            new Point().x(100d).y(100d))));
+                            new Point().setX(100d).setY(100d),
+                            new Point().setX(200d).setY(100d),
+                            new Point().setX(200d).setY(200d),
+                            new Point().setX(100d).setY(100d))));
 
     var result = subject.generateBaseImage(List.of(pan));
     var transform = result.first();
@@ -81,7 +81,10 @@ class ExportAreaPictureAnnotationImage3DGeneratorTest {
   }
 
   private static ExportAreaPictureAnnotationMeasurement invisibleMeasurement() {
-    return new ExportAreaPictureAnnotationMeasurement().value(2.0).unit("m").isInvisible(true);
+    return new ExportAreaPictureAnnotationMeasurement()
+        .setValue(2.0)
+        .setUnit("m")
+        .setIsInvisible(true);
   }
 
   private static void assertNearBlack(Color color, String what) {

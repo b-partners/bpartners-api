@@ -5,12 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3D;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotation3DPan;
-import app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationInstance;
-import app.bpartners.api.endpoint.rest.model.Point;
-import app.bpartners.api.endpoint.rest.model.Polygon;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3D;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
+import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotationInstance;
+import app.bpartners.api.service.annotation.model.export.Point;
+import app.bpartners.api.service.annotation.model.export.Polygon;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,7 +29,7 @@ class ExportAreaPictureAnnotationAdjustmentTest {
     Point point = new Point();
     point.setX(100.0);
     point.setY(200.0);
-    when(exportAnnotation.get3d()).thenReturn(annotation3D);
+    when(exportAnnotation.getThreeD()).thenReturn(annotation3D);
     when(annotation3D.getPans()).thenReturn(List.of(pan));
     when(pan.getPolygon()).thenReturn(polygon);
     when(polygon.getPoints()).thenReturn(List.of(point));
@@ -119,7 +119,7 @@ class ExportAreaPictureAnnotationAdjustmentTest {
   @Test
   void adjust3DAnnotation_io_exception() {
     ExportAreaPictureAnnotation exportAnnotation = mock(ExportAreaPictureAnnotation.class);
-    byte[] invalidBytes = new byte[] {0, 0, 0};
+    byte[] invalidBytes = {0, 0, 0};
 
     // Should not throw, just log a warning
     assertDoesNotThrow(

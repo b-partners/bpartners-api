@@ -9,7 +9,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ExportAreaPictureAnnotationConf {
   public static final ExportAreaPictureAnnotationConf DEFAULT =
-      new ExportAreaPictureAnnotationConf(true, true, true, true, true, true, true, true, true);
+      ExportAreaPictureAnnotationConf.builder()
+          .showTitlePage(true)
+          .showAnnotationPages(true)
+          .showAnnotation3dPages(true)
+          .showMeasurementSummary(true)
+          .showPitchSummary(true)
+          .showAreaSummary(true)
+          .showOverallSummary(true)
+          .showLlmSummary(true)
+          .showDegradationSummary(true)
+          .build();
   private final boolean showTitlePage;
   private final boolean showAnnotationPages;
   private final boolean showAnnotation3dPages;

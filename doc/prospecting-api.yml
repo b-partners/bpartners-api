@@ -85,6 +85,12 @@ operations:
       operationId: notifyProspects
       description: |
         Notify by email account holder and include attachment if provided.
+
+        The attachment can be provided either directly as multipart `optionalAttachment`
+        (limited by the payload size accepted by the API, about 4 MB),
+        or by reference with `attachmentFileKey`, obtained from
+        `createProspectNotificationAttachmentUpload` once the file has been uploaded
+        to the returned pre-signed URL. Providing both is rejected.
       parameters:
         - in: path
           name: ahId
@@ -96,6 +102,12 @@ operations:
           schema:
             type: string
           required: true
+        - in: query
+          name: attachmentFileKey
+          description: Key of an attachment previously uploaded through a pre-signed URL.
+          schema:
+            type: string
+          required: false
       requestBody:
         required: false
         content:
@@ -113,6 +125,51 @@ operations:
             application/json:
               schema:
                 $ref: '#/components/schemas/Prospect'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  prospectNotificationAttachmentUploadOperations:
+    post:
+      tags:
+        - Prospecting
+      summary: Create a pre-signed URL to upload a prospect notification attachment
+      operationId: createProspectNotificationAttachmentUpload
+      description: |
+        Returns a pre-signed URL to which the attachment must be uploaded with an HTTP PUT
+        whose body is the raw file and whose `Content-Length` is exactly `fileSize`.
+        The returned `fileKey` is then given as `attachmentFileKey` to `notifyProspects`.
+        The maximum accepted size is 30 MiB.
+      parameters:
+        - in: path
+          name: ahId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: prospectId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProspectNotificationAttachmentUpload'
+      responses:
+        200:
+          description: Pre-signed upload URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProspectNotificationAttachmentUpload'
         400:
           $ref: './api.yml#/components/responses/400'
         403:
@@ -865,6 +922,25 @@ components:
         status:
           $ref: '#/components/schemas/ProspectStatus'
         updatedAt:
+          type: string
+          format: date-time
+    CreateProspectNotificationAttachmentUpload:
+      type: object
+      required:
+        - fileSize
+      properties:
+        fileSize:
+          type: integer
+          format: int64
+          description: Size in bytes of the file that will be uploaded.
+    ProspectNotificationAttachmentUpload:
+      type: object
+      properties:
+        fileKey:
+          type: string
+        uploadUrl:
+          type: string
+        expiresAt:
           type: string
           format: date-time
     CreateProspectAnalyse:

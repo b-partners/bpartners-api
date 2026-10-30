@@ -60,7 +60,8 @@ class UserControllerTest {
           userSubscriptionPaymentMethodRestMapperMock,
           userSubscriptionTrialServiceMock,
           subscriptionTrialRestMapperMock,
-          subscriptionTrialEligibilityRestMapperMock);
+          subscriptionTrialEligibilityRestMapperMock,
+          mock());
 
   @Test
   void cancel_user_subscription_without_cancellation_type() {

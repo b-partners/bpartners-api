@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Renders one custom page section; split sections render their columns through this same fragment. -->
+<th:block th:fragment="section(item, nested)" th:switch="${item.type.name()}">
+
+    <div th:case="'TEXT'" th:class="'custom-section-text text-priority-' + ${item.priority.name()}" th:text="${item.text}"></div>
+
+    <div th:case="'IMAGE'" class="custom-section-image-container" th:style="${nested} ? 'text-align: center;'">
+        <img class="custom-section-image" th:classappend="'image-priority-' + ${item.priority.name()}" th:src="${item.url}" alt="custom section image"/>
+        <div th:if="${item.caption}" class="custom-section-caption" th:text="${item.caption}"></div>
+    </div>
+
+    <div class="degradation-container" th:case="'TABLE'" th:style="${nested} ? 'margin-top: 5px;'">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th th:each="header : ${item.tableData.headers}" th:text="${header}"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${item.tableData.rows}">
+                <td th:each="cell : ${row}" th:text="${cell}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:case="'SPLIT_SECTION'" class="clearfix split-section" th:classappend="'split-' + ${#lists.size(item.columns)}">
+        <div th:each="column, columnStat : ${item.columns}" class="split-column"
+             th:classappend="${columnStat.first} ? ' split-first' : (${columnStat.last} ? ' split-last' : ' split-middle')">
+            <th:block th:replace="~{export/custom-section :: section(${column}, true)}"/>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

@@ -28,7 +28,9 @@ import com.stripe.model.InvoiceLineItem;
 import com.stripe.model.InvoiceLineItemCollection;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -157,7 +159,7 @@ class SubscriptionStripeBackfillMailRoutingTest {
   }
 
   private void givenAnUninvoicedStripePayment() {
-    var payment = octoberPayment(null);
+    var payment = currentMonthPayment(null);
     givenStripeInvoiceResolvingTo(payment);
     when(subscriptionPaymentInvoiceService.previewAssembledPeriod(any(), any(), any()))
         .thenReturn(
@@ -168,7 +170,7 @@ class SubscriptionStripeBackfillMailRoutingTest {
   }
 
   private void givenAnAlreadyInvoicedStripePayment() {
-    var payment = octoberPayment("invoice_id");
+    var payment = currentMonthPayment("invoice_id");
     givenStripeInvoiceResolvingTo(payment);
     when(invoiceRepository.findById("invoice_id")).thenReturn(someInvoice());
   }
@@ -199,16 +201,20 @@ class SubscriptionStripeBackfillMailRoutingTest {
     return stripeInvoice;
   }
 
-  private SubscriptionPayment octoberPayment(String invoiceIdentifier) {
+  private SubscriptionPayment currentMonthPayment(String invoiceIdentifier) {
     return SubscriptionPayment.builder()
         .id("payment_id")
         .userId(USER_ID)
         .invoiceId(invoiceIdentifier)
         .billingInterval(BillingInterval.MONTHLY)
-        .periodStartDatetime(LocalDate.of(2026, 10, 1).atStartOfDay(PARIS).toInstant())
-        .periodEndDatetime(LocalDate.of(2026, 10, 30).atStartOfDay(PARIS).toInstant())
-        .paymentDatetime(LocalDate.of(2026, 10, 1).atStartOfDay(PARIS).toInstant())
+        .periodStartDatetime(currentMonthStart().toInstant())
+        .periodEndDatetime(currentMonthStart().plusDays(29).toInstant())
+        .paymentDatetime(currentMonthStart().toInstant())
         .build();
+  }
+
+  private ZonedDateTime currentMonthStart() {
+    return YearMonth.now(PARIS).atDay(1).atStartOfDay(PARIS);
   }
 
   private app.bpartners.api.model.Invoice someInvoice() {

@@ -107,6 +107,14 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         "toulouse");
   }
 
+  @Test
+  void generate_morges_pdf() throws IOException {
+    generatePdf(
+        "payload/export/Paul Benoit - Chem. des Terrasses 7, 1110 Morges, Suisse.json",
+        "files/Paul Benoit - Chem. des Terrasses 7, 1110 Morges, Suisse.png",
+        "morges");
+  }
+
   private static void generatePdf(String payloadPath, String imagePath, String suffix)
       throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

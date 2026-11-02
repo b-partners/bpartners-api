@@ -406,6 +406,12 @@ public class SubscriptionPaymentInvoiceRequestedService
       return MonthlyBilling.notInstalmentPayable();
     }
     var commitment = latestCommitmentOf(subscriptionPayment, paymentPeriodStart);
+    if (excludesAlreadyInvoicedPeriods && commitment.isEmpty()) {
+      var runningPeriod = invoicedPeriodRunningAt(subscriptionPayment, paymentPeriodStart);
+      if (runningPeriod.isPresent()) {
+        return MonthlyBilling.alreadyCoveredBy(runningPeriod.get());
+      }
+    }
     var commitmentEnd = commitmentEndOf(commitment, paymentPeriodStart);
     if (!excludesAlreadyInvoicedPeriods) {
       return MonthlyBilling.toInvoice(
@@ -461,6 +467,18 @@ public class SubscriptionPaymentInvoiceRequestedService
         .filter(period -> !refundedInvoiceIds.contains(period.getInvoiceId()))
         .filter(period -> period.getPeriodEndDatetime() != null)
         .filter(period -> !periodEndDateOf(period).isAfter(commitmentEnd))
+        .max(comparing(this::periodEndDateOf));
+  }
+
+  private Optional<SubscriptionInvoicePeriod> invoicedPeriodRunningAt(
+      SubscriptionPayment subscriptionPayment, LocalDate paymentPeriodStart) {
+    var userIdentifier = subscriptionPayment.getUserId();
+    var refundedInvoiceIds =
+        Set.copyOf(subscriptionPaymentRepository.findRefundedInvoiceIdsByUserId(userIdentifier));
+    return subscriptionInvoicePeriodRepository.findByUserId(userIdentifier).stream()
+        .filter(period -> !refundedInvoiceIds.contains(period.getInvoiceId()))
+        .filter(period -> period.getPeriodEndDatetime() != null)
+        .filter(period -> !periodEndDateOf(period).isBefore(paymentPeriodStart))
         .max(comparing(this::periodEndDateOf));
   }
 

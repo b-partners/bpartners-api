@@ -563,6 +563,66 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void monthly_without_commitment_renewal_is_not_invoiced_again_inside_the_invoiced_year() {
+    givenDefaultUsersAndCustomer();
+    givenInvoicedPeriods(
+        invoicedPeriod("initial_invoice_id", LocalDate.of(2026, 10, 1), LocalDate.of(2027, 9, 30)));
+    var renewal =
+        monthlyCommitmentPayment()
+            .periodStartDatetime(Instant.parse("2026-10-31T23:00:00Z"))
+            .periodEndDatetime(Instant.parse("2026-11-30T23:00:00Z"))
+            .paymentDatetime(Instant.parse("2026-10-31T23:00:00Z"))
+            .build();
+    givenPayment(renewal);
+
+    subject.accept(someEvent());
+
+    verify(invoiceService, never()).crupdateSubscriptionInvoice(any());
+    verify(subscriptionPaymentService)
+        .invoicedBy(
+            renewal,
+            "initial_invoice_id",
+            parisStartOfDay(LocalDate.of(2026, 10, 1)),
+            parisStartOfDay(LocalDate.of(2027, 9, 30)));
+  }
+
+  @Test
+  void monthly_without_commitment_mid_month_start_renewal_is_not_invoiced_again() {
+    givenDefaultUsersAndCustomer();
+    givenInvoicedPeriods(
+        invoicedPeriod("first_invoice_id", LocalDate.of(2026, 9, 28), LocalDate.of(2026, 9, 30)),
+        invoicedPeriod(
+            "remaining_invoice_id", LocalDate.of(2026, 10, 1), LocalDate.of(2027, 9, 30)));
+    givenPayment(
+        monthlyCommitmentPayment()
+            .periodStartDatetime(Instant.parse("2026-10-28T09:30:00Z"))
+            .periodEndDatetime(Instant.parse("2026-11-27T09:30:00Z"))
+            .paymentDatetime(Instant.parse("2026-10-28T09:30:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    verify(invoiceService, never()).crupdateSubscriptionInvoice(any());
+  }
+
+  @Test
+  void monthly_without_commitment_is_invoiced_again_once_the_invoiced_year_is_over() {
+    givenDefaultUsersAndCustomer();
+    givenInvoicedPeriods(
+        invoicedPeriod("initial_invoice_id", LocalDate.of(2026, 10, 1), LocalDate.of(2027, 9, 30)));
+    givenPayment(
+        monthlyCommitmentPayment()
+            .periodStartDatetime(Instant.parse("2027-09-30T22:00:00Z"))
+            .periodEndDatetime(Instant.parse("2027-10-31T22:00:00Z"))
+            .paymentDatetime(Instant.parse("2027-09-30T22:00:00Z"))
+            .build());
+
+    subject.accept(someEvent());
+
+    assertEquals(12, capturedInvoice().getProducts().size());
+  }
+
+  @Test
   void monthly_commitment_reads_the_period_covered_by_the_already_created_invoice() {
     givenDefaultUsersAndCustomer();
     when(userSubscriptionCommitmentRepository.findAllByUserId("subscriber_id"))

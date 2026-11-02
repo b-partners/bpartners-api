@@ -58,9 +58,7 @@ class UserSubscriptionTrialServiceTest {
   @BeforeEach
   void setUp() {
     when(subscriptionProductRepository.findById("plan_id")).thenReturn(Optional.of(trialPlan(7)));
-    when(userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
-            "user_id", "plan_id"))
-        .thenReturn(false);
+    when(userSubscriptionTrialJpaRepository.existsByUserId("user_id")).thenReturn(false);
     when(userSubscriptionProductService.findActiveUserSubscriptionProduct("user_id"))
         .thenReturn(Optional.empty());
     when(userSubscriptionTrialJpaRepository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -126,10 +124,8 @@ class UserSubscriptionTrialServiceTest {
   }
 
   @Test
-  void rejects_when_trial_already_used_on_the_product() {
-    when(userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
-            "user_id", "plan_id"))
-        .thenReturn(true);
+  void rejects_when_user_already_used_a_trial_on_any_plan() {
+    when(userSubscriptionTrialJpaRepository.existsByUserId("user_id")).thenReturn(true);
 
     assertThrows(ConflictException.class, () -> subject.startTrial("user_id", "plan_id"));
     verify(userSubscriptionProductService, never())
@@ -159,10 +155,7 @@ class UserSubscriptionTrialServiceTest {
             List.of(
                 planWithTrialDays("eligible", 7),
                 planWithTrialDays("no_trial", 0),
-                planWithTrialDays("used", 7)));
-    when(userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
-            "user_id", "used"))
-        .thenReturn(true);
+                planWithTrialDays("other", 7)));
 
     var byPlan =
         subject.getTrialEligibility("user_id").stream()
@@ -176,8 +169,30 @@ class UserSubscriptionTrialServiceTest {
     assertEquals(true, byPlan.get("eligible").eligible());
     assertEquals(TrialIneligibilityReason.PLAN_HAS_NO_TRIAL, byPlan.get("no_trial").reason());
     assertEquals(false, byPlan.get("no_trial").eligible());
-    assertEquals(TrialIneligibilityReason.TRIAL_ALREADY_USED, byPlan.get("used").reason());
-    assertEquals(false, byPlan.get("used").eligible());
+    assertEquals(TrialIneligibilityReason.ELIGIBLE, byPlan.get("other").reason());
+  }
+
+  @Test
+  void eligibility_is_already_used_on_every_trial_plan_once_user_used_any_trial() {
+    when(subscriptionProductRepository.findAllByBillingTypeNotNull(any()))
+        .thenReturn(
+            List.of(
+                planWithTrialDays("used", 7),
+                planWithTrialDays("other", 7),
+                planWithTrialDays("no_trial", 0)));
+    when(userSubscriptionTrialJpaRepository.existsByUserId("user_id")).thenReturn(true);
+
+    Map<String, TrialIneligibilityReason> byPlan =
+        subject.getTrialEligibility("user_id").stream()
+            .collect(
+                Collectors.toMap(
+                    app.bpartners.api.model.subscription.SubscriptionTrialEligibility
+                        ::subscriptionProductId,
+                    app.bpartners.api.model.subscription.SubscriptionTrialEligibility::reason));
+
+    assertEquals(TrialIneligibilityReason.TRIAL_ALREADY_USED, byPlan.get("used"));
+    assertEquals(TrialIneligibilityReason.TRIAL_ALREADY_USED, byPlan.get("other"));
+    assertEquals(TrialIneligibilityReason.PLAN_HAS_NO_TRIAL, byPlan.get("no_trial"));
   }
 
   @Test
@@ -185,10 +200,7 @@ class UserSubscriptionTrialServiceTest {
     when(userSubscriptionProductService.findActiveUserSubscriptionProduct("user_id"))
         .thenReturn(Optional.of(UserSubscriptionProduct.builder().id("usp_id").build()));
     when(subscriptionProductRepository.findAllByBillingTypeNotNull(any()))
-        .thenReturn(List.of(planWithTrialDays("eligible", 7), planWithTrialDays("used", 7)));
-    when(userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
-            "user_id", "used"))
-        .thenReturn(true);
+        .thenReturn(List.of(planWithTrialDays("eligible", 7), planWithTrialDays("other", 7)));
 
     Map<String, TrialIneligibilityReason> byPlan =
         subject.getTrialEligibility("user_id").stream()
@@ -199,6 +211,6 @@ class UserSubscriptionTrialServiceTest {
                     app.bpartners.api.model.subscription.SubscriptionTrialEligibility::reason));
 
     assertEquals(TrialIneligibilityReason.ALREADY_SUBSCRIBED, byPlan.get("eligible"));
-    assertEquals(TrialIneligibilityReason.TRIAL_ALREADY_USED, byPlan.get("used"));
+    assertEquals(TrialIneligibilityReason.ALREADY_SUBSCRIBED, byPlan.get("other"));
   }
 }

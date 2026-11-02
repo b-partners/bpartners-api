@@ -43,23 +43,23 @@ public class UserSubscriptionTrialService {
     var hasActiveSubscription =
         userSubscriptionProductService.findActiveUserSubscriptionProduct(userId).isPresent();
     var trialIgnored = userIgnoredTrialPeriodJpaRepository.existsByUserId(userId);
+    var trialAlreadyUsed = userSubscriptionTrialJpaRepository.existsByUserId(userId);
     return subscriptionProductRepository
         .findAllByBillingTypeNotNull(PageRequest.of(0, SUBSCRIBABLE_PLANS_PAGE_SIZE))
         .stream()
-        .map(plan -> eligibilityOf(userId, plan, hasActiveSubscription, trialIgnored))
+        .map(plan -> eligibilityOf(plan, hasActiveSubscription, trialIgnored, trialAlreadyUsed))
         .toList();
   }
 
   private SubscriptionTrialEligibility eligibilityOf(
-      String userId,
       SubscriptionProduct plan,
       boolean hasActiveSubscription,
-      boolean trialIgnored) {
+      boolean trialIgnored,
+      boolean trialAlreadyUsed) {
     if (trialIgnored || !plan.offersFreeTrial()) {
       return SubscriptionTrialEligibility.of(plan.getId(), PLAN_HAS_NO_TRIAL);
     }
-    if (userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
-        userId, plan.getId())) {
+    if (trialAlreadyUsed) {
       return SubscriptionTrialEligibility.of(plan.getId(), TRIAL_ALREADY_USED);
     }
     if (hasActiveSubscription) {
@@ -75,14 +75,8 @@ public class UserSubscriptionTrialService {
       throw new BadRequestException(
           "SubscriptionProduct(id=" + plan.getId() + ") offers no free trial");
     }
-    if (userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
-        userId, plan.getId())) {
-      throw new ConflictException(
-          "User(id="
-              + userId
-              + ") already used their free trial on SubscriptionProduct(id="
-              + plan.getId()
-              + ")");
+    if (userSubscriptionTrialJpaRepository.existsByUserId(userId)) {
+      throw new ConflictException("User(id=" + userId + ") already used their free trial");
     }
     if (userSubscriptionProductService.findActiveUserSubscriptionProduct(userId).isPresent()) {
       throw new ConflictException(

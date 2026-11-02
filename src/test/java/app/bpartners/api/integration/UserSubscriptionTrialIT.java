@@ -112,9 +112,7 @@ class UserSubscriptionTrialIT extends MockedThirdParties {
     assertEquals((int) plan.trialAnalysisGrantedOrDefault(), actual.getGrantedAnalyses());
     assertEquals(plan.trialCreditsGranted(), actual.getGrantedCredits());
 
-    assertTrue(
-        userSubscriptionTrialJpaRepository.existsByUserIdAndSubscriptionProductId(
-            JOE_DOE_ID, ESSENTIAL_PLAN_ID));
+    assertTrue(userSubscriptionTrialJpaRepository.existsByUserId(JOE_DOE_ID));
     var activeProduct =
         userSubscriptionProductService.findActiveUserSubscriptionProduct(JOE_DOE_ID).orElseThrow();
     assertEquals(ESSENTIAL_PLAN_ID, activeProduct.getSubscriptionProduct().getId());

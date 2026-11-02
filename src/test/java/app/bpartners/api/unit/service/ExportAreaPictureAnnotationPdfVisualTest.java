@@ -51,7 +51,13 @@ class ExportAreaPictureAnnotationPdfVisualTest {
     mockImage = ImageIO.read(new ClassPathResource("files/rue_de_la_vau.png").getInputStream());
     mockImageBytes = toByteStream(mockImage);
 
-    when(fileService.findById(any())).thenReturn(imageFileInfo());
+    when(fileService.findById(any()))
+        .thenAnswer(
+            invocation ->
+                app.bpartners.api.model.FileInfo.builder()
+                    .userUploaderId(user().getId())
+                    .id(invocation.getArgument(0))
+                    .build());
 
     when(fileService.downloadFile(any(), any(), any()))
         .thenAnswer(
@@ -60,6 +66,12 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
               if (fileId != null && fileId.equals(user().getLogoFileId())) {
                 return new ClassPathResource("files/logo_company.jpeg").getFile();
+              }
+
+              // pan/facade images extracted from the reference PDFs, named after their imageUri
+              var itemImage = new ClassPathResource("files/items/" + fileId + ".jpg");
+              if (itemImage.exists()) {
+                return itemImage.getFile();
               }
 
               return new ClassPathResource("files/rue_de_la_vau.png").getFile();
@@ -77,13 +89,6 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             fileService,
             imageCompressor,
             new app.bpartners.api.service.annotation.ImageDownloader());
-  }
-
-  private static app.bpartners.api.model.FileInfo imageFileInfo() {
-    return app.bpartners.api.model.FileInfo.builder()
-        .userUploaderId(user().getId())
-        .id("fileInfoId")
-        .build();
   }
 
   private static byte[] toByteStream(BufferedImage bufferedImage) throws IOException {

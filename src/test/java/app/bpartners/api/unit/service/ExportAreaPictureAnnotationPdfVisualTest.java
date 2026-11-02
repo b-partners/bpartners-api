@@ -93,39 +93,27 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
   @Test
   void generate_parthenay_pdf() throws IOException {
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    ExportAreaPictureAnnotation exportAreaPictureAnnotation =
-        TestContextFactories.readPayload(
-            objectMapper,
-            new ClassPathResource(
-                    "payload/export/1 Rue de la Vau Saint-Jacques, 79200 Parthenay.json")
-                .getInputStream());
-    mockImage =
-        ImageIO.read(
-            new ClassPathResource("files/1 Rue de la Vau Saint-Jacques, 79200 Parthenay.jpg")
-                .getInputStream());
-    mockImageBytes = toByteStream(mockImage);
-
-    byte[] pdfBytes =
-        assertDoesNotThrow(
-            () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
-
-    assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "parthenay");
+    generatePdf(
+        "payload/export/1 Rue de la Vau Saint-Jacques, 79200 Parthenay.json",
+        "files/1 Rue de la Vau Saint-Jacques, 79200 Parthenay.jpg",
+        "parthenay");
   }
 
   @Test
   void generate_toulouse_pdf() throws IOException {
+    generatePdf(
+        "payload/export/17 Rue Pierre Bénech, 31100 Toulouse.json",
+        "files/17 Rue Pierre Bénech, 31100 Toulouse.png",
+        "toulouse");
+  }
+
+  private static void generatePdf(String payloadPath, String imagePath, String suffix)
+      throws IOException {
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     ExportAreaPictureAnnotation exportAreaPictureAnnotation =
         TestContextFactories.readPayload(
-            objectMapper,
-            new ClassPathResource("payload/export/17 Rue Pierre Bénech, 31100 Toulouse.json")
-                .getInputStream());
-    mockImage =
-        ImageIO.read(
-            new ClassPathResource("files/17 Rue Pierre Bénech, 31100 Toulouse.png")
-                .getInputStream());
+            objectMapper, new ClassPathResource(payloadPath).getInputStream());
+    mockImage = ImageIO.read(new ClassPathResource(imagePath).getInputStream());
     mockImageBytes = toByteStream(mockImage);
 
     byte[] pdfBytes =
@@ -133,7 +121,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             () -> subject.process(user(), exportAreaPictureAnnotation, mockImage, mockImageBytes));
 
     assertNotNull(pdfBytes);
-    savePdfFile(pdfBytes, "toulouse");
+    savePdfFile(pdfBytes, suffix);
   }
 
   private static void savePdfFile(byte[] pdfBytes, String suffix) throws IOException {

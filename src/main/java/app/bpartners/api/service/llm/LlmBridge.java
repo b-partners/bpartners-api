@@ -19,65 +19,77 @@ import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** Pass-through to the genai service (https://github.com/b-partners/genai). */
 @Component
 public class LlmBridge {
   private static final String TOITURE_PATH = "/toiture";
 
-  private final String baseUrl;
-  private final String apiKey;
-  private final RestTemplate restTemplate;
+  private final String genaiBaseUrl;
+  private final String genaiApiKey;
+  private final RestTemplate errorRelayingRestTemplate;
 
   public LlmBridge(
-      @Value("${llm.base.url:}") String baseUrl,
-      @Value("${llm.api.key:}") String apiKey,
-      RestTemplate sharedRestTemplate) {
-    this.baseUrl = baseUrl.replaceAll("/+$", "");
-    this.apiKey = apiKey;
-    // same transport as the shared template, but upstream 4xx/5xx are relayed instead of being
-    // turned into an ApiException
-    this.restTemplate = new RestTemplate(sharedRestTemplate.getRequestFactory());
-    this.restTemplate.setErrorHandler(
-        new DefaultResponseErrorHandler() {
-          @Override
-          protected boolean hasError(int statusCode) {
-            return false;
-          }
-        });
+      @Value("${llm.base.url:}") String genaiBaseUrl,
+      @Value("${llm.api.key:}") String genaiApiKey,
+      RestTemplate restTemplate) {
+    this.genaiBaseUrl = genaiBaseUrl.replaceAll("/+$", "");
+    this.genaiApiKey = genaiApiKey;
+    this.errorRelayingRestTemplate = errorRelayingCopyOf(restTemplate);
   }
 
-  /** Null params are not forwarded. */
-  public ResponseEntity<String> getToiture(Map<String, Object> params) {
-    var uri = UriComponentsBuilder.fromUriString(baseUrl).path(TOITURE_PATH);
-    params.forEach(
+  public ResponseEntity<String> getToiture(Map<String, Object> queryParams) {
+    return callGenai(GET, toitureUri(queryParams), null);
+  }
+
+  public ResponseEntity<String> postToiture(Object jsonBody) {
+    return callGenai(POST, toitureUri(Map.of()), jsonBody);
+  }
+
+  private ResponseEntity<String> callGenai(HttpMethod method, URI uri, Object jsonBody) {
+    var request = new HttpEntity<>(jsonBody, genaiHeaders(jsonBody != null));
+    var genaiResponse = errorRelayingRestTemplate.exchange(uri, method, request, String.class);
+    return relay(genaiResponse);
+  }
+
+  private URI toitureUri(Map<String, Object> queryParams) {
+    var uri = UriComponentsBuilder.fromUriString(genaiBaseUrl).path(TOITURE_PATH);
+    queryParams.forEach(
         (name, value) -> {
           if (value != null) {
             uri.queryParam(name, value);
           }
         });
-    return exchange(uri.encode().build().toUri(), GET, null);
+    return uri.encode().build().toUri();
   }
 
-  public ResponseEntity<String> postToiture(Object body) {
-    var uri = UriComponentsBuilder.fromUriString(baseUrl).path(TOITURE_PATH).build().toUri();
-    return exchange(uri, POST, body);
-  }
-
-  private ResponseEntity<String> exchange(URI uri, HttpMethod method, Object body) {
+  private HttpHeaders genaiHeaders(boolean hasJsonBody) {
     var headers = new HttpHeaders();
-    headers.add(API_KEY_HEADER, apiKey);
+    headers.add(API_KEY_HEADER, genaiApiKey);
     headers.setAccept(List.of(TEXT_HTML));
-    if (body != null) {
+    if (hasJsonBody) {
       headers.setContentType(APPLICATION_JSON);
     }
-    var response =
-        restTemplate.exchange(uri, method, new HttpEntity<>(body, headers), String.class);
+    return headers;
+  }
 
-    var out = new HttpHeaders();
-    var upstreamType = response.getHeaders().getContentType();
-    if (upstreamType != null) {
-      out.setContentType(upstreamType);
+  private static ResponseEntity<String> relay(ResponseEntity<String> genaiResponse) {
+    var headers = new HttpHeaders();
+    var contentType = genaiResponse.getHeaders().getContentType();
+    if (contentType != null) {
+      headers.setContentType(contentType);
     }
-    return new ResponseEntity<>(response.getBody(), out, response.getStatusCode());
+    return new ResponseEntity<>(genaiResponse.getBody(), headers, genaiResponse.getStatusCode());
+  }
+
+  private static RestTemplate errorRelayingCopyOf(RestTemplate restTemplate) {
+    var copy = new RestTemplate(restTemplate.getRequestFactory());
+    copy.setErrorHandler(new NeverFailingErrorHandler());
+    return copy;
+  }
+
+  private static class NeverFailingErrorHandler extends DefaultResponseErrorHandler {
+    @Override
+    protected boolean hasError(int statusCode) {
+      return false;
+    }
   }
 }

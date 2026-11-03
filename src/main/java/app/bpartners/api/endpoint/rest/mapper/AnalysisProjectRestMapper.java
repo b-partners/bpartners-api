@@ -1,7 +1,14 @@
 package app.bpartners.api.endpoint.rest.mapper;
 
+import static java.time.Instant.now;
+import static java.util.UUID.randomUUID;
+
 import app.bpartners.api.endpoint.rest.model.AnalysisProject;
 import app.bpartners.api.endpoint.rest.model.AnalysisProjectStep;
+import app.bpartners.api.endpoint.rest.model.RegisterAnalysis2d;
+import app.bpartners.api.model.User;
+import app.bpartners.api.model.detection.DetectionInitiator;
+import app.bpartners.api.model.detection.DetectionTracking;
 import app.bpartners.api.model.project.AnalysisProjectStatus;
 import org.springframework.stereotype.Component;
 
@@ -22,5 +29,22 @@ public class AnalysisProjectRestMapper {
                 .toList())
         .creditCost(status.getCreditCost())
         .creditsSufficient(status.isCreditsSufficient());
+  }
+
+  public DetectionTracking toTracking(String projectKey, RegisterAnalysis2d rest, User user) {
+    var initiator = rest.getInitiator();
+    return new DetectionTracking(
+        randomUUID().toString(),
+        rest.getZone(),
+        rest.getAddress(),
+        rest.getCreationDatetime() == null ? now() : rest.getCreationDatetime(),
+        initiator == null
+            ? new DetectionInitiator(null, null, null)
+            : new DetectionInitiator(
+                initiator.getName(), initiator.getEmail(), initiator.getPhoneNumber()),
+        user,
+        rest.getDetectionIdentifier(),
+        projectKey,
+        rest.getExternalReference());
   }
 }

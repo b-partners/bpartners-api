@@ -50,8 +50,11 @@ operations:
     post:
       tags:
         - Detection Tracking
+      deprecated: true
       summary: Register detection for tracking
       description: |
+        **Deprecated**, use `PUT /users/{userId}/analysisProjects/{projectKey}/analysis2d`.
+
         Each registered detection debits `SubscriptionPlan.creditCostPerAnalysis` credits from the
         user wallet and appends a `CONSUMPTION` credit transaction, unless its analysis project
         already consumed a credit (for instance through a 3D model). Nothing is registered when the

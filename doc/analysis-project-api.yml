@@ -43,6 +43,53 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  analysisProjectAnalysis2dOperations:
+    put:
+      tags:
+        - Analysis Project
+      summary: Register the 2D analysis of an analysis project
+      description: |
+        Records the 2D analysis performed on the project and marks the step as done. A credit is
+        debited only when the project has not consumed one yet, for instance through its 3D model.
+        Registering the same analysis twice (same `detectionIdentifier`, or same `zone`) has no
+        further effect. This operation replaces `POST /users/{userId}/detectionTracking`.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: projectKey
+          schema:
+            type: string
+          required: true
+      operationId: registerAnalysisProjectAnalysis2d
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterAnalysis2d'
+        required: true
+      responses:
+        200:
+          description: Status of the analysis project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        402:
+          $ref: './api.yml#/components/responses/402'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   analysisProjectModel3dOperations:
     put:
       tags:
@@ -96,6 +143,24 @@ components:
       enum:
         - ANALYSIS_2D
         - MODEL_3D
+    RegisterAnalysis2d:
+      type: object
+      properties:
+        externalReference:
+          type: string
+          description: Optional identifier given by the API consumer, used as an alias of the project.
+        detectionIdentifier:
+          type: string
+          description: Refers to detection end-to-end identifier
+        zone:
+          type: string
+        address:
+          type: string
+        initiator:
+          $ref: './detection-monitoring-api.yml#/components/schemas/DetectionInitiator'
+        creationDatetime:
+          type: string
+          format: date-time
     RegisterModel3d:
       type: object
       properties:

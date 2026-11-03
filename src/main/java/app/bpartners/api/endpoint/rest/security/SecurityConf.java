@@ -766,6 +766,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(
                         new SelfUserMatcher(
+                            PUT, "/users/*/analysisProjects/*/analysis2d", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
                             PUT, "/users/*/analysisProjects/*/model3d", authResourceProvider))
                     .authenticated()
                     .requestMatchers(POST, "/address/autocomplete")

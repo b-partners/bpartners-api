@@ -4,8 +4,12 @@ import static app.bpartners.api.model.project.AnalysisProjectStep.MODEL_3D;
 
 import app.bpartners.api.endpoint.rest.mapper.AnalysisProjectRestMapper;
 import app.bpartners.api.endpoint.rest.model.AnalysisProject;
+import app.bpartners.api.endpoint.rest.model.RegisterAnalysis2d;
 import app.bpartners.api.endpoint.rest.model.RegisterModel3d;
+import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.service.detection.DetectionTrackingService;
 import app.bpartners.api.service.project.AnalysisProjectService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AnalysisProjectController {
   private final AnalysisProjectService analysisProjectService;
+  private final DetectionTrackingService detectionTrackingService;
   private final AnalysisProjectRestMapper mapper;
 
   @GetMapping("/users/{userId}/analysisProjects")
@@ -26,6 +31,17 @@ public class AnalysisProjectController {
       @RequestParam(required = false) String projectKey,
       @RequestParam(required = false) String externalReference) {
     return mapper.toRest(analysisProjectService.getStatus(userId, projectKey, externalReference));
+  }
+
+  @PutMapping("/users/{userId}/analysisProjects/{projectKey}/analysis2d")
+  public AnalysisProject registerAnalysisProjectAnalysis2d(
+      @PathVariable String userId,
+      @PathVariable String projectKey,
+      @RequestBody RegisterAnalysis2d body) {
+    var tracking = mapper.toTracking(projectKey, body, AuthProvider.getAuthenticatedUser());
+    detectionTrackingService.computeTrackingWithSubscriptionConsumptionLog(List.of(tracking));
+    return mapper.toRest(
+        analysisProjectService.getStatus(userId, projectKey, body.getExternalReference()));
   }
 
   @PutMapping("/users/{userId}/analysisProjects/{projectKey}/model3d")

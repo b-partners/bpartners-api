@@ -335,6 +335,8 @@ paths:
   #############################################
   /users/{userId}/analysisProjects:
     $ref: './analysis-project-api.yml#/operations/analysisProjectOperations'
+  /users/{userId}/analysisProjects/{projectKey}/analysis2d:
+    $ref: './analysis-project-api.yml#/operations/analysisProjectAnalysis2dOperations'
   /users/{userId}/analysisProjects/{projectKey}/model3d:
     $ref: './analysis-project-api.yml#/operations/analysisProjectModel3dOperations'
 

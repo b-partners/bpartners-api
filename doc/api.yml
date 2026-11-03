@@ -336,6 +336,10 @@ paths:
   /address/autocomplete:
     $ref: './address-autocompletion-api.yml#/operations/autoCompleteAddress'
 
+  ################## GEODATA API ##################
+  /geodata/geocode:
+    $ref: './geodata-api.yml#/operations/geodataGeocode'
+
 components:
   securitySchemes:
     BearerAuth:

@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -38,34 +37,21 @@ public class GeodataBridge {
         });
   }
 
-  /** subPath and rawQuery are forwarded as received (already percent-encoded). */
-  public ResponseEntity<byte[]> forward(
-      HttpMethod method,
-      String subPath,
-      String rawQuery,
-      byte[] body,
-      MediaType contentType,
-      String accept) {
+  /** GET path?param=value; upstream status, body and content-type are returned as-is. */
+  public ResponseEntity<byte[]> get(String path, String param, String value) {
     var uri =
         UriComponentsBuilder.fromUriString(baseUrl)
-            .path(subPath)
-            .query(rawQuery)
-            .build(true)
+            .path(path)
+            .queryParam(param, "{v}")
+            .encode()
+            .buildAndExpand(value)
             .toUri();
 
-    // only these headers are forwarded: the caller's own x-api-key never reaches geodata
-    var hasBody = body != null && body.length > 0;
+    // the caller's own x-api-key never reaches geodata, ours is used
     var headers = new HttpHeaders();
     headers.add(API_KEY_HEADER, apiKey);
-    if (accept != null) {
-      headers.set(HttpHeaders.ACCEPT, accept);
-    }
-    if (hasBody && contentType != null) {
-      headers.setContentType(contentType);
-    }
     var response =
-        restTemplate.exchange(
-            uri, method, new HttpEntity<>(hasBody ? body : null, headers), byte[].class);
+        restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), byte[].class);
 
     var out = new HttpHeaders();
     var upstreamType = response.getHeaders().getContentType();

@@ -31,7 +31,8 @@ class LlmBridgeTest {
     genai
         .expect(
             requestTo(
-                GENAI_BASE_URL + "/toiture?surfaceEnM2=42.5&revetement=tuile%20rouge&humidité=3.0"))
+                GENAI_BASE_URL
+                    + "/toiture?surfaceEnM2=42.5&revetement=tuile%20rouge&humidit%C3%A9=3.0"))
         .andExpect(method(GET))
         .andExpect(header("x-api-key", GENAI_API_KEY))
         .andRespond(withSuccess("<html/>", TEXT_HTML));

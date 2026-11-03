@@ -14,8 +14,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -110,10 +111,13 @@ public class LlmBridge {
     return copy;
   }
 
-  private static class NeverFailingErrorHandler extends DefaultResponseErrorHandler {
+  private static class NeverFailingErrorHandler implements ResponseErrorHandler {
     @Override
-    protected boolean hasError(int statusCode) {
+    public boolean hasError(ClientHttpResponse response) {
       return false;
     }
+
+    @Override
+    public void handleError(ClientHttpResponse response) {}
   }
 }

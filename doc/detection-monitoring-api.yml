@@ -53,8 +53,9 @@ operations:
       summary: Register detection for tracking
       description: |
         Each registered detection debits `SubscriptionPlan.creditCostPerAnalysis` credits from the
-        user wallet and appends a `CONSUMPTION` credit transaction. Nothing is registered when the
-        wallet cannot cover the whole batch.
+        user wallet and appends a `CONSUMPTION` credit transaction, unless its analysis project
+        already consumed a credit (for instance through a 3D model). Nothing is registered when the
+        wallet cannot cover the batch.
       parameters:
         - in: path
           name: userId
@@ -105,6 +106,15 @@ components:
         detectionIdentifier:
           type: string
           description: Refers to detection end-to-end identifier
+        projectKey:
+          type: string
+          description: |
+            Identifier of the analysis project (feature) this detection belongs to. A project is
+            billed once, whatever the number of 2D analyses and 3D models it gathers.
+        externalReference:
+          type: string
+          description: |
+            Optional identifier given by the API consumer, used as an alias of the project.
         zone:
           type: string
         address:

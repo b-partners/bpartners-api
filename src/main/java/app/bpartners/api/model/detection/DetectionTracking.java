@@ -10,4 +10,6 @@ public record DetectionTracking(
     Instant creationDatetime,
     DetectionInitiator detectionInitiator,
     User user,
-    String detectionIdentifier) {}
+    String detectionIdentifier,
+    String projectKey,
+    String externalReference) {}

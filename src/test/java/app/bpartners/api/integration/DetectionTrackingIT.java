@@ -417,7 +417,9 @@ class DetectionTrackingIT extends MockedThirdParties {
             new app.bpartners.api.model.detection.DetectionInitiator(
                 "dummyInitiator", "dummy@email.com", "0612345678"),
             userMock,
-            detectionIdentifier));
+            detectionIdentifier,
+            null,
+            null));
   }
 
   private @NotNull List<DetectionTracking> getExpectedRest(

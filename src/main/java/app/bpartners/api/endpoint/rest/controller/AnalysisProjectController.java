@@ -4,8 +4,8 @@ import static app.bpartners.api.model.project.AnalysisProjectStep.MODEL_3D;
 
 import app.bpartners.api.endpoint.rest.mapper.AnalysisProjectRestMapper;
 import app.bpartners.api.endpoint.rest.model.AnalysisProject;
-import app.bpartners.api.endpoint.rest.model.RegisterAnalysis2d;
-import app.bpartners.api.endpoint.rest.model.RegisterModel3d;
+import app.bpartners.api.endpoint.rest.model.Register2d;
+import app.bpartners.api.endpoint.rest.model.Register3d;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.service.detection.DetectionTrackingService;
 import app.bpartners.api.service.project.AnalysisProjectService;
@@ -33,22 +33,20 @@ public class AnalysisProjectController {
     return mapper.toRest(analysisProjectService.getStatus(userId, projectKey, externalReference));
   }
 
-  @PutMapping("/users/{userId}/analysisProjects/{projectKey}/analysis2d")
-  public AnalysisProject registerAnalysisProjectAnalysis2d(
-      @PathVariable String userId,
-      @PathVariable String projectKey,
-      @RequestBody RegisterAnalysis2d body) {
+  @PutMapping("/users/{userId}/analysisProjects/{projectKey}/2d")
+  public AnalysisProject registerAnalysisProject2d(
+      @PathVariable String userId, @PathVariable String projectKey, @RequestBody Register2d body) {
     var tracking = mapper.toTracking(projectKey, body, AuthProvider.getAuthenticatedUser());
     detectionTrackingService.computeTrackingWithSubscriptionConsumptionLog(List.of(tracking));
     return mapper.toRest(
         analysisProjectService.getStatus(userId, projectKey, body.getExternalReference()));
   }
 
-  @PutMapping("/users/{userId}/analysisProjects/{projectKey}/model3d")
-  public AnalysisProject registerAnalysisProjectModel3d(
+  @PutMapping("/users/{userId}/analysisProjects/{projectKey}/3d")
+  public AnalysisProject registerAnalysisProject3d(
       @PathVariable String userId,
       @PathVariable String projectKey,
-      @RequestBody(required = false) RegisterModel3d body) {
+      @RequestBody(required = false) Register3d body) {
     var externalReference = body == null ? null : body.getExternalReference();
     var address = body == null ? null : body.getAddress();
     analysisProjectService.register(

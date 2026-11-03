@@ -43,7 +43,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  analysisProjectAnalysis2dOperations:
+  analysisProject2dOperations:
     put:
       tags:
         - Analysis Project
@@ -64,12 +64,12 @@ operations:
           schema:
             type: string
           required: true
-      operationId: registerAnalysisProjectAnalysis2d
+      operationId: registerAnalysisProject2d
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterAnalysis2d'
+              $ref: '#/components/schemas/Register2d'
         required: true
       responses:
         200:
@@ -90,7 +90,7 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
-  analysisProjectModel3dOperations:
+  analysisProject3dOperations:
     put:
       tags:
         - Analysis Project
@@ -110,12 +110,12 @@ operations:
           schema:
             type: string
           required: true
-      operationId: registerAnalysisProjectModel3d
+      operationId: registerAnalysisProject3d
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterModel3d'
+              $ref: '#/components/schemas/Register3d'
         required: false
       responses:
         200:
@@ -143,7 +143,7 @@ components:
       enum:
         - ANALYSIS_2D
         - MODEL_3D
-    RegisterAnalysis2d:
+    Register2d:
       type: object
       properties:
         externalReference:
@@ -161,7 +161,7 @@ components:
         creationDatetime:
           type: string
           format: date-time
-    RegisterModel3d:
+    Register3d:
       type: object
       properties:
         externalReference:

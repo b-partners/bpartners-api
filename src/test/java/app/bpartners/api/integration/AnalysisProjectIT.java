@@ -21,8 +21,8 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AnalysisProjectStep;
 import app.bpartners.api.endpoint.rest.model.CreateDetectionTracking;
 import app.bpartners.api.endpoint.rest.model.DetectionInitiator;
-import app.bpartners.api.endpoint.rest.model.RegisterAnalysis2d;
-import app.bpartners.api.endpoint.rest.model.RegisterModel3d;
+import app.bpartners.api.endpoint.rest.model.Register2d;
+import app.bpartners.api.endpoint.rest.model.Register3d;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.User;
@@ -127,8 +127,7 @@ class AnalysisProjectIT extends MockedThirdParties {
     var api = new AnalysisProjectApi(anApiClient());
 
     register2d(projectKey, null);
-    var afterModel3d =
-        api.registerAnalysisProjectModel3d(JOE_DOE_ID, projectKey, new RegisterModel3d());
+    var afterModel3d = api.registerAnalysisProject3d(JOE_DOE_ID, projectKey, new Register3d());
 
     assertTrue(afterModel3d.getAnalysis2dDone());
     assertTrue(afterModel3d.getModel3dDone());
@@ -145,8 +144,7 @@ class AnalysisProjectIT extends MockedThirdParties {
     var projectKey = "v1:" + randomUUID();
     var api = new AnalysisProjectApi(anApiClient());
 
-    var afterModel3d =
-        api.registerAnalysisProjectModel3d(JOE_DOE_ID, projectKey, new RegisterModel3d());
+    var afterModel3d = api.registerAnalysisProject3d(JOE_DOE_ID, projectKey, new Register3d());
     assertEquals(List.of(AnalysisProjectStep.ANALYSIS_2D), afterModel3d.getRemainingSteps());
     assertTrue(afterModel3d.getCreditConsumed());
     register2d(projectKey, null);
@@ -164,8 +162,8 @@ class AnalysisProjectIT extends MockedThirdParties {
     var projectKey = "v1:" + randomUUID();
     var api = new AnalysisProjectApi(anApiClient());
 
-    api.registerAnalysisProjectModel3d(JOE_DOE_ID, projectKey, new RegisterModel3d());
-    api.registerAnalysisProjectModel3d(JOE_DOE_ID, projectKey, new RegisterModel3d());
+    api.registerAnalysisProject3d(JOE_DOE_ID, projectKey, new Register3d());
+    api.registerAnalysisProject3d(JOE_DOE_ID, projectKey, new Register3d());
 
     assertEquals(1, consumptionsOfJoeDoe().size());
     assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
@@ -176,8 +174,8 @@ class AnalysisProjectIT extends MockedThirdParties {
   void distinct_projects_are_debited_separately() {
     var api = new AnalysisProjectApi(anApiClient());
 
-    api.registerAnalysisProjectModel3d(JOE_DOE_ID, "v1:" + randomUUID(), new RegisterModel3d());
-    api.registerAnalysisProjectModel3d(JOE_DOE_ID, "v1:" + randomUUID(), new RegisterModel3d());
+    api.registerAnalysisProject3d(JOE_DOE_ID, "v1:" + randomUUID(), new Register3d());
+    api.registerAnalysisProject3d(JOE_DOE_ID, "v1:" + randomUUID(), new Register3d());
 
     assertEquals(2, consumptionsOfJoeDoe().size());
     assertEquals(98L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
@@ -191,10 +189,10 @@ class AnalysisProjectIT extends MockedThirdParties {
 
     register2d("v1:" + randomUUID(), externalReference);
     var actual =
-        api.registerAnalysisProjectModel3d(
+        api.registerAnalysisProject3d(
             JOE_DOE_ID,
             "v1:" + randomUUID(),
-            new RegisterModel3d().externalReference(externalReference));
+            new Register3d().externalReference(externalReference));
 
     assertTrue(actual.getAnalysis2dDone());
     assertTrue(actual.getModel3dDone());
@@ -216,8 +214,7 @@ class AnalysisProjectIT extends MockedThirdParties {
     var exception =
         assertThrows(
             ApiException.class,
-            () ->
-                api.registerAnalysisProjectModel3d(JOE_DOE_ID, projectKey, new RegisterModel3d()));
+            () -> api.registerAnalysisProject3d(JOE_DOE_ID, projectKey, new Register3d()));
 
     assertEquals(402, exception.getCode());
     assertTrue(analysisProjectRepository.findAll().isEmpty());
@@ -243,10 +240,10 @@ class AnalysisProjectIT extends MockedThirdParties {
   @SneakyThrows
   private void register2d(String projectKey, String externalReference, String detectionIdentifier) {
     new AnalysisProjectApi(anApiClient())
-        .registerAnalysisProjectAnalysis2d(
+        .registerAnalysisProject2d(
             JOE_DOE_ID,
             projectKey,
-            new RegisterAnalysis2d()
+            new Register2d()
                 .externalReference(externalReference)
                 .detectionIdentifier(detectionIdentifier)
                 .zone("zone-" + randomUUID())
@@ -291,7 +288,7 @@ class AnalysisProjectIT extends MockedThirdParties {
 
     var actual =
         new AnalysisProjectApi(anApiClient())
-            .registerAnalysisProjectModel3d(JOE_DOE_ID, projectKey, new RegisterModel3d());
+            .registerAnalysisProject3d(JOE_DOE_ID, projectKey, new Register3d());
 
     assertTrue(actual.getAnalysis2dDone());
     assertTrue(actual.getModel3dDone());

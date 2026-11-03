@@ -335,10 +335,10 @@ paths:
   #############################################
   /users/{userId}/analysisProjects:
     $ref: './analysis-project-api.yml#/operations/analysisProjectOperations'
-  /users/{userId}/analysisProjects/{projectKey}/analysis2d:
-    $ref: './analysis-project-api.yml#/operations/analysisProjectAnalysis2dOperations'
-  /users/{userId}/analysisProjects/{projectKey}/model3d:
-    $ref: './analysis-project-api.yml#/operations/analysisProjectModel3dOperations'
+  /users/{userId}/analysisProjects/{projectKey}/2d:
+    $ref: './analysis-project-api.yml#/operations/analysisProject2dOperations'
+  /users/{userId}/analysisProjects/{projectKey}/3d:
+    $ref: './analysis-project-api.yml#/operations/analysisProject3dOperations'
 
   #############################################
   ############## Address Autocompletion API #############

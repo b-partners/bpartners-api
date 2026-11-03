@@ -53,7 +53,7 @@ operations:
       deprecated: true
       summary: Register detection for tracking
       description: |
-        **Deprecated**, use `PUT /users/{userId}/analysisProjects/{projectKey}/analysis2d`.
+        **Deprecated**, use `PUT /users/{userId}/analysisProjects/{projectKey}/2d`.
 
         Each registered detection debits `SubscriptionPlan.creditCostPerAnalysis` credits from the
         user wallet and appends a `CONSUMPTION` credit transaction, unless its analysis project

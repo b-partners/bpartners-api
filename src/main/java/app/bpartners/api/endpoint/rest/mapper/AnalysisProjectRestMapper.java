@@ -5,7 +5,7 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.AnalysisProject;
 import app.bpartners.api.endpoint.rest.model.AnalysisProjectStep;
-import app.bpartners.api.endpoint.rest.model.RegisterAnalysis2d;
+import app.bpartners.api.endpoint.rest.model.Register2d;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.detection.DetectionInitiator;
 import app.bpartners.api.model.detection.DetectionTracking;
@@ -31,7 +31,7 @@ public class AnalysisProjectRestMapper {
         .creditsSufficient(status.isCreditsSufficient());
   }
 
-  public DetectionTracking toTracking(String projectKey, RegisterAnalysis2d rest, User user) {
+  public DetectionTracking toTracking(String projectKey, Register2d rest, User user) {
     var initiator = rest.getInitiator();
     return new DetectionTracking(
         randomUUID().toString(),

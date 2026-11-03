@@ -21,6 +21,7 @@ import app.bpartners.api.endpoint.rest.client.ApiException;
 import app.bpartners.api.endpoint.rest.model.AnalysisProjectStep;
 import app.bpartners.api.endpoint.rest.model.CreateDetectionTracking;
 import app.bpartners.api.endpoint.rest.model.DetectionInitiator;
+import app.bpartners.api.endpoint.rest.model.RegisterAnalysis2d;
 import app.bpartners.api.endpoint.rest.model.RegisterModel3d;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
@@ -236,6 +237,46 @@ class AnalysisProjectIT extends MockedThirdParties {
 
   @SneakyThrows
   private void register2d(String projectKey, String externalReference) {
+    register2d(projectKey, externalReference, randomUUID().toString());
+  }
+
+  @SneakyThrows
+  private void register2d(String projectKey, String externalReference, String detectionIdentifier) {
+    new AnalysisProjectApi(anApiClient())
+        .registerAnalysisProjectAnalysis2d(
+            JOE_DOE_ID,
+            projectKey,
+            new RegisterAnalysis2d()
+                .externalReference(externalReference)
+                .detectionIdentifier(detectionIdentifier)
+                .zone("zone-" + randomUUID())
+                .address("dummyAddress")
+                .initiator(
+                    new DetectionInitiator()
+                        .name("dummyInitiator")
+                        .email("dummy@email.com")
+                        .phoneNumber("0612345678"))
+                .creationDatetime(now()));
+  }
+
+  @SneakyThrows
+  @Test
+  void registering_the_same_analysis_2d_twice_debits_once() {
+    var projectKey = "v1:" + randomUUID();
+    var detectionIdentifier = randomUUID().toString();
+
+    register2d(projectKey, null, detectionIdentifier);
+    register2d(projectKey, null, detectionIdentifier);
+
+    assertEquals(1, consumptionsOfJoeDoe().size());
+    assertEquals(1, detectionTrackingJpaRepository.count());
+    assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+  }
+
+  @SneakyThrows
+  @Test
+  void deprecated_detection_tracking_endpoint_shares_the_project_debit() {
+    var projectKey = "v1:" + randomUUID();
     new DetectionTrackingApi(anApiClient())
         .registerDetection(
             JOE_DOE_ID,
@@ -243,15 +284,18 @@ class AnalysisProjectIT extends MockedThirdParties {
                 new CreateDetectionTracking()
                     .detectionIdentifier(randomUUID().toString())
                     .projectKey(projectKey)
-                    .externalReference(externalReference)
                     .zone("zone-" + randomUUID())
                     .address("dummyAddress")
-                    .initiator(
-                        new DetectionInitiator()
-                            .name("dummyInitiator")
-                            .email("dummy@email.com")
-                            .phoneNumber("0612345678"))
+                    .initiator(new DetectionInitiator().name("dummyInitiator"))
                     .creationDatetime(now())));
+
+    var actual =
+        new AnalysisProjectApi(anApiClient())
+            .registerAnalysisProjectModel3d(JOE_DOE_ID, projectKey, new RegisterModel3d());
+
+    assertTrue(actual.getAnalysis2dDone());
+    assertTrue(actual.getModel3dDone());
+    assertEquals(1, consumptionsOfJoeDoe().size());
   }
 
   private List<CreditTransaction> consumptionsOfJoeDoe() {

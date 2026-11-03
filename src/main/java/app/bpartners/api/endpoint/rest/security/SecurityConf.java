@@ -503,6 +503,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(GET, "/map/layers/actual")
                     .authenticated()
+                    .requestMatchers("/geodata/**")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures", authResourceProvider))

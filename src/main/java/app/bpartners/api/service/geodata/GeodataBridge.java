@@ -9,7 +9,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -24,7 +25,7 @@ public class GeodataBridge {
       @Value("${geodata.imagery.baseurl}") String baseUrl,
       @Value("${geodata.api.key}") String apiKey,
       RestTemplate sharedRestTemplate) {
-    this.baseUrl = baseUrl.replaceAll("/+$", "");
+    this.baseUrl = StringUtils.trimTrailingCharacter(baseUrl, '/');
     this.apiKey = apiKey;
     // same transport as the shared template, but upstream 4xx/5xx are relayed instead of being
     // turned into an ApiException
@@ -32,14 +33,11 @@ public class GeodataBridge {
     this.restTemplate.setErrorHandler(new NeverFailingErrorHandler());
   }
 
-  private static class NeverFailingErrorHandler implements ResponseErrorHandler {
+  private static class NeverFailingErrorHandler extends DefaultResponseErrorHandler {
     @Override
     public boolean hasError(ClientHttpResponse response) {
       return false;
     }
-
-    @Override
-    public void handleError(ClientHttpResponse response) {}
   }
 
   /** GET path?param=value; upstream status, body and content-type are returned as-is. */

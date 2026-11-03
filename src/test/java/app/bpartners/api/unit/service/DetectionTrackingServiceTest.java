@@ -53,7 +53,7 @@ class DetectionTrackingServiceTest {
     assertEquals(1L, consumptionLog.getUsageMetric());
     assertEquals(userId, consumptionLog.getUserId());
     verify(analysisProjectServiceMock, times(1))
-        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString());
+        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
 
   @Test
@@ -66,7 +66,7 @@ class DetectionTrackingServiceTest {
     subject.computeTrackingWithSubscriptionConsumptionLog(tracking);
 
     verify(analysisProjectServiceMock)
-        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), labelCaptor.capture());
+        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), labelCaptor.capture(), any());
     assertEquals("Analyse toiture : some zone", labelCaptor.getValue());
   }
 
@@ -82,9 +82,9 @@ class DetectionTrackingServiceTest {
 
     verify(subscriptionServiceMock, times(3)).addConsumption(any());
     verify(analysisProjectServiceMock, times(2))
-        .register(eq(firstUserId), anyString(), any(), eq(ANALYSIS_2D), anyString());
+        .register(eq(firstUserId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
     verify(analysisProjectServiceMock, times(1))
-        .register(eq(secondUserId), anyString(), any(), eq(ANALYSIS_2D), anyString());
+        .register(eq(secondUserId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
 
   @Test
@@ -93,7 +93,7 @@ class DetectionTrackingServiceTest {
     var tracking = List.of(someTracking(userId));
     when(repositoryMock.saveAll(tracking)).thenReturn(tracking);
     when(analysisProjectServiceMock.register(
-            eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString()))
+            eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any()))
         .thenThrow(new InsufficientCreditsException(1L, 0L));
 
     assertThrows(
@@ -115,7 +115,7 @@ class DetectionTrackingServiceTest {
     verify(repositoryMock, never()).findByDetectionIdentifier(any());
     verify(subscriptionServiceMock, times(1)).addConsumption(any());
     verify(analysisProjectServiceMock, times(1))
-        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString());
+        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
 
   @Test
@@ -133,7 +133,7 @@ class DetectionTrackingServiceTest {
     assertTrue(actual.isEmpty());
     verify(repositoryMock).saveAll(List.of());
     verify(subscriptionServiceMock, never()).addConsumption(any());
-    verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any());
+    verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -154,7 +154,7 @@ class DetectionTrackingServiceTest {
     verify(repositoryMock).saveAll(List.of(unknown));
     verify(subscriptionServiceMock, times(1)).addConsumption(any());
     verify(analysisProjectServiceMock, times(1))
-        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString());
+        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
 
   @Test
@@ -172,7 +172,7 @@ class DetectionTrackingServiceTest {
     assertTrue(actual.isEmpty());
     verify(repositoryMock).saveAll(List.of());
     verify(subscriptionServiceMock, never()).addConsumption(any());
-    verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any());
+    verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -185,7 +185,7 @@ class DetectionTrackingServiceTest {
 
     assertTrue(actual.isEmpty());
     verify(subscriptionServiceMock, never()).addConsumption(any());
-    verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any());
+    verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -202,7 +202,7 @@ class DetectionTrackingServiceTest {
     assertEquals(List.of(tracking), actual);
     verify(subscriptionServiceMock, times(1)).addConsumption(any());
     verify(analysisProjectServiceMock, times(1))
-        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString());
+        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
 
   @Test
@@ -220,7 +220,7 @@ class DetectionTrackingServiceTest {
     assertEquals(List.of(first), actual);
     verify(subscriptionServiceMock, times(1)).addConsumption(any());
     verify(analysisProjectServiceMock, times(1))
-        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString());
+        .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
 
   private DetectionTracking someTracking(String userId) {

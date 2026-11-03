@@ -198,8 +198,10 @@ class AnalysisProjectIT extends MockedThirdParties {
     assertTrue(actual.getModel3dDone());
     assertEquals(externalReference, actual.getExternalReference());
     assertEquals(1, consumptionsOfJoeDoe().size());
-    var byReference = api.getAnalysisProject(JOE_DOE_ID, null, externalReference);
-    assertEquals(actual.getProjectKey(), byReference.getProjectKey());
+    var byReference =
+        api.listAnalysisProjects(JOE_DOE_ID, null, externalReference, null, null, null);
+    assertEquals(1, byReference.size());
+    assertEquals(actual.getProjectKey(), byReference.getFirst().getProjectKey());
   }
 
   @SneakyThrows
@@ -223,13 +225,60 @@ class AnalysisProjectIT extends MockedThirdParties {
 
   @SneakyThrows
   @Test
-  void project_status_requires_a_key_or_a_reference() {
+  void list_exposes_the_2d_description_and_filters_by_search() {
     var api = new AnalysisProjectApi(anApiClient());
+    var token = randomUUID().toString();
+    var projectKey = "v1:" + randomUUID();
+    api.registerAnalysisProject2d(
+        JOE_DOE_ID,
+        projectKey,
+        new Register2d()
+            .detectionIdentifier("detection-" + token)
+            .zone("zone-" + token)
+            .address("address-" + token)
+            .initiator(
+                new DetectionInitiator()
+                    .name("initiator-" + token)
+                    .email("dummy@email.com")
+                    .phoneNumber("0612345678"))
+            .creationDatetime(now()));
+    api.registerAnalysisProject3d(
+        JOE_DOE_ID,
+        "v1:" + randomUUID(),
+        new Register3d().address("other-address-" + randomUUID()));
 
-    var exception =
-        assertThrows(ApiException.class, () -> api.getAnalysisProject(JOE_DOE_ID, null, null));
+    var all = api.listAnalysisProjects(JOE_DOE_ID, null, null, null, null, null);
+    var filtered = api.listAnalysisProjects(JOE_DOE_ID, null, null, "ADDRESS-" + token, null, null);
 
-    assertEquals(400, exception.getCode());
+    assertEquals(2, all.size());
+    assertEquals(1, filtered.size());
+    var actual = filtered.getFirst();
+    assertEquals(projectKey, actual.getProjectKey());
+    assertEquals("detection-" + token, actual.getDetectionIdentifier());
+    assertEquals("zone-" + token, actual.getZone());
+    assertEquals("address-" + token, actual.getAddress());
+    assertEquals("initiator-" + token, actual.getInitiator().getName());
+    assertEquals("dummy@email.com", actual.getInitiator().getEmail());
+    assertEquals("0612345678", actual.getInitiator().getPhoneNumber());
+    assertTrue(actual.getAnalysis2dDone());
+    assertEquals(List.of(AnalysisProjectStep.MODEL_3D), actual.getRemainingSteps());
+  }
+
+  @SneakyThrows
+  @Test
+  void list_is_ordered_by_creation_datetime_desc_and_filtered_by_key() {
+    var api = new AnalysisProjectApi(anApiClient());
+    var firstKey = "v1:" + randomUUID();
+    var secondKey = "v1:" + randomUUID();
+    api.registerAnalysisProject3d(JOE_DOE_ID, firstKey, new Register3d());
+    api.registerAnalysisProject3d(JOE_DOE_ID, secondKey, new Register3d());
+
+    var all = api.listAnalysisProjects(JOE_DOE_ID, null, null, null, null, null);
+    var byKey = api.listAnalysisProjects(JOE_DOE_ID, firstKey, null, null, null, null);
+
+    assertEquals(List.of(secondKey, firstKey), all.stream().map(p -> p.getProjectKey()).toList());
+    assertEquals(1, byKey.size());
+    assertEquals(firstKey, byKey.getFirst().getProjectKey());
   }
 
   @SneakyThrows

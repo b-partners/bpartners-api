@@ -8,7 +8,7 @@ import static org.springframework.http.MediaType.TEXT_HTML;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -36,12 +36,12 @@ public class LlmBridge {
     this.errorRelayingRestTemplate = errorRelayingCopyOf(restTemplate);
   }
 
-  public ResponseEntity<String> getToiture(Map<String, Object> queryParams) {
-    return callGenai(GET, toitureUri(queryParams), null);
+  public ResponseEntity<String> getToiture(LegacyLlmRoofQuery query) {
+    return callGenai(GET, legacyToitureUri(query), null);
   }
 
   public ResponseEntity<String> postToiture(Object jsonBody) {
-    return callGenai(POST, toitureUri(Map.of()), jsonBody);
+    return callGenai(POST, toitureUri(), jsonBody);
   }
 
   private ResponseEntity<String> callGenai(HttpMethod method, URI uri, Object jsonBody) {
@@ -50,15 +50,39 @@ public class LlmBridge {
     return relay(genaiResponse);
   }
 
-  private URI toitureUri(Map<String, Object> queryParams) {
-    var uri = UriComponentsBuilder.fromUriString(genaiBaseUrl).path(TOITURE_PATH);
-    queryParams.forEach(
-        (name, value) -> {
-          if (value != null) {
-            uri.queryParam(name, value);
-          }
-        });
-    return uri.encode().build().toUri();
+  private URI toitureUri() {
+    return UriComponentsBuilder.fromUriString(genaiBaseUrl).path(TOITURE_PATH).build().toUri();
+  }
+
+  private URI legacyToitureUri(LegacyLlmRoofQuery query) {
+    return UriComponentsBuilder.fromUriString(genaiBaseUrl)
+        .path(TOITURE_PATH)
+        .queryParamIfPresent("adresse", Optional.ofNullable(query.adresse()))
+        .queryParamIfPresent("gps", Optional.ofNullable(query.gps()))
+        .queryParamIfPresent("millesimeImage1", Optional.ofNullable(query.millesimeImage1()))
+        .queryParamIfPresent("millesimeImage2", Optional.ofNullable(query.millesimeImage2()))
+        .queryParamIfPresent("surfaceEnM2", Optional.ofNullable(query.surfaceEnM2()))
+        .queryParamIfPresent("typeToiture", Optional.ofNullable(query.typeToiture()))
+        .queryParamIfPresent("penteMin", Optional.ofNullable(query.penteMin()))
+        .queryParamIfPresent("penteMax", Optional.ofNullable(query.penteMax()))
+        .queryParamIfPresent("revetement", Optional.ofNullable(query.revetement()))
+        .queryParamIfPresent("humidité", Optional.ofNullable(query.humidite()))
+        .queryParamIfPresent("moisissure", Optional.ofNullable(query.moisissure()))
+        .queryParamIfPresent("usure", Optional.ofNullable(query.usure()))
+        .queryParamIfPresent("obstacles", Optional.ofNullable(query.obstacles()))
+        .queryParamIfPresent("mutation", Optional.ofNullable(query.mutation()))
+        .queryParamIfPresent("fissureCassure", Optional.ofNullable(query.fissureCassure()))
+        .queryParamIfPresent("risqueFeu", Optional.ofNullable(query.risqueFeu()))
+        .queryParamIfPresent(
+            "noteDegradationGlobale", Optional.ofNullable(query.noteDegradationGlobale()))
+        .queryParamIfPresent("categorie", Optional.ofNullable(query.categorie()))
+        .queryParamIfPresent("revetement2", Optional.ofNullable(query.revetement2()))
+        .queryParamIfPresent("hauteurBatiment", Optional.ofNullable(query.hauteurBatiment()))
+        .queryParamIfPresent(
+            "commentaireCouvreur", Optional.ofNullable(query.commentaireCouvreur()))
+        .encode()
+        .build()
+        .toUri();
   }
 
   private HttpHeaders genaiHeaders(boolean hasJsonBody) {

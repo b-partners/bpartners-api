@@ -16,7 +16,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -32,7 +33,7 @@ public class LlmBridge {
       @Value("${llm.base.url:}") String genaiBaseUrl,
       @Value("${llm.api.key:}") String genaiApiKey,
       RestTemplate restTemplate) {
-    this.genaiBaseUrl = genaiBaseUrl.replaceAll("/+$", "");
+    this.genaiBaseUrl = StringUtils.trimTrailingCharacter(genaiBaseUrl, '/');
     this.genaiApiKey = genaiApiKey;
     this.errorRelayingRestTemplate = errorRelayingCopyOf(restTemplate);
   }
@@ -111,13 +112,10 @@ public class LlmBridge {
     return copy;
   }
 
-  private static class NeverFailingErrorHandler implements ResponseErrorHandler {
+  private static class NeverFailingErrorHandler extends DefaultResponseErrorHandler {
     @Override
     public boolean hasError(ClientHttpResponse response) {
       return false;
     }
-
-    @Override
-    public void handleError(ClientHttpResponse response) {}
   }
 }

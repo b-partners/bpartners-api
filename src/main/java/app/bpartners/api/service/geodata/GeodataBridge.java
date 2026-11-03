@@ -7,8 +7,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -28,13 +29,17 @@ public class GeodataBridge {
     // same transport as the shared template, but upstream 4xx/5xx are relayed instead of being
     // turned into an ApiException
     this.restTemplate = new RestTemplate(sharedRestTemplate.getRequestFactory());
-    this.restTemplate.setErrorHandler(
-        new DefaultResponseErrorHandler() {
-          @Override
-          protected boolean hasError(int statusCode) {
-            return false;
-          }
-        });
+    this.restTemplate.setErrorHandler(new NeverFailingErrorHandler());
+  }
+
+  private static class NeverFailingErrorHandler implements ResponseErrorHandler {
+    @Override
+    public boolean hasError(ClientHttpResponse response) {
+      return false;
+    }
+
+    @Override
+    public void handleError(ClientHttpResponse response) {}
   }
 
   /** GET path?param=value; upstream status, body and content-type are returned as-is. */

@@ -1,0 +1,132 @@
+operations:
+  analysisProjectOperations:
+    get:
+      tags:
+        - Analysis Project
+      summary: Retrieve the analysis project status of a feature
+      description: |
+        An analysis project gathers the 2D analysis and the 3D model of a same feature, and consumes
+        a single credit whatever the number of steps performed. The project is identified either by
+        its `projectKey` or by the `externalReference` given by the API consumer. A project that has
+        not been started yet is returned with every step remaining.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: projectKey
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: externalReference
+          schema:
+            type: string
+          required: false
+      operationId: getAnalysisProject
+      responses:
+        200:
+          description: Status of the analysis project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  analysisProjectModel3dOperations:
+    put:
+      tags:
+        - Analysis Project
+      summary: Register the 3D model of an analysis project
+      description: |
+        Marks the 3D model step of the project as done. A credit is debited only when the project
+        has not consumed one yet, for instance through its 2D analysis. Registering the same step
+        twice has no further effect.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: projectKey
+          schema:
+            type: string
+          required: true
+      operationId: registerAnalysisProjectModel3d
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterModel3d'
+        required: false
+      responses:
+        200:
+          description: Status of the analysis project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        402:
+          $ref: './api.yml#/components/responses/402'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    AnalysisProjectStep:
+      type: string
+      enum:
+        - ANALYSIS_2D
+        - MODEL_3D
+    RegisterModel3d:
+      type: object
+      properties:
+        externalReference:
+          type: string
+          description: Optional identifier given by the API consumer, used as an alias of the project.
+        address:
+          type: string
+          description: Address of the feature, only used to label the credit transaction.
+    AnalysisProject:
+      type: object
+      properties:
+        projectKey:
+          type: string
+        externalReference:
+          type: string
+        analysis2dDone:
+          type: boolean
+        model3dDone:
+          type: boolean
+        creditConsumed:
+          type: boolean
+        creditTransactionId:
+          type: string
+        remainingSteps:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnalysisProjectStep'
+        creditCost:
+          type: integer
+          format: int64
+          description: Credits that the next step of the project will consume, 0 once consumed.
+        creditsSufficient:
+          type: boolean

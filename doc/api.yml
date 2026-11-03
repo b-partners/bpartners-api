@@ -331,6 +331,14 @@ paths:
     $ref: './detection-monitoring-api.yml#/operations/detectionTrackingOperations'
 
   #############################################
+  ############## Analysis Project API #############
+  #############################################
+  /users/{userId}/analysisProjects:
+    $ref: './analysis-project-api.yml#/operations/analysisProjectOperations'
+  /users/{userId}/analysisProjects/{projectKey}/model3d:
+    $ref: './analysis-project-api.yml#/operations/analysisProjectModel3dOperations'
+
+  #############################################
   ############## Address Autocompletion API #############
   #############################################
   /address/autocomplete:

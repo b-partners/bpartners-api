@@ -821,6 +821,8 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             GET, "/users/*/creditTransactions/*", authResourceProvider))
                     .authenticated()
+                    .requestMatchers("/llm")
+                    .authenticated()
                     .requestMatchers("/**")
                     .denyAll())
 

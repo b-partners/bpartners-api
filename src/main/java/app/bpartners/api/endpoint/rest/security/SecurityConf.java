@@ -761,6 +761,21 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             GET, "/users/*/detectionTracking", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/analysisProjects", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/analysisProjects/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/analysisProjects/*/2d", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/analysisProjects/*/3d", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/address/autocomplete")
                     .authenticated()
                     .requestMatchers(

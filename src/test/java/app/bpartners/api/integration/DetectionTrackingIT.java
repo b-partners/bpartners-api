@@ -29,6 +29,7 @@ import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.DetectionTrackingRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.AnalysisProjectRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.DetectionTrackingJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
@@ -57,6 +58,7 @@ class DetectionTrackingIT extends MockedThirdParties {
   @Autowired private DetectionTrackingRepository detectionTrackingRepository;
   @Autowired private DetectionTrackingJpaRepository detectionTrackingJpaRepository;
   @Autowired private CreditTransactionRepository creditTransactionRepository;
+  @Autowired private AnalysisProjectRepository analysisProjectRepository;
   @Autowired private UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
   @Autowired private CreditService creditService;
   @MockBean private UserRepository userRepository;
@@ -103,6 +105,7 @@ class DetectionTrackingIT extends MockedThirdParties {
     userSubscriptionEligibleRepository
         .findByUserId(JOE_DOE_ID)
         .ifPresent(userSubscriptionEligibleRepository::delete);
+    analysisProjectRepository.deleteAll();
     creditTransactionRepository.deleteAll();
     detectionTrackingJpaRepository.deleteAll();
   }
@@ -417,7 +420,9 @@ class DetectionTrackingIT extends MockedThirdParties {
             new app.bpartners.api.model.detection.DetectionInitiator(
                 "dummyInitiator", "dummy@email.com", "0612345678"),
             userMock,
-            detectionIdentifier));
+            detectionIdentifier,
+            null,
+            null));
   }
 
   private @NotNull List<DetectionTracking> getExpectedRest(

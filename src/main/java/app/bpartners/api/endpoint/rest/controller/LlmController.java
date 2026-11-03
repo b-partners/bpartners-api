@@ -8,23 +8,32 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
 public class LlmController {
-  private static final String PREFIX = "/llm";
+  private static final String TOITURE_PATH = "/toiture";
 
   private final LlmBridge llmBridge;
 
-  @RequestMapping(PREFIX + "/**")
-  public ResponseEntity<byte[]> forward(HttpServletRequest request) throws IOException {
-    var path = request.getRequestURI().substring(request.getContextPath().length());
+  @GetMapping("/llm/toiture")
+  public ResponseEntity<byte[]> getToiture(HttpServletRequest request) throws IOException {
+    return forward(request);
+  }
+
+  @PostMapping("/llm/toiture")
+  public ResponseEntity<byte[]> postToiture(HttpServletRequest request) throws IOException {
+    return forward(request);
+  }
+
+  private ResponseEntity<byte[]> forward(HttpServletRequest request) throws IOException {
     var contentType = request.getContentType();
     return llmBridge.forward(
         HttpMethod.valueOf(request.getMethod()),
-        path.substring(PREFIX.length()),
+        TOITURE_PATH,
         request.getQueryString(),
         request.getInputStream().readAllBytes(),
         contentType == null ? null : MediaType.parseMediaType(contentType),

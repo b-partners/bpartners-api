@@ -5,9 +5,9 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.endpoint.rest.model.AnalysisProject;
 import app.bpartners.api.endpoint.rest.model.AnalysisProjectStep;
+import app.bpartners.api.endpoint.rest.model.DetectionInitiator;
 import app.bpartners.api.endpoint.rest.model.Register2d;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.detection.DetectionInitiator;
 import app.bpartners.api.model.detection.DetectionTracking;
 import app.bpartners.api.model.project.AnalysisProjectStatus;
 import org.springframework.stereotype.Component;
@@ -19,6 +19,11 @@ public class AnalysisProjectRestMapper {
     return new AnalysisProject()
         .projectKey(status.getProjectKey())
         .externalReference(status.getExternalReference())
+        .detectionIdentifier(status.getDetectionIdentifier())
+        .zone(status.getZone())
+        .address(status.getAddress())
+        .initiator(toRestInitiator(status))
+        .creationDatetime(status.getCreationDatetime())
         .analysis2dDone(status.isAnalysis2dDone())
         .model3dDone(status.isModel3dDone())
         .creditConsumed(status.isCreditConsumed())
@@ -31,6 +36,18 @@ public class AnalysisProjectRestMapper {
         .creditsSufficient(status.isCreditsSufficient());
   }
 
+  private DetectionInitiator toRestInitiator(AnalysisProjectStatus status) {
+    if (status.getInitiatorName() == null
+        && status.getInitiatorEmail() == null
+        && status.getInitiatorPhoneNumber() == null) {
+      return null;
+    }
+    return new DetectionInitiator()
+        .name(status.getInitiatorName())
+        .email(status.getInitiatorEmail())
+        .phoneNumber(status.getInitiatorPhoneNumber());
+  }
+
   public DetectionTracking toTracking(String projectKey, Register2d rest, User user) {
     var initiator = rest.getInitiator();
     return new DetectionTracking(
@@ -39,8 +56,8 @@ public class AnalysisProjectRestMapper {
         rest.getAddress(),
         rest.getCreationDatetime() == null ? now() : rest.getCreationDatetime(),
         initiator == null
-            ? new DetectionInitiator(null, null, null)
-            : new DetectionInitiator(
+            ? new app.bpartners.api.model.detection.DetectionInitiator(null, null, null)
+            : new app.bpartners.api.model.detection.DetectionInitiator(
                 initiator.getName(), initiator.getEmail(), initiator.getPhoneNumber()),
         user,
         rest.getDetectionIdentifier(),

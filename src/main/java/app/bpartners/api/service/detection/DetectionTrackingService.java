@@ -9,6 +9,7 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.detection.DetectionTracking;
+import app.bpartners.api.model.project.AnalysisProjectDescription;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.DetectionTrackingRepository;
 import app.bpartners.api.service.project.AnalysisProjectService;
@@ -75,9 +76,21 @@ public class DetectionTrackingService {
               projectKeyOf(saved),
               saved.externalReference(),
               ANALYSIS_2D,
-              "Analyse toiture : " + saved.zone());
+              "Analyse toiture : " + saved.zone(),
+              descriptionOf(saved));
         });
     return savedTracking;
+  }
+
+  private AnalysisProjectDescription descriptionOf(DetectionTracking tracking) {
+    var initiator = tracking.detectionInitiator();
+    return new AnalysisProjectDescription(
+        tracking.detectionIdentifier(),
+        tracking.zone(),
+        tracking.address(),
+        initiator.name(),
+        initiator.email(),
+        initiator.phoneNumber());
   }
 
   private String projectKeyOf(DetectionTracking tracking) {

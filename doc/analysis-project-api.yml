@@ -1,14 +1,13 @@
 operations:
-  analysisProjectOperations:
+  analysisProjectsOperations:
     get:
       tags:
         - Analysis Project
-      summary: Retrieve the analysis project status of a feature
+      summary: Retrieve the analysis projects of a user
       description: |
         An analysis project gathers the 2D analysis and the 3D model of a same feature, and consumes
-        a single credit whatever the number of steps performed. The project is identified either by
-        its `projectKey` or by the `externalReference` given by the API consumer. A project that has
-        not been started yet is returned with every step remaining.
+        a single credit whatever the number of steps performed. Projects are ordered by creation
+        datetime DESC. This operation replaces `GET /users/{userId}/detectionTracking`.
       parameters:
         - in: path
           name: userId
@@ -22,6 +21,67 @@ operations:
           required: false
         - in: query
           name: externalReference
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: search
+          description: |
+            Filter projects by zone, address, initiator details or external reference.
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+      operationId: listAnalysisProjects
+      responses:
+        200:
+          description: List of analysis projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  analysisProjectOperations:
+    get:
+      tags:
+        - Analysis Project
+      summary: Retrieve the status of an analysis project
+      description: |
+        Tells which steps (2D analysis, 3D model) remain to be processed for the project, and
+        whether its credit has already been consumed. A project that has not been started yet is
+        returned with every step remaining and the credit cost it will consume.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: projectKey
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: externalReference
+          description: Alias given by the API consumer, resolved before `projectKey` when known.
           schema:
             type: string
           required: false
@@ -177,6 +237,18 @@ components:
           type: string
         externalReference:
           type: string
+        detectionIdentifier:
+          type: string
+          description: Refers to the end-to-end identifier of the 2D detection
+        zone:
+          type: string
+        address:
+          type: string
+        initiator:
+          $ref: './detection-monitoring-api.yml#/components/schemas/DetectionInitiator'
+        creationDatetime:
+          type: string
+          format: date-time
         analysis2dDone:
           type: boolean
         model3dDone:

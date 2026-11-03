@@ -3,22 +3,28 @@ package app.bpartners.api.service.project;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.project.AnalysisProject;
+import app.bpartners.api.model.project.AnalysisProjectDescription;
 import app.bpartners.api.model.project.AnalysisProjectStatus;
 import app.bpartners.api.model.project.AnalysisProjectStep;
 import app.bpartners.api.repository.jpa.AnalysisProjectRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.subscription.PrimaryUserResolver;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class AnalysisProjectService {
+  private static final int DEFAULT_PAGE_SIZE = 100;
   private final AnalysisProjectRepository repository;
   private final CreditTransactionRepository creditTransactionRepository;
   private final CreditService creditService;
@@ -30,7 +36,8 @@ public class AnalysisProjectService {
       String projectKey,
       String externalReference,
       AnalysisProjectStep step,
-      String label) {
+      String label,
+      AnalysisProjectDescription description) {
     if (isBlank(projectKey) && isBlank(externalReference)) {
       throw new BadRequestException("Either projectKey or externalReference is mandatory.");
     }
@@ -44,7 +51,7 @@ public class AnalysisProjectService {
       return project;
     }
 
-    var registered = project.withStepDone(step, now());
+    var registered = project.withStepDone(step, now()).withDescription(description);
     if (!registered.isCreditConsumed()) {
       var transaction = creditService.consumeRoofAnalysis(actorUserId, label);
       registered =
@@ -70,6 +77,37 @@ public class AnalysisProjectService {
         externalReference,
         balance.getCreditCostPerAnalysis(),
         balance.getSpendableCredits());
+  }
+
+  @Transactional(readOnly = true)
+  public List<AnalysisProjectStatus> list(
+      String actorUserId,
+      String projectKey,
+      String externalReference,
+      String search,
+      PageFromOne page,
+      BoundedPageSize pageSize) {
+    var userId = primaryUserResolver.resolve(actorUserId);
+    var balance = creditService.getCreditBalance(userId);
+    var pageValue = page != null ? page.getValue() - 1 : 0;
+    var pageSizeValue = pageSize != null ? pageSize.getValue() : DEFAULT_PAGE_SIZE;
+    return repository
+        .findAllByUserIdAndFilters(
+            userId,
+            blankToNull(projectKey),
+            blankToNull(externalReference),
+            blankToNull(search),
+            PageRequest.of(pageValue, pageSizeValue))
+        .stream()
+        .map(
+            project ->
+                AnalysisProjectStatus.of(
+                    project,
+                    project.getProjectKey(),
+                    project.getExternalReference(),
+                    balance.getCreditCostPerAnalysis(),
+                    balance.getSpendableCredits()))
+        .toList();
   }
 
   private Optional<AnalysisProject> find(
@@ -103,5 +141,9 @@ public class AnalysisProjectService {
 
   private boolean isBlank(String value) {
     return value == null || value.isBlank();
+  }
+
+  private String blankToNull(String value) {
+    return isBlank(value) ? null : value;
   }
 }

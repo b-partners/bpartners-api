@@ -35,6 +35,22 @@ public class AnalysisProject {
   @Column(name = "external_reference")
   private String externalReference;
 
+  @Column(name = "detection_identifier")
+  private String detectionIdentifier;
+
+  private String zone;
+
+  private String address;
+
+  @Column(name = "initiator_name")
+  private String initiatorName;
+
+  @Column(name = "initiator_email")
+  private String initiatorEmail;
+
+  @Column(name = "initiator_phone_number")
+  private String initiatorPhoneNumber;
+
   @Column(name = "analysis_2d_datetime")
   private Instant analysis2dDatetime;
 
@@ -78,6 +94,25 @@ public class AnalysisProject {
       remaining.add(MODEL_3D);
     }
     return remaining;
+  }
+
+  public AnalysisProject withDescription(AnalysisProjectDescription description) {
+    if (description == null) {
+      return this;
+    }
+    return toBuilder()
+        .detectionIdentifier(firstNonNull(description.detectionIdentifier(), detectionIdentifier))
+        .zone(firstNonNull(description.zone(), zone))
+        .address(firstNonNull(description.address(), address))
+        .initiatorName(firstNonNull(description.initiatorName(), initiatorName))
+        .initiatorEmail(firstNonNull(description.initiatorEmail(), initiatorEmail))
+        .initiatorPhoneNumber(
+            firstNonNull(description.initiatorPhoneNumber(), initiatorPhoneNumber))
+        .build();
+  }
+
+  private static String firstNonNull(String candidate, String current) {
+    return candidate == null ? current : candidate;
   }
 
   public AnalysisProject withStepDone(AnalysisProjectStep step, Instant datetime) {

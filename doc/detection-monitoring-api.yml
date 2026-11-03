@@ -3,7 +3,10 @@ operations:
     get:
       tags:
         - Detection Tracking
+      deprecated: true
       summary: Retrieve detection tracking list of specific user
+      description: |
+        **Deprecated**, use `GET /users/{userId}/analysisProjects`.
       parameters:
         - in: path
           name: userId

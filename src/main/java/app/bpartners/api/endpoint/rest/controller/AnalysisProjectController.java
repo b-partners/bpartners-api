@@ -7,6 +7,9 @@ import app.bpartners.api.endpoint.rest.model.AnalysisProject;
 import app.bpartners.api.endpoint.rest.model.Register2d;
 import app.bpartners.api.endpoint.rest.model.Register3d;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
+import app.bpartners.api.model.BoundedPageSize;
+import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.project.AnalysisProjectDescription;
 import app.bpartners.api.service.detection.DetectionTrackingService;
 import app.bpartners.api.service.project.AnalysisProjectService;
 import java.util.List;
@@ -26,9 +29,24 @@ public class AnalysisProjectController {
   private final AnalysisProjectRestMapper mapper;
 
   @GetMapping("/users/{userId}/analysisProjects")
-  public AnalysisProject getAnalysisProject(
+  public List<AnalysisProject> listAnalysisProjects(
       @PathVariable String userId,
       @RequestParam(required = false) String projectKey,
+      @RequestParam(required = false) String externalReference,
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) PageFromOne page,
+      @RequestParam(required = false) BoundedPageSize pageSize) {
+    return analysisProjectService
+        .list(userId, projectKey, externalReference, search, page, pageSize)
+        .stream()
+        .map(mapper::toRest)
+        .toList();
+  }
+
+  @GetMapping("/users/{userId}/analysisProjects/{projectKey}")
+  public AnalysisProject getAnalysisProject(
+      @PathVariable String userId,
+      @PathVariable String projectKey,
       @RequestParam(required = false) String externalReference) {
     return mapper.toRest(analysisProjectService.getStatus(userId, projectKey, externalReference));
   }
@@ -54,7 +72,8 @@ public class AnalysisProjectController {
         projectKey,
         externalReference,
         MODEL_3D,
-        "Modèle 3D : " + (address == null ? projectKey : address));
+        "Modèle 3D : " + (address == null ? projectKey : address),
+        AnalysisProjectDescription.ofAddress(address));
     return mapper.toRest(analysisProjectService.getStatus(userId, projectKey, externalReference));
   }
 }

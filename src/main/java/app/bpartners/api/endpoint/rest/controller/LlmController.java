@@ -1,28 +1,33 @@
 package app.bpartners.api.endpoint.rest.controller;
 
-import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
-
 import app.bpartners.api.service.llm.LlmBridge;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import lombok.AllArgsConstructor;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
 public class LlmController {
+  private static final String PREFIX = "/llm";
+
   private final LlmBridge llmBridge;
 
-  @GetMapping(value = "/llm", produces = TEXT_HTML_VALUE)
-  public String get(@RequestParam MultiValueMap<String, String> params) {
-    return llmBridge.get(params);
-  }
-
-  @PostMapping(value = "/llm", produces = TEXT_HTML_VALUE)
-  public String post(@RequestParam MultiValueMap<String, String> params, @RequestBody String body) {
-    return llmBridge.post(params, body);
+  @RequestMapping(PREFIX + "/**")
+  public ResponseEntity<byte[]> forward(HttpServletRequest request) throws IOException {
+    var path = request.getRequestURI().substring(request.getContextPath().length());
+    var contentType = request.getContentType();
+    return llmBridge.forward(
+        HttpMethod.valueOf(request.getMethod()),
+        path.substring(PREFIX.length()),
+        request.getQueryString(),
+        request.getInputStream().readAllBytes(),
+        contentType == null ? null : MediaType.parseMediaType(contentType),
+        request.getHeader(HttpHeaders.ACCEPT));
   }
 }

@@ -1,26 +1,21 @@
 package app.bpartners.api.service.llm;
 
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.TEXT_HTML;
+import static app.bpartners.api.service.utils.SecurityUtils.API_KEY_HEADER;
 
-import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-/** Pass-through to the genai roof report endpoint (https://github.com/b-partners/genai). */
+/** Pass-through to the genai service (https://github.com/b-partners/genai). */
 @Component
 public class LlmBridge {
-  private static final String API_KEY_HEADER = "x-api-key";
-
   private final String baseUrl;
   private final String apiKey;
   private final RestTemplate restTemplate;
@@ -28,40 +23,55 @@ public class LlmBridge {
   public LlmBridge(
       @Value("${llm.base.url:}") String baseUrl,
       @Value("${llm.api.key:}") String apiKey,
-      RestTemplate restTemplate) {
-    this.baseUrl = baseUrl;
+      RestTemplate sharedRestTemplate) {
+    this.baseUrl = baseUrl.replaceAll("/+$", "");
     this.apiKey = apiKey;
-    this.restTemplate = restTemplate;
+    // same transport as the shared template, but upstream 4xx/5xx are relayed instead of being
+    // turned into an ApiException
+    this.restTemplate = new RestTemplate(sharedRestTemplate.getRequestFactory());
+    this.restTemplate.setErrorHandler(
+        new DefaultResponseErrorHandler() {
+          @Override
+          protected boolean hasError(int statusCode) {
+            return false;
+          }
+        });
   }
 
-  public String get(MultiValueMap<String, String> params) {
-    return call(GET, params, null);
-  }
-
-  public String post(MultiValueMap<String, String> params, String jsonBody) {
-    return call(POST, params, jsonBody);
-  }
-
-  private String call(HttpMethod method, MultiValueMap<String, String> params, String body) {
-    // the caller's own x-api-key (if any) must never reach genai, ours replaces it
-    var forwarded = new LinkedMultiValueMap<>(params);
-    forwarded.remove(API_KEY_HEADER);
+  /** subPath and rawQuery are forwarded as received (already percent-encoded). */
+  public ResponseEntity<byte[]> forward(
+      HttpMethod method,
+      String subPath,
+      String rawQuery,
+      byte[] body,
+      MediaType contentType,
+      String accept) {
     var uri =
         UriComponentsBuilder.fromUriString(baseUrl)
-            .path("/toiture")
-            .queryParams(forwarded)
-            .build()
-            .encode()
+            .path(subPath)
+            .query(rawQuery)
+            .build(true)
             .toUri();
 
+    // only these headers are forwarded: the caller's own x-api-key never reaches genai
+    var hasBody = body != null && body.length > 0;
     var headers = new HttpHeaders();
     headers.add(API_KEY_HEADER, apiKey);
-    headers.setAccept(List.of(TEXT_HTML));
-    if (body != null) {
-      headers.setContentType(APPLICATION_JSON);
+    if (accept != null) {
+      headers.set(HttpHeaders.ACCEPT, accept);
     }
-    return restTemplate
-        .exchange(uri, method, new HttpEntity<>(body, headers), String.class)
-        .getBody();
+    if (hasBody && contentType != null) {
+      headers.setContentType(contentType);
+    }
+    var response =
+        restTemplate.exchange(
+            uri, method, new HttpEntity<>(hasBody ? body : null, headers), byte[].class);
+
+    var out = new HttpHeaders();
+    var upstreamType = response.getHeaders().getContentType();
+    if (upstreamType != null) {
+      out.setContentType(upstreamType);
+    }
+    return new ResponseEntity<>(response.getBody(), out, response.getStatusCode());
   }
 }

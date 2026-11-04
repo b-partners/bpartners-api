@@ -411,6 +411,40 @@ class AnalysisProjectIT extends MockedThirdParties {
     assertEquals(done.getAddress(), afterDone.getAddress());
   }
 
+  @SneakyThrows
+  @Test
+  void registrations_on_the_key_of_a_draft_complete_it_instead_of_opening_another_project() {
+    var sessionId = randomUUID().toString();
+    var externalReference = "crm-" + randomUUID();
+    var api = new AnalysisProjectApi(anApiClient());
+    api.createDraftAnalysisProject(
+        JOE_DOE_ID,
+        sessionId,
+        new CreateDraftAnalysisProject()
+            .address("draftAddress")
+            .zone("z")
+            .externalReference(externalReference)
+            .areaPictureId("areaPicture-" + sessionId)
+            .prospectId("prospect-" + sessionId));
+
+    register2d(sessionId, externalReference);
+    var done =
+        api.registerAnalysisProject3d(
+            JOE_DOE_ID, sessionId, new Register3d().externalReference(externalReference));
+
+    var projects = api.listAnalysisProjects(JOE_DOE_ID, null, null, null, null, null, null);
+    assertEquals(1, projects.size());
+    assertEquals(sessionId, projects.get(0).getProjectKey());
+    assertEquals(AnalysisProjectPhase.DONE, done.getStatus());
+    assertEquals("areaPicture-" + sessionId, done.getAreaPictureId());
+    assertEquals("prospect-" + sessionId, done.getProspectId());
+    assertEquals(externalReference, done.getExternalReference());
+    assertTrue(done.getAnalysis2dDone());
+    assertTrue(done.getModel3dDone());
+    assertEquals(1, consumptionsOfJoeDoe().size());
+    assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+  }
+
   private List<CreditTransaction> consumptionsOfJoeDoe() {
     return creditTransactionRepository.findAllByUserId(JOE_DOE_ID).stream()
         .filter(transaction -> CONSUMPTION.equals(transaction.getType()))

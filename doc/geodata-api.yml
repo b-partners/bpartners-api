@@ -1,0 +1,27 @@
+operations:
+  geodataGeocode:
+    get:
+      tags:
+        - Geodata
+      summary: Geocode an address
+      description: |
+        Bridge to the geodata service `GET /geocode`. Request and response are relayed as-is,
+        see https://github.com/b-partners/geodata.
+      operationId: getGeodataCoordinatesFromAddress
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - { name: address, in: query, required: true, schema: { type: string } }
+      responses:
+        200:
+          description: The address position (lon/lat)
+          content:
+            application/json:
+              schema:
+                $ref: './area-pictures-api.yml#/components/schemas/GeoPosition'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'

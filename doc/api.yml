@@ -22,6 +22,8 @@ paths:
     $ref: './security-api.yml#/operations/apiKeyOperations'
   /captcha/token:
     $ref: './security-api.yml#/operations/verifyCaptchaToken'
+  /token:
+    $ref: './security-api.yml#/operations/issueDashboardToken'
   /token/validate:
     $ref: './security-api.yml#/operations/validateToken'
 

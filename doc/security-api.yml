@@ -68,6 +68,29 @@ operations:
           500:
             $ref: './api.yml#/components/responses/500'
 
+  issueDashboardToken:
+    post:
+      tags:
+        - Security
+      summary: Issue a dashboard token
+      description: |
+        Issues a short-lived token scoped to the bridge endpoints, to be sent as
+        `Authorization: Bearer <token>`. The token carries the user resolved from the api key.
+      operationId: issueDashboardToken
+      security:
+        - apiKeyHeader: [ ]
+      responses:
+        200:
+          description: Dashboard token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardToken'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
   whoami:
     get:
       tags:
@@ -184,6 +207,17 @@ components:
       in: header
       name: x-api-key
   schemas:
+    DashboardToken:
+      type: object
+      required:
+        - token
+        - expiresAt
+      properties:
+        token:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
     Whoami:
       properties:
         user:

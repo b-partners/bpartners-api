@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import app.bpartners.api.endpoint.rest.model.LlmRoof;
 import app.bpartners.api.service.llm.LlmBridge;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,7 +29,7 @@ class LlmControllerTest {
     when(llmBridge.getToiture(rawQuery)).thenReturn(ResponseEntity.ok("<html/>"));
 
     mockMvc
-        .perform(get("/llm/toiture").queryString(rawQuery))
+        .perform(get(URI.create("/llm/toiture?" + rawQuery)))
         .andExpect(status().isOk())
         .andExpect(content().string("<html/>"));
 

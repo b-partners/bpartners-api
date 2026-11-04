@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bpartners.api.service.geoserver.GeoserverWmsBridge;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,8 +34,7 @@ class GeoserverControllerTest {
 
     mockMvc
         .perform(
-            get("/geoserver/wms")
-                .queryString(rawQuery)
+            get(URI.create("/geoserver/wms?" + rawQuery))
                 .param("service", "WMS")
                 .param("version", "1.1.1")
                 .param("request", "GetMap")
@@ -60,7 +60,7 @@ class GeoserverControllerTest {
     var rawQuery = "request=GetMap&layers=l&bbox=260548.5%2C6250150.2%2C260668.5%2C6250270.2";
     when(geoserverWmsBridge.getMap(rawQuery)).thenReturn(ResponseEntity.ok(IMAGE));
 
-    mockMvc.perform(get("/geoserver/wms").queryString(rawQuery)).andExpect(status().isOk());
+    mockMvc.perform(get(URI.create("/geoserver/wms?" + rawQuery))).andExpect(status().isOk());
 
     verify(geoserverWmsBridge).getMap(rawQuery);
   }

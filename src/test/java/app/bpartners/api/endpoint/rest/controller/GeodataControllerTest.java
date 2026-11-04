@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bpartners.api.service.geodata.GeodataBridge;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,7 +25,7 @@ class GeodataControllerTest {
         .thenReturn(ResponseEntity.ok("{\"latitude\":48.85}".getBytes()));
 
     mockMvc
-        .perform(get("/geodata/geocode").queryString(rawQuery))
+        .perform(get(URI.create("/geodata/geocode?" + rawQuery)))
         .andExpect(status().isOk())
         .andExpect(content().string("{\"latitude\":48.85}"));
 

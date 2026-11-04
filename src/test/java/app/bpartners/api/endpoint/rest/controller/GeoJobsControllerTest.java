@@ -25,6 +25,7 @@ import app.bpartners.api.endpoint.rest.model.GeoJobsDelimitationType;
 import app.bpartners.api.endpoint.rest.model.GeoJobsProspect;
 import app.bpartners.api.endpoint.rest.model.GeoJobsThreeDRequest;
 import app.bpartners.api.service.geojobs.GeoJobsBridge;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -188,7 +189,7 @@ class GeoJobsControllerTest {
     when(geoJobsBridge.getCoverage(rawQuery)).thenReturn(relayedJson());
 
     mockMvc
-        .perform(get("/geo-jobs/coverage").queryString(rawQuery))
+        .perform(get(URI.create("/geo-jobs/coverage?" + rawQuery)))
         .andExpect(status().isOk())
         .andExpect(content().string(RELAYED_JSON));
 
@@ -201,7 +202,7 @@ class GeoJobsControllerTest {
     when(geoJobsBridge.getGeocode(rawQuery)).thenReturn(relayedJson());
 
     mockMvc
-        .perform(get("/geo-jobs/geocode").queryString(rawQuery))
+        .perform(get(URI.create("/geo-jobs/geocode?" + rawQuery)))
         .andExpect(status().isOk())
         .andExpect(content().string(RELAYED_JSON));
 

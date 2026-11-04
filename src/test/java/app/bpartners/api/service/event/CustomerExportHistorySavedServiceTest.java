@@ -8,7 +8,7 @@ import static org.mockito.Mockito.*;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.endpoint.event.model.CustomerExportHistorySaved;
 import app.bpartners.api.file.FileWriter;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.model.Attachment;
 import app.bpartners.api.model.CustomerExportHistory;
 import app.bpartners.api.repository.jpa.CustomerExportHistoryJpaRepository;
@@ -30,7 +30,7 @@ class CustomerExportHistorySavedServiceTest {
   SesService emailServiceMock = mock(SesService.class);
   CustomerExportHistoryJpaRepository customerExportHistoryJpaRepositoryMock =
       mock(CustomerExportHistoryJpaRepository.class);
-  BucketComponent bucketComponentMock = mock(BucketComponent.class);
+  CustomBucketComponent customBucketComponentMock = mock(CustomBucketComponent.class);
   FileWriter fileWriterMock = mock(FileWriter.class);
   TemplateResolverEngine templateResolverEngine = new TemplateResolverEngine();
   SesConf sesConfMock = mock(SesConf.class);
@@ -38,7 +38,7 @@ class CustomerExportHistorySavedServiceTest {
       new CustomerExportHistorySavedService(
           emailServiceMock,
           customerExportHistoryJpaRepositoryMock,
-          bucketComponentMock,
+          customBucketComponentMock,
           fileWriterMock,
           templateResolverEngine,
           sesConfMock);
@@ -64,7 +64,7 @@ class CustomerExportHistorySavedServiceTest {
         .thenReturn(new HashMap<>(Map.of("month", 5, "year", 2026)));
     when(customerExportHistoryJpaRepositoryMock.findById(customerExportHistoryIdentifier))
         .thenReturn(Optional.of(customerExportHistoryMock));
-    when(bucketComponentMock.download(fileKey, true)).thenReturn(attachmentFileMock);
+    when(customBucketComponentMock.download(fileKey, true)).thenReturn(attachmentFileMock);
     when(fileWriterMock.writeAsByte(attachmentFileMock)).thenReturn(emptyBytes);
 
     assertDoesNotThrow(
@@ -133,7 +133,7 @@ class CustomerExportHistorySavedServiceTest {
     when(customerExportHistoryMock.getAdditionalProperties()).thenReturn(new HashMap<>());
     when(customerExportHistoryJpaRepositoryMock.findById(customerExportHistoryIdentifier))
         .thenReturn(Optional.of(customerExportHistoryMock));
-    when(bucketComponentMock.download(fileKey, true)).thenReturn(attachmentFileMock);
+    when(customBucketComponentMock.download(fileKey, true)).thenReturn(attachmentFileMock);
     when(fileWriterMock.writeAsByte(attachmentFileMock)).thenReturn(emptyBytes);
 
     assertDoesNotThrow(
@@ -199,7 +199,7 @@ class CustomerExportHistorySavedServiceTest {
         () -> subject.accept(new CustomerExportHistorySaved(customerExportHistoryIdentifier)));
 
     verify(emailServiceMock, never()).sendEmail(any(), any(), any(), any());
-    verify(bucketComponentMock, never()).download(any(), anyBoolean());
+    verify(customBucketComponentMock, never()).download(any(), anyBoolean());
     verify(fileWriterMock, never()).writeAsByte(any());
   }
 }

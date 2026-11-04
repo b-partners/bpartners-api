@@ -79,7 +79,8 @@ Globals:
         GEO_JOBS_BASE_URL: !Sub '{{resolve:ssm:/bpartners/${Env}/geo-jobs/base-url}}'
         GEODATA_IMAGERY_BASEURL: !Sub '{{resolve:ssm:/bpartners/${Env}/geodata/base-url}}'
         GEODATA_API_KEY: !Sub '{{resolve:ssm:/bpartners/${Env}/geodata/api-key}}'
-
+    
+        
 Parameters:
   Env:
     Type: String
@@ -97,6 +98,7 @@ Resources:
       FunctionUrlConfig:
         AuthType: NONE
         InvokeMode: BUFFERED
+        
       ReservedConcurrentExecutions: 200
 
   WorkerFunction1:

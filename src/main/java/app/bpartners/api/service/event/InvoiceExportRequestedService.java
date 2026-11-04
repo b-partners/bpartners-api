@@ -8,7 +8,7 @@ import app.bpartners.api.endpoint.event.model.InvoiceExportRequested;
 import app.bpartners.api.file.BucketKeyRetriever;
 import app.bpartners.api.file.FileZipper;
 import app.bpartners.api.file.InvoicesFileDownloader;
-import app.bpartners.api.file.bucket.BucketComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.model.InvoiceExportBatch;
 import app.bpartners.api.model.InvoiceExportRequest;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -33,7 +33,7 @@ public class InvoiceExportRequestedService implements Consumer<InvoiceExportRequ
   private final InvoiceRepository invoiceRepository;
   private final InvoicesFileDownloader invoicesFileDownloader;
   private final FileZipper fileZipper;
-  private final BucketComponent bucketComponent;
+  private final CustomBucketComponent customBucketComponent;
   private final BucketKeyRetriever bucketKeyRetriever;
   private final EventProducer<InvoiceExportRequested> eventProducer;
 
@@ -72,7 +72,7 @@ public class InvoiceExportRequestedService implements Consumer<InvoiceExportRequ
     var zipFile = fileZipper.apply(invoicesFileDownloader.apply(userId, invoices));
     var fileKey = bucketKeyRetriever.apply(INVOICE_ZIP, batchId + ".zip", userId);
 
-    bucketComponent.upload(zipFile, fileKey, true);
+    customBucketComponent.upload(zipFile, fileKey, true);
 
     invoiceExportBatchRepository.save(
         InvoiceExportBatch.builder()

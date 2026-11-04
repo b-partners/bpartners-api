@@ -27,8 +27,8 @@ import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobStatus;
 import app.bpartners.api.endpoint.rest.model.ProspectEvaluationJobType;
 import app.bpartners.api.endpoint.rest.model.ProspectStatus;
 import app.bpartners.api.file.FileWriter;
-import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.file.bucket.BucketUploadComponent;
+import app.bpartners.api.file.bucket.CustomBucketComponent;
 import app.bpartners.api.model.*;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
@@ -101,7 +101,7 @@ public class ProspectService {
   private final TemplateResolverEngine templateResolverEngine;
   private final ProspectJpaRepository prospectJpaRepository;
   private final UserWhiteListedJpaRepository userWhiteListedJpaRepository;
-  private final BucketComponent bucketComponent;
+  private final CustomBucketComponent customBucketComponent;
   private final FileWriter fileWriter;
   private final BucketUploadComponent bucketUploadComponent;
 
@@ -316,7 +316,7 @@ public class ProspectService {
         ProspectCreated.builder().prospect(prospect).updatedAt(Instant.now());
     if (fileAttachment != null) {
       var prospectAttachmentFileKey = randomUUID().toString();
-      bucketComponent.upload(
+      customBucketComponent.upload(
           fileAttachment,
           notificationAttachmentBucketKey(prospect.getId(), prospectAttachmentFileKey),
           true);

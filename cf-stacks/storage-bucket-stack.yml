@@ -26,6 +26,14 @@ Resources:
             AllowedHeaders:
               - '*'
             MaxAge: 3000
+      LifecycleConfiguration:
+        Rules:
+          - Id: AutomaticExpireTempFiles
+            Status: Enabled
+            ExpirationInDays: 1
+            TagFilters:
+              - Key: temporary
+                Value: true
 
   BucketSSM:
     Type: AWS::SSM::Parameter

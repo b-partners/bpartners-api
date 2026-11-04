@@ -1,0 +1,4 @@
+\
+-Dstripe.private.api.key="$STRIPE_PRIVATE_API_KEY" \
+-Dgoogle.geocode.api.key="$GOOGLE_GEOCODE_API_KEY" \
+-Dgeodata.imagery.baseurl="$GEODATA_IMAGERY_BASEURL"

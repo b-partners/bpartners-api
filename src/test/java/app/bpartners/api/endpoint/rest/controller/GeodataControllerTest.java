@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bpartners.api.service.geodata.GeodataBridge;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,15 +19,16 @@ class GeodataControllerTest {
   MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new GeodataController(geodataBridge)).build();
 
   @Test
-  void geocode_binds_address_and_delegates_to_bridge() throws Exception {
-    when(geodataBridge.get("/geocode", "address", "1 rue de Paris"))
+  void geocode_passes_the_raw_query_string_to_bridge() throws Exception {
+    var rawQuery = "address=Tour%20Eiffel%2C%20Paris";
+    when(geodataBridge.get("/geocode", rawQuery))
         .thenReturn(ResponseEntity.ok("{\"latitude\":48.85}".getBytes()));
 
     mockMvc
-        .perform(get("/geodata/geocode").param("address", "1 rue de Paris"))
+        .perform(get(URI.create("/geodata/geocode?" + rawQuery)))
         .andExpect(status().isOk())
         .andExpect(content().string("{\"latitude\":48.85}"));
 
-    verify(geodataBridge).get("/geocode", "address", "1 rue de Paris");
+    verify(geodataBridge).get("/geocode", rawQuery);
   }
 }

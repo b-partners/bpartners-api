@@ -1,6 +1,7 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import app.bpartners.api.service.geodata.GeodataBridge;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,7 @@ public class GeodataController {
   private final GeodataBridge geodataBridge;
 
   @GetMapping(value = "/geodata/geocode")
-  public ResponseEntity<byte[]> geocode(@RequestParam String address) {
-    return geodataBridge.get("/geocode", "address", address);
+  public ResponseEntity<byte[]> geocode(@RequestParam String address, HttpServletRequest request) {
+    return geodataBridge.get("/geocode", request.getQueryString());
   }
 }

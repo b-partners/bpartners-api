@@ -1,7 +1,6 @@
 package app.bpartners.api.endpoint.rest.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -14,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bpartners.api.service.geoserver.GeoserverWmsBridge;
-import app.bpartners.api.service.geoserver.GeoserverWmsGetMapQuery;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,12 +28,13 @@ class GeoserverControllerTest {
 
   @Test
   void get_map_binds_wms_params_and_relays_image_bytes_and_content_type() throws Exception {
+    var rawQuery = "request=GetMap&layers=l&bbox=1.5%2C2.5%2C3.5%2C4.5";
     when(geoserverWmsBridge.getMap(any()))
         .thenReturn(ResponseEntity.ok().contentType(IMAGE_PNG).body(IMAGE));
 
     mockMvc
         .perform(
-            get("/geoserver/wms")
+            get(URI.create("/geoserver/wms?" + rawQuery))
                 .param("service", "WMS")
                 .param("version", "1.1.1")
                 .param("request", "GetMap")
@@ -52,7 +52,17 @@ class GeoserverControllerTest {
         .andExpect(content().contentType(IMAGE_PNG_VALUE))
         .andExpect(content().bytes(IMAGE));
 
-    verify(geoserverWmsBridge).getMap(argThat(GeoserverControllerTest::isTheSentQuery));
+    verify(geoserverWmsBridge).getMap(rawQuery);
+  }
+
+  @Test
+  void get_map_passes_the_raw_query_string_with_encoded_bbox_to_bridge() throws Exception {
+    var rawQuery = "request=GetMap&layers=l&bbox=260548.5%2C6250150.2%2C260668.5%2C6250270.2";
+    when(geoserverWmsBridge.getMap(rawQuery)).thenReturn(ResponseEntity.ok(IMAGE));
+
+    mockMvc.perform(get(URI.create("/geoserver/wms?" + rawQuery))).andExpect(status().isOk());
+
+    verify(geoserverWmsBridge).getMap(rawQuery);
   }
 
   @Test
@@ -73,18 +83,5 @@ class GeoserverControllerTest {
         .andExpect(status().isBadRequest());
 
     verify(geoserverWmsBridge, never()).getMap(any());
-  }
-
-  private static boolean isTheSentQuery(GeoserverWmsGetMapQuery query) {
-    return "GetMap".equals(query.request())
-        && "l".equals(query.layers())
-        && "image/png".equals(query.format())
-        && Boolean.TRUE.equals(query.transparent())
-        && "EPSG:3857".equals(query.srs())
-        && "1.5,2.5,3.5,4.5".equals(query.bbox())
-        && query.width() == 1024
-        && query.height() == 512
-        && "t".equals(query.token())
-        && query.expires() == 1700000000L;
   }
 }

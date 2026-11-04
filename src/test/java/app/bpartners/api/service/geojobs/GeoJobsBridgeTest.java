@@ -20,7 +20,6 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import app.bpartners.api.endpoint.rest.model.GeoJobsCoverageType;
 import app.bpartners.api.endpoint.rest.model.GeoJobsCreateDetection;
 import app.bpartners.api.endpoint.rest.model.GeoJobsCreateRoofIntersections;
 import app.bpartners.api.endpoint.rest.model.GeoJobsDelimitationObjectType;
@@ -28,7 +27,7 @@ import app.bpartners.api.endpoint.rest.model.GeoJobsDelimitationType;
 import app.bpartners.api.endpoint.rest.model.GeoJobsFeature;
 import app.bpartners.api.endpoint.rest.model.GeoJobsProspect;
 import app.bpartners.api.endpoint.rest.model.GeoJobsThreeDRequest;
-import java.util.List;
+import app.bpartners.api.service.bridge.DownstreamRelay;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
@@ -42,7 +41,8 @@ class GeoJobsBridgeTest {
   RestTemplate restTemplate = new RestTemplate();
   MockRestServiceServer geoJobs = MockRestServiceServer.bindTo(restTemplate).build();
   GeoJobsUserApiKey userApiKey = mock();
-  GeoJobsBridge subject = new GeoJobsBridge(GEO_JOBS_BASE_URL + "/", userApiKey, restTemplate);
+  GeoJobsBridge subject =
+      new GeoJobsBridge(GEO_JOBS_BASE_URL + "/", userApiKey, new DownstreamRelay(restTemplate));
 
   GeoJobsBridgeTest() {
     when(userApiKey.ofAuthenticatedUser()).thenReturn(USER_API_KEY);
@@ -204,7 +204,7 @@ class GeoJobsBridgeTest {
   }
 
   @Test
-  void getCoverage_forwards_given_params_encoded_and_skips_absent_ones() {
+  void getCoverage_forwards_given_params_exactly_as_received() {
     geoJobs
         .expect(
             requestTo(
@@ -217,11 +217,8 @@ class GeoJobsBridgeTest {
 
     var response =
         subject.getCoverage(
-            new GeoJobsCoverageQuery(
-                "1 rue de Paris",
-                2.35,
-                48.85,
-                List.of(GeoJobsCoverageType.IMAGERY, GeoJobsCoverageType.LIDAR)));
+            "address=1%20rue%20de%20Paris&longitude=2.35&latitude=48.85"
+                + "&types=IMAGERY&types=LIDAR");
 
     assertEquals("{\"imagery\":{}}", response.getBody());
     geoJobs.verify();
@@ -233,7 +230,7 @@ class GeoJobsBridgeTest {
         .expect(requestTo(GEO_JOBS_BASE_URL + "/coverage"))
         .andRespond(withSuccess("{}", APPLICATION_JSON));
 
-    subject.getCoverage(new GeoJobsCoverageQuery(null, null, null, null));
+    subject.getCoverage(null);
 
     geoJobs.verify();
   }
@@ -246,19 +243,42 @@ class GeoJobsBridgeTest {
         .andExpect(header("x-api-key", USER_API_KEY))
         .andRespond(withSuccess("{\"type\":\"Feature\"}", APPLICATION_JSON));
 
-    var response = subject.getGeocode(new GeoJobsGeocodeQuery(null, 2.35, 48.85));
+    var response = subject.getGeocode("longitude=2.35&latitude=48.85");
 
     assertEquals("{\"type\":\"Feature\"}", response.getBody());
     geoJobs.verify();
   }
 
   @Test
-  void getGeocode_encodes_address() {
+  void getGeocode_forwards_an_encoded_address_unchanged() {
     geoJobs
-        .expect(requestTo(GEO_JOBS_BASE_URL + "/geocode?address=1%20rue%20de%20Paris"))
+        .expect(requestTo(GEO_JOBS_BASE_URL + "/geocode?address=Tour%20Eiffel%2C%20Paris"))
         .andRespond(withSuccess("{}", APPLICATION_JSON));
 
-    subject.getGeocode(new GeoJobsGeocodeQuery("1 rue de Paris", null, null));
+    subject.getGeocode("address=Tour%20Eiffel%2C%20Paris");
+
+    geoJobs.verify();
+  }
+
+  @Test
+  void getGeocode_drops_unknown_params_and_the_callers_api_key() {
+    geoJobs
+        .expect(requestTo(GEO_JOBS_BASE_URL + "/geocode?address=a"))
+        .andExpect(header("x-api-key", USER_API_KEY))
+        .andRespond(withSuccess("{}", APPLICATION_JSON));
+
+    subject.getGeocode("x-api-key=caller&address=a&types=IMAGERY");
+
+    geoJobs.verify();
+  }
+
+  @Test
+  void getCoverage_forwards_plain_commas_and_plus_as_received() {
+    geoJobs
+        .expect(requestTo(GEO_JOBS_BASE_URL + "/coverage?address=Tour+Eiffel,+Paris"))
+        .andRespond(withSuccess("{}", APPLICATION_JSON));
+
+    subject.getCoverage("address=Tour+Eiffel,+Paris");
 
     geoJobs.verify();
   }

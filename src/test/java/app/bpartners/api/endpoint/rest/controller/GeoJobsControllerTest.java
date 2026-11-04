@@ -18,7 +18,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.bpartners.api.endpoint.rest.model.GeoJobsCoverageType;
 import app.bpartners.api.endpoint.rest.model.GeoJobsCreateDetection;
 import app.bpartners.api.endpoint.rest.model.GeoJobsCreateRoofIntersections;
 import app.bpartners.api.endpoint.rest.model.GeoJobsDelimitationObjectType;
@@ -26,9 +25,7 @@ import app.bpartners.api.endpoint.rest.model.GeoJobsDelimitationType;
 import app.bpartners.api.endpoint.rest.model.GeoJobsProspect;
 import app.bpartners.api.endpoint.rest.model.GeoJobsThreeDRequest;
 import app.bpartners.api.service.geojobs.GeoJobsBridge;
-import app.bpartners.api.service.geojobs.GeoJobsCoverageQuery;
-import app.bpartners.api.service.geojobs.GeoJobsGeocodeQuery;
-import java.util.List;
+import java.net.URI;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -187,37 +184,29 @@ class GeoJobsControllerTest {
   }
 
   @Test
-  void get_coverage_binds_query_params_including_repeated_types() throws Exception {
-    when(geoJobsBridge.getCoverage(any())).thenReturn(relayedJson());
+  void get_coverage_passes_the_raw_query_string_including_repeated_types() throws Exception {
+    var rawQuery = "address=1%20rue%2C%20Paris&longitude=2.35&types=IMAGERY&types=LIDAR";
+    when(geoJobsBridge.getCoverage(rawQuery)).thenReturn(relayedJson());
 
     mockMvc
-        .perform(
-            get("/geo-jobs/coverage")
-                .param("longitude", "2.35")
-                .param("latitude", "48.85")
-                .param("types", "IMAGERY", "LIDAR"))
+        .perform(get(URI.create("/geo-jobs/coverage?" + rawQuery)))
         .andExpect(status().isOk())
         .andExpect(content().string(RELAYED_JSON));
 
-    verify(geoJobsBridge)
-        .getCoverage(
-            new GeoJobsCoverageQuery(
-                null,
-                2.35,
-                48.85,
-                List.of(GeoJobsCoverageType.IMAGERY, GeoJobsCoverageType.LIDAR)));
+    verify(geoJobsBridge).getCoverage(rawQuery);
   }
 
   @Test
-  void get_geocode_binds_query_params() throws Exception {
-    when(geoJobsBridge.getGeocode(any())).thenReturn(relayedJson());
+  void get_geocode_passes_the_raw_query_string() throws Exception {
+    var rawQuery = "address=Tour%20Eiffel%2C%20Paris&longitude=2.35&latitude=48.85";
+    when(geoJobsBridge.getGeocode(rawQuery)).thenReturn(relayedJson());
 
     mockMvc
-        .perform(get("/geo-jobs/geocode").param("longitude", "2.35").param("latitude", "48.85"))
+        .perform(get(URI.create("/geo-jobs/geocode?" + rawQuery)))
         .andExpect(status().isOk())
         .andExpect(content().string(RELAYED_JSON));
 
-    verify(geoJobsBridge).getGeocode(new GeoJobsGeocodeQuery(null, 2.35, 48.85));
+    verify(geoJobsBridge).getGeocode(rawQuery);
   }
 
   @Test

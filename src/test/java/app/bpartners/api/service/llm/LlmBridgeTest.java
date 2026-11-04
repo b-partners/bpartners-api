@@ -13,6 +13,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import app.bpartners.api.service.bridge.DownstreamRelay;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -24,10 +25,11 @@ class LlmBridgeTest {
 
   RestTemplate restTemplate = new RestTemplate();
   MockRestServiceServer genai = MockRestServiceServer.bindTo(restTemplate).build();
-  LlmBridge subject = new LlmBridge(GENAI_BASE_URL + "/", GENAI_API_KEY, restTemplate);
+  LlmBridge subject =
+      new LlmBridge(GENAI_BASE_URL + "/", GENAI_API_KEY, new DownstreamRelay(restTemplate));
 
   @Test
-  void getToiture_forwards_given_params_encoded_and_skips_absent_ones() {
+  void getToiture_forwards_given_params_exactly_as_received() {
     genai
         .expect(
             requestTo(
@@ -37,10 +39,45 @@ class LlmBridgeTest {
         .andExpect(header("x-api-key", GENAI_API_KEY))
         .andRespond(withSuccess("<html/>", TEXT_HTML));
 
-    var response = subject.getToiture(query());
+    var response =
+        subject.getToiture("surfaceEnM2=42.5&revetement=tuile%20rouge&humidit%C3%A9=3.0");
 
     assertEquals("<html/>", response.getBody());
     assertEquals(TEXT_HTML, response.getHeaders().getContentType());
+    genai.verify();
+  }
+
+  @Test
+  void getToiture_forwards_an_encoded_address_unchanged() {
+    genai
+        .expect(requestTo(GENAI_BASE_URL + "/toiture?adresse=1%20rue%20de%20Paris%2C%2075001"))
+        .andRespond(withSuccess("<html/>", TEXT_HTML));
+
+    subject.getToiture("adresse=1%20rue%20de%20Paris%2C%2075001");
+
+    genai.verify();
+  }
+
+  @Test
+  void getToiture_drops_unknown_params_and_the_callers_api_key() {
+    genai
+        .expect(requestTo(GENAI_BASE_URL + "/toiture?gps=1%2C2"))
+        .andExpect(header("x-api-key", GENAI_API_KEY))
+        .andRespond(withSuccess("<html/>", TEXT_HTML));
+
+    subject.getToiture("x-api-key=caller&gps=1%2C2&other=3");
+
+    genai.verify();
+  }
+
+  @Test
+  void getToiture_without_query_calls_bare_path() {
+    genai
+        .expect(requestTo(GENAI_BASE_URL + "/toiture"))
+        .andRespond(withSuccess("<html/>", TEXT_HTML));
+
+    subject.getToiture(null);
+
     genai.verify();
   }
 
@@ -71,30 +108,5 @@ class LlmBridgeTest {
     assertEquals(BAD_REQUEST, response.getStatusCode());
     assertEquals("bad roof", response.getBody());
     assertEquals(APPLICATION_JSON, response.getHeaders().getContentType());
-  }
-
-  private static LegacyLlmRoofQuery query() {
-    return new LegacyLlmRoofQuery(
-        null,
-        null,
-        null,
-        null,
-        42.5,
-        null,
-        null,
-        null,
-        "tuile rouge",
-        3.0,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null);
   }
 }

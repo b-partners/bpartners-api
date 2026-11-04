@@ -503,6 +503,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(GET, "/map/layers/actual")
                     .authenticated()
+                    .requestMatchers(GET, "/geodata/geocode")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures", authResourceProvider))
@@ -857,6 +859,10 @@ public class SecurityConf {
                     .requestMatchers(GET, "/geo-jobs/coverage")
                     .authenticated()
                     .requestMatchers(GET, "/geo-jobs/geocode")
+                    .authenticated()
+                    .requestMatchers("/llm/toiture")
+                    .authenticated()
+                    .requestMatchers("/geoserver/wms")
                     .authenticated()
                     .requestMatchers("/**")
                     .denyAll())

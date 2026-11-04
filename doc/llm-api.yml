@@ -1,0 +1,108 @@
+operations:
+  llmRoofReport:
+    get:
+      tags:
+        - Llm
+      summary: Roof report (legacy flat query params)
+      description: |
+        Bridge to the genai service `GET /toiture`. Requests and responses are relayed as-is,
+        see https://github.com/b-partners/genai.
+      operationId: getLegacyLlmRoofReport
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - { name: adresse, in: query, schema: { type: string } }
+        - { name: gps, in: query, schema: { type: string } }
+        - { name: millesimeImage1, in: query, schema: { type: integer } }
+        - { name: millesimeImage2, in: query, schema: { type: integer } }
+        - { name: surfaceEnM2, in: query, required: true, schema: { type: number, format: double } }
+        - { name: typeToiture, in: query, schema: { type: string } }
+        - { name: penteMin, in: query, schema: { type: number, format: double } }
+        - { name: penteMax, in: query, schema: { type: number, format: double } }
+        - { name: revetement, in: query, required: true, schema: { type: string } }
+        - { name: humidité, in: query, required: true, schema: { type: number, format: double } }
+        - { name: moisissure, in: query, required: true, schema: { type: number, format: double } }
+        - { name: usure, in: query, required: true, schema: { type: number, format: double } }
+        - { name: obstacles, in: query, schema: { type: string } }
+        - { name: mutation, in: query, schema: { type: string } }
+        - { name: fissureCassure, in: query, schema: { type: boolean } }
+        - { name: risqueFeu, in: query, schema: { type: boolean } }
+        - { name: noteDegradationGlobale, in: query, schema: { type: number, format: double } }
+        - { name: categorie, in: query, schema: { type: string } }
+        - { name: revetement2, in: query, schema: { type: string } }
+        - { name: hauteurBatiment, in: query, schema: { type: number, format: double } }
+        - { name: commentaireCouvreur, in: query, schema: { type: string } }
+      responses:
+        200:
+          description: HTML roof report
+          content:
+            text/html:
+              schema:
+                type: string
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    post:
+      tags:
+        - Llm
+      summary: Roof report (état apparent contract)
+      description: |
+        Bridge to the genai service `POST /toiture`. Requests and responses are relayed as-is,
+        see https://github.com/b-partners/genai.
+      operationId: getLlmRoofReport
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LlmRoof'
+      responses:
+        200:
+          description: HTML roof report
+          content:
+            text/html:
+              schema:
+                type: string
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    LlmRoof:
+      type: object
+      properties:
+        adresse: { type: string }
+        gps: { type: string }
+        millesimeImage1: { type: integer }
+        millesimeImage2: { type: integer }
+        typeToiture: { type: string }
+        revetement: { type: string }
+        revetement2: { type: string }
+        surfaceRampantM2: { type: number, format: double }
+        hauteurBatiment: { type: number, format: double }
+        penteDeg: { type: number, format: double }
+        pansToiture3d:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        niveauUsure: { type: string }
+        tauxUsurePct: { type: number, format: double }
+        tauxMoisissurePct: { type: number, format: double }
+        tauxHumiditePct: { type: number, format: double }
+        mutation: { type: string }
+        risqueVegetationFeu: { type: boolean }
+        commentaireCouvreur: { type: string }
+        etatApparent:
+          type: object
+          additionalProperties: true
+        scoreDegradationVisible: { type: number, format: double }
+        contexteGeographique: { type: string }

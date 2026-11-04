@@ -52,6 +52,18 @@ paths:
     $ref: './geo-jobs-api.yml#/operations/geoJobsGeocode'
 
   #############################################
+  ################## LLM API ##################
+  #############################################
+  /llm/toiture:
+    $ref: './llm-api.yml#/operations/llmRoofReport'
+
+  #############################################
+  ############### Geoserver API ###############
+  #############################################
+  /geoserver/wms:
+    $ref: './geoserver-api.yml#/operations/geoserverWmsGetMap'
+
+  #############################################
   ############## Onboarding API ###############
   #############################################
   /onboardingInitiation:
@@ -373,6 +385,10 @@ paths:
   #############################################
   /address/autocomplete:
     $ref: './address-autocompletion-api.yml#/operations/autoCompleteAddress'
+
+  ################## GEODATA API ##################
+  /geodata/geocode:
+    $ref: './geodata-api.yml#/operations/geodataGeocode'
 
 components:
   securitySchemes:

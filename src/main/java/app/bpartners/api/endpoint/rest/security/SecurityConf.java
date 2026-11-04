@@ -28,6 +28,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
@@ -111,6 +112,8 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/captcha/token", GET.name()),
                         new AntPathRequestMatcher("/token/validate", POST.name())))),
             AnonymousAuthenticationFilter.class)
+        .addFilterAfter(
+            new ApiBridgeScopeFilter(apiBridgeEndpoints()), ExceptionTranslationFilter.class)
         // authorize
         .authorizeHttpRequests(
             (authorize) ->
@@ -864,6 +867,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers("/geoserver/wms")
                     .authenticated()
+                    .requestMatchers(POST, "/token")
+                    .authenticated()
                     .requestMatchers("/**")
                     .denyAll())
 
@@ -876,6 +881,24 @@ public class SecurityConf {
         .logout(AbstractHttpConfigurer::disable);
     // formatter:on
     return http.build();
+  }
+
+  private static RequestMatcher apiBridgeEndpoints() {
+    return new OrRequestMatcher(
+        new AntPathRequestMatcher("/llm/toiture"),
+        new AntPathRequestMatcher("/geodata/geocode", GET.name()),
+        new AntPathRequestMatcher("/geoserver/wms"),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/sync", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*", GET.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/roofs/properties", PUT.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/image", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/pdf", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/roofer/email", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/3d/*/sync", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/3d/*", GET.name()),
+        new AntPathRequestMatcher("/geo-jobs/3d/*/intersections", PUT.name()),
+        new AntPathRequestMatcher("/geo-jobs/coverage", GET.name()),
+        new AntPathRequestMatcher("/geo-jobs/geocode", GET.name()));
   }
 
   private Exception forbiddenWithRemoteInfo(Exception e, HttpServletRequest req) {

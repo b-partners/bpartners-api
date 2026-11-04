@@ -4,6 +4,7 @@ import static app.bpartners.api.endpoint.rest.security.SecurityConf.AUTHORIZATIO
 import static app.bpartners.api.service.utils.SecurityUtils.BEARER_PREFIX;
 
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
+import app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenVerifier;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.user.UserService;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 public class BearerAuthenticator implements UsernamePasswordAuthenticator {
   private final CognitoComponent cognitoComponent;
   private final UserService userService;
+  private final DashboardTokenVerifier dashboardTokenVerifier;
 
   @Override
   public UserDetails retrieveUser(
@@ -26,6 +28,9 @@ public class BearerAuthenticator implements UsernamePasswordAuthenticator {
     String bearer = getBearerFromHeader(authenticationToken);
     if (bearer == null) {
       throw new UsernameNotFoundException("Bad credentials: token is null"); // NOSONAR
+    }
+    if (dashboardTokenVerifier.isIssuedByDashboard(bearer)) {
+      return dashboardTokenVerifier.verify(bearer);
     }
     String email = cognitoComponent.getEmailByToken(bearer);
     if (email == null) {

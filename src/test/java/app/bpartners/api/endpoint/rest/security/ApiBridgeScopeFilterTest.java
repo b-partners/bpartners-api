@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.http.HttpMethod.GET;
 
-import app.bpartners.api.endpoint.rest.security.model.BridgePrincipal;
+import app.bpartners.api.endpoint.rest.security.model.ApiBridgePrincipal;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.User;
 import java.util.List;
@@ -19,9 +19,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 
-class BridgeScopeFilterTest {
-  BridgeScopeFilter filter =
-      new BridgeScopeFilter(
+class ApiBridgeScopeFilterTest {
+  ApiBridgeScopeFilter filter =
+      new ApiBridgeScopeFilter(
           new OrRequestMatcher(
               new AntPathRequestMatcher("/llm/toiture"),
               new AntPathRequestMatcher("/geodata/geocode", GET.name()),
@@ -41,13 +41,15 @@ class BridgeScopeFilterTest {
 
   private MockFilterChain filterRequest(String method, String path) throws Exception {
     var chain = new MockFilterChain();
-    filter.doFilter(new MockHttpServletRequest(method, path), new MockHttpServletResponse(), chain);
+    var request = new MockHttpServletRequest(method, path);
+    request.setServletPath(path);
+    filter.doFilter(request, new MockHttpServletResponse(), chain);
     return chain;
   }
 
   @Test
-  void bridge_scoped_principal_is_accepted_on_bridge_paths() throws Exception {
-    authenticateAs(new BridgePrincipal("user-id", "token"));
+  void api_bridge_scoped_principal_is_accepted_on_api_bridge_paths() throws Exception {
+    authenticateAs(new ApiBridgePrincipal("user-id", "token"));
 
     assertNotNull(filterRequest("POST", "/llm/toiture").getRequest());
     assertNotNull(filterRequest("GET", "/geodata/geocode").getRequest());
@@ -55,8 +57,8 @@ class BridgeScopeFilterTest {
   }
 
   @Test
-  void bridge_scoped_principal_is_refused_elsewhere() {
-    authenticateAs(new BridgePrincipal("user-id", "token"));
+  void api_bridge_scoped_principal_is_refused_elsewhere() {
+    authenticateAs(new ApiBridgePrincipal("user-id", "token"));
 
     assertThrows(AccessDeniedException.class, () -> filterRequest("GET", "/whoami"));
     assertThrows(AccessDeniedException.class, () -> filterRequest("POST", "/token"));

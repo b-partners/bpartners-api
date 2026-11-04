@@ -1,10 +1,10 @@
 package app.bpartners.api.endpoint.rest.security.dashboard;
 
-import static app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenClaims.BRIDGE_SCOPE;
+import static app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenClaims.API_BRIDGE_SCOPE;
 import static app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenClaims.ISSUER;
 import static app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenClaims.SCOPE_CLAIM;
 
-import app.bpartners.api.endpoint.rest.security.model.BridgePrincipal;
+import app.bpartners.api.endpoint.rest.security.model.ApiBridgePrincipal;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -35,10 +35,10 @@ public class DashboardTokenVerifier {
       throw invalid();
     }
     JWTClaimsSet claims = claimsOf(jwt);
-    if (!isUnexpiredBridgeToken(claims)) {
+    if (!isUnexpiredApiBridgeToken(claims)) {
       throw invalid();
     }
-    return new BridgePrincipal(claims.getSubject(), bearer);
+    return new ApiBridgePrincipal(claims.getSubject(), bearer);
   }
 
   private boolean hasValidSignature(SignedJWT jwt) {
@@ -49,13 +49,13 @@ public class DashboardTokenVerifier {
     }
   }
 
-  private static boolean isUnexpiredBridgeToken(JWTClaimsSet claims) {
+  private static boolean isUnexpiredApiBridgeToken(JWTClaimsSet claims) {
     Date expiration = claims.getExpirationTime();
     return ISSUER.equals(claims.getIssuer())
         && claims.getSubject() != null
         && expiration != null
         && expiration.after(new Date())
-        && BRIDGE_SCOPE.equals(claims.getClaim(SCOPE_CLAIM));
+        && API_BRIDGE_SCOPE.equals(claims.getClaim(SCOPE_CLAIM));
   }
 
   private static Optional<SignedJWT> parse(String bearer) {

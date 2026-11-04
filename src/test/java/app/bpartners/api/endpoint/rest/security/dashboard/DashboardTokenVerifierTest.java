@@ -27,7 +27,7 @@ class DashboardTokenVerifierTest {
       new DashboardTokenVerifier(new DashboardTokenConf(SIGNING_KEY, 15));
 
   @Test
-  void valid_token_yields_bridge_principal_with_user_id() throws Exception {
+  void valid_token_yields_api_bridge_principal_with_user_id() throws Exception {
     var token = signedToken(DashboardTokenClaims.ISSUER, SIGNING_KEY, Duration.ofMinutes(5));
 
     var principal = verifier.verify(token);
@@ -35,7 +35,7 @@ class DashboardTokenVerifierTest {
     assertEquals(USER_ID, principal.getUserId());
     assertTrue(
         principal.getAuthorities().stream()
-            .anyMatch(a -> DashboardTokenClaims.BRIDGE_AUTHORITY.equals(a.getAuthority())));
+            .anyMatch(a -> DashboardTokenClaims.API_BRIDGE_AUTHORITY.equals(a.getAuthority())));
   }
 
   @Test
@@ -78,7 +78,7 @@ class DashboardTokenVerifierTest {
             .subject(USER_ID)
             .issuer(issuer)
             .expirationTime(Date.from(Instant.now().plus(validity)))
-            .claim(DashboardTokenClaims.SCOPE_CLAIM, DashboardTokenClaims.BRIDGE_SCOPE)
+            .claim(DashboardTokenClaims.SCOPE_CLAIM, DashboardTokenClaims.API_BRIDGE_SCOPE)
             .build();
     var jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
     jwt.sign(new MACSigner(key.getBytes(StandardCharsets.UTF_8)));

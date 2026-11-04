@@ -112,7 +112,8 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/captcha/token", GET.name()),
                         new AntPathRequestMatcher("/token/validate", POST.name())))),
             AnonymousAuthenticationFilter.class)
-        .addFilterAfter(new BridgeScopeFilter(bridgeEndpoints()), ExceptionTranslationFilter.class)
+        .addFilterAfter(
+            new ApiBridgeScopeFilter(apiBridgeEndpoints()), ExceptionTranslationFilter.class)
         // authorize
         .authorizeHttpRequests(
             (authorize) ->
@@ -860,7 +861,7 @@ public class SecurityConf {
     return http.build();
   }
 
-  private static RequestMatcher bridgeEndpoints() {
+  private static RequestMatcher apiBridgeEndpoints() {
     return new OrRequestMatcher(
         new AntPathRequestMatcher("/llm/toiture"),
         new AntPathRequestMatcher("/geodata/geocode", GET.name()),

@@ -23,7 +23,7 @@ class DashboardTokenIssuerTest {
     var claims = parse(token.getToken()).getJWTClaimsSet();
     assertEquals(USER_ID, claims.getSubject());
     assertEquals(DashboardTokenClaims.ISSUER, claims.getIssuer());
-    assertEquals(DashboardTokenClaims.BRIDGE_SCOPE, claims.getClaim("scope"));
+    assertEquals(DashboardTokenClaims.API_BRIDGE_SCOPE, claims.getClaim("scope"));
     assertEquals(
         conf.getTtl().toSeconds(),
         claims.getExpirationTime().toInstant().getEpochSecond()

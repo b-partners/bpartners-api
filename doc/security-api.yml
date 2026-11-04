@@ -74,7 +74,7 @@ operations:
         - Security
       summary: Issue a dashboard token
       description: |
-        Issues a short-lived token scoped to the bridge endpoints, to be sent as
+        Issues a short-lived token scoped to the api bridge endpoints, to be sent as
         `Authorization: Bearer <token>`. The token carries the user resolved from the api key.
       operationId: issueDashboardToken
       security:

@@ -1,6 +1,6 @@
 package app.bpartners.api.endpoint.rest.security.dashboard;
 
-import static app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenClaims.BRIDGE_SCOPE;
+import static app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenClaims.API_BRIDGE_SCOPE;
 import static app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenClaims.ISSUER;
 import static app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenClaims.SCOPE_CLAIM;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
@@ -38,7 +38,7 @@ public class DashboardTokenIssuer {
         .issuer(ISSUER)
         .issueTime(Date.from(issuedAt))
         .expirationTime(Date.from(expiresAt))
-        .claim(SCOPE_CLAIM, BRIDGE_SCOPE)
+        .claim(SCOPE_CLAIM, API_BRIDGE_SCOPE)
         .build();
   }
 

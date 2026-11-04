@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.security.cognito.CognitoComponent;
 import app.bpartners.api.endpoint.rest.security.dashboard.DashboardTokenVerifier;
-import app.bpartners.api.endpoint.rest.security.model.BridgePrincipal;
+import app.bpartners.api.endpoint.rest.security.model.ApiBridgePrincipal;
 import app.bpartners.api.endpoint.rest.security.model.Principal;
 import app.bpartners.api.model.User;
 import app.bpartners.api.service.user.UserService;
@@ -31,13 +31,13 @@ class BearerAuthenticatorTest {
 
   @Test
   void dashboard_token_is_verified_without_cognito_or_user_lookup() {
-    var bridgePrincipal = new BridgePrincipal("user-id", TOKEN);
+    var apiBridgePrincipal = new ApiBridgePrincipal("user-id", TOKEN);
     when(dashboardTokenVerifier.isIssuedByDashboard(TOKEN)).thenReturn(true);
-    when(dashboardTokenVerifier.verify(TOKEN)).thenReturn(bridgePrincipal);
+    when(dashboardTokenVerifier.verify(TOKEN)).thenReturn(apiBridgePrincipal);
 
     var actual = authenticator.retrieveUser(null, bearerCredentials());
 
-    assertSame(bridgePrincipal, actual);
+    assertSame(apiBridgePrincipal, actual);
     verifyNoInteractions(cognitoComponent, userService);
   }
 

@@ -163,7 +163,7 @@ class GeoJobsBridgeTest {
         subject.processThreeDSynchronously(
             "3d-1",
             new GeoJobsThreeDRequest()
-                .delimitationObjectType(GeoJobsDelimitationObjectType.BUILDING_ROOF)
+                .delimitationObjectType(GeoJobsDelimitationObjectType.fromValue("BUILDING_ROOF"))
                 .delimitationType(GeoJobsDelimitationType.USER_DEFINED_DELIMITATION));
 
     assertEquals(THREE_D_JSON, response.getBody());

@@ -241,7 +241,8 @@ class GeoJobsControllerTest {
 
   private static boolean isTheSentThreeDRequest(GeoJobsThreeDRequest request) {
     var feature = request.getDelimitations().get(0);
-    return request.getDelimitationObjectType() == GeoJobsDelimitationObjectType.BUILDING_ROOF
+    return request.getDelimitationObjectType()
+            == GeoJobsDelimitationObjectType.fromValue("BUILDING_ROOF")
         && request.getDelimitationType() == GeoJobsDelimitationType.USER_DEFINED_DELIMITATION
         && "Polygon".equals(feature.getGeometry().getType().getValue())
         && "f1".equals(feature.getProperties().getId())

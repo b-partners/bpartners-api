@@ -32,6 +32,12 @@ paths:
     $ref: './llm-api.yml#/operations/llmRoofReport'
 
   #############################################
+  ############### Geoserver API ###############
+  #############################################
+  /geoserver/wms:
+    $ref: './geoserver-api.yml#/operations/geoserverWmsGetMap'
+
+  #############################################
   ############## Onboarding API ###############
   #############################################
   /onboardingInitiation:
@@ -337,10 +343,26 @@ paths:
     $ref: './detection-monitoring-api.yml#/operations/detectionTrackingOperations'
 
   #############################################
+  ############## Analysis Project API #############
+  #############################################
+  /users/{userId}/analysisProjects:
+    $ref: './analysis-project-api.yml#/operations/analysisProjectsOperations'
+  /users/{userId}/analysisProjects/{projectKey}:
+    $ref: './analysis-project-api.yml#/operations/analysisProjectOperations'
+  /users/{userId}/analysisProjects/{projectKey}/2d:
+    $ref: './analysis-project-api.yml#/operations/analysisProject2dOperations'
+  /users/{userId}/analysisProjects/{projectKey}/3d:
+    $ref: './analysis-project-api.yml#/operations/analysisProject3dOperations'
+
+  #############################################
   ############## Address Autocompletion API #############
   #############################################
   /address/autocomplete:
     $ref: './address-autocompletion-api.yml#/operations/autoCompleteAddress'
+
+  ################## GEODATA API ##################
+  /geodata/geocode:
+    $ref: './geodata-api.yml#/operations/geodataGeocode'
 
 components:
   securitySchemes:

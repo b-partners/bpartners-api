@@ -503,6 +503,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(GET, "/map/layers/actual")
                     .authenticated()
+                    .requestMatchers(GET, "/geodata/geocode")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures", authResourceProvider))
@@ -761,6 +763,21 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             GET, "/users/*/detectionTracking", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/analysisProjects", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/analysisProjects/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/analysisProjects/*/2d", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/analysisProjects/*/3d", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/address/autocomplete")
                     .authenticated()
                     .requestMatchers(
@@ -822,6 +839,8 @@ public class SecurityConf {
                             GET, "/users/*/creditTransactions/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers("/llm/toiture")
+                    .authenticated()
+                    .requestMatchers("/geoserver/wms")
                     .authenticated()
                     .requestMatchers("/**")
                     .denyAll())

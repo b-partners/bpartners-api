@@ -1,5 +1,6 @@
 package app.bpartners.api.service.detection;
 
+import static app.bpartners.api.model.project.AnalysisProjectStep.ANALYSIS_2D;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.time.Instant.now;
@@ -8,9 +9,10 @@ import static java.util.UUID.randomUUID;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.detection.DetectionTracking;
+import app.bpartners.api.model.project.AnalysisProjectDescription;
 import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.DetectionTrackingRepository;
-import app.bpartners.api.service.credit.CreditService;
+import app.bpartners.api.service.project.AnalysisProjectService;
 import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.time.Instant;
@@ -31,7 +33,7 @@ public class DetectionTrackingService {
   private final DetectionTrackingRepository repository;
   private final SubscriptionService subscriptionService;
   private final CustomDateFormatter customDateFormatter;
-  private final CreditService creditService;
+  private final AnalysisProjectService analysisProjectService;
 
   public List<DetectionTracking> findAllByIdUserBetween(String idUser, Instant from, Instant to) {
     return repository.findAllByIdUserBetween(idUser, from, to);
@@ -69,9 +71,36 @@ public class DetectionTrackingService {
                   .comment(comment)
                   .creationDatetime(now())
                   .build());
-          creditService.consumeRoofAnalysis(userId, "Analyse toiture : " + saved.zone());
+          analysisProjectService.register(
+              userId,
+              projectKeyOf(saved),
+              saved.externalReference(),
+              ANALYSIS_2D,
+              "Analyse toiture : " + saved.zone(),
+              descriptionOf(saved));
         });
     return savedTracking;
+  }
+
+  private AnalysisProjectDescription descriptionOf(DetectionTracking tracking) {
+    var initiator = tracking.detectionInitiator();
+    return new AnalysisProjectDescription(
+        tracking.detectionIdentifier(),
+        tracking.zone(),
+        tracking.address(),
+        initiator.name(),
+        initiator.email(),
+        initiator.phoneNumber());
+  }
+
+  private String projectKeyOf(DetectionTracking tracking) {
+    var projectKey = tracking.projectKey();
+    var hasExternalReference =
+        tracking.externalReference() != null && !tracking.externalReference().isBlank();
+    if ((projectKey == null || projectKey.isBlank()) && !hasExternalReference) {
+      return "tracking:" + tracking.id();
+    }
+    return projectKey;
   }
 
   private List<DetectionTracking> filterUnregistered(List<DetectionTracking> tracking) {

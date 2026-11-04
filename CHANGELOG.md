@@ -1,3 +1,17 @@
+# [0.104.0](https://github.com/b-partners/bpartners-api/compare/v0.103.0...v0.104.0) (2026-11-04)
+
+
+### Features
+
+* bridge genai roof report ([220fbd4](https://github.com/b-partners/bpartners-api/commit/220fbd419af3d2cf7c3346803fd67d31b4c49fbb))
+* bridge geo-jobs endpoints ([a7a6e1d](https://github.com/b-partners/bpartners-api/commit/a7a6e1dae9a1ed9a1f670910d0dfe1820cd0906b))
+* bridge geodata service ([be73cc2](https://github.com/b-partners/bpartners-api/commit/be73cc2a9d8c355645e4ebe78214c35438e928d6))
+* bridge GeoServer WMS GetMap ([b017a77](https://github.com/b-partners/bpartners-api/commit/b017a77b416ed80c4f57ef7e5c725ec425f2b48a))
+* draft analysis project ([46dfbbf](https://github.com/b-partners/bpartners-api/commit/46dfbbf03613c97f1ba30c54d29ca4da2419ab02))
+* **security:** dashboard token auth for bridge endpoints ([02e8f58](https://github.com/b-partners/bpartners-api/commit/02e8f586149688f2f6aa2470f46d5c6ecd3c393d))
+
+
+
 # [0.103.0](https://github.com/b-partners/bpartners-api/compare/v0.102.0...v0.103.0) (2026-11-04)
 
 
@@ -305,15 +319,6 @@
 
 * "chore: optimize PDF export performance and file size" ([420d7d3](https://github.com/b-partners/bpartners-api/commit/420d7d3980b76ec309ccf028e3a997a25be35c45))
 * pdf optimization prod ([a91b3ee](https://github.com/b-partners/bpartners-api/commit/a91b3ee1ac45bd2cd6fb6709e8c0e10816375a74))
-
-
-
-# [0.85.0](https://github.com/b-partners/bpartners-api/compare/v0.84.0...v0.85.0) (2026-07-21)
-
-
-### Features
-
-* use translated polygon on pdf export if available ([2be0716](https://github.com/b-partners/bpartners-api/commit/2be0716d65d2686031ee61c345709fb8ff3f94d0))
 
 
 

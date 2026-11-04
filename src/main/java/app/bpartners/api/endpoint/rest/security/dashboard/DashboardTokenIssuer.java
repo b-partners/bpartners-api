@@ -32,6 +32,7 @@ public class DashboardTokenIssuer {
         .expiresAt(expiresAt);
   }
 
+  @SuppressWarnings("java:S2143")
   private static JWTClaimsSet claims(String userId, Instant issuedAt, Instant expiresAt) {
     return new JWTClaimsSet.Builder()
         .subject(userId)

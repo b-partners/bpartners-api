@@ -11,10 +11,10 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.text.ParseException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -50,11 +50,10 @@ public class DashboardTokenVerifier {
   }
 
   private static boolean isUnexpiredApiBridgeToken(JWTClaimsSet claims) {
-    Date expiration = claims.getExpirationTime();
     return ISSUER.equals(claims.getIssuer())
         && claims.getSubject() != null
-        && expiration != null
-        && expiration.after(new Date())
+        && claims.getExpirationTime() != null
+        && claims.getExpirationTime().toInstant().isAfter(Instant.now())
         && API_BRIDGE_SCOPE.equals(claims.getClaim(SCOPE_CLAIM));
   }
 
@@ -74,7 +73,7 @@ public class DashboardTokenVerifier {
     }
   }
 
-  private static UsernameNotFoundException invalid() {
-    return new UsernameNotFoundException("Bad credentials: dashboard token is not valid");
+  private static BadCredentialsException invalid() {
+    return new BadCredentialsException("Bad credentials: dashboard token is not valid");
   }
 }

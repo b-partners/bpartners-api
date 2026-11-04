@@ -16,7 +16,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 
 class DashboardTokenVerifierTest {
   private static final String SIGNING_KEY = "test-dashboard-token-signing-key-0123456789";
@@ -42,14 +42,14 @@ class DashboardTokenVerifierTest {
   void expired_token_is_rejected() throws Exception {
     var token = signedToken(DashboardTokenClaims.ISSUER, SIGNING_KEY, Duration.ofMinutes(-5));
 
-    assertThrows(UsernameNotFoundException.class, () -> verifier.verify(token));
+    assertThrows(BadCredentialsException.class, () -> verifier.verify(token));
   }
 
   @Test
   void token_signed_with_another_key_is_rejected() throws Exception {
     var token = signedToken(DashboardTokenClaims.ISSUER, OTHER_KEY, Duration.ofMinutes(5));
 
-    assertThrows(UsernameNotFoundException.class, () -> verifier.verify(token));
+    assertThrows(BadCredentialsException.class, () -> verifier.verify(token));
   }
 
   @Test

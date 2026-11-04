@@ -838,6 +838,8 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             GET, "/users/*/creditTransactions/*", authResourceProvider))
                     .authenticated()
+                    .requestMatchers("/llm/toiture")
+                    .authenticated()
                     .requestMatchers("/geoserver/wms")
                     .authenticated()
                     .requestMatchers("/**")

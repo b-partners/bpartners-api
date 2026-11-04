@@ -26,6 +26,32 @@ paths:
     $ref: './security-api.yml#/operations/validateToken'
 
   #############################################
+  ################ GeoJobs API ################
+  #############################################
+  /geo-jobs/detections/{id}/sync:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsDetectionSync'
+  /geo-jobs/detections/{id}:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsDetection'
+  /geo-jobs/detections/{id}/roofs/properties:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsDetectionRoofsProperties'
+  /geo-jobs/detections/{id}/image:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsDetectionImage'
+  /geo-jobs/detections/{id}/pdf:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsDetectionPdf'
+  /geo-jobs/detections/{id}/roofer/email:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsDetectionRooferEmail'
+  /geo-jobs/3d/{id}/sync:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsThreeDSync'
+  /geo-jobs/3d/{id}:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsThreeD'
+  /geo-jobs/3d/{id}/intersections:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsThreeDIntersections'
+  /geo-jobs/coverage:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsCoverage'
+  /geo-jobs/geocode:
+    $ref: './geo-jobs-api.yml#/operations/geoJobsGeocode'
+
+  #############################################
   ############## Onboarding API ###############
   #############################################
   /onboardingInitiation:

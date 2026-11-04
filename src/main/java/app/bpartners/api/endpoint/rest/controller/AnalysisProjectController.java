@@ -4,12 +4,14 @@ import static app.bpartners.api.model.project.AnalysisProjectStep.MODEL_3D;
 
 import app.bpartners.api.endpoint.rest.mapper.AnalysisProjectRestMapper;
 import app.bpartners.api.endpoint.rest.model.AnalysisProject;
+import app.bpartners.api.endpoint.rest.model.CreateDraftAnalysisProject;
 import app.bpartners.api.endpoint.rest.model.Register2d;
 import app.bpartners.api.endpoint.rest.model.Register3d;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.project.AnalysisProjectDescription;
+import app.bpartners.api.model.project.AnalysisProjectPhase;
 import app.bpartners.api.service.detection.DetectionTrackingService;
 import app.bpartners.api.service.project.AnalysisProjectService;
 import java.util.List;
@@ -35,9 +37,11 @@ public class AnalysisProjectController {
       @RequestParam(required = false) String externalReference,
       @RequestParam(required = false) String search,
       @RequestParam(required = false) PageFromOne page,
-      @RequestParam(required = false) BoundedPageSize pageSize) {
+      @RequestParam(required = false) BoundedPageSize pageSize,
+      @RequestParam(required = false)
+          app.bpartners.api.endpoint.rest.model.AnalysisProjectPhase status) {
     return analysisProjectService
-        .list(userId, projectKey, externalReference, search, page, pageSize)
+        .list(userId, projectKey, externalReference, search, toDomain(status), page, pageSize)
         .stream()
         .map(mapper::toRest)
         .toList();
@@ -49,6 +53,27 @@ public class AnalysisProjectController {
       @PathVariable String projectKey,
       @RequestParam(required = false) String externalReference) {
     return mapper.toRest(analysisProjectService.getStatus(userId, projectKey, externalReference));
+  }
+
+  @PutMapping("/users/{userId}/analysisProjects/{projectKey}")
+  public AnalysisProject createDraftAnalysisProject(
+      @PathVariable String userId,
+      @PathVariable String projectKey,
+      @RequestBody CreateDraftAnalysisProject body) {
+    analysisProjectService.createDraft(
+        userId,
+        projectKey,
+        body.getExternalReference(),
+        mapper.toDescription(body),
+        body.getAreaPictureId(),
+        body.getProspectId());
+    return mapper.toRest(
+        analysisProjectService.getStatus(userId, projectKey, body.getExternalReference()));
+  }
+
+  private AnalysisProjectPhase toDomain(
+      app.bpartners.api.endpoint.rest.model.AnalysisProjectPhase status) {
+    return status == null ? null : AnalysisProjectPhase.valueOf(status.name());
   }
 
   @PutMapping("/users/{userId}/analysisProjects/{projectKey}/2d")

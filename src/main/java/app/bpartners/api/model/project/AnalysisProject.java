@@ -66,6 +66,12 @@ public class AnalysisProject {
   @Column(name = "creation_datetime")
   private Instant creationDatetime;
 
+  @Column(name = "area_picture_id")
+  private String areaPictureId;
+
+  @Column(name = "prospect_id")
+  private String prospectId;
+
   public boolean isAnalysis2dDone() {
     return analysis2dDatetime != null;
   }
@@ -76,6 +82,16 @@ public class AnalysisProject {
 
   public boolean isCreditConsumed() {
     return creditConsumedDatetime != null;
+  }
+
+  public AnalysisProjectPhase phase() {
+    if (isAnalysis2dDone() && isModel3dDone()) {
+      return AnalysisProjectPhase.DONE;
+    }
+    if (isAnalysis2dDone() || isModel3dDone()) {
+      return AnalysisProjectPhase.IN_PROGRESS;
+    }
+    return AnalysisProjectPhase.DRAFT;
   }
 
   public boolean isDone(AnalysisProjectStep step) {

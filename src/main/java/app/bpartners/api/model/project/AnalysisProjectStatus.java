@@ -17,6 +17,9 @@ public class AnalysisProjectStatus {
   String initiatorEmail;
   String initiatorPhoneNumber;
   Instant creationDatetime;
+  AnalysisProjectPhase phase;
+  String areaPictureId;
+  String prospectId;
   boolean analysis2dDone;
   boolean model3dDone;
   boolean creditConsumed;
@@ -35,6 +38,7 @@ public class AnalysisProjectStatus {
     var creditConsumed = known && project.isCreditConsumed();
     var builder =
         AnalysisProjectStatus.builder()
+            .phase(known ? project.phase() : AnalysisProjectPhase.DRAFT)
             .projectKey(known ? project.getProjectKey() : projectKey)
             .externalReference(known ? project.getExternalReference() : externalReference)
             .analysis2dDone(known && project.isAnalysis2dDone())
@@ -55,6 +59,8 @@ public class AnalysisProjectStatus {
           .initiatorName(project.getInitiatorName())
           .initiatorEmail(project.getInitiatorEmail())
           .initiatorPhoneNumber(project.getInitiatorPhoneNumber())
+          .areaPictureId(project.getAreaPictureId())
+          .prospectId(project.getProspectId())
           .creationDatetime(project.getCreationDatetime());
     }
     return builder.build();

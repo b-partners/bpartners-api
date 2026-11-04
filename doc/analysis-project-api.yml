@@ -6,8 +6,8 @@ operations:
       summary: Retrieve the analysis projects of a user
       description: |
         An analysis project gathers the 2D analysis and the 3D model of a same feature, and consumes
-        a single credit whatever the number of steps performed. Projects are ordered by creation
-        datetime DESC. This operation replaces `GET /users/{userId}/detectionTracking`.
+        a single credit whatever the number of steps performed. Draft projects, on which no step
+        has been registered yet, are included. Projects are ordered by creation datetime DESC. This operation replaces `GET /users/{userId}/detectionTracking`.
       parameters:
         - in: path
           name: userId
@@ -39,6 +39,12 @@ operations:
           name: pageSize
           schema:
             $ref: './api.yml#/components/schemas/PageSize'
+        - in: query
+          name: status
+          description: Filter projects by their status.
+          schema:
+            $ref: '#/components/schemas/AnalysisProjectPhase'
+          required: false
       operationId: listAnalysisProjects
       responses:
         200:
@@ -89,6 +95,51 @@ operations:
       responses:
         200:
           description: Status of the analysis project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Analysis Project
+      summary: Create a draft analysis project
+      description: |
+        Creates the project identified by `projectKey` in `DRAFT` status, before any step is
+        registered. The key is chosen by the caller, so the operation is idempotent: when the
+        project already exists it is returned as is, and only a project still in `DRAFT` has its
+        description completed. No credit is debited, only the registration of the 2D analysis and of
+        the 3D model consume one.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: projectKey
+          schema:
+            type: string
+          required: true
+      operationId: createDraftAnalysisProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftAnalysisProject'
+        required: true
+      responses:
+        200:
+          description: The draft analysis project
           content:
             application/json:
               schema:
@@ -203,6 +254,32 @@ components:
       enum:
         - ANALYSIS_2D
         - MODEL_3D
+    AnalysisProjectPhase:
+      type: string
+      enum:
+        - DRAFT
+        - IN_PROGRESS
+        - DONE
+    CreateDraftAnalysisProject:
+      type: object
+      required:
+        - address
+        - zone
+      properties:
+        address:
+          type: string
+        zone:
+          type: string
+          description: |
+            Polygon of the zone as longitude/latitude coordinates, serialized as a GeoJSON geometry.
+        externalReference:
+          type: string
+          description: Optional identifier given by the API consumer, used as an alias of the project.
+        areaPictureId:
+          type: string
+          description: Area picture whose annotation is the working data of the project.
+        prospectId:
+          type: string
     Register2d:
       type: object
       properties:
@@ -249,6 +326,12 @@ components:
         creationDatetime:
           type: string
           format: date-time
+        status:
+          $ref: '#/components/schemas/AnalysisProjectPhase'
+        areaPictureId:
+          type: string
+        prospectId:
+          type: string
         analysis2dDone:
           type: boolean
         model3dDone:

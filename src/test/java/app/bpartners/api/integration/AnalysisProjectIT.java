@@ -18,8 +18,10 @@ import app.bpartners.api.endpoint.rest.api.AnalysisProjectApi;
 import app.bpartners.api.endpoint.rest.api.DetectionTrackingApi;
 import app.bpartners.api.endpoint.rest.client.ApiClient;
 import app.bpartners.api.endpoint.rest.client.ApiException;
+import app.bpartners.api.endpoint.rest.model.AnalysisProjectPhase;
 import app.bpartners.api.endpoint.rest.model.AnalysisProjectStep;
 import app.bpartners.api.endpoint.rest.model.CreateDetectionTracking;
+import app.bpartners.api.endpoint.rest.model.CreateDraftAnalysisProject;
 import app.bpartners.api.endpoint.rest.model.DetectionInitiator;
 import app.bpartners.api.endpoint.rest.model.Register2d;
 import app.bpartners.api.endpoint.rest.model.Register3d;
@@ -199,7 +201,7 @@ class AnalysisProjectIT extends MockedThirdParties {
     assertEquals(externalReference, actual.getExternalReference());
     assertEquals(1, consumptionsOfJoeDoe().size());
     var byReference =
-        api.listAnalysisProjects(JOE_DOE_ID, null, externalReference, null, null, null);
+        api.listAnalysisProjects(JOE_DOE_ID, null, externalReference, null, null, null, null);
     assertEquals(1, byReference.size());
     assertEquals(actual.getProjectKey(), byReference.getFirst().getProjectKey());
   }
@@ -247,8 +249,9 @@ class AnalysisProjectIT extends MockedThirdParties {
         "v1:" + randomUUID(),
         new Register3d().address("other-address-" + randomUUID()));
 
-    var all = api.listAnalysisProjects(JOE_DOE_ID, null, null, null, null, null);
-    var filtered = api.listAnalysisProjects(JOE_DOE_ID, null, null, "ADDRESS-" + token, null, null);
+    var all = api.listAnalysisProjects(JOE_DOE_ID, null, null, null, null, null, null);
+    var filtered =
+        api.listAnalysisProjects(JOE_DOE_ID, null, null, "ADDRESS-" + token, null, null, null);
 
     assertEquals(2, all.size());
     assertEquals(1, filtered.size());
@@ -273,8 +276,8 @@ class AnalysisProjectIT extends MockedThirdParties {
     api.registerAnalysisProject3d(JOE_DOE_ID, firstKey, new Register3d());
     api.registerAnalysisProject3d(JOE_DOE_ID, secondKey, new Register3d());
 
-    var all = api.listAnalysisProjects(JOE_DOE_ID, null, null, null, null, null);
-    var byKey = api.listAnalysisProjects(JOE_DOE_ID, firstKey, null, null, null, null);
+    var all = api.listAnalysisProjects(JOE_DOE_ID, null, null, null, null, null, null);
+    var byKey = api.listAnalysisProjects(JOE_DOE_ID, firstKey, null, null, null, null, null);
 
     assertEquals(List.of(secondKey, firstKey), all.stream().map(p -> p.getProjectKey()).toList());
     assertEquals(1, byKey.size());
@@ -342,6 +345,67 @@ class AnalysisProjectIT extends MockedThirdParties {
     assertTrue(actual.getAnalysis2dDone());
     assertTrue(actual.getModel3dDone());
     assertEquals(1, consumptionsOfJoeDoe().size());
+  }
+
+  @SneakyThrows
+  @Test
+  void put_creates_a_draft_without_debiting_and_is_idempotent() {
+    var projectKey = randomUUID().toString();
+    var api = new AnalysisProjectApi(anApiClient());
+    var body =
+        new CreateDraftAnalysisProject()
+            .address("draftAddress")
+            .zone("{\"type\":\"Polygon\",\"coordinates\":[]}")
+            .areaPictureId("areaPicture-" + projectKey)
+            .prospectId("prospect-" + projectKey);
+
+    var created = api.createDraftAnalysisProject(JOE_DOE_ID, projectKey, body);
+    var again = api.createDraftAnalysisProject(JOE_DOE_ID, projectKey, body);
+
+    assertEquals(AnalysisProjectPhase.DRAFT, created.getStatus());
+    assertEquals(projectKey, created.getProjectKey());
+    assertEquals("draftAddress", created.getAddress());
+    assertEquals("areaPicture-" + projectKey, created.getAreaPictureId());
+    assertEquals("prospect-" + projectKey, created.getProspectId());
+    assertEquals(created.getCreationDatetime(), again.getCreationDatetime());
+    assertEquals(1, analysisProjectRepository.count());
+    assertEquals(0, consumptionsOfJoeDoe().size());
+    assertEquals(100L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+  }
+
+  @SneakyThrows
+  @Test
+  void draft_is_listed_and_follows_the_status_lifecycle() {
+    var projectKey = randomUUID().toString();
+    var api = new AnalysisProjectApi(anApiClient());
+    api.createDraftAnalysisProject(
+        JOE_DOE_ID, projectKey, new CreateDraftAnalysisProject().address("a").zone("z"));
+
+    var drafts =
+        api.listAnalysisProjects(
+            JOE_DOE_ID, null, null, null, null, null, AnalysisProjectPhase.DRAFT);
+    assertEquals(1, drafts.size());
+
+    register2d(projectKey, null);
+    var inProgress =
+        api.listAnalysisProjects(
+            JOE_DOE_ID, null, null, null, null, null, AnalysisProjectPhase.IN_PROGRESS);
+    assertEquals(AnalysisProjectPhase.IN_PROGRESS, inProgress.get(0).getStatus());
+    assertEquals(
+        0,
+        api.listAnalysisProjects(
+                JOE_DOE_ID, null, null, null, null, null, AnalysisProjectPhase.DRAFT)
+            .size());
+
+    var done = api.registerAnalysisProject3d(JOE_DOE_ID, projectKey, new Register3d());
+    assertEquals(AnalysisProjectPhase.DONE, done.getStatus());
+    assertEquals(1, consumptionsOfJoeDoe().size());
+
+    var afterDone =
+        api.createDraftAnalysisProject(
+            JOE_DOE_ID, projectKey, new CreateDraftAnalysisProject().address("b").zone("z2"));
+    assertEquals(AnalysisProjectPhase.DONE, afterDone.getStatus());
+    assertEquals(done.getAddress(), afterDone.getAddress());
   }
 
   private List<CreditTransaction> consumptionsOfJoeDoe() {

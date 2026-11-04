@@ -30,11 +30,20 @@ public interface AnalysisProjectRepository extends JpaRepository<AnalysisProject
           + " LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))"
           + " OR LOWER(p.externalReference) LIKE LOWER(CONCAT('%', CAST(:search AS string),"
           + " '%')))"
+          + " AND (CAST(:status AS string) IS NULL"
+          + " OR (CAST(:status AS string) = 'DRAFT'"
+          + " AND p.analysis2dDatetime IS NULL AND p.model3dDatetime IS NULL)"
+          + " OR (CAST(:status AS string) = 'DONE'"
+          + " AND p.analysis2dDatetime IS NOT NULL AND p.model3dDatetime IS NOT NULL)"
+          + " OR (CAST(:status AS string) = 'IN_PROGRESS'"
+          + " AND ((p.analysis2dDatetime IS NULL AND p.model3dDatetime IS NOT NULL)"
+          + " OR (p.analysis2dDatetime IS NOT NULL AND p.model3dDatetime IS NULL))))"
           + " ORDER BY p.creationDatetime DESC")
   List<AnalysisProject> findAllByUserIdAndFilters(
       @Param("userId") String userId,
       @Param("projectKey") String projectKey,
       @Param("externalReference") String externalReference,
       @Param("search") String search,
+      @Param("status") String status,
       Pageable pageable);
 }

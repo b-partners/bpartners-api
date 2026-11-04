@@ -8,6 +8,7 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.project.AnalysisProject;
 import app.bpartners.api.model.project.AnalysisProjectDescription;
+import app.bpartners.api.model.project.AnalysisProjectPhase;
 import app.bpartners.api.model.project.AnalysisProjectStatus;
 import app.bpartners.api.model.project.AnalysisProjectStep;
 import app.bpartners.api.repository.jpa.AnalysisProjectRepository;
@@ -63,6 +64,37 @@ public class AnalysisProjectService {
     return repository.save(withAlias(registered, externalReference));
   }
 
+  @Transactional
+  public AnalysisProject createDraft(
+      String actorUserId,
+      String projectKey,
+      String externalReference,
+      AnalysisProjectDescription description,
+      String areaPictureId,
+      String prospectId) {
+    if (isBlank(projectKey)) {
+      throw new BadRequestException("projectKey is mandatory.");
+    }
+    var userId = primaryUserResolver.resolve(actorUserId);
+    creditTransactionRepository.acquireWalletLock(userId);
+
+    var existing = find(userId, projectKey, externalReference);
+    if (existing.isPresent() && existing.get().phase() != AnalysisProjectPhase.DRAFT) {
+      return existing.get();
+    }
+    var draft =
+        existing
+            .orElseGet(() -> newProject(userId, projectKey, externalReference))
+            .withDescription(description);
+    return repository.save(
+        withAlias(
+            draft.toBuilder()
+                .areaPictureId(firstNonBlank(areaPictureId, draft.getAreaPictureId()))
+                .prospectId(firstNonBlank(prospectId, draft.getProspectId()))
+                .build(),
+            externalReference));
+  }
+
   @Transactional(readOnly = true)
   public AnalysisProjectStatus getStatus(
       String actorUserId, String projectKey, String externalReference) {
@@ -85,6 +117,7 @@ public class AnalysisProjectService {
       String projectKey,
       String externalReference,
       String search,
+      AnalysisProjectPhase status,
       PageFromOne page,
       BoundedPageSize pageSize) {
     var userId = primaryUserResolver.resolve(actorUserId);
@@ -97,6 +130,7 @@ public class AnalysisProjectService {
             blankToNull(projectKey),
             blankToNull(externalReference),
             blankToNull(search),
+            status == null ? null : status.name(),
             PageRequest.of(pageValue, pageSizeValue))
         .stream()
         .map(
@@ -137,6 +171,10 @@ public class AnalysisProjectService {
       return project;
     }
     return project.toBuilder().externalReference(externalReference).build();
+  }
+
+  private String firstNonBlank(String candidate, String current) {
+    return isBlank(candidate) ? current : candidate;
   }
 
   private boolean isBlank(String value) {

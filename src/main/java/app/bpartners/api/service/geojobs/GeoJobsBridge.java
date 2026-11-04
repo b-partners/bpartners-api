@@ -10,37 +10,39 @@ import app.bpartners.api.endpoint.rest.model.GeoJobsCreateDetection;
 import app.bpartners.api.endpoint.rest.model.GeoJobsCreateRoofIntersections;
 import app.bpartners.api.endpoint.rest.model.GeoJobsProspect;
 import app.bpartners.api.endpoint.rest.model.GeoJobsThreeDRequest;
+import app.bpartners.api.service.bridge.DownstreamRelay;
+import app.bpartners.api.service.bridge.ForwardedQuery;
 import java.net.URI;
-import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.DefaultResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class GeoJobsBridge {
   private static final String DETECTIONS = "detections";
   private static final String THREE_D = "3d";
+  private static final Set<String> COVERAGE_PARAMS =
+      Set.of("address", "longitude", "latitude", "types");
+  private static final Set<String> GEOCODE_PARAMS = Set.of("address", "longitude", "latitude");
 
   private final String geoJobsBaseUrl;
   private final GeoJobsUserApiKey userApiKey;
-  private final RestTemplate errorRelayingRestTemplate;
+  private final DownstreamRelay downstreamRelay;
 
   public GeoJobsBridge(
       @Value("${geo.jobs.base.url}") String geoJobsBaseUrl,
       GeoJobsUserApiKey userApiKey,
-      RestTemplate restTemplate) {
+      DownstreamRelay downstreamRelay) {
     this.geoJobsBaseUrl = StringUtils.trimTrailingCharacter(geoJobsBaseUrl, '/');
     this.userApiKey = userApiKey;
-    this.errorRelayingRestTemplate = errorRelayingCopyOf(restTemplate);
+    this.downstreamRelay = downstreamRelay;
   }
 
   public ResponseEntity<String> processDetectionSynchronously(
@@ -88,34 +90,23 @@ public class GeoJobsBridge {
         PUT, uriOf(THREE_D, threeDId, "intersections"), jsonRequest(roofIntersections));
   }
 
-  public ResponseEntity<String> getCoverage(GeoJobsCoverageQuery query) {
-    var uri =
-        pathBuilderOf("coverage")
-            .queryParamIfPresent("address", Optional.ofNullable(query.address()))
-            .queryParamIfPresent("longitude", Optional.ofNullable(query.longitude()))
-            .queryParamIfPresent("latitude", Optional.ofNullable(query.latitude()))
-            .queryParamIfPresent("types", Optional.ofNullable(query.types()))
-            .encode()
-            .build()
-            .toUri();
-    return callGeoJobs(GET, uri, bodylessRequest());
+  public ResponseEntity<String> getCoverage(String rawQuery) {
+    return callGeoJobs(GET, queryUriOf("coverage", rawQuery, COVERAGE_PARAMS), bodylessRequest());
   }
 
-  public ResponseEntity<String> getGeocode(GeoJobsGeocodeQuery query) {
-    var uri =
-        pathBuilderOf("geocode")
-            .queryParamIfPresent("address", Optional.ofNullable(query.address()))
-            .queryParamIfPresent("longitude", Optional.ofNullable(query.longitude()))
-            .queryParamIfPresent("latitude", Optional.ofNullable(query.latitude()))
-            .encode()
-            .build()
-            .toUri();
-    return callGeoJobs(GET, uri, bodylessRequest());
+  public ResponseEntity<String> getGeocode(String rawQuery) {
+    return callGeoJobs(GET, queryUriOf("geocode", rawQuery, GEOCODE_PARAMS), bodylessRequest());
   }
 
   private ResponseEntity<String> callGeoJobs(HttpMethod method, URI uri, HttpEntity<?> request) {
-    var geoJobsResponse = errorRelayingRestTemplate.exchange(uri, method, request, String.class);
-    return relay(geoJobsResponse);
+    return downstreamRelay.exchange(uri, method, request, String.class);
+  }
+
+  private URI queryUriOf(String pathSegment, String rawQuery, Set<String> allowedParams) {
+    return pathBuilderOf(pathSegment)
+        .query(ForwardedQuery.keeping(rawQuery, allowedParams))
+        .build(true)
+        .toUri();
   }
 
   private URI uriOf(String... pathSegments) {
@@ -144,28 +135,5 @@ public class GeoJobsBridge {
     var headers = new HttpHeaders();
     headers.add(API_KEY_HEADER, userApiKey.ofAuthenticatedUser());
     return headers;
-  }
-
-  private static ResponseEntity<String> relay(ResponseEntity<String> geoJobsResponse) {
-    var headers = new HttpHeaders();
-    var contentType = geoJobsResponse.getHeaders().getContentType();
-    if (contentType != null) {
-      headers.setContentType(contentType);
-    }
-    return new ResponseEntity<>(
-        geoJobsResponse.getBody(), headers, geoJobsResponse.getStatusCode());
-  }
-
-  private static RestTemplate errorRelayingCopyOf(RestTemplate restTemplate) {
-    var copy = new RestTemplate(restTemplate.getRequestFactory());
-    copy.setErrorHandler(new NeverFailingErrorHandler());
-    return copy;
-  }
-
-  private static class NeverFailingErrorHandler extends DefaultResponseErrorHandler {
-    @Override
-    public boolean hasError(ClientHttpResponse response) {
-      return false;
-    }
   }
 }

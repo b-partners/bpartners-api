@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import app.bpartners.api.endpoint.rest.model.LlmRoof;
-import app.bpartners.api.service.llm.LegacyLlmRoofQuery;
 import app.bpartners.api.service.llm.LlmBridge;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
@@ -24,19 +23,16 @@ class LlmControllerTest {
   MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new LlmController(llmBridge)).build();
 
   @Test
-  void get_toiture_binds_query_params_including_accented_humidite() throws Exception {
-    when(llmBridge.getToiture(any())).thenReturn(ResponseEntity.ok("<html/>"));
+  void get_toiture_passes_the_raw_query_string_including_encoded_humidite() throws Exception {
+    var rawQuery = "surfaceEnM2=42.5&humidit%C3%A9=3&adresse=1%20rue%2C%20Paris";
+    when(llmBridge.getToiture(rawQuery)).thenReturn(ResponseEntity.ok("<html/>"));
 
     mockMvc
-        .perform(get("/llm/toiture").param("surfaceEnM2", "42.5").param("humidité", "3"))
+        .perform(get("/llm/toiture").queryString(rawQuery))
         .andExpect(status().isOk())
         .andExpect(content().string("<html/>"));
 
-    verify(llmBridge)
-        .getToiture(
-            argThat(
-                (LegacyLlmRoofQuery query) ->
-                    query.surfaceEnM2() == 42.5 && query.humidite() == 3.0));
+    verify(llmBridge).getToiture(rawQuery);
   }
 
   @Test

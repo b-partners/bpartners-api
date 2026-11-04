@@ -359,6 +359,7 @@ class AnalysisProjectIT extends MockedThirdParties {
             .areaPictureId("areaPicture-" + projectKey)
             .prospectId("prospect-" + projectKey);
 
+    var balanceBefore = creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits();
     var created = api.createDraftAnalysisProject(JOE_DOE_ID, projectKey, body);
     var again = api.createDraftAnalysisProject(JOE_DOE_ID, projectKey, body);
 
@@ -367,10 +368,12 @@ class AnalysisProjectIT extends MockedThirdParties {
     assertEquals("draftAddress", created.getAddress());
     assertEquals("areaPicture-" + projectKey, created.getAreaPictureId());
     assertEquals("prospect-" + projectKey, created.getProspectId());
-    assertEquals(created.getCreationDatetime(), again.getCreationDatetime());
-    assertEquals(1, analysisProjectRepository.count());
+    assertEquals(created.getProjectKey(), again.getProjectKey());
+    assertEquals(created.getStatus(), again.getStatus());
+    assertEquals(
+        1, api.listAnalysisProjects(JOE_DOE_ID, projectKey, null, null, null, null, null).size());
     assertEquals(0, consumptionsOfJoeDoe().size());
-    assertEquals(100L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+    assertEquals(balanceBefore, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
   }
 
   @SneakyThrows

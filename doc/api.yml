@@ -26,6 +26,12 @@ paths:
     $ref: './security-api.yml#/operations/validateToken'
 
   #############################################
+  ############### Geoserver API ###############
+  #############################################
+  /geoserver/wms:
+    $ref: './geoserver-api.yml#/operations/geoserverWmsGetMap'
+
+  #############################################
   ############## Onboarding API ###############
   #############################################
   /onboardingInitiation:

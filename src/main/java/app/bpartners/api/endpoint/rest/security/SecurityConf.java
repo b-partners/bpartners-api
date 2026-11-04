@@ -836,6 +836,8 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             GET, "/users/*/creditTransactions/*", authResourceProvider))
                     .authenticated()
+                    .requestMatchers("/geoserver/wms")
+                    .authenticated()
                     .requestMatchers("/**")
                     .denyAll())
 

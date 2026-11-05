@@ -26,6 +26,7 @@ public class UserActivityRestMapper {
   private ConsumptionType activityTypeToRest(UserActivityType activityType) {
     return switch (activityType) {
       case ROOF_DETECTION_2D -> ConsumptionType.ROOF_ANALYSIS;
+      case ROOF_MODEL_3D -> ConsumptionType.ROOF_MODEL_3D;
       case AERIAL_IMAGE_ACCESS -> ConsumptionType.IMAGE_ACCESS;
     };
   }
@@ -52,6 +53,7 @@ public class UserActivityRestMapper {
   private UserActivityType activityTypeToDomain(ConsumptionType consumptionType) {
     return switch (consumptionType) {
       case ROOF_ANALYSIS -> UserActivityType.ROOF_DETECTION_2D;
+      case ROOF_MODEL_3D -> UserActivityType.ROOF_MODEL_3D;
       case IMAGE_ACCESS -> UserActivityType.AERIAL_IMAGE_ACCESS;
     };
   }

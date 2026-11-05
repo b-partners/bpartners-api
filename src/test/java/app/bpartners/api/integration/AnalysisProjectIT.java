@@ -12,6 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.rest.api.AnalysisProjectApi;
@@ -28,6 +31,9 @@ import app.bpartners.api.endpoint.rest.model.Register3d;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.activity.UserActivity;
+import app.bpartners.api.model.activity.UserActivityType;
+import app.bpartners.api.model.activity.UserActivityUnit;
 import app.bpartners.api.model.credit.CreditTransaction;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.AnalysisProjectRepository;
@@ -42,6 +48,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -143,6 +150,25 @@ class AnalysisProjectIT extends MockedThirdParties {
 
   @SneakyThrows
   @Test
+  void model_3d_records_a_single_user_activity() {
+    var projectKey = "v1:" + randomUUID();
+    var api = new AnalysisProjectApi(anApiClient());
+
+    api.registerAnalysisProject3d(JOE_DOE_ID, projectKey, new Register3d().address("some address"));
+    api.registerAnalysisProject3d(JOE_DOE_ID, projectKey, new Register3d().address("some address"));
+
+    var captor = ArgumentCaptor.forClass(UserActivity.class);
+    verify(userActivityService, times(1)).record(captor.capture());
+    var actual = captor.getValue();
+    assertEquals(JOE_DOE_ID, actual.getUserId());
+    assertEquals(UserActivityType.ROOF_MODEL_3D, actual.getActivityType());
+    assertEquals(UserActivityUnit.UNIT, actual.getActivityUnit());
+    assertEquals(1L, actual.getQuantity());
+    assertEquals("Modèle 3D : some address", actual.getDescription());
+  }
+
+  @SneakyThrows
+  @Test
   void model_3d_then_analysis_2d_debits_a_single_credit() {
     var projectKey = "v1:" + randomUUID();
     var api = new AnalysisProjectApi(anApiClient());
@@ -224,6 +250,7 @@ class AnalysisProjectIT extends MockedThirdParties {
     assertEquals(402, exception.getCode());
     assertTrue(analysisProjectRepository.findAll().isEmpty());
     assertEquals(0, consumptionsOfJoeDoe().size());
+    verify(userActivityService, never()).record(any());
   }
 
   @SneakyThrows

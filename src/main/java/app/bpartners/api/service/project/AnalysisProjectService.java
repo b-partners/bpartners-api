@@ -1,10 +1,13 @@
 package app.bpartners.api.service.project;
 
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_MODEL_3D;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.activity.UserActivity;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.project.AnalysisProject;
 import app.bpartners.api.model.project.AnalysisProjectDescription;
@@ -13,6 +16,7 @@ import app.bpartners.api.model.project.AnalysisProjectStatus;
 import app.bpartners.api.model.project.AnalysisProjectStep;
 import app.bpartners.api.repository.jpa.AnalysisProjectRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
+import app.bpartners.api.service.activity.UserActivityService;
 import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.subscription.PrimaryUserResolver;
 import java.util.List;
@@ -30,6 +34,7 @@ public class AnalysisProjectService {
   private final CreditTransactionRepository creditTransactionRepository;
   private final CreditService creditService;
   private final PrimaryUserResolver primaryUserResolver;
+  private final UserActivityService userActivityService;
 
   @Transactional
   public AnalysisProject register(
@@ -61,7 +66,24 @@ public class AnalysisProjectService {
               .creditTransactionId(transaction.getId())
               .build();
     }
-    return repository.save(withAlias(registered, externalReference));
+    var saved = repository.save(withAlias(registered, externalReference));
+    if (step == AnalysisProjectStep.MODEL_3D) {
+      recordModel3d(userId, label);
+    }
+    return saved;
+  }
+
+  private void recordModel3d(String userId, String label) {
+    userActivityService.record(
+        UserActivity.builder()
+            .id(randomUUID().toString())
+            .userId(userId)
+            .activityType(ROOF_MODEL_3D)
+            .activityUnit(UNIT)
+            .quantity(1L)
+            .description(label)
+            .creationDatetime(now())
+            .build());
   }
 
   @Transactional

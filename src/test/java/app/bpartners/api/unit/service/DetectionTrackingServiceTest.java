@@ -1,8 +1,8 @@
 package app.bpartners.api.unit.service;
 
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_DETECTION_2D;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static app.bpartners.api.model.project.AnalysisProjectStep.ANALYSIS_2D;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,14 +10,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.activity.UserActivity;
 import app.bpartners.api.model.detection.DetectionInitiator;
 import app.bpartners.api.model.detection.DetectionTracking;
 import app.bpartners.api.model.exception.InsufficientCreditsException;
-import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.DetectionTrackingRepository;
+import app.bpartners.api.service.activity.UserActivityService;
 import app.bpartners.api.service.detection.DetectionTrackingService;
 import app.bpartners.api.service.project.AnalysisProjectService;
-import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -26,13 +26,13 @@ import org.mockito.ArgumentCaptor;
 
 class DetectionTrackingServiceTest {
   DetectionTrackingRepository repositoryMock = mock();
-  SubscriptionService subscriptionServiceMock = mock();
+  UserActivityService userActivityServiceMock = mock();
   AnalysisProjectService analysisProjectServiceMock = mock();
 
   DetectionTrackingService subject =
       new DetectionTrackingService(
           repositoryMock,
-          subscriptionServiceMock,
+          userActivityServiceMock,
           new CustomDateFormatter(),
           analysisProjectServiceMock);
 
@@ -41,17 +41,17 @@ class DetectionTrackingServiceTest {
     var userId = randomUUID().toString();
     var tracking = List.of(someTracking(userId));
     when(repositoryMock.saveAll(tracking)).thenReturn(tracking);
-    var consumptionLogCaptor = ArgumentCaptor.forClass(SubscriptionConsumptionLog.class);
+    var userActivityCaptor = ArgumentCaptor.forClass(UserActivity.class);
 
-    var actual = subject.computeTrackingWithSubscriptionConsumptionLog(tracking);
+    var actual = subject.computeTrackingWithUserActivity(tracking);
 
     assertEquals(tracking, actual);
-    verify(subscriptionServiceMock, times(1)).addConsumption(consumptionLogCaptor.capture());
-    var consumptionLog = consumptionLogCaptor.getValue();
-    assertEquals(ROOF_ANALYSIS, consumptionLog.getConsumptionType());
-    assertEquals(UNIT, consumptionLog.getConsumptionUnit());
-    assertEquals(1L, consumptionLog.getUsageMetric());
-    assertEquals(userId, consumptionLog.getUserId());
+    verify(userActivityServiceMock, times(1)).record(userActivityCaptor.capture());
+    var userActivity = userActivityCaptor.getValue();
+    assertEquals(ROOF_DETECTION_2D, userActivity.getActivityType());
+    assertEquals(UNIT, userActivity.getActivityUnit());
+    assertEquals(1L, userActivity.getQuantity());
+    assertEquals(userId, userActivity.getUserId());
     verify(analysisProjectServiceMock, times(1))
         .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
@@ -63,7 +63,7 @@ class DetectionTrackingServiceTest {
     when(repositoryMock.saveAll(tracking)).thenReturn(tracking);
     var labelCaptor = ArgumentCaptor.forClass(String.class);
 
-    subject.computeTrackingWithSubscriptionConsumptionLog(tracking);
+    subject.computeTrackingWithUserActivity(tracking);
 
     verify(analysisProjectServiceMock)
         .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), labelCaptor.capture(), any());
@@ -78,9 +78,9 @@ class DetectionTrackingServiceTest {
         List.of(someTracking(firstUserId), someTracking(firstUserId), someTracking(secondUserId));
     when(repositoryMock.saveAll(tracking)).thenReturn(tracking);
 
-    subject.computeTrackingWithSubscriptionConsumptionLog(tracking);
+    subject.computeTrackingWithUserActivity(tracking);
 
-    verify(subscriptionServiceMock, times(3)).addConsumption(any());
+    verify(userActivityServiceMock, times(3)).record(any());
     verify(analysisProjectServiceMock, times(2))
         .register(eq(firstUserId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
     verify(analysisProjectServiceMock, times(1))
@@ -98,9 +98,9 @@ class DetectionTrackingServiceTest {
 
     assertThrows(
         InsufficientCreditsException.class,
-        () -> subject.computeTrackingWithSubscriptionConsumptionLog(tracking));
+        () -> subject.computeTrackingWithUserActivity(tracking));
 
-    verify(subscriptionServiceMock, times(1)).addConsumption(any());
+    verify(userActivityServiceMock, times(1)).record(any());
   }
 
   @Test
@@ -109,11 +109,11 @@ class DetectionTrackingServiceTest {
     var tracking = List.of(someTracking(userId, null));
     when(repositoryMock.saveAll(tracking)).thenReturn(tracking);
 
-    var actual = subject.computeTrackingWithSubscriptionConsumptionLog(tracking);
+    var actual = subject.computeTrackingWithUserActivity(tracking);
 
     assertEquals(tracking, actual);
     verify(repositoryMock, never()).findByDetectionIdentifier(any());
-    verify(subscriptionServiceMock, times(1)).addConsumption(any());
+    verify(userActivityServiceMock, times(1)).record(any());
     verify(analysisProjectServiceMock, times(1))
         .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
@@ -127,12 +127,11 @@ class DetectionTrackingServiceTest {
         .thenReturn(Optional.of(alreadyRegistered));
 
     var actual =
-        subject.computeTrackingWithSubscriptionConsumptionLog(
-            List.of(someTracking(userId, detectionIdentifier)));
+        subject.computeTrackingWithUserActivity(List.of(someTracking(userId, detectionIdentifier)));
 
     assertTrue(actual.isEmpty());
     verify(repositoryMock).saveAll(List.of());
-    verify(subscriptionServiceMock, never()).addConsumption(any());
+    verify(userActivityServiceMock, never()).record(any());
     verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any(), any());
   }
 
@@ -148,11 +147,11 @@ class DetectionTrackingServiceTest {
     when(repositoryMock.findByDetectionIdentifier(unknownIdentifier)).thenReturn(Optional.empty());
     when(repositoryMock.saveAll(List.of(unknown))).thenReturn(List.of(unknown));
 
-    var actual = subject.computeTrackingWithSubscriptionConsumptionLog(List.of(known, unknown));
+    var actual = subject.computeTrackingWithUserActivity(List.of(known, unknown));
 
     assertEquals(List.of(unknown), actual);
     verify(repositoryMock).saveAll(List.of(unknown));
-    verify(subscriptionServiceMock, times(1)).addConsumption(any());
+    verify(userActivityServiceMock, times(1)).record(any());
     verify(analysisProjectServiceMock, times(1))
         .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
@@ -166,12 +165,11 @@ class DetectionTrackingServiceTest {
     when(repositoryMock.existsByIdUserAndZoneIgnoreCase(userId, "some zone")).thenReturn(true);
 
     var actual =
-        subject.computeTrackingWithSubscriptionConsumptionLog(
-            List.of(someTracking(userId, detectionIdentifier)));
+        subject.computeTrackingWithUserActivity(List.of(someTracking(userId, detectionIdentifier)));
 
     assertTrue(actual.isEmpty());
     verify(repositoryMock).saveAll(List.of());
-    verify(subscriptionServiceMock, never()).addConsumption(any());
+    verify(userActivityServiceMock, never()).record(any());
     verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any(), any());
   }
 
@@ -180,11 +178,10 @@ class DetectionTrackingServiceTest {
     var userId = randomUUID().toString();
     when(repositoryMock.existsByIdUserAndZoneIgnoreCase(userId, "some zone")).thenReturn(true);
 
-    var actual =
-        subject.computeTrackingWithSubscriptionConsumptionLog(List.of(someTracking(userId, null)));
+    var actual = subject.computeTrackingWithUserActivity(List.of(someTracking(userId, null)));
 
     assertTrue(actual.isEmpty());
-    verify(subscriptionServiceMock, never()).addConsumption(any());
+    verify(userActivityServiceMock, never()).record(any());
     verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any(), any());
   }
 
@@ -197,10 +194,10 @@ class DetectionTrackingServiceTest {
     when(repositoryMock.existsByIdUserAndZoneIgnoreCase(userId, "some zone")).thenReturn(false);
     when(repositoryMock.saveAll(List.of(tracking))).thenReturn(List.of(tracking));
 
-    var actual = subject.computeTrackingWithSubscriptionConsumptionLog(List.of(tracking));
+    var actual = subject.computeTrackingWithUserActivity(List.of(tracking));
 
     assertEquals(List.of(tracking), actual);
-    verify(subscriptionServiceMock, times(1)).addConsumption(any());
+    verify(userActivityServiceMock, times(1)).record(any());
     verify(analysisProjectServiceMock, times(1))
         .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }
@@ -215,10 +212,10 @@ class DetectionTrackingServiceTest {
         .thenReturn(Optional.empty());
     when(repositoryMock.saveAll(List.of(first))).thenReturn(List.of(first));
 
-    var actual = subject.computeTrackingWithSubscriptionConsumptionLog(List.of(first, second));
+    var actual = subject.computeTrackingWithUserActivity(List.of(first, second));
 
     assertEquals(List.of(first), actual);
-    verify(subscriptionServiceMock, times(1)).addConsumption(any());
+    verify(userActivityServiceMock, times(1)).record(any());
     verify(analysisProjectServiceMock, times(1))
         .register(eq(userId), anyString(), any(), eq(ANALYSIS_2D), anyString(), any());
   }

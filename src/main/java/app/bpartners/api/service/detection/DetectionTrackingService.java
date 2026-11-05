@@ -1,19 +1,19 @@
 package app.bpartners.api.service.detection;
 
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_DETECTION_2D;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static app.bpartners.api.model.project.AnalysisProjectStep.ANALYSIS_2D;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.activity.UserActivity;
 import app.bpartners.api.model.detection.DetectionTracking;
 import app.bpartners.api.model.project.AnalysisProjectDescription;
-import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.DetectionTrackingRepository;
+import app.bpartners.api.service.activity.UserActivityService;
 import app.bpartners.api.service.project.AnalysisProjectService;
-import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DetectionTrackingService {
   private static final int DEFAULT_PAGE_SIZE = 100;
   private final DetectionTrackingRepository repository;
-  private final SubscriptionService subscriptionService;
+  private final UserActivityService userActivityService;
   private final CustomDateFormatter customDateFormatter;
   private final AnalysisProjectService analysisProjectService;
 
@@ -51,8 +51,7 @@ public class DetectionTrackingService {
   }
 
   @Transactional
-  public List<DetectionTracking> computeTrackingWithSubscriptionConsumptionLog(
-      List<DetectionTracking> tracking) {
+  public List<DetectionTracking> computeTrackingWithUserActivity(List<DetectionTracking> tracking) {
     var unregisteredTracking = filterUnregistered(tracking);
 
     List<DetectionTracking> savedTracking = saveAll(unregisteredTracking);
@@ -61,14 +60,14 @@ public class DetectionTrackingService {
         saved -> {
           var userId = saved.user().getId();
           var comment = getAnalysisComment(saved);
-          subscriptionService.addConsumption(
-              SubscriptionConsumptionLog.builder()
+          userActivityService.record(
+              UserActivity.builder()
                   .id(randomUUID().toString())
                   .userId(userId)
-                  .consumptionType(ROOF_ANALYSIS)
-                  .usageMetric(1L)
-                  .consumptionUnit(UNIT)
-                  .comment(comment)
+                  .activityType(ROOF_DETECTION_2D)
+                  .quantity(1L)
+                  .activityUnit(UNIT)
+                  .description(comment)
                   .creationDatetime(now())
                   .build());
           analysisProjectService.register(

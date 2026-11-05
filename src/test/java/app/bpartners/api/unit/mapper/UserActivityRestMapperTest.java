@@ -1,20 +1,20 @@
 package app.bpartners.api.unit.mapper;
 
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.IMAGE_ACCESS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
+import static app.bpartners.api.model.activity.UserActivityType.AERIAL_IMAGE_ACCESS;
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_DETECTION_2D;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.UserActivityRestMapper;
 import app.bpartners.api.endpoint.rest.model.ConsumptionType;
 import app.bpartners.api.endpoint.rest.model.ConsumptionUnit;
-import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
+import app.bpartners.api.model.activity.UserActivity;
 import org.junit.jupiter.api.Test;
 
-class SubscriptionConsumptionLogRestMapperTest {
-  SubscriptionConsumptionLogRestMapper subject = new SubscriptionConsumptionLogRestMapper();
+class UserActivityRestMapperTest {
+  UserActivityRestMapper subject = new UserActivityRestMapper();
 
   @Test
   void map_domain_to_rest() {
@@ -35,13 +35,13 @@ class SubscriptionConsumptionLogRestMapperTest {
 
     var actual =
         subject.toRest(
-            SubscriptionConsumptionLog.builder()
+            UserActivity.builder()
                 .id(id)
                 .userId(userId)
-                .usageMetric(usageMetric)
-                .consumptionType(ROOF_ANALYSIS)
-                .consumptionUnit(UNIT)
-                .comment(comment)
+                .quantity(usageMetric)
+                .activityType(ROOF_DETECTION_2D)
+                .activityUnit(UNIT)
+                .description(comment)
                 .creationDatetime(now)
                 .build());
 
@@ -51,19 +51,19 @@ class SubscriptionConsumptionLogRestMapperTest {
   @Test
   void map_image_access_domain_to_rest_and_back() {
     var domain =
-        SubscriptionConsumptionLog.builder()
+        UserActivity.builder()
             .id(randomUUID().toString())
             .userId(randomUUID().toString())
-            .usageMetric(1L)
-            .consumptionType(IMAGE_ACCESS)
-            .consumptionUnit(UNIT)
-            .comment("Adresse : some address")
+            .quantity(1L)
+            .activityType(AERIAL_IMAGE_ACCESS)
+            .activityUnit(UNIT)
+            .description("Adresse : some address")
             .creationDatetime(now())
             .build();
 
     var actual = subject.toRest(domain);
 
     assertEquals(ConsumptionType.IMAGE_ACCESS, actual.getConsumptionType());
-    assertEquals(IMAGE_ACCESS, subject.toDomain(actual).getConsumptionType());
+    assertEquals(AERIAL_IMAGE_ACCESS, subject.toDomain(actual).getActivityType());
   }
 }

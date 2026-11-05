@@ -1,7 +1,7 @@
 package app.bpartners.api.unit.service;
 
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.IMAGE_ACCESS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
+import static app.bpartners.api.model.activity.UserActivityType.AERIAL_IMAGE_ACCESS;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,20 +15,20 @@ import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
 import app.bpartners.api.model.FileInfo;
+import app.bpartners.api.model.activity.UserActivity;
 import app.bpartners.api.model.exception.NotImplementedException;
 import app.bpartners.api.model.exception.ServiceUnavailableException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
-import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAreaPicture;
 import app.bpartners.api.repository.jpa.model.HProspect;
+import app.bpartners.api.service.activity.UserActivityService;
 import app.bpartners.api.service.areapicture.AreaPictureCreditBalanceValidator;
 import app.bpartners.api.service.areapicture.AreaPictureService;
 import app.bpartners.api.service.areapicture.AreaPictureZoomValidator;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.geodata.ImageryService;
-import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import java.io.File;
 import java.util.List;
@@ -40,7 +40,7 @@ import org.mockito.ArgumentCaptor;
 
 @Slf4j
 class AreaPictureServiceTest extends MockedThirdParties {
-  SubscriptionService subscriptionServiceMock = mock();
+  UserActivityService userActivityServiceMock = mock();
   AreaPictureMapLayerService mapLayerServiceMock = mock();
   FileService fileServiceMock = mock();
   AreaPictureMapper mapper = mock();
@@ -57,7 +57,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
           mapper,
           fileServiceMock,
           mapLayerServiceMock,
-          subscriptionServiceMock,
+          userActivityServiceMock,
           prospectJpaRepositoryMock,
           creditBalanceValidatorMock,
           imageryServiceMock,
@@ -95,30 +95,28 @@ class AreaPictureServiceTest extends MockedThirdParties {
     when(jpaRepositoryMock.save(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(mapper.toDomain(any())).thenReturn(areaPictureMock);
-    when(subscriptionServiceMock.addConsumption(any()))
+    when(userActivityServiceMock.record(any()))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-    var subscriptionConsumptionLogCaptor =
-        ArgumentCaptor.forClass(SubscriptionConsumptionLog.class);
+    var userActivityCaptor = ArgumentCaptor.forClass(UserActivity.class);
 
     var actual = subject.logImageAccess(areaPictureMock);
 
-    verify(subscriptionServiceMock, times(1))
-        .addConsumption(subscriptionConsumptionLogCaptor.capture());
-    var subscriptionConsumptionLog = subscriptionConsumptionLogCaptor.getValue();
+    verify(userActivityServiceMock, times(1)).record(userActivityCaptor.capture());
+    var userActivity = userActivityCaptor.getValue();
     assertEquals(areaPictureMock, actual);
     assertEquals(
-        SubscriptionConsumptionLog.builder()
-            .id(subscriptionConsumptionLog.getId())
+        UserActivity.builder()
+            .id(userActivity.getId())
             .userId(areaPictureMock.getIdUser())
-            .consumptionType(IMAGE_ACCESS)
-            .consumptionUnit(UNIT)
-            .usageMetric(1L)
-            .comment("Adresse : " + prospectAddress + " - Prospect : " + prospectName)
-            .creationDatetime(subscriptionConsumptionLog.getCreationDatetime())
+            .activityType(AERIAL_IMAGE_ACCESS)
+            .activityUnit(UNIT)
+            .quantity(1L)
+            .description("Adresse : " + prospectAddress + " - Prospect : " + prospectName)
+            .creationDatetime(userActivity.getCreationDatetime())
             .build(),
-        subscriptionConsumptionLog);
-    assertNotNull(subscriptionConsumptionLog.getId());
-    assertNotNull(subscriptionConsumptionLog.getCreationDatetime());
+        userActivity);
+    assertNotNull(userActivity.getId());
+    assertNotNull(userActivity.getCreationDatetime());
   }
 
   @Test
@@ -199,8 +197,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
         .accept(areaPictureMock);
 
     var actualException =
-        assertThrows(
-            NotImplementedException.class, () -> subject.logImageAccess(areaPictureMock));
+        assertThrows(NotImplementedException.class, () -> subject.logImageAccess(areaPictureMock));
 
     assertEquals(
         "Address or zone " + randomAddress + " not yet supported", actualException.getMessage());

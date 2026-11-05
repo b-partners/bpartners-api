@@ -1,9 +1,9 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.END_OF_PERIOD;
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_DETECTION_2D;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
 import static java.time.Month.JANUARY;
@@ -19,11 +19,13 @@ import app.bpartners.api.endpoint.rest.model.RedirectionStatusUrls;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.integration.conf.StripeMockedThirdParties;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.activity.UserActivity;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.service.activity.UserActivityService;
 import app.bpartners.api.service.subscription.StripeInvoiceService;
 import app.bpartners.api.service.subscription.StripePortalService;
 import app.bpartners.api.service.subscription.StripeSetupService;
@@ -49,6 +51,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 class SubscriptionServiceIT extends StripeMockedThirdParties {
   @Autowired SubscriptionService subject;
   @Autowired UserRepository userRepository;
+  @Autowired UserActivityService userActivityService;
   @MockBean UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock;
   @MockBean SubscriptionProductRepository subscriptionProductRepositoryMock;
   @Autowired StripeInvoiceService stripeInvoiceService;
@@ -116,25 +119,25 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
           .when(AuthProvider::getAuthenticatedUser)
           .thenReturn(User.builder().id("userId").build());
 
-      var subscriptionConsumptionLog =
-          SubscriptionConsumptionLog.builder()
+      var userActivity =
+          UserActivity.builder()
               .id(consumptionLogId)
-              .consumptionType(ROOF_ANALYSIS)
-              .consumptionUnit(UNIT)
-              .usageMetric(2L)
+              .activityType(ROOF_DETECTION_2D)
+              .activityUnit(UNIT)
+              .quantity(2L)
               .creationDatetime(now)
               .userId("geoJobsUserId")
               .build();
 
-      var actual = subject.addConsumption(subscriptionConsumptionLog);
+      var actual = userActivityService.record(userActivity);
 
       var expected =
-          SubscriptionConsumptionLog.builder()
+          UserActivity.builder()
               .id(consumptionLogId)
               .userId("userId")
-              .usageMetric(2L)
-              .consumptionType(ROOF_ANALYSIS)
-              .consumptionUnit(UNIT)
+              .quantity(2L)
+              .activityType(ROOF_DETECTION_2D)
+              .activityUnit(UNIT)
               .creationDatetime(now)
               .build();
       assertEquals(expected, actual);

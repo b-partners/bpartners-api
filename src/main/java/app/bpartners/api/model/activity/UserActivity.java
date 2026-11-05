@@ -1,4 +1,4 @@
-package app.bpartners.api.model.subscription;
+package app.bpartners.api.model.activity;
 
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
@@ -10,27 +10,27 @@ import java.time.Instant;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 
-@Entity(name = "subscription_consumption_log")
+@Entity(name = "user_activity")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder(toBuilder = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class SubscriptionConsumptionLog {
+public class UserActivity {
   @Id private String id;
   private String userId;
-  private Long usageMetric;
+  private Long quantity;
 
   @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
-  private SubscriptionConsumptionType consumptionType;
+  private UserActivityType activityType;
 
   @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
-  private SubscriptionConsumptionUnit consumptionUnit;
+  private UserActivityUnit activityUnit;
 
-  private String comment;
+  private String description;
 
   private Instant creationDatetime;
 }

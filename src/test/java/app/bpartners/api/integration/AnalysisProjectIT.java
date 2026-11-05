@@ -34,6 +34,7 @@ import app.bpartners.api.repository.jpa.AnalysisProjectRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.DetectionTrackingJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
+import app.bpartners.api.service.activity.UserActivityService;
 import app.bpartners.api.service.credit.CreditService;
 import java.util.List;
 import java.util.Optional;
@@ -52,6 +53,7 @@ class AnalysisProjectIT extends MockedThirdParties {
   @Autowired private UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
   @Autowired private CreditService creditService;
   @MockBean private UserRepository userRepository;
+  @MockBean private UserActivityService userActivityService;
   final User userMock = mock(User.class);
 
   private ApiClient anApiClient() {
@@ -69,8 +71,7 @@ class AnalysisProjectIT extends MockedThirdParties {
     setUpLegalFileRepository(legalFileRepositoryMock);
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
-    when(subscriptionService.addConsumption(any()))
-        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(userActivityService.record(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     clearJoeDoeCreditContext();
     grantJoeDoe(100L);

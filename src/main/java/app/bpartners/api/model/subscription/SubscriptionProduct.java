@@ -4,6 +4,7 @@ import static jakarta.persistence.FetchType.EAGER;
 import static org.hibernate.type.SqlTypes.JSON;
 import static org.hibernate.type.SqlTypes.NAMED_ENUM;
 
+import app.bpartners.api.model.activity.UserActivityType;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -61,7 +62,7 @@ public class SubscriptionProduct {
 
   @JdbcTypeCode(NAMED_ENUM)
   @Enumerated(EnumType.STRING)
-  private SubscriptionConsumptionType consumptionTypeAttached;
+  private UserActivityType consumptionTypeAttached;
 
   private Long vatPercent;
 

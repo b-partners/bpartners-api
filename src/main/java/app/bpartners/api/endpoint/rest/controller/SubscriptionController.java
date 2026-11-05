@@ -8,9 +8,9 @@ import app.bpartners.api.endpoint.event.model.SubscriptionRemainingPeriodInvoice
 import app.bpartners.api.endpoint.event.model.TransitionalSubscriptionCreditGrantTriggered;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillTriggered;
-import app.bpartners.api.endpoint.rest.mapper.SubscriptionConsumptionLogRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionPlanRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionUpgradeRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.UserActivityRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateSubscriptionUpgrade;
 import app.bpartners.api.endpoint.rest.model.PreSignedURL;
 import app.bpartners.api.endpoint.rest.model.SubscriptionConsumptionLog;
@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.*;
 public class SubscriptionController {
   private final EventProducer eventProducer;
   private final SubscriptionService service;
-  private final SubscriptionConsumptionLogRestMapper subscriptionConsumptionLogRestMapper;
+  private final UserActivityRestMapper userActivityRestMapper;
   private final SubscriptionPlanRestMapper subscriptionPlanRestMapper;
   private final SubscriptionStripeBackfillService subscriptionStripeBackfillService;
   private final SubscriptionInvoiceExportService subscriptionInvoiceExportService;
@@ -142,7 +142,7 @@ public class SubscriptionController {
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           Instant to) {
     return service.findConsumptionLogsByUserId(uId, from, to).stream()
-        .map(subscriptionConsumptionLogRestMapper::toRest)
+        .map(userActivityRestMapper::toRest)
         .toList();
   }
 

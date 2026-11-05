@@ -80,7 +80,7 @@ public class AnalysisProjectController {
   public AnalysisProject registerAnalysisProject2d(
       @PathVariable String userId, @PathVariable String projectKey, @RequestBody Register2d body) {
     var tracking = mapper.toTracking(projectKey, body, AuthProvider.getAuthenticatedUser());
-    detectionTrackingService.computeTrackingWithSubscriptionConsumptionLog(List.of(tracking));
+    detectionTrackingService.computeTrackingWithUserActivity(List.of(tracking));
     return mapper.toRest(
         analysisProjectService.getStatus(userId, projectKey, body.getExternalReference()));
   }

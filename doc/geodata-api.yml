@@ -25,3 +25,96 @@ operations:
           $ref: './api.yml#/components/responses/403'
         500:
           $ref: './api.yml#/components/responses/500'
+  geodataLidarCaching:
+    put:
+      tags:
+        - Geodata
+      summary: Cache the lidar files around a point
+      description: |
+        Bridge to the geodata service `PUT /lidar/caching/{id}`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geodata.
+
+        Has cacher download the lidar files covering a 200 m square centered on the point
+        (typically a geocoded address), so that the 3D generated there afterwards reads them from
+        cacher instead of the lidar source. Synchronous and idempotent: up to a few minutes for files
+        not cached yet, immediate otherwise.
+      operationId: cacheGeodataLidarFiles
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: Identifier chosen by the client, used in the logs
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeodataLidarCachingRequest'
+      responses:
+        200:
+          description: The lidar files around the point, and whether each one is cached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeodataLidarCaching'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+
+components:
+  schemas:
+    GeodataLidarCachingRequest:
+      type: object
+      description: A WGS84 point, typically a geocoded address
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+    GeodataLidarRegion:
+      type: string
+      enum:
+        - FRANCE
+        - SWITZERLAND
+        - WALLONIA
+    GeodataLidarCaching:
+      type: object
+      properties:
+        id:
+          type: string
+        point:
+          $ref: '#/components/schemas/GeodataLidarCachingRequest'
+        halfSideInMeters:
+          type: number
+          format: double
+          description: Half the side of the square centered on the point whose lidar files are cached
+        region:
+          $ref: '#/components/schemas/GeodataLidarRegion'
+        lidarFiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeodataCachedLidarFile'
+    GeodataCachedLidarFile:
+      type: object
+      properties:
+        url:
+          type: string
+          description: The lidar file at its source (IGN, swisstopo, ...)
+        cached:
+          type: boolean
+          description: Whether the file is cached now
+        error:
+          type: string
+          description: Why the file could not be cached, absent when it is

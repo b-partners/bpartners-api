@@ -1,7 +1,9 @@
 package app.bpartners.api.service.geodata;
 
 import static app.bpartners.api.service.utils.SecurityUtils.API_KEY_HEADER;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+import app.bpartners.api.endpoint.rest.model.GeodataLidarCachingRequest;
 import app.bpartners.api.service.bridge.DownstreamRelay;
 import app.bpartners.api.service.bridge.ForwardedQuery;
 import java.util.Set;
@@ -41,8 +43,28 @@ public class GeodataBridge {
             .build(true)
             .toUri();
 
+    return downstreamRelay.exchange(
+        uri, HttpMethod.GET, new HttpEntity<>(keyHeaders()), byte[].class);
+  }
+
+  /** PUT /lidar/caching/{id}: upstream status, body and type are relayed. */
+  public ResponseEntity<byte[]> cacheLidarFiles(String id, GeodataLidarCachingRequest request) {
+    var uri =
+        UriComponentsBuilder.fromUriString(baseUrl)
+            .pathSegment("lidar", "caching", id)
+            .encode()
+            .build()
+            .toUri();
+
+    var headers = keyHeaders();
+    headers.setContentType(APPLICATION_JSON);
+    return downstreamRelay.exchange(
+        uri, HttpMethod.PUT, new HttpEntity<>(request, headers), byte[].class);
+  }
+
+  private HttpHeaders keyHeaders() {
     var headers = new HttpHeaders();
     headers.add(API_KEY_HEADER, apiKey);
-    return downstreamRelay.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), byte[].class);
+    return headers;
   }
 }

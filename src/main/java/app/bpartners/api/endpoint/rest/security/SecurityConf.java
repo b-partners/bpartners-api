@@ -508,6 +508,8 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(GET, "/geodata/geocode")
                     .authenticated()
+                    .requestMatchers(PUT, "/geodata/lidar/caching/*")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures", authResourceProvider))
@@ -891,6 +893,7 @@ public class SecurityConf {
     return new OrRequestMatcher(
         new AntPathRequestMatcher("/llm/toiture"),
         new AntPathRequestMatcher("/geodata/geocode", GET.name()),
+        new AntPathRequestMatcher("/geodata/lidar/caching/*", PUT.name()),
         new AntPathRequestMatcher("/geoserver/wms"),
         new AntPathRequestMatcher("/geo-jobs/detections/*/sync", POST.name()),
         new AntPathRequestMatcher("/geo-jobs/detections/*", GET.name()),

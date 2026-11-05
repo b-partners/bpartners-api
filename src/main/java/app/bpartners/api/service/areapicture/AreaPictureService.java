@@ -39,7 +39,7 @@ public class AreaPictureService {
   private final AreaPictureMapLayerService mapLayerService;
   private final SubscriptionService subscriptionService;
   private final ProspectJpaRepository prospectRepository;
-  private final AreaPictureConsumptionValidator areaPictureConsumptionValidator;
+  private final AreaPictureCreditBalanceValidator areaPictureCreditBalanceValidator;
   private final ImageryService imageryService;
   private final FileDownloaderImpl fileDownloader;
 
@@ -106,7 +106,7 @@ public class AreaPictureService {
   @SneakyThrows
   @Transactional
   public AreaPictureDetails downloadFromExternalSource(AreaPicture areaPicture) {
-    areaPictureConsumptionValidator.accept(areaPicture);
+    areaPictureCreditBalanceValidator.accept(areaPicture);
     var areaPictureDetails =
         imageryService.downloadFromGeodataSource(mapper.toCrupdatedAreaPictureDetails(areaPicture));
     areaPictureDetails.setId(areaPicture.getId());
@@ -124,11 +124,11 @@ public class AreaPictureService {
     fileService.upload(
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
     save(areaPicture);
-    saveLogConsumption(areaPicture);
+    logImageAccess(areaPicture);
     return areaPictureDetails;
   }
 
-  public AreaPicture saveLogConsumption(AreaPicture picture) {
+  public AreaPicture logImageAccess(AreaPicture picture) {
     var usageMetric = 1L;
     var idProspect = picture.getIdProspect();
     var address = picture.getAddress();

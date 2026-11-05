@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class AreaPictureConsumptionValidator implements Consumer<AreaPicture> {
+public class AreaPictureCreditBalanceValidator implements Consumer<AreaPicture> {
   private final CreditService creditService;
   private final UserWhiteListedJpaRepository userWhiteListedRepository;
 

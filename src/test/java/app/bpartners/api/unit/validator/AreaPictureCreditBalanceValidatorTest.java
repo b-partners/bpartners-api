@@ -16,17 +16,17 @@ import app.bpartners.api.model.WhiteListScope;
 import app.bpartners.api.model.credit.CreditBalance;
 import app.bpartners.api.model.exception.InsufficientCreditsException;
 import app.bpartners.api.repository.jpa.UserWhiteListedJpaRepository;
-import app.bpartners.api.service.areapicture.AreaPictureConsumptionValidator;
+import app.bpartners.api.service.areapicture.AreaPictureCreditBalanceValidator;
 import app.bpartners.api.service.credit.CreditService;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-class AreaPictureConsumptionValidatorTest {
+class AreaPictureCreditBalanceValidatorTest {
   CreditService creditServiceMock = mock();
   UserWhiteListedJpaRepository userWhiteListedRepositoryMock = mock();
-  AreaPictureConsumptionValidator subject =
-      new AreaPictureConsumptionValidator(creditServiceMock, userWhiteListedRepositoryMock);
+  AreaPictureCreditBalanceValidator subject =
+      new AreaPictureCreditBalanceValidator(creditServiceMock, userWhiteListedRepositoryMock);
 
   @Test
   void does_not_throw_when_spendable_credits_cover_analysis_cost() {

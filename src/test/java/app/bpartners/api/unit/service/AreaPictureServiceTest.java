@@ -23,7 +23,7 @@ import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
 import app.bpartners.api.repository.jpa.model.HAreaPicture;
 import app.bpartners.api.repository.jpa.model.HProspect;
-import app.bpartners.api.service.areapicture.AreaPictureConsumptionValidator;
+import app.bpartners.api.service.areapicture.AreaPictureCreditBalanceValidator;
 import app.bpartners.api.service.areapicture.AreaPictureService;
 import app.bpartners.api.service.areapicture.AreaPictureZoomValidator;
 import app.bpartners.api.service.file.FileService;
@@ -46,7 +46,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
   AreaPictureMapper mapper = mock();
   AreaPictureJpaRepository jpaRepositoryMock = mock();
   ProspectJpaRepository prospectJpaRepositoryMock = mock();
-  AreaPictureConsumptionValidator consumptionValidatorMock = mock();
+  AreaPictureCreditBalanceValidator creditBalanceValidatorMock = mock();
   AreaPictureZoomValidator areaPictureZoomValidatorMock = mock();
   FileDownloaderImpl fileDownloaderMock = mock();
   ImageryService imageryServiceMock = mock();
@@ -59,7 +59,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
           mapLayerServiceMock,
           subscriptionServiceMock,
           prospectJpaRepositoryMock,
-          consumptionValidatorMock,
+          creditBalanceValidatorMock,
           imageryServiceMock,
           fileDownloaderMock);
 
@@ -100,7 +100,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
     var subscriptionConsumptionLogCaptor =
         ArgumentCaptor.forClass(SubscriptionConsumptionLog.class);
 
-    var actual = subject.saveLogConsumption(areaPictureMock);
+    var actual = subject.logImageAccess(areaPictureMock);
 
     verify(subscriptionServiceMock, times(1))
         .addConsumption(subscriptionConsumptionLogCaptor.capture());
@@ -161,7 +161,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
 
     when(areaPictureMock.getAddress()).thenReturn(randomAddress);
     when(areaPictureMock.getFilename()).thenReturn("dummyFilename");
-    doNothing().when(consumptionValidatorMock).accept(areaPictureMock);
+    doNothing().when(creditBalanceValidatorMock).accept(areaPictureMock);
     when(fileServiceMock.upload(any(), any(), any(), any())).thenReturn(mock(FileInfo.class));
     when(mapper.toEntity(areaPictureMock)).thenReturn(mock());
     when(jpaRepositoryMock.save(any()))
@@ -173,7 +173,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
 
     var actualException =
         assertThrows(
-            ServiceUnavailableException.class, () -> subject.saveLogConsumption(areaPictureMock));
+            ServiceUnavailableException.class, () -> subject.logImageAccess(areaPictureMock));
 
     assertEquals(
         "Address or zone " + randomAddress + " temporarily unavailable",
@@ -188,7 +188,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
 
     when(areaPictureMock.getAddress()).thenReturn(randomAddress);
     when(areaPictureMock.getFilename()).thenReturn("dummyFilename");
-    doNothing().when(consumptionValidatorMock).accept(areaPictureMock);
+    doNothing().when(creditBalanceValidatorMock).accept(areaPictureMock);
     when(fileServiceMock.upload(any(), any(), any(), any())).thenReturn(mock(FileInfo.class));
     when(mapper.toEntity(areaPictureMock)).thenReturn(mock());
     when(jpaRepositoryMock.save(any()))
@@ -200,7 +200,7 @@ class AreaPictureServiceTest extends MockedThirdParties {
 
     var actualException =
         assertThrows(
-            NotImplementedException.class, () -> subject.saveLogConsumption(areaPictureMock));
+            NotImplementedException.class, () -> subject.logImageAccess(areaPictureMock));
 
     assertEquals(
         "Address or zone " + randomAddress + " not yet supported", actualException.getMessage());

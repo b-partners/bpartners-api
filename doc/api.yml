@@ -391,6 +391,8 @@ paths:
   ################## GEODATA API ##################
   /geodata/geocode:
     $ref: './geodata-api.yml#/operations/geodataGeocode'
+  /geodata/lidar/caching/{id}:
+    $ref: './geodata-api.yml#/operations/geodataLidarCaching'
 
 components:
   securitySchemes:

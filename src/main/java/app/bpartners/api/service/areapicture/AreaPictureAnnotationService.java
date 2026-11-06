@@ -45,6 +45,10 @@ public class AreaPictureAnnotationService {
   private final ProspectRepository prospectRepository;
 
   public AreaPictureAnnotation save(AreaPictureAnnotation areaPictureAnnotation) {
+    var areaPictureId = areaPictureAnnotation.getIdAreaPicture();
+    if (!areaPictureService.exists(areaPictureId)) {
+      throw new NotFoundException("AreaPicture.Id = " + areaPictureId + " not found");
+    }
     return repository.save(areaPictureAnnotation);
   }
 

@@ -24,6 +24,12 @@ public class HDetectionTracking {
   @Column(name = "detection_identifier")
   private String detectionIdentifier;
 
+  @Column(name = "project_key")
+  private String projectKey;
+
+  @Column(name = "external_reference")
+  private String externalReference;
+
   private String zone;
 
   private String address;

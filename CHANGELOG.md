@@ -1,3 +1,33 @@
+# [0.104.0](https://github.com/b-partners/bpartners-api/compare/v0.103.0...v0.104.0) (2026-11-04)
+
+
+### Features
+
+* bridge genai roof report ([220fbd4](https://github.com/b-partners/bpartners-api/commit/220fbd419af3d2cf7c3346803fd67d31b4c49fbb))
+* bridge geo-jobs endpoints ([a7a6e1d](https://github.com/b-partners/bpartners-api/commit/a7a6e1dae9a1ed9a1f670910d0dfe1820cd0906b))
+* bridge geodata service ([be73cc2](https://github.com/b-partners/bpartners-api/commit/be73cc2a9d8c355645e4ebe78214c35438e928d6))
+* bridge GeoServer WMS GetMap ([b017a77](https://github.com/b-partners/bpartners-api/commit/b017a77b416ed80c4f57ef7e5c725ec425f2b48a))
+* draft analysis project ([46dfbbf](https://github.com/b-partners/bpartners-api/commit/46dfbbf03613c97f1ba30c54d29ca4da2419ab02))
+* **security:** dashboard token auth for bridge endpoints ([02e8f58](https://github.com/b-partners/bpartners-api/commit/02e8f586149688f2f6aa2470f46d5c6ecd3c393d))
+
+
+
+# [0.103.0](https://github.com/b-partners/bpartners-api/compare/v0.102.0...v0.103.0) (2026-11-04)
+
+
+### Bug Fixes
+
+* **subscription:** allow a single free trial per user across all plans ([afb52e7](https://github.com/b-partners/bpartners-api/commit/afb52e7548c9f06970a90a6bb683bbbd70eec6f8))
+* **subscription:** attach uncommitted monthly renewals to the invoice already covering them ([6760e21](https://github.com/b-partners/bpartners-api/commit/6760e21185d8ca7a2b4531e7d08d870a424ac7c7))
+
+
+### Features
+
+* analysis project credit ([b9c4058](https://github.com/b-partners/bpartners-api/commit/b9c40584aa617a70ab49701939677ed5b95a8eb9))
+* **event:** api keys repair ([6a9900b](https://github.com/b-partners/bpartners-api/commit/6a9900b83a236b8917852111d2bf30924edd8ddf))
+
+
+
 # [0.102.0](https://github.com/b-partners/bpartners-api/compare/v0.101.0...v0.102.0) (2026-10-29)
 
 
@@ -289,29 +319,6 @@
 
 * "chore: optimize PDF export performance and file size" ([420d7d3](https://github.com/b-partners/bpartners-api/commit/420d7d3980b76ec309ccf028e3a997a25be35c45))
 * pdf optimization prod ([a91b3ee](https://github.com/b-partners/bpartners-api/commit/a91b3ee1ac45bd2cd6fb6709e8c0e10816375a74))
-
-
-
-# [0.85.0](https://github.com/b-partners/bpartners-api/compare/v0.84.0...v0.85.0) (2026-07-21)
-
-
-### Features
-
-* use translated polygon on pdf export if available ([2be0716](https://github.com/b-partners/bpartners-api/commit/2be0716d65d2686031ee61c345709fb8ff3f94d0))
-
-
-
-# [0.84.0](https://github.com/b-partners/bpartners-api/compare/v0.83.0...v0.84.0) (2026-07-21)
-
-
-### Bug Fixes
-
-* **UserSubscription:** compute year month using zone ID ([ec902b1](https://github.com/b-partners/bpartners-api/commit/ec902b1ef5487f9d6b73c4cb1ebb2c17dffd864d))
-
-
-### Features
-
-* get user subscription invoices ([a5da20e](https://github.com/b-partners/bpartners-api/commit/a5da20e7cf3f23971f4d08b7ac41388f5ca0709e))
 
 
 

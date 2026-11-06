@@ -1,0 +1,45 @@
+operations:
+  geoserverWmsGetMap:
+    get:
+      tags:
+        - Geoserver
+      summary: WMS GetMap
+      description: |
+        Bridge to the GeoServer WMS `GET ...?request=GetMap`. Requests and responses (status,
+        content-type, image bytes) are relayed as-is. Only `request=GetMap` is bridged.
+      operationId: getGeoserverWmsMap
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - { name: service, in: query, schema: { type: string, example: WMS } }
+        - { name: version, in: query, schema: { type: string, example: 1.1.1 } }
+        - { name: request, in: query, required: true, schema: { type: string, enum: [ GetMap ] } }
+        - { name: layers, in: query, required: true, schema: { type: string } }
+        - { name: styles, in: query, schema: { type: string } }
+        - { name: format, in: query, schema: { type: string, example: image/jpeg } }
+        - { name: transparent, in: query, schema: { type: boolean } }
+        - { name: srs, in: query, schema: { type: string, example: 'EPSG:3857' } }
+        - { name: crs, in: query, schema: { type: string, example: 'EPSG:3857' } }
+        - { name: bbox, in: query, required: true, schema: { type: string, example: 'minX,minY,maxX,maxY' } }
+        - { name: width, in: query, required: true, schema: { type: integer } }
+        - { name: height, in: query, required: true, schema: { type: integer } }
+        - { name: token, in: query, schema: { type: string } }
+        - { name: expires, in: query, schema: { type: integer, format: int64 } }
+      responses:
+        200:
+          description: The map image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'

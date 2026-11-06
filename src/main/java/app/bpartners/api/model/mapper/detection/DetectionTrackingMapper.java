@@ -21,6 +21,8 @@ public class DetectionTrackingMapper {
         .creationDatetime(domain.creationDatetime())
         .idUser(domain.user().getId())
         .detectionIdentifier(domain.detectionIdentifier())
+        .projectKey(domain.projectKey())
+        .externalReference(domain.externalReference())
         .build();
   }
 
@@ -32,7 +34,9 @@ public class DetectionTrackingMapper {
         entity.getCreationDatetime(),
         toDomainInitiator(entity),
         user,
-        entity.getDetectionIdentifier());
+        entity.getDetectionIdentifier(),
+        entity.getProjectKey(),
+        entity.getExternalReference());
   }
 
   public @NotNull DetectionInitiator toDomainInitiator(HDetectionTracking entity) {

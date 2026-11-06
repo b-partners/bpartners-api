@@ -439,7 +439,56 @@ class UserIT extends MockedThirdParties {
         actual);
   }
 
-  // TODO: check why two attempts with same email are all OK
+  private HttpResponse<String> onboard(List<OnboardUser> toOnboard)
+      throws IOException, InterruptedException {
+    return HttpClient.newBuilder()
+        .build()
+        .send(
+            HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + localPort + "/onboarding"))
+                .headers("Content-Type", "application/json")
+                .headers("Accept", "*/*")
+                .POST(
+                    HttpRequest.BodyPublishers.ofString(
+                        new ObjectMapper().writeValueAsString(toOnboard)))
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
+  }
+
+  @Test
+  void onboard_user_with_case_variant_of_existing_email_ko()
+      throws IOException, InterruptedException {
+    String caseVariantEmail = JOE_DOE_EMAIL.toUpperCase();
+
+    HttpResponse<String> response = onboard(List.of(onboardUser().email(caseVariantEmail)));
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
+    assertTrue(
+        response.body().contains("User with email " + caseVariantEmail + " already exists."));
+  }
+
+  @Test
+  void onboard_users_with_same_email_in_batch_ko() throws IOException, InterruptedException {
+    String email = "batch" + System.currentTimeMillis() + "@email.com";
+
+    HttpResponse<String> response =
+        onboard(List.of(onboardUser().email(email), onboardUser().email(email)));
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
+    assertTrue(userRepository.findByEmail(email).isEmpty());
+  }
+
+  @Test
+  void onboard_user_with_email_existing_in_cognito_ko() throws IOException, InterruptedException {
+    String email = "cognito" + System.currentTimeMillis() + "@email.com";
+    when(cognitoComponentMock.existsByEmail(email)).thenReturn(true);
+
+    HttpResponse<String> response = onboard(List.of(onboardUser().email(email)));
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), response.statusCode());
+    assertTrue(userRepository.findByEmail(email).isEmpty());
+  }
+
   @Test
   void onboard_users_ko() throws IOException, InterruptedException {
     HttpClient unauthenticatedClient = HttpClient.newBuilder().build();

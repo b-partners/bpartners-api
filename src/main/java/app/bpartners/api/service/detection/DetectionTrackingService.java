@@ -1,17 +1,19 @@
 package app.bpartners.api.service.detection;
 
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_DETECTION_2D;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
+import static app.bpartners.api.model.project.AnalysisProjectStep.ANALYSIS_2D;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
+import app.bpartners.api.model.activity.UserActivity;
 import app.bpartners.api.model.detection.DetectionTracking;
-import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
+import app.bpartners.api.model.project.AnalysisProjectDescription;
 import app.bpartners.api.repository.DetectionTrackingRepository;
-import app.bpartners.api.service.credit.CreditService;
-import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.activity.UserActivityService;
+import app.bpartners.api.service.project.AnalysisProjectService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -29,9 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DetectionTrackingService {
   private static final int DEFAULT_PAGE_SIZE = 100;
   private final DetectionTrackingRepository repository;
-  private final SubscriptionService subscriptionService;
+  private final UserActivityService userActivityService;
   private final CustomDateFormatter customDateFormatter;
-  private final CreditService creditService;
+  private final AnalysisProjectService analysisProjectService;
 
   public List<DetectionTracking> findAllByIdUserBetween(String idUser, Instant from, Instant to) {
     return repository.findAllByIdUserBetween(idUser, from, to);
@@ -49,8 +51,7 @@ public class DetectionTrackingService {
   }
 
   @Transactional
-  public List<DetectionTracking> computeTrackingWithSubscriptionConsumptionLog(
-      List<DetectionTracking> tracking) {
+  public List<DetectionTracking> computeTrackingWithUserActivity(List<DetectionTracking> tracking) {
     var unregisteredTracking = filterUnregistered(tracking);
 
     List<DetectionTracking> savedTracking = saveAll(unregisteredTracking);
@@ -59,19 +60,43 @@ public class DetectionTrackingService {
         saved -> {
           var userId = saved.user().getId();
           var comment = getAnalysisComment(saved);
-          subscriptionService.addConsumption(
-              SubscriptionConsumptionLog.builder()
+          userActivityService.record(
+              UserActivity.builder()
                   .id(randomUUID().toString())
                   .userId(userId)
-                  .consumptionType(ROOF_ANALYSIS)
-                  .usageMetric(1L)
-                  .consumptionUnit(UNIT)
-                  .comment(comment)
+                  .activityType(ROOF_DETECTION_2D)
+                  .quantity(1L)
+                  .activityUnit(UNIT)
+                  .description(comment)
                   .creationDatetime(now())
                   .build());
-          creditService.consumeRoofAnalysis(userId, "Analyse toiture : " + saved.zone());
+          analysisProjectService.register(
+              userId,
+              projectKeyOf(saved),
+              saved.externalReference(),
+              ANALYSIS_2D,
+              "Analyse toiture : " + saved.zone(),
+              descriptionOf(saved));
         });
     return savedTracking;
+  }
+
+  private AnalysisProjectDescription descriptionOf(DetectionTracking tracking) {
+    var initiator = tracking.detectionInitiator();
+    return new AnalysisProjectDescription(
+        tracking.detectionIdentifier(),
+        tracking.zone(),
+        tracking.address(),
+        initiator.name(),
+        initiator.email(),
+        initiator.phoneNumber());
+  }
+
+  private String projectKeyOf(DetectionTracking tracking) {
+    if (!hasProject(tracking)) {
+      return "tracking:" + tracking.id();
+    }
+    return tracking.projectKey();
   }
 
   private List<DetectionTracking> filterUnregistered(List<DetectionTracking> tracking) {
@@ -80,13 +105,28 @@ public class DetectionTrackingService {
     for (var detectionTracking : tracking) {
       var identifierRegistered =
           isIdentifierRegistered(detectionTracking.detectionIdentifier(), identifiersOfBatch);
-      var zoneRegistered =
-          isZoneRegistered(detectionTracking.user().getId(), detectionTracking.zone());
-      if (!identifierRegistered && !zoneRegistered) {
+      if (!identifierRegistered && !isAlreadyRegistered(detectionTracking)) {
         unregistered.add(detectionTracking);
       }
     }
     return unregistered;
+  }
+
+  private boolean isAlreadyRegistered(DetectionTracking tracking) {
+    var userId = tracking.user().getId();
+    if (hasProject(tracking)) {
+      return analysisProjectService.isStepDone(
+          userId, tracking.projectKey(), tracking.externalReference(), ANALYSIS_2D);
+    }
+    return isZoneRegistered(userId, tracking.zone());
+  }
+
+  private boolean hasProject(DetectionTracking tracking) {
+    return !isBlank(tracking.projectKey()) || !isBlank(tracking.externalReference());
+  }
+
+  private boolean isBlank(String value) {
+    return value == null || value.isBlank();
   }
 
   private boolean isIdentifierRegistered(

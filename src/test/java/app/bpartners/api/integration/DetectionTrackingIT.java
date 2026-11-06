@@ -1,12 +1,12 @@
 package app.bpartners.api.integration;
 
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_DETECTION_2D;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.CREDIT;
 import static app.bpartners.api.model.credit.CreditTransactionMovementType.DEBIT;
 import static app.bpartners.api.model.credit.CreditTransactionType.CONSUMPTION;
 import static app.bpartners.api.model.credit.CreditTransactionType.SUBSCRIPTION_GRANT;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,15 +24,17 @@ import app.bpartners.api.endpoint.rest.model.DetectionTracking;
 import app.bpartners.api.integration.conf.MockedThirdParties;
 import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.activity.UserActivity;
 import app.bpartners.api.model.credit.CreditTransaction;
-import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.model.subscription.UserSubscriptionEligible;
 import app.bpartners.api.repository.DetectionTrackingRepository;
 import app.bpartners.api.repository.UserRepository;
+import app.bpartners.api.repository.jpa.AnalysisProjectRepository;
 import app.bpartners.api.repository.jpa.CreditTransactionRepository;
 import app.bpartners.api.repository.jpa.DetectionTrackingJpaRepository;
 import app.bpartners.api.repository.jpa.UserSubscriptionEligibleJpaRepository;
 import app.bpartners.api.repository.jpa.model.detection.HDetectionTracking;
+import app.bpartners.api.service.activity.UserActivityService;
 import app.bpartners.api.service.credit.CreditService;
 import app.bpartners.api.service.detection.DetectionTrackingService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -57,9 +59,11 @@ class DetectionTrackingIT extends MockedThirdParties {
   @Autowired private DetectionTrackingRepository detectionTrackingRepository;
   @Autowired private DetectionTrackingJpaRepository detectionTrackingJpaRepository;
   @Autowired private CreditTransactionRepository creditTransactionRepository;
+  @Autowired private AnalysisProjectRepository analysisProjectRepository;
   @Autowired private UserSubscriptionEligibleJpaRepository userSubscriptionEligibleRepository;
   @Autowired private CreditService creditService;
   @MockBean private UserRepository userRepository;
+  @MockBean private UserActivityService userActivityService;
   final CustomDateFormatter customDateFormatter = new CustomDateFormatter();
   final User userMock = mock(User.class);
 
@@ -79,8 +83,7 @@ class DetectionTrackingIT extends MockedThirdParties {
     setUpCognito(cognitoComponentMock);
     setUpUserSubscription(subscriptionService);
 
-    when(subscriptionService.addConsumption(any()))
-        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(userActivityService.record(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     clearJoeDoeCreditContext();
     creditTransactionRepository.save(
@@ -103,6 +106,7 @@ class DetectionTrackingIT extends MockedThirdParties {
     userSubscriptionEligibleRepository
         .findByUserId(JOE_DOE_ID)
         .ifPresent(userSubscriptionEligibleRepository::delete);
+    analysisProjectRepository.deleteAll();
     creditTransactionRepository.deleteAll();
     detectionTrackingJpaRepository.deleteAll();
   }
@@ -123,8 +127,8 @@ class DetectionTrackingIT extends MockedThirdParties {
         detectionTrackingService.findAllByIdUserBetween(restJoeDoeUser().getId(), now, now);
     var expectedRest = getExpectedRest(actual, now, detectionIdentifier);
     var expectedDomain = getExpectedDomain(actual, now, detectionIdentifier);
-    var subscriptionLogCaptor = ArgumentCaptor.forClass(SubscriptionConsumptionLog.class);
-    verify(subscriptionService).addConsumption(subscriptionLogCaptor.capture());
+    var subscriptionLogCaptor = ArgumentCaptor.forClass(UserActivity.class);
+    verify(userActivityService).record(subscriptionLogCaptor.capture());
     var expectedSubscriptionLog = getExpectedSubscriptionLog(subscriptionLogCaptor.getValue(), now);
     assertEquals(expectedSubscriptionLog, subscriptionLogCaptor.getValue());
     assertEquals(expectedDomain, actualDomain);
@@ -158,7 +162,7 @@ class DetectionTrackingIT extends MockedThirdParties {
 
     api.registerDetection(restJoeDoeUser().getId(), someCreateDetectionTracking(now));
 
-    verify(subscriptionService).addConsumption(any());
+    verify(userActivityService).record(any());
     assertEquals(1, consumptionsOfJoeDoe().size());
     assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
   }
@@ -195,7 +199,7 @@ class DetectionTrackingIT extends MockedThirdParties {
 
     assertTrue(actual.isEmpty());
     assertEquals(1, detectionTrackingService.findAllByIdUserBetween(joeDoeId, now, now).size());
-    verify(subscriptionService, times(1)).addConsumption(any());
+    verify(userActivityService, times(1)).record(any());
     assertEquals(1, consumptionsOfJoeDoe().size());
     assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
   }
@@ -387,22 +391,21 @@ class DetectionTrackingIT extends MockedThirdParties {
             .creationDatetime(creationDatetime));
   }
 
-  private SubscriptionConsumptionLog getExpectedSubscriptionLog(
-      SubscriptionConsumptionLog actualConsumptionLog, Instant now) {
+  private UserActivity getExpectedSubscriptionLog(UserActivity actualUserActivity, Instant now) {
     var comment =
         String.format(
             "Analyse de toiture effectuée par le client dummyInitiator"
                 + " (email=dummy@email.com, tel=0612345678) sur la zone dummyZone"
                 + " à l'adresse dummyAddress le %s",
             customDateFormatter.formatFrenchDatetime(now));
-    return SubscriptionConsumptionLog.builder()
-        .id(actualConsumptionLog.getId())
-        .usageMetric(1L)
-        .consumptionType(ROOF_ANALYSIS)
-        .creationDatetime(actualConsumptionLog.getCreationDatetime())
+    return UserActivity.builder()
+        .id(actualUserActivity.getId())
+        .quantity(1L)
+        .activityType(ROOF_DETECTION_2D)
+        .creationDatetime(actualUserActivity.getCreationDatetime())
         .userId(restJoeDoeUser().getId())
-        .consumptionUnit(UNIT)
-        .comment(comment)
+        .activityUnit(UNIT)
+        .description(comment)
         .build();
   }
 
@@ -417,7 +420,9 @@ class DetectionTrackingIT extends MockedThirdParties {
             new app.bpartners.api.model.detection.DetectionInitiator(
                 "dummyInitiator", "dummy@email.com", "0612345678"),
             userMock,
-            detectionIdentifier));
+            detectionIdentifier,
+            null,
+            null));
   }
 
   private @NotNull List<DetectionTracking> getExpectedRest(

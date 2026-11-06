@@ -1,0 +1,703 @@
+operations:
+  geoJobsDetectionSync:
+    post:
+      tags:
+        - GeoJobs
+      summary: Process a detection synchronously
+      description: |
+        Bridge to the geo-jobs service `POST /detections/{id}/sync`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: processGeoJobsDetectionSynchronously
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/GeoJobsDetectionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeoJobsCreateDetection'
+      responses:
+        200:
+          $ref: '#/components/responses/GeoJobsDetection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsDetection:
+    get:
+      tags:
+        - GeoJobs
+      summary: Get the processed detection
+      description: |
+        Bridge to the geo-jobs service `GET /detections/{id}`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: getGeoJobsDetection
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/GeoJobsDetectionId'
+      responses:
+        200:
+          $ref: '#/components/responses/GeoJobsDetection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsDetectionRoofsProperties:
+    put:
+      tags:
+        - GeoJobs
+      summary: Compute the roofs properties of a detection
+      description: |
+        Bridge to the geo-jobs service `PUT /detections/{id}/roofs/properties`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: computeGeoJobsDetectionRoofsProperties
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/GeoJobsDetectionId'
+      responses:
+        200:
+          $ref: '#/components/responses/GeoJobsDetection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsDetectionImage:
+    post:
+      tags:
+        - GeoJobs
+      summary: Upload the image of a detection
+      description: |
+        Bridge to the geo-jobs service `POST /detections/{id}/image`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: uploadGeoJobsDetectionImage
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/GeoJobsDetectionId'
+      requestBody:
+        required: true
+        content:
+          image/png:
+            schema:
+              type: string
+              format: binary
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          $ref: '#/components/responses/GeoJobsDetection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsDetectionPdf:
+    post:
+      tags:
+        - GeoJobs
+      summary: Upload the PDF report of a detection
+      description: |
+        Bridge to the geo-jobs service `POST /detections/{id}/pdf`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: uploadGeoJobsDetectionPdf
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/GeoJobsDetectionId'
+      requestBody:
+        required: true
+        content:
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        200:
+          $ref: '#/components/responses/GeoJobsDetection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsDetectionRooferEmail:
+    post:
+      tags:
+        - GeoJobs
+      summary: Send the prospect informations of a detection by email
+      description: |
+        Bridge to the geo-jobs service `POST /detections/{id}/roofer/email`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: sendGeoJobsDetectionRooferEmail
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/GeoJobsDetectionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeoJobsProspect'
+      responses:
+        200:
+          $ref: '#/components/responses/GeoJobsDetection'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsThreeDSync:
+    post:
+      tags:
+        - GeoJobs
+      summary: Process a 3D request synchronously
+      description: |
+        Bridge to the geo-jobs service `POST /3d/{id}/sync`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: processGeoJobsThreeDSynchronously
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/GeoJobsThreeDId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeoJobsThreeDRequest'
+      responses:
+        200:
+          $ref: '#/components/responses/GeoJobsThreeDResponseStatus'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsThreeD:
+    get:
+      tags:
+        - GeoJobs
+      summary: Get the status of a 3D request
+      description: |
+        Bridge to the geo-jobs service `GET /3d/{id}`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: getGeoJobsThreeD
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/GeoJobsThreeDId'
+      responses:
+        200:
+          $ref: '#/components/responses/GeoJobsThreeDResponseStatus'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsThreeDIntersections:
+    put:
+      tags:
+        - GeoJobs
+      summary: Compute the roof intersections of a zone
+      description: |
+        Bridge to the geo-jobs service `PUT /3d/{id}/intersections`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: computeGeoJobsThreeDIntersections
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/GeoJobsThreeDId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeoJobsCreateRoofIntersections'
+      responses:
+        200:
+          description: The roof planes and the lines they meet on
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoJobsRoofIntersections'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsCoverage:
+    get:
+      tags:
+        - GeoJobs
+      summary: Get the imagery and lidar coverage of a location
+      description: |
+        Bridge to the geo-jobs service `GET /coverage`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: getGeoJobsCoverage
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - { name: address, in: query, schema: { type: string } }
+        - { name: longitude, in: query, schema: { type: number, format: double } }
+        - { name: latitude, in: query, schema: { type: number, format: double } }
+        - name: types
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/GeoJobsCoverageType'
+      responses:
+        200:
+          description: The coverage of the location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoJobsAreaCoverage'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  geoJobsGeocode:
+    get:
+      tags:
+        - GeoJobs
+      summary: Geocode an address or a position
+      description: |
+        Bridge to the geo-jobs service `GET /geocode`. Requests and responses
+        (status, body, content-type) are relayed as-is, see https://github.com/b-partners/geo-jobs.
+        The call is made with the caller's own analysis api key.
+      operationId: getGeoJobsGeocode
+      security:
+        - BearerAuth: [ ]
+      parameters:
+        - { name: address, in: query, schema: { type: string } }
+        - { name: longitude, in: query, schema: { type: number, format: double } }
+        - { name: latitude, in: query, schema: { type: number, format: double } }
+      responses:
+        200:
+          description: The building footprint of the address or position
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeoJobsFeature'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  parameters:
+    GeoJobsDetectionId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    GeoJobsThreeDId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    GeoJobsDetection:
+      description: The detection
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GeoJobsDetection'
+    GeoJobsThreeDResponseStatus:
+      description: The 3D request and its status
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GeoJobsThreeDResponseStatus'
+  schemas:
+    GeoJobsFeature:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ Feature ]
+        geometry:
+          $ref: '#/components/schemas/GeoJobsGeometry'
+        properties:
+          $ref: '#/components/schemas/GeoJobsFeatureProperties'
+    GeoJobsGeometry:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ Point, Polygon, MultiPolygon ]
+        coordinates:
+          type: array
+          description: Nested positions, `[x, y]` for a Point, rings of positions for a Polygon, polygons of rings for a MultiPolygon
+          items: { }
+    GeoJobsFeatureProperties:
+      type: object
+      properties:
+        id: { type: string }
+        feature_id: { type: string }
+        zoom: { type: integer }
+    GeoJobsGeoServerParameter:
+      type: object
+      properties:
+        service: { type: string }
+        request: { type: string }
+        layers: { type: string }
+        precisionLevelInCm: { type: integer }
+        styles: { type: string }
+        format: { type: string }
+        transparent: { type: boolean }
+        version: { type: string }
+        width: { type: integer }
+        height: { type: integer }
+        srs: { type: string }
+    GeoJobsGeoServerProperties:
+      type: object
+      properties:
+        geoServerUrl: { type: string }
+        geoServerParameter:
+          $ref: '#/components/schemas/GeoJobsGeoServerParameter'
+    GeoJobsDetectableObjectModel:
+      type: object
+      properties:
+        modelName:
+          type: string
+          description: e.g. BP_TOITURE, BP_REVETEMENT_OBSTACLE, BP_VEGETATION
+    GeoJobsDelimitationType:
+      type: string
+      enum:
+        - USER_DEFINED_DELIMITATION
+        - PARCEL_FREE_DELIMITATION
+        - PARCEL_CONSTRAINED_DELIMITATION
+        - ROOF
+        - ZONE
+        - PARCEL
+    GeoJobsGeoJsonOutput:
+      type: string
+      enum:
+        - GEO_JSON
+        - ZIP
+    GeoJobsCreateDetection:
+      type: object
+      required:
+        - emailReceiver
+        - zoneName
+      properties:
+        emailReceiver: { type: string }
+        zoneName: { type: string }
+        geoServerProperties:
+          $ref: '#/components/schemas/GeoJobsGeoServerProperties'
+        detectableObjectModel:
+          $ref: '#/components/schemas/GeoJobsDetectableObjectModel'
+        detectableObjectModelList:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJobsDetectableObjectModel'
+        geoJsonZone:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJobsFeature'
+        geoJsonDelimitationType:
+          $ref: '#/components/schemas/GeoJobsDelimitationType'
+        geoJsonOutput:
+          $ref: '#/components/schemas/GeoJobsGeoJsonOutput'
+        needsImageOutput: { type: boolean }
+        toNotify: { type: boolean }
+        debugMode: { type: boolean }
+        projectKey:
+          type: string
+          description: Key of the analysis project the detection belongs to, forwarded as received.
+        externalReference:
+          type: string
+          description: Reference of the analysis project in the caller's own system, forwarded as received.
+    GeoJobsProspect:
+      type: object
+      properties:
+        email: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        phone: { type: string }
+        address: { type: string }
+    GeoJobsDelimitationObjectType:
+      type: string
+      enum:
+        - BUILDING_ROOF
+        - BUILDING_ROOF_SEGMENT_FACE
+    GeoJobsLidarProcessorType:
+      type: string
+      enum:
+        - DEFAULT
+        - SAFE_MODE
+        - THREE_D_BAG_ROOFER
+    GeoJobsThreeDRequest:
+      type: object
+      required:
+        - delimitations
+        - delimitationObjectType
+        - delimitationType
+      properties:
+        delimitations:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJobsFeature'
+        delimitationObjectType:
+          $ref: '#/components/schemas/GeoJobsDelimitationObjectType'
+        delimitationType:
+          $ref: '#/components/schemas/GeoJobsDelimitationType'
+        complexityFactor: { type: number, format: double }
+        lidarProcessorType:
+          $ref: '#/components/schemas/GeoJobsLidarProcessorType'
+        knn: { type: integer }
+        projectKey:
+          type: string
+          description: Key of the analysis project the 3D model belongs to, forwarded as received.
+        externalReference:
+          type: string
+          description: Reference of the analysis project in the caller's own system, forwarded as received.
+    GeoJobsCreateRoofIntersections:
+      type: object
+      description: The zone to read the roof under, a single Polygon in WGS84
+      required:
+        - feature
+      properties:
+        feature:
+          $ref: '#/components/schemas/GeoJobsFeature'
+    GeoJobsCoverageType:
+      type: string
+      enum:
+        - IMAGERY
+        - LIDAR
+    GeoJobsStatus:
+      type: object
+      properties:
+        progression:
+          type: string
+          enum: [ PENDING, PROCESSING, FINISHED ]
+        health:
+          type: string
+          enum: [ SUCCEEDED, FAILED, UNKNOWN, RETRYING ]
+        message: { type: string }
+        creationDatetime: { type: string, format: date-time }
+    GeoJobsDetectionStep:
+      type: object
+      properties:
+        name:
+          type: string
+          enum: [ REQUEST_ACCEPTED, TILING, MACHINE_DETECTION, POST_PROCESSING ]
+        status:
+          $ref: '#/components/schemas/GeoJobsStatus'
+        updatedAt: { type: string, format: date-time }
+    GeoJobsTileInfo:
+      type: object
+      properties:
+        size:
+          type: object
+          properties:
+            width: { type: integer }
+            height: { type: integer }
+        coordinates:
+          type: object
+          properties:
+            x: { type: integer }
+            y: { type: integer }
+            z: { type: integer }
+    GeoJobsRoofDelimiter:
+      type: object
+      properties:
+        roofSlopeInDegree: { type: number, format: double }
+        roofHeightInMeter: { type: number, format: double }
+        polygon:
+          type: array
+          items:
+            type: array
+            items: { type: number, format: double }
+    GeoJobsDetection:
+      allOf:
+        - $ref: '#/components/schemas/GeoJobsCreateDetection'
+      properties:
+        id: { type: string }
+        step:
+          $ref: '#/components/schemas/GeoJobsDetectionStep'
+        geoJsonUrl: { type: string }
+        shapeUrl: { type: string }
+        excelUrl: { type: string }
+        imageUrl: { type: string }
+        imageProperties:
+          type: object
+          properties:
+            width: { type: integer }
+            height: { type: integer }
+        imageTileInfoOrigin:
+          $ref: '#/components/schemas/GeoJobsTileInfo'
+        pdfUrl: { type: string }
+        vggUrl: { type: string }
+        addresses:
+          type: array
+          items: { type: string }
+        roofDelimiter:
+          $ref: '#/components/schemas/GeoJobsRoofDelimiter'
+        creationDatetime: { type: string, format: date-time }
+    GeoJobsCityJsonFileUrl:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string }
+    GeoJobsThreeDResponseStatus:
+      allOf:
+        - $ref: '#/components/schemas/GeoJobsThreeDRequest'
+      properties:
+        id: { type: string }
+        status:
+          $ref: '#/components/schemas/GeoJobsStatus'
+        step:
+          type: string
+          enum: [ REQUEST_ACCEPTED, POINTS_CLOUD_PRE_PROCESSING, GEOMETRY_CONSTRUCTION, POST_PROCESSING ]
+        warnings:
+          type: array
+          items: { type: string }
+        cityJsonFileUrls:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJobsCityJsonFileUrl'
+    GeoJobsGeoPoint3D:
+      type: object
+      required: [ longitude, latitude, altitude ]
+      properties:
+        longitude: { type: number, format: double }
+        latitude: { type: number, format: double }
+        altitude: { type: number, format: double }
+    GeoJobsRoofIntersectionsPlane:
+      type: object
+      required: [ index, normal, pointsCount, rmseInMeters, slopeInDegrees, areaInSquareMeters ]
+      properties:
+        index: { type: integer }
+        normal:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items: { type: number, format: double }
+        pointsCount: { type: integer }
+        rmseInMeters: { type: number, format: double }
+        slopeInDegrees: { type: number, format: double }
+        areaInSquareMeters: { type: number, format: double }
+        delimitation:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJobsGeoPoint3D'
+    GeoJobsRoofIntersectionCriteria:
+      type: object
+      required: [ pointsCount, rmseInMeters, sigmaInMeters, support, purity ]
+      properties:
+        pointsCount: { type: integer }
+        rmseInMeters: { type: number, format: double }
+        sigmaInMeters: { type: number, format: double }
+        support: { type: number, format: double }
+        closureInMeters: { type: number, format: double }
+        purity: { type: number, format: double }
+    GeoJobsRoofIntersection:
+      type: object
+      required: [ index, planes, kind, start, end, lengthInMeters, criteria, grade, failedCriteria ]
+      properties:
+        index: { type: integer }
+        planes:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items: { type: integer }
+        kind:
+          type: string
+          enum: [ RIDGE, HIP, VALLEY, OTHER ]
+        start:
+          $ref: '#/components/schemas/GeoJobsGeoPoint3D'
+        end:
+          $ref: '#/components/schemas/GeoJobsGeoPoint3D'
+        lengthInMeters: { type: number, format: double }
+        criteria:
+          $ref: '#/components/schemas/GeoJobsRoofIntersectionCriteria'
+        grade:
+          type: string
+          enum: [ PERFECT, GOOD, TO_CHECK, REJECTED ]
+        failedCriteria:
+          type: array
+          items:
+            type: string
+            enum: [ POINTS, PLANARITY, POSITION, SUPPORT, CLOSURE, PURITY, LENGTH, KIND ]
+    GeoJobsRoofIntersections:
+      type: object
+      required: [ id, pointsDensityPerSquareMeter, planes, intersections ]
+      properties:
+        id: { type: string }
+        crs: { type: string }
+        pointsDensityPerSquareMeter: { type: number, format: double }
+        planes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJobsRoofIntersectionsPlane'
+        intersections:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeoJobsRoofIntersection'
+    GeoJobsAreaCoverage:
+      type: object
+      properties:
+        position:
+          type: object
+          properties:
+            longitude: { type: number, format: double }
+            latitude: { type: number, format: double }
+        imagery:
+          type: object
+          properties:
+            covered: { type: boolean }
+            hd: { type: boolean }
+            layer:
+              type: object
+              properties:
+                name: { type: string }
+                year: { type: integer }
+                source: { type: string }
+                precisionInCm: { type: integer }
+            supportedDetectableModels:
+              type: array
+              items:
+                $ref: '#/components/schemas/GeoJobsDetectableObjectModel'
+        lidar:
+          type: object
+          properties:
+            covered: { type: boolean }
+            region: { type: string }
+            crs: { type: string }
+            fileCount: { type: integer }

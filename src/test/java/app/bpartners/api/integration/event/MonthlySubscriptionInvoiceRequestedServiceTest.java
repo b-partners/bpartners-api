@@ -1,7 +1,7 @@
 package app.bpartners.api.integration.event;
 
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_DETECTION_2D;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.ACTIVE;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
 import static app.bpartners.api.service.utils.FractionUtils.parseFraction;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -18,6 +18,7 @@ import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.activity.UserActivitySummary;
 import app.bpartners.api.model.subscription.*;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.StripeConf;
@@ -159,7 +160,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
         .thenReturn(List.of(customerToDebit));
     var variableConsumptionUsage = 24L;
     var consumptionUsageSummary =
-        new ConsumptionUsageSummary(ROOF_ANALYSIS, variableConsumptionUsage);
+        new UserActivitySummary(ROOF_DETECTION_2D, variableConsumptionUsage);
     when(subscriptionServiceMock.computeMonthlySubscriptionVariableConsumption(any()))
         .thenReturn(
             List.of(
@@ -243,7 +244,7 @@ class MonthlySubscriptionInvoiceRequestedServiceTest {
             anyInt()))
         .thenReturn(List.of(Customer.builder().name("dummy").build()));
     when(subscriptionServiceMock.computeMonthlySubscriptionVariableConsumption(any()))
-        .thenReturn(List.of(new ConsumptionUsageSummary(ROOF_ANALYSIS, 8L)));
+        .thenReturn(List.of(new UserActivitySummary(ROOF_DETECTION_2D, 8L)));
     when(invoiceServiceMock.crupdateSubscriptionInvoice(any()))
         .thenReturn(Invoice.builder().customer(Customer.builder().name("dummy").build()).build());
 

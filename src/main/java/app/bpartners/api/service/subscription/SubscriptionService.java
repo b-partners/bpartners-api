@@ -3,10 +3,10 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.END_OF_PERIOD;
 import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.IMMEDIATE;
 import static app.bpartners.api.endpoint.rest.model.UserSubscriptionType.ESSENTIAL;
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_DETECTION_2D;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static app.bpartners.api.model.exception.ApiException.ExceptionType.SERVER_EXCEPTION;
 import static app.bpartners.api.model.subscription.Subscription.SubscriptionStatus.*;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -25,6 +25,8 @@ import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.UserSubscriptionCommitment;
 import app.bpartners.api.model.UserSubscriptionCommitmentAutoRenewalStatusHistory;
+import app.bpartners.api.model.activity.UserActivity;
+import app.bpartners.api.model.activity.UserActivitySummary;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -74,7 +76,6 @@ public class SubscriptionService {
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepository;
   private final TemporalUtils temporalUtils;
-  private final SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepository;
   private final StripeFactory stripeFactory;
   private final DetectionTrackingJpaRepository detectionTrackingJpaRepository;
   private final StripeInvoiceService stripeInvoiceService;
@@ -85,12 +86,7 @@ public class SubscriptionService {
   private final UserSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository
       userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepository;
 
-  public SubscriptionConsumptionLog addConsumption(
-      SubscriptionConsumptionLog subscriptionConsumptionLog) {
-    return consumptionLogJpaRepository.save(subscriptionConsumptionLog);
-  }
-
-  public List<SubscriptionConsumptionLog> findConsumptionLogsByUserId(
+  public List<UserActivity> findConsumptionLogsByUserId(
       String userId, @Nullable Instant from, @Nullable Instant to) {
     var startOfMonth = temporalUtils.startOfMonth();
     var endOfMonth = temporalUtils.endOfMonth();
@@ -100,12 +96,12 @@ public class SubscriptionService {
         .stream()
         .map(
             tracking ->
-                SubscriptionConsumptionLog.builder()
+                UserActivity.builder()
                     .id(tracking.getId())
                     .userId(userId)
-                    .consumptionType(ROOF_ANALYSIS)
-                    .usageMetric(1L)
-                    .comment(
+                    .activityType(ROOF_DETECTION_2D)
+                    .quantity(1L)
+                    .description(
                         "Adresse : "
                             + tracking.getAddress()
                             + " - Initiateur : "
@@ -115,12 +111,12 @@ public class SubscriptionService {
                             + " - "
                             + tracking.getInitiatorPhoneNumber())
                     .creationDatetime(tracking.getCreationDatetime())
-                    .consumptionUnit(UNIT)
+                    .activityUnit(UNIT)
                     .build())
         .toList();
   }
 
-  public List<ConsumptionUsageSummary> computeMonthlySubscriptionVariableConsumption(User user) {
+  public List<UserActivitySummary> computeMonthlySubscriptionVariableConsumption(User user) {
     var consumptionLogs =
         findConsumptionLogsByUserId(
             user.getId(),
@@ -129,8 +125,7 @@ public class SubscriptionService {
     return calculateUsageByType(consumptionLogs);
   }
 
-  private List<ConsumptionUsageSummary> calculateUsageByType(
-      List<SubscriptionConsumptionLog> logs) {
+  private List<UserActivitySummary> calculateUsageByType(List<UserActivity> logs) {
     if (logs == null || logs.isEmpty()) {
       return List.of();
     }
@@ -139,11 +134,11 @@ public class SubscriptionService {
         logs.stream()
             .collect(
                 Collectors.groupingBy(
-                    SubscriptionConsumptionLog::getConsumptionType,
-                    Collectors.summingLong(SubscriptionConsumptionLog::getUsageMetric)));
+                    UserActivity::getActivityType,
+                    Collectors.summingLong(UserActivity::getQuantity)));
 
     return consumptionTypeLongMap.entrySet().stream()
-        .map(entry -> new ConsumptionUsageSummary(entry.getKey(), entry.getValue()))
+        .map(entry -> new UserActivitySummary(entry.getKey(), entry.getValue()))
         .toList();
   }
 

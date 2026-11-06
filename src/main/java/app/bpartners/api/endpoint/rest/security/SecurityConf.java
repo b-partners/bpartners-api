@@ -28,6 +28,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
@@ -111,6 +112,8 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/captcha/token", GET.name()),
                         new AntPathRequestMatcher("/token/validate", POST.name())))),
             AnonymousAuthenticationFilter.class)
+        .addFilterAfter(
+            new ApiBridgeScopeFilter(apiBridgeEndpoints()), ExceptionTranslationFilter.class)
         // authorize
         .authorizeHttpRequests(
             (authorize) ->
@@ -503,6 +506,10 @@ public class SecurityConf {
                     .authenticated()
                     .requestMatchers(GET, "/map/layers/actual")
                     .authenticated()
+                    .requestMatchers(GET, "/geodata/geocode")
+                    .authenticated()
+                    .requestMatchers(PUT, "/geodata/lidar/caching/*")
+                    .authenticated()
                     .requestMatchers(
                         new SelfAccountMatcher(
                             GET, "/accounts/*/areaPictures", authResourceProvider))
@@ -761,6 +768,25 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             GET, "/users/*/detectionTracking", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(GET, "/users/*/analysisProjects", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            GET, "/users/*/analysisProjects/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/analysisProjects/*", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/analysisProjects/*/2d", authResourceProvider))
+                    .authenticated()
+                    .requestMatchers(
+                        new SelfUserMatcher(
+                            PUT, "/users/*/analysisProjects/*/3d", authResourceProvider))
+                    .authenticated()
                     .requestMatchers(POST, "/address/autocomplete")
                     .authenticated()
                     .requestMatchers(
@@ -821,6 +847,34 @@ public class SecurityConf {
                         new SelfUserMatcher(
                             GET, "/users/*/creditTransactions/*", authResourceProvider))
                     .authenticated()
+                    .requestMatchers(POST, "/geo-jobs/detections/*/sync")
+                    .authenticated()
+                    .requestMatchers(GET, "/geo-jobs/detections/*")
+                    .authenticated()
+                    .requestMatchers(PUT, "/geo-jobs/detections/*/roofs/properties")
+                    .authenticated()
+                    .requestMatchers(POST, "/geo-jobs/detections/*/image")
+                    .authenticated()
+                    .requestMatchers(POST, "/geo-jobs/detections/*/pdf")
+                    .authenticated()
+                    .requestMatchers(POST, "/geo-jobs/detections/*/roofer/email")
+                    .authenticated()
+                    .requestMatchers(POST, "/geo-jobs/3d/*/sync")
+                    .authenticated()
+                    .requestMatchers(GET, "/geo-jobs/3d/*")
+                    .authenticated()
+                    .requestMatchers(PUT, "/geo-jobs/3d/*/intersections")
+                    .authenticated()
+                    .requestMatchers(GET, "/geo-jobs/coverage")
+                    .authenticated()
+                    .requestMatchers(GET, "/geo-jobs/geocode")
+                    .authenticated()
+                    .requestMatchers("/llm/toiture")
+                    .authenticated()
+                    .requestMatchers("/geoserver/wms")
+                    .authenticated()
+                    .requestMatchers(POST, "/token")
+                    .authenticated()
                     .requestMatchers("/**")
                     .denyAll())
 
@@ -833,6 +887,25 @@ public class SecurityConf {
         .logout(AbstractHttpConfigurer::disable);
     // formatter:on
     return http.build();
+  }
+
+  private static RequestMatcher apiBridgeEndpoints() {
+    return new OrRequestMatcher(
+        new AntPathRequestMatcher("/llm/toiture"),
+        new AntPathRequestMatcher("/geodata/geocode", GET.name()),
+        new AntPathRequestMatcher("/geodata/lidar/caching/*", PUT.name()),
+        new AntPathRequestMatcher("/geoserver/wms"),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/sync", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*", GET.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/roofs/properties", PUT.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/image", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/pdf", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/detections/*/roofer/email", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/3d/*/sync", POST.name()),
+        new AntPathRequestMatcher("/geo-jobs/3d/*", GET.name()),
+        new AntPathRequestMatcher("/geo-jobs/3d/*/intersections", PUT.name()),
+        new AntPathRequestMatcher("/geo-jobs/coverage", GET.name()),
+        new AntPathRequestMatcher("/geo-jobs/geocode", GET.name()));
   }
 
   private Exception forbiddenWithRemoteInfo(Exception e, HttpServletRequest req) {

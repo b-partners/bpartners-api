@@ -1,0 +1,352 @@
+operations:
+  analysisProjectsOperations:
+    get:
+      tags:
+        - Analysis Project
+      summary: Retrieve the analysis projects of a user
+      description: |
+        An analysis project gathers the 2D analysis and the 3D model of a same feature, and consumes
+        a single credit whatever the number of steps performed. Draft projects, on which no step
+        has been registered yet, are included. Projects are ordered by creation datetime DESC. This operation replaces `GET /users/{userId}/detectionTracking`.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: projectKey
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: externalReference
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: search
+          description: |
+            Filter projects by zone, address, initiator details or external reference.
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: page
+          schema:
+            $ref: './api.yml#/components/schemas/Page'
+        - in: query
+          name: pageSize
+          schema:
+            $ref: './api.yml#/components/schemas/PageSize'
+        - in: query
+          name: status
+          description: Filter projects by their status.
+          schema:
+            $ref: '#/components/schemas/AnalysisProjectPhase'
+          required: false
+      operationId: listAnalysisProjects
+      responses:
+        200:
+          description: List of analysis projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  analysisProjectOperations:
+    get:
+      tags:
+        - Analysis Project
+      summary: Retrieve the status of an analysis project
+      description: |
+        Tells which steps (2D analysis, 3D model) remain to be processed for the project, and
+        whether its credit has already been consumed. A project that has not been started yet is
+        returned with every step remaining and the credit cost it will consume.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: projectKey
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: externalReference
+          description: Alias given by the API consumer, resolved before `projectKey` when known.
+          schema:
+            type: string
+          required: false
+      operationId: getAnalysisProject
+      responses:
+        200:
+          description: Status of the analysis project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+    put:
+      tags:
+        - Analysis Project
+      summary: Create a draft analysis project
+      description: |
+        Creates the project identified by `projectKey` in `DRAFT` status, before any step is
+        registered. The key is chosen by the caller, so the operation is idempotent: when the
+        project already exists it is returned as is, and only a project still in `DRAFT` has its
+        description completed. No credit is debited, only the registration of the 2D analysis and of
+        the 3D model consume one.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: projectKey
+          schema:
+            type: string
+          required: true
+      operationId: createDraftAnalysisProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftAnalysisProject'
+        required: true
+      responses:
+        200:
+          description: The draft analysis project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  analysisProject2dOperations:
+    put:
+      tags:
+        - Analysis Project
+      summary: Register the 2D analysis of an analysis project
+      description: |
+        Records the 2D analysis performed on the project and marks the step as done. A credit is
+        debited only when the project has not consumed one yet, for instance through its 3D model.
+        Registering the same analysis twice (same `detectionIdentifier`, or same `zone`) has no
+        further effect. This operation replaces `POST /users/{userId}/detectionTracking`.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: projectKey
+          schema:
+            type: string
+          required: true
+      operationId: registerAnalysisProject2d
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register2d'
+        required: true
+      responses:
+        200:
+          description: Status of the analysis project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        402:
+          $ref: './api.yml#/components/responses/402'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+  analysisProject3dOperations:
+    put:
+      tags:
+        - Analysis Project
+      summary: Register the 3D model of an analysis project
+      description: |
+        Marks the 3D model step of the project as done. A credit is debited only when the project
+        has not consumed one yet, for instance through its 2D analysis. Registering the same step
+        twice has no further effect.
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: projectKey
+          schema:
+            type: string
+          required: true
+      operationId: registerAnalysisProject3d
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register3d'
+        required: false
+      responses:
+        200:
+          description: Status of the analysis project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisProject'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        402:
+          $ref: './api.yml#/components/responses/402'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
+components:
+  schemas:
+    AnalysisProjectStep:
+      type: string
+      enum:
+        - ANALYSIS_2D
+        - MODEL_3D
+    AnalysisProjectPhase:
+      type: string
+      enum:
+        - DRAFT
+        - IN_PROGRESS
+        - DONE
+    CreateDraftAnalysisProject:
+      type: object
+      required:
+        - address
+        - zone
+      properties:
+        address:
+          type: string
+        zone:
+          type: string
+          description: |
+            Polygon of the zone as longitude/latitude coordinates, serialized as a GeoJSON geometry.
+        externalReference:
+          type: string
+          description: Optional identifier given by the API consumer, used as an alias of the project.
+        areaPictureId:
+          type: string
+          description: Area picture whose annotation is the working data of the project.
+        prospectId:
+          type: string
+    Register2d:
+      type: object
+      properties:
+        externalReference:
+          type: string
+          description: Optional identifier given by the API consumer, used as an alias of the project.
+        detectionIdentifier:
+          type: string
+          description: Refers to detection end-to-end identifier
+        zone:
+          type: string
+        address:
+          type: string
+        initiator:
+          $ref: './detection-monitoring-api.yml#/components/schemas/DetectionInitiator'
+        creationDatetime:
+          type: string
+          format: date-time
+    Register3d:
+      type: object
+      properties:
+        externalReference:
+          type: string
+          description: Optional identifier given by the API consumer, used as an alias of the project.
+        address:
+          type: string
+          description: Address of the feature, only used to label the credit transaction.
+    AnalysisProject:
+      type: object
+      properties:
+        projectKey:
+          type: string
+        externalReference:
+          type: string
+        detectionIdentifier:
+          type: string
+          description: Refers to the end-to-end identifier of the 2D detection
+        zone:
+          type: string
+        address:
+          type: string
+        initiator:
+          $ref: './detection-monitoring-api.yml#/components/schemas/DetectionInitiator'
+        creationDatetime:
+          type: string
+          format: date-time
+        status:
+          $ref: '#/components/schemas/AnalysisProjectPhase'
+        areaPictureId:
+          type: string
+        prospectId:
+          type: string
+        analysis2dDone:
+          type: boolean
+        model3dDone:
+          type: boolean
+        creditConsumed:
+          type: boolean
+        creditTransactionId:
+          type: string
+        remainingSteps:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnalysisProjectStep'
+        creditCost:
+          type: integer
+          format: int64
+          description: Credits that the next step of the project will consume, 0 once consumed.
+        creditsSufficient:
+          type: boolean

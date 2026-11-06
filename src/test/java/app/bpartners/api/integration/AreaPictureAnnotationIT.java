@@ -5,6 +5,7 @@ import static app.bpartners.api.integration.AreaPictureIT.*;
 import static app.bpartners.api.integration.conf.utils.TestUtils.*;
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -236,6 +237,24 @@ public class AreaPictureAnnotationIT extends MockedThirdParties {
         api.annotateAreaPicture(JOE_DOE_ACCOUNT_ID, AREA_PICTURE_1_ID, payloadId, expected);
 
     assertEquals(ignoreCreationDatetime(expected), ignoreCreationDatetime(createdAnnotation));
+  }
+
+  @Test
+  void annotating_an_unknown_area_picture_is_not_found() {
+    AreaPictureApi api = new AreaPictureApi(joeDoeClient());
+    String payloadId = randomUUID().toString();
+    String unknownAreaPictureId = randomUUID().toString();
+    AreaPictureAnnotation toCreate = createAreaPictureAnnotation(payloadId, unknownAreaPictureId);
+
+    var exception =
+        assertThrows(
+            ApiException.class,
+            () ->
+                api.annotateAreaPicture(
+                    JOE_DOE_ACCOUNT_ID, unknownAreaPictureId, payloadId, toCreate));
+
+    assertEquals(404, exception.getCode());
+    assertTrue(exception.getResponseBody().contains(unknownAreaPictureId));
   }
 
   @Test

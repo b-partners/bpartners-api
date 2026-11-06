@@ -163,6 +163,10 @@ public class AreaPictureService {
     return mapLayerService.getAvailableLayersFrom(longitude, latitude);
   }
 
+  public boolean exists(String id) {
+    return id != null && jpaRepository.existsById(id);
+  }
+
   public AreaPicture save(AreaPicture areaPicture) {
     return mapper.toDomain(jpaRepository.save(mapper.toEntity(areaPicture)));
   }

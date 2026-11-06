@@ -28,6 +28,8 @@ public interface UserRepository {
 
   Optional<User> findByEmail(String email);
 
+  boolean existsByEmailIgnoreCase(String email);
+
   Optional<User> findByStripeCustomerId(String stripeCustomerId);
 
   User getById(String id);

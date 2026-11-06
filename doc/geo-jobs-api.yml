@@ -437,6 +437,12 @@ components:
         needsImageOutput: { type: boolean }
         toNotify: { type: boolean }
         debugMode: { type: boolean }
+        projectKey:
+          type: string
+          description: Key of the analysis project the detection belongs to, forwarded as received.
+        externalReference:
+          type: string
+          description: Reference of the analysis project in the caller's own system, forwarded as received.
     GeoJobsProspect:
       type: object
       properties:
@@ -475,6 +481,12 @@ components:
         lidarProcessorType:
           $ref: '#/components/schemas/GeoJobsLidarProcessorType'
         knn: { type: integer }
+        projectKey:
+          type: string
+          description: Key of the analysis project the 3D model belongs to, forwarded as received.
+        externalReference:
+          type: string
+          description: Reference of the analysis project in the caller's own system, forwarded as received.
     GeoJobsCreateRoofIntersections:
       type: object
       description: The zone to read the roof under, a single Polygon in WGS84

@@ -68,6 +68,29 @@ class GeoJobsBridgeTest {
   }
 
   @Test
+  void processDetectionSynchronously_forwards_the_analysis_project() {
+    geoJobs
+        .expect(requestTo(GEO_JOBS_BASE_URL + "/detections/det-1/sync"))
+        .andExpect(method(POST))
+        .andExpect(
+            content()
+                .json(
+                    "{\"emailReceiver\":\"a@b.c\",\"zoneName\":\"zone\","
+                        + "\"projectKey\":\"session-1\",\"externalReference\":\"crm-42\"}"))
+        .andRespond(withSuccess(DETECTION_JSON, APPLICATION_JSON));
+
+    subject.processDetectionSynchronously(
+        "det-1",
+        new GeoJobsCreateDetection()
+            .emailReceiver("a@b.c")
+            .zoneName("zone")
+            .projectKey("session-1")
+            .externalReference("crm-42"));
+
+    geoJobs.verify();
+  }
+
+  @Test
   void getDetection_gets_with_user_key() {
     geoJobs
         .expect(requestTo(GEO_JOBS_BASE_URL + "/detections/det-1"))
@@ -167,6 +190,30 @@ class GeoJobsBridgeTest {
                 .delimitationType(GeoJobsDelimitationType.USER_DEFINED_DELIMITATION));
 
     assertEquals(THREE_D_JSON, response.getBody());
+    geoJobs.verify();
+  }
+
+  @Test
+  void processThreeDSynchronously_forwards_the_analysis_project() {
+    geoJobs
+        .expect(requestTo(GEO_JOBS_BASE_URL + "/3d/3d-1/sync"))
+        .andExpect(method(POST))
+        .andExpect(
+            content()
+                .json(
+                    "{\"delimitationObjectType\":\"BUILDING_ROOF\","
+                        + "\"delimitationType\":\"USER_DEFINED_DELIMITATION\","
+                        + "\"projectKey\":\"session-1\",\"externalReference\":\"crm-42\"}"))
+        .andRespond(withSuccess(THREE_D_JSON, APPLICATION_JSON));
+
+    subject.processThreeDSynchronously(
+        "3d-1",
+        new GeoJobsThreeDRequest()
+            .delimitationObjectType(GeoJobsDelimitationObjectType.fromValue("BUILDING_ROOF"))
+            .delimitationType(GeoJobsDelimitationType.USER_DEFINED_DELIMITATION)
+            .projectKey("session-1")
+            .externalReference("crm-42"));
+
     geoJobs.verify();
   }
 

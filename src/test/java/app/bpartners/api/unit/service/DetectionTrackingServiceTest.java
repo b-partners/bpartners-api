@@ -186,6 +186,34 @@ class DetectionTrackingServiceTest {
   }
 
   @Test
+  void known_zone_does_not_skip_a_detection_of_another_project() {
+    var userId = randomUUID().toString();
+    var tracking = someTracking(userId, randomUUID().toString(), "session-1", null);
+    when(repositoryMock.existsByIdUserAndZoneIgnoreCase(userId, "some zone")).thenReturn(true);
+    when(repositoryMock.saveAll(List.of(tracking))).thenReturn(List.of(tracking));
+
+    var actual = subject.computeTrackingWithUserActivity(List.of(tracking));
+
+    assertEquals(List.of(tracking), actual);
+    verify(analysisProjectServiceMock, times(1))
+        .register(eq(userId), eq("session-1"), any(), eq(ANALYSIS_2D), anyString(), any());
+  }
+
+  @Test
+  void skip_a_detection_whose_project_already_has_its_analysis_2d() {
+    var userId = randomUUID().toString();
+    var tracking = someTracking(userId, randomUUID().toString(), "session-1", "crm-42");
+    when(analysisProjectServiceMock.isStepDone(userId, "session-1", "crm-42", ANALYSIS_2D))
+        .thenReturn(true);
+
+    var actual = subject.computeTrackingWithUserActivity(List.of(tracking));
+
+    assertTrue(actual.isEmpty());
+    verify(userActivityServiceMock, never()).record(any());
+    verify(analysisProjectServiceMock, never()).register(any(), any(), any(), any(), any(), any());
+  }
+
+  @Test
   void zone_registered_by_another_user_does_not_skip_the_detection() {
     var userId = randomUUID().toString();
     var otherUserId = randomUUID().toString();
@@ -225,6 +253,11 @@ class DetectionTrackingServiceTest {
   }
 
   private DetectionTracking someTracking(String userId, String detectionIdentifier) {
+    return someTracking(userId, detectionIdentifier, null, null);
+  }
+
+  private DetectionTracking someTracking(
+      String userId, String detectionIdentifier, String projectKey, String externalReference) {
     return new DetectionTracking(
         randomUUID().toString(),
         "some zone",
@@ -233,7 +266,7 @@ class DetectionTrackingServiceTest {
         new DetectionInitiator("some name", "some@email.com", "0600000000"),
         User.builder().id(userId).build(),
         detectionIdentifier,
-        null,
-        null);
+        projectKey,
+        externalReference);
   }
 }

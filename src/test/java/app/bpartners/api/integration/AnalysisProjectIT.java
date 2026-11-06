@@ -473,6 +473,44 @@ class AnalysisProjectIT extends MockedThirdParties {
     assertEquals(99L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
   }
 
+  @SneakyThrows
+  @Test
+  void analysis_2d_on_a_known_zone_is_registered_on_each_project_but_once_per_project() {
+    var zone = "zone-" + randomUUID();
+    var api = new AnalysisProjectApi(anApiClient());
+    var firstKey = randomUUID().toString();
+    var secondKey = randomUUID().toString();
+    var firstDetection = randomUUID().toString();
+    var secondDetection = randomUUID().toString();
+
+    register2dOnZone(firstKey, zone, firstDetection);
+    register2dOnZone(secondKey, zone, secondDetection);
+    register2dOnZone(secondKey, zone, randomUUID().toString());
+
+    var first = api.getAnalysisProject(JOE_DOE_ID, firstKey, null);
+    var second = api.getAnalysisProject(JOE_DOE_ID, secondKey, null);
+    assertTrue(first.getAnalysis2dDone());
+    assertEquals(firstDetection, first.getDetectionIdentifier());
+    assertTrue(second.getAnalysis2dDone());
+    assertEquals(secondDetection, second.getDetectionIdentifier());
+    assertEquals(2, consumptionsOfJoeDoe().size());
+    assertEquals(98L, creditService.getCreditBalance(JOE_DOE_ID).getSpendableCredits());
+  }
+
+  @SneakyThrows
+  private void register2dOnZone(String projectKey, String zone, String detectionIdentifier) {
+    new AnalysisProjectApi(anApiClient())
+        .registerAnalysisProject2d(
+            JOE_DOE_ID,
+            projectKey,
+            new Register2d()
+                .detectionIdentifier(detectionIdentifier)
+                .zone(zone)
+                .address("dummyAddress")
+                .initiator(new DetectionInitiator().name("dummyInitiator"))
+                .creationDatetime(now()));
+  }
+
   private List<CreditTransaction> consumptionsOfJoeDoe() {
     return creditTransactionRepository.findAllByUserId(JOE_DOE_ID).stream()
         .filter(transaction -> CONSUMPTION.equals(transaction.getType()))

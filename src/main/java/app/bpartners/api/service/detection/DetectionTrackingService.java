@@ -93,13 +93,10 @@ public class DetectionTrackingService {
   }
 
   private String projectKeyOf(DetectionTracking tracking) {
-    var projectKey = tracking.projectKey();
-    var hasExternalReference =
-        tracking.externalReference() != null && !tracking.externalReference().isBlank();
-    if ((projectKey == null || projectKey.isBlank()) && !hasExternalReference) {
+    if (!hasProject(tracking)) {
       return "tracking:" + tracking.id();
     }
-    return projectKey;
+    return tracking.projectKey();
   }
 
   private List<DetectionTracking> filterUnregistered(List<DetectionTracking> tracking) {
@@ -108,13 +105,28 @@ public class DetectionTrackingService {
     for (var detectionTracking : tracking) {
       var identifierRegistered =
           isIdentifierRegistered(detectionTracking.detectionIdentifier(), identifiersOfBatch);
-      var zoneRegistered =
-          isZoneRegistered(detectionTracking.user().getId(), detectionTracking.zone());
-      if (!identifierRegistered && !zoneRegistered) {
+      if (!identifierRegistered && !isAlreadyRegistered(detectionTracking)) {
         unregistered.add(detectionTracking);
       }
     }
     return unregistered;
+  }
+
+  private boolean isAlreadyRegistered(DetectionTracking tracking) {
+    var userId = tracking.user().getId();
+    if (hasProject(tracking)) {
+      return analysisProjectService.isStepDone(
+          userId, tracking.projectKey(), tracking.externalReference(), ANALYSIS_2D);
+    }
+    return isZoneRegistered(userId, tracking.zone());
+  }
+
+  private boolean hasProject(DetectionTracking tracking) {
+    return !isBlank(tracking.projectKey()) || !isBlank(tracking.externalReference());
+  }
+
+  private boolean isBlank(String value) {
+    return value == null || value.isBlank();
   }
 
   private boolean isIdentifierRegistered(

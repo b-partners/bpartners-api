@@ -118,6 +118,15 @@ public class AnalysisProjectService {
   }
 
   @Transactional(readOnly = true)
+  public boolean isStepDone(
+      String actorUserId, String projectKey, String externalReference, AnalysisProjectStep step) {
+    var userId = primaryUserResolver.resolve(actorUserId);
+    return find(userId, projectKey, externalReference)
+        .map(project -> project.isDone(step))
+        .orElse(false);
+  }
+
+  @Transactional(readOnly = true)
   public AnalysisProjectStatus getStatus(
       String actorUserId, String projectKey, String externalReference) {
     if (isBlank(projectKey) && isBlank(externalReference)) {

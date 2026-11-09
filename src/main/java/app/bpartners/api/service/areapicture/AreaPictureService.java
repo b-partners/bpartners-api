@@ -1,8 +1,8 @@
 package app.bpartners.api.service.areapicture;
 
 import static app.bpartners.api.endpoint.rest.model.FileType.AREA_PICTURE;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.IMAGE_ACCESS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
+import static app.bpartners.api.model.activity.UserActivityType.AERIAL_IMAGE_ACCESS;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static java.time.Instant.now;
 import static java.util.UUID.randomUUID;
 
@@ -10,14 +10,14 @@ import app.bpartners.api.endpoint.rest.model.AreaPictureDetails;
 import app.bpartners.api.file.FileDownloaderImpl;
 import app.bpartners.api.model.AreaPicture;
 import app.bpartners.api.model.AreaPictureMapLayer;
+import app.bpartners.api.model.activity.UserActivity;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.AreaPictureMapper;
-import app.bpartners.api.model.subscription.SubscriptionConsumptionLog;
 import app.bpartners.api.repository.jpa.AreaPictureJpaRepository;
 import app.bpartners.api.repository.jpa.ProspectJpaRepository;
+import app.bpartners.api.service.activity.UserActivityService;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.geodata.ImageryService;
-import app.bpartners.api.service.subscription.SubscriptionService;
 import app.bpartners.api.service.wms.AreaPictureMapLayerService;
 import java.net.URI;
 import java.util.Collection;
@@ -37,9 +37,9 @@ public class AreaPictureService {
   private final AreaPictureMapper mapper;
   private final FileService fileService;
   private final AreaPictureMapLayerService mapLayerService;
-  private final SubscriptionService subscriptionService;
+  private final UserActivityService userActivityService;
   private final ProspectJpaRepository prospectRepository;
-  private final AreaPictureConsumptionValidator areaPictureConsumptionValidator;
+  private final AreaPictureCreditBalanceValidator areaPictureCreditBalanceValidator;
   private final ImageryService imageryService;
   private final FileDownloaderImpl fileDownloader;
 
@@ -106,7 +106,7 @@ public class AreaPictureService {
   @SneakyThrows
   @Transactional
   public AreaPictureDetails downloadFromExternalSource(AreaPicture areaPicture) {
-    areaPictureConsumptionValidator.accept(areaPicture);
+    areaPictureCreditBalanceValidator.accept(areaPicture);
     var areaPictureDetails =
         imageryService.downloadFromGeodataSource(mapper.toCrupdatedAreaPictureDetails(areaPicture));
     areaPictureDetails.setId(areaPicture.getId());
@@ -124,12 +124,12 @@ public class AreaPictureService {
     fileService.upload(
         AREA_PICTURE, refreshed.getIdFileInfo(), refreshed.getIdUser(), downloadedFile);
     save(areaPicture);
-    saveLogConsumption(areaPicture);
+    logImageAccess(areaPicture);
     return areaPictureDetails;
   }
 
-  public AreaPicture saveLogConsumption(AreaPicture picture) {
-    var usageMetric = 1L;
+  public AreaPicture logImageAccess(AreaPicture picture) {
+    var quantity = 1L;
     var idProspect = picture.getIdProspect();
     var address = picture.getAddress();
     var comment = "Adresse : " + address;
@@ -145,14 +145,14 @@ public class AreaPictureService {
       }
     }
 
-    subscriptionService.addConsumption(
-        SubscriptionConsumptionLog.builder()
+    userActivityService.record(
+        UserActivity.builder()
             .id(randomUUID().toString())
             .userId(picture.getIdUser())
-            .consumptionType(IMAGE_ACCESS)
-            .usageMetric(usageMetric)
-            .consumptionUnit(UNIT)
-            .comment(comment)
+            .activityType(AERIAL_IMAGE_ACCESS)
+            .quantity(quantity)
+            .activityUnit(UNIT)
+            .description(comment)
             .creationDatetime(now())
             .build());
 
@@ -161,6 +161,10 @@ public class AreaPictureService {
 
   public List<AreaPictureMapLayer> getMapLayers(Double longitude, Double latitude) {
     return mapLayerService.getAvailableLayersFrom(longitude, latitude);
+  }
+
+  public boolean exists(String id) {
+    return id != null && jpaRepository.existsById(id);
   }
 
   public AreaPicture save(AreaPicture areaPicture) {

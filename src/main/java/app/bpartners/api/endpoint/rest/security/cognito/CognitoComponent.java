@@ -15,6 +15,8 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreate
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminDeleteUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersResponse;
 
 @Slf4j
 @Component
@@ -70,6 +72,21 @@ public class CognitoComponent {
       throw new ApiException(SERVER_EXCEPTION, "Cognito response: " + createResponse);
     }
     return createResponse.user().username();
+  }
+
+  public boolean existsByEmail(String email) {
+    ListUsersRequest request =
+        ListUsersRequest.builder()
+            .userPoolId(cognitoConf.getUserPoolId())
+            .filter(String.format("email = \"%s\"", escapeFilterValue(email)))
+            .limit(1)
+            .build();
+    ListUsersResponse response = cognitoClient.listUsers(request);
+    return response != null && response.hasUsers() && !response.users().isEmpty();
+  }
+
+  private static String escapeFilterValue(String value) {
+    return value.replace("\\", "\\\\").replace("\"", "\\\"");
   }
 
   public void deleteUserByUsername(String email) {

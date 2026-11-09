@@ -1,8 +1,8 @@
 package app.bpartners.api.unit.service;
 
 import static app.bpartners.api.endpoint.rest.model.SubscriptionCancellationType.END_OF_PERIOD;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionType.ROOF_ANALYSIS;
-import static app.bpartners.api.model.subscription.SubscriptionConsumptionUnit.UNIT;
+import static app.bpartners.api.model.activity.UserActivityType.ROOF_DETECTION_2D;
+import static app.bpartners.api.model.activity.UserActivityUnit.UNIT;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -18,6 +18,8 @@ import app.bpartners.api.endpoint.rest.model.UserSubscriptionType;
 import app.bpartners.api.model.BoundedPageSize;
 import app.bpartners.api.model.PageFromOne;
 import app.bpartners.api.model.User;
+import app.bpartners.api.model.activity.UserActivity;
+import app.bpartners.api.model.activity.UserActivitySummary;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.subscription.*;
@@ -61,8 +63,6 @@ class SubscriptionServiceTest {
       mock(SubscriptionProductRepository.class);
   UserSubscriptionEligibleJpaRepository subscriptionEligibleJpaRepositoryMock =
       mock(UserSubscriptionEligibleJpaRepository.class);
-  SubscriptionConsumptionLogJpaRepository consumptionLogJpaRepositoryMock =
-      mock(SubscriptionConsumptionLogJpaRepository.class);
   TemporalUtils temporalUtils = new TemporalUtils();
   StripeFactory sessionFactoryMock = mock(StripeFactory.class);
   DetectionTrackingJpaRepository detectionTrackingJpaRepositoryMock =
@@ -83,7 +83,6 @@ class SubscriptionServiceTest {
           subscriptionProductRepositoryMock,
           subscriptionEligibleJpaRepositoryMock,
           temporalUtils,
-          consumptionLogJpaRepositoryMock,
           sessionFactoryMock,
           detectionTrackingJpaRepositoryMock,
           stripeInvoiceServiceMock,
@@ -94,7 +93,7 @@ class SubscriptionServiceTest {
           userSubscriptionCommitmentAutoRenewalStatusHistoryJpaRepositoryMock);
 
   @Test
-  void get_subscription_consumption_logs_ok() {
+  void get_activity_logs_ok() {
     var userId = randomUUID().toString();
     var startOfMonth = temporalUtils.startOfMonth();
     var endOfMonth = temporalUtils.endOfMonth();
@@ -104,12 +103,12 @@ class SubscriptionServiceTest {
         expectedDetectionTrackingEntities.stream()
             .map(
                 tracking ->
-                    SubscriptionConsumptionLog.builder()
+                    UserActivity.builder()
                         .id(tracking.getId())
                         .userId(userId)
-                        .consumptionType(ROOF_ANALYSIS)
-                        .usageMetric(1L)
-                        .comment(
+                        .activityType(ROOF_DETECTION_2D)
+                        .quantity(1L)
+                        .description(
                             "Adresse : "
                                 + tracking.getAddress()
                                 + " - Initiateur : "
@@ -119,7 +118,7 @@ class SubscriptionServiceTest {
                                 + " - "
                                 + tracking.getInitiatorPhoneNumber())
                         .creationDatetime(tracking.getCreationDatetime())
-                        .consumptionUnit(UNIT)
+                        .activityUnit(UNIT)
                         .build())
             .toList();
     when(detectionTrackingJpaRepositoryMock.findAllByIdUserAndCreationDatetimeBetween(
@@ -135,14 +134,13 @@ class SubscriptionServiceTest {
     assertEquals(expected, actualWithNullFilterValues);
   }
 
-  private static SubscriptionConsumptionLog someConsumptionLog(
-      String userId, Instant creationDatetime) {
-    return SubscriptionConsumptionLog.builder()
+  private static UserActivity someConsumptionLog(String userId, Instant creationDatetime) {
+    return UserActivity.builder()
         .id(randomUUID().toString())
         .userId(userId)
-        .consumptionType(ROOF_ANALYSIS)
-        .usageMetric(1L)
-        .consumptionUnit(UNIT)
+        .activityType(ROOF_DETECTION_2D)
+        .quantity(1L)
+        .activityUnit(UNIT)
         .creationDatetime(creationDatetime)
         .build();
   }
@@ -1628,34 +1626,12 @@ class SubscriptionServiceTest {
     assertEquals(userMock.getId(), userSubscriptionEligible.getUserId());
   }
 
-  @Test
-  void add_consumption() {
-    when(consumptionLogJpaRepositoryMock.save(any()))
-        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
-    var userId = "userId";
-    var usageMetric = 2L;
-    var instantNow = now();
-    var subscriptionConsumption =
-        SubscriptionConsumptionLog.builder()
-            .id(randomUUID().toString())
-            .userId(userId)
-            .consumptionType(ROOF_ANALYSIS)
-            .usageMetric(usageMetric)
-            .consumptionUnit(UNIT)
-            .creationDatetime(instantNow)
-            .build();
-
-    var actual = subject.addConsumption(subscriptionConsumption);
-
-    assertEquals(subscriptionConsumption, actual);
-  }
-
   @SneakyThrows
   @Test
   void compute_monthly_subscription_variable_consumption_is_never_reported_to_stripe() {
     var userId = randomUUID().toString();
     var expectedUsage = 22L; // above the former free roof analysis threshold
-    var expected = List.of(new ConsumptionUsageSummary(ROOF_ANALYSIS, expectedUsage));
+    var expected = List.of(new UserActivitySummary(ROOF_DETECTION_2D, expectedUsage));
     var userMock = mock(User.class);
     var usageRecordMockedStatic = mockStatic(UsageRecord.class);
     when(userMock.getId()).thenReturn(userId);

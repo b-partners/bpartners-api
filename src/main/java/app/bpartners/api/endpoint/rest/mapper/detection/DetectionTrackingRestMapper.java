@@ -17,6 +17,8 @@ public class DetectionTrackingRestMapper {
     return new DetectionTracking()
         .id(tracking.id())
         .detectionIdentifier(tracking.detectionIdentifier())
+        .projectKey(tracking.projectKey())
+        .externalReference(tracking.externalReference())
         .zone(tracking.zone())
         .address(tracking.address())
         .creationDatetime(tracking.creationDatetime())
@@ -41,7 +43,9 @@ public class DetectionTrackingRestMapper {
             createDetectionTracking.getInitiator().getEmail(),
             createDetectionTracking.getInitiator().getPhoneNumber()),
         user,
-        createDetectionTracking.getDetectionIdentifier());
+        createDetectionTracking.getDetectionIdentifier(),
+        createDetectionTracking.getProjectKey(),
+        createDetectionTracking.getExternalReference());
   }
 
   private void accept(CreateDetectionTracking createDetectionTracking) {

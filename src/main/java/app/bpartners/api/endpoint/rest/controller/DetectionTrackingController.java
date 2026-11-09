@@ -40,9 +40,7 @@ public class DetectionTrackingController {
         restTracking.stream()
             .map(rest -> trackingRestMapper.toDomain(rest, AuthProvider.getAuthenticatedUser()))
             .toList();
-    return detectionTrackingService
-        .computeTrackingWithSubscriptionConsumptionLog(detectionTracking)
-        .stream()
+    return detectionTrackingService.computeTrackingWithUserActivity(detectionTracking).stream()
         .map(trackingRestMapper::toRest)
         .toList();
   }

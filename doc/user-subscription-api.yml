@@ -732,10 +732,12 @@ components:
     ConsumptionType:
       type: string
       description: |
-        ROOF_ANALYSIS is the only billable consumption. IMAGE_ACCESS only tracks
-        that an area picture has been read from an external source.
+        ROOF_ANALYSIS is the only billable consumption. ROOF_MODEL_3D tracks that the 3D model
+        of a feature has been registered. IMAGE_ACCESS only tracks that an area picture has been
+        read from an external source.
       enum:
         - ROOF_ANALYSIS
+        - ROOF_MODEL_3D
         - IMAGE_ACCESS
     ConsumptionUnit:
       type: string

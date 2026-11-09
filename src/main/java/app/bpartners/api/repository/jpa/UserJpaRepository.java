@@ -20,6 +20,11 @@ public interface UserJpaRepository extends JpaRepository<HUser, String> {
 
   Optional<HUser> findByEmail(String email);
 
+  @Query(
+      value = "select exists (select 1 from \"user\" where lower(email) = lower(?1))",
+      nativeQuery = true)
+  boolean existsByLowerEmail(String email);
+
   Optional<HUser> findByUserSubscriptionE2Id(String userSubscriptionE2Id);
 
   HUser getByEmail(String email);

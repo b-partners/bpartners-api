@@ -16,7 +16,7 @@ import app.bpartners.api.model.*;
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.User;
-import app.bpartners.api.model.subscription.SubscriptionConsumptionType;
+import app.bpartners.api.model.activity.UserActivityType;
 import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.model.subscription.UserSubscription;
 import app.bpartners.api.payment.StripeConf;
@@ -223,10 +223,8 @@ public class MonthlySubscriptionInvoiceRequestedService
     var variableConsumptionUsage = new AtomicLong(0);
     consumptionUsageSummaries.forEach(
         consumptionUsageSummary -> {
-          if (consumptionUsageSummary
-              .consumptionType()
-              .equals(SubscriptionConsumptionType.ROOF_ANALYSIS)) {
-            variableConsumptionUsage.set(consumptionUsageSummary.usage());
+          if (consumptionUsageSummary.activityType().equals(UserActivityType.ROOF_DETECTION_2D)) {
+            variableConsumptionUsage.set(consumptionUsageSummary.quantity());
           }
         });
     return variableConsumptionUsage.get();

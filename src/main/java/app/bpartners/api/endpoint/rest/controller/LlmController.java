@@ -3,7 +3,6 @@ package app.bpartners.api.endpoint.rest.controller;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
 import app.bpartners.api.endpoint.rest.model.LlmRoof;
-import app.bpartners.api.service.llm.LegacyLlmRoofQuery;
 import app.bpartners.api.service.llm.LlmBridge;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
@@ -19,8 +18,7 @@ public class LlmController {
   private final LlmBridge llmBridge;
 
   @GetMapping(value = "/llm/toiture", produces = TEXT_HTML_VALUE)
-  public ResponseEntity<String> getLegacyLlmRoofReport(
-      LegacyLlmRoofQuery query, HttpServletRequest request) {
+  public ResponseEntity<String> getLegacyLlmRoofReport(HttpServletRequest request) {
     return llmBridge.getToiture(request.getQueryString());
   }
 

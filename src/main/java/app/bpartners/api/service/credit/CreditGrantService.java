@@ -77,7 +77,8 @@ public class CreditGrantService {
 
   public Optional<CreditTransaction> grantIncludedCreditsOfBilledMonth(
       String userId, SubscriptionProduct plan, Instant billedPeriodStart) {
-    return grantIncludedCredits(userId, plan, temporalUtils.startOfMonthOf(billedPeriodStart));
+    return grantIncludedCredits(
+        userId, plan, temporalUtils.startOfBillingMonthOf(billedPeriodStart));
   }
 
   private Optional<CreditTransaction> grantIncludedCredits(

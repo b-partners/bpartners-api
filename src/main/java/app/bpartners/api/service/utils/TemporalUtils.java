@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TemporalUtils {
   private static final ZoneId ZONE_ID_OF_EUROPE_PARIS = ZoneId.of("Europe/Paris");
+  private static final int LAST_DAYS_OF_MONTH_BILLED_ON_NEXT_MONTH_START = 30;
 
   public LocalDate today() {
     return now(ZONE_ID_OF_EUROPE_PARIS);
@@ -24,8 +25,12 @@ public class TemporalUtils {
     return YearMonth.from(date).plusMonths(1).atDay(1);
   }
 
-  public LocalDate startOfMonthOf(Instant instant) {
-    return YearMonth.from(instant.atZone(ZONE_ID_OF_EUROPE_PARIS)).atDay(1);
+  public LocalDate startOfBillingMonthOf(Instant billedPeriodStart) {
+    var parisDate = billedPeriodStart.atZone(ZONE_ID_OF_EUROPE_PARIS).toLocalDate();
+    var month = YearMonth.from(parisDate);
+    return parisDate.getDayOfMonth() >= LAST_DAYS_OF_MONTH_BILLED_ON_NEXT_MONTH_START
+        ? month.plusMonths(1).atDay(1)
+        : month.atDay(1);
   }
 
   public Instant startOfMonthAfterInstant(LocalDate date) {

@@ -89,6 +89,31 @@ class CreditGrantServiceTest {
   }
 
   @Test
+  void grants_the_credits_of_the_following_month_when_the_period_starts_on_the_30th_in_paris() {
+    var thirtiethOctoberMidnightInParis = Instant.parse("2026-10-29T23:00:00Z");
+
+    subject.grantIncludedCreditsOfBilledMonth(
+        "user_id", plan(10L), thirtiethOctoberMidnightInParis);
+
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+    verify(creditLedgerService).append(captor.capture());
+    assertEquals(LocalDate.parse("2026-11-01"), captor.getValue().getGrantPeriodStart());
+    assertEquals(Instant.parse("2026-11-30T23:00:00Z"), captor.getValue().getExpirationDatetime());
+  }
+
+  @Test
+  void grants_the_credits_of_the_billed_month_when_the_period_starts_before_the_30th_in_paris() {
+    var twentyNinthOctoberLastSecondInParis = Instant.parse("2026-10-29T22:59:59Z");
+
+    subject.grantIncludedCreditsOfBilledMonth(
+        "user_id", plan(10L), twentyNinthOctoberLastSecondInParis);
+
+    var captor = ArgumentCaptor.forClass(CreditTransaction.class);
+    verify(creditLedgerService).append(captor.capture());
+    assertEquals(LocalDate.parse("2026-10-01"), captor.getValue().getGrantPeriodStart());
+  }
+
+  @Test
   void a_late_paid_month_is_granted_for_its_own_month_and_already_expired() {
     var lastYearMonthStart = temporalUtils.startOfActualMonth().minusYears(1);
     var billedPeriodStart = lastYearMonthStart.plusDays(14).atStartOfDay(PARIS).toInstant();

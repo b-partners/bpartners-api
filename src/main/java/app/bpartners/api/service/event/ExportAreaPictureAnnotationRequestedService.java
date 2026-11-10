@@ -13,7 +13,7 @@ import app.bpartners.api.service.user.UserService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
 import java.util.function.Consumer;
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

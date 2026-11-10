@@ -20,7 +20,7 @@ import app.bpartners.api.service.event.CustomerCrupdatedService;
 import app.bpartners.api.service.utils.GeoUtils;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

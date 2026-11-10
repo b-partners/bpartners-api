@@ -23,7 +23,7 @@ import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
 import java.io.IOException;
 import java.time.Instant;
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.thymeleaf.context.Context;

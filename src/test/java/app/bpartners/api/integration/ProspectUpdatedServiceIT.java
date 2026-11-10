@@ -35,7 +35,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;

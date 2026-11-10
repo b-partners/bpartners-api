@@ -15,7 +15,7 @@ import app.bpartners.api.service.event.InvoiceExportLinkRequestedService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

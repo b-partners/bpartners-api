@@ -14,7 +14,7 @@ import app.bpartners.api.integration.conf.utils.TestUtils;
 import app.bpartners.api.service.aws.SesService;
 import java.io.IOException;
 import java.util.List;
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

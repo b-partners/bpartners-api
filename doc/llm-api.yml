@@ -101,8 +101,6 @@ components:
         mutation: { type: string }
         risqueVegetationFeu: { type: boolean }
         commentaireCouvreur: { type: string }
-        etatApparent:
-          type: object
-          additionalProperties: true
+        etatApparent: { type: string }
         scoreDegradationVisible: { type: number, format: double }
         contexteGeographique: { type: string }

@@ -61,4 +61,20 @@ class LlmControllerTest {
     verify(llmBridge)
         .postToiture(argThat((LlmRoof roof) -> "1 rue de Paris".equals(roof.getAdresse())));
   }
+
+  @Test
+  void post_toiture_accepts_etat_apparent_as_a_string_label() throws Exception {
+    when(llmBridge.postToiture(any())).thenReturn(ResponseEntity.ok("<html/>"));
+
+    mockMvc
+        .perform(
+            post("/llm/toiture")
+                .contentType(APPLICATION_JSON)
+                .content("{\"etatApparent\":\"Intervention nécessaire\"}"))
+        .andExpect(status().isOk());
+
+    verify(llmBridge)
+        .postToiture(
+            argThat((LlmRoof roof) -> "Intervention nécessaire".equals(roof.getEtatApparent())));
+  }
 }

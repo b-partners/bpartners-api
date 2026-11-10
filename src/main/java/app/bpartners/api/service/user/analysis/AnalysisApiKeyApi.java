@@ -17,7 +17,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -85,8 +84,12 @@ public class AnalysisApiKeyApi {
       restTemplate.exchange(
           geoJobsBaseUrl + USAGE_PATH, GET, new HttpEntity<>(headers), String.class);
       return true;
-    } catch (HttpClientErrorException e) {
-      return e.getStatusCode().value() != 403;
+    } catch (ApiException e) {
+      var status = e.getStatus();
+      if (status == null || status < 400 || status >= 500) {
+        throw e;
+      }
+      return status != 403;
     }
   }
 

@@ -37,10 +37,14 @@ public class RestTemplateConf {
       var statusCode = response.getStatusCode();
       if (statusCode.is4xxClientError()) {
         throw new ApiException(
-            SERVER_EXCEPTION, "client exception with status " + response.getStatusCode());
+            SERVER_EXCEPTION,
+            "client exception with status " + response.getStatusCode(),
+            statusCode.value());
       } else if (statusCode.is5xxServerError()) {
         throw new ApiException(
-            SERVER_EXCEPTION, "server exception with status " + response.getStatusCode());
+            SERVER_EXCEPTION,
+            "server exception with status " + response.getStatusCode(),
+            statusCode.value());
       }
     }
   }

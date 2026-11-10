@@ -14,9 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 class AnalysisApiKeyApiTest {
@@ -136,7 +134,7 @@ class AnalysisApiKeyApiTest {
   void key_rejected_with_403_is_not_recognized() {
     when(restTemplate.exchange(
             any(String.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN));
+        .thenThrow(new ApiException(SERVER_EXCEPTION, "client exception with status 403", 403));
 
     assertFalse(subject.isRecognized("key"));
   }
@@ -145,8 +143,17 @@ class AnalysisApiKeyApiTest {
   void other_client_error_still_means_key_was_authenticated() {
     when(restTemplate.exchange(
             any(String.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-        .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+        .thenThrow(new ApiException(SERVER_EXCEPTION, "client exception with status 400", 400));
 
     assertTrue(subject.isRecognized("key"));
+  }
+
+  @Test
+  void server_error_is_not_swallowed() {
+    when(restTemplate.exchange(
+            any(String.class), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenThrow(new ApiException(SERVER_EXCEPTION, "server exception with status 500", 500));
+
+    assertThrows(ApiException.class, () -> subject.isRecognized("key"));
   }
 }

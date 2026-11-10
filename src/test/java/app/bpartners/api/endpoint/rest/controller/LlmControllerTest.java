@@ -37,6 +37,16 @@ class LlmControllerTest {
   }
 
   @Test
+  void get_toiture_relays_unparseable_numeric_params_instead_of_failing_binding() throws Exception {
+    var rawQuery = "surfaceEnM2=12,5&penteMin=abc";
+    when(llmBridge.getToiture(rawQuery)).thenReturn(ResponseEntity.ok("<html/>"));
+
+    mockMvc.perform(get(URI.create("/llm/toiture?" + rawQuery))).andExpect(status().isOk());
+
+    verify(llmBridge).getToiture(rawQuery);
+  }
+
+  @Test
   void post_toiture_forwards_body_to_bridge() throws Exception {
     when(llmBridge.postToiture(any())).thenReturn(ResponseEntity.ok("<html/>"));
 

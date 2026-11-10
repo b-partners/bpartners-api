@@ -197,6 +197,20 @@ class GeoJobsControllerTest {
   }
 
   @Test
+  void get_coverage_and_geocode_relay_unparseable_params_instead_of_failing_binding()
+      throws Exception {
+    var rawQuery = "longitude=abc&latitude=12,5&types=NOPE";
+    when(geoJobsBridge.getCoverage(rawQuery)).thenReturn(relayedJson());
+    when(geoJobsBridge.getGeocode(rawQuery)).thenReturn(relayedJson());
+
+    mockMvc.perform(get(URI.create("/geo-jobs/coverage?" + rawQuery))).andExpect(status().isOk());
+    mockMvc.perform(get(URI.create("/geo-jobs/geocode?" + rawQuery))).andExpect(status().isOk());
+
+    verify(geoJobsBridge).getCoverage(rawQuery);
+    verify(geoJobsBridge).getGeocode(rawQuery);
+  }
+
+  @Test
   void get_geocode_passes_the_raw_query_string() throws Exception {
     var rawQuery = "address=Tour%20Eiffel%2C%20Paris&longitude=2.35&latitude=48.85";
     when(geoJobsBridge.getGeocode(rawQuery)).thenReturn(relayedJson());

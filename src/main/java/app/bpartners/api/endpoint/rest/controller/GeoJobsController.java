@@ -7,8 +7,6 @@ import app.bpartners.api.endpoint.rest.model.GeoJobsCreateRoofIntersections;
 import app.bpartners.api.endpoint.rest.model.GeoJobsProspect;
 import app.bpartners.api.endpoint.rest.model.GeoJobsThreeDRequest;
 import app.bpartners.api.service.geojobs.GeoJobsBridge;
-import app.bpartners.api.service.geojobs.GeoJobsCoverageQuery;
-import app.bpartners.api.service.geojobs.GeoJobsGeocodeQuery;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
@@ -84,14 +82,12 @@ public class GeoJobsController {
   }
 
   @GetMapping("/geo-jobs/coverage")
-  public ResponseEntity<String> getGeoJobsCoverage(
-      GeoJobsCoverageQuery query, HttpServletRequest request) {
+  public ResponseEntity<String> getGeoJobsCoverage(HttpServletRequest request) {
     return geoJobsBridge.getCoverage(request.getQueryString());
   }
 
   @GetMapping("/geo-jobs/geocode")
-  public ResponseEntity<String> getGeoJobsGeocode(
-      GeoJobsGeocodeQuery query, HttpServletRequest request) {
+  public ResponseEntity<String> getGeoJobsGeocode(HttpServletRequest request) {
     return geoJobsBridge.getGeocode(request.getQueryString());
   }
 }

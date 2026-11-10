@@ -21,9 +21,9 @@ import app.bpartners.api.service.event.SubscriptionPaymentFailureNotificationReq
 import app.bpartners.api.service.user.UserService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
+import jakarta.mail.MessagingException;
 import java.io.IOException;
 import java.time.Instant;
-import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.thymeleaf.context.Context;

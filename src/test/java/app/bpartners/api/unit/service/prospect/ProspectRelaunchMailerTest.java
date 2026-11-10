@@ -15,9 +15,9 @@ import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.prospect.relaunch.ProspectRelaunchEmail;
 import app.bpartners.api.service.prospect.relaunch.ProspectRelaunchEmailFactory;
 import app.bpartners.api.service.prospect.relaunch.ProspectRelaunchMailer;
+import jakarta.mail.MessagingException;
 import java.io.IOException;
 import java.util.List;
-import jakarta.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

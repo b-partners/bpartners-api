@@ -43,9 +43,7 @@ public class User implements Serializable {
   private List<UserAnalysisApiKey> analysisApiKeys;
   private String promoCodeId;
 
-  @Getter(AccessLevel.NONE)
-  @EqualsAndHashCode.Exclude
-  @ToString.Exclude
+  @EqualsAndHashCode.Exclude @ToString.Exclude
   private List<UserSubscriptionProduct> subscriptionProducts;
 
   public String describe() {

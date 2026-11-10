@@ -82,6 +82,7 @@ public class UserMapper {
         .parentUser(toSave.getParentUser() == null ? null : toEntity(toSave.getParentUser()))
         .analysisApiKeys(
             toSave.getAnalysisApiKeys().stream().map(analysisApiKeyMapper::toEntity).toList())
+        .userSubscriptionProducts(toSave.getSubscriptionProducts())
         .build();
   }
 

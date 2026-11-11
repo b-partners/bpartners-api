@@ -1,8 +1,8 @@
 package app.bpartners.api.service.aws;
 
-import static javax.mail.Message.RecipientType.BCC;
-import static javax.mail.Message.RecipientType.CC;
-import static javax.mail.Message.RecipientType.TO;
+import static jakarta.mail.Message.RecipientType.BCC;
+import static jakarta.mail.Message.RecipientType.CC;
+import static jakarta.mail.Message.RecipientType.TO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -12,11 +12,11 @@ import static org.mockito.Mockito.when;
 import app.bpartners.api.endpoint.event.SesConf;
 import app.bpartners.api.mail.EmailSubjectPrefixer;
 import app.bpartners.api.model.Attachment;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Properties;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.ses.SesClient;

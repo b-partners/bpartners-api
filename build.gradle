@@ -192,8 +192,8 @@ dependencies {
 
     implementation 'jakarta.mail:jakarta.mail-api:2.1.2'
     implementation 'jakarta.activation:jakarta.activation-api:2.1.2'
-    implementation 'com.sun.mail:jakarta.mail:2.0.2'
-    implementation 'com.sun.activation:jakarta.activation:2.0.1'
+    implementation 'org.eclipse.angus:jakarta.mail:2.0.5'
+    implementation 'org.eclipse.angus:angus-activation:2.0.3'
 
     implementation 'org.apache.tika:tika-core:3.2.2'
     implementation('org.apache.commons:commons-lang3:3.18.0')
@@ -235,8 +235,6 @@ implementation 'org.thymeleaf:thymeleaf:3.0.15.RELEASE'
 implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.22'
 implementation 'com.google.zxing:core:3.5.0'
 implementation 'com.google.zxing:javase:3.5.0'
-implementation 'jakarta.mail:jakarta.mail-api:2.1.0'
-implementation 'com.sun.mail:jakarta.mail:1.6.5'
 implementation 'org.apfloat:apfloat:1.10.1'
 implementation 'org.apache.poi:poi:3.12'
 implementation 'org.apache.poi:poi-ooxml:3.12'

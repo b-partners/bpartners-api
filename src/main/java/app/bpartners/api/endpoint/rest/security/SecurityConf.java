@@ -105,7 +105,6 @@ public class SecurityConf {
                         new AntPathRequestMatcher("/whois/*", GET.name()),
                         new AntPathRequestMatcher("/health/db", GET.name()),
                         new AntPathRequestMatcher("/health/bucket", GET.name()),
-                        new AntPathRequestMatcher("/health/email", GET.name()),
                         new AntPathRequestMatcher("/health/event1", GET.name()),
                         new AntPathRequestMatcher("/health/event2", GET.name()),
                         new AntPathRequestMatcher("/health/event/uuids", POST.name()),
@@ -168,7 +167,7 @@ public class SecurityConf {
                     .requestMatchers(POST, "/health/event/uuids")
                     .permitAll()
                     .requestMatchers(GET, "/health/email")
-                    .permitAll()
+                    .hasAnyRole(ADMIN_ROLE.getRole())
                     .requestMatchers(DELETE, "/dummy-user")
                     .permitAll()
                     .requestMatchers(GET, "/captcha/token")

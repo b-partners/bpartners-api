@@ -134,6 +134,19 @@ class ExportAreaPictureAnnotationPdfVisualTest {
   }
 
   @Test
+  void generate_hidden_measurements_pdf() throws IOException {
+    var annotation = readAnnotation(PARTHENAY_PAYLOAD);
+    annotation.setConf(
+        new AreaPictureAnnotationConfRestMapper()
+            .toDomain(
+                new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
+                    .hideMeasurements(true)
+                    .measurementsReplacementText("Métrés disponibles sur devis")));
+
+    renderPdf(annotation, PARTHENAY_IMAGE, "hidden-measurements");
+  }
+
+  @Test
   void generate_custom_pages_only_pdf() throws IOException {
     var annotation = readAnnotation(PARTHENAY_PAYLOAD);
     annotation.setConf(

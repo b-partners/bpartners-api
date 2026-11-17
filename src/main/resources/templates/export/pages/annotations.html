@@ -9,8 +9,7 @@
             <h4 class="annotation-item-title">
                 <span class="annotation-item-title-value" th:text="${annotation.mergedInstance().labelName} ?: 'Non renseigné'"></span>
             </h4>
-            <p class="annotation-item-info-item" th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:text="${conf.measurementsReplacementText}"></p>
-            <p class="annotation-item-info-item" th:unless="${conf.hideMeasurements}" th:each="info : ${annotation.infos}">
+            <p class="annotation-item-info-item" th:each="info : ${annotation.infos}">
                 <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
                 <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>
             </p>

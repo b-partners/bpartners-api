@@ -57,20 +57,17 @@ public class AnnotationSummaryFactory {
         hideMeasurements
             ? generator.generateBaseImageWithSlopeBoundaries(pans, false).second()
             : generator.generateBaseImageWithSlopeBoundariesWithMeasurement(pans).second();
-    var baseImageWithAreas =
-        hideMeasurements
-            ? generator.generateBaseImageWithOutlines(pans)
-            : generator.generateBaseImageWithAreas(pans);
+    var baseImageWithAreas = generator.generateBaseImageWithAreas(pans);
     var baseImageWithNames = generator.generateBaseImageWithNames(annotation.getThreeD().getPans());
     var baseImageWithPitches =
         hideMeasurements
-            ? baseImageWithAreas
+            ? generator.generateBaseImageWithOutlines(pans)
             : generator.generateBaseImageWithPitches(annotation.getThreeD().getPans());
 
     var text = conf.getMeasurementsReplacementText();
     if (hideMeasurements && text != null && !text.isBlank()) {
       generator.drawCenteredText(diagramImage, text);
-      generator.drawCenteredText(baseImageWithAreas, text);
+      generator.drawCenteredText(baseImageWithPitches, text);
     }
 
     String baseImageWithRoofSlopeBoundariesUri = bufferedImageToUri(diagramImage);

@@ -160,8 +160,6 @@ class AnnotationSummaryFactoryTest {
         .drawCenteredText(
             org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq("Sur devis"));
     org.mockito.Mockito.verify(generator, org.mockito.Mockito.never())
-        .generateBaseImageWithAreas(anyList());
-    org.mockito.Mockito.verify(generator, org.mockito.Mockito.never())
         .generateBaseImageWithPitches(anyList());
   }
 

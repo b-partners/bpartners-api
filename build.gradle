@@ -101,6 +101,9 @@ test {
     maxHeapSize = "2g"
     maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
     useJUnitPlatform()
+    testLogging {
+        exceptionFormat = "full"
+    }
     finalizedBy jacocoTestCoverageVerification
 }
 

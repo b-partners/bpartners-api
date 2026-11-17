@@ -7,7 +7,8 @@
 
     <div class="degradation-container" th:if="${roofSummary != null and roofSummary.pitchBreakdown != null}" style="margin-top:0;">
         <p class="degradation-section-title">Répartition des pentes</p>
-        <table class="data-table data-table-transposed">
+        <p class="annotation-item-info-item" th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:text="${conf.measurementsReplacementText}"></p>
+        <table class="data-table data-table-transposed" th:unless="${conf.hideMeasurements}">
             <tr>
                 <td>Pente</td>
                 <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.pitch}"></td>

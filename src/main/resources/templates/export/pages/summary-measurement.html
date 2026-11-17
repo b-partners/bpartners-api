@@ -3,7 +3,7 @@
 <body>
 <section th:fragment="page" class="page diagram-page" th:if="${roofSummary != null and roofSummary.diagramImageBase64 != null and conf.isShowMeasurementSummary()}"
          th:classappend="${lastSection.name() == 'MEASUREMENT_SUMMARY'} ? ' last-page' : ''">
-    <div th:if="${allEdgeTypes}">
+    <div th:if="${allEdgeTypes and !conf.hideMeasurements}">
         <h2 class="annotation-information-title">Longueur</h2>
         <p class="section-description">Longueur en mètre</p>
         <div class="roof-slope-boundaries-legend clearfix">
@@ -15,7 +15,8 @@
             </div>
         </div>
     </div>
-    <img class="diagram-page-image" th:src="${roofSummary.diagramImageBase64}"/>
+    <p class="annotation-item-info-item" th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:text="${conf.measurementsReplacementText}"></p>
+    <img class="diagram-page-image" th:unless="${conf.hideMeasurements}" th:src="${roofSummary.diagramImageBase64}"/>
 </section>
 </body>
 </html>

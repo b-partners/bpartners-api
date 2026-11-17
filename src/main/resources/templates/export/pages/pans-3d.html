@@ -37,7 +37,8 @@
                 <h4 class="annotation-item-title">
                     <span class="annotation-item-title-value" th:text="${pan.name} ?: 'Non renseigné'"></span>
                 </h4>
-                <div class="annotation-item-info-item" th:each="info : ${pan.infos}">
+                <div class="annotation-item-info-item" th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:text="${conf.measurementsReplacementText}"></div>
+                <div class="annotation-item-info-item" th:unless="${conf.hideMeasurements}" th:each="info : ${pan.infos}">
                     <span th:if="${info != null and info.label != 'edgeTypes'}">
                         <span class="annotation-item-info-label" th:text="${info.label} ?: 'Non renseigné'"></span>:
                         <span class="annotation-item-info-value" th:text="${info.value} ?: 'Non renseigné'"></span>

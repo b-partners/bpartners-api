@@ -23,6 +23,8 @@ public class AreaPictureAnnotationConfRestMapper {
         .showOverallSummary(defaultTrue(rest.getShowOverallSummary()))
         .showLlmSummary(defaultTrue(rest.getShowLlmSummary()))
         .showDegradationSummary(defaultTrue(rest.getShowDegradationSummary()))
+        .hideMeasurements(Boolean.TRUE.equals(rest.getHideMeasurements()))
+        .measurementsReplacementText(rest.getMeasurementsReplacementText())
         .build();
   }
 

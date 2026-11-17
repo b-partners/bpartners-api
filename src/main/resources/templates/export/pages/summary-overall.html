@@ -21,7 +21,7 @@
         <table class="data-table data-table-transposed">
             <tr th:each="m : ${roofSummary.measurements}">
                 <td th:text="${m.label}"></td>
-                <td th:text="${m.value}"></td>
+                <td th:text="${conf.hideMeasurements and conf.measurementsReplacementText != null ? conf.measurementsReplacementText : m.value}"></td>
             </tr>
         </table>
     </div>

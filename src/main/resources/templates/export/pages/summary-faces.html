@@ -7,19 +7,21 @@
 
     <div class="degradation-container" th:if="${roofSummary != null and roofSummary.pitchBreakdown != null}" style="margin-top:0;">
         <p class="degradation-section-title">Répartition des pentes</p>
-        <p class="annotation-item-info-item" th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:text="${conf.measurementsReplacementText}"></p>
-        <table class="data-table data-table-transposed" th:unless="${conf.hideMeasurements}">
+        <table class="data-table data-table-transposed">
             <tr>
                 <td>Pente</td>
-                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.pitch}"></td>
+                <td th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:colspan="${#lists.size(roofSummary.pitchBreakdown)}" th:text="${conf.measurementsReplacementText}"></td>
+                <td th:unless="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.pitch}"></td>
             </tr>
             <tr>
                 <td>Surface</td>
-                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.area}"></td>
+                <td th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:colspan="${#lists.size(roofSummary.pitchBreakdown)}" th:text="${conf.measurementsReplacementText}"></td>
+                <td th:unless="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.area}"></td>
             </tr>
             <tr>
                 <td>Toit %</td>
-                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.roofPercent}"></td>
+                <td th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:colspan="${#lists.size(roofSummary.pitchBreakdown)}" th:text="${conf.measurementsReplacementText}"></td>
+                <td th:unless="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.roofPercent}"></td>
             </tr>
         </table>
     </div>

@@ -16,6 +16,6 @@ public class UserAnalysisApiKey {
   @JsonIgnore @ToString.Exclude @EqualsAndHashCode.Exclude private User user;
   private Instant creationDatetime;
   private Instant expirationDatetime;
-  private String apiKey;
+  @ToString.Exclude private String apiKey;
   private boolean enabled;
 }

@@ -61,11 +61,19 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   public Pair<Transform, BufferedImage> generateBaseImageWithSlopeBoundariesWithMeasurement(
       List<ExportAreaPictureAnnotation3DPan> pans) {
+    return generateBaseImageWithSlopeBoundaries(pans, true);
+  }
+
+  public Pair<Transform, BufferedImage> generateBaseImageWithSlopeBoundaries(
+      List<ExportAreaPictureAnnotation3DPan> pans, boolean withMeasurements) {
     ImageContext imageContext = getImageContext(pans);
 
     pans.forEach(
         pan -> {
           drawStrokePolygon(imageContext.g2d(), imageContext.transform(), pan, 1f, false);
+          if (!withMeasurements) {
+            return;
+          }
           var coordinates = RawCoordinates.from(pan.getPolygon());
           var mapped = imageContext.transform().apply(coordinates);
           drawPolygonMeasurements(
@@ -104,6 +112,22 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
   }
 
   private record ImageContext(Transform transform, BufferedImage baseImage, Graphics2D g2d) {}
+
+  public BufferedImage generateBaseImageWithOutlines(List<ExportAreaPictureAnnotation3DPan> pans) {
+    var imageContext = getImageContext(pans);
+
+    pans.forEach(
+        pan ->
+            drawStrokePolygon(
+                imageContext.g2d(),
+                BLACK,
+                POLYGON_STROKE,
+                imageContext.transform().apply(RawCoordinates.from(pan.getPolygon()))));
+
+    imageContext.g2d().dispose();
+
+    return imageContext.baseImage();
+  }
 
   public BufferedImage generateBaseImageWithAreas(List<ExportAreaPictureAnnotation3DPan> pans) {
     var imageContext = getImageContext(pans);

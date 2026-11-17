@@ -39,18 +39,31 @@ public class AnnotationSummaryFactory {
   public static AnnotationSummary create(
       ExportAreaPictureAnnotation annotation,
       ExportAreaPictureAnnotationImage3DGenerator generator) {
+    return create(annotation, generator, false);
+  }
+
+  public static AnnotationSummary create(
+      ExportAreaPictureAnnotation annotation,
+      ExportAreaPictureAnnotationImage3DGenerator generator,
+      boolean hideMeasurements) {
     if (annotation.getThreeD() == null) {
       return null;
     }
 
+    var pans = annotation.getThreeD().getPans();
     var diagramImage =
-        generator
-            .generateBaseImageWithSlopeBoundariesWithMeasurement(annotation.getThreeD().getPans())
-            .second();
-    var baseImageWithAreas = generator.generateBaseImageWithAreas(annotation.getThreeD().getPans());
+        hideMeasurements
+            ? generator.generateBaseImageWithSlopeBoundaries(pans, false).second()
+            : generator.generateBaseImageWithSlopeBoundariesWithMeasurement(pans).second();
+    var baseImageWithAreas =
+        hideMeasurements
+            ? generator.generateBaseImageWithOutlines(pans)
+            : generator.generateBaseImageWithAreas(pans);
     var baseImageWithNames = generator.generateBaseImageWithNames(annotation.getThreeD().getPans());
     var baseImageWithPitches =
-        generator.generateBaseImageWithPitches(annotation.getThreeD().getPans());
+        hideMeasurements
+            ? baseImageWithAreas
+            : generator.generateBaseImageWithPitches(annotation.getThreeD().getPans());
 
     String baseImageWithRoofSlopeBoundariesUri = bufferedImageToUri(diagramImage);
     String baseImageWithAreasUri = bufferedImageToUri(baseImageWithAreas);

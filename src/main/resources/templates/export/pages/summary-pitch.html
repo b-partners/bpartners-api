@@ -6,7 +6,7 @@
     <h2 class="annotation-information-title">Pente</h2>
     <p class="section-description">Pente en degré</p>
     <p class="annotation-item-info-item" th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:text="${conf.measurementsReplacementText}"></p>
-    <img class="diagram-page-image summary-image-large" th:unless="${conf.hideMeasurements}" th:src="${roofSummary.baseImageWithPitchesUri}"/>
+    <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithPitchesUri}"/>
 </section>
 </body>
 </html>

@@ -10,15 +10,18 @@
         <table class="data-table data-table-transposed">
             <tr>
                 <td>Pente</td>
-                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.pitch}"></td>
+                <td th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:colspan="${#lists.size(roofSummary.pitchBreakdown)}" th:text="${conf.measurementsReplacementText}"></td>
+                <td th:unless="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.pitch}"></td>
             </tr>
             <tr>
                 <td>Surface</td>
-                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.area}"></td>
+                <td th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:colspan="${#lists.size(roofSummary.pitchBreakdown)}" th:text="${conf.measurementsReplacementText}"></td>
+                <td th:unless="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.area}"></td>
             </tr>
             <tr>
                 <td>Toit %</td>
-                <td th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.roofPercent}"></td>
+                <td th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:colspan="${#lists.size(roofSummary.pitchBreakdown)}" th:text="${conf.measurementsReplacementText}"></td>
+                <td th:unless="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:each="p : ${roofSummary.pitchBreakdown}" th:text="${p.roofPercent}"></td>
             </tr>
         </table>
     </div>

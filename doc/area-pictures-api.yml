@@ -1002,6 +1002,12 @@ components:
         showDegradationSummary:
           type: boolean
           default: true
+        hideMeasurements:
+          type: boolean
+          default: false
+        measurementsReplacementText:
+          type: string
+          nullable: true
     ExportAreaPictureAnnotationMeasurement:
       type: object
       properties:

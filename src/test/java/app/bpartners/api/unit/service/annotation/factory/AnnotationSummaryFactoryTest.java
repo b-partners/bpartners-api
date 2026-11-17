@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.factory.AnnotationSummaryFactory;
 import app.bpartners.api.service.annotation.model.Pair;
@@ -128,6 +129,38 @@ class AnnotationSummaryFactoryTest {
         .extracting(AnnotationWaste::percent)
         .containsExactly("10.0 %");
     assertThat(summary.suggestedWastePercent()).isEqualTo("10.0 %");
+  }
+
+  @Test
+  void create_should_draw_images_without_measurements_when_hidden() {
+    var annotation =
+        new ExportAreaPictureAnnotation()
+            .setThreeD(
+                new ExportAreaPictureAnnotation3D()
+                    .setPans(List.of(wastePan(0d, "120"), wastePan(10d, "80"))));
+    var generator = mockedGenerator();
+    var dummyImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+    when(generator.generateBaseImageWithSlopeBoundaries(
+            anyList(), org.mockito.ArgumentMatchers.eq(false)))
+        .thenReturn(Pair.of(Transform.builder().build(), dummyImage));
+    when(generator.generateBaseImageWithOutlines(anyList())).thenReturn(dummyImage);
+
+    AnnotationSummaryFactory.create(
+        annotation,
+        generator,
+        ExportAreaPictureAnnotationConf.builder()
+            .hideMeasurements(true)
+            .measurementsReplacementText("Sur devis")
+            .build());
+
+    org.mockito.Mockito.verify(generator)
+        .generateBaseImageWithSlopeBoundaries(anyList(), org.mockito.ArgumentMatchers.eq(false));
+    org.mockito.Mockito.verify(generator).generateBaseImageWithOutlines(anyList());
+    org.mockito.Mockito.verify(generator, org.mockito.Mockito.atLeastOnce())
+        .drawCenteredText(
+            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq("Sur devis"));
+    org.mockito.Mockito.verify(generator, org.mockito.Mockito.never())
+        .generateBaseImageWithPitches(anyList());
   }
 
   private static ExportAreaPictureAnnotation3DPan wastePan(double xOffset, String rampantArea) {

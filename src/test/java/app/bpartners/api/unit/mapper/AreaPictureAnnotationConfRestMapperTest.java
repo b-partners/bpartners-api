@@ -1,5 +1,6 @@
 package app.bpartners.api.unit.mapper;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -64,5 +65,18 @@ class AreaPictureAnnotationConfRestMapperTest {
     assertTrue(domain.isShowAreaSummary());
     assertTrue(domain.isShowOverallSummary());
     assertTrue(domain.isShowLlmSummary());
+  }
+
+  @Test
+  void to_domain_maps_measurements_replacement() {
+    var domain =
+        subject.toDomain(
+            new ExportAreaPictureAnnotationConf()
+                .hideMeasurements(true)
+                .measurementsReplacementText("Sur devis"));
+
+    assertTrue(domain.isHideMeasurements());
+    assertEquals("Sur devis", domain.getMeasurementsReplacementText());
+    assertFalse(subject.toDomain(null).isHideMeasurements());
   }
 }

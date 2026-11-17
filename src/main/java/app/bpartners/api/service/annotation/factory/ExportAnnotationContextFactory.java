@@ -134,8 +134,7 @@ public class ExportAnnotationContextFactory {
   void configureAnnotationSummaryContext(Context context, ExportAreaPictureAnnotation annotation) {
     context.setVariable(
         "roofSummary",
-        AnnotationSummaryFactory.create(
-            annotation, image3DGenerator, annotation.getConf().isHideMeasurements()));
+        AnnotationSummaryFactory.create(annotation, image3DGenerator, annotation.getConf()));
 
     context.setVariable(
         "allEdgeTypes",

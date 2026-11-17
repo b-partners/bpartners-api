@@ -2,6 +2,7 @@ package app.bpartners.api.service.annotation.factory;
 
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
@@ -39,17 +40,18 @@ public class AnnotationSummaryFactory {
   public static AnnotationSummary create(
       ExportAreaPictureAnnotation annotation,
       ExportAreaPictureAnnotationImage3DGenerator generator) {
-    return create(annotation, generator, false);
+    return create(annotation, generator, ExportAreaPictureAnnotationConf.DEFAULT);
   }
 
   public static AnnotationSummary create(
       ExportAreaPictureAnnotation annotation,
       ExportAreaPictureAnnotationImage3DGenerator generator,
-      boolean hideMeasurements) {
+      ExportAreaPictureAnnotationConf conf) {
     if (annotation.getThreeD() == null) {
       return null;
     }
 
+    boolean hideMeasurements = conf.isHideMeasurements();
     var pans = annotation.getThreeD().getPans();
     var diagramImage =
         hideMeasurements
@@ -64,6 +66,12 @@ public class AnnotationSummaryFactory {
         hideMeasurements
             ? baseImageWithAreas
             : generator.generateBaseImageWithPitches(annotation.getThreeD().getPans());
+
+    var text = conf.getMeasurementsReplacementText();
+    if (hideMeasurements && text != null && !text.isBlank()) {
+      generator.drawCenteredText(diagramImage, text);
+      generator.drawCenteredText(baseImageWithAreas, text);
+    }
 
     String baseImageWithRoofSlopeBoundariesUri = bufferedImageToUri(diagramImage);
     String baseImageWithAreasUri = bufferedImageToUri(baseImageWithAreas);

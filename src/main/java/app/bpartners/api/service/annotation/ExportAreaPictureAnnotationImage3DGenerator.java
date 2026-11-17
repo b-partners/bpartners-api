@@ -113,6 +113,31 @@ public class ExportAreaPictureAnnotationImage3DGenerator {
 
   private record ImageContext(Transform transform, BufferedImage baseImage, Graphics2D g2d) {}
 
+  /** Draws the text, word-wrapped, at the center of the image. */
+  public void drawCenteredText(BufferedImage image, String text) {
+    var g2d = Graphics2DFactory.make(image);
+    g2d.setColor(BLACK);
+    g2d.setFont(new Font(FONT_NAME, PLAIN, 26));
+    var metrics = g2d.getFontMetrics();
+    var lines = new java.util.ArrayList<String>();
+    var line = new StringBuilder();
+    for (var word : text.split("\\s+")) {
+      if (!line.isEmpty() && metrics.stringWidth(line + " " + word) > image.getWidth() * 0.8) {
+        lines.add(line.toString());
+        line.setLength(0);
+      }
+      line.append(line.isEmpty() ? "" : " ").append(word);
+    }
+    lines.add(line.toString());
+
+    var y = (image.getHeight() - lines.size() * metrics.getHeight()) / 2 + metrics.getAscent();
+    for (var l : lines) {
+      g2d.drawString(l, (image.getWidth() - metrics.stringWidth(l)) / 2, y);
+      y += metrics.getHeight();
+    }
+    g2d.dispose();
+  }
+
   public BufferedImage generateBaseImageWithOutlines(List<ExportAreaPictureAnnotation3DPan> pans) {
     var imageContext = getImageContext(pans);
 

@@ -5,7 +5,6 @@
          th:classappend="${lastSection.name() == 'AREA_SUMMARY'} ? ' last-page' : ''">
     <h2 class="annotation-information-title">Surface</h2>
     <p class="section-description">Surface en m²</p>
-    <p class="annotation-item-info-item" th:if="${conf.hideMeasurements and conf.measurementsReplacementText != null}" th:text="${conf.measurementsReplacementText}"></p>
     <img class="diagram-page-image summary-image-large" th:src="${roofSummary.baseImageWithAreasUri}"/>
 </section>
 </body>

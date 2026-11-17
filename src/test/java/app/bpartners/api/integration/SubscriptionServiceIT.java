@@ -221,7 +221,7 @@ class SubscriptionServiceIT extends StripeMockedThirdParties {
     assertNotNull(actual);
     assertNotNull(actual.getRedirectionUrl());
     assertTrue(
-        actual.getRedirectionUrl().contains("https://checkout.stripe.com/c/pay"),
+        actual.getRedirectionUrl().matches("https://checkout\\.stripe\\.com/[a-z]/pay/.*"),
         "unexpected redirection url: " + actual.getRedirectionUrl());
   }
 

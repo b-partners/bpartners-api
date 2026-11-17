@@ -141,7 +141,8 @@ class ExportAreaPictureAnnotationPdfVisualTest {
             .toDomain(
                 new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
                     .hideMeasurements(true)
-                    .measurementsReplacementText("Métrés disponibles sur devis")));
+                    .measurementsReplacementText(
+                        "Récupérer le dossier complet auprès de l’agence LARIVIERE")));
 
     renderPdf(annotation, PARTHENAY_IMAGE, "hidden-measurements");
   }

@@ -33,8 +33,7 @@ public class LocalStackConf {
 
   private final LocalStackContainer s3Container =
       new LocalStackContainer(DockerImageName.parse("localstack/localstack:2.0.0"))
-          .withServices(S3)
-          .withStartupAttempts(3);
+          .withServices(S3);
 
   void start() {
     s3Container.start();

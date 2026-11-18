@@ -4,11 +4,10 @@ import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus
 import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.PENDING;
 import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.SUBSCRIPTION_ENDED;
 
-import app.bpartners.api.endpoint.event.EventProducer;
-import app.bpartners.api.endpoint.event.model.SubscriptionTerminationRequested;
 import app.bpartners.api.endpoint.event.model.SubscriptionTerminationTriggered;
 import app.bpartners.api.model.subscription.TempSubscriptionTermination;
 import app.bpartners.api.repository.jpa.TempSubscriptionTerminationJpaRepository;
+import app.bpartners.api.service.subscription.SubscriptionTerminationService;
 import java.util.List;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
@@ -21,19 +20,16 @@ import org.springframework.stereotype.Service;
 public class SubscriptionTerminationTriggeredService
     implements Consumer<SubscriptionTerminationTriggered> {
   private final TempSubscriptionTerminationJpaRepository repository;
-  private final EventProducer eventProducer;
+  private final SubscriptionTerminationService subscriptionTerminationService;
 
   @Override
   public void accept(SubscriptionTerminationTriggered event) {
     var terminations = repository.findByStatusIn(List.of(PENDING, SUBSCRIPTION_ENDED, FAILED));
-    log.info("Subscription termination triggered, fanning out for {} user(s)", terminations.size());
-    if (terminations.isEmpty()) {
-      return;
-    }
-    eventProducer.accept(
-        terminations.stream()
-            .map(TempSubscriptionTermination::getId)
-            .map(id -> SubscriptionTerminationRequested.builder().terminationId(id).build())
-            .toList());
+    log.info(
+        "Subscription termination triggered, processing {} user(s) one after the other",
+        terminations.size());
+    terminations.stream()
+        .map(TempSubscriptionTermination::getId)
+        .forEach(subscriptionTerminationService::terminate);
   }
 }

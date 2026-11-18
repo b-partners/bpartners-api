@@ -177,7 +177,7 @@ class SubscriptionUpgradeInvoicingServiceTest {
         .description(description)
         .quantity(1)
         .unitPrice(new Fraction(BigInteger.valueOf(4900)))
-        .vatPercent(new Fraction(BigInteger.valueOf(20)))
+        .vatPercent(new Fraction(BigInteger.valueOf(2000)))
         .build();
   }
 

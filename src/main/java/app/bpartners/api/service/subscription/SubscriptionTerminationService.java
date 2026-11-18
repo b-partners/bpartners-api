@@ -40,7 +40,6 @@ public class SubscriptionTerminationService {
   private static final Pattern LINE_PERIOD =
       Pattern.compile("du (\\d{2}/\\d{2}/\\d{4}) au (\\d{2}/\\d{2}/\\d{4})$");
   private static final DateTimeFormatter FRENCH_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-  private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
   private final TempSubscriptionTerminationJpaRepository repository;
   private final UserRepository userRepository;
@@ -76,7 +75,7 @@ public class SubscriptionTerminationService {
     } catch (RuntimeException e) {
       log.error("TempSubscriptionTermination(id={}) failed", terminationId, e);
       repository.save(
-          termination.toBuilder()
+          repository.findById(terminationId).orElse(termination).toBuilder()
               .status(FAILED)
               .errorMessage(String.valueOf(e.getMessage()))
               .updateDatetime(now())
@@ -235,15 +234,9 @@ public class SubscriptionTerminationService {
 
   static long amountInCentsWithVatOf(InvoiceProduct product) {
     var unitPrice =
-        toDecimal(product.getUnitPrice().getNumerator(), product.getUnitPrice().getDenominator());
-    var vatPercent =
-        product.getVatPercent() == null
-            ? BigDecimal.ZERO
-            : toDecimal(
-                product.getVatPercent().getNumerator(), product.getVatPercent().getDenominator());
-    return unitPrice
-        .multiply(HUNDRED.add(vatPercent))
-        .divide(HUNDRED, 0, RoundingMode.HALF_UP)
+        product.getVatPercent() == null ? product.getUnitPrice() : product.getUnitPriceWithVat();
+    return toDecimal(unitPrice.getNumerator(), unitPrice.getDenominator())
+        .setScale(0, RoundingMode.HALF_UP)
         .longValueExact();
   }
 

@@ -65,6 +65,20 @@ public class SubscriptionUpgradeInvoiceLines {
     return new Lines(products, pricing.discountBasisPoints());
   }
 
+  public Lines creditLinesOf(String invoiceIdentifier, List<InvoiceProduct> billedLines) {
+    var products =
+        billedLines.stream()
+            .map(
+                billed ->
+                    line(
+                        invoiceIdentifier,
+                        "Avoir " + billed.getDescription(),
+                        negate(billed.getUnitPrice()),
+                        billed.getVatPercent()))
+            .toList();
+    return new Lines(new ArrayList<>(products), new Fraction(BigInteger.ZERO));
+  }
+
   public Lines newSubscriptionLines(
       String invoiceIdentifier,
       SubscriptionProduct product,

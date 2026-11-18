@@ -5,6 +5,7 @@ import app.bpartners.api.endpoint.event.model.ImmediateSubscriptionCancellationT
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionCreditGrantTriggered;
 import app.bpartners.api.endpoint.event.model.MonthlySubscriptionInvoiceTriggered;
 import app.bpartners.api.endpoint.event.model.SubscriptionRemainingPeriodInvoiceTriggered;
+import app.bpartners.api.endpoint.event.model.SubscriptionTerminationTriggered;
 import app.bpartners.api.endpoint.event.model.TransitionalSubscriptionCreditGrantTriggered;
 import app.bpartners.api.endpoint.event.model.UpcomingDebitedCustomerExportRequested;
 import app.bpartners.api.endpoint.event.model.UserDefaultPaymentMethodBackfillTriggered;
@@ -126,6 +127,12 @@ public class SubscriptionController {
   public String triggerImmediateSubscriptionCancellation() {
     eventProducer.accept(List.of(new ImmediateSubscriptionCancellationTriggered()));
     return "Immediate subscription cancellation triggered successfully";
+  }
+
+  @PostMapping("/subscriptionTerminationTrigger")
+  public String triggerSubscriptionTermination() {
+    eventProducer.accept(List.of(new SubscriptionTerminationTriggered()));
+    return "Subscription termination triggered successfully";
   }
 
   @PostMapping("/users/defaultPaymentMethodBackfill")

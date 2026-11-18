@@ -179,17 +179,11 @@ public class SubscriptionUpgradeInvoicingService {
             + customDateFormatter.formatFrenchDate(to)
             + originalInvoiceReference.map(reference -> " (facture " + reference + ")").orElse("");
     var created =
-        invoiceService.crupdateSubscriptionInvoice(
-            invoiceOf(
-                userToCredit,
-                customerToDebit,
-                new InvoiceDraft(
-                    invoiceIdentifier,
-                    title,
-                    lines,
-                    upgrade.getFromBillingInterval() == YEARLY,
-                    true,
-                    from)));
+        issueCreditNoteInvoice(
+            new CreditNoteDraft(
+                invoiceIdentifier, title, lines, upgrade.getFromBillingInterval() == YEARLY, from),
+            userToCredit,
+            customerToDebit);
     log.info(
         "Credit note Invoice(id={}, ref={}) issued for UserSubscriptionUpgrade(id={}) covering {}"
             + " to {}",
@@ -199,6 +193,28 @@ public class SubscriptionUpgradeInvoicingService {
         from,
         to);
     return created;
+  }
+
+  public record CreditNoteDraft(
+      String invoiceIdentifier,
+      String title,
+      SubscriptionUpgradeInvoiceLines.Lines lines,
+      boolean yearlyBilled,
+      LocalDate date) {}
+
+  public Invoice issueCreditNoteInvoice(
+      CreditNoteDraft draft, User userToCredit, Customer customerToDebit) {
+    return invoiceService.crupdateSubscriptionInvoice(
+        invoiceOf(
+            userToCredit,
+            customerToDebit,
+            new InvoiceDraft(
+                draft.invoiceIdentifier(),
+                draft.title(),
+                draft.lines(),
+                draft.yearlyBilled(),
+                true,
+                draft.date())));
   }
 
   private Invoice issueNewInvoice(

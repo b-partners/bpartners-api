@@ -2,6 +2,7 @@ package app.bpartners.api.service.annotation.factory;
 
 import static app.bpartners.api.service.annotation.utils.ImageUriUtils.bufferedImageToUri;
 
+import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationConf;
 import app.bpartners.api.service.annotation.ExportAreaPictureAnnotationImage3DGenerator;
 import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation;
 import app.bpartners.api.service.annotation.model.export.ExportAreaPictureAnnotation3DPan;
@@ -39,18 +40,35 @@ public class AnnotationSummaryFactory {
   public static AnnotationSummary create(
       ExportAreaPictureAnnotation annotation,
       ExportAreaPictureAnnotationImage3DGenerator generator) {
+    return create(annotation, generator, ExportAreaPictureAnnotationConf.DEFAULT);
+  }
+
+  public static AnnotationSummary create(
+      ExportAreaPictureAnnotation annotation,
+      ExportAreaPictureAnnotationImage3DGenerator generator,
+      ExportAreaPictureAnnotationConf conf) {
     if (annotation.getThreeD() == null) {
       return null;
     }
 
+    boolean hideMeasurements = conf.isHideMeasurements();
+    var pans = annotation.getThreeD().getPans();
     var diagramImage =
-        generator
-            .generateBaseImageWithSlopeBoundariesWithMeasurement(annotation.getThreeD().getPans())
-            .second();
-    var baseImageWithAreas = generator.generateBaseImageWithAreas(annotation.getThreeD().getPans());
+        hideMeasurements
+            ? generator.generateBaseImageWithSlopeBoundaries(pans, false).second()
+            : generator.generateBaseImageWithSlopeBoundariesWithMeasurement(pans).second();
+    var baseImageWithAreas = generator.generateBaseImageWithAreas(pans);
     var baseImageWithNames = generator.generateBaseImageWithNames(annotation.getThreeD().getPans());
     var baseImageWithPitches =
-        generator.generateBaseImageWithPitches(annotation.getThreeD().getPans());
+        hideMeasurements
+            ? generator.generateBaseImageWithOutlines(pans)
+            : generator.generateBaseImageWithPitches(annotation.getThreeD().getPans());
+
+    var text = conf.getMeasurementsReplacementText();
+    if (hideMeasurements && text != null && !text.isBlank()) {
+      generator.drawCenteredText(diagramImage, text);
+      generator.drawCenteredText(baseImageWithPitches, text);
+    }
 
     String baseImageWithRoofSlopeBoundariesUri = bufferedImageToUri(diagramImage);
     String baseImageWithAreasUri = bufferedImageToUri(baseImageWithAreas);

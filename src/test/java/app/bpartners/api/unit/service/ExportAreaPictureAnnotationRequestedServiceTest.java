@@ -13,9 +13,9 @@ import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.ExportAreaPictureAnnotationRequestedService;
 import app.bpartners.api.service.user.UserService;
 import app.bpartners.api.service.utils.TemplateResolverEngine;
+import jakarta.mail.MessagingException;
 import java.io.IOException;
 import java.time.Duration;
-import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

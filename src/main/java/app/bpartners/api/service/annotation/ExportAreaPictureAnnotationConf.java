@@ -19,6 +19,7 @@ public class ExportAreaPictureAnnotationConf {
           .showOverallSummary(true)
           .showLlmSummary(true)
           .showDegradationSummary(true)
+          .hideMeasurements(false)
           .build();
   private final boolean showTitlePage;
   private final boolean showAnnotationPages;
@@ -29,4 +30,6 @@ public class ExportAreaPictureAnnotationConf {
   private final boolean showOverallSummary;
   private final boolean showLlmSummary;
   private final boolean showDegradationSummary;
+  private final boolean hideMeasurements;
+  private final String measurementsReplacementText;
 }

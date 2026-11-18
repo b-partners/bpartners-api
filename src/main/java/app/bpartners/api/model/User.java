@@ -38,9 +38,9 @@ public class User implements Serializable {
   private String oldS3key;
   private List<Role> roles;
   private User parentUser;
-  private String apiKey;
+  @ToString.Exclude private String apiKey;
   private boolean paymentMethodExists;
-  private List<UserAnalysisApiKey> analysisApiKeys;
+  @ToString.Exclude private List<UserAnalysisApiKey> analysisApiKeys;
   private String promoCodeId;
 
   @EqualsAndHashCode.Exclude @ToString.Exclude

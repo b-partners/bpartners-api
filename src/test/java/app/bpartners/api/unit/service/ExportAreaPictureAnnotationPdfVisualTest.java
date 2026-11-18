@@ -34,6 +34,9 @@ import org.springframework.core.io.ClassPathResource;
 
 @Disabled("This is a visual test to generate a PDF file for manual inspection.")
 class ExportAreaPictureAnnotationPdfVisualTest {
+  private static final String TOULOUSE_PAYLOAD =
+      "payload/export/17 Rue Pierre Bénech, 31100 Toulouse.json";
+  private static final String TOULOUSE_IMAGE = "files/17 Rue Pierre Bénech, 31100 Toulouse.png";
   private static final String PARTHENAY_PAYLOAD =
       "payload/export/1 Rue de la Vau Saint-Jacques, 79200 Parthenay.json";
   private static final String PARTHENAY_IMAGE =
@@ -120,10 +123,7 @@ class ExportAreaPictureAnnotationPdfVisualTest {
 
   @Test
   void generate_toulouse_pdf() throws IOException {
-    generatePdf(
-        "payload/export/17 Rue Pierre Bénech, 31100 Toulouse.json",
-        "files/17 Rue Pierre Bénech, 31100 Toulouse.png",
-        "toulouse");
+    generatePdf(TOULOUSE_PAYLOAD, TOULOUSE_IMAGE, "toulouse");
   }
 
   @Test
@@ -132,6 +132,20 @@ class ExportAreaPictureAnnotationPdfVisualTest {
         "payload/export/Paul Benoit - Chem. des Terrasses 7, 1110 Morges, Suisse.json",
         "files/Paul Benoit - Chem. des Terrasses 7, 1110 Morges, Suisse.png",
         "morges");
+  }
+
+  @Test
+  void generate_hidden_measurements_pdf() throws IOException {
+    var annotation = readAnnotation(TOULOUSE_PAYLOAD);
+    annotation.setConf(
+        new AreaPictureAnnotationConfRestMapper()
+            .toDomain(
+                new app.bpartners.api.endpoint.rest.model.ExportAreaPictureAnnotationConf()
+                    .hideMeasurements(true)
+                    .measurementsReplacementText(
+                        "Récupérer le dossier complet auprès de l’agence LARIVIERE")));
+
+    renderPdf(annotation, TOULOUSE_IMAGE, "hidden-measurements");
   }
 
   @Test

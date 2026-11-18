@@ -26,11 +26,11 @@ import app.bpartners.api.service.aws.SesService;
 import app.bpartners.api.service.event.InvoiceRelaunchSavedService;
 import app.bpartners.api.service.file.FileService;
 import app.bpartners.api.service.invoice.InvoicePDFGenerator;
+import jakarta.mail.MessagingException;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
-import javax.mail.MessagingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

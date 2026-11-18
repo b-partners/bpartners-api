@@ -23,11 +23,11 @@ import app.bpartners.api.model.InvoiceDiscount;
 import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.subscription.SubscriptionInvoicePeriod;
-import app.bpartners.api.model.subscription.TempSubscriptionTermination;
+import app.bpartners.api.model.subscription.SubscriptionTermination;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.jpa.TempSubscriptionTerminationJpaRepository;
+import app.bpartners.api.repository.jpa.SubscriptionTerminationJpaRepository;
 import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.subscription.SubscriptionTerminationService.BilledLine;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -47,7 +47,7 @@ class SubscriptionTerminationServiceTest {
   private static final String BIRDIA_ID = "birdia_id";
   private static final Instant END = Instant.parse("2026-11-10T23:00:00Z");
 
-  TempSubscriptionTerminationJpaRepository repository = mock();
+  SubscriptionTerminationJpaRepository repository = mock();
   UserRepository userRepository = mock();
   UserSubscriptionProductService userSubscriptionProductService = mock();
   LiveSubscriptionInvoicePeriodFinder livePeriodFinder = mock();
@@ -75,7 +75,7 @@ class SubscriptionTerminationServiceTest {
 
   @BeforeEach
   void setUp() {
-    when(repository.save(any(TempSubscriptionTermination.class)))
+    when(repository.save(any(SubscriptionTermination.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
     when(userRepository.findByStripeCustomerId(E2_ID)).thenReturn(Optional.of(subscriber));
     when(userRepository.getById(BIRDIA_ID)).thenReturn(birdia);
@@ -157,7 +157,7 @@ class SubscriptionTerminationServiceTest {
     assertEquals(
         BigInteger.valueOf(-4900),
         draft.getValue().lines().products().getFirst().getUnitPrice().getNumerator());
-    var saved = ArgumentCaptor.forClass(TempSubscriptionTermination.class);
+    var saved = ArgumentCaptor.forClass(SubscriptionTermination.class);
     verify(repository, times(2)).save(saved.capture());
     assertEquals(CREDIT_NOTE_ISSUED, saved.getAllValues().getLast().getStatus());
     assertEquals("credit_note_id", saved.getAllValues().getLast().getCreditNoteInvoiceId());
@@ -211,7 +211,7 @@ class SubscriptionTerminationServiceTest {
     subject.terminate(TERMINATION_ID);
 
     verify(invoicingService, never()).issueCreditNoteInvoice(any(), any(), any());
-    var saved = ArgumentCaptor.forClass(TempSubscriptionTermination.class);
+    var saved = ArgumentCaptor.forClass(SubscriptionTermination.class);
     verify(repository, times(2)).save(saved.capture());
     assertEquals(SKIPPED, saved.getAllValues().getLast().getStatus());
   }
@@ -228,7 +228,7 @@ class SubscriptionTerminationServiceTest {
     subject.terminate(TERMINATION_ID);
 
     verify(invoicingService, never()).issueCreditNoteInvoice(any(), any(), any());
-    var saved = ArgumentCaptor.forClass(TempSubscriptionTermination.class);
+    var saved = ArgumentCaptor.forClass(SubscriptionTermination.class);
     verify(repository, times(2)).save(saved.capture());
     assertEquals(FAILED, saved.getAllValues().getLast().getStatus());
     assertTrue(saved.getAllValues().getLast().getErrorMessage().contains("does not match"));
@@ -246,8 +246,71 @@ class SubscriptionTerminationServiceTest {
     verify(repository, never()).save(any());
   }
 
-  private TempSubscriptionTermination termination(String currentPeriodEnd, long amount) {
-    return TempSubscriptionTermination.builder()
+  @Test
+  void cancelled_subscription_is_recorded_then_credited_without_amount_check() {
+    var created = new java.util.concurrent.atomic.AtomicReference<SubscriptionTermination>();
+    when(repository.findById("sub_1")).thenAnswer(invocation -> Optional.ofNullable(created.get()));
+    when(repository.save(any(SubscriptionTermination.class)))
+        .thenAnswer(
+            invocation -> {
+              created.set(invocation.getArgument(0));
+              return invocation.getArgument(0);
+            });
+    when(livePeriodFinder.findLive(eq(USER_ID), any()))
+        .thenReturn(List.of(SubscriptionInvoicePeriod.builder().invoiceId("invoice_id").build()));
+    when(invoiceRepository.findById("invoice_id"))
+        .thenReturn(invoiceWithMonths("2026-11-01", "2026-12-01"));
+    when(userRepository.getById(USER_ID)).thenReturn(subscriber);
+    when(invoicingService.issueCreditNoteInvoice(any(), eq(birdia), eq(customer)))
+        .thenReturn(Invoice.builder().id("credit_note_id").ref("AV-1").build());
+
+    subject.terminateCancelledSubscription("sub_1", subscriber, END, LocalDate.parse("2026-11-30"));
+
+    verify(userSubscriptionProductService).endActiveSubscriptionProducts(USER_ID, END);
+    verify(invoicingService).issueCreditNoteInvoice(any(), eq(birdia), eq(customer));
+    assertEquals(CREDIT_NOTE_ISSUED, created.get().getStatus());
+    assertEquals("credit_note_id", created.get().getCreditNoteInvoiceId());
+  }
+
+  @Test
+  void cancelled_subscription_already_credited_is_not_credited_again() {
+    var done =
+        termination("2026-11-30", 0).toBuilder()
+            .id("sub_1")
+            .userId(USER_ID)
+            .status(CREDIT_NOTE_ISSUED)
+            .build();
+    when(repository.findById("sub_1")).thenReturn(Optional.of(done));
+
+    subject.terminateCancelledSubscription("sub_1", subscriber, END, LocalDate.parse("2026-11-30"));
+
+    verify(repository, never()).save(any());
+    verify(invoicingService, never()).issueCreditNoteInvoice(any(), any(), any());
+    verify(userSubscriptionProductService, never()).endActiveSubscriptionProducts(any(), any());
+  }
+
+  @Test
+  void cancelled_subscription_failure_is_recorded_and_does_not_throw() {
+    var created = new java.util.concurrent.atomic.AtomicReference<SubscriptionTermination>();
+    when(repository.findById("sub_1")).thenAnswer(invocation -> Optional.ofNullable(created.get()));
+    when(repository.save(any(SubscriptionTermination.class)))
+        .thenAnswer(
+            invocation -> {
+              created.set(invocation.getArgument(0));
+              return invocation.getArgument(0);
+            });
+    when(userRepository.getById(USER_ID)).thenReturn(subscriber);
+    when(livePeriodFinder.findLive(eq(USER_ID), any()))
+        .thenThrow(new IllegalStateException("boom"));
+
+    subject.terminateCancelledSubscription("sub_1", subscriber, END, LocalDate.parse("2026-11-30"));
+
+    assertEquals(FAILED, created.get().getStatus());
+    verify(invoicingService, never()).issueCreditNoteInvoice(any(), any(), any());
+  }
+
+  private SubscriptionTermination termination(String currentPeriodEnd, long amount) {
+    return SubscriptionTermination.builder()
         .id(TERMINATION_ID)
         .userSubscriptionE2Id(E2_ID)
         .subscriptionEndDatetime(END)

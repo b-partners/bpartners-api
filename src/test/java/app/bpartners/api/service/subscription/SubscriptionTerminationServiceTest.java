@@ -5,6 +5,7 @@ import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus
 import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.PENDING;
 import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.SKIPPED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -160,6 +161,43 @@ class SubscriptionTerminationServiceTest {
     verify(repository, times(2)).save(saved.capture());
     assertEquals(CREDIT_NOTE_ISSUED, saved.getAllValues().getLast().getStatus());
     assertEquals("credit_note_id", saved.getAllValues().getLast().getCreditNoteInvoiceId());
+  }
+
+  @Test
+  void terminate_credits_every_month_after_current_period_end_with_exact_dates() {
+    var termination = termination("2026-11-30", 5880);
+    when(repository.findById(TERMINATION_ID)).thenReturn(Optional.of(termination));
+    when(livePeriodFinder.findLive(eq(USER_ID), any()))
+        .thenReturn(List.of(SubscriptionInvoicePeriod.builder().invoiceId("invoice_id").build()));
+    when(invoiceRepository.findById("invoice_id"))
+        .thenReturn(invoiceWithMonths("2026-11-01", "2026-12-01", "2027-01-01", "2027-02-01"));
+    when(invoicingService.issueCreditNoteInvoice(any(), eq(birdia), eq(customer)))
+        .thenReturn(Invoice.builder().id("credit_note_id").ref("AV-1").build());
+
+    subject.terminate(TERMINATION_ID);
+
+    var captor = ArgumentCaptor.forClass(SubscriptionUpgradeInvoicingService.CreditNoteDraft.class);
+    verify(invoicingService).issueCreditNoteInvoice(captor.capture(), eq(birdia), eq(customer));
+    var draft = captor.getValue();
+    assertEquals(
+        "Avoir sur l'abonnement pour la période du 01/12/2026 au 28/02/2027 (facture FA-1)",
+        draft.title());
+    assertEquals(LocalDate.parse("2026-12-01"), draft.date());
+    assertFalse(draft.yearlyBilled());
+    assertEquals(
+        List.of(
+            "Avoir Abonnement du 01/12/2026 au 31/12/2026",
+            "Avoir Abonnement du 01/01/2027 au 31/01/2027",
+            "Avoir Abonnement du 01/02/2027 au 28/02/2027"),
+        draft.lines().products().stream().map(InvoiceProduct::getDescription).toList());
+    draft
+        .lines()
+        .products()
+        .forEach(
+            line -> {
+              assertEquals(BigInteger.valueOf(-4900), line.getUnitPrice().getNumerator());
+              assertEquals(draft.invoiceIdentifier(), line.getIdInvoice());
+            });
   }
 
   @Test

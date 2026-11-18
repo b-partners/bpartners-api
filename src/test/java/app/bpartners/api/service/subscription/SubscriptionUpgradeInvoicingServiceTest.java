@@ -26,6 +26,7 @@ import app.bpartners.api.endpoint.rest.model.Invoice.PaymentTypeEnum;
 import app.bpartners.api.model.Customer;
 import app.bpartners.api.model.Fraction;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.InvoiceProduct;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ApiException;
 import app.bpartners.api.model.exception.NotFoundException;
@@ -133,6 +134,51 @@ class SubscriptionUpgradeInvoicingServiceTest {
     var issued = captureIssuedInvoices();
     assertTrue(issued.get(0).isCreditNote());
     assertFalse(issued.get(1).isCreditNote());
+  }
+
+  @Test
+  void issues_a_standalone_paid_credit_note_without_any_mail() {
+    var invoiceIdentifier = "credit_note_id";
+    var lines =
+        new SubscriptionUpgradeInvoiceLines(customDateFormatter)
+            .creditLinesOf(
+                invoiceIdentifier,
+                List.of(
+                    billedProduct("Abonnement Essentiel du 01/12/2026 au 31/12/2026"),
+                    billedProduct("Abonnement Essentiel du 01/01/2027 au 31/01/2027")));
+    var draft =
+        new SubscriptionUpgradeInvoicingService.CreditNoteDraft(
+            invoiceIdentifier,
+            "Avoir sur l'abonnement pour la période du 01/12/2026 au 31/01/2027",
+            lines,
+            false,
+            LocalDate.parse("2026-12-01"));
+
+    var actual =
+        subject.issueCreditNoteInvoice(
+            draft, User.builder().id(USER_TO_CREDIT_ID).build(), Customer.builder().build());
+
+    assertTrue(actual.isCreditNote());
+    assertEquals(app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID, actual.getStatus());
+    assertEquals(invoiceIdentifier, actual.getId());
+    assertEquals(2, actual.getProducts().size());
+    assertEquals(
+        "Avoir Abonnement Essentiel du 01/12/2026 au 31/12/2026",
+        actual.getProducts().get(0).getDescription());
+    assertEquals(
+        "Avoir Abonnement Essentiel du 01/01/2027 au 31/01/2027",
+        actual.getProducts().get(1).getDescription());
+    assertTrue(actual.getTotalPriceWithVat().getApproximatedValue() < 0);
+    verifyNoInteractions(subscriptionInvoiceMailer);
+  }
+
+  private InvoiceProduct billedProduct(String description) {
+    return InvoiceProduct.builder()
+        .description(description)
+        .quantity(1)
+        .unitPrice(new Fraction(BigInteger.valueOf(4900)))
+        .vatPercent(new Fraction(BigInteger.valueOf(20)))
+        .build();
   }
 
   @Test

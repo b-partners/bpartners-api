@@ -3,6 +3,7 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.CREDIT_NOTE_ISSUED;
 import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.FAILED;
+import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.PENDING;
 import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.SKIPPED;
 import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.SUBSCRIPTION_ENDED;
 import static java.time.Instant.now;
@@ -11,18 +12,20 @@ import static java.util.UUID.randomUUID;
 
 import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.InvoiceProduct;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
-import app.bpartners.api.model.subscription.TempSubscriptionTermination;
+import app.bpartners.api.model.subscription.SubscriptionTermination;
 import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.InvoiceRepository;
 import app.bpartners.api.repository.UserRepository;
-import app.bpartners.api.repository.jpa.TempSubscriptionTerminationJpaRepository;
+import app.bpartners.api.repository.jpa.SubscriptionTerminationJpaRepository;
 import app.bpartners.api.service.customer.SubscriptionCustomerResolver;
 import app.bpartners.api.service.subscription.SubscriptionUpgradeInvoicingService.CreditNoteDraft;
 import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -41,7 +44,7 @@ public class SubscriptionTerminationService {
       Pattern.compile("du (\\d{2}/\\d{2}/\\d{4}) au (\\d{2}/\\d{2}/\\d{4})$");
   private static final DateTimeFormatter FRENCH_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-  private final TempSubscriptionTerminationJpaRepository repository;
+  private final SubscriptionTerminationJpaRepository repository;
   private final UserRepository userRepository;
   private final UserSubscriptionProductService userSubscriptionProductService;
   private final LiveSubscriptionInvoicePeriodFinder livePeriodFinder;
@@ -62,10 +65,10 @@ public class SubscriptionTerminationService {
             .orElseThrow(
                 () ->
                     new NotFoundException(
-                        "TempSubscriptionTermination.id=" + terminationId + " not found"));
+                        "SubscriptionTermination.id=" + terminationId + " not found"));
     if (termination.getStatus() == CREDIT_NOTE_ISSUED || termination.getStatus() == SKIPPED) {
       log.info(
-          "TempSubscriptionTermination(id={}) is already {}, skipping",
+          "SubscriptionTermination(id={}) is already {}, skipping",
           terminationId,
           termination.getStatus());
       return;
@@ -73,7 +76,7 @@ public class SubscriptionTerminationService {
     try {
       process(termination);
     } catch (RuntimeException e) {
-      log.error("TempSubscriptionTermination(id={}) failed", terminationId, e);
+      log.error("SubscriptionTermination(id={}) failed", terminationId, e);
       repository.save(
           repository.findById(terminationId).orElse(termination).toBuilder()
               .status(FAILED)
@@ -83,16 +86,8 @@ public class SubscriptionTerminationService {
     }
   }
 
-  private void process(TempSubscriptionTermination termination) {
-    var user =
-        userRepository
-            .findByStripeCustomerId(termination.getUserSubscriptionE2Id())
-            .orElseThrow(
-                () ->
-                    new NotFoundException(
-                        "User with user_subscription_e2_id="
-                            + termination.getUserSubscriptionE2Id()
-                            + " not found"));
+  private void process(SubscriptionTermination termination) {
+    var user = userOf(termination);
     userSubscriptionProductService.endActiveSubscriptionProducts(
         user.getId(), termination.getSubscriptionEndDatetime());
     var ended =
@@ -105,7 +100,9 @@ public class SubscriptionTerminationService {
                 .build());
 
     var billedLines = billedLinesOf(user.getId());
-    checkBilledAmount(ended, billedLines);
+    if (ended.getAmountInCentsWithVat() > 0) {
+      checkBilledAmount(ended, billedLines);
+    }
     var linesToCredit = linesToCredit(ended.getCurrentPeriodEndDate(), billedLines);
     if (linesToCredit.isEmpty()) {
       repository.save(ended.toBuilder().status(SKIPPED).updateDatetime(now()).build());
@@ -130,6 +127,41 @@ public class SubscriptionTerminationService {
         creditNote.getId(),
         creditNote.getRef(),
         user.getId());
+  }
+
+  public void terminateCancelledSubscription(
+      String stripeSubscriptionId,
+      User user,
+      Instant subscriptionEndDatetime,
+      LocalDate currentPeriodEndDate) {
+    if (repository.findById(stripeSubscriptionId).isEmpty()) {
+      repository.save(
+          SubscriptionTermination.builder()
+              .id(stripeSubscriptionId)
+              .userSubscriptionE2Id(stripeSubscriptionId)
+              .userId(user.getId())
+              .subscriptionEndDatetime(subscriptionEndDatetime)
+              .currentPeriodEndDate(currentPeriodEndDate)
+              .amountInCentsWithVat(0)
+              .status(PENDING)
+              .updateDatetime(now())
+              .build());
+    }
+    terminate(stripeSubscriptionId);
+  }
+
+  private User userOf(SubscriptionTermination termination) {
+    if (termination.getUserId() != null) {
+      return userRepository.getById(termination.getUserId());
+    }
+    return userRepository
+        .findByStripeCustomerId(termination.getUserSubscriptionE2Id())
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    "User with user_subscription_e2_id="
+                        + termination.getUserSubscriptionE2Id()
+                        + " not found"));
   }
 
   private CreditNoteDraft creditNoteDraftOf(List<BilledLine> linesToCredit) {
@@ -188,8 +220,7 @@ public class SubscriptionTerminationService {
             LocalDate.parse(matcher.group(2), FRENCH_DATE)));
   }
 
-  static void checkBilledAmount(
-      TempSubscriptionTermination termination, List<BilledLine> billedLines) {
+  static void checkBilledAmount(SubscriptionTermination termination, List<BilledLine> billedLines) {
     var periodEnd = termination.getCurrentPeriodEndDate();
     var covering =
         billedLines.stream()

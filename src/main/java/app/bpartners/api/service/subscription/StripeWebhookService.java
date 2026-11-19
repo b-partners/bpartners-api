@@ -23,9 +23,11 @@ import com.stripe.model.Invoice;
 import com.stripe.model.InvoiceLineItem;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
+import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +42,8 @@ public class StripeWebhookService {
   private static final String INVOICE_PAID = "invoice.paid";
   private static final String INVOICE_PAYMENT_FAILED = "invoice.payment_failed";
   private static final String STRIPE_SUBSCRIPTION_CYCLE_BILLING_REASON = "subscription_cycle";
+  private static final String CUSTOMER_SUBSCRIPTION_DELETED = "customer.subscription.deleted";
+  private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
   private static final String CHARGE_REFUNDED = "charge.refunded";
   private static final String PAYMENT_INTENT_SUCCEEDED = "payment_intent.succeeded";
   private static final String CHECKOUT_SESSION_COMPLETED = "checkout.session.completed";
@@ -56,6 +60,7 @@ public class StripeWebhookService {
   private final UserSubscriptionProductService userSubscriptionProductService;
   private final CreditGrantService creditGrantService;
   private final SubscriptionUpgradeCompletionService subscriptionUpgradeCompletionService;
+  private final SubscriptionTerminationService subscriptionTerminationService;
 
   public void handleEvent(String payload, String signatureHeader) {
     var event = verifySignature(payload, signatureHeader);
@@ -65,6 +70,10 @@ public class StripeWebhookService {
     }
     if (INVOICE_PAYMENT_FAILED.equals(event.getType())) {
       handleInvoicePaymentFailed(event);
+      return;
+    }
+    if (CUSTOMER_SUBSCRIPTION_DELETED.equals(event.getType())) {
+      handleSubscriptionDeleted(event);
       return;
     }
     if (CHARGE_REFUNDED.equals(event.getType())) {
@@ -211,6 +220,37 @@ public class StripeWebhookService {
 
   private static Instant epochSecondOrNull(Long epochSecond) {
     return epochSecond == null ? null : Instant.ofEpochSecond(epochSecond);
+  }
+
+  private void handleSubscriptionDeleted(Event event) {
+    var stripeSubscription = extractStripeObject(event, Subscription.class);
+    if (stripeSubscription == null) {
+      return;
+    }
+    var optionalUser = userRepository.findByStripeCustomerId(stripeSubscription.getCustomer());
+    if (optionalUser.isEmpty()) {
+      log.warn(
+          "No user found for Stripe customer id={}, deletion of Stripe Subscription(id={}) is"
+              + " ignored",
+          stripeSubscription.getCustomer(),
+          stripeSubscription.getId());
+      return;
+    }
+    var endedAt =
+        stripeSubscription.getEndedAt() != null
+            ? Instant.ofEpochSecond(stripeSubscription.getEndedAt())
+            : event.getCreated() != null
+                ? Instant.ofEpochSecond(event.getCreated())
+                : Instant.now();
+    var periodEnd =
+        stripeSubscription.getCurrentPeriodEnd() == null
+            ? endedAt
+            : Instant.ofEpochSecond(stripeSubscription.getCurrentPeriodEnd());
+    subscriptionTerminationService.terminateCancelledSubscription(
+        stripeSubscription.getId(),
+        optionalUser.get(),
+        endedAt,
+        periodEnd.atZone(PARIS).toLocalDate());
   }
 
   private void handleChargeRefunded(Event event) {

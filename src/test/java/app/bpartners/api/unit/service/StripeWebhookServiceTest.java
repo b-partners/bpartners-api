@@ -135,6 +135,89 @@ class StripeWebhookServiceTest {
             java.time.LocalDate.of(2026, 9, 21));
   }
 
+  private Event givenSubscriptionDeletedEvent(
+      Subscription subscription, EventDataObjectDeserializer deserializer, Long eventCreated) {
+    var event = mock(Event.class);
+    when(event.getType()).thenReturn("customer.subscription.deleted");
+    lenient().when(event.getCreated()).thenReturn(eventCreated);
+    when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+    return event;
+  }
+
+  private Subscription deletedSubscription(Long endedAt, Long currentPeriodEnd) {
+    var subscription = mock(Subscription.class);
+    lenient().when(subscription.getId()).thenReturn("sub_1");
+    lenient().when(subscription.getCustomer()).thenReturn(CUSTOMER_ID);
+    lenient().when(subscription.getEndedAt()).thenReturn(endedAt);
+    lenient().when(subscription.getCurrentPeriodEnd()).thenReturn(currentPeriodEnd);
+    return subscription;
+  }
+
+  private EventDataObjectDeserializer deserializerOf(Subscription subscription) {
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    when(deserializer.getObject()).thenReturn(Optional.of(subscription));
+    return deserializer;
+  }
+
+  private void handleDeleted(Event event) {
+    try (MockedStatic<Webhook> webhook = mockStatic(Webhook.class)) {
+      webhook.when(() -> Webhook.constructEvent(PAYLOAD, SIGNATURE, SECRET)).thenReturn(event);
+
+      subject.handleEvent(PAYLOAD, SIGNATURE);
+    }
+  }
+
+  @Test
+  void subscription_deleted_falls_back_to_event_creation_when_ended_at_is_missing() {
+    var user = User.builder().id("user_id").build();
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(user));
+    var subscription = deletedSubscription(null, null);
+
+    handleDeleted(
+        givenSubscriptionDeletedEvent(subscription, deserializerOf(subscription), 1_790_000_000L));
+
+    verify(subscriptionTerminationService)
+        .terminateCancelledSubscription(
+            "sub_1",
+            user,
+            java.time.Instant.ofEpochSecond(1_790_000_000L),
+            java.time.LocalDate.of(2026, 9, 21));
+  }
+
+  @Test
+  void subscription_deleted_falls_back_to_now_when_no_date_is_available() {
+    var user = User.builder().id("user_id").build();
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID)).thenReturn(Optional.of(user));
+    var subscription = deletedSubscription(null, null);
+
+    handleDeleted(givenSubscriptionDeletedEvent(subscription, deserializerOf(subscription), null));
+
+    verify(subscriptionTerminationService)
+        .terminateCancelledSubscription(
+            eq("sub_1"), eq(user), any(java.time.Instant.class), any(java.time.LocalDate.class));
+  }
+
+  @Test
+  void subscription_deleted_of_unknown_customer_terminates_nothing() {
+    when(userRepository.findByStripeCustomerId(CUSTOMER_ID)).thenReturn(Optional.empty());
+    var subscription = deletedSubscription(1_790_000_000L, 1_790_000_000L);
+
+    handleDeleted(givenSubscriptionDeletedEvent(subscription, deserializerOf(subscription), null));
+
+    verifyNoInteractions(subscriptionTerminationService);
+  }
+
+  @Test
+  void subscription_deleted_with_undeserializable_object_terminates_nothing() throws Exception {
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    when(deserializer.getObject()).thenReturn(Optional.empty());
+    when(deserializer.deserializeUnsafe()).thenThrow(new IllegalStateException("unknown version"));
+
+    handleDeleted(givenSubscriptionDeletedEvent(null, deserializer, null));
+
+    verifyNoInteractions(subscriptionTerminationService);
+  }
+
   @Test
   void unhandled_event_type_produces_no_event() {
     var event = givenEvent("customer.updated", "active");

@@ -309,6 +309,39 @@ class SubscriptionTerminationServiceTest {
     verify(invoicingService, never()).issueCreditNoteInvoice(any(), any(), any());
   }
 
+  @Test
+  void cancelled_subscription_with_unfinished_record_is_processed_without_new_record() {
+    var failed =
+        termination("2026-11-30", 0).toBuilder().id("sub_1").userId(USER_ID).status(FAILED).build();
+    when(repository.findById("sub_1")).thenReturn(Optional.of(failed));
+    when(userRepository.getById(USER_ID)).thenReturn(subscriber);
+    when(livePeriodFinder.findLive(eq(USER_ID), any()))
+        .thenReturn(List.of(SubscriptionInvoicePeriod.builder().invoiceId("invoice_id").build()));
+    when(invoiceRepository.findById("invoice_id")).thenReturn(invoiceWithMonths("2026-11-01"));
+
+    subject.terminateCancelledSubscription("sub_1", subscriber, END, LocalDate.parse("2026-11-30"));
+
+    var saved = ArgumentCaptor.forClass(SubscriptionTermination.class);
+    verify(repository, times(2)).save(saved.capture());
+    assertEquals(SKIPPED, saved.getAllValues().getLast().getStatus());
+  }
+
+  @Test
+  void terminate_marks_failed_when_no_user_matches_the_stripe_customer() {
+    var termination =
+        termination("2026-11-30", 5880).toBuilder().userSubscriptionE2Id("cus_unknown").build();
+    when(repository.findById(TERMINATION_ID)).thenReturn(Optional.of(termination));
+    when(userRepository.findByStripeCustomerId("cus_unknown")).thenReturn(Optional.empty());
+
+    subject.terminate(TERMINATION_ID);
+
+    var saved = ArgumentCaptor.forClass(SubscriptionTermination.class);
+    verify(repository).save(saved.capture());
+    assertEquals(FAILED, saved.getValue().getStatus());
+    assertTrue(saved.getValue().getErrorMessage().contains("cus_unknown"));
+    verify(userSubscriptionProductService, never()).endActiveSubscriptionProducts(any(), any());
+  }
+
   private SubscriptionTermination termination(String currentPeriodEnd, long amount) {
     return SubscriptionTermination.builder()
         .id(TERMINATION_ID)

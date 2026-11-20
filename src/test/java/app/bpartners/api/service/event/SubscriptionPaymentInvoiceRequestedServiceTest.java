@@ -119,6 +119,31 @@ class SubscriptionPaymentInvoiceRequestedServiceTest {
   }
 
   @Test
+  void sends_no_mail_when_the_event_does_not_notify_the_subscriber() {
+    givenDefaultUsersAndCustomer();
+    givenPayment(somePayment().build());
+
+    subject.accept(
+        SubscriptionPaymentInvoiceRequested.builder()
+            .subscriptionPaymentId(PAYMENT_ID)
+            .notifiesSubscriber(false)
+            .build());
+
+    verify(invoiceService).crupdateSubscriptionInvoice(any());
+    verify(eventProducer, never()).accept(anyList());
+  }
+
+  @Test
+  void sends_the_mail_when_the_event_does_not_say_otherwise() {
+    givenDefaultUsersAndCustomer();
+    givenPayment(somePayment().build());
+
+    subject.accept(someEvent());
+
+    verify(eventProducer).accept(anyList());
+  }
+
+  @Test
   void dates_and_references_the_invoice_on_the_payment_datetime() {
     givenDefaultUsersAndCustomer();
     givenPayment(somePayment().build());

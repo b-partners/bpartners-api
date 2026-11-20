@@ -122,7 +122,9 @@ public class StripeFactoryTest {
 
       var captor = ArgumentCaptor.forClass(SessionCreateParams.class);
       mockedSession.verify(() -> Session.create(captor.capture()));
-      assertNull(captor.getValue().getSubscriptionData());
+      var subscriptionData = captor.getValue().getSubscriptionData();
+      assertNull(subscriptionData.getBillingCycleAnchor());
+      assertEquals("dashboard", subscriptionData.getMetadata().get("origin"));
     }
   }
 
@@ -150,7 +152,9 @@ public class StripeFactoryTest {
 
       var captor = ArgumentCaptor.forClass(SessionCreateParams.class);
       mockedSession.verify(() -> Session.create(captor.capture()));
-      assertNull(captor.getValue().getSubscriptionData());
+      var subscriptionData = captor.getValue().getSubscriptionData();
+      assertNull(subscriptionData.getBillingCycleAnchor());
+      assertEquals("dashboard", subscriptionData.getMetadata().get("origin"));
     }
   }
 

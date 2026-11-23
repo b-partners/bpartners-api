@@ -42,6 +42,8 @@ public class StripeWebhookService {
   private static final String INVOICE_PAID = "invoice.paid";
   private static final String INVOICE_PAYMENT_FAILED = "invoice.payment_failed";
   private static final String STRIPE_SUBSCRIPTION_CYCLE_BILLING_REASON = "subscription_cycle";
+  private static final String CUSTOMER_SUBSCRIPTION_CREATED = "customer.subscription.created";
+  private static final String CUSTOMER_SUBSCRIPTION_UPDATED = "customer.subscription.updated";
   private static final String CUSTOMER_SUBSCRIPTION_DELETED = "customer.subscription.deleted";
   private static final ZoneId PARIS = ZoneId.of("Europe/Paris");
   private static final String CHARGE_REFUNDED = "charge.refunded";
@@ -61,6 +63,7 @@ public class StripeWebhookService {
   private final CreditGrantService creditGrantService;
   private final SubscriptionUpgradeCompletionService subscriptionUpgradeCompletionService;
   private final SubscriptionTerminationService subscriptionTerminationService;
+  private final StripeSubscriptionSyncService stripeSubscriptionSyncService;
 
   public void handleEvent(String payload, String signatureHeader) {
     var event = verifySignature(payload, signatureHeader);
@@ -70,6 +73,14 @@ public class StripeWebhookService {
     }
     if (INVOICE_PAYMENT_FAILED.equals(event.getType())) {
       handleInvoicePaymentFailed(event);
+      return;
+    }
+    if (CUSTOMER_SUBSCRIPTION_CREATED.equals(event.getType())) {
+      handleSubscriptionCreated(event);
+      return;
+    }
+    if (CUSTOMER_SUBSCRIPTION_UPDATED.equals(event.getType())) {
+      handleSubscriptionUpdated(event);
       return;
     }
     if (CUSTOMER_SUBSCRIPTION_DELETED.equals(event.getType())) {
@@ -220,6 +231,20 @@ public class StripeWebhookService {
 
   private static Instant epochSecondOrNull(Long epochSecond) {
     return epochSecond == null ? null : Instant.ofEpochSecond(epochSecond);
+  }
+
+  private void handleSubscriptionCreated(Event event) {
+    var stripeSubscription = extractStripeObject(event, Subscription.class);
+    if (stripeSubscription != null) {
+      stripeSubscriptionSyncService.syncCreated(stripeSubscription);
+    }
+  }
+
+  private void handleSubscriptionUpdated(Event event) {
+    var stripeSubscription = extractStripeObject(event, Subscription.class);
+    if (stripeSubscription != null) {
+      stripeSubscriptionSyncService.syncUpdated(stripeSubscription);
+    }
   }
 
   private void handleSubscriptionDeleted(Event event) {

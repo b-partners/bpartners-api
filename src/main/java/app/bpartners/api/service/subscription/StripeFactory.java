@@ -3,6 +3,8 @@ package app.bpartners.api.service.subscription;
 import static app.bpartners.api.model.subscription.BillingInterval.YEARLY;
 import static app.bpartners.api.model.subscription.SubscriptionType.MONTHLY;
 import static app.bpartners.api.payment.StripeConf.defaultCurrency;
+import static app.bpartners.api.service.subscription.StripeSubscriptionSyncService.DASHBOARD_ORIGIN;
+import static app.bpartners.api.service.subscription.StripeSubscriptionSyncService.ORIGIN_METADATA_KEY;
 import static com.stripe.param.checkout.SessionCreateParams.Mode.SUBSCRIPTION;
 import static com.stripe.param.checkout.SessionCreateParams.PaymentMethodCollection.IF_REQUIRED;
 import static com.stripe.param.checkout.SessionCreateParams.UiMode.HOSTED;
@@ -88,15 +90,17 @@ public class StripeFactory {
             .setCustomer(stripeCustomer.getId())
             .setCurrency(defaultCurrency())
             .addLineItem(basePlanLineItem);
+    var subscriptionData =
+        SessionCreateParams.SubscriptionData.builder()
+            .putMetadata(ORIGIN_METADATA_KEY, DASHBOARD_ORIGIN);
     var isBilledOnCalendarMonths = subscription.getBillingInterval() != YEARLY;
     if (isBilledOnCalendarMonths && startsAfterToday(billingCycleAnchor)) {
-      sessionParamsBuilder.setSubscriptionData(
-          SessionCreateParams.SubscriptionData.builder()
-              .setBillingCycleAnchor(billingCycleAnchor)
-              .setProrationBehavior(
-                  SessionCreateParams.SubscriptionData.ProrationBehavior.CREATE_PRORATIONS)
-              .build());
+      subscriptionData
+          .setBillingCycleAnchor(billingCycleAnchor)
+          .setProrationBehavior(
+              SessionCreateParams.SubscriptionData.ProrationBehavior.CREATE_PRORATIONS);
     }
+    sessionParamsBuilder.setSubscriptionData(subscriptionData.build());
     return Session.create(
         sessionParamsBuilder
             .setSuccessUrl(redirectionUrls.getSuccessUrl())

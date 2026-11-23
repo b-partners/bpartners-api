@@ -24,6 +24,7 @@ import app.bpartners.api.service.credit.CreditPurchaseService;
 import app.bpartners.api.service.subscription.BilledPeriod;
 import app.bpartners.api.service.subscription.ResolvedPlan;
 import app.bpartners.api.service.subscription.StripePaymentMethodService;
+import app.bpartners.api.service.subscription.StripeSubscriptionSyncService;
 import app.bpartners.api.service.subscription.StripeWebhookService;
 import app.bpartners.api.service.subscription.SubscriptionPaymentService;
 import app.bpartners.api.service.subscription.SubscriptionService;
@@ -70,6 +71,7 @@ class StripeWebhookServiceTest {
   CreditGrantService creditGrantService = mock();
   SubscriptionUpgradeCompletionService subscriptionUpgradeCompletionService = mock();
   SubscriptionTerminationService subscriptionTerminationService = mock();
+  StripeSubscriptionSyncService stripeSubscriptionSyncService = mock();
   StripeWebhookService subject =
       new StripeWebhookService(
           stripeConf,
@@ -82,7 +84,8 @@ class StripeWebhookServiceTest {
           userSubscriptionProductService,
           creditGrantService,
           subscriptionUpgradeCompletionService,
-          subscriptionTerminationService);
+          subscriptionTerminationService,
+          stripeSubscriptionSyncService);
 
   @BeforeEach
   void setUp() {
@@ -216,6 +219,48 @@ class StripeWebhookServiceTest {
     handleDeleted(givenSubscriptionDeletedEvent(null, deserializer, null));
 
     verifyNoInteractions(subscriptionTerminationService);
+  }
+
+  @Test
+  void subscription_created_is_synced_with_origin_stamping() {
+    var subscription = deletedSubscription(null, null);
+
+    handleDeleted(
+        givenEventOfType(
+            "customer.subscription.created", subscription, deserializerOf(subscription)));
+
+    verify(stripeSubscriptionSyncService).syncCreated(subscription);
+  }
+
+  @Test
+  void subscription_updated_is_synced_without_origin_stamping() {
+    var subscription = deletedSubscription(null, null);
+
+    handleDeleted(
+        givenEventOfType(
+            "customer.subscription.updated", subscription, deserializerOf(subscription)));
+
+    verify(stripeSubscriptionSyncService).syncUpdated(subscription);
+  }
+
+  @Test
+  void undeserializable_subscription_created_and_updated_are_ignored() throws Exception {
+    var deserializer = mock(EventDataObjectDeserializer.class);
+    when(deserializer.getObject()).thenReturn(Optional.empty());
+    when(deserializer.deserializeUnsafe()).thenThrow(new IllegalStateException("unknown version"));
+
+    handleDeleted(givenEventOfType("customer.subscription.created", null, deserializer));
+    handleDeleted(givenEventOfType("customer.subscription.updated", null, deserializer));
+
+    verifyNoInteractions(stripeSubscriptionSyncService);
+  }
+
+  private Event givenEventOfType(
+      String type, Subscription subscription, EventDataObjectDeserializer deserializer) {
+    var event = mock(Event.class);
+    when(event.getType()).thenReturn(type);
+    when(event.getDataObjectDeserializer()).thenReturn(deserializer);
+    return event;
   }
 
   @Test

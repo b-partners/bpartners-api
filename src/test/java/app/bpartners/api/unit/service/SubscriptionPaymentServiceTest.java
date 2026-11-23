@@ -23,6 +23,7 @@ import app.bpartners.api.model.subscription.SubscriptionProduct;
 import app.bpartners.api.repository.UserRepository;
 import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.repository.jpa.SubscriptionProductRepository;
+import app.bpartners.api.service.subscription.StripeSubscriptionSyncService;
 import app.bpartners.api.service.subscription.SubscriptionPaymentService;
 import app.bpartners.api.service.subscription.UserSubscriptionProductService;
 import app.bpartners.api.service.utils.CustomDateFormatter;
@@ -56,6 +57,7 @@ class SubscriptionPaymentServiceTest {
   UserSubscriptionProductService userSubscriptionProductService = mock();
   SubscriptionProductRepository subscriptionProductRepository = mock();
   EventProducer eventProducer = mock();
+  StripeSubscriptionSyncService stripeSubscriptionSyncService = mock();
   SubscriptionPaymentService subject =
       new SubscriptionPaymentService(
           subscriptionPaymentRepository,
@@ -63,7 +65,8 @@ class SubscriptionPaymentServiceTest {
           userSubscriptionProductService,
           subscriptionProductRepository,
           eventProducer,
-          new CustomDateFormatter());
+          new CustomDateFormatter(),
+          stripeSubscriptionSyncService);
 
   SubscriptionPaymentServiceTest() {
     when(subscriptionPaymentRepository.save(any()))
@@ -245,6 +248,30 @@ class SubscriptionPaymentServiceTest {
     var payment = capturedSubscriptionPayment();
     assertEquals(Instant.ofEpochSecond(PERIOD_START), payment.getPeriodStartDatetime());
     assertEquals(Instant.ofEpochSecond(PERIOD_START), payment.getPeriodEndDatetime());
+  }
+
+  @Test
+  void requests_the_invoice_with_mail_for_a_dashboard_subscription() {
+    givenSubscribedUser(essentialPlan());
+    givenNotYetRecorded();
+    when(stripeSubscriptionSyncService.isCreatedOnStripeOnly(STRIPE_SUBSCRIPTION_ID))
+        .thenReturn(false);
+
+    subject.recordPaidStripeInvoice(someStripeInvoice(4_900L, null, null));
+
+    assertEquals(true, capturedRequest().getNotifiesSubscriber());
+  }
+
+  @Test
+  void requests_the_invoice_without_mail_for_a_stripe_only_subscription() {
+    givenSubscribedUser(essentialPlan());
+    givenNotYetRecorded();
+    when(stripeSubscriptionSyncService.isCreatedOnStripeOnly(STRIPE_SUBSCRIPTION_ID))
+        .thenReturn(true);
+
+    subject.recordPaidStripeInvoice(someStripeInvoice(4_900L, null, null));
+
+    assertEquals(false, capturedRequest().getNotifiesSubscriber());
   }
 
   @Test

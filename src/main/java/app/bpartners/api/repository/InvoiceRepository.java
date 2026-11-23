@@ -55,6 +55,8 @@ public interface InvoiceRepository {
 
   Invoice findById(String id);
 
+  List<Invoice> findAllByIds(List<String> ids);
+
   List<Integer> findSendingYears(
       String idUser,
       List<String> customerEmails,

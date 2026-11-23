@@ -4,7 +4,6 @@ import static app.bpartners.api.endpoint.rest.model.ArchiveStatus.ENABLED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.CONFIRMED;
 import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 
-import app.bpartners.api.model.Invoice;
 import app.bpartners.api.model.UserStripeCustomerEmailCorrespondence;
 import app.bpartners.api.model.exception.BadRequestException;
 import app.bpartners.api.model.subscription.SubscriptionInvoiceYearSummary;
@@ -15,9 +14,7 @@ import app.bpartners.api.repository.jpa.SubscriptionPaymentRepository;
 import app.bpartners.api.repository.jpa.UserStripeCustomerEmailCorrespondenceJpaRepository;
 import app.bpartners.api.service.user.UserService;
 import java.time.Year;
-import java.time.YearMonth;
 import java.time.ZoneId;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
@@ -46,12 +43,7 @@ public class SubscriptionInvoiceSummaryService {
           "year must be between " + MIN_YEAR + " and " + currentYear + " but was " + year);
     }
 
-    var invoicesByMonth = new LinkedHashMap<YearMonth, List<Invoice>>();
-    for (int month = 1; month <= 12; month++) {
-      var yearMonth = YearMonth.of(year, month);
-      invoicesByMonth.put(
-          yearMonth, subscriptionInvoiceService.getSubscriptionInvoices(userId, yearMonth));
-    }
+    var invoicesByMonth = subscriptionInvoiceService.getSubscriptionInvoicesByMonth(userId, year);
     return new SubscriptionInvoiceYearSummary(year, availableYears(userId), invoicesByMonth);
   }
 
@@ -74,7 +66,7 @@ public class SubscriptionInvoiceSummaryService {
   }
 
   private List<String> customerEmailsOf(String userId) {
-    var userEmail = userService.getUserById(userId).getEmail();
+    var userEmail = userService.getUserByIdWithoutPaymentMethod(userId).getEmail();
     var stripeEmail =
         stripeCustomerEmailCorrespondenceJpaRepository
             .findByUserId(userId)

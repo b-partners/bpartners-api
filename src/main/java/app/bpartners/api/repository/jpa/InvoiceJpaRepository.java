@@ -57,10 +57,10 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
       @Param("status") InvoiceStatus status, @Param("from") Instant from, @Param("to") Instant to);
 
   @Query(
-      "select distinct extract(year from i.sendingDate) from HInvoice i"
+      "select distinct extract(year from i.sendingDate) from HInvoice i join i.customer c"
           + " where i.idUser = :idUser"
-          + " and i.customerEmail in :customerEmails"
-          + " and i.title like concat(:titlePrefix, '%')"
+          + " and lower(c.email) in :customerEmails"
+          + " and lower(i.title) like concat(lower(:titlePrefix), '%')"
           + " and i.status in :statuses"
           + " and i.archiveStatus = :archiveStatus"
           + " and i.sendingDate is not null")

@@ -56,7 +56,11 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
       return List.of();
     }
     return jpaRepository.findSendingYears(
-        idUser, customerEmails, titlePrefix, statuses, archiveStatus);
+        idUser,
+        customerEmails.stream().map(String::toLowerCase).toList(),
+        titlePrefix,
+        statuses,
+        archiveStatus);
   }
 
   @Override

@@ -1457,6 +1457,48 @@ operations:
           $ref: './api.yml#/components/responses/429'
         500:
           $ref: './api.yml#/components/responses/500'
+  userSubscriptionInvoiceSummaryOperations:
+    get:
+      tags:
+        - Paying
+      summary: Get the subscription invoice summaries of a user for a given year
+      description: |
+        Returns, for the provided year, the twelve months with the subscription invoices available in each
+        of them (count and summary), along with the years in which the user has subscription invoices.
+        The downloadable file of an invoice is obtained through `GET /users/{uId}/subscriptionInvoices`
+        with the `yearMonth` of the chosen month.
+      operationId: getUserSubscriptionInvoiceSummaries
+      parameters:
+        - in: path
+          name: uId
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: year
+          required: false
+          description: Optional. Defaults to the current year in the Europe/Paris time zone.
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 9999
+      responses:
+        200:
+          description:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionInvoiceSummaries'
+        400:
+          $ref: './api.yml#/components/responses/400'
+        403:
+          $ref: './api.yml#/components/responses/403'
+        404:
+          $ref: './api.yml#/components/responses/404'
+        429:
+          $ref: './api.yml#/components/responses/429'
+        500:
+          $ref: './api.yml#/components/responses/500'
   invoiceExportRequestOperations:
     put:
       tags:
@@ -2087,6 +2129,61 @@ components:
           type: integer
         count:
           type: integer
+    SubscriptionInvoiceSummaries:
+      type: object
+      properties:
+        actualYear:
+          type: integer
+        availableYears:
+          type: array
+          description: Years, in ascending order, in which the user has at least one subscription invoice.
+          items:
+            type: integer
+        months:
+          type: array
+          description: Always twelve items, from January to December.
+          items:
+            $ref: '#/components/schemas/SubscriptionInvoiceMonthSummary'
+    SubscriptionInvoiceMonthSummary:
+      type: object
+      properties:
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        invoiceCount:
+          type: integer
+        invoices:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionInvoiceSummary'
+    SubscriptionInvoiceSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          $ref: '#/components/schemas/SubscriptionInvoiceType'
+        title:
+          type: string
+        reference:
+          type: string
+        sendingDate:
+          type: string
+          format: date
+        totalPriceWithoutVat:
+          type: integer
+        totalVat:
+          type: integer
+        totalPriceWithVat:
+          type: integer
+        paymentStatus:
+          $ref: '#/components/schemas/PaymentStatus'
+    SubscriptionInvoiceType:
+      type: string
+      enum:
+        - INVOICE
+        - CREDIT_NOTE
     SubscriptionInvoice:
       type: object
       properties:

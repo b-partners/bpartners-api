@@ -254,6 +254,8 @@ paths:
     $ref: './paying-api.yml#/operations/invoiceExportRequestOperations'
   /users/{uId}/subscriptionInvoices:
     $ref: './paying-api.yml#/operations/userSubscriptionInvoiceOperations'
+  /users/{uId}/subscriptionInvoiceSummaries:
+    $ref: './paying-api.yml#/operations/userSubscriptionInvoiceSummaryOperations'
 
   #############################################
   ################# Files API #################

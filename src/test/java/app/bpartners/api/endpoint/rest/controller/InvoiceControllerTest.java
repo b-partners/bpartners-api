@@ -15,10 +15,12 @@ import app.bpartners.api.endpoint.rest.mapper.InvoiceExportRequestRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoiceRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.InvoicesSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.mapper.SubscriptionInvoiceRestMapper;
+import app.bpartners.api.endpoint.rest.mapper.SubscriptionInvoiceSummaryRestMapper;
 import app.bpartners.api.endpoint.rest.model.CreateInvoiceExportRequest;
 import app.bpartners.api.endpoint.rest.model.InvoiceExportRequest;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.endpoint.rest.model.SubscriptionInvoice;
+import app.bpartners.api.endpoint.rest.model.SubscriptionInvoiceSummaries;
 import app.bpartners.api.endpoint.rest.security.AuthProvider;
 import app.bpartners.api.endpoint.rest.validator.CreateInvoiceExportRequestValidator;
 import app.bpartners.api.endpoint.rest.validator.InvoiceReferenceValidator;
@@ -27,13 +29,16 @@ import app.bpartners.api.endpoint.rest.validator.UpdatePaymentRegValidator;
 import app.bpartners.api.file.bucket.BucketComponent;
 import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.ForbiddenException;
+import app.bpartners.api.model.subscription.SubscriptionInvoiceYearSummary;
 import app.bpartners.api.service.invoice.InvoiceExportRequestService;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.invoice.InvoiceSummaryService;
 import app.bpartners.api.service.subscription.SubscriptionInvoiceService;
+import app.bpartners.api.service.subscription.SubscriptionInvoiceSummaryService;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
@@ -53,6 +58,8 @@ class InvoiceControllerTest {
   CreateInvoiceExportRequestValidator createInvoiceExportRequestValidatorMock = mock();
   SubscriptionInvoiceService subscriptionInvoiceServiceMock = mock();
   SubscriptionInvoiceRestMapper subscriptionInvoiceRestMapperMock = mock();
+  SubscriptionInvoiceSummaryService subscriptionInvoiceSummaryServiceMock = mock();
+  SubscriptionInvoiceSummaryRestMapper subscriptionInvoiceSummaryRestMapperMock = mock();
 
   InvoiceController subject =
       new InvoiceController(
@@ -67,7 +74,23 @@ class InvoiceControllerTest {
           updateInvoiceStatusRestValidatorMock,
           createInvoiceExportRequestValidatorMock,
           subscriptionInvoiceServiceMock,
-          subscriptionInvoiceRestMapperMock);
+          subscriptionInvoiceRestMapperMock,
+          subscriptionInvoiceSummaryServiceMock,
+          subscriptionInvoiceSummaryRestMapperMock);
+
+  @Test
+  void get_user_subscription_invoice_summaries_ok() {
+    var userIdentifier = randomUUID().toString();
+    var domain = new SubscriptionInvoiceYearSummary(2024, List.of(2024), Map.of());
+    var rest = new SubscriptionInvoiceSummaries().actualYear(2024);
+    when(subscriptionInvoiceSummaryServiceMock.getYearSummary(userIdentifier, 2024))
+        .thenReturn(domain);
+    when(subscriptionInvoiceSummaryRestMapperMock.toRest(domain)).thenReturn(rest);
+
+    var actual = subject.getUserSubscriptionInvoiceSummaries(userIdentifier, 2024);
+
+    assertEquals(rest, actual);
+  }
 
   @Test
   void get_user_subscription_invoices_ok() {

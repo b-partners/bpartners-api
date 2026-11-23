@@ -55,4 +55,19 @@ public interface InvoiceJpaRepository extends JpaRepository<HInvoice, String> {
           + " and i.createdDatetime >= :from and i.createdDatetime < :to")
   List<HInvoice> findByStatusAndCreatedDatetimeBetween(
       @Param("status") InvoiceStatus status, @Param("from") Instant from, @Param("to") Instant to);
+
+  @Query(
+      "select distinct extract(year from i.sendingDate) from HInvoice i join i.customer c"
+          + " where i.idUser = :idUser"
+          + " and lower(c.email) in :customerEmails"
+          + " and lower(i.title) like concat(lower(:titlePrefix), '%')"
+          + " and i.status in :statuses"
+          + " and i.archiveStatus = :archiveStatus"
+          + " and i.sendingDate is not null")
+  List<Integer> findSendingYears(
+      @Param("idUser") String idUser,
+      @Param("customerEmails") List<String> customerEmails,
+      @Param("titlePrefix") String titlePrefix,
+      @Param("statuses") List<InvoiceStatus> statuses,
+      @Param("archiveStatus") ArchiveStatus archiveStatus);
 }

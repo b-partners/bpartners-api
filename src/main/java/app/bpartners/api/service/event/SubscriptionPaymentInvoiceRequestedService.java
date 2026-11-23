@@ -89,7 +89,8 @@ public class SubscriptionPaymentInvoiceRequestedService
 
   @Override
   public void accept(SubscriptionPaymentInvoiceRequested event) {
-    invoiceAssembledPeriod(event.getSubscriptionPaymentId());
+    invoiceAssembledPeriod(
+        event.getSubscriptionPaymentId(), !Boolean.FALSE.equals(event.getNotifiesSubscriber()));
   }
 
   public Optional<Invoice> invoiceAssembledPeriod(String subscriptionPaymentIdentifier) {

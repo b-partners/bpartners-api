@@ -14,6 +14,7 @@ import lombok.ToString;
 @ToString
 public class SubscriptionPaymentInvoiceRequested extends PojaEvent {
   private String subscriptionPaymentId;
+  private Boolean notifiesSubscriber;
 
   @Override
   public Duration maxConsumerDuration() {

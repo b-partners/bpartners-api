@@ -10,12 +10,7 @@ import app.bpartners.api.payment.UserSubscriptionConf;
 import app.bpartners.api.repository.LegalFileRepository;
 import app.bpartners.api.repository.prospecting.datasource.buildingpermit.BuildingPermitConf;
 import app.bpartners.api.service.payment.PaymentScheduleService;
-import app.bpartners.api.service.subscription.StripeCustomerService;
-import app.bpartners.api.service.subscription.StripeDefaultPaymentMethodService;
-import app.bpartners.api.service.subscription.StripePaymentMethodService;
-import app.bpartners.api.service.subscription.StripeSubscriptionService;
-import app.bpartners.api.service.subscription.StripeUpgradeService;
-import app.bpartners.api.service.subscription.SubscriptionService;
+import app.bpartners.api.service.subscription.*;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -38,4 +33,5 @@ public class S3MockedThirdParties extends S3FacadeIT {
   @MockBean protected StripeSubscriptionService stripeSubscriptionServiceMock;
   @MockBean protected StripeUpgradeService stripeUpgradeServiceMock;
   @MockBean protected EventProducer eventProducer;
+  @MockBean protected StripeSubscriptionSyncService stripeSubscriptionSyncServiceMock;
 }

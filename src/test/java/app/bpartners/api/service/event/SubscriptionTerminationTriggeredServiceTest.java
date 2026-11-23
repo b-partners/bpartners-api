@@ -12,9 +12,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import app.bpartners.api.endpoint.event.model.SubscriptionTerminationTriggered;
+import app.bpartners.api.model.subscription.SubscriptionTermination;
 import app.bpartners.api.model.subscription.SubscriptionTerminationStatus;
-import app.bpartners.api.model.subscription.TempSubscriptionTermination;
-import app.bpartners.api.repository.jpa.TempSubscriptionTerminationJpaRepository;
+import app.bpartners.api.repository.jpa.SubscriptionTerminationJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionTerminationService;
 import java.util.Collection;
 import java.util.List;
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class SubscriptionTerminationTriggeredServiceTest {
-  TempSubscriptionTerminationJpaRepository repository = mock();
+  SubscriptionTerminationJpaRepository repository = mock();
   SubscriptionTerminationService terminationService = mock();
   SubscriptionTerminationTriggeredService subject =
       new SubscriptionTerminationTriggeredService(repository, terminationService);
@@ -32,8 +32,8 @@ class SubscriptionTerminationTriggeredServiceTest {
     when(repository.findByStatusIn(any()))
         .thenReturn(
             List.of(
-                TempSubscriptionTermination.builder().id("termination_1").build(),
-                TempSubscriptionTermination.builder().id("termination_2").build()));
+                SubscriptionTermination.builder().id("termination_1").build(),
+                SubscriptionTermination.builder().id("termination_2").build()));
 
     subject.accept(new SubscriptionTerminationTriggered());
 

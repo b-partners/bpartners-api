@@ -17,14 +17,14 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 
-@Entity(name = "temp_subscription_termination")
+@Entity(name = "subscription_termination")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder(toBuilder = true)
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class TempSubscriptionTermination {
+public class SubscriptionTermination {
   @Id private String id;
 
   @Column(name = "user_subscription_e2_id")

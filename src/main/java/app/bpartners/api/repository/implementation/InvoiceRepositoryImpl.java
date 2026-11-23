@@ -46,6 +46,24 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
   private final PaymentRequestMapper paymentRequestMapper;
 
   @Override
+  public List<Integer> findSendingYears(
+      String idUser,
+      List<String> customerEmails,
+      String titlePrefix,
+      List<InvoiceStatus> statuses,
+      ArchiveStatus archiveStatus) {
+    if (customerEmails.isEmpty()) {
+      return List.of();
+    }
+    return jpaRepository.findSendingYears(
+        idUser,
+        customerEmails.stream().map(String::toLowerCase).toList(),
+        titlePrefix,
+        statuses,
+        archiveStatus);
+  }
+
+  @Override
   public List<Invoice> findAllEnabledByIdUser(String idUser) {
     return jpaRepository.findAllByIdUserAndArchiveStatus(idUser, ArchiveStatus.ENABLED).stream()
         .map(mapper::toDomain)

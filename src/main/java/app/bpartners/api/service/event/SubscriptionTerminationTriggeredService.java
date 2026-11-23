@@ -5,8 +5,8 @@ import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus
 import static app.bpartners.api.model.subscription.SubscriptionTerminationStatus.SUBSCRIPTION_ENDED;
 
 import app.bpartners.api.endpoint.event.model.SubscriptionTerminationTriggered;
-import app.bpartners.api.model.subscription.TempSubscriptionTermination;
-import app.bpartners.api.repository.jpa.TempSubscriptionTerminationJpaRepository;
+import app.bpartners.api.model.subscription.SubscriptionTermination;
+import app.bpartners.api.repository.jpa.SubscriptionTerminationJpaRepository;
 import app.bpartners.api.service.subscription.SubscriptionTerminationService;
 import java.util.List;
 import java.util.function.Consumer;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class SubscriptionTerminationTriggeredService
     implements Consumer<SubscriptionTerminationTriggered> {
-  private final TempSubscriptionTerminationJpaRepository repository;
+  private final SubscriptionTerminationJpaRepository repository;
   private final SubscriptionTerminationService subscriptionTerminationService;
 
   @Override
@@ -29,7 +29,7 @@ public class SubscriptionTerminationTriggeredService
         "Subscription termination triggered, processing {} user(s) one after the other",
         terminations.size());
     terminations.stream()
-        .map(TempSubscriptionTermination::getId)
+        .map(SubscriptionTermination::getId)
         .forEach(subscriptionTerminationService::terminate);
   }
 }

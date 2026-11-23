@@ -39,13 +39,14 @@ public class SubscriptionPaymentService {
   private final SubscriptionProductRepository subscriptionProductRepository;
   private final EventProducer eventProducer;
   private final CustomDateFormatter customDateFormatter;
+  private final StripeSubscriptionSyncService stripeSubscriptionSyncService;
 
   public Optional<SubscriptionPayment> recordPaidStripeInvoice(Invoice stripeInvoice) {
     var recorded = recordPaidStripeInvoiceWithoutInvoicing(stripeInvoice);
     recorded.ifPresent(
         payment -> {
           if (payment.getInvoiceId() == null) {
-            requestInvoice(payment);
+            requestInvoice(payment, stripeInvoice);
             return;
           }
           log.info(
@@ -150,11 +151,14 @@ public class SubscriptionPaymentService {
             .build());
   }
 
-  private void requestInvoice(SubscriptionPayment subscriptionPayment) {
+  private void requestInvoice(SubscriptionPayment subscriptionPayment, Invoice stripeInvoice) {
+    var notifiesSubscriber =
+        !stripeSubscriptionSyncService.isCreatedOnStripeOnly(stripeInvoice.getSubscription());
     eventProducer.accept(
         List.of(
             SubscriptionPaymentInvoiceRequested.builder()
                 .subscriptionPaymentId(subscriptionPayment.getId())
+                .notifiesSubscriber(notifiesSubscriber)
                 .build()));
     log.info(
         "Requested subscription invoice for SubscriptionPayment(id={}, stripeInvoiceId={})",

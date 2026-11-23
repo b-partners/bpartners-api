@@ -449,6 +449,13 @@ public class SecurityConf {
                             primaryUserResolver))
                     .authenticated()
                     .requestMatchers(
+                        new SelfPrimaryUserMatcher(
+                            GET,
+                            "/users/*/subscriptionInvoiceSummaries",
+                            authResourceProvider,
+                            primaryUserResolver))
+                    .authenticated()
+                    .requestMatchers(
                         new SelfAccountMatcher(GET, "/accounts/*/invoices/*", authResourceProvider))
                     .authenticated()
                     .requestMatchers(

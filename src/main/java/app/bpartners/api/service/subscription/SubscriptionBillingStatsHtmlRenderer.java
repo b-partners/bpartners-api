@@ -132,24 +132,28 @@ public class SubscriptionBillingStatsHtmlRenderer {
     kpis.add(kpi("Total HT", euros(amountHt(total)), "hors taxes", false));
     kpis.add(
         kpi(
-            "Abonnements mensuels",
+            "Total des mensualités facturées",
             count(soldCount(stats.getMonthlySubscriptions())),
-            "instalments facturés",
+            "cumul des instalments facturés sur la période",
             false));
     kpis.add(
         kpi(
-            "Abonnements annuels",
+            "Total des annuités facturées",
             count(soldCount(stats.getAnnualSubscriptions())),
-            "années facturées",
+            "cumul des années facturées sur la période",
             false));
     kpis.add(
         kpi(
-            "Crédits vendus",
+            "Total des crédits vendus",
             count(creditsSold(credits)),
-            count(purchaseCount(credits)) + " achats",
+            count(purchaseCount(credits)) + " achats sur la période",
             false));
     kpis.add(
-        kpi("Crédits consommés", count(nz(stats.getConsumedCredits())), "analyses (net)", false));
+        kpi(
+            "Total des crédits consommés",
+            count(nz(stats.getConsumedCredits())),
+            "crédits, net des annulations",
+            false));
     return kpis;
   }
 
@@ -158,14 +162,14 @@ public class SubscriptionBillingStatsHtmlRenderer {
     List<Map<String, Object>> rows = new ArrayList<>();
     rows.add(
         salesRow(
-            "Abonnements mensuels",
-            "1 vente par instalment",
+            "Mensualités facturées",
+            "1 vente par instalment, cumul sur la période",
             count(soldCount(stats.getMonthlySubscriptions())),
             stats.getMonthlySubscriptions()));
     rows.add(
         salesRow(
-            "Abonnements annuels",
-            "1 vente par année",
+            "Annuités facturées",
+            "1 vente par année, cumul sur la période",
             count(soldCount(stats.getAnnualSubscriptions())),
             stats.getAnnualSubscriptions()));
     rows.add(
@@ -173,8 +177,8 @@ public class SubscriptionBillingStatsHtmlRenderer {
             "Crédits d'analyse", "prépayés", count(creditsSold(credits)) + " cr.", credits));
     rows.add(
         salesRow(
-            "Overages",
-            "modèle historique",
+            "Overages facturés",
+            "ancien modèle, cumul sur la période",
             count(soldCount(stats.getLegacyOverages())),
             stats.getLegacyOverages()));
     return rows;

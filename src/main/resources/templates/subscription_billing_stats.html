@@ -187,6 +187,7 @@
       <p class="period">
         Période&nbsp; <b th:text="${fromLabel}">—</b> <span class="arrow">→</span> <b th:text="${toLabel}">—</b>
       </p>
+      <p class="period">Les soldes sont calculés à partir des abonnements en cours au début de la période sélectionnée ; les totaux cumulent toute la période.</p>
       <form class="controls" method="get" action="/subscriptionBillingStats">
         <div class="field">
           <label for="from">Du</label>
@@ -224,38 +225,38 @@
     </div>
     <div class="charts">
       <div class="chart-card">
-        <h3>Abonnements mensuels actifs</h3>
-        <span class="note">snapshot en fin de chaque période</span>
+        <h3>Abonnements mensuels : solde cumulé</h3>
+        <span class="note">abonnements en cours au début de la période, plus les démarrages, moins les fins, cumulés jusqu'à la fin de chaque période</span>
         <div class="canvas-wrap"><canvas id="chartActiveMonthly"></canvas></div>
       </div>
       <div class="chart-card">
-        <h3>Abonnements annuels actifs</h3>
-        <span class="note">snapshot en fin de chaque période</span>
+        <h3>Abonnements annuels : solde cumulé</h3>
+        <span class="note">abonnements en cours au début de la période, plus les démarrages, moins les fins, cumulés jusqu'à la fin de chaque période</span>
         <div class="canvas-wrap"><canvas id="chartActiveAnnual"></canvas></div>
       </div>
       <div class="chart-card">
-        <h3>Nouveaux abonnements</h3>
-        <span class="note">démarrages sur la période (par date de début)</span>
+        <h3>Démarrages d'abonnement par période (non cumulés)</h3>
+        <span class="note">par date de début ; upgrades et renouvellements inclus</span>
         <div class="canvas-wrap"><canvas id="chartNewSubs"></canvas></div>
       </div>
       <div class="chart-card">
-        <h3>Instalments facturés</h3>
-        <span class="note">paiements d'abonnement facturés (1 vente par instalment)</span>
+        <h3>Paiements d'abonnement facturés par période (non cumulés)</h3>
+        <span class="note">1 vente par instalment</span>
         <div class="canvas-wrap"><canvas id="chartBilled"></canvas></div>
       </div>
       <div class="chart-card full">
-        <h3>Requêtes au-delà du quota, par plan</h3>
-        <span class="note">requêtes dépassant le quota mensuel inclus (approximation)</span>
+        <h3>Analyses hors quota par période, par plan (approx.)</h3>
+        <span class="note">analyses dépassant le quota mensuel inclus (non cumulées, approximation)</span>
         <div class="canvas-wrap"><canvas id="chartOverage"></canvas></div>
       </div>
       <div class="chart-card">
-        <h3>Requêtes sans plan</h3>
-        <span class="note">analyses par des utilisateurs sans abonnement actif</span>
+        <h3>Analyses sans abonnement actif, par période</h3>
+        <span class="note">analyses nettes des annulations, par des utilisateurs sans abonnement en cours</span>
         <div class="canvas-wrap"><canvas id="chartWithoutPlan"></canvas></div>
       </div>
       <div class="chart-card">
-        <h3>Factures payées</h3>
-        <span class="note">nombre (barres) &amp; montant TTC en € (ligne)</span>
+        <h3>Factures clients payées par période (date de création)</h3>
+        <span class="note">toutes les factures payées de la plateforme : nombre (barres) &amp; montant TTC en € (ligne)</span>
         <div class="canvas-wrap"><canvas id="chartInvoices"></canvas></div>
       </div>
     </div>
@@ -263,8 +264,8 @@
 
   <section>
     <div class="sec-head">
-      <h2>Ventes sur la période</h2>
-      <span class="note">montants en euros, HT et TTC</span>
+      <h2>Ventes cumulées sur la période</h2>
+      <span class="note">totaux sur toute la période, montants en euros, HT et TTC</span>
     </div>
     <div class="card scroll">
       <table>
@@ -335,8 +336,8 @@
       <table>
         <thead>
         <tr>
-          <th>Mois</th><th>Mensuels</th><th>Annuels</th><th>Crédits vendus</th>
-          <th>Consommés</th><th>Overages</th><th>Total HT</th><th>Total TTC</th>
+          <th>Mois</th><th>Mensualités facturées dans le mois</th><th>Annuités facturées dans le mois</th><th>Crédits vendus dans le mois</th>
+          <th>Crédits consommés dans le mois (net)</th><th>Overages facturés dans le mois (ancien modèle)</th><th>Total HT</th><th>Total TTC</th>
         </tr>
         </thead>
         <tbody>
@@ -390,13 +391,13 @@
 
     new Chart(document.getElementById('chartActiveMonthly'), {
       type: 'line',
-      data: { labels: data.labels, datasets: [{ label: 'Mensuels actifs', data: data.activeMonthly, borderColor: accent, backgroundColor: accent, tension: 0.25, fill: false }] },
+      data: { labels: data.labels, datasets: [{ label: 'Solde mensuels', data: data.activeMonthly, borderColor: accent, backgroundColor: accent, tension: 0.25, fill: false }] },
       options: Object.assign(baseOpts(), { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
     });
 
     new Chart(document.getElementById('chartActiveAnnual'), {
       type: 'line',
-      data: { labels: data.labels, datasets: [{ label: 'Annuels actifs', data: data.activeAnnual, borderColor: '#2f80ed', backgroundColor: '#2f80ed', tension: 0.25, fill: false }] },
+      data: { labels: data.labels, datasets: [{ label: 'Solde annuels', data: data.activeAnnual, borderColor: '#2f80ed', backgroundColor: '#2f80ed', tension: 0.25, fill: false }] },
       options: Object.assign(baseOpts(), { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
     });
 
@@ -429,14 +430,14 @@
 
     new Chart(document.getElementById('chartWithoutPlan'), {
       type: 'bar',
-      data: { labels: data.labels, datasets: [{ label: 'Requêtes sans plan', data: data.requestsWithoutPlan, backgroundColor: '#9b51e0' }] },
+      data: { labels: data.labels, datasets: [{ label: 'Analyses sans abonnement actif', data: data.requestsWithoutPlan, backgroundColor: '#9b51e0' }] },
       options: Object.assign(baseOpts(), { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } })
     });
 
     new Chart(document.getElementById('chartInvoices'), {
       type: 'bar',
       data: { labels: data.labels, datasets: [
-        { label: 'Factures payées', data: data.paidInvoicesCount, backgroundColor: accent, yAxisID: 'y', order: 2 },
+        { label: 'Factures clients payées', data: data.paidInvoicesCount, backgroundColor: accent, yAxisID: 'y', order: 2 },
         { type: 'line', label: 'Montant TTC (€)', data: data.paidInvoicesAmountEuros, borderColor: '#27ae60', backgroundColor: '#27ae60', yAxisID: 'y1', tension: 0.25, fill: false, order: 1 }
       ] },
       options: withLegend({ scales: {

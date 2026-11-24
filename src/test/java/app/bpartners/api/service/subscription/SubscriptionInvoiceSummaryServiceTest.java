@@ -6,6 +6,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -26,7 +27,9 @@ import java.time.Instant;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,6 +50,14 @@ class SubscriptionInvoiceSummaryServiceTest {
 
   SubscriptionInvoiceSummaryService subject;
 
+  private static Map<YearMonth, List<Invoice>> emptyYear(int year) {
+    var months = new LinkedHashMap<YearMonth, List<Invoice>>();
+    for (int month = 1; month <= 12; month++) {
+      months.put(YearMonth.of(year, month), List.of());
+    }
+    return months;
+  }
+
   @BeforeEach
   void setUp() {
     subject =
@@ -58,10 +69,11 @@ class SubscriptionInvoiceSummaryServiceTest {
             userSubscriptionConfMock,
             correspondenceRepositoryMock);
     when(userSubscriptionConfMock.getUserToCreditId()).thenReturn(USER_TO_CREDIT_ID);
-    when(userServiceMock.getUserById(USER_ID)).thenReturn(User.builder().email(USER_EMAIL).build());
+    when(userServiceMock.getUserByIdWithoutPaymentMethod(USER_ID))
+        .thenReturn(User.builder().email(USER_EMAIL).build());
     when(correspondenceRepositoryMock.findByUserId(USER_ID)).thenReturn(Optional.empty());
-    when(subscriptionInvoiceServiceMock.getSubscriptionInvoices(eq(USER_ID), any(YearMonth.class)))
-        .thenReturn(List.of());
+    when(subscriptionInvoiceServiceMock.getSubscriptionInvoicesByMonth(eq(USER_ID), anyInt()))
+        .thenAnswer(invocation -> emptyYear(invocation.getArgument(1)));
     when(subscriptionPaymentRepositoryMock.findByUserIdAndInvoiceIdIsNotNull(USER_ID))
         .thenReturn(List.of());
     when(invoiceRepositoryMock.findSendingYears(any(), anyList(), any(), anyList(), any()))
@@ -84,8 +96,10 @@ class SubscriptionInvoiceSummaryServiceTest {
     var first = Invoice.builder().id("invoice_1").build();
     var second = Invoice.builder().id("invoice_2").build();
     var march = YearMonth.of(CURRENT_YEAR, 3);
-    when(subscriptionInvoiceServiceMock.getSubscriptionInvoices(USER_ID, march))
-        .thenReturn(List.of(first, second));
+    var year = emptyYear(CURRENT_YEAR);
+    year.put(march, List.of(first, second));
+    when(subscriptionInvoiceServiceMock.getSubscriptionInvoicesByMonth(USER_ID, CURRENT_YEAR))
+        .thenReturn(year);
 
     var summary = subject.getYearSummary(USER_ID, CURRENT_YEAR);
 

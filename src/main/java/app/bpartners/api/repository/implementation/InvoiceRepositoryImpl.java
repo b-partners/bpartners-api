@@ -6,6 +6,7 @@ import app.bpartners.api.endpoint.rest.model.ArchiveStatus;
 import app.bpartners.api.endpoint.rest.model.InvoiceStatus;
 import app.bpartners.api.model.ArchiveInvoice;
 import app.bpartners.api.model.Invoice;
+import app.bpartners.api.model.User;
 import app.bpartners.api.model.exception.NotFoundException;
 import app.bpartners.api.model.mapper.InvoiceMapper;
 import app.bpartners.api.model.mapper.InvoiceProductMapper;
@@ -25,6 +26,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -88,6 +90,21 @@ public class InvoiceRepositoryImpl implements InvoiceRepository {
             .findById(invoiceId)
             .orElseThrow(() -> new NotFoundException("Invoice." + invoiceId + " is not found"));
     return mapper.toDomain(invoice, userRepository.getById(invoice.getIdUser()));
+  }
+
+  @Override
+  public List<Invoice> findAllByIds(List<String> ids) {
+    if (ids.isEmpty()) {
+      return List.of();
+    }
+    var usersById = new HashMap<String, User>();
+    return jpaRepository.findAllById(ids).stream()
+        .map(
+            invoice ->
+                mapper.toDomain(
+                    invoice,
+                    usersById.computeIfAbsent(invoice.getIdUser(), userRepository::getById)))
+        .toList();
   }
 
   @Override

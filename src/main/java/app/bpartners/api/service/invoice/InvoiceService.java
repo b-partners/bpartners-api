@@ -168,6 +168,10 @@ public class InvoiceService {
     return repository.getById(invoiceId);
   }
 
+  public List<Invoice> findAllByIds(List<String> invoiceIds) {
+    return repository.findAllByIds(invoiceIds);
+  }
+
   @Transactional
   public Invoice duplicateAsDraft(String idInvoice, String reference) {
     var actual = getById(idInvoice);

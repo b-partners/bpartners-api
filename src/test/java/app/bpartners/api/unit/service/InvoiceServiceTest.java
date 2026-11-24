@@ -65,6 +65,14 @@ class InvoiceServiceTest {
   }
 
   @Test
+  void find_all_by_ids_delegates_to_repository() {
+    var invoice = Invoice.builder().id("invoice_id").build();
+    when(repositoryMock.findAllByIds(List.of("invoice_id"))).thenReturn(List.of(invoice));
+
+    assertEquals(List.of(invoice), subject.findAllByIds(List.of("invoice_id")));
+  }
+
+  @Test
   void crupdate_subscription_invoice() {
     var accountHolder = AccountHolder.builder().subjectToVat(false).build();
     var user =

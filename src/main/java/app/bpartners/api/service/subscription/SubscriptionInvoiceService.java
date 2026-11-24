@@ -20,18 +20,18 @@ import app.bpartners.api.repository.model.InvoiceCriteria;
 import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.user.UserService;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -159,8 +159,8 @@ public class SubscriptionInvoiceService {
     var prepaidByMonth =
         findPrepaidInvoicesByMonth(concernedUserIdentifier, year, refundedInvoiceIds);
     var invoicesByMonth = new LinkedHashMap<YearMonth, List<Invoice>>();
-    IntStream.rangeClosed(1, 12)
-        .mapToObj(month -> YearMonth.of(year, month))
+    Arrays.stream(Month.values())
+        .map(month -> YearMonth.of(year, month))
         .forEach(
             yearMonth ->
                 invoicesByMonth.put(yearMonth, prepaidByMonth.getOrDefault(yearMonth, List.of())));
@@ -202,14 +202,16 @@ public class SubscriptionInvoiceService {
       String concernedUserIdentifier, int year, Set<String> refundedInvoiceIds) {
     var payments =
         subscriptionPaymentRepository.findInvoicedByUserIdBetween(
-            concernedUserIdentifier, startOf(YearMonth.of(year, 1)), endOf(YearMonth.of(year, 12)));
+            concernedUserIdentifier,
+            startOf(YearMonth.of(year, Month.JANUARY)),
+            endOf(YearMonth.of(year, Month.DECEMBER)));
     if (payments.isEmpty()) {
       return Map.of();
     }
     var invoiceIds = payments.stream().map(SubscriptionPayment::getInvoiceId).toList();
     var invoicesById =
         invoiceService.findAllByIds(invoiceIds).stream()
-            .collect(toMap(Invoice::getId, Function.identity(), (first, second) -> first));
+            .collect(toMap(Invoice::getId, Function.identity()));
     var invoicesByMonth = new HashMap<YearMonth, List<Invoice>>();
     for (var payment : payments) {
       var invoice = invoicesById.get(payment.getInvoiceId());
@@ -235,8 +237,8 @@ public class SubscriptionInvoiceService {
                 .archiveStatus(ENABLED)
                 .customerEmail(customerEmail)
                 .titlePrefix(SubscriptionInvoiceTitleComputer.TITLE_PREFIX)
-                .sendingDateFrom(LocalDate.of(year, 1, 1))
-                .sendingDateTo(LocalDate.of(year, 12, 31))
+                .sendingDateFrom(YearMonth.of(year, Month.JANUARY).atDay(1))
+                .sendingDateTo(YearMonth.of(year, Month.DECEMBER).atEndOfMonth())
                 .page(MIN_PAGE - 1)
                 .pageSize(MAX_SIZE)
                 .build());

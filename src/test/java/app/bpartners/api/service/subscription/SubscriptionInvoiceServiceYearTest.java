@@ -24,8 +24,10 @@ import app.bpartners.api.service.utils.CustomDateFormatter;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -205,5 +207,82 @@ class SubscriptionInvoiceServiceYearTest {
     subject.getSubscriptionInvoicesByMonth(USER_ID, YEAR);
 
     verify(invoiceServiceMock, times(1)).findAllByCriteria(any());
+  }
+
+  private SubscriptionPayment prepaidPayment(String invoiceId, YearMonth yearMonth) {
+    return SubscriptionPayment.builder()
+        .invoiceId(invoiceId)
+        .paymentDatetime(yearMonth.atDay(10).atStartOfDay().toInstant(ZoneOffset.UTC))
+        .build();
+  }
+
+  @Test
+  void fully_prepaid_year_does_not_look_up_emails() {
+    var months = IntStream.rangeClosed(1, 12).mapToObj(month -> YearMonth.of(YEAR, month)).toList();
+    var payments = months.stream().map(month -> prepaidPayment("prepaid_" + month, month)).toList();
+    var invoices = months.stream().map(month -> monthlyInvoice("prepaid_" + month, month)).toList();
+    when(subscriptionPaymentRepositoryMock.findInvoicedByUserIdBetween(any(), any(), any()))
+        .thenReturn(payments);
+    when(invoiceServiceMock.findAllByIds(any())).thenReturn(invoices);
+
+    var actual = subject.getSubscriptionInvoicesByMonth(USER_ID, YEAR);
+
+    months.forEach(month -> assertEquals(1, actual.get(month).size()));
+    verify(userServiceMock, never()).getUserByIdWithoutPaymentMethod(any());
+    verify(invoiceServiceMock, never()).findAllByCriteria(any());
+  }
+
+  @Test
+  void prepaid_payments_without_invoice_or_with_refunded_invoice_are_skipped() {
+    var march = YearMonth.of(YEAR, 3);
+    var refunded = monthlyInvoice("refunded", march);
+    var kept = monthlyInvoice("kept", march);
+    when(subscriptionPaymentRepositoryMock.findRefundedInvoiceIdsByUserId(USER_ID))
+        .thenReturn(List.of("refunded"));
+    when(subscriptionPaymentRepositoryMock.findInvoicedByUserIdBetween(any(), any(), any()))
+        .thenReturn(
+            List.of(
+                prepaidPayment("missing", march),
+                prepaidPayment("refunded", march),
+                prepaidPayment("kept", march)));
+    when(invoiceServiceMock.findAllByIds(List.of("missing", "refunded", "kept")))
+        .thenReturn(List.of(refunded, kept));
+
+    var actual = subject.getSubscriptionInvoicesByMonth(USER_ID, YEAR);
+
+    assertEquals(List.of(kept), actual.get(march));
+  }
+
+  @Test
+  void user_without_email_has_no_email_invoices() {
+    when(userServiceMock.getUserByIdWithoutPaymentMethod(USER_ID))
+        .thenReturn(User.builder().email(null).build());
+
+    var actual = subject.getSubscriptionInvoicesByMonth(USER_ID, YEAR);
+
+    assertTrue(actual.values().stream().allMatch(List::isEmpty));
+    verify(invoiceServiceMock, never()).findAllByCriteria(any());
+  }
+
+  @Test
+  void user_email_covering_every_month_skips_stripe_email() {
+    var months = IntStream.rangeClosed(1, 12).mapToObj(month -> YearMonth.of(YEAR, month)).toList();
+    var invoices = months.stream().map(month -> monthlyInvoice("invoice_" + month, month)).toList();
+    when(invoiceServiceMock.findAllByCriteria(any())).thenReturn(invoices);
+
+    var actual = subject.getSubscriptionInvoicesByMonth(USER_ID, YEAR);
+
+    months.forEach(month -> assertEquals(1, actual.get(month).size()));
+    verify(correspondenceRepositoryMock, never()).findByUserId(any());
+  }
+
+  @Test
+  void invoices_without_sending_date_are_ignored() {
+    var withoutSendingDate = Invoice.builder().id("no_date").title("title").build();
+    when(invoiceServiceMock.findAllByCriteria(any())).thenReturn(List.of(withoutSendingDate));
+
+    var actual = subject.getSubscriptionInvoicesByMonth(USER_ID, YEAR);
+
+    assertTrue(actual.values().stream().allMatch(List::isEmpty));
   }
 }

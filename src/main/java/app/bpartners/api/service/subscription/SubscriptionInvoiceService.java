@@ -6,6 +6,7 @@ import static app.bpartners.api.endpoint.rest.model.InvoiceStatus.PAID;
 import static app.bpartners.api.endpoint.rest.model.PaymentStatus.UNPAID;
 import static app.bpartners.api.model.BoundedPageSize.MAX_SIZE;
 import static app.bpartners.api.model.PageFromOne.MIN_PAGE;
+import static java.util.stream.Collectors.toMap;
 
 import app.bpartners.api.endpoint.rest.model.PaymentStatus;
 import app.bpartners.api.model.Invoice;
@@ -20,10 +21,17 @@ import app.bpartners.api.service.invoice.InvoiceService;
 import app.bpartners.api.service.user.UserService;
 import java.time.Instant;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -141,6 +149,111 @@ public class SubscriptionInvoiceService {
                 withoutRefunded(
                     concernedUserIdentifier, findByCustomerEmail(stripeEmail, yearMonth)))
         .orElse(List.of());
+  }
+
+  public Map<YearMonth, List<Invoice>> getSubscriptionInvoicesByMonth(
+      String concernedUserIdentifier, int year) {
+    var refundedInvoiceIds =
+        Set.copyOf(
+            subscriptionPaymentRepository.findRefundedInvoiceIdsByUserId(concernedUserIdentifier));
+    var prepaidByMonth =
+        findPrepaidInvoicesByMonth(concernedUserIdentifier, year, refundedInvoiceIds);
+    var invoicesByMonth = new LinkedHashMap<YearMonth, List<Invoice>>();
+    Arrays.stream(Month.values())
+        .map(month -> YearMonth.of(year, month))
+        .forEach(
+            yearMonth ->
+                invoicesByMonth.put(yearMonth, prepaidByMonth.getOrDefault(yearMonth, List.of())));
+
+    if (!hasEmptyMonth(invoicesByMonth)) {
+      return invoicesByMonth;
+    }
+    var concernedUser = userService.getUserByIdWithoutPaymentMethod(concernedUserIdentifier);
+    fillEmptyMonths(
+        invoicesByMonth,
+        findInvoicesByMonthOfCustomerEmail(concernedUser.getEmail(), year, refundedInvoiceIds));
+
+    if (hasEmptyMonth(invoicesByMonth)) {
+      stripeCustomerEmailCorrespondenceJpaRepository
+          .findByUserId(concernedUserIdentifier)
+          .map(UserStripeCustomerEmailCorrespondence::getEmail)
+          .filter(stripeEmail -> !stripeEmail.equalsIgnoreCase(concernedUser.getEmail()))
+          .ifPresent(
+              stripeEmail ->
+                  fillEmptyMonths(
+                      invoicesByMonth,
+                      findInvoicesByMonthOfCustomerEmail(stripeEmail, year, refundedInvoiceIds)));
+    }
+    return invoicesByMonth;
+  }
+
+  private static boolean hasEmptyMonth(Map<YearMonth, List<Invoice>> invoicesByMonth) {
+    return invoicesByMonth.values().stream().anyMatch(List::isEmpty);
+  }
+
+  private static void fillEmptyMonths(
+      Map<YearMonth, List<Invoice>> invoicesByMonth, Map<YearMonth, List<Invoice>> fallback) {
+    invoicesByMonth.replaceAll(
+        (yearMonth, invoices) ->
+            invoices.isEmpty() ? fallback.getOrDefault(yearMonth, List.of()) : invoices);
+  }
+
+  private Map<YearMonth, List<Invoice>> findPrepaidInvoicesByMonth(
+      String concernedUserIdentifier, int year, Set<String> refundedInvoiceIds) {
+    var payments =
+        subscriptionPaymentRepository.findInvoicedByUserIdBetween(
+            concernedUserIdentifier,
+            startOf(YearMonth.of(year, Month.JANUARY)),
+            endOf(YearMonth.of(year, Month.DECEMBER)));
+    if (payments.isEmpty()) {
+      return Map.of();
+    }
+    var invoiceIds = payments.stream().map(SubscriptionPayment::getInvoiceId).toList();
+    var invoicesById =
+        invoiceService.findAllByIds(invoiceIds).stream()
+            .collect(toMap(Invoice::getId, Function.identity()));
+    var invoicesByMonth = new HashMap<YearMonth, List<Invoice>>();
+    for (var payment : payments) {
+      var invoice = invoicesById.get(payment.getInvoiceId());
+      if (invoice == null || refundedInvoiceIds.contains(invoice.getId())) {
+        continue;
+      }
+      var yearMonth = YearMonth.from(payment.getPaymentDatetime().atZone(PARIS));
+      invoicesByMonth.computeIfAbsent(yearMonth, ignored -> new ArrayList<>()).add(invoice);
+    }
+    return invoicesByMonth;
+  }
+
+  private Map<YearMonth, List<Invoice>> findInvoicesByMonthOfCustomerEmail(
+      String customerEmail, int year, Set<String> refundedInvoiceIds) {
+    if (customerEmail == null) {
+      return Map.of();
+    }
+    var invoices =
+        invoiceService.findAllByCriteria(
+            InvoiceCriteria.builder()
+                .idUser(userSubscriptionConf.getUserToCreditId())
+                .statusList(List.of(CONFIRMED, PAID))
+                .archiveStatus(ENABLED)
+                .customerEmail(customerEmail)
+                .titlePrefix(SubscriptionInvoiceTitleComputer.TITLE_PREFIX)
+                .sendingDateFrom(YearMonth.of(year, Month.JANUARY).atDay(1))
+                .sendingDateTo(YearMonth.of(year, Month.DECEMBER).atEndOfMonth())
+                .page(MIN_PAGE - 1)
+                .pageSize(MAX_SIZE)
+                .build());
+    var invoicesByMonth = new HashMap<YearMonth, List<Invoice>>();
+    for (var invoice : invoices) {
+      if (invoice.getSendingDate() == null || refundedInvoiceIds.contains(invoice.getId())) {
+        continue;
+      }
+      var yearMonth = YearMonth.from(invoice.getSendingDate());
+      var expectedTitle = subscriptionInvoiceTitleComputer.apply(yearMonth);
+      if (expectedTitle.equalsIgnoreCase(invoice.getTitle())) {
+        invoicesByMonth.computeIfAbsent(yearMonth, ignored -> new ArrayList<>()).add(invoice);
+      }
+    }
+    return invoicesByMonth;
   }
 
   private List<Invoice> findPrepaidInvoices(String concernedUserIdentifier, YearMonth yearMonth) {
